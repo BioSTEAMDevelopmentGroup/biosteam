@@ -741,6 +741,15 @@ class Unit:
         self._ins[:] = ()
         self._outs[:] = ()
         if discard: bst.main_flowsheet.discard(self)
+
+    def get_tooltip_string(self):
+        """Return a string that can be used as a Tippy tooltip in HTML output"""
+        return (
+            " " + # makes sure graphviz does not try to parse the string as HTML
+            self.results().
+            to_html(justify='unset'). # unset makes sure that table header style can be overwritten in CSS
+            replace("\n", "").replace("  ", "") # makes sure tippy.js does not add any whitespaces
+        )
     
     def get_node(self):
         """Return unit node attributes for graphviz."""
@@ -749,7 +758,9 @@ class Unit:
         if bst.preferences.minimal_nodes:
             return self._graphics.get_minimal_node(self)
         else:
-            return self._graphics.get_node_tailored_to_unit(self)
+            node = self._graphics.get_node_tailored_to_unit(self)
+            node['tooltip'] = self.get_tooltip_string()
+            return node
     
     def get_design_result(self, key: str, units: str):
         """

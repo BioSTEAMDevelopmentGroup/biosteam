@@ -3,6 +3,7 @@ function add_node_tooltips() {
     tippy('[data-tippy-content]', {
         allowHTML: true,
         placement: 'bottom',
+        theme: 'translucent',
     });
 }
 

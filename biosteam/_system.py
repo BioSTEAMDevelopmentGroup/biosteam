@@ -1390,7 +1390,6 @@ class System:
         """
         self._load_configuration()
         if kind is None: kind = 1
-        graph_attrs['format'] = format or 'png'
         if title is None: title = ''
         graph_attrs['label'] = title
         preferences = bst.preferences
