@@ -1390,17 +1390,14 @@ class System:
         """
         self._load_configuration()
         if kind is None: kind = 1
-        graph_attrs['format'] = format or 'png'
         if title is None: title = ''
         graph_attrs['label'] = title
         preferences = bst.preferences
-        original = (preferences.number_path,
-                    preferences.label_streams,
-                    preferences.profile)
-        if number is not None: preferences.number_path = number
-        if label is not None: preferences.label_streams = label
-        if profile is not None: preferences.profile = profile
-        try:
+        with preferences.temporary():
+            if number is not None: preferences.number_path = number
+            if label is not None: preferences.label_streams = label
+            if profile is not None: preferences.profile = profile
+            if format is not None: preferences.graphviz_format = format
             if kind == 0 or kind == 'cluster':
                 f = self._cluster_digraph(graph_attrs)
             elif kind == 1 or kind == 'thorough':
@@ -1417,10 +1414,6 @@ class System:
                 finalize_digraph(f, file, format)
             else:
                 return f
-        finally:
-            (preferences.number_path,
-             preferences.label_streams,
-             preferences.profile) = original
 
     # Methods for running one iteration of a loop
     def _iter_run_conditional(self, data):
@@ -2472,7 +2465,7 @@ class System:
         stream_tables = []
         for chemicals, streams in streams_by_chemicals.items():
             stream_tables.append(report.stream_table(streams, chemicals=chemicals, T='K', **stream_properties))
-        report.tables_to_excel(report.stream_tables, writer, 'Stream table')
+        report.tables_to_excel(stream_tables, writer, 'Stream table')
         
         # Heat utility tables
         heat_utilities = report.heat_utility_tables(cost_units)

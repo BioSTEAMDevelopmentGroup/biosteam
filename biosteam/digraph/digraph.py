@@ -14,6 +14,9 @@ import biosteam as bst
 from graphviz import Digraph
 from IPython import display
 from thermosteam import Stream
+from xml.etree import ElementTree
+from typing import Optional
+import re
 
 __all__ = ('digraph_from_system',
            'digraph_from_units',
@@ -318,6 +321,18 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
         if line: lines.append(line)
         ID = '\n'.join(lines)
         penwidth = pen_width(stream) if pen_width else '1.0'
+        if preferences.graphviz_format == 'html':
+            if stream.isempty():
+                tooltip = '(empty)'
+            else:
+                df = connection.stream._info(None, None, None, None, None, None, None, df=True)
+                tooltip = (
+                    " " + # makes sure graphviz does not try to parse the string as HTML
+                    df.to_html(justify='unset'). # unset makes sure that table header style can be overwritten in CSS
+                    replace("\n", "").replace("  ", "") # makes sure tippy.js does not add any whitespaces
+                )
+        else:
+            tooltip = ''
         # Make stream nodes / unit-stream edges / unit-unit edges
         if has_sink and not has_source:
             # Feed stream case
@@ -331,7 +346,7 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
             inlet_options = sink._graphics.get_inlet_options(sink, sink_index)
             f.attr('edge', arrowtail='none', arrowhead='none', label=ID,
                    tailport='e', style=style, penwidth=penwidth, **inlet_options)
-            f.edge(ID, unit_names[sink])
+            f.edge(ID, unit_names[sink], labeltooltip=tooltip)
         elif has_source and not has_sink:
             # Product stream case
             f.node(ID, 
@@ -345,7 +360,7 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
             outlet_options = source._graphics.get_outlet_options(source, source_index)
             f.attr('edge', arrowtail='none', arrowhead='none', label=ID,
                    headport='w', style=style, penwidth=penwidth, **outlet_options)
-            f.edge(unit_names[source], ID)
+            f.edge(unit_names[source], ID, labeltooltip=tooltip)
         elif has_sink and has_source:
             # Process stream case
             inlet_options = sink._graphics.get_inlet_options(sink, sink_index)
@@ -353,7 +368,7 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
             f.attr('edge', arrowtail='none', arrowhead='normal', style=style, 
                    **inlet_options, penwidth=penwidth, **outlet_options)
             label = ID if preferences.label_streams else ''
-            f.edge(unit_names[source], unit_names[sink], label=label)
+            f.edge(unit_names[source], unit_names[sink], label=label, labeltooltip=tooltip)
         else:
             f.node(ID)
     elif has_sink and has_source:
@@ -393,18 +408,145 @@ def add_connections(f: Digraph, connections, unit_names, color=None, fontcolor=N
                        pen_width=pen_width,
                        **edge_options)
 
+def fix_valve_symbol_in_svg_output(
+        img:bytes,
+        unit_color: Optional[str] = None,
+        unit_periphery_color: Optional[str] = None,
+        label_color: Optional[str] = None,
+):
+    """Fix valve symbols because images cannot be loaded when choosing `format='svg'`"""
+    if unit_color is None: unit_color = bst.preferences.unit_color
+    if unit_periphery_color is None: unit_periphery_color = bst.preferences.unit_periphery_color
+    if label_color is None: label_color = bst.preferences.unit_label_color
+    # get all image tags
+    tree = ElementTree.fromstring(img)
+    images = [e for e in tree.iter() if 'image' in e.tag]
+    # make polygon
+    parent_map = {c: p for p in tree.iter() for c in p}
+    getchildren = lambda pm: pm.getchildren() if hasattr(pm, 'getchildren') else list(pm)
+    polygons = [c for i in images for c in getchildren(parent_map[i]) if 'polygon' in c.tag]
+    for p in polygons:
+        points = p.attrib["points"].split(' ')
+        # turn rect into valve symbol
+        buffer = points[1]
+        points[1] = points[2]
+        points[2] = buffer
+        p.attrib["points"] = ' '.join(points)
+        # fix color
+        p.attrib["fill"] = unit_color
+        p.attrib["stroke"] = unit_periphery_color
+    # fix label text color and position
+    label_image = [(c,i) for i in images for c in getchildren(parent_map[parent_map[parent_map[i]]]) if 'text' in c.tag]
+    for l,i in label_image:
+        l.attrib["fill"] = label_color
+        width = int(i.attrib['width'].replace('px',''))
+        x = float(i.attrib["x"])
+        l.attrib["x"] = f"{x+width/2}"
+    # delete image tags
+    for i in images:
+        parent_map[i].remove(i)
+    return ElementTree.tostring(tree)
+
+def inject_javascript(img:bytes):
+    html = ElementTree.Element('html')
+    head = ElementTree.SubElement(html, 'head')
+    # insert css
+    links = [
+        "https://unpkg.com/tippy.js@6.3.7/themes/translucent.css",
+        "https://rawcdn.githack.com/BioSTEAMDevelopmentGroup/biosteam/e065aca079c216d72b75949bbcbb74a3bbddb75d/biosteam/digraph/digraph.css",
+    ]
+    for href in links:
+        link = ElementTree.SubElement(head, 'link')
+        link.set("rel", "stylesheet")
+        link.set("href", href)
+    # insert javascript
+    srcs = [
+        "https://unpkg.com/@popperjs/core@2",
+        "https://unpkg.com/tippy.js@6",
+        "https://rawcdn.githack.com/BioSTEAMDevelopmentGroup/biosteam/e065aca079c216d72b75949bbcbb74a3bbddb75d/biosteam/digraph/digraph.js",
+    ]
+    for src in srcs:
+        script = ElementTree.SubElement(head, 'script')
+        script.set("src", src)
+    # body
+    body = ElementTree.SubElement(html, 'body')
+    svg = ElementTree.fromstring(img)
+    
+    # getiterator is deprecated in Python 3.9
+    getiter = lambda etree: (getattr(etree, 'getiterator', None) or getattr(etree, 'iter'))()
+    
+    # remove namespaces from tags and attributes
+    for e in getiter(svg):
+        e.tag = re.sub("{.*?}","",e.tag)
+        for key, value in e.attrib.copy().items():
+            if "{" in key:
+                clean = re.sub("{.*?}","",key)
+                e.attrib[clean] = value
+                del e.attrib[key]
+    # make tippy tooltips
+    for e in getiter(svg):
+        for key, value in e.attrib.copy().items():
+            if key == "class" and value in ["node", "edge"]:
+                title = e.find("./title")
+                if title is not None:
+                    default_tooltip = title.text
+                else:
+                    default_tooltip = e.text
+                custom_tooltip = (e.find("./g/a") or e).attrib.get("title", None)
+                tooltip = custom_tooltip or default_tooltip
+                if tooltip is not None:
+                    e.attrib["data-tippy-content"] = tooltip.strip()
+    # remove default tooltips
+    for e in getiter(svg):
+        t = e.find("./title")
+        if t is not None:
+            e.remove(t)
+    body.append(svg)
+    # add docstring declaration
+    s = ElementTree.tostring(html, encoding='utf8', method='html')
+    s = b"<!DOCTYPE html>"+s
+    return s
+
 def display_digraph(digraph, format): # pragma: no coverage
+    if format is None: format = preferences.graphviz_format
     if format == 'svg':
-        x = display.SVG(digraph.pipe(format=format))
+        img = digraph.pipe(format=format)
+        img = fix_valve_symbol_in_svg_output(img)
+        x = display.SVG(img)
+    elif format == 'html':
+        img = digraph.pipe(format='svg')
+        img = fix_valve_symbol_in_svg_output(img)
+        img = inject_javascript(img)
+        x = display.HTML(img.decode("utf-8"))
     else:
         x = display.Image(digraph.pipe(format='png'))
     display.display(x)
 
 def save_digraph(digraph, file, format): # pragma: no coverage
     if '.' not in file:
-        if format is None: format='svg'
+        if format is None: format = preferences.graphviz_format
         file += '.' + format
-    img = digraph.pipe(format=format)
+    elif format is None:
+        format = file.split()[-1]
+    else:
+        raise ValueError(
+            "cannot specify format extension; file already has format "
+           f"extension '{file.split()[-1]}'"
+        )
+    if format == 'html':
+        try:
+            img = digraph.pipe(format='svg')
+        except Exception as e:
+            try:
+                from signal import signal, SIGPIPE, SIG_DFL
+                signal(SIGPIPE, SIG_DFL)
+            except ImportError:
+                raise e
+        img = fix_valve_symbol_in_svg_output(img)
+        img = inject_javascript(img)
+    else:
+        img = digraph.pipe(format=format)
+        if format == 'svg': img = fix_valve_symbol_in_svg_output(img)
     f = open(file, 'wb')
     f.write(img)
     f.close()

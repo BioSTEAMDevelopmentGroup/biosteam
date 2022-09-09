@@ -16,7 +16,7 @@ from .._heat_utility import HeatUtility
 DataFrame = pd.DataFrame
 ExcelWriter = pd.ExcelWriter
 
-__all__ = ('stream_table', 'cost_table',
+__all__ = ('stream_table', 'cost_table', 'unit_reaction_tables',
            'unit_result_tables', 'heat_utility_tables',
            'power_utility_table', 'tables_to_excel', 'voc_table',
            'lca_displacement_allocation_table', 

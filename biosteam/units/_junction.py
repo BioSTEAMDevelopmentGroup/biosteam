@@ -59,6 +59,7 @@ class Junction(Unit):
     _graphics = junction_graphics
     heat_utilities = ()
     power_utility = PowerUtility()
+    design_results = {}
     baseline_purchase_cost = 0.
     baseline_purchase_costs = {}
     purchase_cost = 0.
@@ -98,6 +99,9 @@ class Junction(Unit):
             self._reset_thermo(self._ins[0]._thermo)
             self._outs[0].copy_like(self._ins[0])
     simulate = Unit.run
+
+    def _get_tooltip_string(self):
+        return f"{type(self).__name__}: {self.ID}"
 
     @property
     def _inlet_utility_indices(self): return {}

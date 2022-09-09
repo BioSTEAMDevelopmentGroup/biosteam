@@ -48,7 +48,7 @@ class DisplayPreferences:
                  'profile', 'raise_exception', 'background_color', 'stream_color',
                  'label_color', 'label_color', 'depth_colors', 'stream_width',
                  'unit_color', 'unit_label_color', 'unit_periphery_color',
-                 'fill_cluster')
+                 'fill_cluster', 'graphviz_format')
     
     def __init__(self):
         #: Whether to label the ID of streams with sources and sinks in process 
@@ -98,6 +98,9 @@ class DisplayPreferences:
         
         #: Whether to fill subsystem boxes in BioSTEAM 'cluster' diagrams.
         self.fill_cluster: bool = False
+        
+        #: Image format of BioSTEAM graphviz diagrams.
+        self.graphviz_format: str = 'svg'
         
     def temporary(self):
         """Return a TemporaryPreferences object that will revert back to original
