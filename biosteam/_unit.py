@@ -759,7 +759,7 @@ class Unit:
             return self._graphics.get_minimal_node(self)
         else:
             node = self._graphics.get_node_tailored_to_unit(self)
-            if preferences.graphviz_format == 'html':
+            if bst.preferences.graphviz_format == 'html':
                 node['tooltip'] = self._get_tooltip_string()
             return node
     
