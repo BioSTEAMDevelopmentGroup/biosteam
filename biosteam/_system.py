@@ -1397,6 +1397,7 @@ class System:
             if number is not None: preferences.number_path = number
             if label is not None: preferences.label_streams = label
             if profile is not None: preferences.profile = profile
+            if format is not None: preferences.graphviz_format = format
             if kind == 0 or kind == 'cluster':
                 f = self._cluster_digraph(graph_attrs)
             elif kind == 1 or kind == 'thorough':

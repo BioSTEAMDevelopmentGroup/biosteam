@@ -322,8 +322,12 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
         ID = '\n'.join(lines)
         penwidth = pen_width(stream) if pen_width else '1.0'
         if preferences.graphviz_format == 'html':
-            tooltip = connection.stream._info(None, None, None, None, None, None, None)
-            tooltip = tooltip.replace("\n", "<br>")
+            df = connection.stream._info(None, None, None, None, None, None, None, df=True)
+            tooltip = (
+                " " + # makes sure graphviz does not try to parse the string as HTML
+                df.to_html(justify='unset'). # unset makes sure that table header style can be overwritten in CSS
+                replace("\n", "").replace("  ", "") # makes sure tippy.js does not add any whitespaces
+            )
         else:
             tooltip = 'none'
         # Make stream nodes / unit-stream edges / unit-unit edges
@@ -527,7 +531,14 @@ def save_digraph(digraph, file, format): # pragma: no coverage
            f"extension '{file.split()[-1]}'"
         )
     if format == 'html':
-        img = digraph.pipe(format='svg')
+        try:
+            img = digraph.pipe(format='svg')
+        except Exception as e:
+            try:
+                from signal import signal, SIGPIPE, SIG_DFL
+                signal(SIGPIPE, SIG_DFL)
+            except ImportError:
+                raise e
         img = fix_valve_symbol_in_svg_output(img)
         img = inject_javascript(img)
     else:

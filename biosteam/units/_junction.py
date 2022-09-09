@@ -59,6 +59,7 @@ class Junction(Unit):
     _graphics = junction_graphics
     heat_utilities = ()
     power_utility = PowerUtility()
+    design_results = {}
     baseline_purchase_cost = 0.
     baseline_purchase_costs = {}
     purchase_cost = 0.

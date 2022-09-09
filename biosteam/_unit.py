@@ -744,10 +744,10 @@ class Unit:
 
     def _get_tooltip_string(self):
         """Return a string that can be used as a Tippy tooltip in HTML output"""
+        results = self.results()
         return (
             " " + # makes sure graphviz does not try to parse the string as HTML
-            self.results().
-            to_html(justify='unset'). # unset makes sure that table header style can be overwritten in CSS
+            results.to_html(justify='unset'). # unset makes sure that table header style can be overwritten in CSS
             replace("\n", "").replace("  ", "") # makes sure tippy.js does not add any whitespaces
         )
     
@@ -760,7 +760,8 @@ class Unit:
         else:
             node = self._graphics.get_node_tailored_to_unit(self)
             if bst.preferences.graphviz_format == 'html':
-                node['tooltip'] = self._get_tooltip_string()
+                tooltip = self._get_tooltip_string()
+                if tooltip is not None: node['tooltip'] = tooltip
             return node
     
     def get_design_result(self, key: str, units: str):
