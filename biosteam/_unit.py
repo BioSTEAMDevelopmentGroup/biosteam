@@ -744,7 +744,7 @@ class Unit:
 
     def _get_tooltip_string(self):
         """Return a string that can be used as a Tippy tooltip in HTML output"""
-        results = self.results()
+        results = self.results(include_installed_cost=True)
         return (
             " " + # makes sure graphviz does not try to parse the string as HTML
             results.to_html(justify='unset'). # unset makes sure that table header style can be overwritten in CSS

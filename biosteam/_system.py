@@ -2465,7 +2465,7 @@ class System:
         stream_tables = []
         for chemicals, streams in streams_by_chemicals.items():
             stream_tables.append(report.stream_table(streams, chemicals=chemicals, T='K', **stream_properties))
-        report.tables_to_excel(report.stream_tables, writer, 'Stream table')
+        report.tables_to_excel(stream_tables, writer, 'Stream table')
         
         # Heat utility tables
         heat_utilities = report.heat_utility_tables(cost_units)

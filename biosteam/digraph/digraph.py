@@ -322,14 +322,17 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
         ID = '\n'.join(lines)
         penwidth = pen_width(stream) if pen_width else '1.0'
         if preferences.graphviz_format == 'html':
-            df = connection.stream._info(None, None, None, None, None, None, None, df=True)
-            tooltip = (
-                " " + # makes sure graphviz does not try to parse the string as HTML
-                df.to_html(justify='unset'). # unset makes sure that table header style can be overwritten in CSS
-                replace("\n", "").replace("  ", "") # makes sure tippy.js does not add any whitespaces
-            )
+            if stream.isempty():
+                tooltip = '(empty)'
+            else:
+                df = connection.stream._info(None, None, None, None, None, None, None, df=True)
+                tooltip = (
+                    " " + # makes sure graphviz does not try to parse the string as HTML
+                    df.to_html(justify='unset'). # unset makes sure that table header style can be overwritten in CSS
+                    replace("\n", "").replace("  ", "") # makes sure tippy.js does not add any whitespaces
+                )
         else:
-            tooltip = 'none'
+            tooltip = ''
         # Make stream nodes / unit-stream edges / unit-unit edges
         if has_sink and not has_source:
             # Feed stream case

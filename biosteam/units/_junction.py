@@ -100,6 +100,9 @@ class Junction(Unit):
             self._outs[0].copy_like(self._ins[0])
     simulate = Unit.run
 
+    def _get_tooltip_string(self):
+        return f"{type(self).__name__}: {self.ID}"
+
     @property
     def _inlet_utility_indices(self): return {}
     
