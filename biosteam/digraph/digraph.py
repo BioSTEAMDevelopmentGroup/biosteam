@@ -321,8 +321,8 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
         if line: lines.append(line)
         ID = '\n'.join(lines)
         penwidth = pen_width(stream) if pen_width else '1.0'
-        if preferences.add_tooltips:
-            tooltip = connection.stream._info(None, None, None, None, None, None, None, None)
+        if preferences.graphviz_format == 'html':
+            tooltip = connection.stream._info(None, None, None, None, None, None, None)
             tooltip = tooltip.replace("\n", "<br>")
         else:
             tooltip = 'none'
