@@ -379,7 +379,6 @@ class Network:
     def add_process_heat_exchangers(self, excluded=None):
         isa = isinstance
         path = self.path
-        breakpoint()
         if excluded is None: excluded = set()
         for i, u in enumerate(path):
             if isa(u, Unit):

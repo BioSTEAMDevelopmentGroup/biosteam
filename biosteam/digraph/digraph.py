@@ -15,6 +15,7 @@ from graphviz import Digraph
 from IPython import display
 from thermosteam import Stream
 from xml.etree import ElementTree
+from typing import Optional
 import re
 
 __all__ = ('digraph_from_system',
@@ -320,8 +321,11 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
         if line: lines.append(line)
         ID = '\n'.join(lines)
         penwidth = pen_width(stream) if pen_width else '1.0'
-        tooltip = connection.stream._info(None, None, None, None, None, None, None). \
-            replace("<", "").replace(">", "").replace("\n", "<br>")
+        if preferences.add_tooltips:
+            tooltip = connection.stream._info(None, None, None, None, None, None, None, None)
+            tooltip = tooltip.replace("\n", "<br>")
+        else:
+            tooltip = 'none'
         # Make stream nodes / unit-stream edges / unit-unit edges
         if has_sink and not has_source:
             # Feed stream case
@@ -399,17 +403,21 @@ def add_connections(f: Digraph, connections, unit_names, color=None, fontcolor=N
 
 def fix_valve_symbol_in_svg_output(
         img:bytes,
-        unit_color:str = bst.preferences.unit_color,
-        unit_periphery_color:str = bst.preferences.unit_periphery_color,
-        label_color:str = bst.preferences.label_color,
+        unit_color: Optional[str] = None,
+        unit_periphery_color: Optional[str] = None,
+        label_color: Optional[str] = None,
 ):
     """Fix valve symbols because images cannot be loaded when choosing `format='svg'`"""
+    if unit_color is None: unit_color = bst.preferences.unit_color
+    if unit_periphery_color is None: unit_periphery_color = bst.preferences.unit_periphery_color
+    if label_color is None: label_color = bst.preferences.unit_label_color
     # get all image tags
     tree = ElementTree.fromstring(img)
     images = [e for e in tree.iter() if 'image' in e.tag]
     # make polygon
     parent_map = {c: p for p in tree.iter() for c in p}
-    polygons = [c for i in images for c in parent_map[i].getchildren() if 'polygon' in c.tag]
+    getchildren = lambda pm: pm.getchildren() if hasattr(pm, 'getchildren') else list(pm)
+    polygons = [c for i in images for c in getchildren(parent_map[i]) if 'polygon' in c.tag]
     for p in polygons:
         points = p.attrib["points"].split(' ')
         # turn rect into valve symbol
@@ -421,7 +429,7 @@ def fix_valve_symbol_in_svg_output(
         p.attrib["fill"] = unit_color
         p.attrib["stroke"] = unit_periphery_color
     # fix label text color and position
-    label_image = [(c,i) for i in images for c in parent_map[parent_map[parent_map[i]]].getchildren() if 'text' in c.tag]
+    label_image = [(c,i) for i in images for c in getchildren(parent_map[parent_map[parent_map[i]]]) if 'text' in c.tag]
     for l,i in label_image:
         l.attrib["fill"] = label_color
         width = int(i.attrib['width'].replace('px',''))
@@ -456,8 +464,12 @@ def inject_javascript(img:bytes):
     # body
     body = ElementTree.SubElement(html, 'body')
     svg = ElementTree.fromstring(img)
+    
+    # getiterator is deprecated in Python 3.9
+    getiter = lambda etree: (getattr(etree, 'getiterator', None) or getattr(etree, 'iter'))()
+    
     # remove namespaces from tags and attributes
-    for e in svg.getiterator():
+    for e in getiter(svg):
         e.tag = re.sub("{.*?}","",e.tag)
         for key, value in e.attrib.copy().items():
             if "{" in key:
@@ -465,7 +477,7 @@ def inject_javascript(img:bytes):
                 e.attrib[clean] = value
                 del e.attrib[key]
     # make tippy tooltips
-    for e in svg.getiterator():
+    for e in getiter(svg):
         for key, value in e.attrib.copy().items():
             if key == "class" and value in ["node", "edge"]:
                 title = e.find("./title")
@@ -478,7 +490,7 @@ def inject_javascript(img:bytes):
                 if tooltip is not None:
                     e.attrib["data-tippy-content"] = tooltip.strip()
     # remove default tooltips
-    for e in svg.getiterator():
+    for e in getiter(svg):
         t = e.find("./title")
         if t is not None:
             e.remove(t)
@@ -489,6 +501,7 @@ def inject_javascript(img:bytes):
     return s
 
 def display_digraph(digraph, format): # pragma: no coverage
+    if format is None: format = preferences.graphviz_format
     if format == 'svg':
         img = digraph.pipe(format=format)
         img = fix_valve_symbol_in_svg_output(img)
@@ -497,24 +510,29 @@ def display_digraph(digraph, format): # pragma: no coverage
         img = digraph.pipe(format='svg')
         img = fix_valve_symbol_in_svg_output(img)
         img = inject_javascript(img)
-        x = display.HTML(img.decode("utf-8") )
+        x = display.HTML(img.decode("utf-8"))
     else:
         x = display.Image(digraph.pipe(format='png'))
     display.display(x)
 
 def save_digraph(digraph, file, format): # pragma: no coverage
     if '.' not in file:
-        if format is None:
-            format = 'svg'
+        if format is None: format = preferences.graphviz_format
         file += '.' + format
+    elif format is None:
+        format = file.split()[-1]
+    else:
+        raise ValueError(
+            "cannot specify format extension; file already has format "
+           f"extension '{file.split()[-1]}'"
+        )
     if format == 'html':
         img = digraph.pipe(format='svg')
         img = fix_valve_symbol_in_svg_output(img)
         img = inject_javascript(img)
     else:
         img = digraph.pipe(format=format)
-        if format == 'svg':
-            img = fix_valve_symbol_in_svg_output(img)
+        if format == 'svg': img = fix_valve_symbol_in_svg_output(img)
     f = open(file, 'wb')
     f.write(img)
     f.close()

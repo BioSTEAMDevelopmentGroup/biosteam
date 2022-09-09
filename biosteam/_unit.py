@@ -742,7 +742,7 @@ class Unit:
         self._outs[:] = ()
         if discard: bst.main_flowsheet.discard(self)
 
-    def get_tooltip_string(self):
+    def _get_tooltip_string(self):
         """Return a string that can be used as a Tippy tooltip in HTML output"""
         return (
             " " + # makes sure graphviz does not try to parse the string as HTML
@@ -759,7 +759,8 @@ class Unit:
             return self._graphics.get_minimal_node(self)
         else:
             node = self._graphics.get_node_tailored_to_unit(self)
-            node['tooltip'] = self.get_tooltip_string()
+            if bst.preferences.add_tooltips:
+                node['tooltip'] = self._get_tooltip_string()
             return node
     
     def get_design_result(self, key: str, units: str):

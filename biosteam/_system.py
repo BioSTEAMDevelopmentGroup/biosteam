@@ -1393,13 +1393,10 @@ class System:
         if title is None: title = ''
         graph_attrs['label'] = title
         preferences = bst.preferences
-        original = (preferences.number_path,
-                    preferences.label_streams,
-                    preferences.profile)
-        if number is not None: preferences.number_path = number
-        if label is not None: preferences.label_streams = label
-        if profile is not None: preferences.profile = profile
-        try:
+        with preferences.temporary():
+            if number is not None: preferences.number_path = number
+            if label is not None: preferences.label_streams = label
+            if profile is not None: preferences.profile = profile
             if kind == 0 or kind == 'cluster':
                 f = self._cluster_digraph(graph_attrs)
             elif kind == 1 or kind == 'thorough':
@@ -1416,10 +1413,6 @@ class System:
                 finalize_digraph(f, file, format)
             else:
                 return f
-        finally:
-            (preferences.number_path,
-             preferences.label_streams,
-             preferences.profile) = original
 
     # Methods for running one iteration of a loop
     def _iter_run_conditional(self, data):
