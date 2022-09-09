@@ -216,7 +216,7 @@ def cost(basis, ID=None, *, CE, cost=None, n=None, S=1., lb=None, ub=None, kW=No
         
     Examples
     --------
-    :doc:`../../tutorial/Unit_decorators`
+    :doc:`../../tutorial/Inhereting_from_Unit`
     
     """
     

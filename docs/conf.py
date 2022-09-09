@@ -195,7 +195,6 @@ nbsphinx_execute = 'never'
 intersphinx_mapping = {
     'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None),
     'python': ('https://docs.python.org/3', None),
-    'typing': ('https://docs.python.org/3/library', None),
     'qsdsan': ('https://qsdsan.readthedocs.io/en/latest/', None),
     'thermo': ('https://thermo.readthedocs.io/', None),
 }
@@ -251,13 +250,27 @@ html_theme_options = {
     "logo" : {
         'image_light': 'logo.png',
         'image_dark': 'logo_dark.png'
-    }
+    },
+    "announcement": (
+        "<p>Join us every 3rd Monday, 10am CST, for monthly updates on BioSTEAM and "
+        "open Q&A! <a href='mailto: biosteamdevelopmentgroup@gmail.com'>Email us for details</a></p>"
+    ),
+    "external_links": [
+      {"name": "Bioindustrial-Park", "url": "https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park"},
+      {"name": "QSDsan", "url": "https://qsdsan.readthedocs.io/en/latest/"},
+  ]
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["images"]
+html_static_path = ["images", '_static']
+
+# These paths are either relative to html_static_path
+# or fully qualified paths (eg. https://...)
+html_css_files = [
+    'css/custom.css',
+]
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.

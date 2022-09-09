@@ -1,5 +1,5 @@
-Tutorial
---------
+User guide
+----------
 
 .. toctree::
    :maxdepth: 2
@@ -11,6 +11,7 @@ Tutorial
    -pipe-_notation
    Unit_operation_results
    Managing_flowsheets
+   Convergence
    Preferences
 
 .. toctree::
@@ -20,7 +21,6 @@ Tutorial
 
    Process_specifications
    Inheriting_from_Unit
-   Unit_decorators
    Creating_a_System
    Building_a_biorefinery
    Techno-economic_analysis

@@ -1,11 +1,14 @@
 Contributing
 ------------
 
+BioSTEAM welcomes users from all backgrounds to make open-source contributions. 
+Please follow the guidelines to make your contribution.
+
 .. toctree::
    :maxdepth: 2
    :caption: Developer's guide
    
-   AUTHORS
-   LICENSE
    CONTRIBUTING
    CODE_OF_CONDUCT
+   AUTHORS
+   LICENSE

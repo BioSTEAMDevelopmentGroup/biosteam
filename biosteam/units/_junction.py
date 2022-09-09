@@ -100,7 +100,7 @@ class Junction(Unit):
     simulate = Unit.run
 
     @property
-    def inlet_utility_indices(self): return {}
+    def _inlet_utility_indices(self): return {}
     
     @property
-    def outlet_utility_indices(self): return {}
+    def _outlet_utility_indices(self): return {}

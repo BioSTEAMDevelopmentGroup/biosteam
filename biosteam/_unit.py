@@ -131,8 +131,6 @@ class Unit:
     
     :doc:`../tutorial/Inheriting_from_Unit`
     
-    :doc:`../tutorial/Unit_decorators`
-    
     """ 
     
     def __init_subclass__(cls,
@@ -1328,7 +1326,8 @@ class Unit:
         return upstream_units
     
     def neighborhood(self, 
-            radius: Optional[int]=1, upstream: Optional[bool]=True,
+            radius: Optional[int]=1, 
+            upstream: Optional[bool]=True,
             downstream: Optional[bool]=True, 
             ends: Optional[Stream]=None, 
             facilities: Optional[bool]=None

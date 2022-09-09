@@ -21,10 +21,7 @@ from .digraph import (digraph_from_units_and_streams,
 from thermosteam import Stream, MultiStream, Chemical
 from . import HeatUtility, PowerUtility
 from thermosteam.utils import registered
-from scipy.optimize import (
-    anderson, diagbroyden, excitingmixing, linearmixing, 
-    newton_krylov, broyden1, broyden2, fsolve
-)
+from scipy.optimize import root
 from .exceptions import try_method_with_object_stamp, Converged
 from ._network import Network, mark_disjunction, unmark_disjunction
 from ._facility import Facility
@@ -71,7 +68,36 @@ class MaterialData:
         self.index = index
         self.same_chemicals = same_chemicals
         
-        
+   
+def get_recycle_data(stream):
+    """
+    Return stream temperature, pressure, and molar flow rates as a
+    1d array.
+    
+    """
+    data = stream._imol._data
+    TP = stream._thermal_condition
+    arr = np.zeros(data.size + 2)
+    arr[0] = TP.T
+    arr[1] = TP.P
+    arr[2:] = data.flat
+    return arr
+
+def set_recycle_data(stream, arr):
+    """
+    Set stream temperature, pressure, and molar flow rates with a
+    1d array.
+    
+    """
+    data = stream._imol._data
+    data.flat[:] = arr[2:]
+    TP = stream._thermal_condition
+    T = float(arr[0]) # ndfloat objects are slow and parasitic (don't go away)
+    P = float(arr[1])
+    TP._T = (T + TP._T) * 0.5 if T == 0 else T
+    TP._P = (P + TP._P) * 0.5 if P == 0. else P
+    
+   
 # %% System creation tools
 
 def facilities_from_units(units):
@@ -306,8 +332,7 @@ class System:
     facility_recycle : 
         Recycle stream between facilities and system path.
     N_runs : 
-        Number of iterations to run system. This parameter is applicable
-        only to systems with no recycle loop.
+        Number of iterations to converge the system.
     operating_hours :
         Number of operating hours in a year. This parameter is used to
         compute annualized properties such as utility cost and material cost
@@ -398,9 +423,21 @@ class System:
     available_methods: dict[str, tuple(Callable, bool, dict)] = {}
 
     @classmethod
-    def register_method(cls, name, function, conditional=False, **kwargs):
+    def register_method(cls, name, solver, conditional=False, **kwargs):
+        """
+        Register new convergence method (root solver). Two solver signatures
+        are supported:
+        
+        * If conditional is False, the signature must be solver(f, x, **kwargs) 
+          where f(x) = 0 is the solution. This is common for scipy solvers.
+        
+        * If conditional is True, the signature must be solver(f, x, **kwargs) 
+          where f(x, converged) = x is the solution and the solver stops when
+          converged is True. This method is prefered in BioSTEAM.
+        
+        """
         name = name.lower().replace('-', '').replace('_', '').replace(' ', '')
-        cls.available_methods[name] = (function, conditional, kwargs)
+        cls.available_methods[name] = (solver, conditional, kwargs)
 
     @classmethod
     def from_feedstock(cls,
@@ -824,6 +861,7 @@ class System:
             Factor to rescale tolerance in subsystems.
         method :
             Convergence method.
+            
         
         """
         if mol: self.molar_tolerance = float(mol)
@@ -1197,7 +1235,6 @@ class System:
     @recycle.setter
     def recycle(self, recycle):
         isa = isinstance
-        self._N_runs = None
         if recycle is None:
             self._recycle = recycle
         elif isa(recycle, Stream):
@@ -1214,11 +1251,10 @@ class System:
 
     @property
     def N_runs(self) -> int|None:
-        """Number of times to run the path."""
+        """Number of times to converge the path."""
         return self._N_runs
     @N_runs.setter
     def N_runs(self, N_runs):
-        if N_runs: self._recycle = None
         self._N_runs = N_runs
 
     @property
@@ -1387,14 +1423,14 @@ class System:
              preferences.profile) = original
 
     # Methods for running one iteration of a loop
-    def _iter_run_conditional(self, mol):
+    def _iter_run_conditional(self, data):
         """
         Run the system at specified recycle molar flow rate.
 
         Parameters
         ----------
-        mol : numpy.ndarray
-              Recycle molar flow rates.
+        data : numpy.ndarray
+              Recycle molar flow rates, temperature, and pressure.
 
         Returns
         -------
@@ -1404,14 +1440,15 @@ class System:
             True if recycle has not converged.
 
         """
-        mol[mol < 0.] = 0.
-        self._set_recycle_data(mol)
+        data[data < 0.] = 0.
+        self._set_recycle_data(data)
         T = self._get_recycle_temperatures()
+        mol = self._get_recycle_mol()
         self._run()
         recycle = self._recycle
         for i, j in self.tracked_recycles.items():
-            if i is recycle: j.append(i.copy(None)) 
-        mol_new = self._get_recycle_data()
+            if i is recycle: j.append(i.copy(None))
+        mol_new = self._get_recycle_mol()
         T_new = self._get_recycle_temperatures()
         mol_errors = np.abs(mol - mol_new)
         positive_index = mol_errors > 1e-16
@@ -1439,16 +1476,16 @@ class System:
         if not_converged and self._iter >= self.maxiter:
             if self.strict_convergence: raise RuntimeError(f'{repr(self)} could not converge' + self._error_info())
             else: not_converged = False
-        return mol_new, not_converged
+        return self._get_recycle_data(), not_converged
         
-    def _iter_run(self, mol):
+    def _iter_run(self, data):
         """
         Run the system at specified recycle molar flow rate.
 
         Parameters
         ----------
-        mol : numpy.ndarray
-              Recycle molar flow rates.
+        data : numpy.ndarray
+              Recycle temperature, pressure, and molar flow rates.
 
         Returns
         -------
@@ -1456,47 +1493,44 @@ class System:
             New recycle molar flow rates.
 
         """
-        mol_new, not_converged = self._iter_run_conditional(mol)
-        if not_converged: return mol_new - mol
+        data_new, not_converged = self._iter_run_conditional(data)
+        if not_converged: return data_new - data
         else: raise Converged
+
+    def _get_recycle_mol(self):
+        recycles = self.get_all_recycles()
+        N = len(recycles)
+        if N == 1:
+            return recycles[0]._imol._data.copy()
+        elif N > 1: 
+            return np.hstack([i._imol._data for i in recycles])
+        else:
+            raise RuntimeError('no recycle available')
 
     def _get_recycle_data(self):
         recycles = self.get_all_recycles()
         N = len(recycles)
         if N == 1:
-            return recycles[0]._imol.data.copy()
+            return get_recycle_data(recycles[0])
         elif N > 1: 
-            return np.hstack([i._imol.data.flatten() for i in recycles])
+            return np.hstack([get_recycle_data(i) for i in recycles])
         else:
             raise RuntimeError('no recycle available')
 
     def _set_recycle_data(self, data):
         recycles = self.get_all_recycles()
         N = len(recycles)
-        isa = isinstance
         if N == 1:
-            try:
-                recycles[0]._imol._data[:] = data
-            except IndexError as e:
-                if data.shape[0] != 1:
-                    raise IndexError(f'expected 1 row; got {data.shape[0]} rows instead')
-                else:
-                    raise e from None
+            set_recycle_data(recycles[0], data)
         elif N > 1:
             N = data.size
-            M = sum([i._imol._data.size for i in recycles])
+            M = sum([i._imol._data.size + 2 for i in recycles])
             if M != N: raise IndexError(f'expected {N} elements; got {M} instead')
             index = 0
             for i in recycles:
-                if isa(i, MultiStream):
-                    for j in i._imol._data:
-                        end = index + i.chemicals.size
-                        j[:] = data[index:end]
-                        index = end
-                else:
-                    end = index + i.chemicals.size
-                    i._imol._data[:] = data[index:end]
-                    index = end
+                end = index + i._imol._data.size + 2
+                set_recycle_data(i, data[index:end])
+                index = end
         else:
             raise RuntimeError('no recycle available')
 
@@ -1605,12 +1639,14 @@ class System:
                     mol = s.mol
                     for j, ID in enumerate(s.chemicals.IDs):
                         mol[j] = material_flows[i, index[ID]]
-        if self._N_runs:
-            for i in range(self.N_runs): self._run()
-        elif self._recycle:
-            self._solve()
+        if self._recycle:
+            method = self._solve
         else:
-            self._run()
+            method = self._run
+        if self._N_runs:
+            for i in range(self._N_runs): method()
+        else:
+            method()
         if material_data is not None:
             material_flows = material_flows.copy()
             if same_chemicals:
@@ -1710,6 +1746,7 @@ class System:
             self.scope.reset_cache()
         for unit in self.units:
             unit.reset_cache(self.isdynamic)
+        for i in self.streams: i.reset_cache()
             
     def set_dynamic_tracker(self, *subjects, **kwargs):
         """
@@ -2570,13 +2607,20 @@ class System:
         """Return information on convergence."""
         recycle = self._recycle
         if recycle:
+            if self._iter == 0: return None
             s = '' if isinstance(recycle, Stream) else 's'
             return (f"\nHighest convergence error among components in recycle"
                     f"\nstream{s} {self._get_recycle_info()} after {self._iter} loops:"
                     f"\n- flow rate   {self._mol_error:.2e} kmol/hr ({self._rmol_error*100.:.2g}%)"
                     f"\n- temperature {self._T_error:.2e} K ({self._rT_error*100.:.2g}%)")
-        else:
-            return ""
+        elif self.subsystems:
+            sys = max(
+                self.subsystems, key=lambda i: max(
+                    [i._mol_error / i.molar_tolerance, i._rmol_error / i.relative_molar_tolerance,
+                     i._T_error / i.temperature_tolerance, i._rT_error / i.relative_temperature_tolerance]
+                )
+            )
+            return sys._error_info()
 
     def __str__(self):
         if self.ID: return self.ID
@@ -2595,13 +2639,13 @@ class System:
         """Return string with all specifications."""
         ins_and_outs = repr_ins_and_outs(layout, self.ins, self.outs,
                                          T, P, flow, composition, N, IDs, data)
-        if self._iter == 0:
-            return f"System: {self.ID}\n{ins_and_outs}"
-        else:
-            error = self._error_info()
+        error = self._error_info()
+        if error:
             return (f"System: {self.ID}"
                     + error + '\n'
                     + ins_and_outs)
+        else:
+            return f"System: {self.ID}\n{ins_and_outs}"
 
 class FacilityLoop(System):
     __slots__ = ()
@@ -2617,9 +2661,10 @@ del ignore_docking_warnings
 System.register_method('aitken', flx.conditional_aitken, conditional=True)
 System.register_method('wegstein', flx.conditional_wegstein, conditional=True)
 System.register_method('fixedpoint', flx.conditional_fixed_point, conditional=True)
-for f in (anderson, diagbroyden, excitingmixing, anderson, linearmixing, 
-          newton_krylov, broyden1, broyden2, fsolve):
-    System.register_method(f.__name__, f)
+options = dict(fatol=1e-24, xatol=1e-24, xtol=1e-24, ftol=1e-24, maxiter=int(1e6))
+for name in ('anderson', 'diagbroyden', 'excitingmixing', 'linearmixing', 'broyden1', 'broyden2'):
+    System.register_method(name, root, method=name, options=options)
+del root, name, options
 
 
 # %% Working with different operation modes

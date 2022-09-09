@@ -1,0 +1,10 @@
+html[data-theme="dark"] img {
+    filter: none;
+}
+html[data-theme="dark"] .bd-content img:not(.only-dark) {
+    background: unset;
+}
+
+.bd-header-announcement:after {
+    background-color: rgb(225, 173, 106);
+}
