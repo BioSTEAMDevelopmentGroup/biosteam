@@ -511,7 +511,7 @@ def display_digraph(digraph, format): # pragma: no coverage
     if format is None: format = preferences.graphviz_format
     if format == 'svg':
         img = digraph.pipe(format=format)
-        img = fix_valve_symbol_in_svg_output(img)
+        # img = fix_valve_symbol_in_svg_output(img)
         x = display.SVG(img)
     elif format == 'html':
         img = digraph.pipe(format='svg')
