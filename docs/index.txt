@@ -1,10 +1,9 @@
-BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-=========================================================================
+The Biorefinery Simulation and Techno-Economic Analysis Modules
+===============================================================
 
-BioSTEAM is an open-source and community-lead platform for the design, 
-simulation, techno-economic analysis (TEA) and life-cycle assessment (LCA) of 
-biorefineries across thousands of scenarios for streamlined uncertainty and 
-sensitivity analyses. BioSTEAM is also leveraged by `QSDsan <https://qsdsan.readthedocs.io/en/latest/>`_,
+The BioSTEAM platform aims to streamline the design, simulation, techno-economic 
+analysis (TEA) and life-cycle assessment (LCA) of biorefineries across thousands 
+of scenarios. BioSTEAM is also leveraged by `QSDsan <https://qsdsan.readthedocs.io/en/latest/>`_,
 a library for the quantitative sustainable design of sanitation and resource recovery
 systems. The long-term growth and maintenance of BioSTEAM is supported
 through both community-led development and the research institutions invested in BioSTEAM, 
