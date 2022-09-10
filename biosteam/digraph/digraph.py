@@ -312,6 +312,7 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
     style = 'dashed' if (stream.isempty() and not isinstance(stream.source, bst.units.DiagramOnlyStreamUnit)) else 'solid'
     f.attr('edge', label='', taillabel='', headlabel='', labeldistance='2',
            **edge_options)
+    tooltip = stream._get_tooltip_string(bst.preferences.graphviz_format, bst.preferences.tooltips_full_results)
     if stream:
         lines = []
         line = ''
@@ -323,18 +324,6 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
         if line: lines.append(line)
         ID = '\n'.join(lines)
         penwidth = pen_width(stream) if pen_width else '1.0'
-        if preferences.graphviz_format == 'html':
-            if stream.isempty():
-                tooltip = '(empty)'
-            else:
-                df = connection.stream._info(None, None, None, None, None, None, None, df=True)
-                tooltip = (
-                    " " + # makes sure graphviz does not try to parse the string as HTML
-                    df.to_html(justify='unset'). # unset makes sure that table header style can be overwritten in CSS
-                    replace("\n", "").replace("  ", "") # makes sure tippy.js does not add any whitespaces
-                )
-        else:
-            tooltip = ''
         # Make stream nodes / unit-stream edges / unit-unit edges
         if has_sink and not has_source:
             # Feed stream case
@@ -379,7 +368,7 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
         outlet_options = source._graphics.get_outlet_options(source, source_index)
         f.attr('edge', arrowtail='none', arrowhead='normal',
                **inlet_options, **outlet_options)
-        f.edge(unit_names[source], unit_names[sink], style='dashed')
+        f.edge(unit_names[source], unit_names[sink], style='dashed', labeltooltip=tooltip)
 
 def add_connections(f: Digraph, connections, unit_names, color=None, fontcolor=None, **edge_options):
     stream_width = preferences.stream_width
@@ -435,7 +424,7 @@ def fix_valve_symbol_in_svg_output(
         points[2] = buffer
         p.attrib["points"] = ' '.join(points)
         # fix color
-        p.attrib["fill"] = unit_color
+        p.attrib["fill"] = unit_color.split(':')[-1] # In case of gradiant color (white:#CDCDCD)
         p.attrib["stroke"] = unit_periphery_color
     # fix label text color and position
     label_image = [(c,i) for i in images for c in getchildren(parent_map[parent_map[parent_map[i]]]) if 'text' in c.tag]
@@ -513,7 +502,8 @@ def display_digraph(digraph, format): # pragma: no coverage
     if format is None: format = preferences.graphviz_format
     if format == 'svg':
         img = digraph.pipe(format=format)
-        img = fix_valve_symbol_in_svg_output(img)
+        # TODO: Output is not displayed if this line is uncommented
+        # img = fix_valve_symbol_in_svg_output(img)
         x = display.SVG(img)
         display.display(x)
     elif format == 'html':
@@ -521,7 +511,9 @@ def display_digraph(digraph, format): # pragma: no coverage
         img = fix_valve_symbol_in_svg_output(img)
         img = inject_javascript(img)
         data_uri = 'data:text/html;charset=utf-8,' + urllib.parse.quote(img)
-        x = display.IFrame(src=data_uri, width='100%', height='400px')
+        height = '600px' if preferences.tooltips_full_results else '400px' # Extra space for tables
+        x = display.IFrame(src=data_uri, width='100%', height=height,
+                           extras=['allowtransparency="true"'])
         display.display(x)
     else:
         x = display.Image(digraph.pipe(format='png'))

@@ -432,6 +432,14 @@ class Unit:
     def net_duty(self) -> float:
         """Net duty including heat transfer losses [kJ/hr]."""
         return sum([i.duty for i in self.heat_utilities])
+    @property
+    def net_cooling_duty(self) -> float:
+        """Net cooling duty including heat transfer losses [kJ/hr]."""
+        return sum([i.duty for i in self.heat_utilities if i.duty < 0.])
+    @property
+    def net_heating_duty(self) -> float:
+        """Net cooling duty including heat transfer losses [kJ/hr]."""
+        return sum([i.duty for i in self.heat_utilities if i.duty > 0.])
     
     @property
     def feed(self) -> Stream:
@@ -742,14 +750,46 @@ class Unit:
         self._outs[:] = ()
         if discard: bst.main_flowsheet.discard(self)
 
-    def _get_tooltip_string(self):
+    def _get_tooltip_string(self, format=None, full=None):
         """Return a string that can be used as a Tippy tooltip in HTML output"""
-        results = self.results(include_installed_cost=True)
-        return (
-            " " + # makes sure graphviz does not try to parse the string as HTML
-            results.to_html(justify='unset'). # unset makes sure that table header style can be overwritten in CSS
-            replace("\n", "").replace("  ", "") # makes sure tippy.js does not add any whitespaces
-        )
+        if format is None: format = bst.preferences.graphviz_format
+        if full is None: full = bst.preferences.tooltips_full_results
+        if format not in ('html', 'svg'): return ''
+        if format == 'html' and full:
+            results = self.results(include_installed_cost=True)
+            tooltip = (
+                " " + # makes sure graphviz does not try to parse the string as HTML
+                results.to_html(justify='unset'). # unset makes sure that table header style can be overwritten in CSS
+                replace("\n", "").replace("  ", "") # makes sure tippy.js does not add any whitespaces
+            )
+        else:
+            newline = '<br>' if format == 'html' else '\n'
+            electricity_consumption = self.power_utility.consumption
+            electricity_production = self.power_utility.production
+            cooling = self.net_cooling_duty / 1e3
+            heating = self.net_heating_duty / 1e3
+            utility_cost = self.utility_cost
+            purchase_cost = int(float(self.purchase_cost))
+            installed_cost = int(float(self.installed_cost))
+            tooltip = ''
+            if electricity_consumption:
+                tooltip += f"{newline}Electricity consumption: {electricity_consumption:.3g} kW"
+            if electricity_production:
+                tooltip += f"{newline}Electricity production: {electricity_production:.3g} kW"
+            if cooling:
+                tooltip += f"{newline}Cooling duty: {cooling:.3g} MJ/hr"
+            if heating:
+                tooltip += f"{newline}Heating duty: {heating:.3g} MJ/hr"
+            if utility_cost:
+                tooltip += f"{newline}Utility cost: {utility_cost:.3g} USD/hr"
+            if purchase_cost:
+                tooltip += f"{newline}Purchase cost: {purchase_cost:,} USD"
+            if installed_cost:
+                tooltip += f"{newline}Installed equipment cost: {installed_cost:,} USD"
+            if not tooltip: tooltip = 'No capital costs or utilities'
+            elif tooltip: tooltip = tooltip.lstrip(newline)
+            if format == 'html': tooltip = ' ' + tooltip
+        return tooltip
     
     def get_node(self):
         """Return unit node attributes for graphviz."""
@@ -759,9 +799,7 @@ class Unit:
             return self._graphics.get_minimal_node(self)
         else:
             node = self._graphics.get_node_tailored_to_unit(self)
-            if bst.preferences.graphviz_format == 'html':
-                tooltip = self._get_tooltip_string()
-                if tooltip is not None: node['tooltip'] = tooltip
+            node['tooltip'] = self._get_tooltip_string()
             return node
     
     def get_design_result(self, key: str, units: str):
@@ -1380,7 +1418,7 @@ class Unit:
 
     def diagram(self, radius: Optional[int]=0, upstream: Optional[bool]=True,
                 downstream: Optional[bool]=True, file: Optional[str]=None, 
-                format: Optional[str]='png', display: Optional[bool]=True,
+                format: Optional[str]=None, display: Optional[bool]=True,
                 **graph_attrs):
         """
         Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram

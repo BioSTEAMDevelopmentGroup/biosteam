@@ -67,10 +67,17 @@ from . import exceptions
 from . import report
 
 __all__ = (
-    'Unit', 'PowerUtility',* _heat_utility.__all__,
+    'Unit', 'PowerUtility', 'UtilityAgent', 'HeatUtility',
     'utils', 'units', 'evaluation', 'Chemical', 'Chemicals', 'Stream',
     'MultiStream', 'settings', 'exceptions', 'report',
     'process_tools', 'preferences', *_system.__all__, *_flowsheet.__all__, 
     *_tea.__all__, *units.__all__, *evaluation.__all__, 
     *process_tools.__all__, 
 )
+
+def nbtutorial():
+    preferences.reset()
+    preferences.tooltips_full_results = False
+    preferences.graphviz_format = 'svg'
+    from warnings import filterwarnings
+    filterwarnings('ignore')
