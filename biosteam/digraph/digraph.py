@@ -520,7 +520,6 @@ def display_digraph(digraph, format): # pragma: no coverage
         img = digraph.pipe(format='svg')
         img = fix_valve_symbol_in_svg_output(img)
         img = inject_javascript(img)
-        breakpoint()
         data_uri = 'data:text/html;charset=utf-8,' + urllib.parse.quote(img)
         x = display.IFrame(src=data_uri, width='100%', height='400px')
         display.display(x)
