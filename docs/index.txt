@@ -1,5 +1,5 @@
-The Biorefinery Simulation and Techno-Economic Analysis Modules
-===============================================================
+The Biorefinery Simulation and TEA Modules
+==========================================
 
 BioSTEAM is an open-source platform that streamlines the design, simulation, techno-economic 
 analysis (TEA) and life-cycle assessment (LCA) of biorefineries across thousands 
