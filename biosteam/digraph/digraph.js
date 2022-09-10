@@ -4,6 +4,7 @@ function add_node_tooltips() {
         allowHTML: true,
         placement: 'bottom',
         theme: 'translucent',
+        interactive: true,
     });
 }
 
