@@ -78,6 +78,6 @@ __all__ = (
 def nbtutorial():
     preferences.reset()
     preferences.tooltips_full_results = False
-    preferences.graphviz_format = 'svg'
+    preferences.graphviz_format = 'html'
     from warnings import filterwarnings
     filterwarnings('ignore')
