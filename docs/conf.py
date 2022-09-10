@@ -252,7 +252,7 @@ html_theme_options = {
         'image_dark': 'logo_dark.png'
     },
     "announcement": (
-        "<p>Join us every 3rd Monday, 10am CST, for monthly updates on BioSTEAM and Q&A! "
+        "<p>Join us every 3rd Monday, 10am CST, for monthly BioSTEAM updates and Q&A! "
         "<a href='mailto: biosteamdevelopmentgroup@gmail.com'>Email us for details</a></p>"
     ),
     "external_links": [
