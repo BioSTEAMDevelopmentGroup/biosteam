@@ -16,6 +16,7 @@ from IPython import display
 from thermosteam import Stream
 from xml.etree import ElementTree
 from typing import Optional
+import urllib
 import os
 import re
 
@@ -508,7 +509,7 @@ def inject_javascript(img:bytes):
     s = b"<!DOCTYPE html>"+s
     return s
 
-def display_digraph(digraph, format, number=[1]): # pragma: no coverage
+def display_digraph(digraph, format): # pragma: no coverage
     if format is None: format = preferences.graphviz_format
     if format == 'svg':
         img = digraph.pipe(format=format)
@@ -516,17 +517,12 @@ def display_digraph(digraph, format, number=[1]): # pragma: no coverage
         x = display.SVG(img)
         display.display(x)
     elif format == 'html':
-        name = "BioSTEAM_graphviz_diagram" + str(number[0])
-        number[0] += 1
-        if number[0] > 100: number[0] = 1
         img = digraph.pipe(format='svg')
         img = fix_valve_symbol_in_svg_output(img)
         img = inject_javascript(img)
-        temp_file = os.path.join('.', name + '.html')
-        f = open(temp_file, 'wb')
-        f.write(img)
-        f.close()
-        x = display.IFrame(src=temp_file, width='100%', height='400px')
+        breakpoint()
+        data_uri = 'data:text/html;charset=utf-8,' + urllib.parse.quote(img)
+        x = display.IFrame(src=data_uri, width='100%', height='400px')
         display.display(x)
     else:
         x = display.Image(digraph.pipe(format='png'))
