@@ -498,8 +498,9 @@ def inject_javascript(img:bytes):
     s = b"<!DOCTYPE html>"+s
     return s
 
-def display_digraph(digraph, format): # pragma: no coverage
+def display_digraph(digraph, format, height=None): # pragma: no coverage
     if format is None: format = preferences.graphviz_format
+    if height is None: height = '400px'
     if format == 'svg':
         img = digraph.pipe(format=format)
         # TODO: Output is not displayed if this line is uncommented
@@ -511,7 +512,6 @@ def display_digraph(digraph, format): # pragma: no coverage
         img = fix_valve_symbol_in_svg_output(img)
         img = inject_javascript(img)
         data_uri = 'data:text/html;charset=utf-8,' + urllib.parse.quote(img)
-        height = '600px' if preferences.tooltips_full_results else '400px' # Extra space for tables
         x = display.IFrame(src=data_uri, width='100%', height=height,
                            extras=['allowtransparency="true"'])
         display.display(x)
@@ -548,14 +548,14 @@ def save_digraph(digraph, file, format): # pragma: no coverage
     f.write(img)
     f.close()
     
-def finalize_digraph(digraph, file, format): # pragma: no coverage
+def finalize_digraph(digraph, file, format, height=None): # pragma: no coverage
     if preferences.raise_exception: 
         if file: save_digraph(digraph, file, format)
-        else: display_digraph(digraph, format)
+        else: display_digraph(digraph, format, height)
     else:
         try:
             if file: save_digraph(digraph, file, format)
-            else: display_digraph(digraph, format)
+            else: display_digraph(digraph, format, height)
         except (OSError, TypeError) as exp:
             raise exp from None
         except Exception as exp: 

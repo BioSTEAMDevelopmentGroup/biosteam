@@ -1,20 +1,26 @@
 The Biorefinery Simulation and TEA Modules
 ==========================================
 
-.. grid:: 1 2
-    :outline:
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+   
+   tutorial/index
+   API/index
+   contributing/index
+
+.. grid:: 1 1 2 2
 
     .. grid-item::
-
+    
         .. image:: images/demo_gif_dark.gif
            :class: only-dark
            :align: center
-           :width: 50%
 
         .. image:: images/demo_gif_light.gif
            :class: only-light
            :align: center
-           :width: 50%
+
 
     .. grid-item::
 
@@ -26,14 +32,6 @@ The Biorefinery Simulation and TEA Modules
         through both community-led development and the research institutions invested in BioSTEAM, 
         including the `Center for Advanced Bioenergy and Bioproducts Innovation <https://cabbi.bio/>`_.
 
-
-.. toctree::
-   :maxdepth: 2
-   :hidden:
-   
-   tutorial/index
-   API/index
-   contributing/index
 
 .. grid:: 1 2 3 4
    

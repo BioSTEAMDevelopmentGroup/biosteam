@@ -1411,7 +1411,12 @@ class System:
                                  "0 or 'cluster', 1 or 'thorough', 2 or 'surface', "
                                  "3 or 'minimal'")
             if display or file:
-                finalize_digraph(f, file, format)
+                height = (
+                    preferences.graphviz_html_height
+                    ['unit' if len(self.units) == 1 else 'system']
+                    [preferences.tooltips_full_results]
+                )
+                finalize_digraph(f, file, format, height)
             else:
                 return f
 

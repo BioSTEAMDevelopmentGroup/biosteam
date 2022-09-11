@@ -8,3 +8,18 @@ html[data-theme="dark"] .bd-content img:not(.only-dark) {
 .bd-header-announcement:after {
     background-color: rgb(225, 173, 106);
 }
+
+html[data-theme="light"] {
+    --pst-color-title: rgb(61, 55, 70);
+}
+
+html[data-theme="dark"] {
+    --pst-color-title: rgb(229, 229, 229);
+}
+
+h1 {
+  @extend .heading-style;
+  margin-top: 0;
+  font-size: var(--pst-font-size-h1);
+  color: var(--pst-color-title);
+}

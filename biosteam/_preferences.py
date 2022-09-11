@@ -48,7 +48,8 @@ class DisplayPreferences:
                  'profile', 'raise_exception', 'background_color', 'stream_color',
                  'label_color', 'label_color', 'depth_colors', 'stream_width',
                  'unit_color', 'unit_label_color', 'unit_periphery_color',
-                 'fill_cluster', 'graphviz_format', 'tooltips_full_results')
+                 'fill_cluster', 'graphviz_format', 'tooltips_full_results',
+                 'graphviz_html_height')
     
     def __init__(self):
         #: Whether to label the ID of streams with sources and sinks in process 
@@ -102,8 +103,14 @@ class DisplayPreferences:
         #: Image format of BioSTEAM graphviz diagrams.
         self.graphviz_format: str = 'svg'
         
-        #: Whether to add full results in tooltips by inserting java script into graphviz html outputs
+        #: Whether to add full results in tooltips by inserting java script into graphviz html outputs.
         self.tooltips_full_results: bool = False
+        
+        #: Displayed height of graphviz html diagrams without and with full results.
+        self.graphviz_html_height: dict[str, tuple[str, str]] = {
+            'system': ('400px', '600px'),
+            'unit': ('225px', '400px'),
+        }
         
     def temporary(self):
         """Return a TemporaryPreferences object that will revert back to original

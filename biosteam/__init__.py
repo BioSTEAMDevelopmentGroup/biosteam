@@ -13,7 +13,7 @@
 
 """
 from __future__ import annotations
-__version__ = '2.33.2'
+__version__ = '2.33.3'
 
 #: Chemical engineering plant cost index (defaults to 567.5 at 2017).
 CE: float = 567.5 
@@ -77,6 +77,7 @@ __all__ = (
 
 def nbtutorial():
     preferences.reset()
+    preferences.light_mode(bg='#ffffffaa')
     preferences.tooltips_full_results = False
     preferences.graphviz_format = 'html'
     from warnings import filterwarnings
