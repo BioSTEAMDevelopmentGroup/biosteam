@@ -37,6 +37,9 @@ class DisplayPreferences:
      unit_label_color: white
      unit_periphery_color: #90918e
      fill_cluster: False
+     graphviz_format: svg
+     tooltips_full_results: False
+     graphviz_html_height: {'system': ('400px', '600px'), 'unit': ('225px', '400px')}
      flow: kmol/hr
      T: K
      P: Pa

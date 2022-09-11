@@ -48,20 +48,20 @@ class MolecularSieve(Splitter):
     ins...
     [0] feed
         phase: 'g', T: 78.24 degC, P: 1 atm
-        composition: Water    0.209
-                     Ethanol  0.791
-                     -------  362 kmol/hr
+        composition (%): Water    20.9
+                         Ethanol  79.1
+                         -------  362 kmol/hr
     outs...
     [0] ethanol_rich
         phase: 'g', T: 78.24 degC, P: 1 atm
-        composition: Water    0.0438
-                     Ethanol  0.956
-                     -------  277 kmol/hr
+        composition (%): Water    4.38
+                         Ethanol  95.6
+                         -------  277 kmol/hr
     [1] water_rich
         phase: 'g', T: 78.24 degC, P: 1 atm
-        composition: Water    0.748
-                     Ethanol  0.252
-                     -------  85 kmol/hr
+        composition (%): Water    74.8
+                         Ethanol  25.2
+                         -------  85 kmol/hr
     
     >>> MS1.results()
     Molecular sieve                  Units       MS1
