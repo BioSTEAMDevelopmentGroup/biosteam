@@ -23,3 +23,15 @@ h1 {
   font-size: var(--pst-font-size-h1);
   color: var(--pst-color-title);
 }
+
+h2 {
+  @extend .heading-style;
+  font-size: var(--pst-font-size-h2);
+  color: var(--pst-color-title);
+}
+
+h3 {
+  @extend .heading-style;
+  font-size: var(--pst-font-size-h3);
+  color: var(--pst-color-title);
+}
