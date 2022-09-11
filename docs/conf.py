@@ -30,6 +30,23 @@ version = ''
 # The full version, including alpha/beta/rc tags
 release = ''
 
+# -- Images ------------------------------------------------------------------
+from sphinx.builders.html import StandaloneHTMLBuilder
+
+new_supported_image_types = [
+    'image/svg+xml',
+    'image/gif',
+    'image/png',
+    'image/jpeg'
+]
+
+# construct it this way so that if Sphinx adds default support for additional images, such
+# as HEIC, then what we do is add any of those to the end. We start with the ones
+# we want to support in this order, then subtract them from the defaults to identify
+# any remaining items that we append to the end of the list
+
+additional_default_supported_images = list(set(StandaloneHTMLBuilder.supported_image_types) - set(new_supported_image_types))
+StandaloneHTMLBuilder.supported_image_types = new_supported_image_types + additional_default_supported_images
 
 # -- General configuration ---------------------------------------------------
 
