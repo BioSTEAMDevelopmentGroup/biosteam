@@ -5,7 +5,7 @@ BioSTEAM welcomes users from all backgrounds to make open-source contributions.
 Please follow the guidelines to make your contribution.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Developer's guide
    
    CONTRIBUTING
