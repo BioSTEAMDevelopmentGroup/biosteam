@@ -194,7 +194,9 @@ class SystemScope():
     def subjects(self, sjs):
         for s in sjs:
             if not hasattr(s, 'scope'):
-                raise AttributeError(f"{s} has no attribute 'scope'")
+                try: # the unit uses `_compile_AE`, but needs to `_init_dynamic` as its state isn't copied from its influent
+                    s._init_dynamic()
+                except: raise AttributeError(f"{s} has no attribute 'scope'")
             elif not isinstance(s.scope, Scope):
                 raise TypeError(f'{s}.scope must be a {Scope} object')
         self._subjects = sjs
