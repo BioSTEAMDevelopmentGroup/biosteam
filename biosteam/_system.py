@@ -663,7 +663,7 @@ class System:
             if hasattr(self, i): delattr(self, i)
         isa = isinstance
         Facility = bst.Facility
-        facilities = Facility.ordered_facilities([i for i in units if isa(i, Facility)])
+        facilities = Facility.ordered_facilities(set([i for i in units if isa(i, Facility)]))
         ID_subsys = None if '.' in self.ID else ''
         network = Network.from_units(units)
         path = [(type(self)._from_network(ID_subsys, i) if isa(i, Network) else i)
@@ -1108,6 +1108,8 @@ class System:
         self._path = path = tuple(path)
 
     def _set_facilities(self, facilities):
+        if len(facilities) != len(set(facilities)):
+            breakpoint()
         #: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the path simulation.
         self._facilities = tuple(facilities)
         self._load_facilities()

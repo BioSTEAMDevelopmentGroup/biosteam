@@ -7,20 +7,51 @@
 # for license details.
 """
 """
-from flexsolve import IQ_interpolation
+from flexsolve import IQ_interpolation, aitken_secant
+from typing import Callable, Optional, Tuple, Any
 
 __all__ = ('BoundedNumericalSpecification',)
 
 class BoundedNumericalSpecification: # pragma: no cover
-    __slots__ = ('args', 'solver', 'kwargs')
+    __slots__ = (
+        'f', 'x0', 'x1', 'y0', 'y1', 'x', 'xtol', 'ytol', 'args', 
+        'maxiter', 'checkroot', 'checkiter', 'checkbounds', 'x_last',
+    )
     
-    def __init__(self, *args, **kwargs):
+    def __init__(self, 
+            f: Callable,
+            x0: float, 
+            x1: float, 
+            y0: Optional[float]=None, 
+            y1: Optional[float]=None, 
+            x: Optional[float]=None,
+            xtol: float=0.,
+            ytol: float=5e-8,
+            args: Tuple[Any, ...]=(), 
+            maxiter: int=50,
+            checkroot: bool=False, 
+            checkiter: bool=True, 
+            checkbounds: bool=True
+        ):
+        self.f = f
+        self.x0 = x0
+        self.x1 = x1
+        self.y0 = y0
+        self.y1 = y1
+        self.x = x
+        self.xtol = xtol
+        self.ytol = ytol
         self.args = args
-        self.kwargs = kwargs
+        self.maxiter = maxiter
+        self.checkroot = checkroot
+        self.checkiter = checkiter
+        self.checkbounds = checkbounds
+        self.x_last = None
         
     def __call__(self):
-        kwargs = self.kwargs
-        solution = IQ_interpolation(*self.args, **kwargs)
-        if 'x' in self.kwargs: kwargs['x'] = solution
-        return solution
+        self.x = IQ_interpolation(
+            self.f, self.x0, self.x1, self.y0, self.y1, self.x, self.xtol, self.ytol, 
+            self.args, self.maxiter, self.checkroot, self.checkiter, self.checkbounds,
+        )
+        return self.x
     
