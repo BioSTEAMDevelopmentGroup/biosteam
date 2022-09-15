@@ -122,20 +122,7 @@ class ProcessImpactItem:
         
     def impact(self):
         return self.inventory() * self.CF
-
-
-# %% Functions for taking care of numerical specifications within a system path
-
-def converge_system_in_path(system):
-    specification = system._specification
-    if specification:
-        method = specification
-    else:
-        method = system.converge
-    try_method_with_object_stamp(system, method)
-
-def simulate_unit_in_path(unit):
-    try_method_with_object_stamp(unit, unit.simulate)
+    
 
 # %% Debugging and exception handling
 
@@ -350,7 +337,6 @@ class System:
         '_facility_loop',
         '_recycle',
         '_N_runs',
-        '_specification',
         '_mol_error',
         '_T_error',
         '_rmol_error',
@@ -383,6 +369,9 @@ class System:
         '_configuration_updated',
         '_inlet_names',
         '_outlet_names',
+        # Specifications
+        '_specifications',
+        '_running_specifications',
         # Dynamic simulation
         '_isdynamic',
         '_state',
@@ -638,7 +627,8 @@ class System:
         self.lang_factor: float|None = lang_factor
 
         self._set_path(path)
-        self._specification = None
+        self._specifications = []
+        self._running_specifications = False
         self._load_flowsheet()
         self._reset_errors()
         self._set_facilities(facilities)
@@ -900,22 +890,41 @@ class System:
         """QSDsan.LCA object linked to the system."""
         return getattr(self, '_LCA', None)
 
-    @property
-    def specification(self) -> Callable:
-        """Process specification."""
-        return self._specification
-    @specification.setter
-    def specification(self, specification):
-        if specification:
-            if callable(specification):
-                self._specification = specification
-            else:
-                raise AttributeError(
-                    "specification must be callable or None; "
-                   f"not a '{type(specification).__name__}'"
-                )
-        else:
-            self._specification = None
+    specification = Unit.specification
+    specifications = Unit.specifications
+    add_bounded_numerical_specification = Unit.add_bounded_numerical_specification
+    def add_specification(self, 
+            specification: Optional[Callable]=None, 
+            args: Optional[tuple]=()
+        ):
+        """
+        Add a specification.
+
+        Parameters
+        ----------
+        specification : 
+            Function runned for mass and energy balance.
+        args : 
+            Arguments to pass to the specification function.
+
+        Examples
+        --------
+        :doc:`../tutorial/Process_specifications`
+
+        See Also
+        --------
+        add_bounded_numerical_specification
+        specifications
+
+        Notes
+        -----
+        This method also works as a decorator.
+
+        """
+        if not specification: return lambda specification: self.add_specification(specification)
+        if not callable(specification): raise ValueError('specification must be callable')
+        self._specifications.append((specification, args))
+        return specification
 
     def _extend_recycles(self, recycles):
         isa = isinstance
@@ -1442,7 +1451,7 @@ class System:
         self._set_recycle_data(data)
         T = self._get_recycle_temperatures()
         mol = self._get_recycle_mol()
-        self._run()
+        self.run()
         recycle = self._recycle
         for i, j in self.tracked_recycles.items():
             if i is recycle: j.append(i.copy(None))
@@ -1548,14 +1557,14 @@ class System:
         self._load_facilities()
         for i in self.units: i._setup()
 
-    def _run(self):
-        """Rigorously run each element in the path."""
+    def run(self):
+        """Run mass and energy balances for each element in the path
+        without costing unit operations."""
         isa = isinstance
-        converge = converge_system_in_path
-        run = try_method_with_object_stamp
+        f = try_method_with_object_stamp
         for i in self._path:
-            if isa(i, Unit): run(i, i.run)
-            elif isa(i, System): converge(i)
+            if isa(i, Unit): f(i, i.run)
+            elif isa(i, System): f(i, i.converge)
             else: i() # Assume it's a function
 
     def _solve(self):
@@ -1640,7 +1649,7 @@ class System:
         if self._recycle:
             method = self._solve
         else:
-            method = self._run
+            method = self.run
         if self._N_runs:
             for i in range(self._N_runs): method()
         else:
@@ -1659,20 +1668,20 @@ class System:
         simulated_units = set()
         isa = isinstance
         Unit = bst.Unit
+        f = try_method_with_object_stamp
         for i in self._path:
             if isa(i, Unit):
                 if i in simulated_units: continue
                 simulated_units.add(i)
-            try_method_with_object_stamp(i, i._summary)
-        simulate_unit = simulate_unit_in_path
+            f(i, i._summary)
         for i in self._facilities:
-            if isa(i, Unit): simulate_unit(i)
+            if isa(i, Unit): f(i, i.simulate)
             elif isa(i, System):
-                converge_system_in_path(i)
+                f(i, i.converge)
                 i._summary()
             else: i() # Assume it is a function
         for i in self._facilities:
-            if isa(i, (bst.BoilerTurbogenerator, bst.Boiler)): simulate_unit(i)
+            if isa(i, (bst.BoilerTurbogenerator, bst.Boiler)): f(i, i.simulate)
 
     def _reset_iter(self):
         self._iter = 0
@@ -1885,18 +1894,25 @@ class System:
             :func:`converge` (if steady state).
         
         """
-        self._configuration_updated = False
-        if not skip_setup:
-            self._setup()
-        if self.isdynamic: 
-            self.dynamic_run(**kwargs)
-            self._summary()
-        else: 
-            outputs = self.converge(**kwargs)
-            self._summary()
-            if self._configuration_updated: outputs = self.simulate(**kwargs)
-            if self._facility_loop: self._facility_loop.converge()
-            return outputs
+        specification = self._specifications
+        if specification and not self._running_specifications:
+            self._running_specifications = True
+            try:
+                for i, args in specification: i(*args)
+            finally:
+                self._running_specifications = False
+        else:
+            self._configuration_updated = False
+            if not skip_setup: self._setup()
+            if self.isdynamic: 
+                self.dynamic_run(**kwargs)
+                self._summary()
+            else: 
+                outputs = self.converge(**kwargs)
+                self._summary()
+                if self._configuration_updated: outputs = self.simulate(**kwargs)
+                if self._facility_loop: self._facility_loop.converge()
+                return outputs
 
     def dynamic_run(self, **dynsim_kwargs):
         """
@@ -2506,8 +2522,8 @@ class System:
         else:
             raise ValueError(f"mode must be either 'debug' or 'profile'; not '{mode}'")
         for u in self.units:
-            if u._specification:
-                u._specification = [_wrap_method(u, i) for i in u.specification]
+            if u._specifications:
+                u._specifications = [_wrap_method(u, i) for i in u.specification]
             else:
                 u.run = _wrap_method(u, u.run)
             u._design = _wrap_method(u, u._design)
@@ -2634,7 +2650,7 @@ class System:
         print(self._info(layout, T, P, flow, composition, N, IDs, data))
 
     def _info(self, layout, T, P, flow, composition, N, IDs, data):
-        """Return string with all specifications."""
+        """Return string with all stream specifications."""
         ins_and_outs = repr_ins_and_outs(layout, self.ins, self.outs,
                                          T, P, flow, composition, N, IDs, data)
         error = self._error_info()

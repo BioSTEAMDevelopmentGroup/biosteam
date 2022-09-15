@@ -19,5 +19,8 @@ class BoundedNumericalSpecification: # pragma: no cover
         self.kwargs = kwargs
         
     def __call__(self):
-        return IQ_interpolation(*self.args, **self.kwargs)
+        kwargs = self.kwargs
+        solution = IQ_interpolation(*self.args, **kwargs)
+        if 'x' in self.kwargs: kwargs['x'] = solution
+        return solution
     

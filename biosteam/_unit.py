@@ -356,14 +356,14 @@ class Unit:
         ### Initialize specification    
     
         #: All specification functions
-        self._specification: list[Callable] = []
+        self._specifications: list[Callable] = []
         
         #: Whether to run mass and energy balance after calling
         #: specification functions
-        self.run_after_specification: bool = False 
+        self.run_after_specifications: bool = False 
         
         #: Safety toggle to prevent infinite recursion
-        self._running_specification: bool = False
+        self._running_specifications: bool = False
         
         self._assert_compatible_property_package()
     
@@ -396,10 +396,10 @@ class Unit:
         try: self.equipment_lifetime = copy(self._default_equipment_lifetime)
         except AttributeError: self.equipment_lifetime = {}
 
-    def _init_specification(self):
-        self._specification = []
-        self.run_after_specification = False
-        self._running_specification = False
+    def _init_specifications(self):
+        self._specifications = []
+        self.run_after_specifications = False
+        self._running_specifications = False
     
     def _reset_thermo(self, thermo):
         for i in (self._ins._streams + self._outs._streams):
@@ -943,6 +943,8 @@ class Unit:
         See Also
         --------
         add_bounded_numerical_specification
+        specifications
+        run
 
         Notes
         -----
@@ -951,8 +953,8 @@ class Unit:
         """
         if not specification: return lambda specification: self.add_specification(specification, run)
         if not callable(specification): raise ValueError('specification must be callable')
-        self.specification.append([specification, args])
-        if run is not None: self.run_after_specification = run
+        self._specifications.append((specification, args))
+        if run is not None: self.run_after_specifications = run
         return specification
     
     def add_bounded_numerical_specification(self, f=None, *args, **kwargs):
@@ -994,6 +996,7 @@ class Unit:
         See Also
         --------
         add_specification
+        specifications
         
         Notes
         -----
@@ -1003,28 +1006,31 @@ class Unit:
         if not f: return lambda f: self.add_bounded_numerical_specification(f, *args, **kwargs)
         if not callable(f): raise ValueError('f must be callable')
         specification = bst.BoundedNumericalSpecification(f, *args, **kwargs)
-        self.specification.append([specification, ()])
+        self._specifications.append((specification, ()))
         return f
     
     def run(self):
         """
-        Run mass and energy balance with specifications.
+        Run mass and energy balance. This method also runs specifications
+        user defined specifications unless it is being run within a 
+        specification (to avoid infinite loops). 
         
         See Also
         --------
         _run
+        specifications
         add_specification
         add_bounded_numerical_specification
         
         """
-        specification = self._specification
-        if specification and not self._running_specification:
-            self._running_specification = True
+        specification = self._specifications
+        if specification and not self._running_specifications:
+            self._running_specifications = True
             try:
                 for i, args in specification: i(*args)
-                if self.run_after_specification: self._run()
+                if self.run_after_specifications: self._run()
             finally:
-                self._running_specification = False
+                self._running_specifications = False
         else:
             self._run()
             
@@ -1084,18 +1090,32 @@ class Unit:
         )
     
     @property
-    def specification(self) -> list[tuple[Callable, tuple]]:
-        """Process specifications as a list of specification functions and their 
+    def specifications(self) -> list[tuple[Callable, tuple]]:
+        """
+        Process specifications as a list of specification functions and their 
         arguments in the following format, [(<function0(*args0)>, args0), 
-        (<function1(*args1)>, args1), ...]."""
-        return self._specification
+        (<function1(*args1)>, args1), ...].
+        
+        See Also
+        --------
+        add_specification
+        add_bounded_numerical_specification
+        
+        """
+        return self._specifications
+    @specifications.setter
+    def specifications(self, specifications):
+        if specifications is None:
+            self._specifications = []
+        else:
+            self._specifications = specifications
+    
+    @property
+    def specification(self):
+        raise AttributeError('`specification` property is deprecated; use `add_specification` or `specifications` (plural with an s) instead')
     @specification.setter
     def specification(self, specification):
-        if specification:
-            if callable(specification): specification = [(specification, ())]
-            self._specification = specification
-        else:
-            self._specification = []
+        raise AttributeError('`specification` property is deprecated; use `add_specification` or `specifications` (plural with an s) instead')
     
     @property
     def baseline_purchase_cost(self) -> float:
