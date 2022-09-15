@@ -1108,8 +1108,6 @@ class System:
         self._path = path = tuple(path)
 
     def _set_facilities(self, facilities):
-        if len(facilities) != len(set(facilities)):
-            breakpoint()
         #: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the path simulation.
         self._facilities = tuple(facilities)
         self._load_facilities()
