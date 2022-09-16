@@ -1611,7 +1611,7 @@ class System:
             same_chemicals=same_chemicals,
         )
 
-    def converge(self, material_data: MaterialData=None):
+    def converge(self, material_data: MaterialData=None, update_material_data: bool=False):
         """
         Converge mass and energy balances. If material data was given, 
         return converged material flows at steady state. Shape will be M by N,
@@ -1638,10 +1638,16 @@ class System:
             index = material_data.index
             same_chemicals = material_data.same_chemicals
             if same_chemicals:
-                for i, s in enumerate(recycles):
-                    s.mol[:] = material_flows[i]
-            else:
-                
+                try:
+                    for i, s in enumerate(recycles):
+                        s.mol[:] = material_flows[i]
+                except:
+                    reset_material_data = True
+                    same_chemicals = False
+                else:
+                    reset_material_data = False
+            if not same_chemicals:
+                reset_material_data = False
                 for i, s in enumerate(material_data.recycles):
                     mol = s.mol
                     for j, ID in enumerate(s.chemicals.IDs):
@@ -1654,15 +1660,19 @@ class System:
             for i in range(self._N_runs): method()
         else:
             method()
-        if material_data is not None:
-            material_flows = material_flows.copy()
+        if update_material_data:
+            if reset_material_data:
+                new_data =  self.get_material_data()
+                material_data.material_flows = material_flows = new_data.material_flows
+                material_data.recycles = recycles = new_data.recycles
+                material_data.index = index = new_data.index
+                material_data.same_chemicals = same_chemicals = new_data.same_chemicals
             if same_chemicals:
                 for i, s in enumerate(recycles): material_flows[i] = s.mol
             else:
                 for i, s in enumerate(recycles):
                     for ID, value in zip(s.chemicals.IDs, s.mol):
                         material_flows[i, index[ID]] = value
-            return material_flows
 
     def _summary(self):
         simulated_units = set()
@@ -2785,7 +2795,7 @@ class AgileSystem:
     """
 
     __slots__ = (
-        'operation_modes', 'operation_parameters',
+        'operation_modes', 'operation_parameters', 'active_operation_mode',
         'mode_operation_parameters', 'annual_operation_metrics',
         'operation_metrics', 'unit_capital_costs', 
         'net_electricity_consumption', 'utility_cost', 
@@ -2831,6 +2841,7 @@ class AgileSystem:
         self.lang_factor = lang_factor
         self.heat_utilities = None
         self.power_utility = None
+        self.active_operation_mode = None
         self._OperationMode = type('OperationMode', (OperationMode,), {'agile_system': self})
 
     def _downstream_system(self, unit):
@@ -3062,7 +3073,7 @@ class AgileSystem:
         values = [{i: None for i in operation_modes} for i in metric_range]
         total_operating_hours = self.operating_hours
         for i in mode_range:
-            mode = operation_modes[i]
+            self.active_operation_mode = mode = operation_modes[i]
             operation_mode_results[i] = results = mode.simulate()
             for j in annual_metric_range:
                 metric = annual_operation_metrics[j]
@@ -3073,6 +3084,7 @@ class AgileSystem:
             scale = mode.operating_hours / total_operating_hours
             for hu in results.heat_utilities: hu.scale(scale)
             results.power_utility.scale(scale)
+        self.active_operation_mode = None
         for i in annual_metric_range:
             metric = annual_operation_metrics[i]
             metric.value = sum(annual_values[i])
