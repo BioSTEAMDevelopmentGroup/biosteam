@@ -10,7 +10,7 @@ html[data-theme="dark"] .bd-content img:not(.only-dark) {
 }
 
 html[data-theme="light"] {
-    --pst-color-title: rgb(61, 55, 70);
+    --pst-color-title: rgb(69, 157, 185);
 }
 
 html[data-theme="dark"] {
