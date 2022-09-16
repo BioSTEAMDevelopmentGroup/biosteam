@@ -35,3 +35,9 @@ h3 {
   font-size: var(--pst-font-size-h3);
   color: var(--pst-color-title);
 }
+
+.sd-card-title {
+  margin-bottom: 0.5rem;
+  font-weight: 600 !important;
+  color: var(--pst-color-text);
+}
