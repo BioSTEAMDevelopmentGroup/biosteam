@@ -60,13 +60,13 @@ class MaterialData:
         'material_flows',
         'recycles',
         'index',
-        'same_chemicals',
+        'IDs',
     )
-    def __init__(self, material_flows, recycles, index, same_chemicals):
+    def __init__(self, material_flows, recycles, index, IDs):
         self.material_flows = material_flows
         self.recycles = recycles
         self.index = index
-        self.same_chemicals = same_chemicals
+        self.IDs = IDs
         
    
 def get_recycle_data(stream):
@@ -1587,12 +1587,14 @@ class System:
         
         """
         recycles = self.get_all_recycles()
-        all_IDs = [s.chemicals.IDs for s in recycles]
-        same_chemicals = len(set(all_IDs)) == 1
+        all_IDs = set([s.chemicals.IDs for s in recycles])
+        same_chemicals = len(all_IDs) == 1
         if same_chemicals:
-            index = recycles[0].chemicals._index
+            chemicals = recycles[0].chemicals
+            IDs = chemicals.IDs
+            index = chemicals._index
             M = len(recycles)
-            N = len(all_IDs[0])
+            N = len(IDs)
             material_flows = np.zeros([M, N])
             for i, s in enumerate(recycles): material_flows[i] = s.mol
         else:
@@ -1604,11 +1606,12 @@ class System:
             for i, s in enumerate(recycles):
                 for ID, value in zip(s.chemicals.IDs, s.mol):
                     material_flows[i, index[ID]] = value
+            IDs = None
         return MaterialData(
             material_flows=material_flows,
             recycles=recycles,
             index=index,
-            same_chemicals=same_chemicals,
+            IDs=IDs,
         )
 
     def converge(self, material_data: MaterialData=None, update_material_data: bool=False):
@@ -1636,7 +1639,9 @@ class System:
             material_flows = material_data.material_flows
             recycles = material_data.recycles
             index = material_data.index
-            same_chemicals = material_data.same_chemicals
+            all_IDs = set([s.chemicals.IDs for s in recycles])
+            all_IDs.add(material_data.IDs)
+            same_chemicals = len(all_IDs) == 1
             if same_chemicals:
                 try:
                     for i, s in enumerate(recycles):
@@ -1646,7 +1651,7 @@ class System:
                     same_chemicals = False
                 else:
                     reset_material_data = False
-            if not same_chemicals:
+            else:
                 reset_material_data = False
                 for i, s in enumerate(material_data.recycles):
                     mol = s.mol
@@ -1666,7 +1671,7 @@ class System:
                 material_data.material_flows = material_flows = new_data.material_flows
                 material_data.recycles = recycles = new_data.recycles
                 material_data.index = index = new_data.index
-                material_data.same_chemicals = same_chemicals = new_data.same_chemicals
+                material_data.IDs = new_data.IDs
             if same_chemicals:
                 for i, s in enumerate(recycles): material_flows[i] = s.mol
             else:
