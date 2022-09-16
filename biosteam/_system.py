@@ -921,7 +921,7 @@ class System:
         This method also works as a decorator.
 
         """
-        if not specification: return lambda specification: self.add_specification(specification)
+        if not specification: return lambda specification: self.add_specification(specification, args)
         if not callable(specification): raise ValueError('specification must be callable')
         self._specifications.append((specification, args))
         return specification
@@ -1894,11 +1894,11 @@ class System:
             :func:`converge` (if steady state).
         
         """
-        specification = self._specifications
-        if specification and not self._running_specifications:
+        specifications = self._specifications
+        if specifications and not self._running_specifications:
             self._running_specifications = True
             try:
-                for i, args in specification: i(*args)
+                for i, args in specifications: i(*args)
             finally:
                 self._running_specifications = False
         else:

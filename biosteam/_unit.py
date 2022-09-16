@@ -951,7 +951,7 @@ class Unit:
         This method also works as a decorator.
 
         """
-        if not specification: return lambda specification: self.add_specification(specification, run)
+        if not specification: return lambda specification: self.add_specification(specification, run, args)
         if not callable(specification): raise ValueError('specification must be callable')
         self._specifications.append((specification, args))
         if run is not None: self.run_after_specifications = run

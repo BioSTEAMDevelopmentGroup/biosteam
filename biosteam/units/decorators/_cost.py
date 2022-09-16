@@ -133,10 +133,13 @@ def _decorated_cost(self):
             D[x.N or '#' + i] = 1
         elif x.ub is not None:
             D[x.N or '#' + i] = N = ceil(S/x.ub)
-            q = S/x.S
-            F = q/N
-            C[i] = N*bst.CE/x.CE*(x.f(F) if x.f else x.cost*F**x.n)
-            kW += x.kW*q
+            if N == 0.:
+                C[i] = 0.
+            else:
+                q = S/x.S
+                F = q/N
+                C[i] = N*bst.CE/x.CE*(x.f(F) if x.f else x.cost*F**x.n)
+                kW += x.kW*q
             continue
         if x.N:
             N = getattr(self, x.N, None) or D[x.N]
