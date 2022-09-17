@@ -49,6 +49,7 @@ class BoundedNumericalSpecification: # pragma: no cover
         self.x_last = None
         
     def __call__(self):
+        # breakpoint()
         self.x = IQ_interpolation(
             self.f, self.x0, self.x1, self.y0, self.y1, self.x, self.xtol, self.ytol, 
             self.args, self.maxiter, self.checkroot, self.checkiter, self.checkbounds,

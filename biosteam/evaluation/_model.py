@@ -25,6 +25,10 @@ import pickle
 
 __all__ = ('Model',)
 
+def replace_nones(values, replacement):
+    for i, j in enumerate(values):
+        if j is None: values[i] = replacement
+    return values
 
 # %% Grid of simulation blocks
 
@@ -370,6 +374,16 @@ class Model(State):
             df_ub[:] = values_ub
             return baseline, df_lb, df_ub
     
+    def load_pickled_results(self, file=None):
+        table = self.table
+        with open(file, "rb") as f:
+            number, values, table_index, table_columns = pickle.load(f)
+        if (table_index != table.index).any() or (table_columns != table.columns).any():
+            raise ValueError('table layout does not match autoload file')
+        del table_index, table_columns
+        metrics = self._metrics
+        table[var_indices(metrics)] = replace_nones(values, [np.nan] * len(metrics))
+    
     def evaluate(self, notify=0, file=None, autosave=0, autoload=False,
                  **kwargs):
         """
@@ -431,19 +445,21 @@ class Model(State):
         
         export = 'export_state_to' in kwargs
         layout = table.index, table.columns
-        for number, i in enumerate(index, number + 1): 
-            if export: kwargs['sample_id'] = i
-            values[i] = evaluate(samples[i], **kwargs)
-            if autosave and not number % autosave: 
-                obj = (number, values, *layout)
-                try:
-                    with open(file, 'wb') as f: pickle.dump(obj, f)
-                except FileNotFoundError:
-                    import os
-                    head, tail = os.path.split(file)
-                    os.mkdir(head)
-                    with open(file, 'wb') as f: pickle.dump(obj, f)
-        table[var_indices(self._metrics)] = values
+        try:
+            for number, i in enumerate(index, number + 1): 
+                if export: kwargs['sample_id'] = i
+                values[i] = evaluate(samples[i], **kwargs)
+                if autosave and not number % autosave: 
+                    obj = (number, values, *layout)
+                    try:
+                        with open(file, 'wb') as f: pickle.dump(obj, f)
+                    except FileNotFoundError:
+                        import os
+                        head, tail = os.path.split(file)
+                        os.mkdir(head)
+                        with open(file, 'wb') as f: pickle.dump(obj, f)
+        finally:
+            table[var_indices(self._metrics)] = replace_nones(values, [np.nan] * len(self.metrics))
     
     def _evaluate_sample(self, sample, **kwargs):
         state_updated = False
