@@ -123,6 +123,18 @@ class ProcessImpactItem:
     def impact(self):
         return self.inventory() * self.CF
     
+def set_impact_value(properties, name, value, groups):
+    for group in groups:
+        if group in name:
+            group_name = _reformat(group)
+            if group_name in properties:
+                properties[group_name] += value
+            elif value:
+                properties[group_name] = value
+            break
+    else:
+        if value: properties[_reformat(name)] = value
+    
 
 # %% Debugging and exception handling
 
@@ -2301,41 +2313,46 @@ class System:
         impact += self.get_process_impact(key)
         return impact / total_property
     
-    def get_property_allocation_factors(self, name, units=None):
+    def get_property_allocation_factors(self, name, units=None, groups=()):
         heat_utilities = self.heat_utilities
         power_utility = self.power_utility
         operating_hours = self.operating_hours
         properties = {}
+        if isinstance(groups, str): groups = [groups]
         if hasattr(bst.PowerUtility, name):
             if power_utility.rate < 0.:
                 value = power_utility.get_property(name, units)
-                if value: properties['Electricity'] = value * operating_hours
+                set_impact_value(properties, 'Electricity', value * operating_hours, groups)
         if hasattr(bst.HeatUtility, name):
             for hu in heat_utilities:
                 if hu.flow < 0.: 
                     value = hu.get_property(name, units)
-                    if value: properties[_reformat(hu.agent.ID)] = value * operating_hours
+                    set_impact_value(properties, hu.agent.ID, value * operating_hours, groups)
         if hasattr(bst.Stream, name):
             for stream in self.products:
                 value = self.get_property(stream, name, units)
-                if value: properties[_reformat(stream.ID)] = value
+                set_impact_value(properties, stream.ID, value, groups)
         total_property = sum(properties.values())
         allocation_factors = {i: j / total_property for i, j in properties.items()}
         return allocation_factors
     
-    def get_displacement_allocation_factors(self, main_product, key):
+    def get_displacement_allocation_factors(self, main_products, key, groups=()):
         heat_utilities = self.heat_utilities
         power_utility = self.power_utility
         allocation_factors = {}
         isa = isinstance
-        if isa(main_product, bst.Stream):
-            CF_original = main_product.get_CF(key)
-        elif main_product == 'Electricity':
-            main_product = power_utility
-            CF_original = main_product.get_CF(key, consumption=False)
-        else:
-            raise NotImplementedError(f"main product '{main_product}' is not yet an option for this method")
-        items = [main_product]
+        if isa(main_products, bst.Stream): main_products = [main_products]
+        CFs_original = []
+        main_products = [i for i in main_products if not i.isempty()]
+        for main_product in main_products:
+            if isa(main_product, bst.Stream):
+                CFs_original.append(main_product.get_CF(key))
+            elif main_product == 'Electricity':
+                main_product = power_utility
+                CFs_original.append(main_product.get_CF(key, consumption=False))
+            else:
+                raise NotImplementedError(f"main product '{main_product}' is not yet an option for this method")
+        items = main_products.copy()
         for stream in self.products:
             if key in stream.characterization_factors:
                 items.append(stream)
@@ -2352,20 +2369,18 @@ class System:
             else:
                 item_impact = -1 * item.get_impact(key) * self.operating_hours
             displaced_impact = net_impact + item_impact
-            if isa(item, bst.Stream):
-                allocation_factors[_reformat(item.ID)] = displaced_impact / total_input_impact
-            elif isa(item, bst.HeatUtility):
-                allocation_factors[_reformat(item.ID)] = displaced_impact / total_input_impact
+            if isa(item, (bst.Stream, bst.HeatUtility)):
+                set_impact_value(allocation_factors, item.ID, displaced_impact / total_input_impact, groups)
             elif isa(item, bst.PowerUtility):
-                allocation_factors['Electricity'] = displaced_impact / total_input_impact
+                set_impact_value(allocation_factors, 'Electricity', displaced_impact / total_input_impact, groups)
             else:
                 raise RuntimeError('unknown error')
-            if item is main_product:
-                if isa(main_product, bst.Stream):
-                    main_product.set_CF(key, displaced_impact / self.get_mass_flow(main_product))
-                elif main_product == 'Electricity':
-                    main_product.set_CF(key, displaced_impact / (main_product.rate * self.operating_hours))
-        main_product.set_CF(key, CF_original)
+            if item in main_products:
+                if isa(item, bst.Stream):
+                    item.set_CF(key, displaced_impact / self.get_mass_flow(item))
+                elif item == 'Electricity':
+                    item.set_CF(key, displaced_impact / (item.rate * self.operating_hours))
+        for i, j in zip(main_products, CFs_original): i.set_CF(key, j)
         total = sum(allocation_factors.values())
         return {i: j / total for i, j in allocation_factors.items()}
     
