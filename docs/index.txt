@@ -138,7 +138,7 @@ Several studies have leveraged the BioSTEAM platform to compare conversion
 technologies, chart development pathways for various bioproducts, and build new
 tools for sustainability assessments. Here is a short list of related publications:
 
-* Software:
+* **Software tools**:
 
   - `BioSTEAM: A Fast and Flexible Platform for the Design, Simulation, and Techno-Economic Analysis of Biorefineries under Uncertainty. ACS Sustainable Chem. Eng. 2020 <https://doi.org/10.1021/acssuschemeng.9b07040>`_
 
@@ -146,11 +146,11 @@ tools for sustainability assessments. Here is a short list of related publicatio
 
   - `QSDsan: an integrated platform for quantitative sustainable design of sanitation and resource recovery systems. Environ. Sci.: Water Res. Technol. 2022 <https://doi.org/10.1039/D2EW00455K>`_
 
-* Social, economic, and policy:
+* **Social, economic, and policy studies**:
 
   - `An agent-based modeling tool supporting bioenergy and bio-product community communication regarding cellulosic bioeconomy development. Renewable and Sustainable Energy Reviews 2022 <https://doi.org/10.1016/j.rser.2022.112745>`_
 
-* Bioproducts and biofuels:
+* **Bioproduct and biofuel studies**:
 
   - `Adsorptive separation and recovery of triacetic acid lactone from fermentation broth. Biofuels Bioprod Bioref 2022 <https://doi.org/10.1002/bbb.2427>`_
 
