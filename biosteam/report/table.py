@@ -123,7 +123,7 @@ def voc_table(systems, product_IDs, system_names=None, unit='MT', with_products=
         table_index.extend(
             [('Products', reformat(i)) for i in product_IDs]
         )
-        for i, ID in enumerate(product_IDs): index[ID] = -(i + 1)
+        for i, ID in enumerate(reversed(product_IDs)): index[ID] = -(i + 1)
     N_cols = len(systems) + 1
     N_rows = len(table_index)
     data = np.zeros([N_rows, N_cols], dtype=object)
@@ -158,7 +158,9 @@ def voc_table(systems, product_IDs, system_names=None, unit='MT', with_products=
                 data[ind, 0] = price
                 data[ind, col + 1] = cost / 1e6 # million USD / yr
     N_consumed = N_rows - N_coproducts - 1
-    data[-1, 1:] = data[:N_consumed, 1:].sum(axis=0) - data[N_consumed:, 1:].sum(axis=0)
+    N_products = len(product_IDs) if with_products else 0
+    VOC_index = N_rows - N_products - 1
+    data[VOC_index, 1:] = data[:N_consumed, 1:].sum(axis=0) - data[N_consumed:VOC_index, 1:].sum(axis=0)
     if system_names is None:
         system_names = [i.ID for i in systems]
     columns = [i + " [MM$/yr]" for i in system_names]
@@ -166,9 +168,15 @@ def voc_table(systems, product_IDs, system_names=None, unit='MT', with_products=
                         index=pd.MultiIndex.from_tuples(table_index),
                         columns=(f'Price [$/{unit}]', *columns))
 
-def lca_inventory_table(systems, key, items=(), system_names=None, group=None):
-    items = frozenset(items)
+def lca_inventory_table(systems, key, items=(), system_names=None):
     isa = isinstance
+    if items:
+        item = items[0]
+        if isa(item, list): 
+            items = sum(items, [])
+        elif isa(item, tuple): 
+            items = sum(items, ())
+    items = frozenset(items)
     if isa(systems, bst.System): systems = [systems]
     PowerUtility = bst.PowerUtility
     other_utilities = []
@@ -292,7 +300,12 @@ def lca_displacement_allocation_table(systems, key, items,
                 value = f"{value} [{basis}/yr]"
             set_value(item.name, sys, CF, value)
     
-    if item_name is None: item_name = items[0].ID.replace('_', ' ')
+    if item_name is None: 
+        item = items[0]
+        if hasattr(item , 'ID'):
+            item_name = item.ID.replace('_', ' ')
+        else:
+            item_name = item[0].ID.replace('_', ' ')
     feeds = sorted({i.ID for i in sum([i.feeds for i in systems], []) if key in i.characterization_factors})
     coproducts = sorted({i.ID for i in sum([i.products for i in systems], []) if key in i.characterization_factors})
     system_heat_utilities = [bst.HeatUtility.sum_by_agent(sys.heat_utilities) for sys in systems]
