@@ -298,16 +298,16 @@ class HeatExchangerNetwork(Facility):
             self.energy_balance_percent_error = 100 * energy_balance_error
             
             if new_HXs:
-                self.installed_costs['Heat exchangers'] = (
+                self.installed_costs['Heat exchangers'] = max(0, (
                         sum(new_installed_costs_HXp)
                         + sum(new_installed_costs_HXu)
                         - sum(original_installed_costs)
-                )
-                self.purchase_costs['Heat exchangers'] = self.baseline_purchase_costs['Heat exchangers'] = (
+                ))
+                self.purchase_costs['Heat exchangers'] = self.baseline_purchase_costs['Heat exchangers'] = max(0, (
                     sum(new_purchase_costs_HXp) 
                     + sum(new_purchase_costs_HXu)
                     - sum(original_purchase_costs)
-                )
+                ))
                 self.heat_utilities = hus_final
             else: # if no matches were made, retain all original HXutilities (i.e., don't add the -- relatively minor -- differences between new and original HXutilities)
                 self.installed_costs['Heat exchangers'] = 0.

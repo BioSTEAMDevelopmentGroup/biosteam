@@ -18,7 +18,7 @@ from ._unit import Unit
 from ._system import System
 from ._network import Network
 
-__all__ = ('main_flowsheet', 'Flowsheet')
+__all__ = ('main_flowsheet', 'Flowsheet', 'F')
 
 # %% Flowsheet search      
 
@@ -125,9 +125,16 @@ class Flowsheet:
     def __reduce__(self):
         return self.from_registries, self.registries
     
+    def __getattr__(self, name):
+        obj = (self.stream.search(name)
+               or self.unit.search(name)
+               or self.system.search(name))
+        if not obj: raise AttributeError(f"no registered item '{name}'")
+        return obj
+    
     def __setattr__(self, key, value):
-        if hasattr(self, '_ID'):
-            raise TypeError(f"'{type(self).__name__}' object does not support attribute assignment")
+        if self in self.flowsheet.__dict__:
+            raise AttributeError("cannot register object through flowsheet")
         else:
             super().__setattr__(key, value)
     
@@ -359,8 +366,6 @@ class MainFlowsheet(Flowsheet):
         
     def get_flowsheet(self):
         return self.flowsheet[self.ID]
-        
-    __setattr__ = Flowsheets.__setattr__
     
     def __new__(cls, ID):
         main_flowsheet.set_flowsheet(ID)
@@ -372,7 +377,7 @@ class MainFlowsheet(Flowsheet):
     
 #: Main flowsheet where objects are registered by ID.
 #: Use the `set_flowsheet` to change the main flowsheet.
-main_flowsheet = object.__new__(MainFlowsheet)
+F = main_flowsheet = object.__new__(MainFlowsheet)
 main_flowsheet.set_flowsheet(
     Flowsheet.from_registries(
         'default', Stream.registry, Unit.registry, System.registry

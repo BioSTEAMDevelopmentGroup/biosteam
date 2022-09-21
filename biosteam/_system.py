@@ -60,13 +60,13 @@ class MaterialData:
         'material_flows',
         'recycles',
         'index',
-        'same_chemicals',
+        'IDs',
     )
-    def __init__(self, material_flows, recycles, index, same_chemicals):
+    def __init__(self, material_flows, recycles, index, IDs):
         self.material_flows = material_flows
         self.recycles = recycles
         self.index = index
-        self.same_chemicals = same_chemicals
+        self.IDs = IDs
         
    
 def get_recycle_data(stream):
@@ -122,20 +122,19 @@ class ProcessImpactItem:
         
     def impact(self):
         return self.inventory() * self.CF
-
-
-# %% Functions for taking care of numerical specifications within a system path
-
-def converge_system_in_path(system):
-    specification = system._specification
-    if specification:
-        method = specification
+    
+def set_impact_value(properties, name, value, groups):
+    for group in groups:
+        if group in name:
+            group_name = _reformat(group)
+            if group_name in properties:
+                properties[group_name] += value
+            elif value:
+                properties[group_name] = value
+            break
     else:
-        method = system.converge
-    try_method_with_object_stamp(system, method)
-
-def simulate_unit_in_path(unit):
-    try_method_with_object_stamp(unit, unit.simulate)
+        if value: properties[_reformat(name)] = value
+    
 
 # %% Debugging and exception handling
 
@@ -350,7 +349,6 @@ class System:
         '_facility_loop',
         '_recycle',
         '_N_runs',
-        '_specification',
         '_mol_error',
         '_T_error',
         '_rmol_error',
@@ -383,6 +381,9 @@ class System:
         '_configuration_updated',
         '_inlet_names',
         '_outlet_names',
+        # Specifications
+        '_specifications',
+        '_running_specifications',
         # Dynamic simulation
         '_isdynamic',
         '_state',
@@ -638,7 +639,8 @@ class System:
         self.lang_factor: float|None = lang_factor
 
         self._set_path(path)
-        self._specification = None
+        self._specifications = []
+        self._running_specifications = False
         self._load_flowsheet()
         self._reset_errors()
         self._set_facilities(facilities)
@@ -900,22 +902,41 @@ class System:
         """QSDsan.LCA object linked to the system."""
         return getattr(self, '_LCA', None)
 
-    @property
-    def specification(self) -> Callable:
-        """Process specification."""
-        return self._specification
-    @specification.setter
-    def specification(self, specification):
-        if specification:
-            if callable(specification):
-                self._specification = specification
-            else:
-                raise AttributeError(
-                    "specification must be callable or None; "
-                   f"not a '{type(specification).__name__}'"
-                )
-        else:
-            self._specification = None
+    specification = Unit.specification
+    specifications = Unit.specifications
+    add_bounded_numerical_specification = Unit.add_bounded_numerical_specification
+    def add_specification(self, 
+            specification: Optional[Callable]=None, 
+            args: Optional[tuple]=()
+        ):
+        """
+        Add a specification.
+
+        Parameters
+        ----------
+        specification : 
+            Function runned for mass and energy balance.
+        args : 
+            Arguments to pass to the specification function.
+
+        Examples
+        --------
+        :doc:`../tutorial/Process_specifications`
+
+        See Also
+        --------
+        add_bounded_numerical_specification
+        specifications
+
+        Notes
+        -----
+        This method also works as a decorator.
+
+        """
+        if not specification: return lambda specification: self.add_specification(specification, args)
+        if not callable(specification): raise ValueError('specification must be callable')
+        self._specifications.append((specification, args))
+        return specification
 
     def _extend_recycles(self, recycles):
         isa = isinstance
@@ -1390,17 +1411,14 @@ class System:
         """
         self._load_configuration()
         if kind is None: kind = 1
-        graph_attrs['format'] = format or 'png'
         if title is None: title = ''
         graph_attrs['label'] = title
         preferences = bst.preferences
-        original = (preferences.number_path,
-                    preferences.label_streams,
-                    preferences.profile)
-        if number is not None: preferences.number_path = number
-        if label is not None: preferences.label_streams = label
-        if profile is not None: preferences.profile = profile
-        try:
+        with preferences.temporary():
+            if number is not None: preferences.number_path = number
+            if label is not None: preferences.label_streams = label
+            if profile is not None: preferences.profile = profile
+            if format is not None: preferences.graphviz_format = format
             if kind == 0 or kind == 'cluster':
                 f = self._cluster_digraph(graph_attrs)
             elif kind == 1 or kind == 'thorough':
@@ -1414,13 +1432,14 @@ class System:
                                  "0 or 'cluster', 1 or 'thorough', 2 or 'surface', "
                                  "3 or 'minimal'")
             if display or file:
-                finalize_digraph(f, file, format)
+                height = (
+                    preferences.graphviz_html_height
+                    ['unit' if len(self.units) == 1 else 'system']
+                    [preferences.tooltips_full_results]
+                )
+                finalize_digraph(f, file, format, height)
             else:
                 return f
-        finally:
-            (preferences.number_path,
-             preferences.label_streams,
-             preferences.profile) = original
 
     # Methods for running one iteration of a loop
     def _iter_run_conditional(self, data):
@@ -1444,7 +1463,7 @@ class System:
         self._set_recycle_data(data)
         T = self._get_recycle_temperatures()
         mol = self._get_recycle_mol()
-        self._run()
+        self.run()
         recycle = self._recycle
         for i, j in self.tracked_recycles.items():
             if i is recycle: j.append(i.copy(None))
@@ -1550,14 +1569,14 @@ class System:
         self._load_facilities()
         for i in self.units: i._setup()
 
-    def _run(self):
-        """Rigorously run each element in the path."""
+    def run(self):
+        """Run mass and energy balances for each element in the path
+        without costing unit operations."""
         isa = isinstance
-        converge = converge_system_in_path
-        run = try_method_with_object_stamp
+        f = try_method_with_object_stamp
         for i in self._path:
-            if isa(i, Unit): run(i, i.run)
-            elif isa(i, System): converge(i)
+            if isa(i, Unit): f(i, i.run)
+            elif isa(i, System): f(i, i.converge)
             else: i() # Assume it's a function
 
     def _solve(self):
@@ -1580,12 +1599,14 @@ class System:
         
         """
         recycles = self.get_all_recycles()
-        all_IDs = [s.chemicals.IDs for s in recycles]
-        same_chemicals = len(set(all_IDs)) == 1
+        all_IDs = set([s.chemicals.IDs for s in recycles])
+        same_chemicals = len(all_IDs) == 1
         if same_chemicals:
-            index = recycles[0].chemicals._index
+            chemicals = recycles[0].chemicals
+            IDs = chemicals.IDs
+            index = chemicals._index
             M = len(recycles)
-            N = len(all_IDs[0])
+            N = len(IDs)
             material_flows = np.zeros([M, N])
             for i, s in enumerate(recycles): material_flows[i] = s.mol
         else:
@@ -1597,14 +1618,15 @@ class System:
             for i, s in enumerate(recycles):
                 for ID, value in zip(s.chemicals.IDs, s.mol):
                     material_flows[i, index[ID]] = value
+            IDs = None
         return MaterialData(
             material_flows=material_flows,
             recycles=recycles,
             index=index,
-            same_chemicals=same_chemicals,
+            IDs=IDs,
         )
 
-    def converge(self, material_data: MaterialData=None):
+    def converge(self, material_data: MaterialData=None, update_material_data: bool=False):
         """
         Converge mass and energy balances. If material data was given, 
         return converged material flows at steady state. Shape will be M by N,
@@ -1629,12 +1651,20 @@ class System:
             material_flows = material_data.material_flows
             recycles = material_data.recycles
             index = material_data.index
-            same_chemicals = material_data.same_chemicals
+            all_IDs = set([s.chemicals.IDs for s in recycles])
+            all_IDs.add(material_data.IDs)
+            same_chemicals = len(all_IDs) == 1
             if same_chemicals:
-                for i, s in enumerate(recycles):
-                    s.mol[:] = material_flows[i]
+                try:
+                    for i, s in enumerate(recycles):
+                        s.mol[:] = material_flows[i]
+                except:
+                    reset_material_data = True
+                    same_chemicals = False
+                else:
+                    reset_material_data = False
             else:
-                
+                reset_material_data = False
                 for i, s in enumerate(material_data.recycles):
                     mol = s.mol
                     for j, ID in enumerate(s.chemicals.IDs):
@@ -1642,39 +1672,43 @@ class System:
         if self._recycle:
             method = self._solve
         else:
-            method = self._run
+            method = self.run
         if self._N_runs:
             for i in range(self._N_runs): method()
         else:
             method()
-        if material_data is not None:
-            material_flows = material_flows.copy()
+        if update_material_data:
+            if reset_material_data:
+                new_data =  self.get_material_data()
+                material_data.material_flows = material_flows = new_data.material_flows
+                material_data.recycles = recycles = new_data.recycles
+                material_data.index = index = new_data.index
+                material_data.IDs = new_data.IDs
             if same_chemicals:
                 for i, s in enumerate(recycles): material_flows[i] = s.mol
             else:
                 for i, s in enumerate(recycles):
                     for ID, value in zip(s.chemicals.IDs, s.mol):
                         material_flows[i, index[ID]] = value
-            return material_flows
 
     def _summary(self):
         simulated_units = set()
         isa = isinstance
         Unit = bst.Unit
+        f = try_method_with_object_stamp
         for i in self._path:
             if isa(i, Unit):
                 if i in simulated_units: continue
                 simulated_units.add(i)
-            try_method_with_object_stamp(i, i._summary)
-        simulate_unit = simulate_unit_in_path
+            f(i, i._summary)
         for i in self._facilities:
-            if isa(i, Unit): simulate_unit(i)
+            if isa(i, Unit): f(i, i.simulate)
             elif isa(i, System):
-                converge_system_in_path(i)
+                f(i, i.converge)
                 i._summary()
             else: i() # Assume it is a function
         for i in self._facilities:
-            if isa(i, (bst.BoilerTurbogenerator, bst.Boiler)): simulate_unit(i)
+            if isa(i, (bst.BoilerTurbogenerator, bst.Boiler)): f(i, i.simulate)
 
     def _reset_iter(self):
         self._iter = 0
@@ -1887,18 +1921,25 @@ class System:
             :func:`converge` (if steady state).
         
         """
-        self._configuration_updated = False
-        if not skip_setup:
-            self._setup()
-        if self.isdynamic: 
-            self.dynamic_run(**kwargs)
-            self._summary()
-        else: 
-            outputs = self.converge(**kwargs)
-            self._summary()
-            if self._configuration_updated: outputs = self.simulate(**kwargs)
-            if self._facility_loop: self._facility_loop.converge()
-            return outputs
+        specifications = self._specifications
+        if specifications and not self._running_specifications:
+            self._running_specifications = True
+            try:
+                for i, args in specifications: i(*args)
+            finally:
+                self._running_specifications = False
+        else:
+            self._configuration_updated = False
+            if not skip_setup: self._setup()
+            if self.isdynamic: 
+                self.dynamic_run(**kwargs)
+                self._summary()
+            else: 
+                outputs = self.converge(**kwargs)
+                self._summary()
+                if self._configuration_updated: outputs = self.simulate(**kwargs)
+                if self._facility_loop: self._facility_loop.converge()
+                return outputs
 
     def dynamic_run(self, **dynsim_kwargs):
         """
@@ -2272,41 +2313,46 @@ class System:
         impact += self.get_process_impact(key)
         return impact / total_property
     
-    def get_property_allocation_factors(self, name, units=None):
+    def get_property_allocation_factors(self, name, units=None, groups=()):
         heat_utilities = self.heat_utilities
         power_utility = self.power_utility
         operating_hours = self.operating_hours
         properties = {}
+        if isinstance(groups, str): groups = [groups]
         if hasattr(bst.PowerUtility, name):
             if power_utility.rate < 0.:
                 value = power_utility.get_property(name, units)
-                if value: properties['Electricity'] = value * operating_hours
+                set_impact_value(properties, 'Electricity', value * operating_hours, groups)
         if hasattr(bst.HeatUtility, name):
             for hu in heat_utilities:
                 if hu.flow < 0.: 
                     value = hu.get_property(name, units)
-                    if value: properties[_reformat(hu.agent.ID)] = value * operating_hours
+                    set_impact_value(properties, hu.agent.ID, value * operating_hours, groups)
         if hasattr(bst.Stream, name):
             for stream in self.products:
                 value = self.get_property(stream, name, units)
-                if value: properties[_reformat(stream.ID)] = value
+                set_impact_value(properties, stream.ID, value, groups)
         total_property = sum(properties.values())
         allocation_factors = {i: j / total_property for i, j in properties.items()}
         return allocation_factors
     
-    def get_displacement_allocation_factors(self, main_product, key):
+    def get_displacement_allocation_factors(self, main_products, key, groups=()):
         heat_utilities = self.heat_utilities
         power_utility = self.power_utility
         allocation_factors = {}
         isa = isinstance
-        if isa(main_product, bst.Stream):
-            CF_original = main_product.get_CF(key)
-        elif main_product == 'Electricity':
-            main_product = power_utility
-            CF_original = main_product.get_CF(key, consumption=False)
-        else:
-            raise NotImplementedError(f"main product '{main_product}' is not yet an option for this method")
-        items = [main_product]
+        if isa(main_products, bst.Stream): main_products = [main_products]
+        CFs_original = []
+        main_products = [i for i in main_products if not i.isempty()]
+        for main_product in main_products:
+            if isa(main_product, bst.Stream):
+                CFs_original.append(main_product.get_CF(key))
+            elif main_product == 'Electricity':
+                main_product = power_utility
+                CFs_original.append(main_product.get_CF(key, consumption=False))
+            else:
+                raise NotImplementedError(f"main product '{main_product}' is not yet an option for this method")
+        items = main_products.copy()
         for stream in self.products:
             if key in stream.characterization_factors:
                 items.append(stream)
@@ -2323,20 +2369,18 @@ class System:
             else:
                 item_impact = -1 * item.get_impact(key) * self.operating_hours
             displaced_impact = net_impact + item_impact
-            if isa(item, bst.Stream):
-                allocation_factors[_reformat(item.ID)] = displaced_impact / total_input_impact
-            elif isa(item, bst.HeatUtility):
-                allocation_factors[_reformat(item.ID)] = displaced_impact / total_input_impact
+            if isa(item, (bst.Stream, bst.HeatUtility)):
+                set_impact_value(allocation_factors, item.ID, displaced_impact / total_input_impact, groups)
             elif isa(item, bst.PowerUtility):
-                allocation_factors['Electricity'] = displaced_impact / total_input_impact
+                set_impact_value(allocation_factors, 'Electricity', displaced_impact / total_input_impact, groups)
             else:
                 raise RuntimeError('unknown error')
-            if item is main_product:
-                if isa(main_product, bst.Stream):
-                    main_product.set_CF(key, displaced_impact / self.get_mass_flow(main_product))
-                elif main_product == 'Electricity':
-                    main_product.set_CF(key, displaced_impact / (main_product.rate * self.operating_hours))
-        main_product.set_CF(key, CF_original)
+            if item in main_products:
+                if isa(item, bst.Stream):
+                    item.set_CF(key, displaced_impact / self.get_mass_flow(item))
+                elif item == 'Electricity':
+                    item.set_CF(key, displaced_impact / (item.rate * self.operating_hours))
+        for i, j in zip(main_products, CFs_original): i.set_CF(key, j)
         total = sum(allocation_factors.values())
         return {i: j / total for i, j in allocation_factors.items()}
     
@@ -2472,7 +2516,7 @@ class System:
         stream_tables = []
         for chemicals, streams in streams_by_chemicals.items():
             stream_tables.append(report.stream_table(streams, chemicals=chemicals, T='K', **stream_properties))
-        report.tables_to_excel(report.stream_tables, writer, 'Stream table')
+        report.tables_to_excel(stream_tables, writer, 'Stream table')
         
         # Heat utility tables
         heat_utilities = report.heat_utility_tables(cost_units)
@@ -2508,8 +2552,8 @@ class System:
         else:
             raise ValueError(f"mode must be either 'debug' or 'profile'; not '{mode}'")
         for u in self.units:
-            if u._specification:
-                u._specification = [_wrap_method(u, i) for i in u.specification]
+            if u._specifications:
+                u._specifications = [_wrap_method(u, i) for i in u.specification]
             else:
                 u.run = _wrap_method(u, u.run)
             u._design = _wrap_method(u, u._design)
@@ -2636,7 +2680,7 @@ class System:
         print(self._info(layout, T, P, flow, composition, N, IDs, data))
 
     def _info(self, layout, T, P, flow, composition, N, IDs, data):
-        """Return string with all specifications."""
+        """Return string with all stream specifications."""
         ins_and_outs = repr_ins_and_outs(layout, self.ins, self.outs,
                                          T, P, flow, composition, N, IDs, data)
         error = self._error_info()
@@ -2771,7 +2815,7 @@ class AgileSystem:
     """
 
     __slots__ = (
-        'operation_modes', 'operation_parameters',
+        'operation_modes', 'operation_parameters', 'active_operation_mode',
         'mode_operation_parameters', 'annual_operation_metrics',
         'operation_metrics', 'unit_capital_costs', 
         'net_electricity_consumption', 'utility_cost', 
@@ -2817,6 +2861,7 @@ class AgileSystem:
         self.lang_factor = lang_factor
         self.heat_utilities = None
         self.power_utility = None
+        self.active_operation_mode = None
         self._OperationMode = type('OperationMode', (OperationMode,), {'agile_system': self})
 
     def _downstream_system(self, unit):
@@ -3048,7 +3093,7 @@ class AgileSystem:
         values = [{i: None for i in operation_modes} for i in metric_range]
         total_operating_hours = self.operating_hours
         for i in mode_range:
-            mode = operation_modes[i]
+            self.active_operation_mode = mode = operation_modes[i]
             operation_mode_results[i] = results = mode.simulate()
             for j in annual_metric_range:
                 metric = annual_operation_metrics[j]
@@ -3059,6 +3104,7 @@ class AgileSystem:
             scale = mode.operating_hours / total_operating_hours
             for hu in results.heat_utilities: hu.scale(scale)
             results.power_utility.scale(scale)
+        self.active_operation_mode = None
         for i in annual_metric_range:
             metric = annual_operation_metrics[i]
             metric.value = sum(annual_values[i])
