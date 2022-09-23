@@ -560,6 +560,10 @@ def create_wastewater_treatment_units(ins, outs,
     air_over_waste = air.imol['O2', 'N2'] / 2544301
     air.mol[:] = 0.
     waste = recycled_sludge_mixer-0
+    aerobic_digestion = AerobicDigestion('R602', (waste, air, caustic),
+                                         outs=('evaporated_water', ''))
+    
+    @aerobic_digestion.add_specification
     def update_aerobic_input_streams():
         waste, air, caustic = aerobic_digestion.ins
         F_mass_waste = waste.F_mass
@@ -567,9 +571,6 @@ def create_wastewater_treatment_units(ins, outs,
         air.imol['O2', 'N2'] = F_mass_waste * air_over_waste
         aerobic_digestion._run()
     
-    aerobic_digestion = AerobicDigestion('R602', (waste, air, caustic),
-                                         outs=('evaporated_water', ''))
-    aerobic_digestion.specification = update_aerobic_input_streams
     membrane_bioreactor = MembraneBioreactor('S601', aerobic_digestion-1)
     sludge_splitter = bst.Splitter('S602', membrane_bioreactor-1, split=0.96)
     fresh_sludge_mixer = bst.Mixer('M603', (anaerobic_digestion-2, sludge_splitter-1))

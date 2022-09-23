@@ -1016,22 +1016,22 @@ class BinaryDistillation(Distillation, new_graphics=False):
     ins...
     [0] feed
         phase: 'l', T: 76.12 degC, P: 1 atm
-        composition: Water     0.39
-                     Methanol  0.488
-                     Glycerol  0.122
-                     --------  205 kmol/hr
+        composition (%): Water     39
+                         Methanol  48.8
+                         Glycerol  12.2
+                         --------  205 kmol/hr
     outs...
     [0] distillate
         phase: 'g', T: 64.909 degC, P: 1 atm
-        composition: Water     0.01
-                     Methanol  0.99
-                     --------  100 kmol/hr
+        composition (%): Water     1
+                         Methanol  99
+                         --------  100 kmol/hr
     [1] bottoms_product
         phase: 'l', T: 100.03 degC, P: 1 atm
-        composition: Water     0.754
-                     Methanol  0.00761
-                     Glycerol  0.239
-                     --------  105 kmol/hr
+        composition (%): Water     75.4
+                         Methanol  0.761
+                         Glycerol  23.9
+                         --------  105 kmol/hr
     >>> D1.results()
     Divided Distillation Column                           Units        D1
     Cooling water       Duty                              kJ/hr -4.88e+06
@@ -1414,22 +1414,22 @@ class ShortcutColumn(Distillation, new_graphics=False):
     ins...
     [0] feed
         phase: 'l', T: 76.12 degC, P: 1 atm
-        composition: Water     0.39
-                     Methanol  0.488
-                     Glycerol  0.122
-                     --------  205 kmol/hr
+        composition (%): Water     39
+                         Methanol  48.8
+                         Glycerol  12.2
+                         --------  205 kmol/hr
     outs...
     [0] distillate
         phase: 'g', T: 64.909 degC, P: 1 atm
-        composition: Water     0.01
-                     Methanol  0.99
-                     --------  100 kmol/hr
+        composition (%): Water     1
+                         Methanol  99
+                         --------  100 kmol/hr
     [1] bottoms_product
         phase: 'l', T: 100.03 degC, P: 1 atm
-        composition: Water     0.754
-                     Methanol  0.00761
-                     Glycerol  0.239
-                     --------  105 kmol/hr
+        composition (%): Water     75.4
+                         Methanol  0.761
+                         Glycerol  23.9
+                         --------  105 kmol/hr
     >>> D1.results()
     Divided Distillation Column                           Units        D1
     Cooling water       Duty                              kJ/hr -7.53e+06

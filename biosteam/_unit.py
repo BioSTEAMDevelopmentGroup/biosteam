@@ -131,8 +131,6 @@ class Unit:
     
     :doc:`../tutorial/Inheriting_from_Unit`
     
-    :doc:`../tutorial/Unit_decorators`
-    
     """ 
     
     def __init_subclass__(cls,
@@ -358,14 +356,14 @@ class Unit:
         ### Initialize specification    
     
         #: All specification functions
-        self._specification: list[Callable] = []
+        self._specifications: list[Callable] = []
         
         #: Whether to run mass and energy balance after calling
         #: specification functions
-        self.run_after_specification: bool = False 
+        self.run_after_specifications: bool = False 
         
         #: Safety toggle to prevent infinite recursion
-        self._running_specification: bool = False
+        self._running_specifications: bool = False
         
         self._assert_compatible_property_package()
     
@@ -398,10 +396,10 @@ class Unit:
         try: self.equipment_lifetime = copy(self._default_equipment_lifetime)
         except AttributeError: self.equipment_lifetime = {}
 
-    def _init_specification(self):
-        self._specification = []
-        self.run_after_specification = False
-        self._running_specification = False
+    def _init_specifications(self):
+        self._specifications = []
+        self.run_after_specifications = False
+        self._running_specifications = False
     
     def _reset_thermo(self, thermo):
         for i in (self._ins._streams + self._outs._streams):
@@ -434,6 +432,14 @@ class Unit:
     def net_duty(self) -> float:
         """Net duty including heat transfer losses [kJ/hr]."""
         return sum([i.duty for i in self.heat_utilities])
+    @property
+    def net_cooling_duty(self) -> float:
+        """Net cooling duty including heat transfer losses [kJ/hr]."""
+        return sum([i.duty for i in self.heat_utilities if i.duty < 0.])
+    @property
+    def net_heating_duty(self) -> float:
+        """Net cooling duty including heat transfer losses [kJ/hr]."""
+        return sum([i.duty for i in self.heat_utilities if i.duty > 0.])
     
     @property
     def feed(self) -> Stream:
@@ -743,6 +749,47 @@ class Unit:
         self._ins[:] = ()
         self._outs[:] = ()
         if discard: bst.main_flowsheet.discard(self)
+
+    def _get_tooltip_string(self, format=None, full=None):
+        """Return a string that can be used as a Tippy tooltip in HTML output"""
+        if format is None: format = bst.preferences.graphviz_format
+        if full is None: full = bst.preferences.tooltips_full_results
+        if format not in ('html', 'svg'): return ''
+        if format == 'html' and full:
+            results = self.results(include_installed_cost=True)
+            tooltip = (
+                " " + # makes sure graphviz does not try to parse the string as HTML
+                results.to_html(justify='unset'). # unset makes sure that table header style can be overwritten in CSS
+                replace("\n", "").replace("  ", "") # makes sure tippy.js does not add any whitespaces
+            )
+        else:
+            newline = '<br>' if format == 'html' else '\n'
+            electricity_consumption = self.power_utility.consumption
+            electricity_production = self.power_utility.production
+            cooling = self.net_cooling_duty / 1e3
+            heating = self.net_heating_duty / 1e3
+            utility_cost = self.utility_cost
+            purchase_cost = int(float(self.purchase_cost))
+            installed_cost = int(float(self.installed_cost))
+            tooltip = ''
+            if electricity_consumption:
+                tooltip += f"{newline}Electricity consumption: {electricity_consumption:.3g} kW"
+            if electricity_production:
+                tooltip += f"{newline}Electricity production: {electricity_production:.3g} kW"
+            if cooling:
+                tooltip += f"{newline}Cooling duty: {cooling:.3g} MJ/hr"
+            if heating:
+                tooltip += f"{newline}Heating duty: {heating:.3g} MJ/hr"
+            if utility_cost:
+                tooltip += f"{newline}Utility cost: {utility_cost:.3g} USD/hr"
+            if purchase_cost:
+                tooltip += f"{newline}Purchase cost: {purchase_cost:,} USD"
+            if installed_cost:
+                tooltip += f"{newline}Installed equipment cost: {installed_cost:,} USD"
+            if not tooltip: tooltip = 'No capital costs or utilities'
+            elif tooltip: tooltip = tooltip.lstrip(newline)
+            if format == 'html': tooltip = ' ' + tooltip
+        return tooltip
     
     def get_node(self):
         """Return unit node attributes for graphviz."""
@@ -751,7 +798,9 @@ class Unit:
         if bst.preferences.minimal_nodes:
             return self._graphics.get_minimal_node(self)
         else:
-            return self._graphics.get_node_tailored_to_unit(self)
+            node = self._graphics.get_node_tailored_to_unit(self)
+            node['tooltip'] = self._get_tooltip_string()
+            return node
     
     def get_design_result(self, key: str, units: str):
         """
@@ -894,16 +943,18 @@ class Unit:
         See Also
         --------
         add_bounded_numerical_specification
+        specifications
+        run
 
         Notes
         -----
         This method also works as a decorator.
 
         """
-        if not specification: return lambda specification: self.add_specification(specification, run)
+        if not specification: return lambda specification: self.add_specification(specification, run, args)
         if not callable(specification): raise ValueError('specification must be callable')
-        self.specification.append([specification, args])
-        if run is not None: self.run_after_specification = run
+        self._specifications.append((specification, args))
+        if run is not None: self.run_after_specifications = run
         return specification
     
     def add_bounded_numerical_specification(self, f=None, *args, **kwargs):
@@ -945,6 +996,7 @@ class Unit:
         See Also
         --------
         add_specification
+        specifications
         
         Notes
         -----
@@ -954,28 +1006,31 @@ class Unit:
         if not f: return lambda f: self.add_bounded_numerical_specification(f, *args, **kwargs)
         if not callable(f): raise ValueError('f must be callable')
         specification = bst.BoundedNumericalSpecification(f, *args, **kwargs)
-        self.specification.append([specification, ()])
+        self._specifications.append((specification, ()))
         return f
     
     def run(self):
         """
-        Run mass and energy balance with specifications.
+        Run mass and energy balance. This method also runs specifications
+        user defined specifications unless it is being run within a 
+        specification (to avoid infinite loops). 
         
         See Also
         --------
         _run
+        specifications
         add_specification
         add_bounded_numerical_specification
         
         """
-        specification = self._specification
-        if specification and not self._running_specification:
-            self._running_specification = True
+        specification = self._specifications
+        if specification and not self._running_specifications:
+            self._running_specifications = True
             try:
                 for i, args in specification: i(*args)
-                if self.run_after_specification: self._run()
+                if self.run_after_specifications: self._run()
             finally:
-                self._running_specification = False
+                self._running_specifications = False
         else:
             self._run()
             
@@ -1035,18 +1090,32 @@ class Unit:
         )
     
     @property
-    def specification(self) -> list[tuple[Callable, tuple]]:
-        """Process specifications as a list of specification functions and their 
+    def specifications(self) -> list[tuple[Callable, tuple]]:
+        """
+        Process specifications as a list of specification functions and their 
         arguments in the following format, [(<function0(*args0)>, args0), 
-        (<function1(*args1)>, args1), ...]."""
-        return self._specification
+        (<function1(*args1)>, args1), ...].
+        
+        See Also
+        --------
+        add_specification
+        add_bounded_numerical_specification
+        
+        """
+        return self._specifications
+    @specifications.setter
+    def specifications(self, specifications):
+        if specifications is None:
+            self._specifications = []
+        else:
+            self._specifications = specifications
+    
+    @property
+    def specification(self):
+        raise AttributeError('`specification` property is deprecated; use `add_specification` or `specifications` (plural with an s) instead')
     @specification.setter
     def specification(self, specification):
-        if specification:
-            if callable(specification): specification = [(specification, ())]
-            self._specification = specification
-        else:
-            self._specification = []
+        raise AttributeError('`specification` property is deprecated; use `add_specification` or `specifications` (plural with an s) instead')
     
     @property
     def baseline_purchase_cost(self) -> float:
@@ -1328,7 +1397,8 @@ class Unit:
         return upstream_units
     
     def neighborhood(self, 
-            radius: Optional[int]=1, upstream: Optional[bool]=True,
+            radius: Optional[int]=1, 
+            upstream: Optional[bool]=True,
             downstream: Optional[bool]=True, 
             ends: Optional[Stream]=None, 
             facilities: Optional[bool]=None
@@ -1368,7 +1438,7 @@ class Unit:
 
     def diagram(self, radius: Optional[int]=0, upstream: Optional[bool]=True,
                 downstream: Optional[bool]=True, file: Optional[str]=None, 
-                format: Optional[str]='png', display: Optional[bool]=True,
+                format: Optional[str]=None, display: Optional[bool]=True,
                 **graph_attrs):
         """
         Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram

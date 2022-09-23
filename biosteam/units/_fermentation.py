@@ -87,12 +87,12 @@ class Fermentation(BatchBioreactor):
                         Yeast    415
     outs...
     [0] CO2
-        phase: 'g', T: 304.19 K, P: 101325 Pa
-        flow (kmol/hr): Water    9.49
-                        Ethanol  3.52
+        phase: 'g', T: 305.15 K, P: 101325 Pa
+        flow (kmol/hr): Water    10
+                        Ethanol  3.73
                         CO2      244
     [1] product
-        phase: 'l', T: 304.19 K, P: 101325 Pa
+        phase: 'l', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water    6.59e+03
                         Ethanol  240
                         Glucose  4.07
@@ -101,24 +101,24 @@ class Fermentation(BatchBioreactor):
     Fermentation                                       Units        F1
     Power               Rate                              kW      66.6
                         Cost                          USD/hr      5.21
-    Chilled water       Duty                           kJ/hr -7.55e+06
-                        Flow                         kmol/hr  5.06e+03
-                        Cost                          USD/hr      37.8
+    Chilled water       Duty                           kJ/hr -6.96e+06
+                        Flow                         kmol/hr  4.67e+03
+                        Cost                          USD/hr      34.8
     Design              Reactor volume                    m3       247
                         Batch time                        hr      12.6
                         Loading time                      hr      1.57
                         Number of reactors                           8
                         Recirculation flow rate        m3/hr      17.7
-                        Reactor duty                   kJ/hr  7.55e+06
+                        Reactor duty                   kJ/hr  6.96e+06
                         Cleaning and unloading time       hr         3
                         Working volume fraction                    0.9
-    Purchase cost       Heat exchangers                  USD  1.02e+05
-                        Reactors                         USD  1.87e+06
+    Purchase cost       Heat exchangers                  USD  9.62e+04
+                        Reactors                         USD  1.88e+06
                         Agitators                        USD  1.17e+05
                         Cleaning in place                USD   8.9e+04
                         Recirculation pumps              USD  1.26e+05
-    Total purchase cost                                  USD  2.31e+06
-    Utility cost                                      USD/hr        43
+    Total purchase cost                                  USD   2.3e+06
+    Utility cost                                      USD/hr        40
     
     References
     ----------

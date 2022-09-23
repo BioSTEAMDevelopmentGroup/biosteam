@@ -795,7 +795,10 @@ def plot_kde(x, y, nbins=100, ax=None,
         z = k(np.vstack([x, y]))
         # Sort the points by density, so that the densest points are plotted last
         idx = z.argsort()
-        x, y, z = x[idx], y[idx], z[idx]
+        try:
+            x, y, z = x[idx], y[idx], z[idx]
+        except:
+            breakpoint()
         
         # 2D Density with shading
         plt.sca(ax)
@@ -881,8 +884,6 @@ def plot_kde_2d(xs, ys, nbins=100, axes=None, xboxes=None, yboxes=None,
                 xticklabelsj = len(xticksj) * ['']
             if yticksi is not None and j != 0:
                 yticklabelsi = len(yticksi) * ['']
-            tick0 = i == N_rows - 1 and j == 0
-            tickf = i == 0
             plot_kde(x, y, nbins=nbins, ax=ax, 
                      xbox=xbox,
                      ybox=ybox,
@@ -890,10 +891,10 @@ def plot_kde_2d(xs, ys, nbins=100, axes=None, xboxes=None, yboxes=None,
                      yticks=yticksi,
                      xticklabels=xticklabelsj,
                      yticklabels=yticklabelsi,
-                     xtick0=tick0,
-                     ytick0=tick0,
-                     xtickf=tickf,
-                     ytickf=tickf,
+                     xtick0=j==0,
+                     ytick0=i==N_rows-1,
+                     xtickf=j==N_cols-1,
+                     ytickf=i==0,
                      **kwargs)
     if xboxes: 
         for i in xboxes: i.reset()
@@ -1185,8 +1186,6 @@ def color_quadrants(color=None, x=None, y=None, xlim=None, ylim=None,
     if line_color is None: line_color = c.grey.RGBn
     if xlim is None: xlim = plt.xlim()
     if ylim is None: ylim = plt.ylim()
-    plot_vertical_line(x, line_color, zorder=0)
-    plot_horizontal_line(y, line_color, zorder=0)
     x0, x1 = xlim
     y0, y1 = ylim
     top_left, top_right, bottom_left, bottom_right = color
@@ -1214,6 +1213,8 @@ def color_quadrants(color=None, x=None, y=None, xlim=None, ylim=None,
                          color=bottom_right,
                          linewidth=linewidth,
                          zorder=0)
+    plot_vertical_line(x, line_color, zorder=0)
+    plot_horizontal_line(y, line_color, zorder=0)
 
 def label_quadrants(
         x=None, y=None, text=None, color=None,

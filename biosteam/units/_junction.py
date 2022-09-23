@@ -59,6 +59,7 @@ class Junction(Unit):
     _graphics = junction_graphics
     heat_utilities = ()
     power_utility = PowerUtility()
+    design_results = {}
     baseline_purchase_cost = 0.
     baseline_purchase_costs = {}
     purchase_cost = 0.
@@ -70,7 +71,7 @@ class Junction(Unit):
     def __init__(self, ID="", upstream=None, downstream=None, thermo=None):
         self._register(ID)
         thermo = self._load_thermo(thermo)
-        self._init_specification()
+        self._init_specifications()
         self._isdynamic = False
         self._ins = Inlets(self, 1, upstream, thermo, True, self._stacklevel)
         self._outs = Outlets(self, 1, downstream, thermo, True, self._stacklevel)
@@ -99,8 +100,11 @@ class Junction(Unit):
             self._outs[0].copy_like(self._ins[0])
     simulate = Unit.run
 
+    def _get_tooltip_string(self):
+        return f"{type(self).__name__}: {self.ID}"
+
     @property
-    def inlet_utility_indices(self): return {}
+    def _inlet_utility_indices(self): return {}
     
     @property
-    def outlet_utility_indices(self): return {}
+    def _outlet_utility_indices(self): return {}

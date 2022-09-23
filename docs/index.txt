@@ -1,12 +1,5 @@
-BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-=========================================================================
-
-BioSTEAM is an open-source and community-lead platform for the design, 
-simulation, techno-economic analysis (TEA) and life cycle assessment (LCA) of 
-biorefineries across thousands of scenarios for streamlined uncertainty and 
-sensitivity analyses. The long-term growth and maintenance of BioSTEAM is supported
-through both community-led development and the research institutions invested in BioSTEAM, 
-including the `Center for Advanced Bioenergy and Bioproducts Innovation (CABBI) <https://cabbi.bio/>`_.
+The Biorefinery Simulation and TEA Modules
+==========================================
 
 .. toctree::
    :maxdepth: 2
@@ -14,8 +7,31 @@ including the `Center for Advanced Bioenergy and Bioproducts Innovation (CABBI) 
    
    tutorial/index
    API/index
-   changelog/index
    contributing/index
+
+.. grid:: 1 1 2 2
+
+    .. grid-item::
+    
+        .. image:: images/demo_gif_dark.gif
+           :class: only-dark
+           :align: center
+
+        .. image:: images/demo_gif_light.gif
+           :class: only-light
+           :align: center
+
+
+    .. grid-item::
+
+        BioSTEAM is an open-source platform that streamlines the design, simulation, techno-economic 
+        analysis (TEA) and life-cycle assessment (LCA) of biorefineries across thousands 
+        of scenarios. BioSTEAM is also leveraged by `QSDsan <https://qsdsan.readthedocs.io/en/latest/>`_,
+        a library for the quantitative sustainable design of sanitation and resource recovery
+        systems. The long-term growth and maintenance of BioSTEAM is supported
+        through both community-led development and the research institutions invested in BioSTEAM, 
+        including the `Center for Advanced Bioenergy and Bioproducts Innovation <https://cabbi.bio/>`_.
+
 
 .. grid:: 1 2 3 4
    
@@ -30,33 +46,9 @@ including the `Center for Advanced Bioenergy and Bioproducts Innovation (CABBI) 
           :height: 100
           :align: center
           
-       Detailed examples on BioSTEAM's features.
+       Tutorial on BioSTEAM's features.
 
 
-    .. grid-item-card:: API Reference
-       :text-align: center
-       :link: https://biosteam.readthedocs.io/en/latest/API/index.html
-       :link-type: url
-       :padding: 1
-       
-       .. figure:: images/storage.png
-          :height: 100
-          :align: center
-       
-       Documentation on all functionality. 
-        
-    .. grid-item-card:: Contributor's Guide
-       :text-align: center
-       :link: https://biosteam.readthedocs.io/en/latest/contributing/CONTRIBUTING.html
-       :link-type: url
-       :padding: 1
-       
-       .. figure:: images/fermenter.png
-          :height: 100
-          :align: center
-       
-       Want to add to codebase? We'll help.
-       
     .. grid-item-card:: Bioindustrial-Park
        :text-align: center
        :link: https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park
@@ -69,22 +61,31 @@ including the `Center for Advanced Bioenergy and Bioproducts Innovation (CABBI) 
        
        Repository for biorefinery models.
 
-Workshops
----------
-Join us for Yoel's Fall 2022 kick-off workshops! Yoel, the lead developer,
-will be going over the tutorial in detail, answer any questions, and provide 
-help with related issues.
-
-* Aug 8 [10-11am CST]: Thermodynamics
-
-* Aug 10 [10-11am CST]: Beginner's Guide
-
-* Aug 15 [10-11am CST]: Process Development
-
-* Aug 17 [10-11am CST]: Automation
-
-For details on how to join (virtually or in-person), please email 
-biosteamdevelopmentgroup@gmail.com 
+        
+    .. grid-item-card:: API Reference
+       :text-align: center
+       :link: https://biosteam.readthedocs.io/en/latest/API/index.html
+       :link-type: url
+       :padding: 1
+       
+       .. figure:: images/fermenter.png
+          :height: 100
+          :align: center
+       
+       Documentation on all functionality. 
+       
+       
+    .. grid-item-card:: QSDsan
+       :text-align: center
+       :link: https://qsdsan.readthedocs.io/en/latest/
+       :link-type: url
+       :padding: 1
+       
+       .. figure:: images/GG_logo.png
+          :height: 100
+          :align: center
+       
+       Sanitation and resource recovery. 
 
 Installation
 ------------
@@ -134,21 +135,35 @@ Scientific Papers
 -----------------
 
 Several studies have leveraged the BioSTEAM platform to compare conversion 
-technologies and chart development pathways for various bioproducts:
+technologies, chart development pathways for various bioproducts, and build new
+tools for sustainability assessments. Here is a short list of related publications:
 
-* `An agent-based modeling tool supporting bioenergy and bio-product community communication regarding cellulosic bioeconomy development. Renewable and Sustainable Energy Reviews 2022 <https://doi.org/10.1016/j.rser.2022.112745>`_
+* **Software tools**:
 
-* `Sustainable Production of Acrylic Acid via 3-Hydroxypropionic Acid from Lignocellulosic Biomass. ACS Sustainable Chem. Eng. 2021 <https://doi.org/10.1021/acssuschemeng.1c05441>`_
+  - `BioSTEAM: A Fast and Flexible Platform for the Design, Simulation, and Techno-Economic Analysis of Biorefineries under Uncertainty. ACS Sustainable Chem. Eng. 2020 <https://doi.org/10.1021/acssuschemeng.9b07040>`_
 
-* `Renewable linear alpha-olefins by base-catalyzed dehydration of biologically-derived fatty alcohols. Green Chemistry 2021 <https://doi.org/10.1039/D1GC00243K>`_
+  - `Thermosteam: BioSTEAM's Premier Thermodynamic Engine. Journal of Open Source Software. 2020 <doi.org/10.21105/joss.02814>`_
 
-* `Sustainable Lactic Acid Production from Lignocellulosic Biomass. ACS Sustainable Chem. Eng. 2021 <https://doi.org/10.1021/acssuschemeng.0c08055>`_
+  - `QSDsan: an integrated platform for quantitative sustainable design of sanitation and resource recovery systems. Environ. Sci.: Water Res. Technol. 2022 <https://doi.org/10.1039/D2EW00455K>`_
 
-* `Techno-Economic Evaluation of Biorefineries Based on Low-Value Feedstocks Using the BioSTEAM Software: A Case Study for Animal Bedding. Processes 2020 <https://doi.org/10.3390/pr8080904>`_
+* **Social, economic, and policy studies**:
 
-* `An Integrated Modeling Framework for Agile Life Cycle Assessment of Biorefineries under Uncertainty. ACS Sustainable Chem. Eng. 2020 <https://doi.org/10.1021/acssuschemeng.0c05998>`_
+  - `An agent-based modeling tool supporting bioenergy and bio-product community communication regarding cellulosic bioeconomy development. Renewable and Sustainable Energy Reviews 2022 <https://doi.org/10.1016/j.rser.2022.112745>`_
 
-* `BioSTEAM: A Fast and Flexible Platform for the Design, Simulation, and Techno-Economic Analysis of Biorefineries under Uncertainty. ACS Sustainable Chem. Eng. 2020 <https://doi.org/10.1021/acssuschemeng.9b07040>`_
+* **Bioproduct and biofuel studies**:
+
+  - `Adsorptive separation and recovery of triacetic acid lactone from fermentation broth. Biofuels Bioprod Bioref 2022 <https://doi.org/10.1002/bbb.2427>`_
+
+  - `Rewiring yeast metabolism for producing 2,3-butanediol and two downstream applications: Techno-economic analysis and life cycle assessment of methyl ethyl ketone (MEK) and agricultural biostimulant production. Chemical Engineering Journal 2022 <https://doi.org/10.1016/j.cej.2022.138886>`_
+
+  - `Sustainable Production of Acrylic Acid via 3-Hydroxypropionic Acid from Lignocellulosic Biomass. ACS Sustainable Chem. Eng. 2021 <https://doi.org/10.1021/acssuschemeng.1c05441>`_
+  
+  - `Renewable linear alpha-olefins by base-catalyzed dehydration of biologically-derived fatty alcohols. Green Chemistry 2021 <https://doi.org/10.1039/D1GC00243K>`_
+
+  - `Sustainable Lactic Acid Production from Lignocellulosic Biomass. ACS Sustainable Chem. Eng. 2021 <https://doi.org/10.1021/acssuschemeng.0c08055>`_
+
+  - `Techno-Economic Evaluation of Biorefineries Based on Low-Value Feedstocks Using the BioSTEAM Software: A Case Study for Animal Bedding. Processes 2020 <https://doi.org/10.3390/pr8080904>`_
+
 
 Indices and tables
 ------------------

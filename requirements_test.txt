@@ -4,3 +4,4 @@ nbval
 SALib
 pyglet
 ipykernel
+CoolProp

@@ -67,11 +67,11 @@ class ProcessSpecification(Unit):
     >>> system.simulate()
     >>> M1.outs[0].show(composition=True, flow='kg/hr')
     Stream: denatured_ethanol from <Mixer: M1>
-     phase: 'l', T: 339.32 K, P: 101325 Pa
-     composition: Water    0.00863
-                  Ethanol  0.971
-                  Octane   0.02
-                  -------  2.32e+04 kg/hr
+     phase: 'l', T: 339.33 K, P: 101325 Pa
+     composition (%): Water    0.863
+                      Ethanol  97.1
+                      Octane   2
+                      -------  2.32e+04 kg/hr
     
     """
     _graphics = process_specification_graphics
