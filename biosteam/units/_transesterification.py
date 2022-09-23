@@ -51,15 +51,18 @@ class Transesterification(Unit):
                 ('Working volume fraction', 0.8, ''))
 
     def __init__(self, ID='', ins=None, outs=(), *,
-                 efficiency, excess_methanol, T, x_catalyst):
+                 efficiency, excess_methanol, T, x_catalyst, transesterification=None):
         Unit.__init__(self, ID, ins, outs)
-        #: [:class:`~thermosteam.ParallelReaction`] Transesterification and catalyst consumption reactions.
-        self.transesterification = ParallelReaction([
-          Reaction('MAG + Methanol -> Biodiesel + Glycerol', reactant='MAG',  X=efficiency),
-          Reaction('DAG + 2Methanol -> 2Biodiesel + Glycerol', reactant='DAG',  X=efficiency),
-          Reaction('TAG + 3Methanol -> 3Biodiesel + Glycerol', reactant='TAG',  X=efficiency),
-          Reaction('NaOCH3 -> NaOH + Methanol', reactant='NaOCH3', X=1)
-        ])
+        if transesterification is None:
+            #: [:class:`~thermosteam.ParallelReaction`] Transesterification and catalyst consumption reactions.
+            self.transesterification = ParallelReaction([
+                Reaction('MAG + Methanol -> Biodiesel + Glycerol', reactant='MAG',  X=efficiency),
+                Reaction('DAG + 2Methanol -> 2Biodiesel + Glycerol', reactant='DAG',  X=efficiency),
+                Reaction('TAG + 3Methanol -> 3Biodiesel + Glycerol', reactant='TAG',  X=efficiency),
+                Reaction('NaOCH3 -> NaOH + Methanol', reactant='NaOCH3', X=1)
+            ])
+        else:
+           self.transesterification = transesterification           
         self.x_catalyst = x_catalyst #: [float] Catalyst molar fraction in methanol feed.
         self.excess_methanol = excess_methanol #: [float] Excess methanol fed in addition to the required stoichiometric amount.
         self.T = T #: [float] Operating temperature (K).
