@@ -1870,18 +1870,34 @@ class System:
         _dstate_attr2arr = self._dstate_attr2arr
         funcs = [u.ODE if u.hasode else u.AE for u in units]
         track = self.scope
-        def dydt(t, y):
-            _update_state(y)
-            for unit, func in zip(units, funcs):
-                if unit.hasode:
-                    QC_ins, QC, dQC_ins = unit._ins_QC, unit._state, unit._ins_dQC
-                    func(t, QC_ins, QC, dQC_ins)   # updates dstate
-                else:
-                    QC_ins, dQC_ins = unit._ins_QC, unit._ins_dQC
-                    func(t, QC_ins, dQC_ins)   # updates both state and dstate
-            track(t)
-            return _dstate_attr2arr(y)
-        self._DAE = dydt
+        dk = self.dynsim_kwargs
+        if dk.get('print_t'): # print integration time for debugging
+            def dydt(t, y):
+                _update_state(y)
+                print(t)
+                for unit, func in zip(units, funcs):
+                    if unit.hasode:
+                        QC_ins, QC, dQC_ins = unit._ins_QC, unit._state, unit._ins_dQC
+                        func(t, QC_ins, QC, dQC_ins)   # updates dstate
+                    else:
+                        QC_ins, dQC_ins = unit._ins_QC, unit._ins_dQC
+                        func(t, QC_ins, dQC_ins)   # updates both state and dstate
+                track(t)
+                return _dstate_attr2arr(y)
+        else:
+            def dydt(t, y):
+                _update_state(y)
+                for unit, func in zip(units, funcs):
+                    if unit.hasode:
+                        QC_ins, QC, dQC_ins = unit._ins_QC, unit._state, unit._ins_dQC
+                        func(t, QC_ins, QC, dQC_ins)   # updates dstate
+                    else:
+                        QC_ins, dQC_ins = unit._ins_QC, unit._ins_dQC
+                        func(t, QC_ins, dQC_ins)   # updates both state and dstate
+                track(t)
+                return _dstate_attr2arr(y)
+        self._DAE = dydt            
+
 
     @property
     def DAE(self):
@@ -1943,7 +1959,8 @@ class System:
 
     def dynamic_run(self, **dynsim_kwargs):
         """
-        Run system dynamically without costing unit operations.
+        Run system dynamically without accounting for
+        the cost or environmental impacts of unit operations.
         
         Parameters
         ----------
@@ -1953,6 +1970,8 @@ class System:
                 t_span : tuple[float, float]
                     Interval of integration (t0, tf).
                     The solver starts with t=t0 and integrates until it reaches t=tf.
+                t_eval : iterable(float)
+                    The time points where status will be saved.
                 state_reset_hook: str|Callable
                     Hook function to reset the cache state between simulations
                     for dynamic systems).
@@ -1961,6 +1980,13 @@ class System:
                 export_state_to: str
                     If provided with a path, will save the simulated states over time to the given path,
                     supported extensions are ".xlsx", ".xls", "csv", and "tsv".
+                sample_id : str
+                    ID of the samples to run (for results exporting).
+                print_msg : bool
+                    Whether to print returned message from scipy.
+                print_t : bool
+                    Whether to print integration time in the console,
+                    usually used for debugging.
                 solve_ivp_kwargs
                     All remaining keyword arguments will be passed to ``solve_ivp``.
         
@@ -1972,11 +1998,12 @@ class System:
         dk = self.dynsim_kwargs
         dk.update(dynsim_kwargs)
         dk_cp = dk.copy()
+        t_eval = dk_cp.pop('t_eval', None)
         state_reset_hook = dk_cp.pop('state_reset_hook', None)
-        print_msg = dk_cp.pop('print_msg', False)
         export_state_to = dk_cp.pop('export_state_to', '')
         sample_id = dk_cp.pop('sample_id', '')
-        t_eval = dk_cp.pop('t_eval', None)
+        print_msg = dk_cp.pop('print_msg', False)
+        print_t = dk_cp.pop('print_t', False)
         # Reset state, if needed
         if state_reset_hook:
             if isinstance(state_reset_hook, str):
@@ -1992,6 +2019,7 @@ class System:
         y0, idx, nr = self._load_state()
         dk['y0'] = y0
         # Integrate
+        self.dynsim_kwargs['print_t'] = print_t # self.dynsim_kwargs might be reset by `state_reset_hook`
         self.scope.sol = sol = solve_ivp(fun=self.DAE, y0=y0, **dk_cp)
         if print_msg:
             if sol.status == 0:
