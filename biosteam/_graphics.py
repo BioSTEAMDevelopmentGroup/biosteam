@@ -26,6 +26,7 @@ __all__ = ('UnitGraphics',
            'system_unit',
            'stream_unit',
            'junction_graphics',
+           'path_aligner_graphics',
            'compressor_graphics',
            'turbine_graphics',
            'valve_graphics')
@@ -253,6 +254,21 @@ def tailor_junction_node(node, unit): # pragma: no coverage
 
 junction_graphics = UnitGraphics(single_edge_in, single_edge_out, node,
                                  tailor_junction_node)
+
+node = box_node.copy()
+def tailor_path_aligner_node(node, unit): # pragma: no coverage
+    if not any(unit._ins + unit._outs):
+        node['fontsize'] = '18'
+        node['shape'] = 'plaintext'
+        node['fillcolor'] = 'none'
+    else:
+        node['width'] = '0.1'
+        node['shape'] = 'point'
+        node['fillcolor'] = bst.preferences.stream_color
+    node['color'] = 'none'
+
+path_aligner_graphics = UnitGraphics(multi_edge_in, multi_edge_out, node,
+                                     tailor_path_aligner_node)
 
 
 # Compressor graphics

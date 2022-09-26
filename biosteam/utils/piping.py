@@ -8,11 +8,12 @@
 """
 This module includes classes and functions concerning Stream objects.
 """
+import biosteam as bst
 from thermosteam.utils.decorators import registered_franchise
 from thermosteam import Stream
 from collections import namedtuple
 from warnings import warn
-__all__ = ('Dependency', 'MissingStream', 'MockStream', 'Inlets', 
+__all__ = ('HiddenConnection', 'Dependency', 'MissingStream', 'MockStream', 'Inlets', 
            'Outlets', 'Sink', 'Source', 'InletPort', 'OutletPort', 'StreamPorts', 
            'Connection', 'as_stream', 'as_upstream', 'as_downstream', 
            'materialize_connections', 'ignore_docking_warnings',
@@ -207,17 +208,17 @@ class MissingStream:
     def __str__(self):
         return self.ID
 
-class Dependency:
+class HiddenConnection:
     """
-    Create a Dependency object that can serve in Inlets and Outlets
+    Create a HiddenConnection object that can serve in Inlets and Outlets
     objects to show a specification dependency between units.
     """
     __slots__ = ('_source', '_sink')
     disconnect = Stream.disconnect
     disconnect_source = Stream.disconnect_source
     disconnect_sink = Stream.disconnect_sink
-    line = 'Dependency'
-    ID = 'dependency'
+    line = 'HiddenConnection'
+    ID = 'hidden_connection'
     
     def __init__(self, source=None, sink=None):
         self._source = source
@@ -234,6 +235,7 @@ class Dependency:
     def sink(self):
         return self._sink
     
+    def _reset_thermo(self, *args, **kwargs): pass
     get_CF = Stream.get_CF
     set_CF = Stream.set_CF
     get_impact = MissingStream.get_impact
@@ -258,7 +260,9 @@ class Dependency:
     cost = MissingStream.cost
     __bool__ = MissingStream.__bool__
     __repr__ = MissingStream.__repr__
-    def __str__(self): return 'Specification dependency'
+    def __str__(self): return 'Hidden connection'
+
+Dependency = HiddenConnection
 
 @registered_franchise(Stream)
 class MockStream:
@@ -893,3 +897,14 @@ MissingStream.__pow__ = MissingStream.__sub__ = Stream.__pow__ = Stream.__sub__ 
 MissingStream.__rpow__ = MissingStream.__rsub__ = Stream.__rpow__ = Stream.__rsub__ = __rsub__ # Backward pipping    
 Stream._basic_info = lambda self: (f"{type(self).__name__}: {self.ID or ''}"
                                    f"{pipe_info(self._source, self._sink)}\n")
+
+# %% Create dependency
+
+def hidden_connection(self, mixer, splitter_ID=''):
+    hidden_connection = HiddenConnection()
+    mixer.ins.append(hidden_connection)
+    sink_stream = bst.Stream()
+    self.sink.ins.replace(self, sink_stream)
+    bst.PathAligner(splitter_ID, ins=self, outs=[sink_stream, hidden_connection])
+    
+Stream.hidden_connection = hidden_connection

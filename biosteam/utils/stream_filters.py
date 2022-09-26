@@ -8,6 +8,7 @@
 """
 """
 import biosteam as bst
+from thermosteam import Stream
 
 __all__ = (
     'streams_from_units',
@@ -27,7 +28,7 @@ __all__ = (
     'FreeProductStreams',
 )
 
-feed_priorities = {}
+Stream.feed_priorities = {}
 
 def inlets(units):
     return set(sum([i._ins for i in units], []))
@@ -78,6 +79,7 @@ def filter_out_missing_streams(streams):
 
 def sort_feeds_big_to_small(feeds):
     if feeds:
+        feed_priorities = Stream.feed_priorities
         def feed_priority(feed):
             if feed in feed_priorities:
                 return feed_priorities[feed]
@@ -100,13 +102,13 @@ def products_from_units(units):
 
 def get_feed_priority(stream):
     if stream.isfeed():
-        return feed_priorities.get(stream)
+        return Stream.feed_priorities.get(stream)
     else:
         raise RuntimeError(f"stream '{stream}' is not a feed")
 
 def set_feed_priority(stream, value):
     if stream.isfeed():
-        feed_priorities[stream] = value
+        Stream.feed_priorities[stream] = value
     else:
         raise RuntimeError(f"stream '{stream}' is not a feed")
     
