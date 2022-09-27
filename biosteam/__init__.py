@@ -59,7 +59,8 @@ from .process_tools import *
 from . import _tea
 from ._tea import *
 from . import utils
-from . import hidden_connection
+from . import _hidden_connection
+from ._hidden_connection import *
 from . import units
 from .units import *
 from . import evaluation
@@ -73,10 +74,8 @@ __all__ = (
     'MultiStream', 'settings', 'exceptions', 'report',
     'process_tools', 'preferences', *_system.__all__, *_flowsheet.__all__, 
     *_tea.__all__, *units.__all__, *evaluation.__all__, 
-    *process_tools.__all__, *hidden_connection.__all__,
+    *process_tools.__all__, *_hidden_connection.__all__,
 )
-
-from .hidden_connection import *
 
 def nbtutorial():
     preferences.reset()

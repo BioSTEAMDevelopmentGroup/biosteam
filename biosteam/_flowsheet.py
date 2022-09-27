@@ -267,29 +267,6 @@ class Flowsheet:
         return System.from_units(ID, self.unit, ends, facility_recycle,
                                  operating_hours, lang_factor)
     
-    def _create_network(self, feeds=None, ends=()):
-        """
-        Create a Network object from all units and streams defined in the flowsheet.
-        
-        Parameters
-        ----------
-        feeds : Iterable[:class:`~thermosteam.Stream`]
-            Feeds to the process.
-        ends : Iterable[:class:`~thermosteam.Stream`]
-            End streams of the system which are not products. Specify this argument
-			if only a section of the system is wanted, or if recycle streams should be 
-			ignored.
-        
-        """
-        feeds = feeds_from_units(self.unit)
-        if feeds:
-            sort_feeds_big_to_small(feeds)
-            feedstock, *feeds = feeds
-            network = Network.from_feedstock(feedstock, feeds, ends)
-        else:
-            network = Network([])
-        return network
-    
     def __call__(self, ID: str|type[Unit], strict: Optional[bool]=False):
         """
 		Return requested biosteam item or a list of all matching items.

@@ -33,6 +33,42 @@ def count():
     _count[0] += 1
     print(_count)
 
+# %% Process specification
+
+class ProcessSpecification:
+    __slots__ = ('f', 'args', 'impacted_units', 'prioritize')
+    
+    def __init__(self, f, args, impacted_units, prioritize):
+        self.f = f
+        self.args = args
+        self.impacted_units = list(impacted_units) if impacted_units else ()
+        self.prioritize = prioritize
+        
+    def __call__(self):
+        self.f(*self.args)
+        for i in self.impacted_units: i.run()
+        
+    def compile(self, unit):
+        system = unit.system
+        if self.prioritize and system: 
+            system.prioritize_unit(unit)
+        if isinstance(self.impacted_units, list):
+            impacted_units = []
+            new_units = []
+            downstream_units = self.get_downstream_units()
+            upstream_units = self.get_upstream_units()
+            if system: unit_index = system.unit_path.index(unit)
+            for other in self.impacted_units:
+                if system and (unit_index > system.unit_path.index(other)):
+                    continue # Must be downstream recycle
+                if other in upstream_units:
+                    impacted_units.extend(other.path_until(unit))
+                elif other not in downstream_units:
+                    new_units.extend(bst.hidden_connection(unit, other))
+            self.impacted_units = tuple(impacted_units)
+            return new_units
+            
+
 # %% Typing
 
 # from typing import Collection, Union, Annotated
@@ -718,12 +754,16 @@ class Unit:
                 purchase_costs[name] = Cpb * F
     
     def _setup(self):
-        """Clear all results and setup up stream conditions and constant data.
-        This method is run at the start of unit simulation, before running mass
-        and energy balances."""
+        """Clear all results, setup up stream conditions and constant data, 
+        and update system configuration based on units impacted by process 
+        specifications. This method is run at the start of unit simulation, 
+        before running mass and energy balances."""
         self.baseline_purchase_costs.clear()
         self.purchase_costs.clear()
         self.installed_costs.clear()
+        new_units = None
+        for ps in self._specifications: new_units = ps.compile(self)
+        if new_units: self.system.update_configuration(units=self.system.units + new_units)
     
     def materialize_connections(self):
         for s in self._ins + self._outs: 
@@ -921,7 +961,9 @@ class Unit:
     def add_specification(self, 
             specification: Optional[Callable]=None, 
             run: Optional[bool]=None, 
-            args: Optional[tuple]=()
+            args: Optional[tuple]=(),
+            impacted_units: Optional[list[Unit]]=None,
+            prioritize: Optional[bool]=None,
         ):
         """
         Add a specification.
@@ -935,7 +977,12 @@ class Unit:
             specifications. Defaults to False.
         args : 
             Arguments to pass to the specification function.
-
+        impacted_units :
+            Other units impacted by specification. The system will make sure to 
+            run itermediate upstream units when simulating.
+        prioritize :
+            Whether to prioritize unit operation specification within recycle loop (if any).
+            
         Examples
         --------
         :doc:`../tutorial/Process_specifications`
@@ -951,9 +998,9 @@ class Unit:
         This method also works as a decorator.
 
         """
-        if not specification: return lambda specification: self.add_specification(specification, run, args)
+        if not specification: return lambda specification: self.add_specification(specification, run, args, impacted_units, prioritize)
         if not callable(specification): raise ValueError('specification must be callable')
-        self._specifications.append((specification, args))
+        self._specifications.append(ProcessSpecification(specification, args, impacted_units, prioritize))
         if run is not None: self.run_after_specifications = run
         return specification
     
@@ -1005,8 +1052,7 @@ class Unit:
         """
         if not f: return lambda f: self.add_bounded_numerical_specification(f, *args, **kwargs)
         if not callable(f): raise ValueError('f must be callable')
-        specification = bst.BoundedNumericalSpecification(f, *args, **kwargs)
-        self._specifications.append((specification, ()))
+        self._specifications.append(bst.BoundedNumericalSpecification(f, *args, **kwargs))
         return f
     
     def run(self):
@@ -1023,11 +1069,11 @@ class Unit:
         add_bounded_numerical_specification
         
         """
-        specification = self._specifications
-        if specification and not self._running_specifications:
+        specifications = self._specifications
+        if specifications and not self._running_specifications:
             self._running_specifications = True
             try:
-                for i, args in specification: i(*args)
+                for ps in specifications: ps()
                 if self.run_after_specifications: self._run()
             finally:
                 self._running_specifications = False

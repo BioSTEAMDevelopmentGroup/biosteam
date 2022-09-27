@@ -55,3 +55,4 @@ class BoundedNumericalSpecification:
         )
         return self.x
     
+    def compile(self, unit): pass

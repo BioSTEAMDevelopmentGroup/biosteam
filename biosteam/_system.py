@@ -53,6 +53,18 @@ def _reformat(name):
     if name.islower(): name= name.capitalize()
     return name
 
+# %% System specification
+
+class SystemSpecification:
+    __slots__ = ('f', 'args')
+    
+    def __init__(self, f, args):
+        self.f = f
+        self.args = args
+        
+    def __call__(self): self.f(*self.args)
+
+
 # %% Convergence tools
 
 class MaterialData:
@@ -935,7 +947,7 @@ class System:
         """
         if not specification: return lambda specification: self.add_specification(specification, args)
         if not callable(specification): raise ValueError('specification must be callable')
-        self._specifications.append((specification, args))
+        self._specifications.append(SystemSpecification(specification, args))
         return specification
 
     def _extend_recycles(self, recycles):
@@ -1941,7 +1953,7 @@ class System:
         if specifications and not self._running_specifications:
             self._running_specifications = True
             try:
-                for i, args in specifications: i(*args)
+                for ss in specifications: ss()
             finally:
                 self._running_specifications = False
         else:
