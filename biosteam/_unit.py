@@ -55,8 +55,8 @@ class ProcessSpecification:
         if isinstance(self.impacted_units, list):
             impacted_units = []
             new_units = []
-            downstream_units = self.get_downstream_units()
-            upstream_units = self.get_upstream_units()
+            downstream_units = unit.get_downstream_units()
+            upstream_units = unit.get_upstream_units()
             if system: unit_index = system.unit_path.index(unit)
             for other in self.impacted_units:
                 if system and (unit_index > system.unit_path.index(other)):
