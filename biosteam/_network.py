@@ -478,7 +478,7 @@ class Network:
                 recycle.update(stream)
             else: # pragma: no cover
                 raise ValueError(f'recycles must be stream objects; not {type(stream).__name__}')
-        elif not isa(recycle, HiddenConnection): # pragma: no cover
+        else: # pragma: no cover
             raise RuntimeError(f"invalid recycle of type '{type(recycle).__name__}' encountered")
      
     def _remove_overlap(self, network, path_tuple):

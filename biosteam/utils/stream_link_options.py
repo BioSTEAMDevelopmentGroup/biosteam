@@ -26,9 +26,11 @@ static_flow_link_options = StreamLinkOptions(flow=True, TP=False, phase=False)
 def _run_static(self):
     self._outs[0].copy_like(self._ins[0])
 
-def static(cls):
+def static(cls=None, N_ins=1, N_outs=1):
+    if cls is None: return lambda cls: static(cls, N_ins, N_outs)
     cls._stream_link_options = static_link_options
-    cls._N_ins = cls._N_outs = 1
+    cls._N_ins = N_ins
+    cls._N_outs = N_outs
     cls._run = _run_static
     return cls
 

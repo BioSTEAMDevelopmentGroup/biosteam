@@ -8,7 +8,6 @@
 """
 This module includes classes and functions concerning Stream objects.
 """
-import biosteam as bst
 from thermosteam.utils.decorators import registered_franchise
 from thermosteam import Stream
 from collections import namedtuple
@@ -369,7 +368,7 @@ class StreamSequence:
             self._streams = [dock(Stream(thermo=thermo)) for i in range(size)]
         else:
             isa = isinstance
-            stream_types = (Stream, MissingStream, Dependency)
+            stream_types = (Stream, MissingStream, HiddenConnection)
             if fixed_size:
                 self._initialize_missing_streams()
                 if streams is not None:
@@ -438,7 +437,7 @@ class StreamSequence:
     def _as_stream(self, stream):
         if stream is None:
             stream = self._create_missing_stream()
-        elif not isinstance(stream, (Stream, Dependency, MissingStream)):
+        elif not isinstance(stream, (Stream, HiddenConnection, MissingStream)):
             raise TypeError(
                 f"'{type(self).__name__}' object can only contain "
                 f"'Stream' objects; not '{type(stream).__name__}'"
@@ -892,19 +891,9 @@ def get_connection(self):
     return Connection(source, source_index, self, sink_index, sink)
 
 Stream.get_connection = get_connection
-Dependency.get_connection = get_connection
+HiddenConnection.get_connection = get_connection
 MissingStream.__pow__ = MissingStream.__sub__ = Stream.__pow__ = Stream.__sub__ = __sub__  # Forward pipping
 MissingStream.__rpow__ = MissingStream.__rsub__ = Stream.__rpow__ = Stream.__rsub__ = __rsub__ # Backward pipping    
 Stream._basic_info = lambda self: (f"{type(self).__name__}: {self.ID or ''}"
                                    f"{pipe_info(self._source, self._sink)}\n")
 
-# %% Create dependency
-
-def hidden_connection(self, mixer, splitter_ID=''):
-    hidden_connection = HiddenConnection()
-    mixer.ins.append(hidden_connection)
-    sink_stream = bst.Stream()
-    self.sink.ins.replace(self, sink_stream)
-    bst.PathAligner(splitter_ID, ins=self, outs=[sink_stream, hidden_connection])
-    
-Stream.hidden_connection = hidden_connection

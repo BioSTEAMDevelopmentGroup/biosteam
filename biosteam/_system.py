@@ -2722,10 +2722,10 @@ class System:
 class FacilityLoop(System):
     __slots__ = ()
 
-    def _run(self):
+    def run(self):
         obj = super()
         for i in self.units: Unit._setup(i)
-        obj._run()
+        obj.run()
         self._summary()
 
 del ignore_docking_warnings

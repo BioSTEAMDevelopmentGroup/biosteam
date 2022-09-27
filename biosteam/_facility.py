@@ -8,6 +8,7 @@
 """
 """
 from ._unit import Unit
+from .exceptions import UnitInheritanceError
 
 __all__ = ('Facility',)
 
@@ -30,10 +31,11 @@ class Facility(Unit, isabstract=True,
         super().__init_subclass__(isabstract,
                                   new_graphics)
         if not hasattr(cls, 'network_priority'):
-            raise NotImplementedError('Facility subclasses must implement a '
-                                      '`network_priority` attribute to designate '
-                                      'the order of simulation relative to other '
-                                      'facilities')
+            raise UnitInheritanceError(
+                'Facility subclasses must implement a `network_priority` '
+                'attribute to designate the order of simulation relative to '
+                'other facilities'
+            )
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None):
         Unit.__init__(self, ID, ins, outs, thermo)

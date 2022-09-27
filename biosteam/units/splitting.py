@@ -18,11 +18,11 @@ This module contains unit operations for splitting flows.
 
 """
 from .. import Unit
-from .._graphics import splitter_graphics, path_aligner_graphics
+from .._graphics import splitter_graphics
 from thermosteam import separations
 
 __all__ = ('Splitter', 'PhaseSplitter', 'FakeSplitter', 'MockSplitter',
-           'ReversedSplitter', 'PathAligner')
+           'ReversedSplitter')
 
 class Splitter(Unit):
     """
@@ -232,16 +232,6 @@ class MockSplitter(Unit):
 
 MockSplitter.line = 'Splitter'
 FakeSplitter = MockSplitter    
-
-class PathAligner(Unit):
-    _graphics = path_aligner_graphics
-    _N_ins = 1
-    _N_outs = 2
-    _outs_size_is_fixed = True
-    
-    def _run(self): 
-        self._outs[0].copy_like(self._ins[0])
-        
 
 class ReversedSplitter(Unit):
     """

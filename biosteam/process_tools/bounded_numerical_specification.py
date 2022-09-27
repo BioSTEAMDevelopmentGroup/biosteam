@@ -7,12 +7,12 @@
 # for license details.
 """
 """
-from flexsolve import IQ_interpolation, aitken_secant
+from flexsolve import IQ_interpolation
 from typing import Callable, Optional, Tuple, Any
 
 __all__ = ('BoundedNumericalSpecification',)
 
-class BoundedNumericalSpecification: # pragma: no cover
+class BoundedNumericalSpecification:
     __slots__ = (
         'f', 'x0', 'x1', 'y0', 'y1', 'x', 'xtol', 'ytol', 'args', 
         'maxiter', 'checkroot', 'checkiter', 'checkbounds', 'x_last',
@@ -49,7 +49,6 @@ class BoundedNumericalSpecification: # pragma: no cover
         self.x_last = None
         
     def __call__(self):
-        # breakpoint()
         self.x = IQ_interpolation(
             self.f, self.x0, self.x1, self.y0, self.y1, self.x, self.xtol, self.ytol, 
             self.args, self.maxiter, self.checkroot, self.checkiter, self.checkbounds,

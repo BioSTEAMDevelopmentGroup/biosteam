@@ -38,7 +38,7 @@ class TemporaryFlowsheet:
         if exception: raise exception
 
 
-class Flowsheets:
+class FlowsheetRegistry:
     __getitem__ = object.__getattribute__
     
     def clear(self):
@@ -59,16 +59,19 @@ class Flowsheets:
     __setitem__ = __setattr__
     
     def __iter__(self):
-        yield from self.__dict__.values()
+        return self.__dict__.values().__iter__()
     
     def __delattr__(self, key):
         if key == main_flowsheet.ID:
             raise AttributeError('cannot delete main flowsheet')
         else:
             super().__delattr__(key)
-    
+            
     def __repr__(self):
-        return 'Flowsheets:\n ' + '\n '.join([str(i) for i in self])
+        return f"<{type(self).__name__}: {', '.join([str(i) for i in self])}>"
+    
+    def _ipython_display_(self): # pragma: no cover
+        print(f'{type(self).__name__}:\n ' + '\n '.join([str(i) for i in self]))
     
     
 class Flowsheet:
@@ -82,7 +85,7 @@ class Flowsheet:
     line: str = "Flowsheet"
     
     #: All flowsheets.
-    flowsheet: Flowsheets = Flowsheets()
+    flowsheet: FlowsheetRegistry = FlowsheetRegistry()
     
     def __new__(cls, ID):        
         self = super().__new__(cls)

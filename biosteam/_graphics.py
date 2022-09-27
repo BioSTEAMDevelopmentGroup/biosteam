@@ -26,7 +26,7 @@ __all__ = ('UnitGraphics',
            'system_unit',
            'stream_unit',
            'junction_graphics',
-           'path_aligner_graphics',
+           'hidden_node_graphics',
            'compressor_graphics',
            'turbine_graphics',
            'valve_graphics')
@@ -256,7 +256,7 @@ junction_graphics = UnitGraphics(single_edge_in, single_edge_out, node,
                                  tailor_junction_node)
 
 node = box_node.copy()
-def tailor_path_aligner_node(node, unit): # pragma: no coverage
+def tailor_hidden_node(node, unit): # pragma: no coverage
     if not any(unit._ins + unit._outs):
         node['fontsize'] = '18'
         node['shape'] = 'plaintext'
@@ -267,8 +267,8 @@ def tailor_path_aligner_node(node, unit): # pragma: no coverage
         node['fillcolor'] = bst.preferences.stream_color
     node['color'] = 'none'
 
-path_aligner_graphics = UnitGraphics(multi_edge_in, multi_edge_out, node,
-                                     tailor_path_aligner_node)
+hidden_node_graphics = UnitGraphics(multi_edge_in, multi_edge_out, node,
+                                    tailor_hidden_node)
 
 
 # Compressor graphics
