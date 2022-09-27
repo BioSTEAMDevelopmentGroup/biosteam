@@ -60,10 +60,10 @@ class ProcessSpecification:
             if system: unit_index = system.unit_path.index(unit)
             for other in self.impacted_units:
                 if system and (unit_index > system.unit_path.index(other)):
-                    # The other unit runs first (possibly due to a recycle loop) so no need to add them to impacted units.
+                    # The other unit runs first (possibly due to a recycle loop)
+                    # so no need to add them to impacted units.
                     continue
                 if other in upstream_units:
-                    impacted_units.append(other)
                     impacted_units.extend(other.path_until(unit))
                 elif other not in downstream_units:
                     new_units.extend(bst.hidden_connection(unit, other))
