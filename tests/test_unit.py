@@ -11,25 +11,39 @@ import pytest
 import biosteam as bst
 from numpy.testing import assert_allclose
 
+def test_process_specifications():
+    bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
+    with bst.System() as sys:
+        T1 = bst.StorageTank(ins=bst.Stream(Water=1000))
+        H1 = bst.HXutility(ins=T1-0, T=320)
+        T2 = bst.StorageTank(ins=bst.Stream(Ethanol=1000))
+        H2 = bst.HXutility(ins=T2-0, T=320)
+        M1 = bst.Mixer(ins=[H1-0, H2-0])
+        H3 = bst.HXutility(ins=M1-0, T=350)
+    
+    # Specification impacting upstream units
+    @M1.add_specification(run=True, impacted_units=[T1, T2])
+    def adjust_flow_rate():
+        water = T1.ins[0]
+        ethanol = T2.ins[0]
+        water.F_mass = ethanol.F_mass
+    
+    sys.simulate()
+    assert (H3.outs[0].mol == (T1.ins[0].mol + T2.ins[0].mol)).all()
+
 def test_unit_connections():
     from biorefineries import sugarcane as sc
     sc.load()
     f = sc.flowsheet
     globals().update(f.unit.data)
+    all_units = set(sc.sys.units).difference(sc.sys.facilities)
+    upstream_units = R301.get_upstream_units()
+    downstream_units = R301.get_downstream_units()
     assert R301.neighborhood(1) == {T301, D301, S302, H301}
     assert R301.neighborhood(2) == {S302, C301, H301, M302, D301, R301, T301, M301}
-    assert R301.neighborhood(100) == R301.neighborhood(1000) == {
-        M305, T304, F301, M301, P302, H301, H302, T204, M303, 
-        P201, U101, R301, D303, T301, T205, U102, U103, P202, M202, 
-        M302, H202, D301, T206, S202, P303, C201, H303, C301, U301, 
-        S302, P203, T203, T302, P301, C202, D302, H304, P304, P306, 
-        H201, U201, T303, P305, S201, U202, M201, T202, M304, 
-    }
-    assert R301.get_downstream_units() == {
-        P303, M305, T304, H303, C301, U301, S302, P302, T302, P301, 
-        H302, D302, H304, P304, M302, M303, D301, R301, D303, M304, 
-        T301, 
-    }
+    assert R301.neighborhood(100) == R301.neighborhood(1000) == all_units
+    recycle_units = set(sc.sys.find_system(R301).units)
+    assert recycle_units == upstream_units.intersection(downstream_units)
     ins = tuple(R301.ins)
     outs = tuple(R301.outs)
     R301.disconnect()
@@ -141,6 +155,7 @@ def test_equipment_lifetimes():
     assert_allclose(tea.cashflow_array, cashflows)
     
 if __name__ == '__main__':
+    test_process_specifications()
     test_unit_connections()
     test_unit_graphics()
     test_equipment_lifetimes()

@@ -59,8 +59,8 @@ class ProcessSpecification:
             upstream_units = unit.get_upstream_units()
             if system: unit_index = system.unit_path.index(unit)
             for other in self.impacted_units:
-                if system and (unit_index > system.unit_path.index(other)):
-                    # The other unit runs first (possibly due to a recycle loop)
+                if system and (unit_index < system.unit_path.index(other)):
+                    # The other unit runs afterwards (possibly due to a recycle loop)
                     # so no need to add them to impacted units.
                     continue
                 if other in upstream_units:
