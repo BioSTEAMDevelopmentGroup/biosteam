@@ -30,6 +30,35 @@ def test_process_specifications():
     
     sys.simulate()
     assert (H3.outs[0].mol == (T1.ins[0].mol + T2.ins[0].mol)).all()
+    
+    # Specification impacting units in parallel (neither upstream nor downstream units).
+    # System simulation order must switch
+    M1.specifications.pop() # Remove specification
+    first_unit = sys.path[0]
+    for tank in (T1, T2):
+        if first_unit is tank: continue
+        break
+    
+    @tank.add_specification(run=True, impacted_units=[first_unit])
+    def adjust_flow_rate():
+        first_unit.ins[0].F_vol = tank.ins[0].F_vol
+    
+    sys.simulate()
+    assert (H3.outs[0].mol == (T1.ins[0].mol + T2.ins[0].mol)).all()
+    assert sys.path[0] is not first_unit and sys.path[0] is tank
+    
+    # Specification impacting units in downstream (it doesn't matter).
+    tank.specifications.pop() # Remove specification
+    
+    @T1.add_specification(run=True, impacted_units=[H3])
+    def adjust_flow_rate():
+        H3.T = 320
+    
+    sys.simulate()
+    
+    assert H3.outs[0].T == H3.T
+    assert T1.specifications[0].impacted_units == ()
+    
 
 def test_unit_connections():
     from biorefineries import sugarcane as sc

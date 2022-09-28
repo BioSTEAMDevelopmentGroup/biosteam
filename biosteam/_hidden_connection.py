@@ -41,7 +41,9 @@ def hidden_connection(source, sink):
 @static(N_ins=1, N_outs=2)
 class HiddenConnectionSource(Unit):
     _graphics = hidden_node_graphics
+    ticket_name = 'hidden'
     
 @static(N_ins=2, N_outs=1) 
 class HiddenConnectionSink(Unit):
     _graphics = hidden_node_graphics
+    ticket_name = 'hidden'
