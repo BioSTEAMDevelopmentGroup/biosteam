@@ -18,8 +18,10 @@ def test_process_specifications():
         H1 = bst.HXutility(ins=T1-0, T=320)
         T2 = bst.StorageTank(ins=bst.Stream(Ethanol=1000))
         H2 = bst.HXutility(ins=T2-0, T=320)
-        M1 = bst.Mixer(ins=[H1-0, H2-0])
-        H3 = bst.HXutility(ins=M1-0, T=350)
+        T3 = bst.StorageTank(ins=bst.Stream(Water=10))
+        H3 = bst.HXutility(ins=T3-0, T=320)
+        M1 = bst.Mixer(ins=[H1-0, H2-0, H3-0])
+        H4 = bst.HXutility(ins=M1-0, T=350)
     
     # Specification impacting upstream units
     @M1.add_specification(run=True, impacted_units=[T1, T2])
@@ -29,33 +31,32 @@ def test_process_specifications():
         water.F_mass = ethanol.F_mass
     
     sys.simulate()
-    assert (H3.outs[0].mol == (T1.ins[0].mol + T2.ins[0].mol)).all()
+    assert (H4.outs[0].mol == sum([i.ins[0].mol for i in (T1, T2, T3)])).all()
     
     # Specification impacting units in parallel (neither upstream nor downstream units).
     # System simulation order must switch
+    old_path_length = len(sys.unit_path)
     M1.specifications.pop() # Remove specification
-    first_unit = sys.path[0]
-    for tank in (T1, T2):
-        if first_unit is tank: continue
-        break
-    
-    @tank.add_specification(run=True, impacted_units=[first_unit])
+    tanks = [i for i in sys.units if isinstance(i, bst.Tank)]
+    *first_tanks, last_tank = tanks
+    @last_tank.add_specification(run=True, impacted_units=tanks[:2])
     def adjust_flow_rate():
-        first_unit.ins[0].F_vol = tank.ins[0].F_vol
+        for i in first_tanks:
+            i.ins[0].F_vol = last_tank.ins[0].F_vol
     
     sys.simulate()
-    assert (H3.outs[0].mol == (T1.ins[0].mol + T2.ins[0].mol)).all()
-    assert sys.path[0] is not first_unit and sys.path[0] is tank
+    assert len(sys.unit_path) == old_path_length + 3 # Hidden connection source and 2 sinks
+    assert (H4.outs[0].mol == sum([i.ins[0].mol for i in (T1, T2, T3)])).all()
+    assert sys.path[0] is last_tank
     
-    # Specification impacting units in downstream (it doesn't matter).
-    tank.specifications.pop() # Remove specification
+    # Specification impacting downstream units (it doesn't matter).
+    last_tank.specifications.pop() # Remove specification
     
     @T1.add_specification(run=True, impacted_units=[H3])
     def adjust_flow_rate():
         H3.T = 320
     
     sys.simulate()
-    
     assert H3.outs[0].T == H3.T
     assert T1.specifications[0].impacted_units == ()
     

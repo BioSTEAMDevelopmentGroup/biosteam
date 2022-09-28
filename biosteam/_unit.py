@@ -173,7 +173,8 @@ class Unit:
     
     def __init_subclass__(cls,
                           isabstract=False,
-                          new_graphics=True):
+                          new_graphics=True,
+                          does_nothing=None):
         dct = cls.__dict__
         if 'run' in dct:
             raise UnitInheritanceError(
@@ -233,7 +234,7 @@ class Unit:
                 cls._default_equipment_lifetime = {}
             if cls._units is Unit._units: cls._units = {}
             if not cls._run:
-                if cls._N_ins == 1 and cls._N_outs == 1:
+                if does_nothing or cls._N_ins == 1 and cls._N_outs == 1:
                     static(cls)
                 else:
                     raise UnitInheritanceError(

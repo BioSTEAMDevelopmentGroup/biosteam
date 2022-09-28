@@ -10,7 +10,6 @@
 from ._unit import Unit
 from ._graphics import hidden_node_graphics
 from .utils.piping import HiddenConnection
-from .utils import static
 from thermosteam import Stream
 
 __all__ = ('hidden_connection',)
@@ -21,7 +20,7 @@ def hidden_connection(source, sink):
     hidden_connection = HiddenConnection()
     new_units = []
     if isinstance(upstream.sink, HiddenConnectionSource):
-        upstream.sink.ins.append(hidden_connection)
+        upstream.sink.outs.append(hidden_connection)
     else:
         stream = Stream(None)
         upstream.sink.ins.replace(upstream, stream)
@@ -38,12 +37,16 @@ def hidden_connection(source, sink):
         )
     return new_units
 
-@static(N_ins=1, N_outs=2)
-class HiddenConnectionSource(Unit):
+class HiddenConnectionSource(Unit, does_nothing=True):
     _graphics = hidden_node_graphics
+    _N_ins = 1
+    _N_outs = 2
+    _outs_size_is_fixed = False
     ticket_name = 'hidden'
     
-@static(N_ins=2, N_outs=1) 
-class HiddenConnectionSink(Unit):
+class HiddenConnectionSink(Unit, does_nothing=True):
     _graphics = hidden_node_graphics
+    _ins_size_is_fixed = False
+    _N_ins = 2
+    _N_outs = 1
     ticket_name = 'hidden'
