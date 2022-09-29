@@ -23,8 +23,7 @@ impact_indicators: dict[str, str] = {}
 
 #: Price of stream utilities [USD/kg] which are defined as 
 #: inlets and outlets to unit operations.
-stream_utility_prices: dict[str, float] = {'Natural gas': 0.218,
-                                           'Ash disposal': -0.0318}
+stream_utility_prices: dict[str, float] = {}
 
 # %% Workaround for readthedocs, which fails to cache numba
 
@@ -84,3 +83,6 @@ def nbtutorial():
     preferences.graphviz_format = 'html'
     from warnings import filterwarnings
     filterwarnings('ignore')
+    
+settings.register_utility('Natural gas', 0.218)
+settings.register_utility('Ash disposal', -0.0318)
