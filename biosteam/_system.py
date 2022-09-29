@@ -40,6 +40,7 @@ import numpy as np
 import pandas as pd
 from scipy.integrate import solve_ivp
 from . import report
+from ._temporary_connection import temporary_units_dump
 import os
 import openpyxl
 if TYPE_CHECKING: from ._tea import TEA
@@ -723,11 +724,7 @@ class System:
 
     @ignore_docking_warnings
     def _load_configuration(self):
-        for i in self._connections:
-            if i.source:
-                i.source.outs[i.source_index] = i.stream
-            if i.sink:
-                i.sink.ins[i.sink_index] = i.stream
+        for i in self._connections: i.reconnect()
         for i in self.units: i._system = self
 
     @ignore_docking_warnings
@@ -985,7 +982,7 @@ class System:
                     warning = RuntimeWarning('subsystem with facilities could not be flattened')
                     warn(warning, stacklevel=stacklevel)
                     path.append(i)
-                elif i.specification:
+                elif i.specifications:
                     warning = RuntimeWarning('subsystem with specification could not be flattened')
                     warn(warning, stacklevel=stacklevel)
                     path.append(i)
@@ -1580,6 +1577,9 @@ class System:
         self._load_configuration()
         self._load_facilities()
         for i in self.units: i._setup()
+        if temporary_units_dump:
+            self.update_configuration(units=[*self.units, *temporary_units_dump])
+            temporary_units_dump.clear()
 
     def run(self):
         """Run mass and energy balances for each element in the path
@@ -1949,25 +1949,26 @@ class System:
             :func:`converge` (if steady state).
         
         """
-        specifications = self._specifications
-        if specifications and not self._running_specifications:
-            self._running_specifications = True
-            try:
-                for ss in specifications: ss()
-            finally:
-                self._running_specifications = False
-        else:
-            self._configuration_updated = False
-            if not skip_setup: self._setup()
-            if self.isdynamic: 
-                self.dynamic_run(**kwargs)
-                self._summary()
-            else: 
-                outputs = self.converge(**kwargs)
-                self._summary()
-                if self._configuration_updated: outputs = self.simulate(**kwargs)
-                if self._facility_loop: self._facility_loop.converge()
-                return outputs
+        with self.flowsheet.temporary():
+            specifications = self._specifications
+            if specifications and not self._running_specifications:
+                self._running_specifications = True
+                try:
+                    for ss in specifications: ss()
+                finally:
+                    self._running_specifications = False
+            else:
+                self._configuration_updated = False
+                if not skip_setup: self._setup()
+                if self.isdynamic: 
+                    self.dynamic_run(**kwargs)
+                    self._summary()
+                else: 
+                    outputs = self.converge(**kwargs)
+                    self._summary()
+                    if self._configuration_updated: outputs = self.simulate(**kwargs)
+                    if self._facility_loop: self._facility_loop.converge()
+                    return outputs
 
     def dynamic_run(self, **dynsim_kwargs):
         """

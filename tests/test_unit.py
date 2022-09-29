@@ -38,14 +38,21 @@ def test_process_specifications():
     old_path_length = len(sys.unit_path)
     M1.specifications.pop() # Remove specification
     tanks = [i for i in sys.units if isinstance(i, bst.Tank)]
-    *first_tanks, last_tank = tanks
-    @last_tank.add_specification(run=True, impacted_units=tanks[:2])
+    first_tank, mid_tank, last_tank = tanks
+    @last_tank.add_specification(run=True, impacted_units=[first_tank, mid_tank])
     def adjust_flow_rate():
-        for i in first_tanks:
-            i.ins[0].F_vol = last_tank.ins[0].F_vol
+        mid_tank.ins[0].F_vol = last_tank.ins[0].F_vol
+        first_tank.ins[0].F_mol = 1.0
+    
+    @mid_tank.add_specification(run=True, impacted_units=[first_tank])
+    def adjust_flow_rate():
+        first_tank.ins[0].F_vol = mid_tank.ins[0].F_vol
     
     sys.simulate()
-    assert len(sys.unit_path) == old_path_length + 3 # Hidden connection source and 2 sinks
+    # Order of tank simulation is now reversed
+    assert [last_tank, mid_tank, first_tank] == [i for i in sys.units if isinstance(i, bst.Tank)] 
+    # 2 hidden connection source and 2 sinks
+    assert len(sys.unit_path) == old_path_length
     assert (H4.outs[0].mol == sum([i.ins[0].mol for i in (T1, T2, T3)])).all()
     assert sys.path[0] is last_tank
     
@@ -65,29 +72,30 @@ def test_unit_connections():
     from biorefineries import sugarcane as sc
     sc.load()
     f = sc.flowsheet
-    globals().update(f.unit.data)
+    u = f.unit
     all_units = set(sc.sys.units).difference(sc.sys.facilities)
-    upstream_units = R301.get_upstream_units()
-    downstream_units = R301.get_downstream_units()
-    assert R301.neighborhood(1) == {T301, D301, S302, H301}
-    assert R301.neighborhood(2) == {S302, C301, H301, M302, D301, R301, T301, M301}
-    assert R301.neighborhood(100) == R301.neighborhood(1000) == all_units
-    recycle_units = set(sc.sys.find_system(R301).units)
+    upstream_units = u.R301.get_upstream_units()
+    downstream_units = u.R301.get_downstream_units()
+    assert u.R301.neighborhood(1) == {u.T301, u.D301, u.S302, u.H301}
+    assert u.R301.neighborhood(2) == {u.S302, u.C301, u.H301, u.M302, u.D301, u.R301,
+                                    u.T301, u.M301}
+    assert u.R301.neighborhood(100) == u.R301.neighborhood(1000) == all_units
+    recycle_units = set(sc.sys.find_system(u.R301).units)
     assert recycle_units == upstream_units.intersection(downstream_units)
-    ins = tuple(R301.ins)
-    outs = tuple(R301.outs)
-    R301.disconnect()
-    assert not any(R301.ins + R301.outs)
-    ins - R301 - outs
+    ins = tuple(u.R301.ins)
+    outs = tuple(u.R301.outs)
+    u.R301.disconnect()
+    assert not any(u.R301.ins + u.R301.outs)
+    ins - u.R301 - outs
     
     class DummyUnit(bst.Unit, isabstract=True, new_graphics=False):
         _N_ins = 2; _N_outs = 2
         
     unit = DummyUnit(None)
-    unit.take_place_of(R301)
+    unit.take_place_of(u.R301)
     assert tuple(unit.ins + unit.outs) == (ins + outs)
-    assert not any(R301.ins + R301.outs)
-    R301.take_place_of(unit)
+    assert not any(u.R301.ins + u.R301.outs)
+    u.R301.take_place_of(unit)
 
 def test_unit_graphics():
     bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)

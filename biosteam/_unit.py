@@ -54,7 +54,6 @@ class ProcessSpecification:
             system.prioritize_unit(unit)
         if isinstance(self.impacted_units, list):
             impacted_units = []
-            new_units = []
             downstream_units = unit.get_downstream_units()
             upstream_units = unit.get_upstream_units()
             if system: unit_index = system.unit_path.index(unit)
@@ -66,9 +65,8 @@ class ProcessSpecification:
                 if other in upstream_units:
                     impacted_units.extend(other.path_until(unit))
                 elif other not in downstream_units:
-                    new_units.extend(bst.hidden_connection(unit, other))
+                    bst.temporary_connection(unit, other)
             self.impacted_units = tuple(impacted_units)
-            return new_units
             
 
 # %% Typing
@@ -175,6 +173,7 @@ class Unit:
                           isabstract=False,
                           new_graphics=True,
                           does_nothing=None):
+        if does_nothing: return 
         dct = cls.__dict__
         if 'run' in dct:
             raise UnitInheritanceError(
@@ -234,7 +233,7 @@ class Unit:
                 cls._default_equipment_lifetime = {}
             if cls._units is Unit._units: cls._units = {}
             if not cls._run:
-                if does_nothing or cls._N_ins == 1 and cls._N_outs == 1:
+                if cls._N_ins == 1 and cls._N_outs == 1:
                     static(cls)
                 else:
                     raise UnitInheritanceError(
@@ -242,8 +241,7 @@ class Unit:
                         "must implement a '_run' method unless the "
                         "'isabstract' keyword argument is True"
                     )
-        if '__init__' in dct and '_stacklevel' not in dct:
-            cls._stacklevel += 1
+        if '__init__' in dct and '_stacklevel' not in dct: cls._stacklevel += 1
         
     ### Abstract Attributes ###
     #: **class-attribute** Units of measure for :attr:`~Unit.design_results` dictionary.
@@ -764,9 +762,7 @@ class Unit:
         self.baseline_purchase_costs.clear()
         self.purchase_costs.clear()
         self.installed_costs.clear()
-        new_units = None
-        for ps in self._specifications: new_units = ps.compile(self)
-        if new_units: self.system.update_configuration(units=self.system.units + new_units)
+        for ps in self._specifications: ps.compile(self)
     
     def materialize_connections(self):
         for s in self._ins + self._outs: 

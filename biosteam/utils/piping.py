@@ -10,9 +10,9 @@ This module includes classes and functions concerning Stream objects.
 """
 from thermosteam.utils.decorators import registered_franchise
 from thermosteam import Stream
-from collections import namedtuple
+from typing import NamedTuple
 from warnings import warn
-__all__ = ('HiddenConnection', 'Dependency', 'MissingStream', 'MockStream', 'Inlets', 
+__all__ = ('TemporaryStream', 'Dependency', 'MissingStream', 'MockStream', 'Inlets', 
            'Outlets', 'Sink', 'Source', 'InletPort', 'OutletPort', 'StreamPorts', 
            'Connection', 'as_stream', 'as_upstream', 'as_downstream', 
            'materialize_connections', 'ignore_docking_warnings',
@@ -101,8 +101,10 @@ class MissingStream:
     disconnect_sink = Stream.disconnect_sink
     isfeed = Stream.isfeed
     isproduct = Stream.isproduct
+    source = Stream.source
+    sink = Stream.sink
     
-    def __init__(self, source, sink):
+    def __init__(self, source=None, sink=None):
         self._source = source
         self._sink = sink
     
@@ -145,58 +147,13 @@ class MissingStream:
     def get_flow(self, units, key=None):
         return 0.
     
-    @property
-    def link(self):
-        return None
-    @property
-    def H(self):
-        return 0.
-    @property
-    def Hf(self):
-        return 0.
-    @property
-    def Hnet(self):
-        return 0.
-    @property
-    def LHV(self):
-        return 0.
-    @property
-    def HHV(self):
-        return 0.
-    @property
-    def Hvap(self):
-        return 0.
-    @property
-    def C(self):
-        return 0.
-    @property
-    def F_mol(self):
-        return 0.
-    @property
-    def F_mass(self):
-        return 0.
-    @property
-    def F_vol(self):
-        return 0.
-    @property
-    def cost(self):
-        return 0.
-    @property
-    def price(self):
-        return 0.
+    link = None
+    H = Hf = Hnet = LHV = HHV = Hvap = C = F_mol = F_mass = F_vol = cost = price = 0.
     
     def isempty(self):
         return True
     
     def empty(self): pass
-    
-    @property
-    def source(self):
-        return self._source
-    
-    @property
-    def sink(self):
-        return self._sink
     
     def __bool__(self):
         return False
@@ -207,61 +164,20 @@ class MissingStream:
     def __str__(self):
         return self.ID
 
-class HiddenConnection:
+class TemporaryStream:
     """
-    Create a HiddenConnection object that can serve in Inlets and Outlets
-    objects to show a specification dependency between units.
+    Create a TemporaryStream object that can serve in Inlets and Outlets
+    objects to declare a specification dependency between units.
     """
     __slots__ = ('_source', '_sink')
     disconnect = Stream.disconnect
     disconnect_source = Stream.disconnect_source
     disconnect_sink = Stream.disconnect_sink
-    line = 'HiddenConnection'
-    ID = 'hidden_connection'
-    
-    def __init__(self, source=None, sink=None):
-        self._source = source
-        self._sink = sink
-    
-    def get_connection(self):
-        return self.get_connection()
-    
-    @property
-    def source(self):
-        return self._source
-    
-    @property
-    def sink(self):
-        return self._sink
-    
-    def _reset_thermo(self, *args, **kwargs): pass
-    get_CF = Stream.get_CF
-    set_CF = Stream.set_CF
-    get_impact = MissingStream.get_impact
-    reset_cache = MissingStream.reset_cache
-    get_data = MissingStream.get_data
-    set_data = MissingStream.set_data
-    get_total_flow = MissingStream.get_total_flow
-    get_flow = MissingStream.get_flow
-    link = MissingStream.link
-    H = MissingStream.H
-    Hf = MissingStream.Hf
-    Hnet = MissingStream.Hnet
-    LHV = MissingStream.LHV
-    HHV = MissingStream.HHV
-    Hvap = MissingStream.Hvap
-    C = MissingStream.C
-    F_mol = MissingStream.F_mol
-    F_mass = MissingStream.F_mass
-    F_vol = MissingStream.F_vol
-    isempty = MissingStream.isempty
-    empty = MissingStream.empty
-    cost = MissingStream.cost
-    __bool__ = MissingStream.__bool__
-    __repr__ = MissingStream.__repr__
-    def __str__(self): return 'Hidden connection'
+    __init__ = MissingStream.__init__
+    source = Stream.source
+    sink = Stream.sink
 
-Dependency = HiddenConnection
+Dependency = TemporaryStream # For backwards compatibility (scheduled for deprecation)
 
 @registered_franchise(Stream)
 class MockStream:
@@ -368,7 +284,6 @@ class StreamSequence:
             self._streams = [dock(Stream(thermo=thermo)) for i in range(size)]
         else:
             isa = isinstance
-            stream_types = (Stream, MissingStream, HiddenConnection)
             if fixed_size:
                 self._initialize_missing_streams()
                 if streams is not None:
@@ -437,7 +352,7 @@ class StreamSequence:
     def _as_stream(self, stream):
         if stream is None:
             stream = self._create_missing_stream()
-        elif not isinstance(stream, (Stream, HiddenConnection, MissingStream)):
+        elif not isinstance(stream, (Stream, TemporaryStream, MissingStream)):
             raise TypeError(
                 f"'{type(self).__name__}' object can only contain "
                 f"'Stream' objects; not '{type(stream).__name__}'"
@@ -861,9 +776,22 @@ class StreamPorts:
 
 # %% Configuration bookkeeping
 
-Connection = namedtuple('Connection', 
-                        ('source', 'source_index', 'stream', 'sink_index', 'sink'),
-                        module=__name__)
+class Connection(NamedTuple):
+    source: object
+    source_index: int
+    stream: object
+    sink_index: int
+    sink: object
+    
+    def reconnect(self):
+        if self.source:
+            self.source.outs[self.source_index] = self.stream
+        if self.sink:
+            self.sink.ins[self.sink_index] = self.stream
+
+# %% General
+
+stream_types = (Stream, MissingStream, TemporaryStream)
 
 # %% Stream pipping
         
@@ -891,9 +819,8 @@ def get_connection(self):
     return Connection(source, source_index, self, sink_index, sink)
 
 Stream.get_connection = get_connection
-HiddenConnection.get_connection = get_connection
+TemporaryStream.get_connection = get_connection
 MissingStream.__pow__ = MissingStream.__sub__ = Stream.__pow__ = Stream.__sub__ = __sub__  # Forward pipping
 MissingStream.__rpow__ = MissingStream.__rsub__ = Stream.__rpow__ = Stream.__rsub__ = __rsub__ # Backward pipping    
 Stream._basic_info = lambda self: (f"{type(self).__name__}: {self.ID or ''}"
                                    f"{pipe_info(self._source, self._sink)}\n")
-

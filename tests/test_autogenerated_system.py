@@ -537,7 +537,6 @@ def test_nested_recycle_loops():
     feed_2 = Stream('feed_2', Water=10)
     feed_3 = Stream('feed_3', Water=10)
     feed_4 = Stream('feed_4', Water=10)
-    inner_recycle = Stream('inner_recycle')
     product = Stream('product')
     P1 = Pump('P1', feedstock)
     M1 = Mixer('M1', [P1-0, recycle_1])
@@ -611,67 +610,67 @@ def test_nested_recycle_loops():
 def test_sugarcane_ethanol_biorefinery_network():
     from biorefineries.sugarcane import flowsheet as f
     sugarcane_sys = f.create_system('sugarcane_sys')
-    globals().update(f.unit.data)
+    u = f.unit
     network = sugarcane_sys._to_network()
     actual_network = Network(
-        [U101,
-         U102,
-         U103,
+        [u.U101,
+         u.U102,
+         u.U103,
          Network(
-            [U201,
-             S201,
-             M201],
-            recycle=M201-0),
-         T202,
-         H201,
-         T203,
-         P201,
-         T204,
-         T205,
-         P202,
+            [u.U201,
+             u.S201,
+             u.M201],
+            recycle=u.M201-0),
+         u.T202,
+         u.H201,
+         u.T203,
+         u.P201,
+         u.T204,
+         u.T205,
+         u.P202,
          Network(
-            [M202,
-             H202,
-             T206,
-             C201,
-             C202,
-             P203],
-            recycle=P203-0),
-         S202,
-         F301,
-         P306,
-         M301,
-         H301,
+            [u.M202,
+             u.H202,
+             u.T206,
+             u.C201,
+             u.C202,
+             u.P203],
+            recycle=u.P203-0),
+         u.S202,
+         u.F301,
+         u.P306,
+         u.M301,
+         u.H301,
          Network(
-            [R301,
-             T301,
-             C301,
-             S302],
-            recycle=S302-0),
-         D301,
-         M302,
-         P301,
+            [u.R301,
+             u.T301,
+             u.C301,
+             u.S302],
+            recycle=u.S302-0),
+         u.D301,
+         u.M302,
+         u.P301,
          Network(
-            [H302,
-             D302,
-             P302],
-            recycle=P302-0),
+            [u.H302,
+             u.D302,
+             u.P302],
+            recycle=u.P302-0),
          Network(
-            [M303,
-             D303,
-             H303,
-             U301],
-            recycle=U301-0),
-         H304,
-         T302,
-         P304,
-         T303,
-         P305,
-         M304,
-         T304,
-         P303,
-         M305,
-         U202])
+            [u.M303,
+             u.D303,
+             u.H303,
+             u.U301],
+            recycle=u.U301-0),
+         u.H304,
+         u.T302,
+         u.P304,
+         u.T303,
+         u.P305,
+         u.M304,
+         u.T304,
+         u.P303,
+         u.M305,
+         u.U202])
     assert network == actual_network
     sugarcane_sys.empty_recycles()
     sugarcane_sys.simulate()
