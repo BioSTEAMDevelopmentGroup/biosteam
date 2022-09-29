@@ -17,22 +17,22 @@ temporary_units_dump = []
 def temporary_connection(source, sink):
     upstream = source.outs[0]
     downstream = sink.ins[0]
-    hidden_stream = piping.TemporaryStream()
+    temporary_stream = piping.TemporaryStream()
     if isinstance(upstream.sink, TemporarySource):
-        upstream.sink.outs.append(hidden_stream)
+        upstream.sink.outs.append(temporary_stream)
     else:
         stream = piping.TemporaryStream()
         old_connection = upstream.get_connection()
         sink = upstream.sink
         if sink: upstream.sink.ins.replace(upstream, stream)
-        TemporarySource(upstream, [stream, hidden_stream], old_connection)
+        TemporarySource(upstream, [stream, temporary_stream], old_connection)
     if isinstance(downstream.source, TemporarySink):
-        downstream.source.ins.append(hidden_stream)
+        downstream.source.ins.append(temporary_stream)
     else:
         stream = piping.TemporaryStream()
         old_connection = downstream.get_connection()
         downstream.sink.ins.replace(downstream, stream)
-        TemporarySink([downstream, hidden_stream], stream, old_connection)
+        TemporarySink([downstream, temporary_stream], stream, old_connection)
 
 class TemporaryUnit:
     __slots__ = ('ins', 'outs', '_ins', '_outs', 'old_connection')
@@ -49,8 +49,9 @@ class TemporaryUnit:
     neighborhood = Unit.neighborhood
     get_downstream_units = Unit.get_downstream_units
     get_upstream_units = Unit.get_upstream_units
-    _add_upstream_neighbors_to_set= Unit._add_upstream_neighbors_to_set
-    _add_downstream_neighbors_to_set= Unit._add_downstream_neighbors_to_set
+    _add_upstream_neighbors_to_set = Unit._add_upstream_neighbors_to_set
+    _add_downstream_neighbors_to_set = Unit._add_downstream_neighbors_to_set
+
 
 class TemporarySource(TemporaryUnit):
     __slots__ = ()
