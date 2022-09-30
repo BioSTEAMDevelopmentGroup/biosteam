@@ -87,6 +87,6 @@ def nbtutorial():
 try:
     settings.register_utility('Natural gas', 0.218)
     settings.register_utility('Ash disposal', -0.0318)
-except AttributeError: # For ReadTheDocs in the meanwhile that a new thermosteam version is uploaded
+except: # For ReadTheDocs in the meanwhile that a new thermosteam version is uploaded
     stream_utility_prices['Natural gas'] = 0.218
     stream_utility_prices['Ash disposal'] = -0.0318
