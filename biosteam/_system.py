@@ -3076,7 +3076,8 @@ class AgileSystem:
             stream_set = set()
             for u in self.units:
                 for s in u._ins + u._outs:
-                    if not s or s in stream_set: continue
+                    if not s: s.materialize_connection()
+                    elif s in stream_set: continue
                     streams.append(s)
                     stream_set.add(s)
             return streams
