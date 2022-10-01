@@ -22,7 +22,7 @@ from thermosteam import Stream, MultiStream, Chemical
 from . import HeatUtility, PowerUtility
 from thermosteam.utils import registered
 from scipy.optimize import root
-from .exceptions import try_method_with_object_stamp, Converged
+from .exceptions import try_method_with_object_stamp, Converged, UnitInheritanceError
 from ._network import Network, mark_disjunction, unmark_disjunction
 from ._facility import Facility
 from ._unit import Unit, repr_ins_and_outs
@@ -1581,7 +1581,15 @@ class System:
             temporary_units_dump.clear() 
         else:
             self._load_configuration()
-            for i in units: i._setup()
+            for u in units: 
+                u._setup()
+                for ps in u._specifications:
+                    if ps.units is None:
+                        raise UnitInheritanceError(
+                            f"{type(u).__name__} does not call parent class "
+                            "`_setup` method; a potential solution is to add "
+                            "`super()._setup()` in the method code"
+                        )
             if temporary_units_dump:
                 self.update_configuration(units=[*units, *temporary_units_dump])
                 temporary_units_dump.clear() 

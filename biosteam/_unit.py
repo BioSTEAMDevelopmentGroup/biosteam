@@ -56,7 +56,7 @@ class ProcessSpecification:
         if system in self.compiled_systems:
             self.units = self.compiled_systems[system]
         else: # Not yet compiled
-            self.compiled_systems[system] = self.units = units = []    
+            units = []    
             if self.prioritize and system: 
                 system.prioritize_unit(unit)
             impacted_units = self.impacted_units
@@ -76,6 +76,7 @@ class ProcessSpecification:
                         units.extend(new_units)
                     elif other not in downstream_units:
                         bst.temporary_connection(unit, other)
+            self.compiled_systems[system] = self.units = units
             
     def reset(self, system):
         del self.compiled_systems[system]
