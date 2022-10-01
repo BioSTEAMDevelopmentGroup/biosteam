@@ -182,7 +182,8 @@ def test_model_exception_hook():
     def set_sugarcane_flow_rate(flow_rate):
         sc.sugarcane.F_mass = flow_rate
     
-    samples = sugarcane_model.sample(15, 'L')
+    np.random.seed(0)
+    samples = sugarcane_model.sample(5, 'L')
     sugarcane_model.load_samples(samples)
     
     # Without an exception hook, the same behavior will result (NaN values for failed evaluations)
