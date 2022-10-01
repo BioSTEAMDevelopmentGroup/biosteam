@@ -13,10 +13,8 @@ from typing import Optional, Iterable
 import biosteam as bst
 from thermosteam.utils import Registry
 from thermosteam import Stream
-from biosteam.utils import feeds_from_units, sort_feeds_big_to_small
 from ._unit import Unit
 from ._system import System
-from ._network import Network
 
 __all__ = ('main_flowsheet', 'Flowsheet', 'F')
 
