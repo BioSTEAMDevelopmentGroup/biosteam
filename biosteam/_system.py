@@ -1575,7 +1575,7 @@ class System:
         if update_configuration:
             for u in units: 
                 u._system = self
-                for ps in u._specifications: ps.reset()
+                for ps in u._specifications: ps.reset(self)
                 u._setup()
             self.update_configuration(units=[*units, *temporary_units_dump])
             temporary_units_dump.clear() 

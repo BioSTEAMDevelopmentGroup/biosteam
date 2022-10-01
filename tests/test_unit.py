@@ -65,7 +65,7 @@ def test_process_specifications():
     
     sys.simulate()
     assert H3.outs[0].T == H3.T
-    assert T1.specifications[0].impacted_units == ()
+    assert T1.specifications[0].units == []
     
 
 def test_unit_connections():

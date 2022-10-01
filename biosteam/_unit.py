@@ -37,13 +37,14 @@ def count():
 # %% Process specification
 
 class ProcessSpecification:
-    __slots__ = ('f', 'args', 'impacted_units', 'prioritize', 'units')
+    __slots__ = ('f', 'args', 'impacted_units', 'prioritize', 'units', 'compiled_systems')
     
     def __init__(self, f, args, impacted_units, prioritize):
         self.f = f
         self.args = args
         self.impacted_units = list(impacted_units) if impacted_units else impacted_units
         self.prioritize = prioritize
+        self.compiled_systems = {}
         self.units = None
         
     def __call__(self):
@@ -51,9 +52,11 @@ class ProcessSpecification:
         for i in self.units: i.run()
         
     def compile(self, unit):
-        if self.units is None: # Not yet compiled
-            self.units = units = []    
-            system = unit.system
+        system = unit.system
+        if system in self.compiled_systems:
+            self.units = self.compiled_systems[system]
+        else: # Not yet compiled
+            self.compiled_systems[system] = self.units = units = []    
             if self.prioritize and system: 
                 system.prioritize_unit(unit)
             impacted_units = self.impacted_units
@@ -73,8 +76,9 @@ class ProcessSpecification:
                         units.extend(new_units)
                     elif other not in downstream_units:
                         bst.temporary_connection(unit, other)
-                
-    def reset(self):
+            
+    def reset(self, system):
+        del self.compiled_systems[system]
         self.units = None
                 
     def __repr__(self):
