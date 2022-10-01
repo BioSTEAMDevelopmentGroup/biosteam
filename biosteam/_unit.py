@@ -85,7 +85,7 @@ class ProcessSpecification:
             
     def reset(self, system):
         del self.compiled_systems[system]
-        self.units = None
+        self.path = None
                 
     def __repr__(self):
         return f"{type(self).__name__}(f={display_asfunctor(self.f)}, args={self.args}, impacted_units={self.impacted_units}, prioritize={self.prioritize})"
