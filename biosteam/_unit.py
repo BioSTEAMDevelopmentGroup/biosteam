@@ -49,6 +49,12 @@ class ProcessSpecification:
         
     def __call__(self):
         self.f(*self.args)
+        if self.units is None:
+            raise UnitInheritanceError(
+                "Child Unit class does not call parent class "
+                "`_setup` method; a potential solution is to add "
+                "`super()._setup()` in the method code"
+            )
         for i in self.units: i.run()
         
     def compile(self, unit):

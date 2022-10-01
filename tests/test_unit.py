@@ -11,6 +11,17 @@ import pytest
 import biosteam as bst
 from numpy.testing import assert_allclose
 
+def test_unit_inheritance_setup_method():
+    class NewUnit(bst.Unit):
+        def _setup(self):
+            pass
+    
+    bst.settings.set_thermo(['Water'], cache=True)
+    U1 = NewUnit()
+    U1.add_specification(lambda: None)
+    with pytest.raises(bst.exceptions.UnitInheritanceError):
+        U1.simulate()
+
 def test_process_specifications():
     bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
     with bst.System() as sys:
@@ -193,6 +204,7 @@ def test_equipment_lifetimes():
     assert_allclose(tea.cashflow_array, cashflows)
     
 if __name__ == '__main__':
+    test_unit_inheritance_setup_method()
     test_process_specifications()
     test_unit_connections()
     test_unit_graphics()

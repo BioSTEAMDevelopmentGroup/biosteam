@@ -1581,15 +1581,7 @@ class System:
             temporary_units_dump.clear() 
         else:
             self._load_configuration()
-            for u in units: 
-                u._setup()
-                for ps in u._specifications:
-                    if ps.units is None:
-                        raise UnitInheritanceError(
-                            f"{type(u).__name__} does not call parent class "
-                            "`_setup` method; a potential solution is to add "
-                            "`super()._setup()` in the method code"
-                        )
+            for u in units: u._setup()
             if temporary_units_dump:
                 self.update_configuration(units=[*units, *temporary_units_dump])
                 temporary_units_dump.clear() 
