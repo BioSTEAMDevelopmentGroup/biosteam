@@ -21,6 +21,7 @@ from thermosteam.units_of_measure import convert
 from copy import copy
 import biosteam as bst
 from thermosteam import Stream
+from thermosteam.base import display_asfunctor
 from typing import Callable, Optional, TYPE_CHECKING, Sequence
 from numpy.typing import NDArray
 import thermosteam as tmo
@@ -36,38 +37,48 @@ def count():
 # %% Process specification
 
 class ProcessSpecification:
-    __slots__ = ('f', 'args', 'impacted_units', 'prioritize')
+    __slots__ = ('f', 'args', 'impacted_units', 'prioritize', 'units')
     
     def __init__(self, f, args, impacted_units, prioritize):
         self.f = f
         self.args = args
-        self.impacted_units = list(impacted_units) if impacted_units else ()
+        self.impacted_units = list(impacted_units) if impacted_units else impacted_units
         self.prioritize = prioritize
+        self.units = None
         
     def __call__(self):
         self.f(*self.args)
-        for i in self.impacted_units: i.run()
+        for i in self.units: i.run()
         
     def compile(self, unit):
-        system = unit.system
-        if self.prioritize and system: 
-            system.prioritize_unit(unit)
-        if isinstance(self.impacted_units, list):
-            impacted_units = []
-            downstream_units = unit.get_downstream_units()
-            upstream_units = unit.get_upstream_units()
-            if system: unit_index = system.unit_path.index(unit)
-            for other in self.impacted_units:
-                if system and (unit_index < system.unit_path.index(other)):
-                    # The other unit runs afterwards (possibly due to a recycle loop)
-                    # so no need to add them to impacted units.
-                    continue
-                if other in upstream_units:
-                    impacted_units.extend(other.path_until(unit))
-                elif other not in downstream_units:
-                    bst.temporary_connection(unit, other)
-            self.impacted_units = tuple(impacted_units)
-            
+        if self.units is None: # Not yet compiled
+            self.units = units = []    
+            system = unit.system
+            if self.prioritize and system: 
+                system.prioritize_unit(unit)
+            impacted_units = self.impacted_units
+            if impacted_units:
+                added_units = set()
+                downstream_units = unit.get_downstream_units()
+                upstream_units = unit.get_upstream_units()
+                if system: unit_index = system.unit_path.index(unit)
+                for other in impacted_units:
+                    if system and (unit_index < system.unit_path.index(other)):
+                        # The other unit runs afterwards (possibly due to a recycle loop)
+                        # so no need to add them to impacted units.
+                        continue
+                    if other in upstream_units:
+                        new_units = [i for i in other.path_until(unit) if i not in added_units]
+                        added_units.update(new_units)
+                        units.extend(new_units)
+                    elif other not in downstream_units:
+                        bst.temporary_connection(unit, other)
+                
+    def reset(self):
+        self.units = None
+                
+    def __repr__(self):
+        return f"{type(self).__name__}(f={display_asfunctor(self.f)}, args={self.args}, impacted_units={self.impacted_units}, prioritize={self.prioritize})"
 
 # %% Typing
 
@@ -958,7 +969,7 @@ class Unit:
                 pass
     
     def add_specification(self, 
-            specification: Optional[Callable]=None, 
+            f: Optional[Callable]=None, 
             run: Optional[bool]=None, 
             args: Optional[tuple]=(),
             impacted_units: Optional[list[Unit]]=None,
@@ -969,8 +980,8 @@ class Unit:
 
         Parameters
         ----------
-        specification : 
-            Function runned for mass and energy balance.
+        f : 
+            Specification function runned for mass and energy balance.
         run : 
             Whether to run the built-in mass and energy balance after 
             specifications. Defaults to False.
@@ -997,11 +1008,11 @@ class Unit:
         This method also works as a decorator.
 
         """
-        if not specification: return lambda specification: self.add_specification(specification, run, args, impacted_units, prioritize)
-        if not callable(specification): raise ValueError('specification must be callable')
-        self._specifications.append(ProcessSpecification(specification, args, impacted_units, prioritize))
+        if not f: return lambda f: self.add_specification(f, run, args, impacted_units, prioritize)
+        if not callable(f): raise ValueError('specification must be callable')
+        self._specifications.append(ProcessSpecification(f, args, impacted_units, prioritize))
         if run is not None: self.run_after_specifications = run
-        return specification
+        return f
     
     def add_bounded_numerical_specification(self, f=None, *args, **kwargs):
         """

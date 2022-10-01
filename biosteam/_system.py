@@ -391,7 +391,6 @@ class System:
         '_feeds',
         '_products',
         '_facility_recycle',
-        '_configuration_updated',
         '_inlet_names',
         '_outlet_names',
         # Specifications
@@ -661,7 +660,6 @@ class System:
         self._register(ID)
         self._save_configuration()
         self._load_stream_links()
-        self._configuration_updated = False
         self._state = None
         self._state_idx = None
         self._state_header = None
@@ -700,7 +698,6 @@ class System:
         self._set_facility_recycle(facility_recycle or find_blowdown_recycle(facilities))
         self._save_configuration()
         self._load_stream_links()
-        self._configuration_updated = True
 
     def __enter__(self):
         if self._path or self._recycle or self._facilities:
@@ -720,7 +717,7 @@ class System:
             self.update_configuration(dump)
 
     def _save_configuration(self):
-        self._connections = [i.get_connection() for i in bst.utils.streams_from_units(self.unit_path)]
+        self._connections = [i.get_connection() for i in self.streams]
 
     @ignore_docking_warnings
     def _load_configuration(self):
@@ -843,7 +840,6 @@ class System:
         self._facilities = other._facilities
         self._facility_loop = other._facility_loop
         self._facility_recycle = other._facility_recycle
-        self._configuration_updated = other._configuration_updated
         self._recycle = other._recycle
         self._connections = other._connections
 
@@ -1135,11 +1131,11 @@ class System:
 
     def _load_facilities(self):
         isa = isinstance
-        units = self.units
+        units = self.cost_units
         for i in self._facilities:
             if isa(i, Facility):
                 i._other_units = other_units = units.copy()
-                other_units.remove(i)
+                other_units.discard(i)
 
     def _set_facility_recycle(self, recycle):
         if recycle:
@@ -1572,14 +1568,23 @@ class System:
             raise RuntimeError('no recycle available')
         return np.array(T, float)
 
-    def _setup(self):
+    def _setup(self, update_configuration=False):
         """Setup each element of the system."""
-        self._load_configuration()
+        units = self.units
         self._load_facilities()
-        for i in self.units: i._setup()
-        if temporary_units_dump:
-            self.update_configuration(units=[*self.units, *temporary_units_dump])
-            temporary_units_dump.clear()
+        if update_configuration:
+            for u in units: 
+                u._system = self
+                for ps in u._specifications: ps.reset()
+                u._setup()
+            self.update_configuration(units=[*units, *temporary_units_dump])
+            temporary_units_dump.clear() 
+        else:
+            self._load_configuration()
+            for i in units: i._setup()
+            if temporary_units_dump:
+                self.update_configuration(units=[*units, *temporary_units_dump])
+                temporary_units_dump.clear() 
 
     def run(self):
         """Run mass and energy balances for each element in the path
@@ -1936,7 +1941,7 @@ class System:
             ws.state = y*0.0
             ws.dstate = y*0.0
 
-    def simulate(self, skip_setup=False, **kwargs):
+    def simulate(self, update_configuration: Optional[bool]=False, **kwargs):
         """
         If system is dynamic, run the system dynamically. Otherwise, converge 
         the path of unit operations to steady state. After running/converging 
@@ -1947,7 +1952,10 @@ class System:
         **kwargs : 
             Additional parameters for :func:`dynamic_run` (if dynamic) or 
             :func:`converge` (if steady state).
-        
+        update_configuration :
+            Whether to update system configuration if unit connections have
+            changed. 
+            
         """
         with self.flowsheet.temporary():
             specifications = self._specifications
@@ -1958,16 +1966,28 @@ class System:
                 finally:
                     self._running_specifications = False
             else:
-                self._configuration_updated = False
-                if not skip_setup: self._setup()
+                self._setup(update_configuration)
                 if self.isdynamic: 
                     self.dynamic_run(**kwargs)
                     self._summary()
-                else: 
-                    outputs = self.converge(**kwargs)
-                    self._summary()
-                    if self._configuration_updated: outputs = self.simulate(**kwargs)
-                    if self._facility_loop: self._facility_loop.converge()
+                else:
+                    try:
+                        outputs = self.converge(**kwargs)
+                        self._summary()
+                    except Exception as error:
+                        new_connections = [i.get_connection() for i in self.streams]
+                        if self._connections != new_connections:
+                            # Connections has been updated within simulation.
+                            outputs = self.simulate(update_configuration=True, **kwargs)
+                        else:
+                            raise error
+                    else:
+                        new_connections = [i.get_connection() for i in self.streams]
+                        if self._connections != new_connections:
+                            # Connections has been updated within simulation.
+                            outputs = self.simulate(update_configuration=True, **kwargs)
+                        elif self._facility_loop: 
+                            self._facility_loop.converge()
                     return outputs
 
     def dynamic_run(self, **dynsim_kwargs):

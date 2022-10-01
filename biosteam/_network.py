@@ -403,8 +403,9 @@ class Network:
     def first_unit(self, units):
         isa = isinstance
         for i in self.path:
-            if isa(i, Network) and not i.units.isdisjoint(units):
-                return i.first_unit(units)
+            if isa(i, Network):
+                if not i.units.isdisjoint(units):
+                    return i.first_unit(units)
             elif i in units:
                 return i
         raise ValueError('network does not contain any of the given units') # pragma: no cover
