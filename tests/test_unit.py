@@ -42,6 +42,7 @@ def test_process_specifications():
         water.F_mass = ethanol.F_mass
     
     sys.simulate()
+    assert set(M1.specifications[0].path) == set([T1, T2, H1, H2])
     assert (H4.outs[0].mol == sum([i.ins[0].mol for i in (T1, T2, T3)])).all()
     
     # Specification impacting units in parallel (neither upstream nor downstream units).
@@ -60,6 +61,9 @@ def test_process_specifications():
         first_tank.ins[0].F_vol = mid_tank.ins[0].F_vol
     
     sys.simulate()
+    # No upstream unit simulations
+    assert mid_tank.specifications[0].path == []
+    assert last_tank.specifications[0].path == []
     # Order of tank simulation is now reversed
     assert [last_tank, mid_tank, first_tank] == [i for i in sys.units if isinstance(i, bst.Tank)] 
     # 2 hidden connection source and 2 sinks
@@ -76,7 +80,7 @@ def test_process_specifications():
     
     sys.simulate()
     assert H3.outs[0].T == H3.T
-    assert T1.specifications[0].units == []
+    assert T1.specifications[0].path == []
     
 
 def test_unit_connections():

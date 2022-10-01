@@ -702,7 +702,7 @@ class System:
     def __enter__(self):
         if self._path or self._recycle or self._facilities:
             raise RuntimeError("only empty systems can enter `with` statement")
-        del self._unit_path, self._units, 
+        del self._units
         unit_registry = self.flowsheet.unit
         unit_registry.open_context_level()
         return self
@@ -1058,6 +1058,69 @@ class System:
                 return self
         raise ValueError(f"unit {repr(unit)} not within system {repr(self)}")
 
+    def path_segment(self, start, end, inclusive=False):
+        isa = isinstance
+        path = self.path
+        segment = []
+        if start is not None:
+            for i, obj in enumerate(path):
+                if isa(obj, System):
+                    if start in obj.units:
+                        if end in obj.units: 
+                            return obj.path_segment(start, end)
+                        else:
+                            segment.append(obj)
+                elif obj is start:
+                    path = path[i:] # start is appended in the next loop
+                    break
+            else:
+                raise ValueError(f"start unit {repr(start)} not in system")
+        for obj in path:
+            if isa(obj, System):
+                if end in obj.units:
+                    segment.extend(obj.path_segment(None, end))
+                    break
+            elif obj is end:
+                break  
+            segment.append(obj)
+        else:
+            raise ValueError(f"end unit {repr(end)} not in system")
+        if inclusive: segment.append(end)
+        return segment
+
+    def simulation_number(self, obj):
+        numbers = []
+        isa = isinstance
+        if isa(obj, System):
+            sys = obj
+            for i, other in enumerate(self.path):
+                if isa(other, System):
+                    if sys is other: 
+                        numbers.append(i)
+                        break
+                    elif sys in other.subsystems:
+                        numbers.append(i)
+                        numbers.append(other.simulation_number(sys))
+                        break
+            else:
+                raise ValueError(f"system {repr(sys)} not within system {repr(self)}")
+        else: # Must be unit
+            unit = obj
+            for i, other in enumerate(self.path):
+                if isa(other, System):
+                    if unit in other.units: 
+                        numbers.append(i)
+                        numbers.append(other.simulation_number(unit))
+                        break
+                elif other is unit:
+                    numbers.append(i)
+                    break
+            else:
+                raise ValueError(f"unit {repr(unit)} not within system {repr(self)}")
+        number = 0
+        for i, n in enumerate(numbers): number += n * 10 ** -i
+        return number
+
     def split(self, 
               stream: Stream,
               ID_upstream: Optional[str]=None,
@@ -1227,8 +1290,14 @@ class System:
         try:
             return self._streams
         except:
-            self._streams = streams = bst.utils.streams_from_units(self.unit_path)
-            bst.utils.filter_out_missing_streams(streams)
+            self._streams = streams = []
+            stream_set = set()
+            for u in self.units:
+                for s in u._ins + u._outs:
+                    if not s: s = s.materialize_connection()
+                    elif s in stream_set: continue
+                    streams.append(s)
+                    stream_set.add(s)
             return streams
     @property
     def feeds(self) -> list[Stream]:
@@ -3067,20 +3136,7 @@ class AgileSystem:
         flow_rates = self.flow_rates
         return sum([flow_rates[i] * i.price for i in self.products])
 
-    @property
-    def streams(self):
-        try:
-            return self._streams
-        except:
-            self._streams = streams = []
-            stream_set = set()
-            for u in self.units:
-                for s in u._ins + u._outs:
-                    if not s: s.materialize_connection()
-                    elif s in stream_set: continue
-                    streams.append(s)
-                    stream_set.add(s)
-            return streams
+    streams = System.streams
 
     @property
     def units(self):

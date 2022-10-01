@@ -91,7 +91,7 @@ class Junction(Unit):
         self._outs[0] = downstream
         
     def _setup(self): 
-        pass
+        for ps in self._specifications: ps.compile(self)
     
     def _run(self): 
         try: self._outs[0].copy_like(self._ins[0])

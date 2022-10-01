@@ -37,7 +37,7 @@ def count():
 # %% Process specification
 
 class ProcessSpecification:
-    __slots__ = ('f', 'args', 'impacted_units', 'prioritize', 'units', 'compiled_systems')
+    __slots__ = ('f', 'args', 'impacted_units', 'prioritize', 'path', 'compiled_systems')
     
     def __init__(self, f, args, impacted_units, prioritize):
         self.f = f
@@ -45,44 +45,43 @@ class ProcessSpecification:
         self.impacted_units = list(impacted_units) if impacted_units else impacted_units
         self.prioritize = prioritize
         self.compiled_systems = {}
-        self.units = None
+        self.path = None
         
     def __call__(self):
         self.f(*self.args)
-        if self.units is None:
+        if self.path is None:
             raise UnitInheritanceError(
                 "Child Unit class does not call parent class "
                 "`_setup` method; a potential solution is to add "
                 "`super()._setup()` in the method code"
             )
-        for i in self.units: i.run()
+        for i in self.path: i.run()
         
     def compile(self, unit):
         system = unit.system
         if system in self.compiled_systems:
-            self.units = self.compiled_systems[system]
+            self.path = self.compiled_systems[system]
         else: # Not yet compiled
-            units = []    
+            path = []
             if self.prioritize and system: 
                 system.prioritize_unit(unit)
             impacted_units = self.impacted_units
             if impacted_units:
-                added_units = set()
                 downstream_units = unit.get_downstream_units()
                 upstream_units = unit.get_upstream_units()
-                if system: unit_index = system.unit_path.index(unit)
+                isa = isinstance
                 for other in impacted_units:
-                    if system and (unit_index < system.unit_path.index(other)):
-                        # The other unit runs afterwards (possibly due to a recycle loop)
-                        # so no need to add them to impacted units.
-                        continue
                     if other in upstream_units:
-                        new_units = [i for i in other.path_until(unit) if i not in added_units]
-                        added_units.update(new_units)
-                        units.extend(new_units)
+                        relevant_units = other.get_downstream_units()
+                        relevant_units.add(other)
+                        for i in system.path_segment(other, unit):
+                            if (i in relevant_units if isa(i, Unit)
+                                else relevant_units.intersection(i.units)):
+                                path.append(i)
                     elif other not in downstream_units:
                         bst.temporary_connection(unit, other)
-            self.compiled_systems[system] = self.units = units
+                path = sorted(set(path), key=system.simulation_number)
+            self.compiled_systems[system] = self.path = path
             
     def reset(self, system):
         del self.compiled_systems[system]
