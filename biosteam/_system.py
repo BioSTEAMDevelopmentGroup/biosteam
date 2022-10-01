@@ -1089,6 +1089,8 @@ class System:
         return segment
 
     def simulation_number(self, obj):
+        """Return the simulation number of either a Unit or System object as 
+        it would appear in the system diagram."""
         numbers = []
         isa = isinstance
         if isa(obj, System):
