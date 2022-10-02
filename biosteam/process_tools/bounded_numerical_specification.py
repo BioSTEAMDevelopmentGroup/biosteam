@@ -55,4 +55,6 @@ class BoundedNumericalSpecification:
         )
         return self.x
     
-    def compile(self, unit): pass
+    def compile_path(self, unit): pass
+    
+    def compile_temporary_connections(self, unit): pass

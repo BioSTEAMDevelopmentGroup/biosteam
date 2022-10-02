@@ -55,34 +55,62 @@ class ProcessSpecification:
                 "`_setup` method; a potential solution is to add "
                 "`super()._setup()` in the method code"
             )
-        for i in self.path: i.run()
+        isa = isinstance
+        for i in self.path: 
+            if isa(i, Unit): i.run()
+            else: i.converge() # Must be a system
         
-    def compile(self, unit):
+    def compile_temporary_connections(self, unit):
+        # Temporary connections are created first than the path because 
+        # temporary connections may change the system configuration 
+        # such that the path is incorrect.
         system = unit.system
-        if system in self.compiled_systems:
-            self.path = self.compiled_systems[system]
-        else: # Not yet compiled
-            path = []
-            if self.prioritize and system: 
-                system.prioritize_unit(unit)
+        if system not in self.compiled_systems:
             impacted_units = self.impacted_units
             if impacted_units:
                 downstream_units = unit.get_downstream_units()
                 upstream_units = unit.get_upstream_units()
+                connected_units = upstream_units | downstream_units
+                for other in impacted_units:
+                    if other not in connected_units:
+                        bst.temporary_connection(unit, other)
+    
+    def compile_path(self, unit):
+        system = unit.system
+        if system in self.compiled_systems:
+            self.path = self.compiled_systems[system]
+        elif system: # Not yet compiled
+            path = []
+            if self.prioritize: system.prioritize_unit(unit)
+            impacted_units = self.impacted_units
+            if impacted_units:
+                unit_path = system.unit_path
+                unit_index = unit_path.index(unit)
                 isa = isinstance
                 for other in impacted_units:
-                    if other in upstream_units:
+                    if unit_index > unit_path.index(other):
                         relevant_units = other.get_downstream_units()
                         relevant_units.add(other)
                         for i in system.path_segment(other, unit):
+                            if isa(i, bst.TemporaryUnit): continue
                             if (i in relevant_units if isa(i, Unit)
                                 else relevant_units.intersection(i.units)):
                                 path.append(i)
-                    elif other not in downstream_units:
-                        bst.temporary_connection(unit, other)
                 path = sorted(set(path), key=system.simulation_number)
             self.compiled_systems[system] = self.path = path
-            
+        else: # Simulated outside system, so recycle loops may not converge (and don't have to)
+            path = []
+            impacted_units = self.impacted_units
+            if impacted_units:
+                added_units = set()
+                upstream_units = unit.get_upstream_units()
+                for other in impacted_units:
+                    if other in upstream_units:
+                        new_units = [i for i in other.path_until(unit) if i not in added_units]
+                        added_units.update(new_units)
+                        path.extend(new_units)
+            self.path = path
+                        
     def reset(self, system):
         del self.compiled_systems[system]
         self.path = None
@@ -783,7 +811,7 @@ class Unit:
         self.baseline_purchase_costs.clear()
         self.purchase_costs.clear()
         self.installed_costs.clear()
-        for ps in self._specifications: ps.compile(self)
+        for ps in self._specifications: ps.compile_path(self)
     
     def materialize_connections(self):
         for s in self._ins + self._outs: 

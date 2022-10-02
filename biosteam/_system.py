@@ -40,7 +40,7 @@ import numpy as np
 import pandas as pd
 from scipy.integrate import solve_ivp
 from . import report
-from ._temporary_connection import temporary_units_dump
+from ._temporary_connection import temporary_units_dump, TemporaryUnit
 import os
 import openpyxl
 if TYPE_CHECKING: from ._tea import TEA
@@ -677,10 +677,11 @@ class System:
         if system is self: return
         system.track_recycle(recycle, collector)
 
-    def update_configuration(self,
+    def _update_configuration(self,
             units: Optional[Sequence[str]]=None,
-            facility_recycle: Optional[Stream]=None
+            facility_recycle: Optional[Stream]=None,
         ):
+        # Warning: This method does not save the configuration
         if units is None: units = self.units
         for i in ('_subsystems', '_units', '_unit_path', '_cost_units', '_streams', '_feeds', '_products'):
             if hasattr(self, i): delattr(self, i)
@@ -696,8 +697,6 @@ class System:
         self._set_path(path)
         self._set_facilities(facilities)
         self._set_facility_recycle(facility_recycle or find_blowdown_recycle(facilities))
-        self._save_configuration()
-        self._load_stream_links()
 
     def __enter__(self):
         if self._path or self._recycle or self._facilities:
@@ -714,7 +713,9 @@ class System:
         if self._path or self._recycle or self._facilities:
             raise RuntimeError('system cannot be modified before exiting `with` statement')
         else:
-            self.update_configuration(dump)
+            self._update_configuration(dump)
+            self._save_configuration()
+            self._load_stream_links()
 
     def _save_configuration(self):
         self._connections = [i.get_connection() for i in self.streams]
@@ -1069,7 +1070,8 @@ class System:
                         if end in obj.units: 
                             return obj.path_segment(start, end)
                         else:
-                            segment.append(obj)
+                            path = path[i:]
+                            break
                 elif obj is start:
                     path = path[i:] # start is appended in the next loop
                     break
@@ -1294,10 +1296,13 @@ class System:
         except:
             self._streams = streams = []
             stream_set = set()
+            isa = isinstance
+            temp = piping.TemporaryStream
             for u in self.units:
                 for s in u._ins + u._outs:
                     if not s: s = s.materialize_connection()
                     elif s in stream_set: continue
+                    elif isa(s, temp): continue
                     streams.append(s)
                     stream_set.add(s)
             return streams
@@ -1646,16 +1651,42 @@ class System:
         if update_configuration:
             for u in units: 
                 u._system = self
-                for ps in u._specifications: ps.reset(self)
-                u._setup()
-            self.update_configuration(units=[*units, *temporary_units_dump])
-            temporary_units_dump.clear() 
+                for ps in u._specifications: 
+                    ps.reset(self)
+                    ps.compile_temporary_connections(u)
+            self._update_configuration(units=[*units, *temporary_units_dump])
+            temporary_units_dump.clear()
+            for u in units: u._setup()
+            self._remove_temporary_units()
+            self._save_configuration()
+            self._load_stream_links()
         else:
             self._load_configuration()
-            for u in units: u._setup()
+            for u in units:
+                for ps in u._specifications:
+                    ps.compile_temporary_connections(u)
             if temporary_units_dump:
-                self.update_configuration(units=[*units, *temporary_units_dump])
+                self._update_configuration(units=[*units, *temporary_units_dump])
                 temporary_units_dump.clear() 
+                for u in units: u._setup()
+                self._remove_temporary_units()
+                self._save_configuration()
+                self._load_stream_links()
+            else:
+                for u in units: u._setup()
+
+    @piping.ignore_docking_warnings
+    def _remove_temporary_units(self):
+        isa = isinstance
+        new_path = []
+        for i in self.path:
+            if isa(i, System): 
+                i._remove_temporary_units()
+            elif isa(i, TemporaryUnit):
+                i.old_connection.reconnect()
+                continue
+            new_path.append(i)
+        self._path = tuple(new_path)
 
     def run(self):
         """Run mass and energy balances for each element in the path
