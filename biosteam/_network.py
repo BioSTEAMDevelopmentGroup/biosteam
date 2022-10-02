@@ -33,7 +33,7 @@ def unmark_disjunction(stream):
 # %% Other tools
 
 def get_recycle_sink(recycle):
-    if isinstance(recycle, Stream):
+    if isinstance(recycle, piping.stream_types):
         return recycle._sink
     elif isinstance(recycle, Iterable):
         for i in recycle: return i._sink
@@ -244,7 +244,7 @@ class Network:
             all_recycles = set()
         recycle = self.recycle
         if recycle:
-            if isinstance(recycle, Stream):
+            if isinstance(recycle, piping.stream_types):
                 all_recycles.add(recycle)
             else:
                 all_recycles.update(recycle)
@@ -294,7 +294,8 @@ class Network:
         units = frozenset(units) if units else frozenset()
         recycle_ends = ends.copy()
         linear_paths, cyclic_paths_with_recycle = find_linear_and_cyclic_paths_with_recycle(
-            feedstock, ends, units)
+            feedstock, ends, units
+        )
         linear_networks = [Network(i) for i in linear_paths]
         if linear_networks:
             network, *linear_networks = [Network(i) for i in linear_paths]
@@ -329,7 +330,7 @@ class Network:
                 connecting_unit = network.first_unit(connecting_units)
                 network.join_network_at_unit(downstream_network,
                                              connecting_unit)
-                    
+        
         recycle_ends.update(network.get_all_recycles())
         recycle_ends.update(bst.utils.products_from_units(network.units))
         network.sort(recycle_ends)
@@ -425,8 +426,11 @@ class Network:
                 else:
                     self._insert_linear_network(index, network)
                 return
-            elif unit == item:
-                self._insert_linear_network(index, network)
+            elif unit is item:
+                if network.recycle:
+                    self._insert_recycle_network(index, network)
+                else:
+                    self._insert_linear_network(index, network)
                 return
         raise RuntimeError(f'{repr(unit)} not in path') # pragma: no cover
     
@@ -468,15 +472,15 @@ class Network:
         recycle = self.recycle
         if recycle is stream: return 
         isa = isinstance
-        if isa(recycle, Stream):
-            if isa(stream, Stream):
+        if isa(recycle, piping.stream_types):
+            if isa(stream, piping.stream_types):
                 self.recycle = {self.recycle, stream}
             elif isa(stream, set):
                 self.recycle = {self.recycle, *stream}
             else: # pragma: no cover
                 raise ValueError(f'recycles must be stream objects; not {type(stream).__name__}')
         elif isa(recycle, set):
-            if isa(stream, Stream):
+            if isa(stream, piping.stream_types):
                 recycle.add(stream)
             elif isa(stream, set):
                 recycle.update(stream)
@@ -567,7 +571,7 @@ class Network:
         info += '[' + (end + " ").join(path_info) + ']'
         recycle = self.recycle
         if recycle:
-            if isinstance(recycle, Stream):
+            if isinstance(recycle, piping.stream_types):
                 recycle = recycle._source_info()
             else:
                 recycle = ", ".join([i._source_info() for i in recycle])
