@@ -176,6 +176,9 @@ class TemporaryStream:
     __init__ = MissingStream.__init__
     source = Stream.source
     sink = Stream.sink
+    
+    def __repr__(self):
+        return f"<{type(self).__name__}>"
 
 Dependency = TemporaryStream # For backwards compatibility (scheduled for deprecation)
 
