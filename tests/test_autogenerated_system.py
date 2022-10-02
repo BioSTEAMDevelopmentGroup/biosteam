@@ -88,13 +88,14 @@ def test_simple_recycle_loop():
 def test_unconnected_case():
     f.set_flowsheet('unconnected_case')
     settings.set_thermo(['Water'], cache=True)
+    # Recycle loop a
     feedstock_a = Stream('feedstock_a', Water=1000)
     water_a = Stream('water_a', Water=10)
     byproduct_a = Stream('byproduct_a')
     product_a = Stream('product_a')
     M1_a = Mixer('M1_a', [feedstock_a, water_a])
     S1_a = Splitter('S1_a', M1_a-0, [product_a, byproduct_a], split=0.5)
-    
+    # Recycle loop b
     feedstock_b = Stream('feedstock_b', Water=1000)
     water_b = Stream('water_b', Water=10)
     byproduct_b = Stream('byproduct_b')
@@ -114,21 +115,26 @@ def test_unconnected_case():
     assert parallel_sys.path == (M1_a, S1_a, M1_b, S1_b)
     parallel_sys.empty_recycles()
     parallel_sys.simulate()
+    # Process specification reordering
+    assert parallel_sys.path == (M1_a, S1_a, M1_b, S1_b)
+    M1_b.add_specification(f=lambda: None, run=True, impacted_units=[M1_a])
+    parallel_sys.simulate() # Should reorder due to process specifications
+    assert parallel_sys.path == (M1_b, M1_a, S1_a, S1_b)
     f.clear()
 
 def test_unconnected_recycle_loop():
     f.set_flowsheet('unconnected_recycle_loop')
     settings.set_thermo(['Water'], cache=True)
+    # Recycle loop a
     feedstock_a = Stream('feedstock_a', Water=1000)
     water_a = Stream('water_a', Water=10)
     recycle_a = Stream('recycle_a')
     product_a = Stream('product_a')
     M1_a = Mixer('M1_a', [feedstock_a, water_a, recycle_a])
     S1_a = Splitter('S1_a', M1_a-0, [product_a, recycle_a], split=0.5)
-    
+    # Recycle loop b
     feedstock_b = Stream('feedstock_b', Water=800)
     water_b = Stream('water_b', Water=10)
-    recycle_b = Stream('recycle_b')
     byproduct_b = Stream('byproduct_b')
     product_b = Stream('product_b')
     M1_b = Mixer('M1_b', [feedstock_b, water_b])
@@ -144,14 +150,14 @@ def test_unconnected_recycle_loop():
          S1_b])
     assert network == actual_network
     recycle_loop_sys.simulate()
-    x_nested_solution = np.vstack([recycle_a.mol, recycle_b.mol])
+    x_nested_solution = np.vstack([recycle_a.mol])
     recycle_loop_sys.flatten()
     assert recycle_loop_sys.path == (M1_a, S1_a, M1_b, S1_b)
     recycle_loop_sys.empty_recycles()
     recycle_loop_sys.simulate()
-    x_flat_solution = np.vstack([recycle_a.mol, recycle_b.mol])
+    x_flat_solution = np.vstack([recycle_a.mol])
     assert_allclose(x_nested_solution, x_flat_solution, rtol=2e-2)
-    
+    # New configuration due to stream priority changes
     feedstock_b.F_mol = 1200 # Larger flow means b has higher priority
     recycle_loop_sys = f.create_system('recycle_loop_sys')
     network = recycle_loop_sys._to_network()
@@ -164,13 +170,19 @@ def test_unconnected_recycle_loop():
             recycle=S1_a-1)])
     assert network == actual_network
     recycle_loop_sys.simulate()
-    x_nested_solution = np.vstack([recycle_a.mol, recycle_b.mol])
+    x_nested_solution = np.vstack([recycle_a.mol])
     recycle_loop_sys.flatten()
     assert recycle_loop_sys.path == (M1_b, S1_b, M1_a, S1_a)
     recycle_loop_sys.empty_recycles()
     recycle_loop_sys.simulate()
-    x_flat_solution = np.vstack([recycle_a.mol, recycle_b.mol])
+    x_flat_solution = np.vstack([recycle_a.mol])
     assert_allclose(x_nested_solution, x_flat_solution, rtol=2e-2)
+    # Process specification reordering
+    assert recycle_loop_sys.path == (M1_b, S1_b, M1_a, S1_a)
+    M1_a.add_specification(f=lambda: None, run=True, impacted_units=[M1_b])
+    recycle_loop_sys.simulate() # Should reorder due to process specifications
+    recycle_loop_sys.flatten()
+    assert recycle_loop_sys.path == (M1_a, S1_a, M1_b, S1_b)
     f.clear()
 
 def test_unconnected_recycle_loops():
