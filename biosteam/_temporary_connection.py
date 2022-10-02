@@ -35,9 +35,10 @@ def temporary_connection(source, sink):
         TemporarySink([downstream, temporary_stream], stream, old_connection)
 
 class TemporaryUnit:
-    __slots__ = ('ins', 'outs', '_ins', '_outs', 'old_connection')
+    __slots__ = ('ID', '_ID', 'ins', 'outs', '_ins', '_outs', 'old_connection')
     def __init__(self, ins, outs, old_connection):
         temporary_units_dump.append(self)
+        self.ID = self._ID = 'TU' + str(len(temporary_units_dump))
         self.old_connection = old_connection
         self.ins = self._ins = piping.Inlets(
             self, self._N_ins, ins, None, self._ins_size_is_fixed, 5
@@ -51,6 +52,8 @@ class TemporaryUnit:
     get_upstream_units = Unit.get_upstream_units
     _add_upstream_neighbors_to_set = Unit._add_upstream_neighbors_to_set
     _add_downstream_neighbors_to_set = Unit._add_downstream_neighbors_to_set
+    __repr__ = Unit.__repr__
+    __str__ = Unit.__str__
 
 
 class TemporarySource(TemporaryUnit):
