@@ -33,7 +33,7 @@ def test_process_specifications():
         H3 = bst.HXutility(ins=T3-0, T=320)
         M1 = bst.Mixer(ins=[H1-0, H2-0, H3-0])
         H4 = bst.HXutility(ins=M1-0, T=350)
-    
+    sys.diagram()
     # Specification impacting upstream units
     @M1.add_specification(run=True, impacted_units=[T1, T2])
     def adjust_flow_rate():
@@ -48,7 +48,7 @@ def test_process_specifications():
     # Specification impacting units in parallel (neither upstream nor downstream units).
     # System simulation order must switch
     old_path_length = len(sys.unit_path)
-    M1.specifications.pop() # Remove specification
+    M1.specifications.clear() # Remove specification
     tanks = [i for i in sys.units if isinstance(i, bst.Tank)]
     first_tank, mid_tank, last_tank = tanks
     @last_tank.add_specification(run=True, impacted_units=[first_tank, mid_tank])
@@ -72,7 +72,8 @@ def test_process_specifications():
     assert sys.path[0] is last_tank
     
     # Specification impacting downstream units (it doesn't matter).
-    last_tank.specifications.pop() # Remove specification
+    last_tank.specifications.clear() # Remove specification
+    mid_tank.specifications.clear()
     
     @T1.add_specification(run=True, impacted_units=[H3])
     def adjust_flow_rate():
@@ -82,6 +83,16 @@ def test_process_specifications():
     assert H3.outs[0].T == H3.T
     assert T1.specifications[0].path == []
     
+    # Two overlapping parallel specifications should make
+    # just one parallel specification and one upstream specification
+    T1.specifications.clear()
+    H1.add_specification(lambda: None, run=True, impacted_units=[T2])
+    H2.add_specification(lambda: None, run=True, impacted_units=[T1])
+    sys.simulate()
+    assert sys.path[:2] == (T1, H1)
+    assert H1.specifications[0].path == []
+    assert H2.specifications[0].path == [T1, H1, T2]
+    # Net simulation order is T1, H1, T2, H2, T1, H1, T2, H2, ...
 
 def test_unit_connections():
     from biorefineries import sugarcane as sc

@@ -318,6 +318,7 @@ def test_bifurcated_recycle_loops():
     M2_b = Mixer('M2_b', [S1_b-0, S2_b-1, S3_a-0])
     S3_b = Splitter('S3_b', M2_b-0, [product_b, recycle_b], split=0.5)
     recycle_loop_sys = f.create_system('recycle_loop_sys')
+    recycle_loop_sys.set_tolerance(mol=1e-3, rmol=1e-6, subsystems=True)
     network = recycle_loop_sys._to_network()
     actual_network = Network(
         [P1_b,
@@ -340,10 +341,32 @@ def test_bifurcated_recycle_loops():
             recycle=S3_b-1)])
     assert network == actual_network
     recycle_loop_sys.simulate()
+    assert recycle_loop_sys.unit_path == [
+        P1_b, P1_a, P2_a, S1_a, M1_a, S2_a, M2_a, 
+        S3_a, P2_b, S1_b, M1_b, S2_b, M2_b, S3_b,
+    ]
     x_nested_solution = np.vstack([recycle_a.mol, recycle_b.mol])
+    # Test parallel process specification
+    P2_b.add_specification(f=lambda: None, run=True, impacted_units=[P1_b])
+    recycle_loop_sys.simulate()
+    assert recycle_loop_sys.unit_path == [ 
+        # Reordered path
+        P1_a, P2_a, S1_a, M1_a, S2_a, M2_a, S3_a, 
+        P2_b, S1_b, P1_b, M1_b, S2_b, M2_b, S3_b,
+    ]
+    x_reconfigured_solution = np.vstack([recycle_a.mol, recycle_b.mol])
+    assert_allclose(x_nested_solution, x_reconfigured_solution, rtol=2e-2)
+    # Test upstream process specification
+    @M1_b.add_specification(run=True, impacted_units=[S2_a, S3_a])
+    def adjust_splits():
+        S2_a.split[:] = 0.4
+        S3_a.split[:] = 0.4
+    
+    recycle_loop_sys.simulate()
+    assert M1_b.specifications[0].path == list(recycle_loop_sys.path[3:6]) # Includes subsystem
+    x_nested_solution = np.vstack([recycle_a.mol, recycle_b.mol])
+    # Test flattend solution
     recycle_loop_sys.flatten()
-    assert recycle_loop_sys.path == (P1_b, P1_a, P2_a, S1_a, M1_a, S2_a, M2_a, 
-                                     S3_a, P2_b, S1_b, M1_b, S2_b, M2_b, S3_b)
     recycle_loop_sys.empty_recycles()
     recycle_loop_sys.simulate()
     x_flat_solution = np.vstack([recycle_a.mol, recycle_b.mol])
