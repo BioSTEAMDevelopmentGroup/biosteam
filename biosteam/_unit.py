@@ -1667,12 +1667,6 @@ class Unit:
         if bst.preferences.autodisplay: self.diagram()
         self.show()
 
-    def __repr__(self):
-        if self.ID:
-            return f'<{type(self).__name__}: {self.ID}>'
-        else:
-            return f'<{type(self).__name__}>'
-
 
 class UnitDesignAndCapital:
     
