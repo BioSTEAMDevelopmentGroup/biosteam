@@ -449,7 +449,7 @@ class Unit:
         self.run_after_specifications: bool = False 
         
         #: Safety toggle to prevent infinite recursion
-        self._running_specifications: bool = False
+        self._active_specifications: set[ProcessSpecification] = set()
         
         self._assert_compatible_property_package()
     
@@ -485,7 +485,7 @@ class Unit:
     def _init_specifications(self):
         self._specifications = []
         self.run_after_specifications = False
-        self._running_specifications = False
+        self._active_specifications = set()
     
     def _reset_thermo(self, thermo):
         for i in (self._ins._streams + self._outs._streams):
@@ -1118,13 +1118,17 @@ class Unit:
         
         """
         specifications = self._specifications
-        if specifications and not self._running_specifications:
-            self._running_specifications = True
-            try:
-                for ps in specifications: ps()
+        if specifications:
+            active_specifications = self._active_specifications
+            if len(active_specifications) == len(specifications):
+                self._run()
+            else:
+                for ps in specifications: 
+                    if ps in active_specifications: continue
+                    active_specifications.add(ps)
+                    try: ps()
+                    finally: active_specifications.remove(ps)
                 if self.run_after_specifications: self._run()
-            finally:
-                self._running_specifications = False
         else:
             self._run()
             
