@@ -2078,6 +2078,7 @@ class System:
                         outputs = self.converge(**kwargs)
                         self._summary()
                     except Exception as error:
+                        if update_configuration: raise error # Avoid infinite loop
                         new_connections = [i.get_connection() for i in self.streams]
                         if self._connections != new_connections:
                             # Connections has been updated within simulation.
@@ -2085,8 +2086,8 @@ class System:
                         else:
                             raise error
                     else:
-                        new_connections = [i.get_connection() for i in self.streams]
-                        if self._connections != new_connections:
+                        if (not update_configuration # Avoid infinite loop
+                            and self._connections != [i.get_connection() for i in self.streams]):
                             # Connections has been updated within simulation.
                             outputs = self.simulate(update_configuration=True, **kwargs)
                         elif self._facility_loop: 
