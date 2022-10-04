@@ -1996,8 +1996,7 @@ class System:
         return self._DAE
 
     def _write_state(self):
-        # A tad faster than `set(self.streams).difference(set(self.feeds))`
-        for ws in (i for i in self.streams if i not in self.feeds):
+        for ws in [i for i in self.streams if i not in self.feeds]:
             ws._state2flows()
 
     def clear_state(self):
