@@ -369,6 +369,9 @@ class System:
         '_iter',
         '_ins',
         '_outs',
+        '_path_cache',
+        '_prioritized_units',
+        '_temporary_connections_log',
         'maxiter',
         'molar_tolerance',
         'relative_molar_tolerance',
@@ -650,6 +653,15 @@ class System:
         #: Lang factor for computing fixed capital cost from purchase costs
         self.lang_factor: float|None = lang_factor
 
+        #: Unit operations that have been integrated into the system configuration.
+        self._prioritized_units = set()
+
+        #: Cache for path segments and sections.
+        self._path_cache = {}
+
+        #: Log for all process specifications checked for temporary connections.
+        self._temporary_connections_log = set()
+
         self._set_path(path)
         self._specifications = []
         self._running_specifications = False
@@ -677,14 +689,19 @@ class System:
         if system is self: return
         system.track_recycle(recycle, collector)
 
+    def update_configuration(self,
+            units: Optional[Sequence[str]]=None,
+        ):
+        self._update_configuration(units)
+        self._save_configuration()
+
     def _update_configuration(self,
             units: Optional[Sequence[str]]=None,
             facility_recycle: Optional[Stream]=None,
         ):
         # Warning: This method does not save the configuration
         if units is None: units = self.units
-        for i in ('_subsystems', '_units', '_unit_path', '_cost_units', '_streams', '_feeds', '_products'):
-            if hasattr(self, i): delattr(self, i)
+        self._delete_path_cache()
         isa = isinstance
         Facility = bst.Facility
         facilities = Facility.ordered_facilities([i for i in units if isa(i, Facility)])
@@ -713,8 +730,7 @@ class System:
         if self._path or self._recycle or self._facilities:
             raise RuntimeError('system cannot be modified before exiting `with` statement')
         else:
-            self._update_configuration(dump)
-            self._save_configuration()
+            self.update_configuration(dump)
             self._load_stream_links()
 
     def _save_configuration(self):
@@ -810,12 +826,14 @@ class System:
                 mixer_thermo[mixer] = thermo_cache[IDs] = unit.thermo.subset(chemicals)
 
     def _delete_path_cache(self):
-        for i in ('_units', '_unit_path', '_streams'):
+        for i in ('_subsystems', '_units', '_unit_path', '_cost_units',
+                  '_streams', '_feeds', '_products'):
             if hasattr(self, i): delattr(self, i)
-        for i in self.subsystems: i._delete_path_cache()
+        self._path_cache.clear()
+        self._temporary_connections_log.clear()
+        self._prioritized_units.clear()
 
     def reduce_chemicals(self, required_chemicals: Collection[Chemical]=()):
-        self._delete_path_cache()
         unit_thermo = {}
         mixer_thermo = {}
         thermo_cache = {}
@@ -1059,35 +1077,65 @@ class System:
                 return self
         raise ValueError(f"unit {repr(unit)} not within system {repr(self)}")
 
-    def path_segment(self, start, end, inclusive=False):
-        isa = isinstance
-        path = self.path
-        segment = []
-        if start is not None:
-            for i, obj in enumerate(path):
-                if isa(obj, System):
-                    if start in obj.units:
-                        if end in obj.units: 
-                            return obj.path_segment(start, end)
-                        else:
-                            path = path[i:]
-                            break
-                elif obj is start:
-                    path = path[i:] # start is appended in the next loop
-                    break
-            else:
-                raise ValueError(f"start unit {repr(start)} not in system")
-        for obj in path:
-            if isa(obj, System):
-                if end in obj.units:
-                    segment.extend(obj.path_segment(None, end))
-                    break
-            elif obj is end:
-                break  
-            segment.append(obj)
+    def path_section(self, starts, ends, inclusive=False):
+        starts = tuple(starts)
+        ends = tuple(ends)
+        key = (starts, ends)
+        if key in self._path_cache:
+            path, end = self._path_cache[key]
         else:
-            raise ValueError(f"end unit {repr(end)} not in system")
-        if inclusive: segment.append(end)
+            relevant_units = set(starts)
+            for start in starts: relevant_units.update(start.get_downstream_units())
+            unit_path = self.unit_path
+            start_index = min([unit_path.index(start) for start in starts])
+            end_index = max([unit_path.index(end) for end in ends])
+            start = unit_path[start_index]
+            end = unit_path[end_index]
+            path = self.path_segment(start, end, False, relevant_units)
+            self._path_cache[key] = (path, end)
+        if inclusive: path = [*path, end]
+        return path
+
+    def path_segment(self, start, end, inclusive=False, relevant_units=None):
+        key = (start, end)
+        if key in self._path_cache:
+            segment = list(self._path_cache[key])
+        else:
+            if relevant_units is None: 
+                relevant_units = start.get_downstream_units()
+                relevant_units.add(start)
+            isa = isinstance
+            if end not in relevant_units: return []
+            path = self.path
+            segment = []
+            if start is not None:
+                for i, obj in enumerate(path):
+                    if isa(obj, System):
+                        if start in obj.units:
+                            if end in obj.units:
+                                return obj.path_segment(start, end, False, relevant_units)
+                            else:
+                                path = path[i:]
+                                break
+                    elif obj is start:
+                        path = path[i:] # start is appended in the next loop
+                        break
+                else:
+                    raise ValueError(f"start unit {repr(start)} not in system")
+            for i in path:
+                if isa(i, System):
+                    if end in i.units:
+                        segment.extend(i.path_segment(None, end, False, relevant_units))
+                        break
+                elif i is end:
+                    break  
+                if ((isa(i, Unit) and i in relevant_units)
+                    or (isa(i, System) and relevant_units.intersection(i.units))):
+                    segment.append(i)
+            else:
+                raise ValueError(f"end unit {repr(end)} not in system")
+            self._path_cache[key] = tuple(segment)
+        if inclusive: segment = [*segment, end]
         return segment
 
     def simulation_number(self, obj):
@@ -1644,36 +1692,52 @@ class System:
             raise RuntimeError('no recycle available')
         return np.array(T, float)
 
+    def _create_temporary_connections(self):
+        """Create temporary connections based on process specifications."""
+        temporary_connections_log = self._temporary_connections_log
+        for u in self.units:
+            for ps in u._specifications: 
+                if ps in temporary_connections_log: continue
+                ps.create_temporary_connections(u)
+                temporary_connections_log.add(ps)
+
+    def _setup_units(self):
+        """Setup all unit operations."""
+        prioritized_units = self._prioritized_units
+        for u in self.units: 
+            u._system = self
+            u._setup()
+            for ps in u._specifications: ps.compile_path(u)
+            if u not in prioritized_units:
+                if u.prioritize: self.prioritize_unit(u)
+                prioritized_units.add(u)
+                
+            
     def _setup(self, update_configuration=False):
         """Setup each element of the system."""
         units = self.units
         self._load_facilities()
         if update_configuration:
-            for u in units: 
-                u._system = self
-                for ps in u._specifications: 
-                    ps.reset(self)
-                    ps.compile_temporary_connections(u)
+            self._temporary_connections_log.clear()
+            self._create_temporary_connections()
             self._update_configuration(units=[*units, *temporary_units_dump])
             temporary_units_dump.clear()
-            for u in units: u._setup()
+            self._setup_units()
             self._remove_temporary_units()
             self._save_configuration()
             self._load_stream_links()
         else:
             self._load_configuration()
-            for u in units:
-                for ps in u._specifications:
-                    ps.compile_temporary_connections(u)
+            self._create_temporary_connections()
             if temporary_units_dump:
                 self._update_configuration(units=[*units, *temporary_units_dump])
                 temporary_units_dump.clear() 
-                for u in units: u._setup()
+                self._setup_units()
                 self._remove_temporary_units()
                 self._save_configuration()
                 self._load_stream_links()
             else:
-                for u in units: u._setup()
+                self._setup_units()
 
     @piping.ignore_docking_warnings
     def _remove_temporary_units(self):

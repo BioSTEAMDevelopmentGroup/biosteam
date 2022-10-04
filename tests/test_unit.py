@@ -19,8 +19,7 @@ def test_unit_inheritance_setup_method():
     bst.settings.set_thermo(['Water'], cache=True)
     U1 = NewUnit()
     U1.add_specification(lambda: None)
-    with pytest.raises(bst.exceptions.UnitInheritanceError):
-        U1.simulate()
+    U1.simulate()
 
 def test_process_specifications():
     bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)

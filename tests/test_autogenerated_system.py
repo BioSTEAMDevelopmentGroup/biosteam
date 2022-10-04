@@ -363,7 +363,7 @@ def test_bifurcated_recycle_loops():
         S3_a.split[:] = 0.4
     
     recycle_loop_sys.simulate()
-    assert M1_b.specifications[0].path == list(recycle_loop_sys.path[3:6]) # Includes subsystem
+    assert M1_b.specifications[0].path == list(recycle_loop_sys.path[3:7]) # Includes subsystem
     x_nested_solution = np.vstack([recycle_a.mol, recycle_b.mol])
     # Test flattend solution
     recycle_loop_sys.flatten()

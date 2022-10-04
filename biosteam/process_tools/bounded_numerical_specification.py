@@ -57,4 +57,4 @@ class BoundedNumericalSpecification:
     
     def compile_path(self, unit): pass
     
-    def compile_temporary_connections(self, unit): pass
+    def create_temporary_connections(self, unit): pass
