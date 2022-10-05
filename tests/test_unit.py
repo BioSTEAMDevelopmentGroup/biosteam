@@ -9,6 +9,7 @@
 """
 import pytest
 import biosteam as bst
+import numpy as np
 from numpy.testing import assert_allclose
 
 def test_unit_inheritance_setup_method():
@@ -21,7 +22,7 @@ def test_unit_inheritance_setup_method():
     U1.add_specification(lambda: None)
     U1.simulate()
 
-def test_process_specifications():
+def test_process_specifications_linear():
     bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
     with bst.System() as sys:
         T1 = bst.StorageTank(ins=bst.Stream(Water=1000))
@@ -32,7 +33,7 @@ def test_process_specifications():
         H3 = bst.HXutility(ins=T3-0, T=320)
         M1 = bst.Mixer(ins=[H1-0, H2-0, H3-0])
         H4 = bst.HXutility(ins=M1-0, T=350)
-    sys.diagram()
+    
     # Specification impacting upstream units
     @M1.add_specification(run=True, impacted_units=[T1, T2])
     def adjust_flow_rate():
@@ -92,7 +93,54 @@ def test_process_specifications():
     assert H1.specifications[0].path == []
     assert H2.specifications[0].path == [T1, H1, T2]
     # Net simulation order is T1, H1, T2, H2, T1, H1, T2, H2, ...
-
+    
+def test_process_specifications_with_recycles():
+    bst.F.set_flowsheet('bifurcated_recycle_loops')
+    bst.settings.set_thermo(['Water'], cache=True)
+    feed_a = bst.Stream('feed_a', Water=10)
+    water_a = bst.Stream('water_a', Water=10)
+    recycle_a = bst.Stream('recycle_a')
+    P1_a = bst.Pump('P1_a', feed_a)
+    P2_a = bst.Pump('P2_a', water_a)
+    S1_a = bst.Splitter('S1_a', P2_a-0, split=0.5)
+    M1_a = bst.Mixer('M1_a', [P1_a-0, S1_a-1, recycle_a])
+    S2_a = bst.Splitter('S2_a', M1_a-0, split=0.5)
+    M2_a = bst.Mixer('M2_a', [S1_a-0, S2_a-1])
+    S3_a = bst.Splitter('S3_a', M2_a-0, ['', recycle_a], split=0.5)
+    feedstock_b = bst.Stream('feedstock_b', Water=1000)
+    recycle_b = bst.Stream('recycle_b')
+    product_b = bst.Stream('product_b')
+    side_product_b = bst.Stream('side_product_b')
+    P1_b = bst.Pump('P1_b', feedstock_b)
+    P2_b = bst.Pump('P2_b', S2_a-0)
+    S1_b = bst.Splitter('S1_b', P2_b-0, split=0.5)
+    M1_b = bst.Mixer('M1_b', [P1_b-0, S1_b-1, recycle_b])
+    S2_b = bst.Splitter('S2_b', M1_b-0, [side_product_b, ''], split=0.5)
+    M2_b = bst.Mixer('M2_b', [S1_b-0, S2_b-1, S3_a-0])
+    S3_b = bst.Splitter('S3_b', M2_b-0, [product_b, recycle_b], split=0.5)
+    recycle_loop_sys = bst.F.create_system('recycle_loop_sys')
+    assert recycle_loop_sys.unit_path == [
+        P1_b, P1_a, P2_a, S1_a, M1_a, S2_a, M2_a, 
+        S3_a, P2_b, S1_b, M1_b, S2_b, M2_b, S3_b,
+    ]
+    recycle_loop_sys.simulate()
+    x_nested_solution = np.vstack([recycle_a.mol, recycle_b.mol])
+    # Test parallel process specification
+    P2_b.add_specification(f=lambda: None, run=True, impacted_units=[P1_b])
+    recycle_loop_sys.simulate()
+    assert recycle_loop_sys.unit_path == [ 
+        # Reordered path
+        P1_a, P2_a, S1_a, M1_a, S2_a, M2_a, S3_a, 
+        P2_b, S1_b, P1_b, M1_b, S2_b, M2_b, S3_b,
+    ]
+    x_reconfigured_solution = np.vstack([recycle_a.mol, recycle_b.mol])
+    assert_allclose(x_nested_solution, x_reconfigured_solution, rtol=2e-2)
+    # Test upstream process specification
+    M1_b.add_specification(lambda: None, run=True, impacted_units=[S2_a, S3_a])
+    recycle_loop_sys.simulate()
+    # Make sure path includes upstream subsystem and other units in recycle loop
+    assert M1_b.specifications[0].path == [recycle_loop_sys.subsystems[0], P2_b, S1_b, P1_b, M2_b, S3_b] 
+    
 def test_unit_connections():
     from biorefineries import sugarcane as sc
     sc.load()
@@ -219,7 +267,8 @@ def test_equipment_lifetimes():
     
 if __name__ == '__main__':
     test_unit_inheritance_setup_method()
-    test_process_specifications()
+    test_process_specifications_linear()
+    test_process_specifications_with_recycles()
     test_unit_connections()
     test_unit_graphics()
     test_equipment_lifetimes()

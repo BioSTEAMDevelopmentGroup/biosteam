@@ -332,8 +332,8 @@ class System:
     Parameters
     ----------
     ID :
-         Unique identification. If ID is None, instance will not be
-         registered in flowsheet.
+        Unique identification. If ID is None, instance will not be
+        registered in flowsheet.
     path :
         Path that is run element by element until the recycle converges.
     recycle : 
@@ -388,6 +388,7 @@ class System:
         '_LCA',
         '_subsystems',
         '_units',
+        '_units_set',
         '_unit_path',
         '_cost_units',
         '_streams',
@@ -1096,7 +1097,8 @@ class System:
         if inclusive: path = [*path, end]
         return path
 
-    def path_segment(self, start, end, inclusive=False, relevant_units=None):
+    def path_segment(self, start, end, inclusive=False, 
+                     relevant_units=None, critical_units=None):
         key = (start, end)
         if key in self._path_cache:
             segment = list(self._path_cache[key])
@@ -1104,33 +1106,56 @@ class System:
             if relevant_units is None: 
                 relevant_units = start.get_downstream_units()
                 relevant_units.add(start)
+            if critical_units is None:
+                critical_units = set(start.path_until(end))
             isa = isinstance
             if end not in relevant_units: return []
             path = self.path
             segment = []
-            if start is not None:
+            if start is None: # Need to make sure critical units are runned first in recycles
+                for i, obj in enumerate(path):
+                    if obj is end or isa(obj, System) and end in obj.units:
+                        leftover_path = path[i + 1:]
+                        break
+                else:
+                    raise ValueError(f"end unit {repr(end)} not in system")
+                for obj in leftover_path:
+                    if obj in critical_units:
+                        critical_units.discard(obj)
+                    elif isa(obj, System) and critical_units.intersection(obj.units_set):
+                        critical_units.difference_update(obj.units_set)
+                    else:
+                        continue
+                    segment.append(obj)
+            else:
                 for i, obj in enumerate(path):
                     if isa(obj, System):
-                        if start in obj.units:
-                            if end in obj.units:
-                                return obj.path_segment(start, end, False, relevant_units)
+                        if start in obj.units_set:
+                            if end in obj.units_set:
+                                return obj.path_segment(start, end, False, relevant_units, critical_units)
                             else:
                                 path = path[i:]
                                 break
                     elif obj is start:
-                        path = path[i:] # start is appended in the next loop
+                        if self.recycle:
+                            path = path[i:] + path[:i] # recycle loop should start here
+                        else:
+                            path = path[i:] # start is appended in the next loop
                         break
                 else:
                     raise ValueError(f"start unit {repr(start)} not in system")
             for i in path:
                 if isa(i, System):
-                    if end in i.units:
-                        segment.extend(i.path_segment(None, end, False, relevant_units))
+                    if end in i.units_set:
+                        segment.extend(i.path_segment(None, end, False, relevant_units, critical_units))
                         break
                 elif i is end:
                     break  
-                if ((isa(i, Unit) and i in relevant_units)
-                    or (isa(i, System) and relevant_units.intersection(i.units))):
+                if isa(i, Unit) and i in relevant_units:
+                    critical_units.discard(i)
+                    segment.append(i)
+                elif isa(i, System) and relevant_units.intersection(i.units_set):
+                    critical_units.difference_update(i.units_set)
                     segment.append(i)
             else:
                 raise ValueError(f"end unit {repr(end)} not in system")
@@ -1138,40 +1163,40 @@ class System:
         if inclusive: segment = [*segment, end]
         return segment
 
-    def simulation_number(self, obj):
-        """Return the simulation number of either a Unit or System object as 
-        it would appear in the system diagram."""
-        numbers = []
-        isa = isinstance
-        if isa(obj, System):
-            sys = obj
-            for i, other in enumerate(self.path):
-                if isa(other, System):
-                    if sys is other: 
-                        numbers.append(i)
-                        break
-                    elif sys in other.subsystems:
-                        numbers.append(i)
-                        numbers.append(other.simulation_number(sys))
-                        break
-            else:
-                raise ValueError(f"system {repr(sys)} not within system {repr(self)}")
-        else: # Must be unit
-            unit = obj
-            for i, other in enumerate(self.path):
-                if isa(other, System):
-                    if unit in other.units: 
-                        numbers.append(i)
-                        numbers.append(other.simulation_number(unit))
-                        break
-                elif other is unit:
-                    numbers.append(i)
-                    break
-            else:
-                raise ValueError(f"unit {repr(unit)} not within system {repr(self)}")
-        number = 0
-        for i, n in enumerate(numbers): number += n * 10 ** -i
-        return number
+    # def simulation_number(self, obj):
+    #     """Return the simulation number of either a Unit or System object as 
+    #     it would appear in the system diagram."""
+    #     numbers = []
+    #     isa = isinstance
+    #     if isa(obj, System):
+    #         sys = obj
+    #         for i, other in enumerate(self.path):
+    #             if isa(other, System):
+    #                 if sys is other: 
+    #                     numbers.append(i)
+    #                     break
+    #                 elif sys in other.subsystems:
+    #                     numbers.append(i)
+    #                     numbers.append(other.simulation_number(sys))
+    #                     break
+    #         else:
+    #             raise ValueError(f"system {repr(sys)} not within system {repr(self)}")
+    #     else: # Must be unit
+    #         unit = obj
+    #         for i, other in enumerate(self.path):
+    #             if isa(other, System):
+    #                 if unit in other.units_set: 
+    #                     numbers.append(i)
+    #                     numbers.append(other.simulation_number(unit))
+    #                     break
+    #             elif other is unit:
+    #                 numbers.append(i)
+    #                 break
+    #         else:
+    #             raise ValueError(f"unit {repr(unit)} not within system {repr(self)}")
+    #     number = 0
+    #     for i, n in enumerate(numbers): number += n * 10 ** -i
+    #     return number
 
     def split(self, 
               stream: Stream,
@@ -1293,7 +1318,7 @@ class System:
             return self._units
         except:
             self._units = units = []
-            past_units = set()
+            self._units_set = past_units = set()
             isa = isinstance
             for i in self._path + self._facilities:
                 if isa(i, Unit):
@@ -1305,6 +1330,22 @@ class System:
                     units.extend([i for i in sys_units if i not in past_units])
                     past_units.update(sys_units)
             return units
+
+    @property
+    def units_set(self) -> set[Unit]:
+        """Set of all unit operations."""
+        try:
+            return self._units_set
+        except:
+            units = []
+            isa = isinstance
+            for i in self._path + self._facilities:
+                if isa(i, Unit):
+                    units.append(i)
+                elif isa(i, System):
+                    units.extend(i.units)
+            self._units_set = units_set = set(units)
+            return units_set
 
     @property
     def unit_path(self) -> list[Unit]:
