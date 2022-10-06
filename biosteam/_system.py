@@ -2108,6 +2108,7 @@ class System:
         sample_id = dk_cp.pop('sample_id', '')
         print_msg = dk_cp.pop('print_msg', False)
         print_t = dk_cp.pop('print_t', False)
+        dk_cp.pop('y0', None) # will be updated later
         # Reset state, if needed
         if state_reset_hook:
             if isinstance(state_reset_hook, str):
