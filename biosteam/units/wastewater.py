@@ -317,7 +317,6 @@ class AerobicDigestion(Unit):
         water.mol[:] -= vent.mol
         
 
-# TODO: Use moisture content
 class SludgeCentrifuge(SolidsSeparator):
     """
     Create a centrifuge to separate sludge. The model is based on 
@@ -336,14 +335,18 @@ class SludgeCentrifuge(SolidsSeparator):
         * [dict] ID-split pairs of feed to 0th outlet stream
     order=None : Iterable[str], defaults to biosteam.settings.chemicals.IDs
         Chemical order of split.
+    moisture_content : float, optional
+        Moisture content of sludge. Defaults to 0.79 based on stream 623 in [1]_
+        (or 20% for insolubles).
     
     """
     purchase_cost = installation_cost = 0
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
-                 split=None, order=None, moisture_content=0.46):
+                 split=None, order=None, moisture_content=None):
         self._load_thermo(thermo)
+        chemicals = self.chemicals
+        ID_water = chemicals['7732-18-5'].ID # Water must be defined
         if split is None:
-            chemicals = self.chemicals
             split = dict(
                 Furfural=1,
                 Glycerol=0.8889,
@@ -396,6 +399,10 @@ class SludgeCentrifuge(SolidsSeparator):
             )
             remove_undefined_chemicals(split, chemicals)
             default_chemical_dict(split, chemicals, 0.9394, 0.9286, 0.04991)
+            split.pop(ID_water) # Remove water from split
+        if ID_water not in split and moisture_content is None:
+            # Only set moisture content if water split is not given
+            moisture_content = 0.79
         SolidsSeparator.__init__(
             self, ID, ins, outs, thermo, split=split, order=order,
             moisture_content=moisture_content, 

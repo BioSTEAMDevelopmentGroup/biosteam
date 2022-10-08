@@ -273,7 +273,7 @@ class Network:
         warn(RuntimeWarning('network path could not be determined'))
     
     @classmethod
-    def from_feedstock(cls, feedstock, feeds=(), ends=None, units=None, simplify=True):
+    def from_feedstock(cls, feedstock, feeds=(), ends=None, units=None):
         """
         Create a Network object from a feedstock.
         
@@ -311,7 +311,7 @@ class Network:
         disjunction_streams = set([i.get_stream() for i in disjunctions])
         for feed in feeds:
             if feed in ends or isa(feed.sink, Facility): continue
-            downstream_network = cls.from_feedstock(feed, (), ends, units, False)
+            downstream_network = cls.from_feedstock(feed, (), ends, units)
             new_streams = downstream_network.streams
             connections = ends.intersection(new_streams)
             connecting_units = {stream._sink for stream in connections
@@ -335,7 +335,6 @@ class Network:
         recycle_ends.update(bst.utils.products_from_units(network.units))
         network.sort(recycle_ends)
         network.add_process_heat_exchangers()
-        if simplify: network.simplify()
         return network
     
     @classmethod
@@ -365,20 +364,6 @@ class Network:
         else:
             system = cls(())
         return system
-    
-    @piping.ignore_docking_warnings
-    def simplify(self):
-        isa = isinstance
-        new_path = []
-        for i in self.path:
-            if isa(i, Network): 
-                i.simplify()
-            elif isa(i, TemporaryUnit):
-                i.old_connection.reconnect()
-                self.units.discard(i)
-                continue
-            new_path.append(i)
-        self.path = new_path
     
     def add_process_heat_exchangers(self, excluded=None):
         isa = isinstance

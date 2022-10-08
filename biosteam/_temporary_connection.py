@@ -10,7 +10,7 @@
 from ._unit import Unit
 from .utils import piping
 
-__all__ = ('temporary_connection',)
+__all__ = ('temporary_connection', 'TemporaryUnit')
 
 temporary_units_dump = []
 

@@ -37,58 +37,39 @@ def count():
 # %% Process specification
 
 class ProcessSpecification:
-    __slots__ = ('f', 'args', 'impacted_units', 'prioritize', 'path', 'compiled_systems')
+    __slots__ = ('f', 'args', 'impacted_units', 'path')
     
-    def __init__(self, f, args, impacted_units, prioritize):
+    def __init__(self, f, args, impacted_units):
         self.f = f
         self.args = args
-        self.impacted_units = list(impacted_units) if impacted_units else impacted_units
-        self.prioritize = prioritize
-        self.compiled_systems = {}
-        self.path = None
+        self.impacted_units = tuple(impacted_units) if impacted_units else ()
         
     def __call__(self):
         self.f(*self.args)
-        if self.path is None:
-            raise UnitInheritanceError(
-                "Child Unit class does not call parent class "
-                "`_setup` method; a potential solution is to add "
-                "`super()._setup()` in the method code"
-            )
-        for i in self.path: i.run()
-        
-    def compile(self, unit):
-        system = unit.system
-        if system in self.compiled_systems:
-            self.path = self.compiled_systems[system]
-        else: # Not yet compiled
-            path = []
-            if self.prioritize and system: 
-                system.prioritize_unit(unit)
-            impacted_units = self.impacted_units
-            if impacted_units:
-                downstream_units = unit.get_downstream_units()
-                upstream_units = unit.get_upstream_units()
-                isa = isinstance
-                for other in impacted_units:
-                    if other in upstream_units:
-                        relevant_units = other.get_downstream_units()
-                        relevant_units.add(other)
-                        for i in system.path_segment(other, unit):
-                            if (i in relevant_units if isa(i, Unit)
-                                else relevant_units.intersection(i.units)):
-                                path.append(i)
-                    elif other not in downstream_units:
-                        bst.temporary_connection(unit, other)
-                path = sorted(set(path), key=system.simulation_number)
-            self.compiled_systems[system] = self.path = path
+        isa = isinstance
+        for i in self.path: 
+            if isa(i, Unit): i.run()
+            else: i.converge() # Must be a system
             
-    def reset(self, system):
-        del self.compiled_systems[system]
-        self.path = None
-                
+    def compile_path(self, unit):
+        impacted_units = self.impacted_units
+        self.path = unit.path_from(impacted_units, system=unit._system) if impacted_units else ()
+        
+    def create_temporary_connections(self, unit):
+        # Temporary connections are created first than the path because 
+        # temporary connections may change the system configuration 
+        # such that the path is incorrect.
+        impacted_units = self.impacted_units
+        if impacted_units:
+            downstream_units = unit.get_downstream_units()
+            upstream_units = unit.get_upstream_units()
+            connected_units = upstream_units | downstream_units
+            for other in impacted_units:
+                if other not in connected_units:
+                    bst.temporary_connection(unit, other)
+            
     def __repr__(self):
-        return f"{type(self).__name__}(f={display_asfunctor(self.f)}, args={self.args}, impacted_units={self.impacted_units}, prioritize={self.prioritize})"
+        return f"{type(self).__name__}(f={display_asfunctor(self.f)}, args={self.args}, impacted_units={self.impacted_units})"
 
 # %% Typing
 
@@ -132,22 +113,19 @@ def repr_ins_and_outs(layout, ins, outs, T, P, flow, composition, N, IDs, data):
 
 # %% Path utilities
 
-def find_path_segment(start, end):
-    path_segment = fill_path_segment(start, [], end, set())
-    if not path_segment:
-        raise ValueError(f"end unit {repr(end)} not downstream from start unit {repr(start)}")
-    return path_segment
+def add_path_segment(start, end, path, ignored):
+    fill_path_segment(start, path, end, set(), ignored)
 
-def fill_path_segment(start, path, end, units):
+def fill_path_segment(start, path, end, previous_units, ignored):
     if start is end: return path
-    if start not in units: 
-        path.append(start)
-        units.add(start)
+    if start not in previous_units: 
+        if start not in ignored: path.append(start)
+        previous_units.add(start)
         success = False
         for outlet in start._outs:
             start = outlet._sink
             if not start: continue
-            path_segment = fill_path_segment(start, [], end, units)
+            path_segment = fill_path_segment(start, [], end, previous_units, ignored)
             if path_segment is not None: 
                 path.extend(path_segment)
                 success = True
@@ -333,7 +311,7 @@ class Unit:
     
     #: Add itemized purchase costs to the :attr:`~Unit.baseline_purchase_costs` dictionary.
     _cost = AbstractMethod    
-
+    
     def __init__(self, ID: Optional[str]='', ins=None, outs=(), thermo: tmo.Thermo=None):
         self._system = None
         self._isdynamic = False
@@ -420,8 +398,11 @@ class Unit:
         #: specification functions
         self.run_after_specifications: bool = False 
         
+        #: Whether to prioritize unit operation specification within recycle loop (if any).
+        self.prioritize: bool = False
+        
         #: Safety toggle to prevent infinite recursion
-        self._running_specifications: bool = False
+        self._active_specifications: set[ProcessSpecification] = set()
         
         self._assert_compatible_property_package()
     
@@ -457,7 +438,7 @@ class Unit:
     def _init_specifications(self):
         self._specifications = []
         self.run_after_specifications = False
-        self._running_specifications = False
+        self._active_specifications = set()
     
     def _reset_thermo(self, thermo):
         for i in (self._ins._streams + self._outs._streams):
@@ -783,7 +764,6 @@ class Unit:
         self.baseline_purchase_costs.clear()
         self.purchase_costs.clear()
         self.installed_costs.clear()
-        for ps in self._specifications: ps.compile(self)
     
     def materialize_connections(self):
         for s in self._ins + self._outs: 
@@ -982,7 +962,7 @@ class Unit:
             f: Optional[Callable]=None, 
             run: Optional[bool]=None, 
             args: Optional[tuple]=(),
-            impacted_units: Optional[list[Unit]]=None,
+            impacted_units: Optional[tuple[Unit, ...]]=None,
             prioritize: Optional[bool]=None,
         ):
         """
@@ -1001,7 +981,7 @@ class Unit:
             Other units impacted by specification. The system will make sure to 
             run itermediate upstream units when simulating.
         prioritize :
-            Whether to prioritize unit operation specification within recycle loop (if any).
+            Whether to prioritize the unit operation within a recycle loop (if any).
             
         Examples
         --------
@@ -1020,8 +1000,9 @@ class Unit:
         """
         if not f: return lambda f: self.add_specification(f, run, args, impacted_units, prioritize)
         if not callable(f): raise ValueError('specification must be callable')
-        self._specifications.append(ProcessSpecification(f, args, impacted_units, prioritize))
+        self._specifications.append(ProcessSpecification(f, args, impacted_units))
         if run is not None: self.run_after_specifications = run
+        if prioritize is not None: self.prioritize = prioritize
         return f
     
     def add_bounded_numerical_specification(self, f=None, *args, **kwargs):
@@ -1090,47 +1071,70 @@ class Unit:
         
         """
         specifications = self._specifications
-        if specifications and not self._running_specifications:
-            self._running_specifications = True
-            try:
-                for ps in specifications: ps()
+        if specifications:
+            active_specifications = self._active_specifications
+            if len(active_specifications) == len(specifications):
+                self._run()
+            else:
+                for ps in specifications: 
+                    if ps in active_specifications: continue
+                    active_specifications.add(ps)
+                    try: ps()
+                    finally: active_specifications.remove(ps)
                 if self.run_after_specifications: self._run()
-            finally:
-                self._running_specifications = False
         else:
             self._run()
-            
-    def path_until(self, unit, inclusive=False):
+    
+    def path_from(self, units, inclusive=False, system=None):
         """
-        Return a list of units starting from this one until the end unit 
+        Return a tuple of units and systems starting from `units` until this one 
         (not inclusive by default).
         
-        Warning
-        -------
-        This method ignores recycle loops. To account for recyle loops, see
-        :meth:`biosteam.System.from_segment`
+        """
+        units = (units,) if isinstance(units, Unit) else tuple(units)
+        if system: # Includes recycle loops
+            path = system.path_section(units, (self,))
+        else: # Path outside system, so recycle loops may not converge (and don't have to)
+            path = []
+            added_units = set()
+            upstream_units = self.get_upstream_units()
+            for unit in units:
+                if unit in upstream_units: add_path_segment(unit, self, path, added_units)
+            if inclusive and unit not in added_units: path.append(unit)
+        return path        
+    
+    def path_until(self, units, inclusive=False, system=None):
+        """
+        Return a tuple of units and systems starting from this one until the end
+        units (not inclusive by default).
         
         """
-        path = find_path_segment(self, unit)
-        if inclusive: path.append(unit)
+        units = (units,) if isinstance(units, Unit) else tuple(units)
+        if system: # Includes recycle loops
+            path = system.path_section((self,), units, inclusive)
+        else: # Path outside system, so recycle loops may not converge (and don't have to)
+            path = []
+            added_units = set()
+            downstream_units = self.get_downstream_units()
+            for unit in units:
+                if unit in downstream_units: add_path_segment(self, unit, path, added_units)
+            if inclusive and unit not in added_units: path.append(unit)
         return path
     
-    def run_until(self, unit, inclusive=False):
+    def run_until(self, units, inclusive=False, system=None):
         """
-        Run all units starting from this one until the end unit 
+        Run all units and converge all systems starting from this one until the end units
         (not inclusive by default).
-        
-        Warning
-        -------
-        This method ignores recycle loops. To account for recyle loops, see
-        :meth:`biosteam.System.from_segment`
         
         See Also
         --------
         path_until
         
         """
-        for i in self.path_until(unit, inclusive): i.run()
+        isa = isinstance
+        for i in self.path_until(units, inclusive, system): 
+            if isa(i, Unit): i.run()
+            else: i.converge() # Must be a system
         
     def _reevaluate(self):
         """Reevaluate design and costs."""
@@ -1255,6 +1259,7 @@ class Unit:
         
         """
         self._setup()
+        for ps in self._specifications: ps.compile_path(self)
         self._load_stream_links()
         self.run()
         self._summary()
