@@ -2132,8 +2132,7 @@ class System:
         return self._DAE
 
     def _write_state(self):
-        # A tad faster than `set(self.streams).difference(set(self.feeds))`
-        for ws in (i for i in self.streams if i not in self.feeds):
+        for ws in [i for i in self.streams if i not in self.feeds]:
             ws._state2flows()
 
     def clear_state(self):
@@ -2246,6 +2245,7 @@ class System:
         sample_id = dk_cp.pop('sample_id', '')
         print_msg = dk_cp.pop('print_msg', False)
         print_t = dk_cp.pop('print_t', False)
+        dk_cp.pop('y0', None) # will be updated later
         # Reset state, if needed
         if state_reset_hook:
             if isinstance(state_reset_hook, str):
