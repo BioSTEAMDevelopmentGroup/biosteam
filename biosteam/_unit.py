@@ -42,7 +42,10 @@ class ProcessSpecification:
     def __init__(self, f, args, impacted_units):
         self.f = f
         self.args = args
-        self.impacted_units = tuple(impacted_units) if impacted_units else ()
+        if impacted_units: 
+            self.impacted_units = tuple(impacted_units)
+        else:
+            self.impacted_units = self.path = ()
         
     def __call__(self):
         self.f(*self.args)
