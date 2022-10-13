@@ -546,7 +546,7 @@ class BoilerTurbogenerator(Facility):
             rate_boiler = boiler.kW * flow_rate / boiler.S
             return work - self.electricity_demand - rate_boiler
         
-        excess_electricity = calculate_excess_electricity_at_natual_gas_flow(0)
+        self._excess_electricity_without_natural_gas = excess_electricity = calculate_excess_electricity_at_natual_gas_flow(0)
         if excess_electricity < 0:
             f = calculate_excess_electricity_at_natual_gas_flow
             lb = 0.

@@ -154,7 +154,6 @@ def create_facilities(
                 if process_water_mixer.autopopulate and not process_water_mixer.ins:
                     streams = bst.get_streams_from_context_level(0)
                     process_water_mixer.ins.extend([i for i in streams if i.isproduct() and 'process_water' in i.ID])
-                    process_water_mixer._system.update_configuration()
             
             process_water = process_water_mixer.outs[0]
             if treated_water_streams is None:
@@ -195,4 +194,3 @@ def create_coheat_and_power_system(
             gas_mixer.ins.extend(streams.combustible_gases)
             slurry_mixer.run_until(BT)
             gas_mixer.run_until(BT)
-            BT._system.update_configuration()

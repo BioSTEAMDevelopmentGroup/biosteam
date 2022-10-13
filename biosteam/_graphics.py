@@ -254,7 +254,6 @@ def tailor_junction_node(node, unit): # pragma: no coverage
 junction_graphics = UnitGraphics(single_edge_in, single_edge_out, node,
                                  tailor_junction_node)
 
-
 # Compressor graphics
 node = box_node.copy()
 node['shape'] = 'trapezium'
@@ -281,18 +280,28 @@ turbine_graphics = UnitGraphics(single_edge_in, single_edge_out, node, tailor_tu
 node = box_node.copy()
 node['peripheries'] = '0'
 def tailor_valve_node(node, unit): # pragma: no coverage
-    node['name'] = ''
-    if bst.preferences.unit_color == "#555f69":
-        filename = "graphics/valve_dark.png"
-    elif bst.preferences.unit_color == "white:#CDCDCD":
-        filename = "graphics/valve_light.png"
+    if bst.preferences.graphviz_format == 'svg':
+        # TODO: Remove this fallback once fix for valve svg output in digraph.py
+        node.clear()
+        node.update(box_node)
+        node['fillcolor'] = bst.preferences.unit_color
+        node['fontcolor'] = bst.preferences.unit_label_color
+        node['color'] = bst.preferences.unit_periphery_color
+        node['name'] = unit.ID + "\nValve"
     else:
-        filename = "graphics/valve_dark.png"
-    node['fillcolor'] = 'None'
-    node['image'] = os.path.join(file_path, filename)
-    node['xlabel'] = unit.ID + "\nValve"
-    node['width'] = '0.7738'
-    node['height'] = '0.5'
-    node['margin'] = '0'
-    node['fixedsize'] = 'true'
+        node['name'] = ''
+        if bst.preferences.unit_color == "#555f69":
+            filename = "graphics/valve_dark.png"
+        elif bst.preferences.unit_color == "white:#CDCDCD":
+            filename = "graphics/valve_light.png"
+        else:
+            filename = "graphics/valve_dark.png"
+        node['fillcolor'] = node['color'] = 'none'
+        node['image'] = os.path.join(file_path, filename)
+        node['xlabel'] = unit.ID + "\nValve"
+        node['width'] = '0.7738'
+        node['height'] = '0.5'
+        node['margin'] = '0'
+        node['fixedsize'] = 'true'
+        node['fontcolor'] = bst.preferences.label_color
 valve_graphics = UnitGraphics(single_edge_in, single_edge_out, node, tailor_valve_node)

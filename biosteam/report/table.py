@@ -16,7 +16,7 @@ from .._heat_utility import HeatUtility
 DataFrame = pd.DataFrame
 ExcelWriter = pd.ExcelWriter
 
-__all__ = ('stream_table', 'cost_table',
+__all__ = ('stream_table', 'cost_table', 'unit_reaction_tables',
            'unit_result_tables', 'heat_utility_tables',
            'power_utility_table', 'tables_to_excel', 'voc_table',
            'lca_displacement_allocation_table', 
@@ -65,7 +65,7 @@ class FOCTableBuilder:
 
 # %% Multiple system tables
 
-def voc_table(systems, product_IDs, system_names=None, unit='MT'):
+def voc_table(systems, product_IDs, system_names=None, unit='MT', with_products=False):
     # Not ready for users yet
     isa = isinstance
     if isa(systems, bst.System): systems = [systems]
@@ -119,13 +119,18 @@ def voc_table(systems, product_IDs, system_names=None, unit='MT'):
                    *[('By-products and credits', reformat(i)) for i in coproducts],
                    *[('By-products and credits', i) for i in other_byproducts]]
     table_index.append(('Variable operating cost', ''))
+    if with_products:
+        table_index.extend(
+            [('Products', reformat(i)) for i in product_IDs]
+        )
+        for i, ID in enumerate(reversed(product_IDs)): index[ID] = -(i + 1)
     N_cols = len(systems) + 1
     N_rows = len(table_index)
     data = np.zeros([N_rows, N_cols], dtype=object)
     N_coproducts = len(coproducts) + len(other_byproducts)
     for col, sys in enumerate(systems):
         for stream in sys.feeds + sys.products:
-            if stream.ID in product_IDs: continue
+            if stream.ID in product_IDs and not with_products: continue
             cost = sys.get_market_value(stream)
             if cost:
                 ind = index[stream.ID]
@@ -153,7 +158,9 @@ def voc_table(systems, product_IDs, system_names=None, unit='MT'):
                 data[ind, 0] = price
                 data[ind, col + 1] = cost / 1e6 # million USD / yr
     N_consumed = N_rows - N_coproducts - 1
-    data[-1, 1:] = data[:N_consumed, 1:].sum(axis=0) - data[N_consumed:, 1:].sum(axis=0)
+    N_products = len(product_IDs) if with_products else 0
+    VOC_index = N_rows - N_products - 1
+    data[VOC_index, 1:] = data[:N_consumed, 1:].sum(axis=0) - data[N_consumed:VOC_index, 1:].sum(axis=0)
     if system_names is None:
         system_names = [i.ID for i in systems]
     columns = [i + " [MM$/yr]" for i in system_names]
@@ -162,8 +169,14 @@ def voc_table(systems, product_IDs, system_names=None, unit='MT'):
                         columns=(f'Price [$/{unit}]', *columns))
 
 def lca_inventory_table(systems, key, items=(), system_names=None):
-    items = frozenset(items)
     isa = isinstance
+    if items:
+        item = items[0]
+        if isa(item, list): 
+            items = sum(items, [])
+        elif isa(item, tuple): 
+            items = sum(items, ())
+    items = frozenset(items)
     if isa(systems, bst.System): systems = [systems]
     PowerUtility = bst.PowerUtility
     other_utilities = []
@@ -184,7 +197,7 @@ def lca_inventory_table(systems, key, items=(), system_names=None):
             cf = PowerUtility.get_CF(key, production=False)
             if cf:
                 set_value('Electricity [kWhr/yr]', sys, electricity_consumption)
-        else:
+        elif electricity_consumption < 0.:
             if 'Electricity [kWhr/yr]' not in other_byproducts: other_byproducts.append('Electricity [kWhr/yr]')
             cf = PowerUtility.get_CF(key, consumption=False)
             if cf:
@@ -266,12 +279,14 @@ def lca_displacement_allocation_table(systems, key, items,
     for sys in systems:
         electricity_consumption = sys.power_utility.rate * sys.operating_hours
         if electricity_consumption > 0.: 
-            if 'Electricity' not in other_utilities: other_utilities.append('Electricity')
             cf = PowerUtility.get_CF(key, production=False)
+            if not cf: continue
+            if 'Electricity' not in other_utilities: other_utilities.append('Electricity')
             set_value('Electricity', sys, f"{cf} {impact_units}/kWhr", electricity_consumption * cf)
-        else:
-            if 'Electricity' not in other_byproducts: other_byproducts.append('Electricity')
+        elif electricity_consumption < 0.:
             cf = PowerUtility.get_CF(key, consumption=False)
+            if not cf: continue
+            if 'Electricity' not in other_byproducts: other_byproducts.append('Electricity')
             set_value('Electricity', sys, f"{cf} {impact_units}/kWhr", - electricity_consumption * cf)
         try: process_impact_items = sys.process_impact_items[key]
         except: continue
@@ -285,7 +300,12 @@ def lca_displacement_allocation_table(systems, key, items,
                 value = f"{value} [{basis}/yr]"
             set_value(item.name, sys, CF, value)
     
-    if item_name is None: item_name = items[0].ID.replace('_', ' ')
+    if item_name is None: 
+        item = items[0]
+        if hasattr(item , 'ID'):
+            item_name = item.ID.replace('_', ' ')
+        else:
+            item_name = item[0].ID.replace('_', ' ')
     feeds = sorted({i.ID for i in sum([i.feeds for i in systems], []) if key in i.characterization_factors})
     coproducts = sorted({i.ID for i in sum([i.products for i in systems], []) if key in i.characterization_factors})
     system_heat_utilities = [bst.HeatUtility.sum_by_agent(sys.heat_utilities) for sys in systems]
@@ -306,8 +326,11 @@ def lca_displacement_allocation_table(systems, key, items,
     N_cols = len(systems) + 1
     N_rows = len(table_index)
     data = np.zeros([N_rows, N_cols], dtype=object)
+    isa = isinstance
     for col, sys in enumerate(systems):
-        item_flow = sys.get_mass_flow(items[col])
+        item = items[col]
+        if isa(item, bst.Stream): item = [item]
+        item_flow = sum([sys.get_mass_flow(i) for i in item]) 
         for stream in sys.feeds + sys.products:
             try: 
                 ind = index[stream.ID]
@@ -348,9 +371,10 @@ def lca_displacement_allocation_table(systems, key, items,
                         columns=(f'Characterization factor [{impact_units}/kg]', *columns))
 
 def lca_property_allocation_factor_table(
-        systems, property, units=None, system_names=None
+        systems, property, units=None, system_names=None, groups=None,
     ):
-    system_allocation_factors = [i.get_property_allocation_factors(property, units) for i in systems]
+    if groups is None: groups = {}
+    system_allocation_factors = [i.get_property_allocation_factors(property, units, groups) for i in systems]
     table_index = sorted(set(sum([tuple(i) for i in system_allocation_factors], ())))
     index = {j: i for i, j in enumerate(table_index)}
     N_cols = len(systems)
@@ -371,9 +395,10 @@ def lca_property_allocation_factor_table(
                         columns=columns)
 
 def lca_displacement_allocation_factor_table(
-        systems, items, key, system_names=None
+        systems, items, key, system_names=None, groups=None
     ):
-    system_allocation_factors = [i.get_displacement_allocation_factors(j, key) for i, j in zip(systems, items)]
+    if groups is None: groups = {}
+    system_allocation_factors = [i.get_displacement_allocation_factors(j, key, groups) for i, j in zip(systems, items)]
     table_index = sorted(set(sum([tuple(i) for i in system_allocation_factors], ())))
     index = {j: i for i, j in enumerate(table_index)}
     N_cols = len(systems)

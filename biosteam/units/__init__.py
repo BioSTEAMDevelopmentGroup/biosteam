@@ -16,7 +16,6 @@ from .tank import *
 from .distillation import *
 from ._duplicator import *
 from ._junction import *
-from ._process_specification import *
 from ._balance import *
 from ._diagram_only_units import *
 from ._flash import *
@@ -79,7 +78,6 @@ from . import (
     decorators, 
     design_tools, 
     facilities, 
-    _process_specification, 
     _duplicator,
     _diagram_only_units, 
     _batch_bioreactor,
@@ -118,7 +116,6 @@ __all__ = ('Unit',
            *_screw_feeder.__all__,
            *_magnetic_separator.__all__,
            *facilities.__all__,
-           *_process_specification.__all__,
            *_duplicator.__all__,
            *_batch_bioreactor.__all__,
            *_batch_crystallizer.__all__,

@@ -27,14 +27,22 @@ class DiagramOnlyUnit(Unit, isabstract=True):
     
     def _register(self, ID): 
         self.ID = self._ID = ID
+        
+    def _get_tooltip_string(self, *args, **kwargs): return ' '
+
     
 class DiagramOnlySystemUnit(DiagramOnlyUnit, isabstract=True):
     """Dummy unit for displaying a system as a unit."""
     line = 'System'
     _graphics = system_unit
+    
+    def _get_tooltip_string(self, *args, **kwargs): return ' '
+
 
 class DiagramOnlyStreamUnit(DiagramOnlyUnit, isabstract=True):
     """Dummy unit for displaying a streams as a unit."""
     line = ''
     _N_ins = _N_outs = 0
     _graphics = stream_unit
+    
+    def _get_tooltip_string(self, *args, **kwargs): return ' '

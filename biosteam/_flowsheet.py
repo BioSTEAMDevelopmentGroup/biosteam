@@ -13,12 +13,10 @@ from typing import Optional, Iterable
 import biosteam as bst
 from thermosteam.utils import Registry
 from thermosteam import Stream
-from biosteam.utils import feeds_from_units, sort_feeds_big_to_small
 from ._unit import Unit
 from ._system import System
-from ._network import Network
 
-__all__ = ('main_flowsheet', 'Flowsheet')
+__all__ = ('main_flowsheet', 'Flowsheet', 'F')
 
 # %% Flowsheet search      
 
@@ -38,7 +36,7 @@ class TemporaryFlowsheet:
         if exception: raise exception
 
 
-class Flowsheets:
+class FlowsheetRegistry:
     __getitem__ = object.__getattribute__
     
     def clear(self):
@@ -59,16 +57,19 @@ class Flowsheets:
     __setitem__ = __setattr__
     
     def __iter__(self):
-        yield from self.__dict__.values()
+        return self.__dict__.values().__iter__()
     
     def __delattr__(self, key):
         if key == main_flowsheet.ID:
             raise AttributeError('cannot delete main flowsheet')
         else:
             super().__delattr__(key)
-    
+            
     def __repr__(self):
-        return 'Flowsheets:\n ' + '\n '.join([str(i) for i in self])
+        return f"<{type(self).__name__}: {', '.join([str(i) for i in self])}>"
+    
+    def _ipython_display_(self): # pragma: no cover
+        print(f'{type(self).__name__}:\n ' + '\n '.join([str(i) for i in self]))
     
     
 class Flowsheet:
@@ -82,7 +83,7 @@ class Flowsheet:
     line: str = "Flowsheet"
     
     #: All flowsheets.
-    flowsheet: Flowsheets = Flowsheets()
+    flowsheet: FlowsheetRegistry = FlowsheetRegistry()
     
     def __new__(cls, ID):        
         self = super().__new__(cls)
@@ -125,9 +126,16 @@ class Flowsheet:
     def __reduce__(self):
         return self.from_registries, self.registries
     
+    def __getattr__(self, name):
+        obj = (self.stream.search(name)
+               or self.unit.search(name)
+               or self.system.search(name))
+        if not obj: raise AttributeError(f"no registered item '{name}'")
+        return obj
+    
     def __setattr__(self, key, value):
-        if hasattr(self, '_ID'):
-            raise TypeError(f"'{type(self).__name__}' object does not support attribute assignment")
+        if self in self.flowsheet.__dict__:
+            raise AttributeError("cannot register object through flowsheet")
         else:
             super().__setattr__(key, value)
     
@@ -257,29 +265,6 @@ class Flowsheet:
         return System.from_units(ID, self.unit, ends, facility_recycle,
                                  operating_hours, lang_factor)
     
-    def _create_network(self, feeds=None, ends=()):
-        """
-        Create a Network object from all units and streams defined in the flowsheet.
-        
-        Parameters
-        ----------
-        feeds : Iterable[:class:`~thermosteam.Stream`]
-            Feeds to the process.
-        ends : Iterable[:class:`~thermosteam.Stream`]
-            End streams of the system which are not products. Specify this argument
-			if only a section of the system is wanted, or if recycle streams should be 
-			ignored.
-        
-        """
-        feeds = feeds_from_units(self.unit)
-        if feeds:
-            sort_feeds_big_to_small(feeds)
-            feedstock, *feeds = feeds
-            network = Network.from_feedstock(feedstock, feeds, ends)
-        else:
-            network = Network([])
-        return network
-    
     def __call__(self, ID: str|type[Unit], strict: Optional[bool]=False):
         """
 		Return requested biosteam item or a list of all matching items.
@@ -359,8 +344,6 @@ class MainFlowsheet(Flowsheet):
         
     def get_flowsheet(self):
         return self.flowsheet[self.ID]
-        
-    __setattr__ = Flowsheets.__setattr__
     
     def __new__(cls, ID):
         main_flowsheet.set_flowsheet(ID)
@@ -372,7 +355,7 @@ class MainFlowsheet(Flowsheet):
     
 #: Main flowsheet where objects are registered by ID.
 #: Use the `set_flowsheet` to change the main flowsheet.
-main_flowsheet = object.__new__(MainFlowsheet)
+F = main_flowsheet = object.__new__(MainFlowsheet)
 main_flowsheet.set_flowsheet(
     Flowsheet.from_registries(
         'default', Stream.registry, Unit.registry, System.registry

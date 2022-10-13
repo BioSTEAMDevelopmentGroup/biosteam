@@ -13,7 +13,7 @@
 
 """
 from __future__ import annotations
-__version__ = '2.32.19'
+__version__ = '2.33.3'
 
 #: Chemical engineering plant cost index (defaults to 567.5 at 2017).
 CE: float = 567.5 
@@ -23,8 +23,7 @@ impact_indicators: dict[str, str] = {}
 
 #: Price of stream utilities [USD/kg] which are defined as 
 #: inlets and outlets to unit operations.
-stream_utility_prices: dict[str, float] = {'Natural gas': 0.218,
-                                           'Ash disposal': -0.0318}
+stream_utility_prices: dict[str, float] = {}
 
 # %% Workaround for readthedocs, which fails to cache numba
 
@@ -32,7 +31,7 @@ import numba
 try:
     @numba.njit(cache=True)
     def f_dummy(): pass
-except RuntimeError:
+except RuntimeError: # pragma: no cover
     def njit(*args, **kwargs):
         kwargs['cache'] = False
         return numba.jit(*args, **kwargs)
@@ -59,6 +58,8 @@ from .process_tools import *
 from . import _tea
 from ._tea import *
 from . import utils
+from . import _temporary_connection
+from ._temporary_connection import *
 from . import units
 from .units import *
 from . import evaluation
@@ -67,10 +68,25 @@ from . import exceptions
 from . import report
 
 __all__ = (
-    'Unit', 'PowerUtility',* _heat_utility.__all__,
+    'Unit', 'PowerUtility', 'UtilityAgent', 'HeatUtility',
     'utils', 'units', 'evaluation', 'Chemical', 'Chemicals', 'Stream',
     'MultiStream', 'settings', 'exceptions', 'report',
     'process_tools', 'preferences', *_system.__all__, *_flowsheet.__all__, 
     *_tea.__all__, *units.__all__, *evaluation.__all__, 
-    *process_tools.__all__, 
+    *process_tools.__all__, *_temporary_connection.__all__,
 )
+
+def nbtutorial():
+    preferences.reset()
+    preferences.light_mode(bg='#ffffffaa')
+    preferences.tooltips_full_results = False
+    preferences.graphviz_format = 'html'
+    from warnings import filterwarnings
+    filterwarnings('ignore')
+
+try:
+    settings.register_utility('Natural gas', 0.218)
+    settings.register_utility('Ash disposal', -0.0318)
+except: # For ReadTheDocs in the meanwhile that a new thermosteam version is uploaded
+    stream_utility_prices['Natural gas'] = 0.218
+    stream_utility_prices['Ash disposal'] = -0.0318

@@ -7,33 +7,33 @@
 # for license details.
 """
 """
-from ._unit import Unit
 from ._facility import Facility
 from .utils import streams_from_units
 from warnings import warn
 from thermosteam import Stream
 import biosteam as bst
 from collections import Iterable
-from .utils import OutletPort, MissingStream
+from .utils import piping
+from ._temporary_connection import TemporaryUnit
 
 # %% Customization to system creation
 
 disjunctions = []
 
 def mark_disjunction(stream):
-    port = OutletPort.from_outlet(stream)
+    port = piping.OutletPort.from_outlet(stream)
     if port not in disjunctions:
         disjunctions.append(port)
 
 def unmark_disjunction(stream):
-    port = OutletPort.from_outlet(stream)
+    port = piping.OutletPort.from_outlet(stream)
     if port in disjunctions:
         disjunctions.remove(port)
 
 # %% Other tools
 
 def get_recycle_sink(recycle):
-    if isinstance(recycle, Stream):
+    if isinstance(recycle, piping.stream_types):
         return recycle._sink
     elif isinstance(recycle, Iterable):
         for i in recycle: return i._sink
@@ -49,14 +49,11 @@ class PathSource:
     
     def __init__(self, source, ends=None):
         self.source = source
-        if isinstance(source, bst.Unit):
-            self.units = units = source.get_downstream_units(ends=ends, facilities=False)
-        elif isinstance(source, Network):
+        if isinstance(source, Network):
             self.units = units = set()
             for i in source.units: units.update(i.get_downstream_units(ends=ends, facilities=False))
         else:
-            raise TypeError('source must be a unit or a network; '
-                           f'not a {type(source).__name__} object')
+            self.units = units = source.get_downstream_units(ends=ends, facilities=False)
         assert not self.downstream_from(self), (
             'recycle system encountered in network sorting algorithm; '
             'please report problem to the biosteam bugtracker'
@@ -64,10 +61,10 @@ class PathSource:
             
     def downstream_from(self, other):
         source = self.source
-        if isinstance(source, bst.Unit):
-            return source in other.units
-        else:
+        if isinstance(source, Network):
             return self is not other and any([i in other.units for i in source.units])
+        else:
+            return source in other.units
         
     def __repr__(self):
         return f"{type(self).__name__}({str(self.source)})"
@@ -159,13 +156,10 @@ def nested_network_units(path):
     units = set()
     isa = isinstance
     for i in path:
-        if isa(i, Unit): 
-            units.add(i)
-        elif isa(i, Network):
+        if isa(i, Network):
             units.update(i.units)
-        else: # pragma: no cover
-            raise ValueError("path elements must be either Unit or Network "
-                            f"objects not '{type(i).__name__}' objects")
+        else:
+            units.add(i)
     return units
 
 # %% Network
@@ -250,7 +244,7 @@ class Network:
             all_recycles = set()
         recycle = self.recycle
         if recycle:
-            if isinstance(recycle, Stream):
+            if isinstance(recycle, piping.stream_types):
                 all_recycles.add(recycle)
             else:
                 all_recycles.update(recycle)
@@ -300,7 +294,8 @@ class Network:
         units = frozenset(units) if units else frozenset()
         recycle_ends = ends.copy()
         linear_paths, cyclic_paths_with_recycle = find_linear_and_cyclic_paths_with_recycle(
-            feedstock, ends, units)
+            feedstock, ends, units
+        )
         linear_networks = [Network(i) for i in linear_paths]
         if linear_networks:
             network, *linear_networks = [Network(i) for i in linear_paths]
@@ -335,12 +330,11 @@ class Network:
                 connecting_unit = network.first_unit(connecting_units)
                 network.join_network_at_unit(downstream_network,
                                              connecting_unit)
-                    
+        
         recycle_ends.update(network.get_all_recycles())
         recycle_ends.update(bst.utils.products_from_units(network.units))
         network.sort(recycle_ends)
         network.add_process_heat_exchangers()
-        network.simplify()
         return network
     
     @classmethod
@@ -358,7 +352,7 @@ class Network:
             recycle streams should be ignored.
 
         """
-        feeds = bst.utils.feeds_from_units(units) + [MissingStream(None, i) for i in units if not i.ins]
+        feeds = bst.utils.feeds_from_units(units) + [piping.MissingStream(None, i) for i in units if not i._ins]
         bst.utils.sort_feeds_big_to_small(feeds)
         if feeds:
             feedstock, *feeds = feeds
@@ -371,26 +365,21 @@ class Network:
             system = cls(())
         return system
     
-    def simplify(self):
-        isa = isinstance
-        for i in self.path:
-            if isa(i, Network): i.simplify()
-    
     def add_process_heat_exchangers(self, excluded=None):
         isa = isinstance
         path = self.path
         if excluded is None: excluded = set()
         for i, u in enumerate(path):
-            if isa(u, Unit):
+            if isa(u, Network):
+                u.add_process_heat_exchangers(excluded)
+            else:
                 if isa(u, bst.HXprocess): excluded.add(u)
                 for s in u.outs:
                     sink = s.sink
                     if u in excluded: continue
-                    if isa(sink, bst.HXprocess) and sink in path[:i] and not any([(sink is i if isa(i, Unit) else sink in i.units) for i in path[i+1:]]):
+                    if isa(sink, bst.HXprocess) and sink in path[:i] and not any([(sink in i.units if isa(i, Network) else sink is i) for i in path[i+1:]]):
                         excluded.add(sink)
                         path.insert(i+1, sink)
-            else:
-                u.add_process_heat_exchangers(excluded)
         if len(path) > 1 and path[-1] is path[0]: path.pop()
     
     @property
@@ -400,10 +389,11 @@ class Network:
     def first_unit(self, units):
         isa = isinstance
         for i in self.path:
-            if isa(i, Unit) and i in units:
+            if isa(i, Network):
+                if not i.units.isdisjoint(units):
+                    return i.first_unit(units)
+            elif i in units:
                 return i
-            elif isa(i, Network) and not i.units.isdisjoint(units):
-                return i.first_unit(units)
         raise ValueError('network does not contain any of the given units') # pragma: no cover
     
     def isdisjoint(self, network):
@@ -421,8 +411,11 @@ class Network:
                 else:
                     self._insert_linear_network(index, network)
                 return
-            elif unit == item:
-                self._insert_linear_network(index, network)
+            elif unit is item:
+                if network.recycle:
+                    self._insert_recycle_network(index, network)
+                else:
+                    self._insert_linear_network(index, network)
                 return
         raise RuntimeError(f'{repr(unit)} not in path') # pragma: no cover
     
@@ -455,7 +448,7 @@ class Network:
                 self.units.update(subunits)
                 return
         for index, item in enumerate(path_tuple):
-            if isa(item, Unit) and item in subunits:
+            if not isa(item, Network) and item in subunits:
                 self._insert_recycle_network(index, network)
                 return
         raise ValueError('networks must have units in common to join') # pragma: no cover
@@ -464,15 +457,15 @@ class Network:
         recycle = self.recycle
         if recycle is stream: return 
         isa = isinstance
-        if isa(recycle, Stream):
-            if isa(stream, Stream):
+        if isa(recycle, piping.stream_types):
+            if isa(stream, piping.stream_types):
                 self.recycle = {self.recycle, stream}
             elif isa(stream, set):
                 self.recycle = {self.recycle, *stream}
             else: # pragma: no cover
                 raise ValueError(f'recycles must be stream objects; not {type(stream).__name__}')
         elif isa(recycle, set):
-            if isa(stream, Stream):
+            if isa(stream, piping.stream_types):
                 recycle.add(stream)
             elif isa(stream, set):
                 recycle.update(stream)
@@ -486,7 +479,7 @@ class Network:
         units = network.units
         isa = isinstance
         for i in path_tuple:
-            if (isa(i, Unit) and i in units): path.remove(i)
+            if (not isa(i, Network) and i in units): path.remove(i)
     
     def _append_linear_network(self, network):
         self.path.extend(network.path)
@@ -538,7 +531,7 @@ class Network:
                 self.units.update(subunits)
                 return
         for index, item in enumerate(path_tuple):
-            if isa(item, Unit) and item in subunits:
+            if not isa(item, Network) and item in subunits:
                 self._insert_linear_network(index, network)
                 return
         self._append_linear_network(network)
@@ -563,7 +556,7 @@ class Network:
         info += '[' + (end + " ").join(path_info) + ']'
         recycle = self.recycle
         if recycle:
-            if isinstance(recycle, Stream):
+            if isinstance(recycle, piping.stream_types):
                 recycle = recycle._source_info()
             else:
                 recycle = ", ".join([i._source_info() for i in recycle])

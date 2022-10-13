@@ -233,7 +233,6 @@ class MockSplitter(Unit):
 MockSplitter.line = 'Splitter'
 FakeSplitter = MockSplitter    
 
-
 class ReversedSplitter(Unit):
     """
     Create a splitter that, when simulated, sets the inlet stream based 

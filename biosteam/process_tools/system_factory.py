@@ -215,7 +215,7 @@ class SystemFactory:
     
     def __call__(self, ID=None, ins=None, outs=None, mockup=False, area=None, udct=None, 
                  operating_hours=None, autorename=None, **kwargs):
-        if not bst.settings._thermo and self.fthermo: bst.settings.set_thermo(self.fthermo())
+        if not hasattr(bst.settings, '_thermo') and self.fthermo: bst.settings.set_thermo(self.fthermo())
         if autorename is not None: 
             original_autorename = tmo.utils.Registry.AUTORENAME
             tmo.utils.Registry.AUTORENAME = autorename

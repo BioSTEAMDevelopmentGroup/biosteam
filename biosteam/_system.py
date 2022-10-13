@@ -21,11 +21,8 @@ from .digraph import (digraph_from_units_and_streams,
 from thermosteam import Stream, MultiStream, Chemical
 from . import HeatUtility, PowerUtility
 from thermosteam.utils import registered
-from scipy.optimize import (
-    anderson, diagbroyden, excitingmixing, linearmixing, 
-    newton_krylov, broyden1, broyden2, fsolve
-)
-from .exceptions import try_method_with_object_stamp, Converged
+from scipy.optimize import root
+from .exceptions import try_method_with_object_stamp, Converged, UnitInheritanceError
 from ._network import Network, mark_disjunction, unmark_disjunction
 from ._facility import Facility
 from ._unit import Unit, repr_ins_and_outs
@@ -43,6 +40,7 @@ import numpy as np
 import pandas as pd
 from scipy.integrate import solve_ivp
 from . import report
+from ._temporary_connection import temporary_units_dump, TemporaryUnit
 import os
 import openpyxl
 if TYPE_CHECKING: from ._tea import TEA
@@ -56,6 +54,18 @@ def _reformat(name):
     if name.islower(): name= name.capitalize()
     return name
 
+# %% System specification
+
+class SystemSpecification:
+    __slots__ = ('f', 'args')
+    
+    def __init__(self, f, args):
+        self.f = f
+        self.args = args
+        
+    def __call__(self): self.f(*self.args)
+
+
 # %% Convergence tools
 
 class MaterialData:
@@ -63,13 +73,13 @@ class MaterialData:
         'material_flows',
         'recycles',
         'index',
-        'same_chemicals',
+        'IDs',
     )
-    def __init__(self, material_flows, recycles, index, same_chemicals):
+    def __init__(self, material_flows, recycles, index, IDs):
         self.material_flows = material_flows
         self.recycles = recycles
         self.index = index
-        self.same_chemicals = same_chemicals
+        self.IDs = IDs
         
    
 def get_recycle_data(stream):
@@ -125,20 +135,19 @@ class ProcessImpactItem:
         
     def impact(self):
         return self.inventory() * self.CF
-
-
-# %% Functions for taking care of numerical specifications within a system path
-
-def converge_system_in_path(system):
-    specification = system._specification
-    if specification:
-        method = specification
+    
+def set_impact_value(properties, name, value, groups):
+    for group in groups:
+        if group in name:
+            group_name = _reformat(group)
+            if group_name in properties:
+                properties[group_name] += value
+            elif value:
+                properties[group_name] = value
+            break
     else:
-        method = system.converge
-    try_method_with_object_stamp(system, method)
-
-def simulate_unit_in_path(unit):
-    try_method_with_object_stamp(unit, unit.simulate)
+        if value: properties[_reformat(name)] = value
+    
 
 # %% Debugging and exception handling
 
@@ -323,8 +332,8 @@ class System:
     Parameters
     ----------
     ID :
-         Unique identification. If ID is None, instance will not be
-         registered in flowsheet.
+        Unique identification. If ID is None, instance will not be
+        registered in flowsheet.
     path :
         Path that is run element by element until the recycle converges.
     recycle : 
@@ -353,7 +362,6 @@ class System:
         '_facility_loop',
         '_recycle',
         '_N_runs',
-        '_specification',
         '_mol_error',
         '_T_error',
         '_rmol_error',
@@ -361,6 +369,9 @@ class System:
         '_iter',
         '_ins',
         '_outs',
+        '_path_cache',
+        '_prioritized_units',
+        '_temporary_connections_log',
         'maxiter',
         'molar_tolerance',
         'relative_molar_tolerance',
@@ -377,15 +388,18 @@ class System:
         '_LCA',
         '_subsystems',
         '_units',
+        '_units_set',
         '_unit_path',
         '_cost_units',
         '_streams',
         '_feeds',
         '_products',
         '_facility_recycle',
-        '_configuration_updated',
         '_inlet_names',
         '_outlet_names',
+        # Specifications
+        '_specifications',
+        '_running_specifications',
         # Dynamic simulation
         '_isdynamic',
         '_state',
@@ -426,9 +440,21 @@ class System:
     available_methods: dict[str, tuple(Callable, bool, dict)] = {}
 
     @classmethod
-    def register_method(cls, name, function, conditional=False, **kwargs):
+    def register_method(cls, name, solver, conditional=False, **kwargs):
+        """
+        Register new convergence method (root solver). Two solver signatures
+        are supported:
+        
+        * If conditional is False, the signature must be solver(f, x, **kwargs) 
+          where f(x) = 0 is the solution. This is common for scipy solvers.
+        
+        * If conditional is True, the signature must be solver(f, x, **kwargs) 
+          where f(x, converged) = x is the solution and the solver stops when
+          converged is True. This method is prefered in BioSTEAM.
+        
+        """
         name = name.lower().replace('-', '').replace('_', '').replace(' ', '')
-        cls.available_methods[name] = (function, conditional, kwargs)
+        cls.available_methods[name] = (solver, conditional, kwargs)
 
     @classmethod
     def from_feedstock(cls,
@@ -628,8 +654,18 @@ class System:
         #: Lang factor for computing fixed capital cost from purchase costs
         self.lang_factor: float|None = lang_factor
 
+        #: Unit operations that have been integrated into the system configuration.
+        self._prioritized_units = set()
+
+        #: Cache for path segments and sections.
+        self._path_cache = {}
+
+        #: Log for all process specifications checked for temporary connections.
+        self._temporary_connections_log = set()
+
         self._set_path(path)
-        self._specification = None
+        self._specifications = []
+        self._running_specifications = False
         self._load_flowsheet()
         self._reset_errors()
         self._set_facilities(facilities)
@@ -637,7 +673,6 @@ class System:
         self._register(ID)
         self._save_configuration()
         self._load_stream_links()
-        self._configuration_updated = False
         self._state = None
         self._state_idx = None
         self._state_header = None
@@ -657,11 +692,17 @@ class System:
 
     def update_configuration(self,
             units: Optional[Sequence[str]]=None,
-            facility_recycle: Optional[Stream]=None
         ):
+        self._update_configuration(units)
+        self._save_configuration()
+
+    def _update_configuration(self,
+            units: Optional[Sequence[str]]=None,
+            facility_recycle: Optional[Stream]=None,
+        ):
+        # Warning: This method does not save the configuration
         if units is None: units = self.units
-        for i in ('_subsystems', '_units', '_unit_path', '_cost_units', '_streams', '_feeds', '_products'):
-            if hasattr(self, i): delattr(self, i)
+        self._delete_path_cache()
         isa = isinstance
         Facility = bst.Facility
         facilities = Facility.ordered_facilities([i for i in units if isa(i, Facility)])
@@ -674,14 +715,11 @@ class System:
         self._set_path(path)
         self._set_facilities(facilities)
         self._set_facility_recycle(facility_recycle or find_blowdown_recycle(facilities))
-        self._save_configuration()
-        self._load_stream_links()
-        self._configuration_updated = True
 
     def __enter__(self):
         if self._path or self._recycle or self._facilities:
             raise RuntimeError("only empty systems can enter `with` statement")
-        del self._unit_path, self._units, 
+        del self._units
         unit_registry = self.flowsheet.unit
         unit_registry.open_context_level()
         return self
@@ -694,17 +732,14 @@ class System:
             raise RuntimeError('system cannot be modified before exiting `with` statement')
         else:
             self.update_configuration(dump)
+            self._load_stream_links()
 
     def _save_configuration(self):
-        self._connections = [i.get_connection() for i in bst.utils.streams_from_units(self.unit_path)]
+        self._connections = [i.get_connection() for i in self.streams]
 
     @ignore_docking_warnings
     def _load_configuration(self):
-        for i in self._connections:
-            if i.source:
-                i.source.outs[i.source_index] = i.stream
-            if i.sink:
-                i.sink.ins[i.sink_index] = i.stream
+        for i in self._connections: i.reconnect()
         for i in self.units: i._system = self
 
     @ignore_docking_warnings
@@ -792,12 +827,14 @@ class System:
                 mixer_thermo[mixer] = thermo_cache[IDs] = unit.thermo.subset(chemicals)
 
     def _delete_path_cache(self):
-        for i in ('_units', '_unit_path', '_streams'):
+        for i in ('_subsystems', '_units', '_unit_path', '_cost_units',
+                  '_streams', '_feeds', '_products'):
             if hasattr(self, i): delattr(self, i)
-        for i in self.subsystems: i._delete_path_cache()
+        self._path_cache.clear()
+        self._temporary_connections_log.clear()
+        self._prioritized_units.clear()
 
     def reduce_chemicals(self, required_chemicals: Collection[Chemical]=()):
-        self._delete_path_cache()
         unit_thermo = {}
         mixer_thermo = {}
         thermo_cache = {}
@@ -823,7 +860,6 @@ class System:
         self._facilities = other._facilities
         self._facility_loop = other._facility_loop
         self._facility_recycle = other._facility_recycle
-        self._configuration_updated = other._configuration_updated
         self._recycle = other._recycle
         self._connections = other._connections
 
@@ -891,22 +927,41 @@ class System:
         """QSDsan.LCA object linked to the system."""
         return getattr(self, '_LCA', None)
 
-    @property
-    def specification(self) -> Callable:
-        """Process specification."""
-        return self._specification
-    @specification.setter
-    def specification(self, specification):
-        if specification:
-            if callable(specification):
-                self._specification = specification
-            else:
-                raise AttributeError(
-                    "specification must be callable or None; "
-                   f"not a '{type(specification).__name__}'"
-                )
-        else:
-            self._specification = None
+    specification = Unit.specification
+    specifications = Unit.specifications
+    add_bounded_numerical_specification = Unit.add_bounded_numerical_specification
+    def add_specification(self, 
+            specification: Optional[Callable]=None, 
+            args: Optional[tuple]=()
+        ):
+        """
+        Add a specification.
+
+        Parameters
+        ----------
+        specification : 
+            Function runned for mass and energy balance.
+        args : 
+            Arguments to pass to the specification function.
+
+        Examples
+        --------
+        :doc:`../tutorial/Process_specifications`
+
+        See Also
+        --------
+        add_bounded_numerical_specification
+        specifications
+
+        Notes
+        -----
+        This method also works as a decorator.
+
+        """
+        if not specification: return lambda specification: self.add_specification(specification, args)
+        if not callable(specification): raise ValueError('specification must be callable')
+        self._specifications.append(SystemSpecification(specification, args))
+        return specification
 
     def _extend_recycles(self, recycles):
         isa = isinstance
@@ -943,7 +998,7 @@ class System:
                     warning = RuntimeWarning('subsystem with facilities could not be flattened')
                     warn(warning, stacklevel=stacklevel)
                     path.append(i)
-                elif i.specification:
+                elif i.specifications:
                     warning = RuntimeWarning('subsystem with specification could not be flattened')
                     warn(warning, stacklevel=stacklevel)
                     path.append(i)
@@ -1023,6 +1078,126 @@ class System:
                 return self
         raise ValueError(f"unit {repr(unit)} not within system {repr(self)}")
 
+    def path_section(self, starts, ends, inclusive=False):
+        starts = tuple(starts)
+        ends = tuple(ends)
+        key = (starts, ends)
+        if key in self._path_cache:
+            path, end = self._path_cache[key]
+        else:
+            relevant_units = set(starts)
+            for start in starts: relevant_units.update(start.get_downstream_units())
+            unit_path = self.unit_path
+            start_index = min([unit_path.index(start) for start in starts])
+            end_index = max([unit_path.index(end) for end in ends])
+            start = unit_path[start_index]
+            end = unit_path[end_index]
+            path = self.path_segment(start, end, False, relevant_units)
+            self._path_cache[key] = (path, end)
+        if inclusive: path = [*path, end]
+        return path
+
+    def path_segment(self, start, end, inclusive=False, 
+                     relevant_units=None, critical_units=None):
+        key = (start, end)
+        if key in self._path_cache:
+            segment = list(self._path_cache[key])
+        else:
+            if relevant_units is None: 
+                relevant_units = start.get_downstream_units()
+                relevant_units.add(start)
+            if critical_units is None:
+                critical_units = set(start.path_until(end))
+            isa = isinstance
+            if end not in relevant_units: return []
+            path = self.path
+            segment = []
+            if start is None: # Need to make sure critical units are runned first in recycles
+                for i, obj in enumerate(path):
+                    if obj is end or isa(obj, System) and end in obj.units:
+                        leftover_path = path[i + 1:]
+                        break
+                else:
+                    raise ValueError(f"end unit {repr(end)} not in system")
+                for obj in leftover_path:
+                    if obj in critical_units:
+                        critical_units.discard(obj)
+                    elif isa(obj, System) and critical_units.intersection(obj.units_set):
+                        critical_units.difference_update(obj.units_set)
+                    else:
+                        continue
+                    segment.append(obj)
+            else:
+                for i, obj in enumerate(path):
+                    if isa(obj, System):
+                        if start in obj.units_set:
+                            if end in obj.units_set:
+                                return obj.path_segment(start, end, False, relevant_units, critical_units)
+                            else:
+                                path = path[i:]
+                                break
+                    elif obj is start:
+                        if self.recycle:
+                            path = path[i:] + path[:i] # recycle loop should start here
+                        else:
+                            path = path[i:] # start is appended in the next loop
+                        break
+                else:
+                    raise ValueError(f"start unit {repr(start)} not in system")
+            for i in path:
+                if isa(i, System):
+                    if end in i.units_set:
+                        segment.extend(i.path_segment(None, end, False, relevant_units, critical_units))
+                        break
+                elif i is end:
+                    break  
+                if isa(i, Unit) and i in relevant_units:
+                    critical_units.discard(i)
+                    segment.append(i)
+                elif isa(i, System) and relevant_units.intersection(i.units_set):
+                    critical_units.difference_update(i.units_set)
+                    segment.append(i)
+            else:
+                raise ValueError(f"end unit {repr(end)} not in system")
+            self._path_cache[key] = tuple(segment)
+        if inclusive: segment = [*segment, end]
+        return segment
+
+    # def simulation_number(self, obj):
+    #     """Return the simulation number of either a Unit or System object as 
+    #     it would appear in the system diagram."""
+    #     numbers = []
+    #     isa = isinstance
+    #     if isa(obj, System):
+    #         sys = obj
+    #         for i, other in enumerate(self.path):
+    #             if isa(other, System):
+    #                 if sys is other: 
+    #                     numbers.append(i)
+    #                     break
+    #                 elif sys in other.subsystems:
+    #                     numbers.append(i)
+    #                     numbers.append(other.simulation_number(sys))
+    #                     break
+    #         else:
+    #             raise ValueError(f"system {repr(sys)} not within system {repr(self)}")
+    #     else: # Must be unit
+    #         unit = obj
+    #         for i, other in enumerate(self.path):
+    #             if isa(other, System):
+    #                 if unit in other.units_set: 
+    #                     numbers.append(i)
+    #                     numbers.append(other.simulation_number(unit))
+    #                     break
+    #             elif other is unit:
+    #                 numbers.append(i)
+    #                 break
+    #         else:
+    #             raise ValueError(f"unit {repr(unit)} not within system {repr(self)}")
+    #     number = 0
+    #     for i, n in enumerate(numbers): number += n * 10 ** -i
+    #     return number
+
     def split(self, 
               stream: Stream,
               ID_upstream: Optional[str]=None,
@@ -1096,11 +1271,11 @@ class System:
 
     def _load_facilities(self):
         isa = isinstance
-        units = self.units
+        units = self.cost_units
         for i in self._facilities:
             if isa(i, Facility):
                 i._other_units = other_units = units.copy()
-                other_units.remove(i)
+                other_units.discard(i)
 
     def _set_facility_recycle(self, recycle):
         if recycle:
@@ -1143,7 +1318,7 @@ class System:
             return self._units
         except:
             self._units = units = []
-            past_units = set()
+            self._units_set = past_units = set()
             isa = isinstance
             for i in self._path + self._facilities:
                 if isa(i, Unit):
@@ -1155,6 +1330,22 @@ class System:
                     units.extend([i for i in sys_units if i not in past_units])
                     past_units.update(sys_units)
             return units
+
+    @property
+    def units_set(self) -> set[Unit]:
+        """Set of all unit operations."""
+        try:
+            return self._units_set
+        except:
+            units = []
+            isa = isinstance
+            for i in self._path + self._facilities:
+                if isa(i, Unit):
+                    units.append(i)
+                elif isa(i, System):
+                    units.extend(i.units)
+            self._units_set = units_set = set(units)
+            return units_set
 
     @property
     def unit_path(self) -> list[Unit]:
@@ -1192,8 +1383,17 @@ class System:
         try:
             return self._streams
         except:
-            self._streams = streams = bst.utils.streams_from_units(self.unit_path)
-            bst.utils.filter_out_missing_streams(streams)
+            self._streams = streams = []
+            stream_set = set()
+            isa = isinstance
+            temp = piping.TemporaryStream
+            for u in self.units:
+                for s in u._ins + u._outs:
+                    if not s: s = s.materialize_connection()
+                    elif s in stream_set: continue
+                    elif isa(s, temp): continue
+                    streams.append(s)
+                    stream_set.add(s)
             return streams
     @property
     def feeds(self) -> list[Stream]:
@@ -1381,17 +1581,14 @@ class System:
         """
         self._load_configuration()
         if kind is None: kind = 1
-        graph_attrs['format'] = format or 'png'
         if title is None: title = ''
         graph_attrs['label'] = title
         preferences = bst.preferences
-        original = (preferences.number_path,
-                    preferences.label_streams,
-                    preferences.profile)
-        if number is not None: preferences.number_path = number
-        if label is not None: preferences.label_streams = label
-        if profile is not None: preferences.profile = profile
-        try:
+        with preferences.temporary():
+            if number is not None: preferences.number_path = number
+            if label is not None: preferences.label_streams = label
+            if profile is not None: preferences.profile = profile
+            if format is not None: preferences.graphviz_format = format
             if kind == 0 or kind == 'cluster':
                 f = self._cluster_digraph(graph_attrs)
             elif kind == 1 or kind == 'thorough':
@@ -1405,13 +1602,14 @@ class System:
                                  "0 or 'cluster', 1 or 'thorough', 2 or 'surface', "
                                  "3 or 'minimal'")
             if display or file:
-                finalize_digraph(f, file, format)
+                height = (
+                    preferences.graphviz_html_height
+                    ['unit' if len(self.units) == 1 else 'system']
+                    [preferences.tooltips_full_results]
+                )
+                finalize_digraph(f, file, format, height)
             else:
                 return f
-        finally:
-            (preferences.number_path,
-             preferences.label_streams,
-             preferences.profile) = original
 
     # Methods for running one iteration of a loop
     def _iter_run_conditional(self, data):
@@ -1435,7 +1633,7 @@ class System:
         self._set_recycle_data(data)
         T = self._get_recycle_temperatures()
         mol = self._get_recycle_mol()
-        self._run()
+        self.run()
         recycle = self._recycle
         for i, j in self.tracked_recycles.items():
             if i is recycle: j.append(i.copy(None))
@@ -1535,20 +1733,74 @@ class System:
             raise RuntimeError('no recycle available')
         return np.array(T, float)
 
-    def _setup(self):
-        """Setup each element of the system."""
-        self._load_configuration()
-        self._load_facilities()
-        for i in self.units: i._setup()
+    def _create_temporary_connections(self):
+        """Create temporary connections based on process specifications."""
+        temporary_connections_log = self._temporary_connections_log
+        for u in self.units:
+            for ps in u._specifications: 
+                if ps in temporary_connections_log: continue
+                ps.create_temporary_connections(u)
+                temporary_connections_log.add(ps)
 
-    def _run(self):
-        """Rigorously run each element in the path."""
+    def _setup_units(self):
+        """Setup all unit operations."""
+        prioritized_units = self._prioritized_units
+        for u in self.units: 
+            u._system = self
+            u._setup()
+            for ps in u._specifications: ps.compile_path(u)
+            if u not in prioritized_units:
+                if u.prioritize: self.prioritize_unit(u)
+                prioritized_units.add(u)
+                
+            
+    def _setup(self, update_configuration=False):
+        """Setup each element of the system."""
+        units = self.units
+        self._load_facilities()
+        if update_configuration:
+            self._temporary_connections_log.clear()
+            self._create_temporary_connections()
+            self._update_configuration(units=[*units, *temporary_units_dump])
+            temporary_units_dump.clear()
+            self._setup_units()
+            self._remove_temporary_units()
+            self._save_configuration()
+            self._load_stream_links()
+        else:
+            self._load_configuration()
+            self._create_temporary_connections()
+            if temporary_units_dump:
+                self._update_configuration(units=[*units, *temporary_units_dump])
+                temporary_units_dump.clear() 
+                self._setup_units()
+                self._remove_temporary_units()
+                self._save_configuration()
+                self._load_stream_links()
+            else:
+                self._setup_units()
+
+    @piping.ignore_docking_warnings
+    def _remove_temporary_units(self):
         isa = isinstance
-        converge = converge_system_in_path
-        run = try_method_with_object_stamp
+        new_path = []
+        for i in self.path:
+            if isa(i, System): 
+                i._remove_temporary_units()
+            elif isa(i, TemporaryUnit):
+                i.old_connection.reconnect()
+                continue
+            new_path.append(i)
+        self._path = tuple(new_path)
+
+    def run(self):
+        """Run mass and energy balances for each element in the path
+        without costing unit operations."""
+        isa = isinstance
+        f = try_method_with_object_stamp
         for i in self._path:
-            if isa(i, Unit): run(i, i.run)
-            elif isa(i, System): converge(i)
+            if isa(i, Unit): f(i, i.run)
+            elif isa(i, System): f(i, i.converge)
             else: i() # Assume it's a function
 
     def _solve(self):
@@ -1571,12 +1823,14 @@ class System:
         
         """
         recycles = self.get_all_recycles()
-        all_IDs = [s.chemicals.IDs for s in recycles]
-        same_chemicals = len(set(all_IDs)) == 1
+        all_IDs = set([s.chemicals.IDs for s in recycles])
+        same_chemicals = len(all_IDs) == 1
         if same_chemicals:
-            index = recycles[0].chemicals._index
+            chemicals = recycles[0].chemicals
+            IDs = chemicals.IDs
+            index = chemicals._index
             M = len(recycles)
-            N = len(all_IDs[0])
+            N = len(IDs)
             material_flows = np.zeros([M, N])
             for i, s in enumerate(recycles): material_flows[i] = s.mol
         else:
@@ -1588,14 +1842,15 @@ class System:
             for i, s in enumerate(recycles):
                 for ID, value in zip(s.chemicals.IDs, s.mol):
                     material_flows[i, index[ID]] = value
+            IDs = None
         return MaterialData(
             material_flows=material_flows,
             recycles=recycles,
             index=index,
-            same_chemicals=same_chemicals,
+            IDs=IDs,
         )
 
-    def converge(self, material_data: MaterialData=None):
+    def converge(self, material_data: MaterialData=None, update_material_data: bool=False):
         """
         Converge mass and energy balances. If material data was given, 
         return converged material flows at steady state. Shape will be M by N,
@@ -1620,12 +1875,20 @@ class System:
             material_flows = material_data.material_flows
             recycles = material_data.recycles
             index = material_data.index
-            same_chemicals = material_data.same_chemicals
+            all_IDs = set([s.chemicals.IDs for s in recycles])
+            all_IDs.add(material_data.IDs)
+            same_chemicals = len(all_IDs) == 1
             if same_chemicals:
-                for i, s in enumerate(recycles):
-                    s.mol[:] = material_flows[i]
+                try:
+                    for i, s in enumerate(recycles):
+                        s.mol[:] = material_flows[i]
+                except:
+                    reset_material_data = True
+                    same_chemicals = False
+                else:
+                    reset_material_data = False
             else:
-                
+                reset_material_data = False
                 for i, s in enumerate(material_data.recycles):
                     mol = s.mol
                     for j, ID in enumerate(s.chemicals.IDs):
@@ -1633,39 +1896,43 @@ class System:
         if self._recycle:
             method = self._solve
         else:
-            method = self._run
+            method = self.run
         if self._N_runs:
             for i in range(self._N_runs): method()
         else:
             method()
-        if material_data is not None:
-            material_flows = material_flows.copy()
+        if update_material_data:
+            if reset_material_data:
+                new_data =  self.get_material_data()
+                material_data.material_flows = material_flows = new_data.material_flows
+                material_data.recycles = recycles = new_data.recycles
+                material_data.index = index = new_data.index
+                material_data.IDs = new_data.IDs
             if same_chemicals:
                 for i, s in enumerate(recycles): material_flows[i] = s.mol
             else:
                 for i, s in enumerate(recycles):
                     for ID, value in zip(s.chemicals.IDs, s.mol):
                         material_flows[i, index[ID]] = value
-            return material_flows
 
     def _summary(self):
         simulated_units = set()
         isa = isinstance
         Unit = bst.Unit
+        f = try_method_with_object_stamp
         for i in self._path:
             if isa(i, Unit):
                 if i in simulated_units: continue
                 simulated_units.add(i)
-            try_method_with_object_stamp(i, i._summary)
-        simulate_unit = simulate_unit_in_path
+            f(i, i._summary)
         for i in self._facilities:
-            if isa(i, Unit): simulate_unit(i)
+            if isa(i, Unit): f(i, i.simulate)
             elif isa(i, System):
-                converge_system_in_path(i)
+                f(i, i.converge)
                 i._summary()
             else: i() # Assume it is a function
         for i in self._facilities:
-            if isa(i, (bst.BoilerTurbogenerator, bst.Boiler)): simulate_unit(i)
+            if isa(i, (bst.BoilerTurbogenerator, bst.Boiler)): f(i, i.simulate)
 
     def _reset_iter(self):
         self._iter = 0
@@ -1737,6 +2004,7 @@ class System:
             self.scope.reset_cache()
         for unit in self.units:
             unit.reset_cache(self.isdynamic)
+        for i in self.streams: i.reset_cache()
             
     def set_dynamic_tracker(self, *subjects, **kwargs):
         """
@@ -1826,18 +2094,34 @@ class System:
         _dstate_attr2arr = self._dstate_attr2arr
         funcs = [u.ODE if u.hasode else u.AE for u in units]
         track = self.scope
-        def dydt(t, y):
-            _update_state(y)
-            for unit, func in zip(units, funcs):
-                if unit.hasode:
-                    QC_ins, QC, dQC_ins = unit._ins_QC, unit._state, unit._ins_dQC
-                    func(t, QC_ins, QC, dQC_ins)   # updates dstate
-                else:
-                    QC_ins, dQC_ins = unit._ins_QC, unit._ins_dQC
-                    func(t, QC_ins, dQC_ins)   # updates both state and dstate
-            track(t)
-            return _dstate_attr2arr(y)
-        self._DAE = dydt
+        dk = self.dynsim_kwargs
+        if dk.get('print_t'): # print integration time for debugging
+            def dydt(t, y):
+                _update_state(y)
+                print(t)
+                for unit, func in zip(units, funcs):
+                    if unit.hasode:
+                        QC_ins, QC, dQC_ins = unit._ins_QC, unit._state, unit._ins_dQC
+                        func(t, QC_ins, QC, dQC_ins)   # updates dstate
+                    else:
+                        QC_ins, dQC_ins = unit._ins_QC, unit._ins_dQC
+                        func(t, QC_ins, dQC_ins)   # updates both state and dstate
+                track(t)
+                return _dstate_attr2arr(y)
+        else:
+            def dydt(t, y):
+                _update_state(y)
+                for unit, func in zip(units, funcs):
+                    if unit.hasode:
+                        QC_ins, QC, dQC_ins = unit._ins_QC, unit._state, unit._ins_dQC
+                        func(t, QC_ins, QC, dQC_ins)   # updates dstate
+                    else:
+                        QC_ins, dQC_ins = unit._ins_QC, unit._ins_dQC
+                        func(t, QC_ins, dQC_ins)   # updates both state and dstate
+                track(t)
+                return _dstate_attr2arr(y)
+        self._DAE = dydt            
+
 
     @property
     def DAE(self):
@@ -1848,7 +2132,7 @@ class System:
         return self._DAE
 
     def _write_state(self):
-        for ws in self.streams - set(self.feeds):
+        for ws in [i for i in self.streams if i not in self.feeds]:
             ws._state2flows()
 
     def clear_state(self):
@@ -1864,7 +2148,7 @@ class System:
             ws.state = y*0.0
             ws.dstate = y*0.0
 
-    def simulate(self, skip_setup=False, **kwargs):
+    def simulate(self, update_configuration: Optional[bool]=False, **kwargs):
         """
         If system is dynamic, run the system dynamically. Otherwise, converge 
         the path of unit operations to steady state. After running/converging 
@@ -1875,24 +2159,49 @@ class System:
         **kwargs : 
             Additional parameters for :func:`dynamic_run` (if dynamic) or 
             :func:`converge` (if steady state).
-        
+        update_configuration :
+            Whether to update system configuration if unit connections have
+            changed. 
+            
         """
-        self._configuration_updated = False
-        if not skip_setup:
-            self._setup()
-        if self.isdynamic: 
-            self.dynamic_run(**kwargs)
-            self._summary()
-        else: 
-            outputs = self.converge(**kwargs)
-            self._summary()
-            if self._configuration_updated: outputs = self.simulate(**kwargs)
-            if self._facility_loop: self._facility_loop.converge()
-            return outputs
+        with self.flowsheet.temporary():
+            specifications = self._specifications
+            if specifications and not self._running_specifications:
+                self._running_specifications = True
+                try:
+                    for ss in specifications: ss()
+                finally:
+                    self._running_specifications = False
+            else:
+                self._setup(update_configuration)
+                if self.isdynamic: 
+                    self.dynamic_run(**kwargs)
+                    self._summary()
+                else:
+                    try:
+                        outputs = self.converge(**kwargs)
+                        self._summary()
+                    except Exception as error:
+                        if update_configuration: raise error # Avoid infinite loop
+                        new_connections = [i.get_connection() for i in self.streams]
+                        if self._connections != new_connections:
+                            # Connections has been updated within simulation.
+                            outputs = self.simulate(update_configuration=True, **kwargs)
+                        else:
+                            raise error
+                    else:
+                        if (not update_configuration # Avoid infinite loop
+                            and self._connections != [i.get_connection() for i in self.streams]):
+                            # Connections has been updated within simulation.
+                            outputs = self.simulate(update_configuration=True, **kwargs)
+                        elif self._facility_loop: 
+                            self._facility_loop.converge()
+                    return outputs
 
     def dynamic_run(self, **dynsim_kwargs):
         """
-        Run system dynamically without costing unit operations.
+        Run system dynamically without accounting for
+        the cost or environmental impacts of unit operations.
         
         Parameters
         ----------
@@ -1902,6 +2211,8 @@ class System:
                 t_span : tuple[float, float]
                     Interval of integration (t0, tf).
                     The solver starts with t=t0 and integrates until it reaches t=tf.
+                t_eval : iterable(float)
+                    The time points where status will be saved.
                 state_reset_hook: str|Callable
                     Hook function to reset the cache state between simulations
                     for dynamic systems).
@@ -1910,6 +2221,13 @@ class System:
                 export_state_to: str
                     If provided with a path, will save the simulated states over time to the given path,
                     supported extensions are ".xlsx", ".xls", "csv", and "tsv".
+                sample_id : str
+                    ID of the samples to run (for results exporting).
+                print_msg : bool
+                    Whether to print returned message from scipy.
+                print_t : bool
+                    Whether to print integration time in the console,
+                    usually used for debugging.
                 solve_ivp_kwargs
                     All remaining keyword arguments will be passed to ``solve_ivp``.
         
@@ -1921,11 +2239,13 @@ class System:
         dk = self.dynsim_kwargs
         dk.update(dynsim_kwargs)
         dk_cp = dk.copy()
+        t_eval = dk_cp.pop('t_eval', None)
         state_reset_hook = dk_cp.pop('state_reset_hook', None)
-        print_msg = dk_cp.pop('print_msg', False)
         export_state_to = dk_cp.pop('export_state_to', '')
         sample_id = dk_cp.pop('sample_id', '')
-        t_eval = dk_cp.pop('t_eval', None)
+        print_msg = dk_cp.pop('print_msg', False)
+        print_t = dk_cp.pop('print_t', False)
+        dk_cp.pop('y0', None) # will be updated later
         # Reset state, if needed
         if state_reset_hook:
             if isinstance(state_reset_hook, str):
@@ -1941,6 +2261,7 @@ class System:
         y0, idx, nr = self._load_state()
         dk['y0'] = y0
         # Integrate
+        self.dynsim_kwargs['print_t'] = print_t # self.dynsim_kwargs might be reset by `state_reset_hook`
         self.scope.sol = sol = solve_ivp(fun=self.DAE, y0=y0, **dk_cp)
         if print_msg:
             if sol.status == 0:
@@ -2262,41 +2583,46 @@ class System:
         impact += self.get_process_impact(key)
         return impact / total_property
     
-    def get_property_allocation_factors(self, name, units=None):
+    def get_property_allocation_factors(self, name, units=None, groups=()):
         heat_utilities = self.heat_utilities
         power_utility = self.power_utility
         operating_hours = self.operating_hours
         properties = {}
+        if isinstance(groups, str): groups = [groups]
         if hasattr(bst.PowerUtility, name):
             if power_utility.rate < 0.:
                 value = power_utility.get_property(name, units)
-                if value: properties['Electricity'] = value * operating_hours
+                set_impact_value(properties, 'Electricity', value * operating_hours, groups)
         if hasattr(bst.HeatUtility, name):
             for hu in heat_utilities:
                 if hu.flow < 0.: 
                     value = hu.get_property(name, units)
-                    if value: properties[_reformat(hu.agent.ID)] = value * operating_hours
+                    set_impact_value(properties, hu.agent.ID, value * operating_hours, groups)
         if hasattr(bst.Stream, name):
             for stream in self.products:
                 value = self.get_property(stream, name, units)
-                if value: properties[_reformat(stream.ID)] = value
+                set_impact_value(properties, stream.ID, value, groups)
         total_property = sum(properties.values())
         allocation_factors = {i: j / total_property for i, j in properties.items()}
         return allocation_factors
     
-    def get_displacement_allocation_factors(self, main_product, key):
+    def get_displacement_allocation_factors(self, main_products, key, groups=()):
         heat_utilities = self.heat_utilities
         power_utility = self.power_utility
         allocation_factors = {}
         isa = isinstance
-        if isa(main_product, bst.Stream):
-            CF_original = main_product.get_CF(key)
-        elif main_product == 'Electricity':
-            main_product = power_utility
-            CF_original = main_product.get_CF(key, consumption=False)
-        else:
-            raise NotImplementedError(f"main product '{main_product}' is not yet an option for this method")
-        items = [main_product]
+        if isa(main_products, bst.Stream): main_products = [main_products]
+        CFs_original = []
+        main_products = [i for i in main_products if not i.isempty()]
+        for main_product in main_products:
+            if isa(main_product, bst.Stream):
+                CFs_original.append(main_product.get_CF(key))
+            elif main_product == 'Electricity':
+                main_product = power_utility
+                CFs_original.append(main_product.get_CF(key, consumption=False))
+            else:
+                raise NotImplementedError(f"main product '{main_product}' is not yet an option for this method")
+        items = main_products.copy()
         for stream in self.products:
             if key in stream.characterization_factors:
                 items.append(stream)
@@ -2313,20 +2639,18 @@ class System:
             else:
                 item_impact = -1 * item.get_impact(key) * self.operating_hours
             displaced_impact = net_impact + item_impact
-            if isa(item, bst.Stream):
-                allocation_factors[_reformat(item.ID)] = displaced_impact / total_input_impact
-            elif isa(item, bst.HeatUtility):
-                allocation_factors[_reformat(item.ID)] = displaced_impact / total_input_impact
+            if isa(item, (bst.Stream, bst.HeatUtility)):
+                set_impact_value(allocation_factors, item.ID, displaced_impact / total_input_impact, groups)
             elif isa(item, bst.PowerUtility):
-                allocation_factors['Electricity'] = displaced_impact / total_input_impact
+                set_impact_value(allocation_factors, 'Electricity', displaced_impact / total_input_impact, groups)
             else:
                 raise RuntimeError('unknown error')
-            if item is main_product:
-                if isa(main_product, bst.Stream):
-                    main_product.set_CF(key, displaced_impact / self.get_mass_flow(main_product))
-                elif main_product == 'Electricity':
-                    main_product.set_CF(key, displaced_impact / (main_product.rate * self.operating_hours))
-        main_product.set_CF(key, CF_original)
+            if item in main_products:
+                if isa(item, bst.Stream):
+                    item.set_CF(key, displaced_impact / self.get_mass_flow(item))
+                elif item == 'Electricity':
+                    item.set_CF(key, displaced_impact / (item.rate * self.operating_hours))
+        for i, j in zip(main_products, CFs_original): i.set_CF(key, j)
         total = sum(allocation_factors.values())
         return {i: j / total for i, j in allocation_factors.items()}
     
@@ -2462,7 +2786,7 @@ class System:
         stream_tables = []
         for chemicals, streams in streams_by_chemicals.items():
             stream_tables.append(report.stream_table(streams, chemicals=chemicals, T='K', **stream_properties))
-        report.tables_to_excel(report.stream_tables, writer, 'Stream table')
+        report.tables_to_excel(stream_tables, writer, 'Stream table')
         
         # Heat utility tables
         heat_utilities = report.heat_utility_tables(cost_units)
@@ -2498,8 +2822,8 @@ class System:
         else:
             raise ValueError(f"mode must be either 'debug' or 'profile'; not '{mode}'")
         for u in self.units:
-            if u._specification:
-                u._specification = [_wrap_method(u, i) for i in u.specification]
+            if u._specifications:
+                u._specifications = [_wrap_method(u, i) for i in u.specification]
             else:
                 u.run = _wrap_method(u, u.run)
             u._design = _wrap_method(u, u._design)
@@ -2597,13 +2921,20 @@ class System:
         """Return information on convergence."""
         recycle = self._recycle
         if recycle:
+            if self._iter == 0: return None
             s = '' if isinstance(recycle, Stream) else 's'
             return (f"\nHighest convergence error among components in recycle"
                     f"\nstream{s} {self._get_recycle_info()} after {self._iter} loops:"
                     f"\n- flow rate   {self._mol_error:.2e} kmol/hr ({self._rmol_error*100.:.2g}%)"
                     f"\n- temperature {self._T_error:.2e} K ({self._rT_error*100.:.2g}%)")
-        else:
-            return ""
+        elif self.subsystems:
+            sys = max(
+                self.subsystems, key=lambda i: max(
+                    [i._mol_error / i.molar_tolerance, i._rmol_error / i.relative_molar_tolerance,
+                     i._T_error / i.temperature_tolerance, i._rT_error / i.relative_temperature_tolerance]
+                )
+            )
+            return sys._error_info()
 
     def __str__(self):
         if self.ID: return self.ID
@@ -2619,24 +2950,24 @@ class System:
         print(self._info(layout, T, P, flow, composition, N, IDs, data))
 
     def _info(self, layout, T, P, flow, composition, N, IDs, data):
-        """Return string with all specifications."""
+        """Return string with all stream specifications."""
         ins_and_outs = repr_ins_and_outs(layout, self.ins, self.outs,
                                          T, P, flow, composition, N, IDs, data)
-        if self._iter == 0:
-            return f"System: {self.ID}\n{ins_and_outs}"
-        else:
-            error = self._error_info()
+        error = self._error_info()
+        if error:
             return (f"System: {self.ID}"
                     + error + '\n'
                     + ins_and_outs)
+        else:
+            return f"System: {self.ID}\n{ins_and_outs}"
 
 class FacilityLoop(System):
     __slots__ = ()
 
-    def _run(self):
+    def run(self):
         obj = super()
         for i in self.units: Unit._setup(i)
-        obj._run()
+        obj.run()
         self._summary()
 
 del ignore_docking_warnings
@@ -2644,9 +2975,10 @@ del ignore_docking_warnings
 System.register_method('aitken', flx.conditional_aitken, conditional=True)
 System.register_method('wegstein', flx.conditional_wegstein, conditional=True)
 System.register_method('fixedpoint', flx.conditional_fixed_point, conditional=True)
-for f in (anderson, diagbroyden, excitingmixing, anderson, linearmixing, 
-          newton_krylov, broyden1, broyden2, fsolve):
-    System.register_method(f.__name__, f)
+options = dict(fatol=1e-24, xatol=1e-24, xtol=1e-24, ftol=1e-24, maxiter=int(1e6))
+for name in ('anderson', 'diagbroyden', 'excitingmixing', 'linearmixing', 'broyden1', 'broyden2'):
+    System.register_method(name, root, method=name, options=options)
+del root, name, options
 
 
 # %% Working with different operation modes
@@ -2753,7 +3085,7 @@ class AgileSystem:
     """
 
     __slots__ = (
-        'operation_modes', 'operation_parameters',
+        'operation_modes', 'operation_parameters', 'active_operation_mode',
         'mode_operation_parameters', 'annual_operation_metrics',
         'operation_metrics', 'unit_capital_costs', 
         'net_electricity_consumption', 'utility_cost', 
@@ -2799,6 +3131,7 @@ class AgileSystem:
         self.lang_factor = lang_factor
         self.heat_utilities = None
         self.power_utility = None
+        self.active_operation_mode = None
         self._OperationMode = type('OperationMode', (OperationMode,), {'agile_system': self})
 
     def _downstream_system(self, unit):
@@ -2943,19 +3276,7 @@ class AgileSystem:
         flow_rates = self.flow_rates
         return sum([flow_rates[i] * i.price for i in self.products])
 
-    @property
-    def streams(self):
-        try:
-            return self._streams
-        except:
-            self._streams = streams = []
-            stream_set = set()
-            for u in self.units:
-                for s in u._ins + u._outs:
-                    if not s or s in stream_set: continue
-                    streams.append(s)
-                    stream_set.add(s)
-            return streams
+    streams = System.streams
 
     @property
     def units(self):
@@ -3030,7 +3351,7 @@ class AgileSystem:
         values = [{i: None for i in operation_modes} for i in metric_range]
         total_operating_hours = self.operating_hours
         for i in mode_range:
-            mode = operation_modes[i]
+            self.active_operation_mode = mode = operation_modes[i]
             operation_mode_results[i] = results = mode.simulate()
             for j in annual_metric_range:
                 metric = annual_operation_metrics[j]
@@ -3041,6 +3362,7 @@ class AgileSystem:
             scale = mode.operating_hours / total_operating_hours
             for hu in results.heat_utilities: hu.scale(scale)
             results.power_utility.scale(scale)
+        self.active_operation_mode = None
         for i in annual_metric_range:
             metric = annual_operation_metrics[i]
             metric.value = sum(annual_values[i])

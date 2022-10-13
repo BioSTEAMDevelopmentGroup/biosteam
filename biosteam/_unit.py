@@ -21,6 +21,7 @@ from thermosteam.units_of_measure import convert
 from copy import copy
 import biosteam as bst
 from thermosteam import Stream
+from thermosteam.base import display_asfunctor
 from typing import Callable, Optional, TYPE_CHECKING, Sequence
 from numpy.typing import NDArray
 import thermosteam as tmo
@@ -32,6 +33,46 @@ _count = [0]
 def count():
     _count[0] += 1
     print(_count)
+
+# %% Process specification
+
+class ProcessSpecification:
+    __slots__ = ('f', 'args', 'impacted_units', 'path')
+    
+    def __init__(self, f, args, impacted_units):
+        self.f = f
+        self.args = args
+        if impacted_units: 
+            self.impacted_units = tuple(impacted_units)
+        else:
+            self.impacted_units = self.path = ()
+        
+    def __call__(self):
+        self.f(*self.args)
+        isa = isinstance
+        for i in self.path: 
+            if isa(i, Unit): i.run()
+            else: i.converge() # Must be a system
+            
+    def compile_path(self, unit):
+        impacted_units = self.impacted_units
+        self.path = unit.path_from(impacted_units, system=unit._system) if impacted_units else ()
+        
+    def create_temporary_connections(self, unit):
+        # Temporary connections are created first than the path because 
+        # temporary connections may change the system configuration 
+        # such that the path is incorrect.
+        impacted_units = self.impacted_units
+        if impacted_units:
+            downstream_units = unit.get_downstream_units()
+            upstream_units = unit.get_upstream_units()
+            connected_units = upstream_units | downstream_units
+            for other in impacted_units:
+                if other not in connected_units:
+                    bst.temporary_connection(unit, other)
+            
+    def __repr__(self):
+        return f"{type(self).__name__}(f={display_asfunctor(self.f)}, args={self.args}, impacted_units={self.impacted_units})"
 
 # %% Typing
 
@@ -75,22 +116,19 @@ def repr_ins_and_outs(layout, ins, outs, T, P, flow, composition, N, IDs, data):
 
 # %% Path utilities
 
-def find_path_segment(start, end):
-    path_segment = fill_path_segment(start, [], end, set())
-    if not path_segment:
-        raise ValueError(f"end unit {repr(end)} not downstream from start unit {repr(start)}")
-    return path_segment
+def add_path_segment(start, end, path, ignored):
+    fill_path_segment(start, path, end, set(), ignored)
 
-def fill_path_segment(start, path, end, units):
+def fill_path_segment(start, path, end, previous_units, ignored):
     if start is end: return path
-    if start not in units: 
-        path.append(start)
-        units.add(start)
+    if start not in previous_units: 
+        if start not in ignored: path.append(start)
+        previous_units.add(start)
         success = False
         for outlet in start._outs:
             start = outlet._sink
             if not start: continue
-            path_segment = fill_path_segment(start, [], end, units)
+            path_segment = fill_path_segment(start, [], end, previous_units, ignored)
             if path_segment is not None: 
                 path.extend(path_segment)
                 success = True
@@ -131,13 +169,13 @@ class Unit:
     
     :doc:`../tutorial/Inheriting_from_Unit`
     
-    :doc:`../tutorial/Unit_decorators`
-    
     """ 
     
     def __init_subclass__(cls,
                           isabstract=False,
-                          new_graphics=True):
+                          new_graphics=True,
+                          does_nothing=None):
+        if does_nothing: return 
         dct = cls.__dict__
         if 'run' in dct:
             raise UnitInheritanceError(
@@ -205,8 +243,7 @@ class Unit:
                         "must implement a '_run' method unless the "
                         "'isabstract' keyword argument is True"
                     )
-        if '__init__' in dct and '_stacklevel' not in dct:
-            cls._stacklevel += 1
+        if '__init__' in dct and '_stacklevel' not in dct: cls._stacklevel += 1
         
     ### Abstract Attributes ###
     #: **class-attribute** Units of measure for :attr:`~Unit.design_results` dictionary.
@@ -277,7 +314,7 @@ class Unit:
     
     #: Add itemized purchase costs to the :attr:`~Unit.baseline_purchase_costs` dictionary.
     _cost = AbstractMethod    
-
+    
     def __init__(self, ID: Optional[str]='', ins=None, outs=(), thermo: tmo.Thermo=None):
         self._system = None
         self._isdynamic = False
@@ -358,14 +395,17 @@ class Unit:
         ### Initialize specification    
     
         #: All specification functions
-        self._specification: list[Callable] = []
+        self._specifications: list[Callable] = []
         
         #: Whether to run mass and energy balance after calling
         #: specification functions
-        self.run_after_specification: bool = False 
+        self.run_after_specifications: bool = False 
+        
+        #: Whether to prioritize unit operation specification within recycle loop (if any).
+        self.prioritize: bool = False
         
         #: Safety toggle to prevent infinite recursion
-        self._running_specification: bool = False
+        self._active_specifications: set[ProcessSpecification] = set()
         
         self._assert_compatible_property_package()
     
@@ -398,10 +438,10 @@ class Unit:
         try: self.equipment_lifetime = copy(self._default_equipment_lifetime)
         except AttributeError: self.equipment_lifetime = {}
 
-    def _init_specification(self):
-        self._specification = []
-        self.run_after_specification = False
-        self._running_specification = False
+    def _init_specifications(self):
+        self._specifications = []
+        self.run_after_specifications = False
+        self._active_specifications = set()
     
     def _reset_thermo(self, thermo):
         for i in (self._ins._streams + self._outs._streams):
@@ -434,6 +474,14 @@ class Unit:
     def net_duty(self) -> float:
         """Net duty including heat transfer losses [kJ/hr]."""
         return sum([i.duty for i in self.heat_utilities])
+    @property
+    def net_cooling_duty(self) -> float:
+        """Net cooling duty including heat transfer losses [kJ/hr]."""
+        return sum([i.duty for i in self.heat_utilities if i.duty < 0.])
+    @property
+    def net_heating_duty(self) -> float:
+        """Net cooling duty including heat transfer losses [kJ/hr]."""
+        return sum([i.duty for i in self.heat_utilities if i.duty > 0.])
     
     @property
     def feed(self) -> Stream:
@@ -712,9 +760,10 @@ class Unit:
                 purchase_costs[name] = Cpb * F
     
     def _setup(self):
-        """Clear all results and setup up stream conditions and constant data.
-        This method is run at the start of unit simulation, before running mass
-        and energy balances."""
+        """Clear all results, setup up stream conditions and constant data, 
+        and update system configuration based on units impacted by process 
+        specifications. This method is run at the start of unit simulation, 
+        before running mass and energy balances."""
         self.baseline_purchase_costs.clear()
         self.purchase_costs.clear()
         self.installed_costs.clear()
@@ -743,6 +792,47 @@ class Unit:
         self._ins[:] = ()
         self._outs[:] = ()
         if discard: bst.main_flowsheet.discard(self)
+
+    def _get_tooltip_string(self, format=None, full=None):
+        """Return a string that can be used as a Tippy tooltip in HTML output"""
+        if format is None: format = bst.preferences.graphviz_format
+        if full is None: full = bst.preferences.tooltips_full_results
+        if format not in ('html', 'svg'): return ''
+        if format == 'html' and full:
+            results = self.results(include_installed_cost=True)
+            tooltip = (
+                " " + # makes sure graphviz does not try to parse the string as HTML
+                results.to_html(justify='unset'). # unset makes sure that table header style can be overwritten in CSS
+                replace("\n", "").replace("  ", "") # makes sure tippy.js does not add any whitespaces
+            )
+        else:
+            newline = '<br>' if format == 'html' else '\n'
+            electricity_consumption = self.power_utility.consumption
+            electricity_production = self.power_utility.production
+            cooling = self.net_cooling_duty / 1e3
+            heating = self.net_heating_duty / 1e3
+            utility_cost = self.utility_cost
+            purchase_cost = int(float(self.purchase_cost))
+            installed_cost = int(float(self.installed_cost))
+            tooltip = ''
+            if electricity_consumption:
+                tooltip += f"{newline}Electricity consumption: {electricity_consumption:.3g} kW"
+            if electricity_production:
+                tooltip += f"{newline}Electricity production: {electricity_production:.3g} kW"
+            if cooling:
+                tooltip += f"{newline}Cooling duty: {cooling:.3g} MJ/hr"
+            if heating:
+                tooltip += f"{newline}Heating duty: {heating:.3g} MJ/hr"
+            if utility_cost:
+                tooltip += f"{newline}Utility cost: {utility_cost:.3g} USD/hr"
+            if purchase_cost:
+                tooltip += f"{newline}Purchase cost: {purchase_cost:,} USD"
+            if installed_cost:
+                tooltip += f"{newline}Installed equipment cost: {installed_cost:,} USD"
+            if not tooltip: tooltip = 'No capital costs or utilities'
+            elif tooltip: tooltip = tooltip.lstrip(newline)
+            if format == 'html': tooltip = ' ' + tooltip
+        return tooltip
     
     def get_node(self):
         """Return unit node attributes for graphviz."""
@@ -751,7 +841,9 @@ class Unit:
         if bst.preferences.minimal_nodes:
             return self._graphics.get_minimal_node(self)
         else:
-            return self._graphics.get_node_tailored_to_unit(self)
+            node = self._graphics.get_node_tailored_to_unit(self)
+            node['tooltip'] = self._get_tooltip_string()
+            return node
     
     def get_design_result(self, key: str, units: str):
         """
@@ -870,23 +962,30 @@ class Unit:
                 pass
     
     def add_specification(self, 
-            specification: Optional[Callable]=None, 
+            f: Optional[Callable]=None, 
             run: Optional[bool]=None, 
-            args: Optional[tuple]=()
+            args: Optional[tuple]=(),
+            impacted_units: Optional[tuple[Unit, ...]]=None,
+            prioritize: Optional[bool]=None,
         ):
         """
         Add a specification.
 
         Parameters
         ----------
-        specification : 
-            Function runned for mass and energy balance.
+        f : 
+            Specification function runned for mass and energy balance.
         run : 
             Whether to run the built-in mass and energy balance after 
             specifications. Defaults to False.
         args : 
             Arguments to pass to the specification function.
-
+        impacted_units :
+            Other units impacted by specification. The system will make sure to 
+            run itermediate upstream units when simulating.
+        prioritize :
+            Whether to prioritize the unit operation within a recycle loop (if any).
+            
         Examples
         --------
         :doc:`../tutorial/Process_specifications`
@@ -894,17 +993,20 @@ class Unit:
         See Also
         --------
         add_bounded_numerical_specification
+        specifications
+        run
 
         Notes
         -----
         This method also works as a decorator.
 
         """
-        if not specification: return lambda specification: self.add_specification(specification, run)
-        if not callable(specification): raise ValueError('specification must be callable')
-        self.specification.append([specification, args])
-        if run is not None: self.run_after_specification = run
-        return specification
+        if not f: return lambda f: self.add_specification(f, run, args, impacted_units, prioritize)
+        if not callable(f): raise ValueError('specification must be callable')
+        self._specifications.append(ProcessSpecification(f, args, impacted_units))
+        if run is not None: self.run_after_specifications = run
+        if prioritize is not None: self.prioritize = prioritize
+        return f
     
     def add_bounded_numerical_specification(self, f=None, *args, **kwargs):
         """
@@ -945,6 +1047,7 @@ class Unit:
         See Also
         --------
         add_specification
+        specifications
         
         Notes
         -----
@@ -953,63 +1056,88 @@ class Unit:
         """
         if not f: return lambda f: self.add_bounded_numerical_specification(f, *args, **kwargs)
         if not callable(f): raise ValueError('f must be callable')
-        specification = bst.BoundedNumericalSpecification(f, *args, **kwargs)
-        self.specification.append([specification, ()])
+        self._specifications.append(bst.BoundedNumericalSpecification(f, *args, **kwargs))
         return f
     
     def run(self):
         """
-        Run mass and energy balance with specifications.
+        Run mass and energy balance. This method also runs specifications
+        user defined specifications unless it is being run within a 
+        specification (to avoid infinite loops). 
         
         See Also
         --------
         _run
+        specifications
         add_specification
         add_bounded_numerical_specification
         
         """
-        specification = self._specification
-        if specification and not self._running_specification:
-            self._running_specification = True
-            try:
-                for i, args in specification: i(*args)
-                if self.run_after_specification: self._run()
-            finally:
-                self._running_specification = False
+        specifications = self._specifications
+        if specifications:
+            active_specifications = self._active_specifications
+            if len(active_specifications) == len(specifications):
+                self._run()
+            else:
+                for ps in specifications: 
+                    if ps in active_specifications: continue
+                    active_specifications.add(ps)
+                    try: ps()
+                    finally: active_specifications.remove(ps)
+                if self.run_after_specifications: self._run()
         else:
             self._run()
-            
-    def path_until(self, unit, inclusive=False):
+    
+    def path_from(self, units, inclusive=False, system=None):
         """
-        Return a list of units starting from this one until the end unit 
+        Return a tuple of units and systems starting from `units` until this one 
         (not inclusive by default).
         
-        Warning
-        -------
-        This method ignores recycle loops. To account for recyle loops, see
-        :meth:`biosteam.System.from_segment`
+        """
+        units = (units,) if isinstance(units, Unit) else tuple(units)
+        if system: # Includes recycle loops
+            path = system.path_section(units, (self,))
+        else: # Path outside system, so recycle loops may not converge (and don't have to)
+            path = []
+            added_units = set()
+            upstream_units = self.get_upstream_units()
+            for unit in units:
+                if unit in upstream_units: add_path_segment(unit, self, path, added_units)
+            if inclusive and unit not in added_units: path.append(unit)
+        return path        
+    
+    def path_until(self, units, inclusive=False, system=None):
+        """
+        Return a tuple of units and systems starting from this one until the end
+        units (not inclusive by default).
         
         """
-        path = find_path_segment(self, unit)
-        if inclusive: path.append(unit)
+        units = (units,) if isinstance(units, Unit) else tuple(units)
+        if system: # Includes recycle loops
+            path = system.path_section((self,), units, inclusive)
+        else: # Path outside system, so recycle loops may not converge (and don't have to)
+            path = []
+            added_units = set()
+            downstream_units = self.get_downstream_units()
+            for unit in units:
+                if unit in downstream_units: add_path_segment(self, unit, path, added_units)
+            if inclusive and unit not in added_units: path.append(unit)
         return path
     
-    def run_until(self, unit, inclusive=False):
+    def run_until(self, units, inclusive=False, system=None):
         """
-        Run all units starting from this one until the end unit 
+        Run all units and converge all systems starting from this one until the end units
         (not inclusive by default).
-        
-        Warning
-        -------
-        This method ignores recycle loops. To account for recyle loops, see
-        :meth:`biosteam.System.from_segment`
         
         See Also
         --------
         path_until
         
         """
-        for i in self.path_until(unit, inclusive): i.run()
+        isa = isinstance
+        for i in self.path_until(units, inclusive, system): 
+            if isa(i, Unit): i.run()
+            else: i.converge() # Must be a system
         
     def _reevaluate(self):
         """Reevaluate design and costs."""
@@ -1035,18 +1163,32 @@ class Unit:
         )
     
     @property
-    def specification(self) -> list[tuple[Callable, tuple]]:
-        """Process specifications as a list of specification functions and their 
+    def specifications(self) -> list[tuple[Callable, tuple]]:
+        """
+        Process specifications as a list of specification functions and their 
         arguments in the following format, [(<function0(*args0)>, args0), 
-        (<function1(*args1)>, args1), ...]."""
-        return self._specification
+        (<function1(*args1)>, args1), ...].
+        
+        See Also
+        --------
+        add_specification
+        add_bounded_numerical_specification
+        
+        """
+        return self._specifications
+    @specifications.setter
+    def specifications(self, specifications):
+        if specifications is None:
+            self._specifications = []
+        else:
+            self._specifications = specifications
+    
+    @property
+    def specification(self):
+        raise AttributeError('`specification` property is deprecated; use `add_specification` or `specifications` (plural with an s) instead')
     @specification.setter
     def specification(self, specification):
-        if specification:
-            if callable(specification): specification = [(specification, ())]
-            self._specification = specification
-        else:
-            self._specification = []
+        raise AttributeError('`specification` property is deprecated; use `add_specification` or `specifications` (plural with an s) instead')
     
     @property
     def baseline_purchase_cost(self) -> float:
@@ -1120,6 +1262,7 @@ class Unit:
         
         """
         self._setup()
+        for ps in self._specifications: ps.compile_path(self)
         self._load_stream_links()
         self.run()
         self._summary()
@@ -1328,7 +1471,8 @@ class Unit:
         return upstream_units
     
     def neighborhood(self, 
-            radius: Optional[int]=1, upstream: Optional[bool]=True,
+            radius: Optional[int]=1, 
+            upstream: Optional[bool]=True,
             downstream: Optional[bool]=True, 
             ends: Optional[Stream]=None, 
             facilities: Optional[bool]=None
@@ -1368,7 +1512,7 @@ class Unit:
 
     def diagram(self, radius: Optional[int]=0, upstream: Optional[bool]=True,
                 downstream: Optional[bool]=True, file: Optional[str]=None, 
-                format: Optional[str]='png', display: Optional[bool]=True,
+                format: Optional[str]=None, display: Optional[bool]=True,
                 **graph_attrs):
         """
         Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram
@@ -1530,12 +1674,6 @@ class Unit:
     def _ipython_display_(self):
         if bst.preferences.autodisplay: self.diagram()
         self.show()
-
-    def __repr__(self):
-        if self.ID:
-            return f'<{type(self).__name__}: {self.ID}>'
-        else:
-            return f'<{type(self).__name__}>'
 
 
 class UnitDesignAndCapital:

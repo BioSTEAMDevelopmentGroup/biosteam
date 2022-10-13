@@ -7,6 +7,7 @@
 # for license details.
 """
 """
+from typing import Callable
 from ._parameter import Parameter
 from .. import System
 import numpy as np
@@ -78,7 +79,22 @@ class State:
         self._system = system
         self._specification = specification
     
-    specification = System.specification
+    @property
+    def specification(self) -> Callable:
+        """Process specification."""
+        return self._specification
+    @specification.setter
+    def specification(self, specification):
+        if specification:
+            if callable(specification):
+                self._specification = specification
+            else:
+                raise AttributeError(
+                    "specification must be callable or None; "
+                   f"not a '{type(specification).__name__}'"
+                )
+        else:
+            self._specification = None
     
     @property
     def system(self):

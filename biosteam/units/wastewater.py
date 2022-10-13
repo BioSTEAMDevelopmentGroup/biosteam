@@ -317,7 +317,6 @@ class AerobicDigestion(Unit):
         water.mol[:] -= vent.mol
         
 
-# TODO: Use moisture content
 class SludgeCentrifuge(SolidsSeparator):
     """
     Create a centrifuge to separate sludge. The model is based on 
@@ -336,14 +335,18 @@ class SludgeCentrifuge(SolidsSeparator):
         * [dict] ID-split pairs of feed to 0th outlet stream
     order=None : Iterable[str], defaults to biosteam.settings.chemicals.IDs
         Chemical order of split.
+    moisture_content : float, optional
+        Moisture content of sludge. Defaults to 0.79 based on stream 623 in [1]_
+        (or 20% for insolubles).
     
     """
     purchase_cost = installation_cost = 0
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
-                 split=None, order=None, moisture_content=0.46):
+                 split=None, order=None, moisture_content=None):
         self._load_thermo(thermo)
+        chemicals = self.chemicals
+        ID_water = chemicals['7732-18-5'].ID # Water must be defined
         if split is None:
-            chemicals = self.chemicals
             split = dict(
                 Furfural=1,
                 Glycerol=0.8889,
@@ -396,6 +399,10 @@ class SludgeCentrifuge(SolidsSeparator):
             )
             remove_undefined_chemicals(split, chemicals)
             default_chemical_dict(split, chemicals, 0.9394, 0.9286, 0.04991)
+            split.pop(ID_water) # Remove water from split
+        if ID_water not in split and moisture_content is None:
+            # Only set moisture content if water split is not given
+            moisture_content = 0.79
         SolidsSeparator.__init__(
             self, ID, ins, outs, thermo, split=split, order=order,
             moisture_content=moisture_content, 
@@ -550,16 +557,19 @@ def create_wastewater_treatment_units(ins, outs,
             wastewater_mixer.ins.extend(streams.noncombustible_slurries)
             for i in sys.facilities:
                 if isinstance(i, bst.BlowdownMixer): wastewater_mixer.ins.append(i.outs[0])
-            wastewater_mixer.system.update_configuration()
             
     WWTC = WastewaterSystemCost('WWTC', wastewater_mixer-0)
     anaerobic_digestion = AnaerobicDigestion('R601', WWTC-0, (methane, '', ''))
-    recycled_sludge_mixer = bst.Mixer('M602', (anaerobic_digestion-1, ''))
+    recycled_sludge_mixer = bst.Mixer('M602', ('', anaerobic_digestion-1))
     
     caustic_over_waste = caustic.imol['Water', 'NaOH'] / 2544301
     air_over_waste = air.imol['O2', 'N2'] / 2544301
     air.mol[:] = 0.
     waste = recycled_sludge_mixer-0
+    aerobic_digestion = AerobicDigestion('R602', (waste, air, caustic),
+                                         outs=('evaporated_water', ''))
+    
+    @aerobic_digestion.add_specification
     def update_aerobic_input_streams():
         waste, air, caustic = aerobic_digestion.ins
         F_mass_waste = waste.F_mass
@@ -567,9 +577,6 @@ def create_wastewater_treatment_units(ins, outs,
         air.imol['O2', 'N2'] = F_mass_waste * air_over_waste
         aerobic_digestion._run()
     
-    aerobic_digestion = AerobicDigestion('R602', (waste, air, caustic),
-                                         outs=('evaporated_water', ''))
-    aerobic_digestion.specification = update_aerobic_input_streams
     membrane_bioreactor = MembraneBioreactor('S601', aerobic_digestion-1)
     sludge_splitter = bst.Splitter('S602', membrane_bioreactor-1, split=0.96)
     fresh_sludge_mixer = bst.Mixer('M603', (anaerobic_digestion-2, sludge_splitter-1))
@@ -577,7 +584,6 @@ def create_wastewater_treatment_units(ins, outs,
     bst.Mixer('M604', [sludge_splitter-0, sludge_centrifuge-0], 0-recycled_sludge_mixer)
     reverse_osmosis = ReverseOsmosis('S604', membrane_bioreactor-0,
                                      outs=(treated_water, waste_brine))
-    
 
 def default_wastewater_thermo():
     from biorefineries.cornstover import chemicals
@@ -621,7 +627,8 @@ NaOH_price : float, optional
 
 Examples
 --------
->>> from biosteam import Stream, create_wastewater_treatment_system
+>>> from biosteam import Stream, create_wastewater_treatment_system, settings
+>>> settings.set_thermo(create_wastewater_treatment_system.fthermo())
 >>> feed = Stream(
 ...     ID='wastewater', 
 ...     Water=2.634e+04, 
@@ -658,134 +665,137 @@ Examples
 ...     Cellulase=25.4, 
 ...     units='kmol/hr'
 ... )
->>> wwt_sys = create_wastewater_treatment_system()
+>>> wwt_sys = create_wastewater_treatment_system(ins=feed)
 >>> wwt_sys.simulate()
->>> wwt_sys.show()
+>>> wwt_sys.show('cwt100')
 System: wastewater_treatment_sys
+Highest convergence error among components in recycle
+stream M604-0 after 16 loops:
+- flow rate   1.13e+03 kmol/hr (0.84%)
+- temperature 6.49e-05 K (2.1e-05%)
 ins...
 [0] wastewater
     phase: 'l', T: 298.15 K, P: 101325 Pa
-    composition: Water              0.946
-                 Ethanol            6.64e-06
-                 AceticAcid         0.00295
-                 Furfural           0.00119
-                 Glycerol           0.000328
-                 LacticAcid         0.00318
-                 SuccinicAcid       0.000818
-                 DAP                0.000264
-                 AmmoniumSulfate    0.00465
-                 HMF                0.000595
-                 Glucose            0.00101
-                 Xylose             0.00208
-                 Arabinose          0.00383
-                 Extract            0.0237
-                 Ash                0.000167
-                 Lignin             0.000503
-                 SolubleLignin      0.00128
-                 GlucoseOligomer    0.00244
-                 GalactoseOligomer  6.17e-06
-                 MannoseOligomer    3.24e-06
-                 XyloseOligomer     0.000862
-                 ArabinoseOligomer  0.000105
-                 Z_mobilis          3.28e-05
-                 Protein            0.000117
-                 Glucan             5.03e-05
-                 Xylan              1.61e-05
-                 Xylitol            0.00148
-                 Cellobiose         0.000643
-                 Arabinan           5.91e-06
-                 Mannan             2.09e-05
-                 Galactan           4.86e-06
-                 Cellulase          0.00122
-                 -----------------  5.01e+05 kg/hr
+    composition (%): Water              94.6
+                     Ethanol            0.000664
+                     AceticAcid         0.295
+                     Furfural           0.119
+                     Glycerol           0.0328
+                     LacticAcid         0.318
+                     SuccinicAcid       0.0818
+                     DAP                0.0264
+                     AmmoniumSulfate    0.465
+                     HMF                0.0595
+                     Glucose            0.101
+                     Xylose             0.208
+                     Arabinose          0.383
+                     Extract            2.37
+                     Ash                0.0167
+                     Lignin             0.0503
+                     SolubleLignin      0.128
+                     GlucoseOligomer    0.244
+                     GalactoseOligomer  0.000617
+                     MannoseOligomer    0.000324
+                     XyloseOligomer     0.0862
+                     ArabinoseOligomer  0.0105
+                     Z_mobilis          0.00328
+                     Protein            0.0117
+                     Glucan             0.00503
+                     Xylan              0.00161
+                     Xylitol            0.148
+                     Cellobiose         0.0643
+                     Arabinan           0.000591
+                     Mannan             0.00209
+                     Galactan           0.000486
+                     Cellulase          0.122
+                     -----------------  5.01e+05 kg/hr
 outs...
 [0] methane
     phase: 'g', T: 307.76 K, P: 101325 Pa
-    composition: Water         0.0318
-                 Ethanol       2.46e-07
-                 AceticAcid    1.9e-05
-                 Furfural      2.96e-05
-                 Glycerol      1.43e-10
-                 LacticAcid    8.25e-09
-                 SuccinicAcid  2.88e-11
-                 CH4           0.266
-                 CO2           0.702
-                 ------------  2.13e+04 kg/hr
+    composition (%): Water         3.18
+                     Ethanol       2.46e-05
+                     AceticAcid    0.0019
+                     Furfural      0.00296
+                     Glycerol      1.43e-08
+                     LacticAcid    8.25e-07
+                     SuccinicAcid  2.88e-09
+                     CH4           26.6
+                     CO2           70.2
+                     ------------  2.13e+04 kg/hr
 [1] sludge
     phase: 'l', T: 307.88 K, P: 101325 Pa
-    composition: Water              0.46
-                 Ethanol            5.28e-07
-                 AceticAcid         0.000268
-                 Glycerol           4.82e-05
-                 LacticAcid         0.000263
-                 SuccinicAcid       0.00012
-                 DAP                0.000994
-                 AmmoniumSulfate    0.0175
-                 SO2                5.93e-06
-                 Arabinose          0.000339
-                 Extract            0.00196
-                 Ash                0.0257
-                 NaOH               0.015
-                 Lignin             0.0755
-                 SolubleLignin      0.000105
-                 GlucoseOligomer    0.000313
-                 GalactoseOligomer  7.91e-07
-                 MannoseOligomer    4.15e-07
-                 XyloseOligomer     0.00011
-                 ArabinoseOligomer  1.35e-05
-                 Z_mobilis          0.000407
-                 Protein            0.00144
-                 Glucan             0.000235
-                 Xylan              0.000225
-                 Xylitol            0.000218
-                 Cellobiose         5.7e-05
-                 Arabinan           0.000103
-                 Mannan             0.000362
-                 Galactan           8.45e-05
-                 WWTsludge          0.399
-                 Cellulase          0.0001
-                 -----------------  2.57e+03 kg/hr
+    composition (%): Water              46
+                     Ethanol            5.26e-05
+                     AceticAcid         0.0267
+                     Glycerol           0.0048
+                     LacticAcid         0.0262
+                     SuccinicAcid       0.012
+                     DAP                0.0976
+                     AmmoniumSulfate    1.72
+                     SO2                0.000601
+                     Arabinose          0.0338
+                     Extract            0.195
+                     Ash                2.56
+                     NaOH               1.58
+                     Lignin             7.54
+                     SolubleLignin      0.0105
+                     GlucoseOligomer    0.0312
+                     GalactoseOligomer  7.88e-05
+                     MannoseOligomer    4.13e-05
+                     XyloseOligomer     0.011
+                     ArabinoseOligomer  0.00134
+                     Z_mobilis          0.0406
+                     Protein            0.143
+                     Glucan             0.0229
+                     Xylan              0.0226
+                     Xylitol            0.0217
+                     Cellobiose         0.00568
+                     Arabinan           0.0103
+                     Mannan             0.0363
+                     Galactan           0.00847
+                     WWTsludge          39.8
+                     Cellulase          0.01
+                     -----------------  2.57e+03 kg/hr
 [2] treated_water
     phase: 'l', T: 307.79 K, P: 101325 Pa
-    composition: Water  1
-                 -----  4.29e+05 kg/hr
+    composition (%): Water  100
+                     -----  4.16e+05 kg/hr
 [3] waste_brine
     phase: 'l', T: 307.79 K, P: 101325 Pa
-    composition: Water              0.5
-                 Ethanol            1.34e-07
-                 AceticAcid         6.06e-05
-                 Furfural           2.43e-05
-                 Glycerol           6.72e-06
-                 LacticAcid         7.58e-05
-                 SuccinicAcid       1.68e-05
-                 DAP                0.0112
-                 AmmoniumSulfate    0.198
-                 HMF                1.23e-05
-                 SO2                9.78e-05
-                 Glucose            2.42e-05
-                 Xylose             8.56e-05
-                 Arabinose          7.87e-05
-                 Extract            0.000565
-                 Ash                0.00263
-                 NaOH               0.22
-                 Lignin             0.00509
-                 SolubleLignin      3.04e-05
-                 GlucoseOligomer    5.72e-05
-                 GalactoseOligomer  1.45e-07
-                 MannoseOligomer    7.59e-08
-                 XyloseOligomer     2.02e-05
-                 ArabinoseOligomer  2.46e-06
-                 Z_mobilis          1.98e-07
-                 Protein            7.28e-07
-                 Glucan             0.0021
-                 Xylan              0.000639
-                 Xylitol            3.03e-05
-                 Cellobiose         1.32e-05
-                 Arabinan           0.000229
-                 Mannan             0.000809
-                 Galactan           0.000189
-                 WWTsludge          0.0579
-                 Cellulase          2.9e-05
-                 -----------------  1.13e+04 kg/hr
-
+    composition (%): Water              48.7
+                     Ethanol            1.35e-05
+                     AceticAcid         0.00609
+                     Furfural           0.00244
+                     Glycerol           0.000675
+                     LacticAcid         0.00763
+                     SuccinicAcid       0.00169
+                     DAP                1.11
+                     AmmoniumSulfate    19.6
+                     HMF                0.00124
+                     SO2                0.01
+                     Glucose            0.00244
+                     Xylose             0.00861
+                     Arabinose          0.00791
+                     Extract            0.0568
+                     Ash                0.267
+                     NaOH               23.5
+                     Lignin             0.519
+                     SolubleLignin      0.00306
+                     GlucoseOligomer    0.00576
+                     GalactoseOligomer  1.46e-05
+                     MannoseOligomer    7.63e-06
+                     XyloseOligomer     0.00203
+                     ArabinoseOligomer  0.000248
+                     Z_mobilis          1.99e-05
+                     Protein            7.32e-05
+                     Glucan             0.206
+                     Xylan              0.0657
+                     Xylitol            0.00305
+                     Cellobiose         0.00133
+                     Arabinan           0.0237
+                     Mannan             0.0837
+                     Galactan           0.0195
+                     WWTsludge          5.9
+                     Cellulase          0.00292
+                     -----------------  1.12e+04 kg/hr
 """

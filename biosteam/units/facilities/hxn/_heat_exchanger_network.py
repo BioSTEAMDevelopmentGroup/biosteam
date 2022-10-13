@@ -152,7 +152,8 @@ class HeatExchangerNetwork(Facility):
         
     def _run(self): pass
     def _design(self): pass
-    
+    def _load_capital_costs(self): pass # Do not replace installed costs
+
     def _cost(self):
         sys = self.system
         hx_utils = self._get_original_heat_utilties()
@@ -297,20 +298,20 @@ class HeatExchangerNetwork(Facility):
             self.energy_balance_percent_error = 100 * energy_balance_error
             
             if new_HXs:
-                self.installed_costs['Heat exchangers'] = (
+                self.installed_costs['Heat exchangers'] = max(0, (
                         sum(new_installed_costs_HXp)
                         + sum(new_installed_costs_HXu)
                         - sum(original_installed_costs)
-                )
-                self.purchase_costs['Heat exchangers'] = self.baseline_purchase_costs['Heat exchangers'] = (
+                ))
+                self.purchase_costs['Heat exchangers'] = self.baseline_purchase_costs['Heat exchangers'] = max(0, (
                     sum(new_purchase_costs_HXp) 
                     + sum(new_purchase_costs_HXu)
                     - sum(original_purchase_costs)
-                )
+                ))
                 self.heat_utilities = hus_final
             else: # if no matches were made, retain all original HXutilities (i.e., don't add the -- relatively minor -- differences between new and original HXutilities)
                 self.installed_costs['Heat exchangers'] = 0.
-                self.purchase_costs['Heat exchangers'] = 0.
+                self.baseline_purchase_costs['Heat exchangers'] = self.purchase_costs['Heat exchangers'] = 0.
                 self.heat_utilities = tuple([])
                 
             self.original_heat_utils = hx_utils_rearranged

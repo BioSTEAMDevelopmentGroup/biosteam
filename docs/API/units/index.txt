@@ -15,6 +15,7 @@ units
    tank
    solids_separation
    splitting
+   valve
    wastewater
    Pump
    BatchBioreactor
@@ -25,5 +26,4 @@ units
    MassBalance
    MolecularSieve
    MultiEffectEvaporator
-   ProcessSpecification
    Transesterification

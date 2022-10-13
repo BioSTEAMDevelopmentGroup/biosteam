@@ -8,8 +8,8 @@
 """
 .. contents:: :local:
 
-.. autoclass:: biosteam.units._valve.Valve
-.. autoclass:: biosteam.units._valve.IsenthalpicValve
+.. autoclass:: biosteam.units.valve.Valve
+.. autoclass:: biosteam.units.valve.IsenthalpicValve
 
 """
 from .. import Unit

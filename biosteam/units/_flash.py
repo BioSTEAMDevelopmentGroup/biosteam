@@ -603,18 +603,32 @@ class RatioFlash(Flash):
         feed = self.ins[0]
         top, bot = self.outs
         indices = self.chemicals.get_index
-        K_index = indices(self.K_chemicals)
-        top_index = indices(self.top_solvents)
-        bot_index = indices(self.bot_solvents)
+        def flattend(indices, split):
+            flat_index = []
+            flat_split = []
+            integer = int
+            isa = isinstance
+            for i, j in zip(indices, split):
+                if isa(i, integer): 
+                    flat_index.append(i)
+                    flat_split.append(j)
+                else:
+                    flat_index.extend(i)
+                    flat_split.extend([j] * len(i))
+            return np.array(flat_index), np.array(flat_split)
+        
+        K_index, Ks = flattend(indices(self.K_chemicals), self.Ks)
+        top_index, top_split = flattend(indices(self.top_solvents), self.top_split)
+        bot_index, bot_split = flattend(indices(self.bot_solvents), self.bot_split)
         top_mol = top.mol; bot_mol = bot.mol; feed_mol = feed.mol
-        top_mol[top_index] = feed_mol[top_index]*self.top_split
-        bot_mol[top_index] = feed_mol[top_index]-top_mol[top_index]
-        bot_mol[bot_index] = feed_mol[bot_index]*self.bot_split
-        top_mol[bot_index] = feed_mol[bot_index]-bot_mol[bot_index]
+        top_mol[top_index] = feed_mol[top_index] * top_split
+        bot_mol[top_index] = feed_mol[top_index] - top_mol[top_index]
+        bot_mol[bot_index] = feed_mol[bot_index] * bot_split
+        top_mol[bot_index] = feed_mol[bot_index] - bot_mol[bot_index]
         topnet = top_mol[top_index].sum()
         botnet = bot_mol[bot_index].sum()
         molnet = topnet+botnet
-        top_mol[K_index] = self.Ks * topnet * feed_mol[K_index] / molnet  # solvent * mol ratio
+        top_mol[K_index] = Ks * topnet * feed_mol[K_index] / molnet  # solvent * mol ratio
         bot_mol[K_index] = feed_mol[K_index] - top_mol[K_index]
         top.T, top.P = feed.T, feed.P
         bot.T, bot.P = feed.T, feed.P

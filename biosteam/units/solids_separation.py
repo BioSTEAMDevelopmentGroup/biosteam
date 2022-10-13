@@ -53,7 +53,7 @@ class SolidsSeparator(Splitter):
     ----------
     ins : streams
         Inlet fluids with solids.
-    outs : stream sequnece
+    outs : stream sequence
         * [0] Retentate.
         * [1] Permeate.
     split : array_like
@@ -273,7 +273,7 @@ RVF = RotaryVacuumFilter
 class CrushingMill(SolidsSeparator):
     """
     Create crushing mill unit operation for the 
-    separation of sugarcane juice from the baggasse.
+    separation of sugarcane juice from the bagasse.
     
     Parameters
     ----------
@@ -286,7 +286,7 @@ class CrushingMill(SolidsSeparator):
     split : array_like or dict[str, float]
         Splits of chemicals to the bagasse.
     moisture_content : float
-                       Fraction of water in Baggasse.
+                       Fraction of water in Bagasse.
     
     """
 
@@ -334,7 +334,7 @@ class PressureFilter(SolidsSeparator):
         * [0] Retentate (i.e. solids)
         * [1] Filtrate
     split : array_like or dict[str, float]
-        Splits of chemicals to the retantate. Defaults to values used in
+        Splits of chemicals to the retentate. Defaults to values used in
         the 2011 NREL report on cellulosic ethanol as given in [2]_.
     moisture_content : float, optional
         Moisture content of retentate. Defaults to 0.35
@@ -345,8 +345,8 @@ class PressureFilter(SolidsSeparator):
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
                  moisture_content=0.35, split=None):
         self._load_thermo(thermo)
-        chemicals = self.chemicals
         if split is None:
+            chemicals = self.chemicals
             split = dict(
                 Furfural=0.03571,
                 Glycerol=0.03714,

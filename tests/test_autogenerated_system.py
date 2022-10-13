@@ -88,13 +88,14 @@ def test_simple_recycle_loop():
 def test_unconnected_case():
     f.set_flowsheet('unconnected_case')
     settings.set_thermo(['Water'], cache=True)
+    # Recycle loop a
     feedstock_a = Stream('feedstock_a', Water=1000)
     water_a = Stream('water_a', Water=10)
     byproduct_a = Stream('byproduct_a')
     product_a = Stream('product_a')
     M1_a = Mixer('M1_a', [feedstock_a, water_a])
     S1_a = Splitter('S1_a', M1_a-0, [product_a, byproduct_a], split=0.5)
-    
+    # Recycle loop b
     feedstock_b = Stream('feedstock_b', Water=1000)
     water_b = Stream('water_b', Water=10)
     byproduct_b = Stream('byproduct_b')
@@ -114,21 +115,26 @@ def test_unconnected_case():
     assert parallel_sys.path == (M1_a, S1_a, M1_b, S1_b)
     parallel_sys.empty_recycles()
     parallel_sys.simulate()
+    # Process specification reordering
+    assert parallel_sys.path == (M1_a, S1_a, M1_b, S1_b)
+    M1_b.add_specification(f=lambda: None, run=True, impacted_units=[M1_a])
+    parallel_sys.simulate() # Should reorder due to process specifications
+    assert parallel_sys.path == (M1_b, M1_a, S1_a, S1_b)
     f.clear()
 
 def test_unconnected_recycle_loop():
     f.set_flowsheet('unconnected_recycle_loop')
     settings.set_thermo(['Water'], cache=True)
+    # Recycle loop a
     feedstock_a = Stream('feedstock_a', Water=1000)
     water_a = Stream('water_a', Water=10)
     recycle_a = Stream('recycle_a')
     product_a = Stream('product_a')
     M1_a = Mixer('M1_a', [feedstock_a, water_a, recycle_a])
     S1_a = Splitter('S1_a', M1_a-0, [product_a, recycle_a], split=0.5)
-    
+    # Recycle loop b
     feedstock_b = Stream('feedstock_b', Water=800)
     water_b = Stream('water_b', Water=10)
-    recycle_b = Stream('recycle_b')
     byproduct_b = Stream('byproduct_b')
     product_b = Stream('product_b')
     M1_b = Mixer('M1_b', [feedstock_b, water_b])
@@ -144,14 +150,14 @@ def test_unconnected_recycle_loop():
          S1_b])
     assert network == actual_network
     recycle_loop_sys.simulate()
-    x_nested_solution = np.vstack([recycle_a.mol, recycle_b.mol])
+    x_nested_solution = np.vstack([recycle_a.mol])
     recycle_loop_sys.flatten()
     assert recycle_loop_sys.path == (M1_a, S1_a, M1_b, S1_b)
     recycle_loop_sys.empty_recycles()
     recycle_loop_sys.simulate()
-    x_flat_solution = np.vstack([recycle_a.mol, recycle_b.mol])
+    x_flat_solution = np.vstack([recycle_a.mol])
     assert_allclose(x_nested_solution, x_flat_solution, rtol=2e-2)
-    
+    # New configuration due to stream priority changes
     feedstock_b.F_mol = 1200 # Larger flow means b has higher priority
     recycle_loop_sys = f.create_system('recycle_loop_sys')
     network = recycle_loop_sys._to_network()
@@ -164,13 +170,19 @@ def test_unconnected_recycle_loop():
             recycle=S1_a-1)])
     assert network == actual_network
     recycle_loop_sys.simulate()
-    x_nested_solution = np.vstack([recycle_a.mol, recycle_b.mol])
+    x_nested_solution = np.vstack([recycle_a.mol])
     recycle_loop_sys.flatten()
     assert recycle_loop_sys.path == (M1_b, S1_b, M1_a, S1_a)
     recycle_loop_sys.empty_recycles()
     recycle_loop_sys.simulate()
-    x_flat_solution = np.vstack([recycle_a.mol, recycle_b.mol])
+    x_flat_solution = np.vstack([recycle_a.mol])
     assert_allclose(x_nested_solution, x_flat_solution, rtol=2e-2)
+    # Process specification reordering
+    assert recycle_loop_sys.path == (M1_b, S1_b, M1_a, S1_a)
+    M1_a.add_specification(f=lambda: None, run=True, impacted_units=[M1_b])
+    recycle_loop_sys.simulate() # Should reorder due to process specifications
+    recycle_loop_sys.flatten()
+    assert recycle_loop_sys.path == (M1_a, S1_a, M1_b, S1_b)
     f.clear()
 
 def test_unconnected_recycle_loops():
@@ -306,6 +318,7 @@ def test_bifurcated_recycle_loops():
     M2_b = Mixer('M2_b', [S1_b-0, S2_b-1, S3_a-0])
     S3_b = Splitter('S3_b', M2_b-0, [product_b, recycle_b], split=0.5)
     recycle_loop_sys = f.create_system('recycle_loop_sys')
+    recycle_loop_sys.set_tolerance(mol=1e-3, rmol=1e-6, subsystems=True)
     network = recycle_loop_sys._to_network()
     actual_network = Network(
         [P1_b,
@@ -329,9 +342,8 @@ def test_bifurcated_recycle_loops():
     assert network == actual_network
     recycle_loop_sys.simulate()
     x_nested_solution = np.vstack([recycle_a.mol, recycle_b.mol])
+    # Test flattend solution
     recycle_loop_sys.flatten()
-    assert recycle_loop_sys.path == (P1_b, P1_a, P2_a, S1_a, M1_a, S2_a, M2_a, 
-                                     S3_a, P2_b, S1_b, M1_b, S2_b, M2_b, S3_b)
     recycle_loop_sys.empty_recycles()
     recycle_loop_sys.simulate()
     x_flat_solution = np.vstack([recycle_a.mol, recycle_b.mol])
@@ -537,7 +549,6 @@ def test_nested_recycle_loops():
     feed_2 = Stream('feed_2', Water=10)
     feed_3 = Stream('feed_3', Water=10)
     feed_4 = Stream('feed_4', Water=10)
-    inner_recycle = Stream('inner_recycle')
     product = Stream('product')
     P1 = Pump('P1', feedstock)
     M1 = Mixer('M1', [P1-0, recycle_1])
@@ -611,67 +622,67 @@ def test_nested_recycle_loops():
 def test_sugarcane_ethanol_biorefinery_network():
     from biorefineries.sugarcane import flowsheet as f
     sugarcane_sys = f.create_system('sugarcane_sys')
-    globals().update(f.unit.data)
+    u = f.unit
     network = sugarcane_sys._to_network()
     actual_network = Network(
-        [U101,
-         U102,
-         U103,
+        [u.U101,
+         u.U102,
+         u.U103,
          Network(
-            [U201,
-             S201,
-             M201],
-            recycle=M201-0),
-         T202,
-         H201,
-         T203,
-         P201,
-         T204,
-         T205,
-         P202,
+            [u.U201,
+             u.S201,
+             u.M201],
+            recycle=u.M201-0),
+         u.T202,
+         u.H201,
+         u.T203,
+         u.P201,
+         u.T204,
+         u.T205,
+         u.P202,
          Network(
-            [M202,
-             H202,
-             T206,
-             C201,
-             C202,
-             P203],
-            recycle=P203-0),
-         S202,
-         F301,
-         P306,
-         M301,
-         H301,
+            [u.M202,
+             u.H202,
+             u.T206,
+             u.C201,
+             u.C202,
+             u.P203],
+            recycle=u.P203-0),
+         u.S202,
+         u.F301,
+         u.P306,
+         u.M301,
+         u.H301,
          Network(
-            [R301,
-             T301,
-             C301,
-             S302],
-            recycle=S302-0),
-         D301,
-         M302,
-         P301,
+            [u.R301,
+             u.T301,
+             u.C301,
+             u.S302],
+            recycle=u.S302-0),
+         u.D301,
+         u.M302,
+         u.P301,
          Network(
-            [H302,
-             D302,
-             P302],
-            recycle=P302-0),
+            [u.H302,
+             u.D302,
+             u.P302],
+            recycle=u.P302-0),
          Network(
-            [M303,
-             D303,
-             H303,
-             U301],
-            recycle=U301-0),
-         H304,
-         T302,
-         P304,
-         T303,
-         P305,
-         M304,
-         T304,
-         P303,
-         M305,
-         U202])
+            [u.M303,
+             u.D303,
+             u.H303,
+             u.U301],
+            recycle=u.U301-0),
+         u.H304,
+         u.T302,
+         u.P304,
+         u.T303,
+         u.P305,
+         u.M304,
+         u.T304,
+         u.P303,
+         u.M305,
+         u.U202])
     assert network == actual_network
     sugarcane_sys.empty_recycles()
     sugarcane_sys.simulate()

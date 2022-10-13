@@ -561,7 +561,7 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False,
                                           H = H_out_arr[cold], rigorous = True,
                                           thermo = cold_stream.thermo)
         new_HX_util._run()
-        s_out = new_HX_util-0
+        s_out = new_HX_util.outs[0]
         np.testing.assert_allclose(s_out.H, H_out_arr[cold], rtol=1e-2, atol=1.)
         atol_T = 5. if 's' in hxs[cold].outs[0].phases else 0.001
         np.testing.assert_allclose(s_out.T, T_out_arr[cold], rtol=5e-2, atol=atol_T)
