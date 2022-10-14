@@ -531,7 +531,7 @@ class HXutility(HX):
 
     def _design(self, duty=None):
         # Set duty and run heat utility
-        if duty is None: duty = self.H_out - self.H_in
+        if duty is None: duty = self.Hnet # Includes heat of formation
         inlet = self.ins[0]
         outlet = self.outs[0] 
         T_in = inlet.T
