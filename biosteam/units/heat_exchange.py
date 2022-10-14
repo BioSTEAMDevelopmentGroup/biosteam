@@ -404,17 +404,22 @@ class HXutility(HX):
         self._heat_utilities = heat_utilities = tuple(heat_utilities)
         for i in heat_utilities: i.heat_exchanger = self
     
-    def simulate_as_auxiliary_exchanger(self, duty, stream):
-        self.outs[0] = stream.proxy()
-        self.ins[0] = stream.proxy()
+    def simulate_as_auxiliary_exchanger(self, inlet=None, outlet=None, duty=None):
+        if not outlet: 
+            outlet = inlet
+            if duty is None: raise ValueError('must pass duty when no outlet is given')
+        if not inlet: raise ValueError('must pass inlet stream')
+        if duty is None: duty = outlet.Hnet - inlet.Hnet
+        self.outs[0] = inlet.proxy()
+        self.ins[0] = outlet.proxy()
         hu = self.heat_utilities[0]
-        hu.heat_exchanger = None
+        hu.heat_exchanger = None # Do not include in heat exchanger network
         hte = self.heat_transfer_efficiency
         if hte is not None: hu.heat_transfer_efficiency = hte
-        hu(duty, stream.T)
-        super()._design()
-        self._cost()
-        self._load_capital_costs()
+        hu(duty, inlet.T)
+        self._setup()
+        for ps in self._specifications: ps.compile_path(self)
+        self._summary()
         
     def _run(self):
         feed = self.ins[0]
