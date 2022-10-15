@@ -472,7 +472,7 @@ class Unit:
     @property
     def net_power(self) -> float:
         """Net power consumption [kW]."""
-        return self.power_utility.rate
+        return self.power_utility.power
     @property
     def net_duty(self) -> float:
         """Net duty including heat transfer losses [kJ/hr]."""
@@ -1353,7 +1353,7 @@ class Unit:
 
     def results(self, with_units=True, include_utilities=True,
                 include_total_cost=True, include_installed_cost=False,
-                include_zeros=True, external_utilities=(), key_hook=None):
+                include_zeros=True, external_utilities=None, key_hook=None):
         """
         Return key results from simulation as a DataFrame if `with_units`
         is True or as a Series otherwise.
@@ -1366,16 +1366,17 @@ class Unit:
         keys = []; 
         vals = []; addval = vals.append
         stream_utility_prices = bst.stream_utility_prices
+        all_utilities = self.heat_utilities + external_utilities if external_utilities else self.heat_utilities
         if with_units:
             if include_utilities:
                 power_utility = self.power_utility
                 if power_utility:
-                    addkey(('Power', 'Rate'))
-                    addval(('kW', power_utility.rate))
+                    addkey(('Power', 'Power'))
+                    addval(('kW', power_utility.power))
                     if include_zeros or power_utility.cost:
                         addkey(('Power', 'Cost'))
                         addval(('USD/hr', power_utility.cost))
-                for heat_utility in HeatUtility.sum_by_agent(self.heat_utilities + external_utilities):
+                for heat_utility in HeatUtility.sum_by_agent(all_utilities):
                     if heat_utility:
                         ID = heat_utility.ID.replace('_', ' ').capitalize()
                         addkey((ID, 'Duty'))
@@ -1431,12 +1432,12 @@ class Unit:
             if include_utilities:
                 power_utility = self.power_utility
                 if power_utility:
-                    addkey(('Power', 'Rate'))
-                    addval(power_utility.rate)
+                    addkey(('Power', 'Power'))
+                    addval(power_utility.power)
                     if include_zeros or power_utility.cost:
                         addkey(('Power', 'Cost'))
                         addval(power_utility.cost)
-                for heat_utility in HeatUtility.sum_by_agent(self.heat_utilities + external_utilities):
+                for heat_utility in HeatUtility.sum_by_agent(all_utilities):
                     if heat_utility:
                         ID = heat_utility.ID.replace('_', ' ').capitalize()
                         addkey((ID, 'Duty'))
