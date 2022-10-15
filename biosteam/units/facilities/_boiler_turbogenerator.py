@@ -87,7 +87,6 @@ class Boiler(Facility):
     RO_rejection = 0
     _N_ins = 6
     _N_outs = 5
-    _N_heat_utilities = 0
     _units = {'Flow rate': 'kg/hr',
               'Work': 'kW',
               'Ash disposal': 'kg/hr'}
@@ -269,9 +268,9 @@ class Boiler(Facility):
             
         remainder_feed_solids.mol = (1. - solids_fraction_burned) * feed_solids.mol
         remainder_feed_gas.mol = (1. - gas_fraction_burned) * feed_gas.mol
-        hus_heating = bst.HeatUtility.sum_by_agent(tuple(self.steam_utilities))
+        hus_heating = bst.HeatUtility.sum_by_agent(self.steam_utilities)
         for hu in hus_heating: hu.reverse()
-        self.heat_utilities = tuple(hus_heating)
+        self.heat_utilities = hus_heating
         water_index = chemicals.index('7732-18-5')
         blowdown_water.mol[water_index] = makeup_water.mol[water_index] = (
                 self.total_steam * self.boiler_blowdown * 1/(1-self.RO_rejection)
@@ -377,7 +376,6 @@ class BoilerTurbogenerator(Facility):
     RO_rejection = 0
     _N_ins = 6
     _N_outs = 3
-    _N_heat_utilities = 0
     _units = {'Flow rate': 'kg/hr',
               'Work': 'kW',
               'Ash disposal': 'kg/hr'}
@@ -560,7 +558,7 @@ class BoilerTurbogenerator(Facility):
         hu_cooling(self.cooling_duty, steam_demand.T)
         hus_heating = bst.HeatUtility.sum_by_agent(tuple(self.steam_utilities))
         for hu in hus_heating: hu.reverse()
-        self.heat_utilities = (*hus_heating, hu_cooling)
+        self.heat_utilities = [*hus_heating, hu_cooling]
         water_index = chemicals.index('7732-18-5')
         blowdown_water.mol[water_index] = makeup_water.mol[water_index] = (
                 self.total_steam * self.boiler_blowdown * 1/(1-self.RO_rejection)

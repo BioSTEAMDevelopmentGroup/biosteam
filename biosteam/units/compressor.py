@@ -66,7 +66,6 @@ class Compressor(Unit, isabstract=True):
     _graphics = compressor_graphics
     _N_ins = 1
     _N_outs = 1
-    _N_heat_utilities = 1
     _units = {
         'Ideal power': 'kW',
         'Ideal duty': 'kJ/hr',
@@ -241,7 +240,7 @@ class Compressor(Unit, isabstract=True):
                 # Assume that the recondenser cost is negligible and that 
                 # heat integration is used (which are commonly the case).
                 hps = bst.settings.get_heating_agent('high_pressure_steam')
-                self.heat_utilities[0](self.power_utility.consumption, T_in=298.15, agent=hps)
+                self.add_heat_utility(self.power_utility.consumption, T_in=298.15, agent=hps)
             elif driver == 'Gas turbine':
                 # TODO: Possibly have an optional inlet stream that can work
                 # as either steam or gas feed to the turbine.
@@ -359,7 +358,7 @@ class IsothermalCompressor(Compressor, new_graphics=False):
         outlet = self.outs[0]
         ideal_power, ideal_duty = self._calculate_ideal_power_and_duty()
         Q = ideal_duty / self.eta
-        self.heat_utilities[0](unit_duty=Q, T_in=feed.T, T_out=outlet.T)
+        self.add_heat_utility(unit_duty=Q, T_in=feed.T, T_out=outlet.T)
         self.design_results['Ideal power'] = ideal_power # kW
         self.design_results['Ideal duty'] = ideal_duty # kJ / hr
         self._set_power(ideal_power / self.eta)
@@ -835,7 +834,6 @@ class MultistageCompressor(Unit):
 
     _N_ins = 1
     _N_outs = 1
-    _N_heat_utilities = 0
     _units = {
         **Compressor._units,
         **HX._units,
@@ -966,7 +964,9 @@ class MultistageCompressor(Unit):
         units = [u for t in zip(self.compressors, self.hxs) for u in t]
 
         # simulate all subcomponents
-        for u in units: u.run()
+        for u in units: 
+            u._setup() 
+            u._run()
 
     def _design(self):
         self.design_results["Type"] = "Multistage compressor"
@@ -974,9 +974,7 @@ class MultistageCompressor(Unit):
         # design all subcomponents
         units = [u for t in zip(self.compressors,self.hxs) for u in t]
         for u in units: u._summary()
-        self.power_utility.mix_from([u.power_utility for u in units])
-        self.heat_utilities = bst.HeatUtility.sum_by_agent([h for u in units for h in u.heat_utilities])
-
+        
         # sum up design values
         sum_fields = [
             "Power", "Duty",

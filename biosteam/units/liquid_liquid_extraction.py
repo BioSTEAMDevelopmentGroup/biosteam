@@ -181,7 +181,6 @@ class LiquidsCentrifuge(Unit, isabstract=True):
 
 # TODO: Remove this in favor of partition coefficients
 class LiquidsRatioCentrifuge(LiquidsCentrifuge):
-    _N_heat_utilities = 0
     line = 'Liquids centrifuge'
     __init__ = RatioFlash.__init__
     _run = RatioFlash._run
@@ -353,7 +352,6 @@ class SLLECentrifuge(Unit):
     line = '3-Phase decanter centrifuge'
     _N_ins = 1
     _N_outs = 3
-    _N_heat_utilities = 0
     
     @property
     def solids_split(self):
@@ -468,7 +466,6 @@ class SolidLiquidsSplitCentrifuge(Unit):
     line = SLLECentrifuge.line
     _N_ins = 1
     _N_outs = 3
-    _N_heat_utilities = 0
     
     @property
     def solids_split(self):
@@ -600,7 +597,6 @@ class LiquidsSettler(bst.Unit, PressureVessel, isabstract=True):
     """
     _N_ins = 1
     _N_outs = 2
-    _N_heat_utilities = 0
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
                  area_to_feed=0.1, 

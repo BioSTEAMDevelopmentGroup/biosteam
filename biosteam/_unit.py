@@ -531,6 +531,15 @@ class Unit:
         else:
             power_utility.production -= power
     
+    def create_heat_utility(self,
+            agent: Optional[UtilityAgent]=None,
+            heat_transfer_efficiency: Optional[float]=None,
+        ):
+        """Create heat utility object associated to unit."""
+        hu = HeatUtility(heat_transfer_efficiency, None)
+        self.heat_utilities.append(hu)
+        return hu
+    
     def add_heat_utility(self, 
             unit_duty: float, 
             T_in: float,

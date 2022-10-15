@@ -116,7 +116,6 @@ class HeatExchangerNetwork(Facility):
     network_priority = -1
     _N_ins = 0
     _N_outs = 0
-    _N_heat_utilities = 1
     _units= {'Flow rate': 'kg/hr',
               'Work': 'kW'}
     
@@ -312,7 +311,7 @@ class HeatExchangerNetwork(Facility):
             else: # if no matches were made, retain all original HXutilities (i.e., don't add the -- relatively minor -- differences between new and original HXutilities)
                 self.installed_costs['Heat exchangers'] = 0.
                 self.baseline_purchase_costs['Heat exchangers'] = self.purchase_costs['Heat exchangers'] = 0.
-                self.heat_utilities = tuple([])
+                self.heat_utilities = []
                 
             self.original_heat_utils = hx_utils_rearranged
             self.original_purchase_costs = original_purchase_costs

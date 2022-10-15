@@ -119,7 +119,7 @@ class Distillation(Unit, isabstract=True):
 
     """
     line = 'Distillation'
-    auxiliary_unit_names = ('condenser', 'boiler')
+    auxiliary_unit_names = ('condenser', 'boiler', 'vacuum_system')
     _graphics = vertical_column_graphics
     _ins_size_is_fixed = False
     _N_ins = 1
@@ -258,9 +258,7 @@ class Distillation(Unit, isabstract=True):
                                 ins=tmo.Stream(None, thermo=boiler_thermo),
                                 outs=tmo.MultiStream(None, thermo=boiler_thermo),
                                 thermo=boiler_thermo)
-        self.boiler.owner = self
         self.boiler._ID = 'Boiler'
-        self.condenser.owner = self
         self.condenser._ID = 'Condenser'
         self.boilup = self.boiler.outs[0]['g']  
         self.LHK = LHK
@@ -809,13 +807,9 @@ class Distillation(Unit, isabstract=True):
         for length, diameter in dimensions:
             R = diameter * 0.5
             volume += 0.02832 * np.pi * length * R * R # m3
-        vacuum_results = compute_vacuum_system_power_and_cost(
+        self.vacuum_system = bst.VacuumSystem(
             0., 0., P, volume, self.vacuum_system_preference
         )
-        self.baseline_purchase_costs['Vacuum system'] = vacuum_results['Cost']
-        self.design_results['Vacuum system'] = vacuum_results['Name']
-        self.heat_utilities.extend(vacuum_results['Heat utilities'])
-        self.power_utility(vacuum_results['Work'])
     
     def _cost(self):
         Design = self.design_results
