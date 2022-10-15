@@ -1748,12 +1748,12 @@ class System:
         for u in self.units: 
             u._system = self
             u._setup()
+            u._check_setup()
             for ps in u._specifications: ps.compile_path(u)
             if u not in prioritized_units:
                 if u.prioritize: self.prioritize_unit(u)
                 prioritized_units.add(u)
                 
-            
     def _setup(self, update_configuration=False):
         """Setup each element of the system."""
         units = self.units

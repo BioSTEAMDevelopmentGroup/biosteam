@@ -121,7 +121,6 @@ class Distillation(Unit, isabstract=True):
     line = 'Distillation'
     auxiliary_unit_names = ('condenser', 'boiler')
     _graphics = vertical_column_graphics
-    _N_heat_utilities = 0
     _ins_size_is_fixed = False
     _N_ins = 1
     _N_outs = 2
@@ -264,8 +263,6 @@ class Distillation(Unit, isabstract=True):
         self.condenser.owner = self
         self.condenser._ID = 'Condenser'
         self.boilup = self.boiler.outs[0]['g']  
-        self.heat_utilities = (*self.condenser.heat_utilities, *self.boiler.heat_utilities,
-                               bst.HeatUtility(), bst.HeatUtility())
         self.LHK = LHK
         self.reset_cache() # Abstract method
     
@@ -678,6 +675,8 @@ class Distillation(Unit, isabstract=True):
     def _simulate_components(self): 
         boiler = self.boiler
         condenser = self.condenser
+        boiler._setup()
+        condenser._setup()
         Q_condenser = condenser.outs[0].H - condenser.ins[0].H
         H_out = self.H_out
         H_in = self.H_in
@@ -815,12 +814,7 @@ class Distillation(Unit, isabstract=True):
         )
         self.baseline_purchase_costs['Vacuum system'] = vacuum_results['Cost']
         self.design_results['Vacuum system'] = vacuum_results['Name']
-        _, _, vacuum_steam, vacuum_cooling_water = self.heat_utilities
-        vacuum_steam.set_utility_by_flow_rate(vacuum_results['Heating agent'], vacuum_results['Steam flow rate'])
-        if vacuum_results['Condenser']: 
-            vacuum_cooling_water(-vacuum_steam.unit_duty, 373.15)
-        else:
-            vacuum_cooling_water.empty()
+        self.heat_utilities.extend(vacuum_results['Heat utilities'])
         self.power_utility(vacuum_results['Work'])
     
     def _cost(self):

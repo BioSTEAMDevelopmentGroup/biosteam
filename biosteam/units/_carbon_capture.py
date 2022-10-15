@@ -134,7 +134,6 @@ class AmineAbsorption(Unit):
     
     _N_ins = 3
     _N_outs = 2
-    _N_heat_utilities = 1
     _units = {'Total flow': 'kmol/hr',
               'CO2 flow':'kmol/hr'}
     
@@ -159,7 +158,7 @@ class AmineAbsorption(Unit):
         self.design_results['Total flow'] = self.ins[0].F_mol
         self.design_results['CO2 flow'] = self.outs[1].F_mol
         duty = self.heat_ratio * self.outs[1].F_mass
-        self.heat_utilities[0](duty, T_in=self.ins[0].T)
+        self.add_heat_utility(duty, T_in=self.ins[0].T)
     
 
 @cost(basis='Total flow', ID='Compressor', units='kmol/hr',

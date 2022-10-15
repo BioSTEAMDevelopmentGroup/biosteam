@@ -16,12 +16,13 @@ from thermosteam.utils import unregistered, units_of_measure
 from thermosteam import Thermo, Stream, ThermalCondition, settings
 from .exceptions import DimensionError
 from math import copysign
+from collections import deque
 from typing import Optional, TYPE_CHECKING, Iterable, Literal, Sequence
 if TYPE_CHECKING: from biosteam import HXutility
 
 __all__ = ('HeatUtility', 'UtilityAgent')
 
-# Costs from Table 17.1 in Warren D.  Seider et al.-Product and Process Design Principles_ Synthesis, Analysis and Evaluation-Wiley (2016)
+# Costs from Table 17.1 in Warren D.  Seider et al.-Product and Process Design Principles Synthesis, Analysis and Evaluation-Wiley (2016)
 # ^This table was made using data from Busche, 1995
 # Entry temperature conditions of coolants taken from Table 12.1 in Warren, 2016
 
@@ -196,7 +197,7 @@ class UtilityAgent(Stream):
     def __repr__(self):
         return f"<{type(self).__name__}: {self.ID}>"
 
-       
+
 # %%
 
 @units_of_measure(heat_utility_units_of_measure)
@@ -592,7 +593,11 @@ class HeatUtility:
         self.flow = F_mol
         self.cost = agent._heat_transfer_price * abs(duty) + agent._regeneration_price * F_mol
         
-    def __call__(self, unit_duty: float, T_in: float, T_out: Optional[float]=None, agent: Optional[UtilityAgent]=None):
+    def __call__(self, 
+            unit_duty: float, 
+            T_in: float, 
+            T_out: Optional[float]=None, 
+            agent: Optional[UtilityAgent]=None):
         """
         Calculate utility requirements given the essential parameters.
         
@@ -618,11 +623,11 @@ class HeatUtility:
         # Note: These are pinch temperatures at the utility inlet and outlet. 
         # Not to be confused with the inlet and outlet of the process stream.
         T_pinch_in, T_pinch_out = self.get_inlet_and_outlet_pinch_temperature(
-            iscooling, T_in, T_out)
-
+            iscooling, T_in, T_out
+        )
         ## Select heat transfer agent ##
         if agent:
-            self.load_agent(agent)
+            if agent is not self.agent: self.load_agent(agent)
         elif self.iscooling == iscooling and self.T_pinch == T_pinch_in:
             agent = self.agent
         else:
@@ -640,7 +645,8 @@ class HeatUtility:
         if agent.T_limit:
             # Temperature change
             self.outlet_utility_stream.T = self.get_outlet_temperature(
-                T_pinch_out, agent.T_limit, iscooling)
+                T_pinch_out, agent.T_limit, iscooling
+            )
             dH = self.inlet_utility_stream.H - self.outlet_utility_stream.H
         else:
             # Phase change
@@ -701,10 +707,10 @@ class HeatUtility:
 
     @classmethod
     def sum_by_agent(cls, heat_utilities: Iterable[HeatUtility]):
-        """Return a tuple of heat utilities that reflect the sum of heat utilities
+        """Return a list of heat utilities that reflect the sum of heat utilities
         by agent."""
         heat_utilities_by_agent = cls.heat_utilities_by_agent(heat_utilities)
-        return tuple([cls.sum(i) for i in heat_utilities_by_agent.values()])
+        return [cls.sum(i) for i in heat_utilities_by_agent.values()]
 
     @classmethod
     def get_agent(cls, ID: str):
@@ -835,6 +841,7 @@ class HeatUtility:
             T_pinch_out = T_in + dT
         return T_pinch_in, T_pinch_out
 
+    # Representation
     def _info_data(self, duty: None, flow: None, cost: None):
         # Get units of measure
         su = self.display_units
@@ -855,7 +862,6 @@ class HeatUtility:
         else:
             return f'<{type(self).__name__}: None>'
         
-    # Representation
     def _info(self, duty: str|None, flow: str|None, cost: str|None):
         """Return string related to specifications"""
         if not self.agent:

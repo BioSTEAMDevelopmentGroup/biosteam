@@ -10,6 +10,7 @@
 from .._unit import Unit
 from .mixing import *
 from .splitting import *
+from .auxiliary import *
 from ._pump import *
 from .heat_exchange import *
 from .tank import *

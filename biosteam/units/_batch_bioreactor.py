@@ -84,7 +84,6 @@ class BatchBioreactor(Unit, isabstract=True):
               'Reactor duty': 'kJ/hr',
               'Recirculation flow rate': 'm3/hr'}
     _N_ins = _N_outs = 2
-    _N_heat_utilities = 1
     
     #: [bool] If True, number of reactors (N) is chosen as to minimize installation cost in every simulation. Otherwise, N remains constant.
     autoselect_N = False
@@ -214,6 +213,6 @@ class BatchBioreactor(Unit, isabstract=True):
         Design['Recirculation flow rate'] = v_0 / N
         duty = self.Hnet
         Design['Reactor duty'] = abs(duty)
-        self.heat_utilities[0](duty, self.T)
+        self.add_heat_utility(duty, self.T)
         
     

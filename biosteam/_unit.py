@@ -22,10 +22,13 @@ from copy import copy
 import biosteam as bst
 from thermosteam import Stream
 from thermosteam.base import display_asfunctor
-from typing import Callable, Optional, TYPE_CHECKING, Sequence
+from typing import Callable, Optional, TYPE_CHECKING, Sequence, Iterable
 from numpy.typing import NDArray
 import thermosteam as tmo
-if TYPE_CHECKING: System = bst.System
+if TYPE_CHECKING: 
+    System = bst.System
+    HXutility = bst.HXutility
+    UtilityAgent = bst.UtilityAgent
 
 __all__ = ('Unit',)
 
@@ -177,6 +180,11 @@ class Unit:
                           does_nothing=None):
         if does_nothing: return 
         dct = cls.__dict__
+        if '_N_heat_utilities' in dct:
+            raise UnitInheritanceError(
+                 "'_N_heat_utilities' class attribute is deprecated; "
+                 "use the `add_heat_utility` method instead"
+            )
         if 'run' in dct:
             raise UnitInheritanceError(
                  "the 'run' method cannot be overrided; implement `_run` instead"
@@ -261,8 +269,7 @@ class Unit:
     #: **class-attribute** Name of attributes that are auxiliary units. These units
     #: will be accounted for in the purchase and installed equipment costs
     #: without having to add these costs in the :attr:`~Unit.baseline_purchase_costs` dictionary.
-    #: Utility costs, however, are not automatically accounted for and must
-    #: be hardcoded in the unit operation logic.
+    #: Heat and power utilities are also automatically accounted for.
     auxiliary_unit_names: tuple[str, ...] = ()
     
     #: **class-attribute** Expected number of inlet streams. Defaults to 1.
@@ -276,9 +283,6 @@ class Unit:
     
     #: **class-attribute** Whether the number of streams in :attr:`~Unit.outs` is fixed.
     _outs_size_is_fixed: bool = True
-    
-    #: **class-attribute** Number of heat utilities created with each instance. Defaults to 0.
-    _N_heat_utilities: int = 0
     
     #: **class-attribute** Options for linking streams
     _stream_link_options: StreamLinkOptions = None
@@ -333,9 +337,8 @@ class Unit:
         ### Initialize utilities
     
         #: All heat utilities associated to unit. Cooling and heating requirements 
-        #: are stored here (including auxiliary requirements). The number of heat utilities created is given by the
-        #: class attribute :attr:`~Unit._N_heat_utilities`.
-        self.heat_utilities: tuple[HeatUtility, ...] = tuple([HeatUtility() for i in range(self._N_heat_utilities)])
+        #: are stored here (including auxiliary requirements).
+        self.heat_utilities: list[HeatUtility, ...] = []
         
         #: Electric utility associated to unit (including auxiliary requirements).
         self.power_utility: PowerUtility = PowerUtility()
@@ -420,7 +423,7 @@ class Unit:
         )
 
     def _init_utils(self):
-        self.heat_utilities = tuple([HeatUtility() for i in range(self._N_heat_utilities)])
+        self.heat_utilities = []
         self.power_utility = PowerUtility()
         
     def _init_results(self):
@@ -519,6 +522,46 @@ class Unit:
         else: raise AttributeError(f"{repr(self)} has no outlet")
     outlet = effluent = product
     
+    def add_power_utility(self, power):
+        """Add power utility [kW]. Use a postive value for consumption and 
+        a negative for production."""
+        power_utility = self.power_utility
+        if power >= 0.:
+            power_utility.consumption += power
+        else:
+            power_utility.production -= power
+    
+    def add_heat_utility(self, 
+            unit_duty: float, 
+            T_in: float,
+            T_out: Optional[float]=None, 
+            agent: Optional[UtilityAgent]=None,
+            heat_transfer_efficiency: Optional[float]=None,
+        ):
+        """
+        Add utility requirement given the duty and inlet and outlet 
+        temperatures.
+        
+        Parameters
+        ----------
+        unit_duty :
+               Unit duty requirement [kJ/hr]
+        T_in : 
+               Inlet process stream temperature [K]
+        T_out : 
+               Outlet process stream temperature [K]
+        agent : 
+                Utility agent to use. Defaults to a suitable agent from 
+                predefined heating/cooling utility agents.
+        heat_transfer_efficiency : 
+            Enforced fraction of heat transfered from utility (due
+            to losses to environment).
+            
+        """
+        hu = HeatUtility(heat_transfer_efficiency, None)
+        self.heat_utilities.append(hu)
+        hu(unit_duty, T_in, T_out, agent)
+    
     def define_utility(self, name: str, stream: Stream):
         """
         Define an inlet or outlet stream as a utility by name.
@@ -584,7 +627,7 @@ class Unit:
             Unit._setup(self)
             try:
                 self._cost()
-                self._load_capital_costs()
+                self._load_costs()
             except:
                 warn(f"failed to create agile design for {repr(self)}; "
                       "assuming design with highest capital cost will do",
@@ -640,8 +683,7 @@ class Unit:
             "with a compatible thermodynamic property package"
         )
     
-    def _load_auxiliary_capital_costs(self):
-        for i in self.auxiliary_units: i._load_capital_costs()
+    def _load_auxiliary_costs(self):
         baseline_purchase_costs = self.baseline_purchase_costs
         purchase_costs = self.purchase_costs
         installed_costs = self.installed_costs
@@ -649,9 +691,16 @@ class Unit:
         F_D = self.F_D
         F_P = self.F_P
         F_M = self.F_M
-        for name in self.auxiliary_unit_names:
+        heat_utilities = self.heat_utilities
+        power_utility = self.power_utility
+        for name, unit in self.auxiliary_units.items():
             unit = getattr(self, name)
+            unit._load_costs()
             if not unit: continue
+            unit.owner = self
+            heat_utilities.extend(unit.heat_utilities)
+            power_utility.consumption += unit.power_utility.consumption
+            power_utility.production += unit.power_utility.production
             F_BM_auxiliary = unit.F_BM
             F_D_auxiliary = unit.F_D
             F_P_auxiliary = unit.F_P
@@ -680,7 +729,7 @@ class Unit:
                         # Calculate BM as an estimate.
                         F_BM[j] = Cbm / Cpb + 1 - fd * fp * fm
     
-    def _load_capital_costs(self):
+    def _load_costs(self):
         r"""
         Calculate and save free on board (f.o.b.) purchase costs and
         installed equipment costs (i.e. bare-module cost) for each item in the 
@@ -727,7 +776,6 @@ class Unit:
         F_D = self.F_D
         F_P = self.F_P
         F_M = self.F_M
-        self._load_auxiliary_capital_costs()
         baseline_purchase_costs = self.baseline_purchase_costs
         purchase_costs = self.purchase_costs
         installed_costs = self.installed_costs
@@ -764,9 +812,22 @@ class Unit:
         and update system configuration based on units impacted by process 
         specifications. This method is run at the start of unit simulation, 
         before running mass and energy balances."""
+        self.power_utility.empty()
+        self.heat_utilities.clear()
         self.baseline_purchase_costs.clear()
         self.purchase_costs.clear()
         self.installed_costs.clear()
+    
+    def _check_setup(self):
+        if any([self.power_utility, 
+                self.heat_utilities, 
+                self.baseline_purchase_costs, 
+                self.purchase_costs, 
+                self.installed_costs]):
+            raise UnitInheritanceError(
+                '`_setup` method did not clear unit results; a potential solution is to'
+                'run `super()._setup()` in the `_setup` method of the unit subclass.'
+            )
     
     def materialize_connections(self):
         for s in self._ins + self._outs: 
@@ -1141,6 +1202,7 @@ class Unit:
         
     def _reevaluate(self):
         """Reevaluate design and costs."""
+        self.heat_utilities.clear()
         self.baseline_purchase_costs.clear()
         self.purchase_costs.clear()
         self.installed_costs.clear()
@@ -1151,7 +1213,8 @@ class Unit:
         if not (self._design or self._cost): return
         self._design()
         self._cost()
-        self._load_capital_costs()
+        self._load_auxiliary_costs()
+        self._load_costs()
         ins = self._ins._streams
         outs = self._outs._streams
         prices = bst.stream_utility_prices
@@ -1224,10 +1287,20 @@ class Unit:
             return self._utility_cost
 
     @property
-    def auxiliary_units(self) -> tuple[Unit, ...]:
+    def auxiliary_units(self) -> dict[str, Unit]:
         """All associated auxiliary units."""
         getfield = getattr
-        return tuple([getfield(self, i) for i in self.auxiliary_unit_names])
+        isa = isinstance
+        auxiliary_units = {}
+        for name in self.auxiliary_unit_names:
+            unit = getfield(self, name, None)
+            if unit is None: continue 
+            if isa(unit, Iterable):
+                for i, u in enumerate(unit):
+                    auxiliary_units['_'.join([name, i])] = u
+            else:
+                auxiliary_units[name] = unit
+        return auxiliary_units
 
     def mass_balance_error(self):
         """Return error in stoichiometric mass balance. If positive,
@@ -1253,18 +1326,20 @@ class Unit:
         self.purchase_costs.clear()
         self.installed_costs.clear()
         for i in self.outs: i.empty()
-        for i in self.heat_utilities: i.empty()
+        self.heat_utilities.clear()
         self.power_utility.empty()
 
-    def simulate(self):
+    def simulate(self, mass_and_energy_balance=True):
         """
         Run rigorous simulation and determine all design requirements.
         
         """
         self._setup()
-        for ps in self._specifications: ps.compile_path(self)
-        self._load_stream_links()
-        self.run()
+        self._check_setup()
+        if mass_and_energy_balance:
+            for ps in self._specifications: ps.compile_path(self)
+            self._load_stream_links()
+            self.run()
         self._summary()
 
     def results(self, with_units=True, include_utilities=True,

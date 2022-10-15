@@ -193,13 +193,13 @@ class MultiEffectEvaporator(Unit):
     
     """
     line = 'Multi-Effect Evaporator'
+    auxiliary_unit_names = ('evaporators', 'condenser', 'mixer', 'vacuum_system')
     _units = {'Area': 'm^2',
               'Volume': 'm^3'}
     _F_BM_default = {'Evaporators': 2.45,
                      'Vacuum system': 1.0,
                      'Condenser': 3.17}
     _N_outs = 2
-    _N_heat_utilities = 2
 
     # Evaporator type
     _Type = 'Forced circulation'
@@ -244,7 +244,6 @@ class MultiEffectEvaporator(Unit):
         self.flash = flash #: [bool] Whether to perform a flash calculation to account for volatile components.
         self._V_first_effect = None
         self._reload_components = True
-        self.components = {}
         self.chemical = chemical
         
     def reset_cache(self, isdynamic=None):
@@ -259,31 +258,16 @@ class MultiEffectEvaporator(Unit):
         
         if self.flash:
             first_evaporator = Flash(None, outs=(None, None), P=P[0], thermo=thermo)
-            first_evaporator.owner = self.owner
-            first_evaporator._ID = 'First evaporator'
         else:
             first_evaporator = Evaporator_PV(None, outs=(None, None), P=P[0], thermo=thermo, chemical=self.chemical)
-            first_evaporator.owner = self.owner
-            first_evaporator._ID = 'First evaporator'
         # Put liquid first, then vapor side stream
-        evaporators = [first_evaporator]
+        self.evaporators = evaporators = [first_evaporator]
         for i in range(1, n):
             evap = Evaporator_PQ(None, outs=(None, None, None), P=P[i], Q=0, thermo=thermo, chemical=self.chemical)
             evaporators.append(evap)
         
-        condenser = HXutility(None, outs=[None], thermo=thermo, V=0)
-        condenser.owner = self
-        condenser._ID = 'Condenser'
-        self.heat_utilities = (first_evaporator.heat_utilities[0],
-                               condenser.heat_utilities[0],
-                               bst.HeatUtility(),
-                               bst.HeatUtility())
-        mixer = Mixer(None, outs=[None], thermo=thermo)
-        
-        components = self.components
-        components['evaporators'] = evaporators
-        components['condenser'] = condenser
-        components['mixer'] = mixer
+        self.condenser = HXutility(None, outs=[None], thermo=thermo, V=0)
+        self.mixer = Mixer(None, outs=[None], thermo=thermo)
         
         # Set-up components
         other_evaporators = evaporators[1:]
@@ -322,7 +306,7 @@ class MultiEffectEvaporator(Unit):
             self._load_components()
             self._reload_components = False
         else:
-            self.components['evaporators'][0].ins[:] = [i.copy() for i in ins]
+            self.evaporators[0].ins[:] = [i.copy() for i in ins]
         
         if self.V_definition == 'Overall':
             P = tuple(self.P)
@@ -345,10 +329,9 @@ class MultiEffectEvaporator(Unit):
             V_overall = self._V_overall(self.V)
     
         n = self._N_evap  # Number of evaporators
-        components = self.components
-        evaporators = components['evaporators']
-        condenser = components['condenser']
-        mixer = components['mixer']
+        evaporators = self.evaporators
+        condenser = self.condenser
+        mixer = self.mixer
         last_evaporator = evaporators[-1]
     
         # Condensing vapor from last effector
@@ -381,8 +364,7 @@ class MultiEffectEvaporator(Unit):
         
         # This functions also finds the cost
         A_range, C_func, U, _ = self._evap_data
-        components = self.components
-        evaporators = components['evaporators']
+        evaporators = self.evaporators
         Design = self.design_results
         Cost = self.baseline_purchase_costs
         CE = bst.CE
@@ -392,12 +374,11 @@ class MultiEffectEvaporator(Unit):
         if not self.flash:
             product = heat_exchanger.outs[0]
             product.vle(P=product.P, H=product.H)
-        hu = heat_exchanger.heat_utilities[0]
         duty = first_evaporator.H_out - first_evaporator.H_in
         Q = abs(duty)
         Tci = first_evaporator.ins[0].T
         Tco = first_evaporator.outs[0].T
-        hu(duty, Tco)
+        hu = self.add_heat_utility(duty, Tco)
         Th = hu.inlet_utility_stream.T
         LMTD = ht.compute_LMTD(Th, Th, Tci, Tco)
         ft = 1
@@ -406,9 +387,8 @@ class MultiEffectEvaporator(Unit):
         self._evap_costs = evap_costs = [C]
         
         # Find condenser requirements
-        condenser = components['condenser']
-        condenser._summary()
-        Cost['Condenser'] = condenser.purchase_cost
+        condenser = self.condenser
+        condenser.simulate(mass_and_energy_balance=False)
         
         # Find area and cost of evaporators
         As = [A]
@@ -438,21 +418,11 @@ class MultiEffectEvaporator(Unit):
         Design['Volume'] = total_volume = self._N_evap * volume
         Cost['Evaporators'] = sum(evap_costs)
         
-        # Calculate power
-        vacuum_results = compute_vacuum_system_power_and_cost(
+        self.vacuum_system = bst.VacuumSystem(
             F_mass=0, F_vol=0, P_suction=evap.outs[0].P,
             vessel_volume=total_volume,
             vacuum_system_preference='Steam-jet ejector'
         )
-        Cost['Vacuum system'] = vacuum_results['Cost']
-        Design['Vacuum system'] = vacuum_results['Name']
-        flash_hu, condenser_hu, vacuum_steam, vacuum_cooling_water = self.heat_utilities
-        vacuum_steam.set_utility_by_flow_rate(vacuum_results['Heating agent'], vacuum_results['Steam flow rate'])
-        if vacuum_results['Condenser']: 
-            vacuum_cooling_water(-vacuum_steam.unit_duty, 373.15)
-        else:
-            vacuum_cooling_water.empty()
-        self.power_utility(vacuum_results['Work'])
             
         
         

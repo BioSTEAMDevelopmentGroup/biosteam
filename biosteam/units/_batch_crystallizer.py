@@ -75,7 +75,6 @@ class BatchCrystallizer(Unit):
               'Loading time': 'hr'}
     
     _N_ins = _N_outs = 1
-    _N_heat_utilities = 1
     
     #: [float] Cleaning and unloading time (hr).
     tau_0 = 1
@@ -178,7 +177,7 @@ class BatchCrystallizer(Unit):
         Design['Crystallizer volume'] = volume = dct.pop('Reactor volume')
         Design.update(dct)
         Design['Number of crystallizers'] = N
-        self.heat_utilities[0](self.Hnet, self.T)
-        self.power_utility.consumption = self.kW * V_wf * volume * N
+        self.add_heat_utility(self.Hnet, self.T)
+        self.add_power_utility(self.kW * V_wf * volume * N)
         
     
