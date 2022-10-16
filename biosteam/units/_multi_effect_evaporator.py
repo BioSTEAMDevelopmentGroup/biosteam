@@ -368,15 +368,22 @@ class MultiEffectEvaporator(Unit):
         CE = bst.CE
         
         first_evaporator = evaporators[0]
-        heat_exchanger = first_evaporator.heat_exchanger
-        if not self.flash:
-            product = heat_exchanger.outs[0]
-            product.vle(P=product.P, H=product.H)
-        duty = first_evaporator.H_out - first_evaporator.H_in
+        first_evaporator.simulate(mass_and_energy_balance=False)
+        # Do not cost as flash vessel; cost accounted for later
+        first_evaporator.baseline_purchase_costs.clear()
+        first_evaporator.purchase_costs.clear()
+        first_evaporator.installed_costs.clear()
+        hx = first_evaporator.heat_exchanger
+        hx.baseline_purchase_costs.clear()
+        hx.purchase_costs.clear()
+        hx.installed_costs.clear()
+        
+        # Cost first evaporators
+        duty = hx.total_heat_transfer
         Q = abs(duty)
         Tci = first_evaporator.ins[0].T
         Tco = first_evaporator.outs[0].T
-        hu = self.add_heat_utility(duty, Tco)
+        hu = first_evaporator.heat_utilities[0]
         Th = hu.inlet_utility_stream.T
         LMTD = ht.compute_LMTD(Th, Th, Tci, Tco)
         ft = 1
@@ -406,7 +413,6 @@ class MultiEffectEvaporator(Unit):
                 evap_costs.append(C_func(A, CE))
         self._As = As
         Design['Area'] = A = sum(As)
-        first_evaporator._design()
         vapor_sep_design = first_evaporator.design_results
         L = vapor_sep_design['Length']
         D = vapor_sep_design['Diameter']
