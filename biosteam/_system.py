@@ -3373,7 +3373,7 @@ class AgileSystem:
         unit_modes = {i: [] for i in units}
         for results in operation_mode_results:
             for i, j in results.unit_capital_costs.items(): unit_modes[i].append(j)
-        self.heat_utilities = bst.HeatUtility.sum_by_agent(sum([r.heat_utilities for r in operation_mode_results], ()))
+        self.heat_utilities = bst.HeatUtility.sum_by_agent(sum([r.heat_utilities for r in operation_mode_results], []))
         self.power_utility = bst.PowerUtility.sum([r.power_utility for r in operation_mode_results])
         self.unit_capital_costs = {i: i.get_agile_design_and_capital(j) for i, j in unit_modes.items()}
         self.utility_cost = sum([i.utility_cost for i in operation_mode_results])
