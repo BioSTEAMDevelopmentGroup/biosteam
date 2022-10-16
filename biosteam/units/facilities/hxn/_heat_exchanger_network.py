@@ -143,7 +143,7 @@ class HeatExchangerNetwork(Facility):
         ignored = self.ignored
         if ignored:
             if callable(ignored): ignored = ignored()
-            ignored_hx_utils = sum([i.heat_utilities for i in ignored], ())
+            ignored_hx_utils = sum([i.heat_utilities for i in ignored], [])
         else:
             ignored_hx_utils = ()
         hx_utils = bst.process_tools.heat_exchanger_utilities_from_units(units)
