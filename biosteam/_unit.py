@@ -704,7 +704,6 @@ class Unit:
         heat_utilities = self.heat_utilities
         power_utility = self.power_utility
         for name, unit in self.auxiliary_units.items():
-            unit = getattr(self, name)
             unit._load_costs()
             unit.owner = self
             heat_utilities.extend(unit.heat_utilities)
@@ -1305,7 +1304,7 @@ class Unit:
             if unit is None: continue 
             if isa(unit, Iterable):
                 for i, u in enumerate(unit):
-                    auxiliary_units['_'.join([name, i])] = u
+                    auxiliary_units[f"{name}[{i}]"] = u
             else:
                 auxiliary_units[name] = unit
         return auxiliary_units
