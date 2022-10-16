@@ -17,7 +17,7 @@ class VacuumSystem: # Can function as an auxiliary unit operation
         'F_M', 'F_D', 'F_P', 'F_BM',
         'owner',
     )
-    def __init__(self, F_mass, F_vol, P_suction, vessel_volume, vacuum_system_preference):
+    def __init__(self, F_mass, F_vol, P_suction, vessel_volume, vacuum_system_preference=None):
         self.baseline_purchase_costs = self.purchase_costs = self.installed_costs = capex = {} # Assume all costs the same
         self.F_M = self.F_D = self.F_P = self.F_BM = {} # No factors
         vacuum_results = design.compute_vacuum_system_power_and_cost(
