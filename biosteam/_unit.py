@@ -1369,10 +1369,10 @@ class Unit:
             if include_utilities:
                 power_utility = self.power_utility
                 if power_utility:
-                    addkey(('Power', 'Power'))
+                    addkey(('Electricity', 'Power'))
                     addval(('kW', power_utility.power))
                     if include_zeros or power_utility.cost:
-                        addkey(('Power', 'Cost'))
+                        addkey(('Electricity', 'Cost'))
                         addval(('USD/hr', power_utility.cost))
                 for heat_utility in HeatUtility.sum_by_agent(all_utilities):
                     if heat_utility:
@@ -1430,10 +1430,10 @@ class Unit:
             if include_utilities:
                 power_utility = self.power_utility
                 if power_utility:
-                    addkey(('Power', 'Power'))
+                    addkey(('Electricity', 'Power'))
                     addval(power_utility.power)
                     if include_zeros or power_utility.cost:
-                        addkey(('Power', 'Cost'))
+                        addkey(('Electricity', 'Cost'))
                         addval(power_utility.cost)
                 for heat_utility in HeatUtility.sum_by_agent(all_utilities):
                     if heat_utility:
