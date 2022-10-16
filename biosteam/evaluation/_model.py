@@ -186,20 +186,20 @@ class Model(State):
         samples_diff = samples_max - samples_min
         normalized_samples = (samples - samples_min) / samples_diff
         if ss: 
-            def evaluate(sample, material_data):
+            def evaluate(sample, material_data, **kwargs):
                 try:
                     self._parameters = parameters
                     for f, s in zip(self._parameters, sample): 
                         f.setter(s if f.scale is None else f.scale * s)
-                    diff = self._system.converge(material_data=material_data)
+                    diff = self._system.converge(material_data=material_data, **kwargs)
                 finally:
                     self._parameters = original_parameters
                 return diff
             sample = [i.baseline for i in parameters]
             N_parameters = len(parameters)
             index = range(N_parameters)
-            evaluate(sample)
             material_data = self._system.get_material_data()
+            evaluate(sample, material_data, update_material_data=True)
             N_elements = material_data.material_flows.size
             diffs = np.zeros([N_parameters, N_elements])
             for i in index:
