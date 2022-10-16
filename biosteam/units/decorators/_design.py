@@ -140,7 +140,7 @@ H_units = stream_units_of_measure['H']
 @design.define
 def duty(self, units):
     duty = self.H_out - self.H_in
-    self.heat_utilities[0](duty, self.ins[0].T, self.outs[0].T)
+    self.add_heat_utility(duty, self.ins[0].T, self.outs[0].T)
     return abs(H_units.conversion_factor(units) * duty)
     
 @design.define

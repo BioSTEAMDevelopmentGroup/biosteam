@@ -677,7 +677,7 @@ class HeatUtility:
             self.outlet_utility_stream.T = T_outlet = self.get_outlet_temperature(
                 T_pinch_out, agent.T_limit, iscooling
             )
-            dh = agent._get_property('h') - agent._get_property('h', T=T_outlet)
+            dh = agent._get_property('H') - agent._get_property('H', T=T_outlet)
         else:
             # Phase change
             if self.inlet_utility_stream.phase == 'l' :
