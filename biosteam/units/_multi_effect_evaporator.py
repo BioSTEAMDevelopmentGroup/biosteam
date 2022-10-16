@@ -280,7 +280,7 @@ class MultiEffectEvaporator(Unit):
             ins = [evap.outs[1], evap.outs[0]]
         
     def _V_overall(self, V_first_effect):
-        first_evaporator, *other_evaporators = self.components['evaporators']
+        first_evaporator, *other_evaporators = self.evaporators
         first_evaporator.V = V_overall = V_first_effect
         first_evaporator._run()
         for evap in other_evaporators:
