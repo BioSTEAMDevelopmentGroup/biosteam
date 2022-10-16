@@ -181,9 +181,9 @@ class Unit:
         if does_nothing: return 
         dct = cls.__dict__
         if '_N_heat_utilities' in dct:
-            raise UnitInheritanceError(
-                 "'_N_heat_utilities' class attribute is deprecated; "
-                 "use the `add_heat_utility` method instead"
+            warn("'_N_heat_utilities' class attribute is scheduled for deprecation; "
+                 "use the `add_heat_utility` method instead",
+                 DeprecationWarning, stacklevel=2,
             )
         if 'run' in dct:
             raise UnitInheritanceError(
@@ -423,7 +423,7 @@ class Unit:
         )
 
     def _init_utils(self):
-        self.heat_utilities = []
+        self.heat_utilities = [HeatUtility for i in range(getattr(self, '_N_heat_utilities', 0))]
         self.power_utility = PowerUtility()
         
     def _init_results(self):
