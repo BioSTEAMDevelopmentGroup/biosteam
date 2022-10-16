@@ -570,6 +570,7 @@ class Unit:
         hu = HeatUtility(heat_transfer_efficiency, None)
         self.heat_utilities.append(hu)
         hu(unit_duty, T_in, T_out, agent)
+        return hu
     
     def define_utility(self, name: str, stream: Stream):
         """
