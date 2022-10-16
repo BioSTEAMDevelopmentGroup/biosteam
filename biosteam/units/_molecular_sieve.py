@@ -65,7 +65,7 @@ class MolecularSieve(Splitter):
     
     >>> MS1.results()
     Molecular sieve                  Units       MS1
-    Power               Rate            kW      14.2
+    Electricity         Power           kW      14.2
                         Cost        USD/hr      1.11
     Low pressure steam  Duty         kJ/hr  3.21e+06
                         Flow       kmol/hr      82.7

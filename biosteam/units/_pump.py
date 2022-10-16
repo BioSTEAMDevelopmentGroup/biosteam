@@ -89,7 +89,7 @@ class Pump(Unit):
         flow (kmol/hr): Water  200
     >>> P1.results()
     Pump                               Units           P1
-    Power               Rate              kW        0.289
+    Electricity         Power             kW        0.289
                         Cost          USD/hr       0.0226
     Design              Ideal power       hp        0.136
                         Flow rate        gpm         16.3

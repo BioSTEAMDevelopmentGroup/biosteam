@@ -327,7 +327,7 @@ class IsothermalCompressor(Compressor, new_graphics=False):
     
     >>> K.results()
     Isothermal compressor                          Units               K
-    Power               Rate                          kW            2.47
+    Electricity         Power                         kW            2.47
                         Cost                      USD/hr           0.193
     Chilled water       Duty                       kJ/hr       -7.26e+03
                         Flow                     kmol/hr            7.53
@@ -412,7 +412,7 @@ class IsentropicCompressor(Compressor, new_graphics=False):
 
     >>> K.results()
     Isentropic compressor                          Units             K1
-    Power               Rate                          kW              0
+    Electricity         Power                         kW              0
                         Cost                      USD/hr              0
     High pressure steam Duty                       kJ/hr           12.7
                         Flow                     kmol/hr       0.000396
@@ -450,7 +450,7 @@ class IsentropicCompressor(Compressor, new_graphics=False):
 
     >>> K.results()
     Isentropic compressor                          Units             K2
-    Power               Rate                          kW              0
+    Electricity         Power                         kW              0
                         Cost                      USD/hr              0
     High pressure steam Duty                       kJ/hr           9.79
                         Flow                     kmol/hr       0.000305
@@ -545,7 +545,7 @@ class PolytropicCompressor(Compressor, new_graphics=False):
         flow (kmol/hr): H2  1
     >>> K.results()
     Polytropic compressor                         Units              K1
-    Power               Rate                         kW            6.52
+    Electricity         Power                        kW            6.52
                         Cost                     USD/hr            0.51
     Design              Polytropic work                           2e+04
                         Type                              Reciprocating
@@ -574,7 +574,7 @@ class PolytropicCompressor(Compressor, new_graphics=False):
     
     >>> K.results()
     Polytropic compressor                         Units              K1
-    Power               Rate                         kW            6.48
+    Electricity         Power                        kW            6.48
                         Cost                     USD/hr           0.507
     Design              Polytropic work                        1.98e+04
                         Type                              Reciprocating
@@ -736,7 +736,7 @@ class MultistageCompressor(Unit):
     
     >>> K.results()
     Multistage compressor                           Units                      K
-    Power               Rate                           kW                      0
+    Electricity         Power                          kW                      0
                         Cost                       USD/hr                      0
     High pressure steam Duty                        kJ/hr                   5.68
                         Flow                      kmol/hr               0.000177
@@ -802,7 +802,7 @@ class MultistageCompressor(Unit):
     
     >>> K.results()
     Multistage compressor                           Units                     K2
-    Power               Rate                           kW                      0
+    Electricity         Power                          kW                      0
                         Cost                       USD/hr                      0
     High pressure steam Duty                        kJ/hr                   6.47
                         Flow                      kmol/hr               0.000201

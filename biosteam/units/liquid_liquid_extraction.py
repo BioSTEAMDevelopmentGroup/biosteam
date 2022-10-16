@@ -263,7 +263,7 @@ class LLECentrifuge(LLEUnit, LiquidsCentrifuge):
                      TriOlein   0.996
     >>> C1.results()
     Liquids centrifuge                          Units       C1
-    Power               Rate                       kW     17.1
+    Electricity         Power                      kW     17.1
                         Cost                   USD/hr     1.34
     Design              Flow rate              m^3/hr     12.2
                         Number of centrifuges                1
@@ -340,7 +340,7 @@ class SLLECentrifuge(Unit):
     
     >>> C1.results()
     3-Phase decanter centrifuge                       Units       C1
-    Power               Rate                             kW   0.0101
+    Electricity         Power                            kW   0.0101
                         Cost                         USD/hr  0.00079
     Design              Flow rate                     L/min      249
                         Number of centrifuges                      1
@@ -454,7 +454,7 @@ class SolidLiquidsSplitCentrifuge(Unit):
     
     >>> C1.results()
     3-Phase decanter centrifuge                       Units       C1
-    Power               Rate                             kW   0.0101
+    Electricity         Power                            kW   0.0101
                         Cost                         USD/hr  0.00079
     Design              Flow rate                     L/min      249
                         Number of centrifuges                      1
