@@ -696,7 +696,6 @@ class HeatUtility:
         
         # Update utility flow
         self.outlet_utility_stream.mol[:] = F_mol = duty / dh
-        if F_mol < 0: breakpoint()
             
         # Update results
         self.unit_duty = unit_duty
