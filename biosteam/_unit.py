@@ -706,7 +706,7 @@ class Unit:
         F_M = self.F_M
         heat_utilities = self.heat_utilities
         power_utility = self.power_utility
-        for name, unit in self.get_auxiliary_units():
+        for name, unit in self.get_auxiliary_units_with_names():
             unit._load_costs()
             unit.owner = self
             heat_utilities.extend(unit.heat_utilities)
@@ -1296,7 +1296,22 @@ class Unit:
             )
             return self._utility_cost
 
-    def get_auxiliary_units(self) -> list[tuple[str, Unit]]:
+    @property
+    def auxiliary_units(self) -> list[Unit]:
+        """Return list of all auxiliary units."""
+        getfield = getattr
+        isa = isinstance
+        auxiliary_units = []
+        for name in self.auxiliary_unit_names:
+            unit = getfield(self, name, None)
+            if unit is None: continue 
+            if isa(unit, Iterable):
+                auxiliary_units.extend(unit)
+            else:
+                auxiliary_units.append(unit)
+        return auxiliary_units
+
+    def get_auxiliary_units_with_names(self) -> list[tuple[str, Unit]]:
         """Return list of name - auxiliary unit pairs."""
         getfield = getattr
         isa = isinstance
