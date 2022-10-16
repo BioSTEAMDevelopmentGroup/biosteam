@@ -705,7 +705,6 @@ class Unit:
         for name, unit in self.auxiliary_units.items():
             unit = getattr(self, name)
             unit._load_costs()
-            if not unit: continue
             unit.owner = self
             heat_utilities.extend(unit.heat_utilities)
             power_utility.consumption += unit.power_utility.consumption

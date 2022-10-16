@@ -411,6 +411,7 @@ class HXutility(HX):
             
         """
         hu = bst.HeatUtility(heat_transfer_efficiency, self)
+        self.heat_utilities.append(hu)
         hu(unit_duty, T_in, T_out, agent)
     
     @property
