@@ -33,4 +33,4 @@ class EnzymeTreatment(MixTank):
         
     def _design(self):
         super()._design()
-        self.heat_exchanger.simulate_as_auxiliary_exchanger(self.ins[0], self.outs[0], self.Hnet)
+        self.heat_exchanger.simulate_as_auxiliary_exchanger(self.ins, self.outs, self.Hnet)
