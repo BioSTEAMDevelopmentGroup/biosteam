@@ -287,7 +287,7 @@ class HeatExchangerNetwork(Facility):
             hu_sums2 = bst.HeatUtility.sum_by_agent(new_heat_utils)
             # to change sign on duty without switching heat/cool (i.e. negative costs):
             for hu in hu_sums1: hu.reverse()
-            hus_final = tuple(bst.HeatUtility.sum_by_agent(hu_sums1 + hu_sums2))
+            hus_final = bst.HeatUtility.sum_by_agent(hu_sums1 + hu_sums2)
             Q_bal = (
                 (2.*sum([abs(i.Q) for i in new_HXs])
                  + sum([abs(i.duty * i.agent.heat_transfer_efficiency) for i in hu_sums2]))
