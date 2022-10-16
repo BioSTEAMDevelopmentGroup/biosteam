@@ -74,8 +74,7 @@ class UtilityAgent(Stream):
     __slots__ = ('T_limit', '_heat_transfer_price',
                  '_regeneration_price', 'heat_transfer_efficiency')
     def __init__(self, 
-                 ID: Optional[str]='', 
-                 flow: Sequence[float]=(),
+                 ID: Optional[str]='',
                  phase: Optional[str]='l',
                  T: Optional[float]=298.15,
                  P: Optional[float]=101325.,
@@ -88,11 +87,13 @@ class UtilityAgent(Stream):
                  **chemical_flows: float):
         self._thermal_condition = ThermalCondition(T, P)
         thermo = self._load_thermo(thermo)
-        self._init_indexer(flow, phase, thermo.chemicals, chemical_flows)
+        self._init_indexer((), phase, thermo.chemicals, chemical_flows)
         if units is not None:
             name, factor = self._get_flow_name_and_factor(units)
             flow = getattr(self, name)
             flow[:] = self.mol / factor
+        self.mol[:] /= self.mol.sum() # Total flow must be 1 kmol / hr
+        self.mol.setflags(0) # Flow rate cannot anymore
         self._sink = self._source = None
         self._user_equilibrium = None
         self.reset_cache()
@@ -101,6 +102,35 @@ class UtilityAgent(Stream):
         self.heat_transfer_price = heat_transfer_price
         self.regeneration_price = regeneration_price
         self.heat_transfer_efficiency = heat_transfer_efficiency
+    
+    def _get_property(self, name, flow=False, nophase=False, T=None, P=None):
+        # Take advantage of how composition is always constant and temperatures
+        # and pressures are not expected to vary much.
+        property_cache = self._property_cache
+        thermal_condition = self._thermal_condition
+        imol = self._imol
+        data = imol._data
+        composition = data
+        if not T: T = thermal_condition._T
+        if not P: P = thermal_condition._P
+        if nophase:
+            literal = (T, P)
+        else:
+            phase = imol._phase._phase
+            literal = (phase, T, P)
+        key = (name, literal)
+        if key in property_cache: return property_cache[key]
+        calculate = getattr(self.mixture, name)
+        if nophase:
+            property_cache[name] = value = calculate(
+                composition, T, P
+            )
+        else:
+            property_cache[name] = value = calculate(
+                phase, composition, T, P
+            )
+        if len(property_cache) > 100: property_cache.pop(property_cache.__iter__().__next__())
+        return value
     
     @property
     def iscooling_agent(self) -> bool:
@@ -586,7 +616,7 @@ class HeatUtility:
         heat_transfer_efficiency = self.heat_transfer_efficiency or agent.heat_transfer_efficiency
         if agent.T_limit: raise ValueError('agent must work by latent heat to set by flow rate')
         self.outlet_utility_stream.phase = 'g' if self.inlet_utility_stream.phase == 'l' else 'l'
-        dH = self.outlet_utility_stream.Hvap
+        dH = self.agent.Hvap
         self.duty = duty = dH * F_mol
         self.unit_duty = duty * heat_transfer_efficiency
         self.outlet_utility_stream.mol[:] = F_mol
@@ -641,28 +671,28 @@ class HeatUtility:
             
         ## Calculate utility requirement ##
         heat_transfer_efficiency = self.heat_transfer_efficiency or agent.heat_transfer_efficiency
-        duty = unit_duty/heat_transfer_efficiency
+        duty = unit_duty / heat_transfer_efficiency
         if agent.T_limit:
             # Temperature change
-            self.outlet_utility_stream.T = self.get_outlet_temperature(
+            self.outlet_utility_stream.T = T_outlet = self.get_outlet_temperature(
                 T_pinch_out, agent.T_limit, iscooling
             )
-            dH = self.inlet_utility_stream.H - self.outlet_utility_stream.H
+            dh = agent._get_property('h') - agent._get_property('h', T=T_outlet)
         else:
             # Phase change
             if self.inlet_utility_stream.phase == 'l' :
                 self.outlet_utility_stream.phase = 'g'
-                dH = -self.outlet_utility_stream.Hvap
+                dh = -agent._get_property('Hvap', nophase=True)
             else:
-                dH = self.outlet_utility_stream.Hvap
+                dh = agent._get_property('Hvap', nophase=True)
                 self.outlet_utility_stream.phase = 'l'
         
         # Update utility flow
-        self.outlet_utility_stream.mol[:] *= duty / dH
+        self.outlet_utility_stream.mol[:] = F_mol = duty / dh
         
         # Update results
         self.unit_duty = unit_duty
-        self.flow = F_mol = self.inlet_utility_stream.F_mol
+        self.flow = F_mol
         self.duty = duty
         self.cost = agent._heat_transfer_price * abs(duty) + agent._regeneration_price * F_mol
 
