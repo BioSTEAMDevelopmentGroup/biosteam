@@ -212,6 +212,7 @@ class PowerUtility:
         else:
             self.consumption = 0.
             self.production = -power
+    rate = power # For backwards compatibility
     
     @property
     def cost(self) -> float:
