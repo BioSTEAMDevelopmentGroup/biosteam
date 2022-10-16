@@ -383,8 +383,7 @@ class MultiEffectEvaporator(Unit):
         LMTD = ht.compute_LMTD(Th, Th, Tci, Tco)
         ft = 1
         A = abs(compute_heat_transfer_area(LMTD, U, Q, ft))
-        first_evaporator.baseline_purchase_costs['Evaporator'] = C = C_func(A, CE)
-        self._evap_costs = evap_costs = [C]
+        self._evap_costs = evap_costs = [C_func(A, CE)]
         
         # Find condenser requirements
         condenser = self.condenser
