@@ -18,7 +18,7 @@ from .exceptions import DimensionError
 from math import copysign
 from collections import deque
 from typing import Optional, TYPE_CHECKING, Iterable, Literal, Sequence
-if TYPE_CHECKING: from biosteam import HXutility
+if TYPE_CHECKING: from biosteam import Unit
 
 __all__ = ('HeatUtility', 'UtilityAgent')
 
@@ -246,6 +246,8 @@ class HeatUtility:
         to losses to environment).
     heat_exchanger : 
         Parent heat exchanger using this heat utility.
+    hxn_ok :
+        Whether heat utility can be satisfied within a heat exchanger network.
     
     Examples
     --------
@@ -282,7 +284,7 @@ class HeatUtility:
     """
     __slots__ = ('inlet_utility_stream', 'outlet_utility_stream', 'duty',
                  'flow', 'cost', 'heat_transfer_efficiency', 
-                 'heat_exchanger', 'agent', 'unit_duty')
+                 'unit', 'hxn_ok', 'agent', 'unit_duty')
     #: Minimum approach temperature difference. Used to assign
     #: the pinch temperature of the utility stream.
     dT: float = 5  
@@ -453,13 +455,20 @@ class HeatUtility:
         else:
             raise RuntimeError("unknown error")
 
-    def __init__(self, heat_transfer_efficiency: Optional[float]=None, heat_exchanger: Optional[HXutility]=None):
+    def __init__(self,
+            heat_transfer_efficiency: Optional[float]=None, 
+            unit: Optional[Unit]=None,
+            hxn_ok: Optional[bool]=False,
+        ):
         #: Enforced fraction of heat transfered from utility (due
         #: to losses to environment).
         self.heat_transfer_efficiency: float = heat_transfer_efficiency
         
-        #: Parent heat exchanger using this heat utility.
-        self.heat_exchanger: HXutility|None = heat_exchanger
+        #: Parent unit using this heat utility.
+        self.unit: Unit|None = unit
+        
+        #: Whether heat utility can be satisfied within a heat exchanger network.
+        self.hxn_ok: bool = hxn_ok
         
         #: Total heat transfered from utility to both the process and the environment [kJ/hr].
         self.duty: float = 0.
@@ -600,7 +609,7 @@ class HeatUtility:
         if self.agent:
             agent = self.agent
             dump = agent.utility_stream_dump
-            if len(dump) < 1000: 
+            if len(dump) < 1000:
                 dump.append(
                     (self.inlet_utility_stream, self.outlet_utility_stream)
                 )
@@ -614,9 +623,13 @@ class HeatUtility:
         self.load_agent(agent)
         heat_transfer_efficiency = self.heat_transfer_efficiency or agent.heat_transfer_efficiency
         if agent.T_limit: raise ValueError('agent must work by latent heat to set by flow rate')
-        self.outlet_utility_stream.phase = 'g' if self.inlet_utility_stream.phase == 'l' else 'l'
-        dH = self.agent.Hvap
-        self.duty = duty = dH * F_mol
+        if self.inlet_utility_stream.phase == 'l' :
+            self.outlet_utility_stream.phase = 'g'
+            dh = -agent._get_property('Hvap', nophase=True)
+        else:
+            dh = agent._get_property('Hvap', nophase=True)
+            self.outlet_utility_stream.phase = 'l'
+        self.duty = duty = dh * F_mol
         self.unit_duty = duty * heat_transfer_efficiency
         self.outlet_utility_stream.mol[:] = F_mol
         self.flow = F_mol
@@ -674,7 +687,7 @@ class HeatUtility:
             dh = agent._get_property('H') - agent._get_property('H', T=T_outlet)
         else:
             # Phase change
-            if self.inlet_utility_stream.phase == 'l' :
+            if agent.phase == 'l':
                 self.outlet_utility_stream.phase = 'g'
                 dh = -agent._get_property('Hvap', nophase=True)
             else:
@@ -683,7 +696,8 @@ class HeatUtility:
         
         # Update utility flow
         self.outlet_utility_stream.mol[:] = F_mol = duty / dh
-        
+        if F_mol < 0: breakpoint()
+            
         # Update results
         self.unit_duty = unit_duty
         self.flow = F_mol
@@ -794,6 +808,7 @@ class HeatUtility:
             self.empty()
         if agent.utility_stream_dump:
             self.inlet_utility_stream, self.outlet_utility_stream = agent.utility_stream_dump.pop()
+            self.inlet_utility_stream.copy_like(agent) # Prevent errors where utility streams are altered
         else:
             self.inlet_utility_stream = agent.to_stream()
             self.outlet_utility_stream = self.inlet_utility_stream.flow_proxy()
