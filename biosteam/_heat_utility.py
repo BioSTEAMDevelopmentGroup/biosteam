@@ -819,10 +819,10 @@ class HeatUtility:
             self.load_agent(agent)
             self.flow = self.inlet_utility_stream.F_mol = sum([i.flow for i in heat_utilities])
             self.outlet_utility_stream.mix_from([i.outlet_utility_stream for i in heat_utilities])
-            self.duty = duty = sum([i.duty for i in heat_utilities])
-            self.unit_duty = unit_duty = sum([i.unit_duty for i in heat_utilities])
+            self.duty = sum([i.duty for i in heat_utilities])
+            self.unit_duty = sum([i.unit_duty for i in heat_utilities])
             self.cost = sum([i.cost for i in heat_utilities])
-            self.heat_transfer_efficiency = unit_duty / duty
+            self.heat_transfer_efficiency = None
 
     def reverse(self):
         """Reverse direction of utility. If utility is being consumed,
