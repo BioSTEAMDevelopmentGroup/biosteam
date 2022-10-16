@@ -420,7 +420,9 @@ class HXutility(HX):
         return abs(self.net_duty)
     Q = total_heat_transfer # Alias for backward compatibility
     
-    def simulate_as_auxiliary_exchanger(self, ins=None, outs=None, duty=None, vle=True):
+    def simulate_as_auxiliary_exchanger(self, 
+            ins=None, outs=None, duty=None, vle=True
+        ):
         if not ins: raise ValueError('must pass inlet streams `ins`')
         self._setup()
         inlet = self.ins[0]
@@ -435,8 +437,6 @@ class HXutility(HX):
         else:
             outlet.mix_from(outs, vle=vle)
             if duty is None: duty = outlet.Hnet - inlet.Hnet
-        # Calling parent method prevents heat exchanger from being included in heat exchanger network.
-        super().add_heat_utility(duty, inlet.T, heat_transfer_efficiency=self.heat_transfer_efficiency)
         for ps in self._specifications: ps.compile_path(self)
         self._summary()
         
