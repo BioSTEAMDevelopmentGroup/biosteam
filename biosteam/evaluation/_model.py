@@ -165,7 +165,7 @@ class Model(State):
         else:
             return samples
     
-    def _load_sample_order(self, samples, parameters, ss, distance):
+    def _load_sample_order(self, samples, parameters, distance):
         """
         Sort simulation order to optimize convergence speed
         by minimizing perturbations to the system between simulations.
@@ -176,7 +176,6 @@ class Model(State):
         """
         if distance is None: distance = 'cityblock'
         length = samples.shape[0]
-        original_parameters = self._parameters
         columns = [i for i, parameter in enumerate(self._parameters) if parameter.kind == 'coupled']
         parameters = [parameters[i] for i in columns]
         samples = samples.copy()
@@ -185,42 +184,44 @@ class Model(State):
         samples_max = samples.max(axis=0)
         samples_diff = samples_max - samples_min
         normalized_samples = (samples - samples_min) / samples_diff
-        if ss: 
-            def evaluate(sample, material_data, **kwargs):
-                try:
-                    self._parameters = parameters
-                    for f, s in zip(self._parameters, sample): 
-                        f.setter(s if f.scale is None else f.scale * s)
-                    diff = self._system.converge(material_data=material_data, **kwargs)
-                finally:
-                    self._parameters = original_parameters
-                return diff
-            sample = [i.baseline for i in parameters]
-            N_parameters = len(parameters)
-            index = range(N_parameters)
-            material_data = self._system.get_material_data()
-            evaluate(sample, material_data, update_material_data=True)
-            N_elements = material_data.material_flows.size
-            diffs = np.zeros([N_parameters, N_elements])
-            for i in index:
-                sample_lb = sample.copy()
-                sample_ub = sample.copy()
-                lb = samples_min[i]
-                ub = samples_max[i]
-                hook = parameters[i].hook
-                if hook:
-                    sample_lb[i] = hook(lb)
-                    sample_ub[i] = hook(ub)
-                else:
-                    sample_lb[i] = lb
-                    sample_ub[i] = ub
-                lb = evaluate(sample_lb, material_data).flatten()
-                ub = evaluate(sample_ub, material_data).flatten()
-                diffs[i] = ub - lb
-            div = np.abs(diffs).max(axis=0)
-            div[div == 0.] = 1
-            diffs /= div
-            normalized_samples = normalized_samples @ diffs
+        # Note: Not sure if to deprecate or fix.
+        # original_parameters = self._parameters
+        # if ss: 
+        #     def evaluate(sample, material_data, **kwargs):
+        #         try:
+        #             self._parameters = parameters
+        #             for f, s in zip(self._parameters, sample): 
+        #                 f.setter(s if f.scale is None else f.scale * s)
+        #             diff = self._system.converge(material_data=material_data, **kwargs)
+        #         finally:
+        #             self._parameters = original_parameters
+        #         return diff
+        #     sample = [i.baseline for i in parameters]
+        #     N_parameters = len(parameters)
+        #     index = range(N_parameters)
+        #     material_data = self._system.get_material_data()
+        #     evaluate(sample, material_data, update_material_data=True)
+        #     N_elements = material_data.material_flows.size
+        #     diffs = np.zeros([N_parameters, N_elements])
+        #     for i in index:
+        #         sample_lb = sample.copy()
+        #         sample_ub = sample.copy()
+        #         lb = samples_min[i]
+        #         ub = samples_max[i]
+        #         hook = parameters[i].hook
+        #         if hook:
+        #             sample_lb[i] = hook(lb)
+        #             sample_ub[i] = hook(ub)
+        #         else:
+        #             sample_lb[i] = lb
+        #             sample_ub[i] = ub
+        #         lb = evaluate(sample_lb, material_data).flatten()
+        #         ub = evaluate(sample_ub, material_data).flatten()
+        #         diffs[i] = ub - lb
+        #     div = np.abs(diffs).max(axis=0)
+        #     div[div == 0.] = 1
+        #     diffs /= div
+        #     normalized_samples = normalized_samples @ diffs
         nearest_arr = cdist(normalized_samples, normalized_samples, metric=distance)
         nearest_arr = np.argsort(nearest_arr, axis=1)
         remaining = set(range(length))
@@ -301,7 +302,7 @@ class Model(State):
         metrics = self._metrics
         samples = self._sample_hook(samples, parameters)
         if optimize: 
-            self._load_sample_order(samples, parameters, ss, distance)
+            self._load_sample_order(samples, parameters, distance)
         else:
             self._index = list(range(samples.shape[0]))
         empty_metric_data = np.zeros((len(samples), len(metrics)))
