@@ -185,7 +185,7 @@ class MultiEffectEvaporator(Unit):
                         Volume                                   m^3      6.62
     Purchase cost       Condenser - Double pipe                  USD  3.89e+03
                         Vacuum system - Liquid-ring pump...      USD  1.24e+04
-                        Evaporators                              USD  2.77e+03
+                        Evaporators                              USD  2.79e+03
     Total purchase cost                                          USD  1.91e+04
     Utility cost                                              USD/hr      2.83
     
