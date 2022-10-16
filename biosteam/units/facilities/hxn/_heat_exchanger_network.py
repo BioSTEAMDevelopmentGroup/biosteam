@@ -160,7 +160,7 @@ class HeatExchangerNetwork(Facility):
         use_cached_network = False
         if self.cache_network and hasattr(self, 'original_heat_utils'):
             hxs_cache = self.original_heat_exchangers
-            hxs = [hu.heat_exchanger for hu in hx_utils]
+            hxs = [hu.unit for hu in hx_utils]
             hxs_dct = {(i.owner, i._ID): i for i in hxs}
             try: hxs = [hxs_dct[i.owner, i._ID] for i in hxs_cache]
             except: pass
@@ -219,7 +219,7 @@ class HeatExchangerNetwork(Facility):
                 assert len(all_units) == len(IDs)
                 for i, life_cycle in enumerate(stream_life_cycles):
                     stage = life_cycle.life_cycle[0]
-                    s_util = hx_utils_rearranged[i].heat_exchanger.ins[0]
+                    s_util = hx_utils_rearranged[i].unit.ins[0]
                     s_lc = stage.unit.ins[stage.index]
                     s_lc.copy_like(s_util)
                 for life_cycle in stream_life_cycles:
@@ -249,7 +249,7 @@ class HeatExchangerNetwork(Facility):
                 i.installed_costs.clear()
                 i._summary()
             for i in range(len(stream_life_cycles)):
-                hx = hx_utils_rearranged[i].heat_exchanger
+                hx = hx_utils_rearranged[i].unit
                 s_util = hx.outs[0]
                 lc = stream_life_cycles[i].life_cycle[-1]
                 s_lc = lc.unit.outs[lc.index]
@@ -344,11 +344,11 @@ class HeatExchangerNetwork(Facility):
         if ignored and callable(ignored): ignored = ignored()
         energy_balance_errors = {}
         for hu in self._get_original_heat_utilties():
-            self.ignored = ignored + [hu.heat_exchanger]
-            if hasattr(hu.heat_exchanger, 'owner'):
-                ID = hu.heat_exchanger.owner.ID, hu.heat_exchanger.ID
+            self.ignored = ignored + [hu.unit]
+            if hasattr(hu.unit, 'owner'):
+                ID = hu.unit.owner.ID, hu.unit.ID
             else:
-                ID = hu.heat_exchanger.ID
+                ID = hu.unit.ID
             try:
                 self.simulate()
             except: 
@@ -374,7 +374,7 @@ class HeatExchangerNetwork(Facility):
     def get_original_hxs_associated_with_streams(self): # pragma: no cover
         original_units = self.system.units
         original_heat_utils = self.original_heat_utils
-        original_hx_utils = [i.heat_exchanger for i in original_heat_utils]
+        original_hx_utils = [i.unit for i in original_heat_utils]
         original_hxs = {}
         stream_index = 0
         for hx in original_hx_utils:
