@@ -141,7 +141,6 @@ class SteamMixer(Unit):
     _N_outs = 1
     _N_ins = 3
     _ins_size_is_fixed = False
-    _N_heat_utilities = 1
     _graphics = mixer_graphics
     installation_cost = purchase_cost = 0.
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
@@ -210,7 +209,7 @@ class SteamMixer(Unit):
     def _design(self): 
         steam = self.ins[1]
         mixed = self.outs[0]
-        self.heat_utilities[0](steam.H, mixed.T)
+        self.add_heat_utility(steam.H, mixed.T)
         
 class MockMixer(Unit):
     """

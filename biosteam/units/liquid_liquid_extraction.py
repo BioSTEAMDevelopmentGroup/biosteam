@@ -181,7 +181,6 @@ class LiquidsCentrifuge(Unit, isabstract=True):
 
 # TODO: Remove this in favor of partition coefficients
 class LiquidsRatioCentrifuge(LiquidsCentrifuge):
-    _N_heat_utilities = 0
     line = 'Liquids centrifuge'
     __init__ = RatioFlash.__init__
     _run = RatioFlash._run
@@ -264,7 +263,7 @@ class LLECentrifuge(LLEUnit, LiquidsCentrifuge):
                      TriOlein   0.996
     >>> C1.results()
     Liquids centrifuge                          Units       C1
-    Power               Rate                       kW     17.1
+    Electricity         Power                      kW     17.1
                         Cost                   USD/hr     1.34
     Design              Flow rate              m^3/hr     12.2
                         Number of centrifuges                1
@@ -341,7 +340,7 @@ class SLLECentrifuge(Unit):
     
     >>> C1.results()
     3-Phase decanter centrifuge                       Units       C1
-    Power               Rate                             kW   0.0101
+    Electricity         Power                            kW   0.0101
                         Cost                         USD/hr  0.00079
     Design              Flow rate                     L/min      249
                         Number of centrifuges                      1
@@ -353,7 +352,6 @@ class SLLECentrifuge(Unit):
     line = '3-Phase decanter centrifuge'
     _N_ins = 1
     _N_outs = 3
-    _N_heat_utilities = 0
     
     @property
     def solids_split(self):
@@ -456,7 +454,7 @@ class SolidLiquidsSplitCentrifuge(Unit):
     
     >>> C1.results()
     3-Phase decanter centrifuge                       Units       C1
-    Power               Rate                             kW   0.0101
+    Electricity         Power                            kW   0.0101
                         Cost                         USD/hr  0.00079
     Design              Flow rate                     L/min      249
                         Number of centrifuges                      1
@@ -468,7 +466,6 @@ class SolidLiquidsSplitCentrifuge(Unit):
     line = SLLECentrifuge.line
     _N_ins = 1
     _N_outs = 3
-    _N_heat_utilities = 0
     
     @property
     def solids_split(self):
@@ -600,7 +597,6 @@ class LiquidsSettler(bst.Unit, PressureVessel, isabstract=True):
     """
     _N_ins = 1
     _N_outs = 2
-    _N_heat_utilities = 0
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
                  area_to_feed=0.1, 

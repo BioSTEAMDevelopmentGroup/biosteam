@@ -183,7 +183,7 @@ class RotaryVacuumFilter(SolidsSeparator):
                        Fraction of water in retentate.
     
     """
-    _N_heat_utilities = 2
+    auxiliary_unit_names = ('vacuum_system',)
     _F_BM_default = {'Vessels': 2.32,
                      'Vacuum system': 1.0}
     
@@ -247,19 +247,9 @@ class RotaryVacuumFilter(SolidsSeparator):
         vessel_volume = N * radius*Area*0.0929/2. # m3
         vacummed_air = s_vacuumed.F_vol # Flow rate sucked-in displaces air
         air_density = 1.2754 # kg /m3
-        vacuum_results = compute_vacuum_system_power_and_cost(
-                vacummed_air * air_density, vacummed_air, self.P_suction, vessel_volume)
-        #power = work_rot/self.power_efficiency/1000 + work_vacuum # kW
-        self.baseline_purchase_costs['Vacuum system'] = vacuum_results['Cost']
-        self.design_results['Vacuum system'] = vacuum_results['Name']
-        self.design_results['Vacuums in parallel'] = vacuum_results['In parallel']
-        vacuum_steam, vacuum_cooling_water = self.heat_utilities
-        vacuum_steam.set_utility_by_flow_rate(vacuum_results['Heating agent'], vacuum_results['Steam flow rate'])
-        if vacuum_results['Condenser']: 
-            vacuum_cooling_water(-vacuum_steam.unit_duty, 373.15)
-        else:
-            vacuum_cooling_water.empty()
-        self.power_utility(vacuum_results['Work'])
+        self.vacuum_system = bst.VacuumSystem(
+            vacummed_air * air_density, vacummed_air, self.P_suction, vessel_volume
+        )
         
     @staticmethod
     def _calc_Area(flow, filter_rate):

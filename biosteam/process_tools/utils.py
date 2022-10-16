@@ -227,8 +227,8 @@ def heat_exchanger_utilities_from_units(units):
     """Return a list of heat utilities from all heat exchangers,
     including the condensers and boilers of distillation columns and
     flash vessel heat exchangers."""
-    heat_utilities = sum([i.heat_utilities for i in units], ())
-    return [i for i in heat_utilities if i.heat_exchanger]
+    heat_utilities = sum([i.heat_utilities for i in units], [])
+    return [i for i in heat_utilities if i.hxn_ok]
 
 def ID_number(ID):
     """
@@ -302,7 +302,7 @@ def get_power_utilities(units):
 
 def get_heat_utilities(units):
     """Return a list of all HeatUtility objects."""
-    return sum([i.heat_utilities for i in units], ())
+    return sum([i.heat_utilities for i in units], [])
 
 def get_purchase_cost(units):
     """Return the total equipment purchase cost of all units in million USD."""

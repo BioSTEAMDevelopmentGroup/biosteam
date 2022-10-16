@@ -25,10 +25,12 @@ from .design_tools import heat_transfer as ht
 import numpy as np
 import biosteam as bst
 from math import exp, log as ln
+from typing import Optional
+from .._heat_utility import UtilityAgent
 
 __all__ = ('HX', 'HXutility', 'HXprocess')
 
-# Lenght factor 
+# Length factor 
 x = np.array((8, 13, 16, 20)) 
 y = np.array((1.25, 1.12,1.05,1))
 p2 = np.polyfit(x, y, 2)
@@ -80,7 +82,6 @@ class HX(Unit, isabstract=True):
               'Total tube length': 'ft'}
     _N_ins = 1
     _N_outs = 1
-    _N_heat_utilities = 1
     _F_BM_default = {'Double pipe': 1.8,
                      'Floating head': 3.17,
                      'Fixed head': 3.17,
@@ -382,42 +383,29 @@ class HXutility(HX):
         #: heat utility.
         self.heat_transfer_efficiency = heat_transfer_efficiency
     
-    def _init_utils(self):
-        # tuple[HeatUtility] All heat utilities associated to unit
-        self._heat_utilities = tuple([bst.HeatUtility(heat_exchanger=self)
-                                      for i in range(self._N_heat_utilities)])
-        
-        # [PowerUtility] Electric utility associated to unit
-        self.power_utility = bst.PowerUtility()
-    
     @property
     def total_heat_transfer(self):
         """[float] Heat transfer in kJ/hr, including environmental losses."""
-        return abs(self.heat_utilities[0].duty)
+        return abs(self.net_duty)
     Q = total_heat_transfer # Alias for backward compatibility
     
-    @property
-    def heat_utilities(self):
-        return self._heat_utilities
-    @heat_utilities.setter
-    def heat_utilities(self, heat_utilities):
-        self._heat_utilities = heat_utilities = tuple(heat_utilities)
-        for i in heat_utilities: i.heat_exchanger = self
-    
-    def simulate_as_auxiliary_exchanger(self, inlet=None, outlet=None, duty=None):
-        if not outlet: 
-            outlet = inlet
-            if duty is None: raise ValueError('must pass duty when no outlet is given')
-        if not inlet: raise ValueError('must pass inlet stream')
-        if duty is None: duty = outlet.Hnet - inlet.Hnet
-        self.outs[0] = inlet.proxy()
-        self.ins[0] = outlet.proxy()
-        hu = self.heat_utilities[0]
-        hu.heat_exchanger = None # Do not include in heat exchanger network
-        hte = self.heat_transfer_efficiency
-        if hte is not None: hu.heat_transfer_efficiency = hte
-        hu(duty, inlet.T)
+    def simulate_as_auxiliary_exchanger(self, 
+            ins=None, outs=None, duty=None, vle=True
+        ):
+        if not ins: raise ValueError('must pass inlet streams `ins`')
         self._setup()
+        inlet = self.ins[0]
+        outlet = self.outs[0]
+        if not inlet: inlet = inlet.materialize_connection(None)
+        if not outlet: outlet = outlet.materialize_connection(None)
+        inlet.mix_from(ins, vle=vle)
+        if outs is None:
+            if duty is None: raise ValueError('must pass duty when no outlets are given')
+            outlet.copy_like(inlet)
+            if vle: outlet.vle(H=inlet.H + duty, P=inlet.P)
+        else:
+            outlet.mix_from(outs, vle=vle)
+            if duty is None: duty = outlet.Hnet - inlet.Hnet
         for ps in self._specifications: ps.compile_path(self)
         self._summary()
         
@@ -546,10 +534,9 @@ class HXutility(HX):
             if T_out > T_in: T_in = T_out
         else:
             if T_out < T_in: T_out = T_in
-        hu = self.heat_utilities[0]
-        hte = self.heat_transfer_efficiency
-        if hte is not None: hu.heat_transfer_efficiency = hte
-        hu(duty, T_in, T_out)
+        self.add_heat_utility(duty, T_in, T_out, 
+                              heat_transfer_efficiency=self.heat_transfer_efficiency,
+                              hxn_ok=True)
         super()._design()
 
 
@@ -676,7 +663,6 @@ class HXprocess(HX):
     """
     line = 'Heat exchanger'
     _graphics = process_heat_exchanger_graphics
-    _N_heat_utilities = 0
     _N_ins = 2
     _N_outs = 2
     

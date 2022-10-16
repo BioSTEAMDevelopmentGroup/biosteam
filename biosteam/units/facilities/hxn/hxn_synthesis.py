@@ -131,7 +131,7 @@ def temperature_interval_pinch_analysis(hus, T_min_app = 10, force_ideal_thermo=
     hus_heating = [hu for hu in hx_utils if hu.duty > 0]
     hus_cooling = [hu for hu in hx_utils if hu.duty < 0]
     hx_utils_rearranged = hus_heating + hus_cooling
-    hxs = [hu.heat_exchanger for hu in hx_utils_rearranged]
+    hxs = [hu.unit for hu in hx_utils_rearranged]
     if force_ideal_thermo:
         streams_inlet = [hx.ins[0] for hx in hxs]
         streams_quenched = [i.outs[0] for i in hxs]

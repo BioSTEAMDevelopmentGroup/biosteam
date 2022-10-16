@@ -100,7 +100,6 @@ class MassBalance(Unit):
     
     """
     _graphics = process_specification_graphics
-    _N_heat_utilities = 0
     _N_ins = _N_outs = 1
 
     def __init__(self, ID='', ins=None, outs=(), thermo=None,

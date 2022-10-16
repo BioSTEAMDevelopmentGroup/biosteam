@@ -42,7 +42,6 @@ class CoolingTower(Facility):
     ticket_name = 'CT'
     network_priority = 1
     _units = {'Flow rate': 'kmol/hr'}
-    _N_heat_utilities = 1
     _N_ins = 3
     _N_outs = 3
     evaporation = 0.01
@@ -92,7 +91,7 @@ class CoolingTower(Facility):
         self._load_utility_agents()
         cwu = self.cooling_water_utilities
         return_cooling_water, makeup_water, cooling_tower_chemicals = self._ins
-        hu = self.heat_utilities[0]
+        hu = self.create_heat_utility()
         self._load_utility_agents()
         hu.mix_from(cwu)            
         return_cooling_water.imol['7732-18-5'] = \

@@ -98,11 +98,7 @@ class ContinuousReactor(PressureVessel, Unit, isabstract=True):
     def _cost(self):
         Design = self.design_results
         baseline_purchase_costs = self.baseline_purchase_costs
-        if Design['Total volume'] == 0:
-            for i, j in baseline_purchase_costs.items():
-                baseline_purchase_costs[i] = 0
-            self.power_utility(0)
-        else:
+        if Design['Total volume'] != 0:
             baseline_purchase_costs.update(
                 self._vessel_purchase_cost(
                     Design['Weight'], Design['Diameter'], Design['Length']
@@ -110,5 +106,5 @@ class ContinuousReactor(PressureVessel, Unit, isabstract=True):
             )
             for i, j in baseline_purchase_costs.items():
                 baseline_purchase_costs[i] *= Design['Number of reactors']
-            self.power_utility(self.kW_per_m3 * Design['Total volume'])
+            self.add_power_utility(self.kW_per_m3 * Design['Total volume'])
     

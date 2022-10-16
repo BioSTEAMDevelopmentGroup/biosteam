@@ -66,7 +66,6 @@ class Compressor(Unit, isabstract=True):
     _graphics = compressor_graphics
     _N_ins = 1
     _N_outs = 1
-    _N_heat_utilities = 1
     _units = {
         'Ideal power': 'kW',
         'Ideal duty': 'kJ/hr',
@@ -241,7 +240,7 @@ class Compressor(Unit, isabstract=True):
                 # Assume that the recondenser cost is negligible and that 
                 # heat integration is used (which are commonly the case).
                 hps = bst.settings.get_heating_agent('high_pressure_steam')
-                self.heat_utilities[0](self.power_utility.consumption, T_in=298.15, agent=hps)
+                self.add_heat_utility(self.power_utility.consumption, T_in=298.15, agent=hps)
             elif driver == 'Gas turbine':
                 # TODO: Possibly have an optional inlet stream that can work
                 # as either steam or gas feed to the turbine.
@@ -328,7 +327,7 @@ class IsothermalCompressor(Compressor, new_graphics=False):
     
     >>> K.results()
     Isothermal compressor                          Units               K
-    Power               Rate                          kW            2.47
+    Electricity         Power                         kW            2.47
                         Cost                      USD/hr           0.193
     Chilled water       Duty                       kJ/hr       -7.26e+03
                         Flow                     kmol/hr            7.53
@@ -359,7 +358,7 @@ class IsothermalCompressor(Compressor, new_graphics=False):
         outlet = self.outs[0]
         ideal_power, ideal_duty = self._calculate_ideal_power_and_duty()
         Q = ideal_duty / self.eta
-        self.heat_utilities[0](unit_duty=Q, T_in=feed.T, T_out=outlet.T)
+        self.add_heat_utility(unit_duty=Q, T_in=feed.T, T_out=outlet.T)
         self.design_results['Ideal power'] = ideal_power # kW
         self.design_results['Ideal duty'] = ideal_duty # kJ / hr
         self._set_power(ideal_power / self.eta)
@@ -413,7 +412,7 @@ class IsentropicCompressor(Compressor, new_graphics=False):
 
     >>> K.results()
     Isentropic compressor                          Units             K1
-    Power               Rate                          kW              0
+    Electricity         Power                         kW              0
                         Cost                      USD/hr              0
     High pressure steam Duty                       kJ/hr           12.7
                         Flow                     kmol/hr       0.000396
@@ -451,7 +450,7 @@ class IsentropicCompressor(Compressor, new_graphics=False):
 
     >>> K.results()
     Isentropic compressor                          Units             K2
-    Power               Rate                          kW              0
+    Electricity         Power                         kW              0
                         Cost                      USD/hr              0
     High pressure steam Duty                       kJ/hr           9.79
                         Flow                     kmol/hr       0.000305
@@ -546,7 +545,7 @@ class PolytropicCompressor(Compressor, new_graphics=False):
         flow (kmol/hr): H2  1
     >>> K.results()
     Polytropic compressor                         Units              K1
-    Power               Rate                         kW            6.52
+    Electricity         Power                        kW            6.52
                         Cost                     USD/hr            0.51
     Design              Polytropic work                           2e+04
                         Type                              Reciprocating
@@ -575,7 +574,7 @@ class PolytropicCompressor(Compressor, new_graphics=False):
     
     >>> K.results()
     Polytropic compressor                         Units              K1
-    Power               Rate                         kW            6.48
+    Electricity         Power                        kW            6.48
                         Cost                     USD/hr           0.507
     Design              Polytropic work                        1.98e+04
                         Type                              Reciprocating
@@ -737,7 +736,7 @@ class MultistageCompressor(Unit):
     
     >>> K.results()
     Multistage compressor                           Units                      K
-    Power               Rate                           kW                      0
+    Electricity         Power                          kW                      0
                         Cost                       USD/hr                      0
     High pressure steam Duty                        kJ/hr                   5.68
                         Flow                      kmol/hr               0.000177
@@ -803,7 +802,7 @@ class MultistageCompressor(Unit):
     
     >>> K.results()
     Multistage compressor                           Units                     K2
-    Power               Rate                           kW                      0
+    Electricity         Power                          kW                      0
                         Cost                       USD/hr                      0
     High pressure steam Duty                        kJ/hr                   6.47
                         Flow                      kmol/hr               0.000201
@@ -835,7 +834,6 @@ class MultistageCompressor(Unit):
 
     _N_ins = 1
     _N_outs = 1
-    _N_heat_utilities = 0
     _units = {
         **Compressor._units,
         **HX._units,
@@ -966,17 +964,17 @@ class MultistageCompressor(Unit):
         units = [u for t in zip(self.compressors, self.hxs) for u in t]
 
         # simulate all subcomponents
-        for u in units: u.run()
+        for u in units: 
+            u._setup() 
+            u._run()
 
     def _design(self):
         self.design_results["Type"] = "Multistage compressor"
 
         # design all subcomponents
-        units = [u for t in zip(self.compressors,self.hxs) for u in t]
+        units = [u for t in zip(self.compressors, self.hxs) for u in t]
         for u in units: u._summary()
-        self.power_utility.mix_from([u.power_utility for u in units])
-        self.heat_utilities = bst.HeatUtility.sum_by_agent([h for u in units for h in u.heat_utilities])
-
+        
         # sum up design values
         sum_fields = [
             "Power", "Duty",

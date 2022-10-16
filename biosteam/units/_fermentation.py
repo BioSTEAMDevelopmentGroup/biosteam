@@ -99,7 +99,7 @@ class Fermentation(BatchBioreactor):
                         Yeast    484
     >>> F1.results()
     Fermentation                                       Units        F1
-    Power               Rate                              kW      66.6
+    Electricity         Power                             kW      66.6
                         Cost                          USD/hr      5.21
     Chilled water       Duty                           kJ/hr -6.96e+06
                         Flow                         kmol/hr  4.67e+03

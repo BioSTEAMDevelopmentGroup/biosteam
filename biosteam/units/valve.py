@@ -62,7 +62,6 @@ class IsenthalpicValve(Valve, new_graphics=False):
     (which serve preliminary techno-economic analysis purposes).
 
     """
-    _N_heat_utilities = 0
 
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, vle=False):
         Unit.__init__(self, ID, ins, outs, thermo)

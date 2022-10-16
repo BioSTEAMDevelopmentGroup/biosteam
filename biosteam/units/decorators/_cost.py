@@ -150,7 +150,7 @@ def _decorated_cost(self):
             F = S/x.S
             C[i] = bst.CE/x.CE*(x.f(F) if x.f else x.cost*F**x.n)
             kW += x.kW*F
-    if kW: self.power_utility(kW)
+    if kW: self.add_power_utility(kW)
 
 def copy_algorithm(other, cls=None, run=True, design=True, cost=True):
     if not cls: return lambda cls: copy_algorithm(other, cls, run, design, cost)
