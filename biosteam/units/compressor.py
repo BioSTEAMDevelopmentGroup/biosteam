@@ -972,7 +972,7 @@ class MultistageCompressor(Unit):
         self.design_results["Type"] = "Multistage compressor"
 
         # design all subcomponents
-        units = [u for t in zip(self.compressors,self.hxs) for u in t]
+        units = [u for t in zip(self.compressors, self.hxs) for u in t]
         for u in units: u._summary()
         
         # sum up design values
