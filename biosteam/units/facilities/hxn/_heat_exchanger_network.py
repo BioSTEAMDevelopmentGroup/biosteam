@@ -283,7 +283,7 @@ class HeatExchangerNetwork(Facility):
                 new_purchase_costs_HXp.append(new_HX.purchase_cost)
                 new_installed_costs_HXp.append(new_HX.installed_cost)
             hu_sums1 = bst.HeatUtility.sum_by_agent(hx_utils_rearranged)
-            new_heat_utils = sum([hx.heat_utilities for hx in new_HX_utils], ())
+            new_heat_utils = sum([hx.heat_utilities for hx in new_HX_utils], [])
             hu_sums2 = bst.HeatUtility.sum_by_agent(new_heat_utils)
             # to change sign on duty without switching heat/cool (i.e. negative costs):
             for hu in hu_sums1: hu.reverse()
