@@ -803,13 +803,11 @@ class Unit:
             try:
                 installed_costs[name] = Cpb * (F_BM[name] + F - 1.)
             except KeyError:
-                warning = RuntimeWarning(
-                   f"the purchase cost item, '{name}', has "
-                    "no defined bare-module factor in the "
-                  f"'{type(self).__name__}.F_BM' dictionary; "
-                   "bare-module factor now has a default value of 1"
-                 )
-                warn(warning)
+                warn(f"the purchase cost item, '{name}', has "
+                      "no defined bare-module factor in the "
+                     f"'{type(self).__name__}.F_BM' dictionary; "
+                      "bare-module factor now has a default value of 1",
+                      RuntimeWarning)
                 F_BM[name] = 1.
                 installed_costs[name] = purchase_costs[name] = Cpb * F
             else:
@@ -821,6 +819,7 @@ class Unit:
         specifications. This method is run at the start of unit simulation, 
         before running mass and energy balances."""
         self.power_utility.empty()
+        for i in self.heat_utilities: i.empty()
         self.heat_utilities.clear()
         self.baseline_purchase_costs.clear()
         self.purchase_costs.clear()
