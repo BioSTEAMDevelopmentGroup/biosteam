@@ -691,7 +691,7 @@ class Evaporator_PV(Flash):
     _N_outs = 2
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P=None, V=None, chemical='7732-18-5'):
-        super().__init__(ID, ins, outs, thermo)
+        super().__init__(ID, ins, outs, thermo, vessel_type='Vertical')
         self.chemical = self.chemicals[chemical]
         self.P = P
         self.V = V
@@ -726,9 +726,24 @@ class Evaporator_PV(Flash):
         vapor.mol[index] = self.V * chemical_mol
         liquid_mol = liquid.mol
         liquid_mol[:] = feed.mol
-        liquid_mol[index] = (1-self.V) * chemical_mol
+        liquid_mol[index] = (1 - self.V) * chemical_mol
         ms = self._multi_stream
-        self.heat_exchanger._summary()
-        self.design_results['Heat transfer'] = self.heat_exchanger.Q
         ms['g'].copy_like(vapor)
         ms['l'].copy_like(liquid)
+        
+    def _design(self):
+        vap, liq = self.outs
+        self.vessel_needed = not (vap.isempty() or liq.isempty())
+        if self.vessel_needed:
+            args = self._vertical_vessel_pressure_diameter_and_length()
+            self.design_results.update(
+                self._vessel_design(*args)
+            )
+            self.heat_exchanger.simulate_as_auxiliary_exchanger(self.ins, self.outs, vle=True)
+
+    def _cost(self):
+        D = self.design_results
+        if self.vessel_needed:
+            self.baseline_purchase_costs.update(
+                self._vessel_purchase_cost(D['Weight'], D['Diameter'], D['Length'])
+            )
