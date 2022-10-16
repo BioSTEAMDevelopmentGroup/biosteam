@@ -338,7 +338,7 @@ class Unit:
     
         #: All heat utilities associated to unit. Cooling and heating requirements 
         #: are stored here (including auxiliary requirements).
-        self.heat_utilities: list[HeatUtility, ...] = []
+        self.heat_utilities: list[HeatUtility, ...] = [HeatUtility for i in range(getattr(self, '_N_heat_utilities', 0))]
         
         #: Electric utility associated to unit (including auxiliary requirements).
         self.power_utility: PowerUtility = PowerUtility()
@@ -823,7 +823,7 @@ class Unit:
         before running mass and energy balances."""
         self.power_utility.empty()
         for i in self.heat_utilities: i.empty()
-        self.heat_utilities.clear()
+        if not hasattr(self, '_N_heat_utilities'): self.heat_utilities.clear()
         self.baseline_purchase_costs.clear()
         self.purchase_costs.clear()
         self.installed_costs.clear()
@@ -1212,10 +1212,7 @@ class Unit:
         
     def _reevaluate(self):
         """Reevaluate design and costs."""
-        self.heat_utilities.clear()
-        self.baseline_purchase_costs.clear()
-        self.purchase_costs.clear()
-        self.installed_costs.clear()
+        self._setup()
         self._summary()
     
     def _summary(self):
