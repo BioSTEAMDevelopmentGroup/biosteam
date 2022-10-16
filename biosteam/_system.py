@@ -2966,7 +2966,7 @@ class FacilityLoop(System):
 
     def run(self):
         obj = super()
-        for i in self.units: Unit._setup(i)
+        for i in self.units: i._setup()
         obj.run()
         self._summary()
 
