@@ -93,7 +93,7 @@ class UtilityAgent(Stream):
             flow = getattr(self, name)
             flow[:] = self.mol / factor
         self.mol[:] /= self.mol.sum() # Total flow must be 1 kmol / hr
-        self.mol.setflags(0) # Flow rate cannot anymore
+        self.mol.setflags(0) # Flow rate cannot change anymore
         self._sink = self._source = None
         self._user_equilibrium = None
         self.reset_cache()
