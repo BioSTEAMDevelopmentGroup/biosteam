@@ -546,6 +546,7 @@ class Unit:
             T_out: Optional[float]=None, 
             agent: Optional[UtilityAgent]=None,
             heat_transfer_efficiency: Optional[float]=None,
+            hxn_ok: Optional[bool]=False,
         ):
         """
         Add utility requirement given the duty and inlet and outlet 
@@ -565,9 +566,11 @@ class Unit:
         heat_transfer_efficiency : 
             Enforced fraction of heat transfered from utility (due
             to losses to environment).
+        hxn_ok :
+            Whether heat utility can be satisfied within a heat exchanger network.
             
         """
-        hu = HeatUtility(heat_transfer_efficiency, None)
+        hu = HeatUtility(heat_transfer_efficiency, self, hxn_ok)
         self.heat_utilities.append(hu)
         hu(unit_duty, T_in, T_out, agent)
         return hu
@@ -703,7 +706,7 @@ class Unit:
         F_M = self.F_M
         heat_utilities = self.heat_utilities
         power_utility = self.power_utility
-        for name, unit in self.auxiliary_units.items():
+        for name, unit in self.get_auxiliary_units():
             unit._load_costs()
             unit.owner = self
             heat_utilities.extend(unit.heat_utilities)
@@ -1293,20 +1296,23 @@ class Unit:
             )
             return self._utility_cost
 
-    @property
-    def auxiliary_units(self) -> dict[str, Unit]:
-        """All associated auxiliary units."""
+    def get_auxiliary_units(self) -> list[tuple[str, Unit]]:
+        """Return list of name - auxiliary unit pairs."""
         getfield = getattr
         isa = isinstance
-        auxiliary_units = {}
+        auxiliary_units = []
         for name in self.auxiliary_unit_names:
             unit = getfield(self, name, None)
             if unit is None: continue 
             if isa(unit, Iterable):
                 for i, u in enumerate(unit):
-                    auxiliary_units[f"{name}[{i}]"] = u
+                    auxiliary_units.append(
+                        (f"{name}[{i}]", u)
+                    )
             else:
-                auxiliary_units[name] = unit
+                auxiliary_units.append(
+                    (name, unit)
+                )
         return auxiliary_units
 
     def mass_balance_error(self):
