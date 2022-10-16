@@ -383,37 +383,6 @@ class HXutility(HX):
         #: heat utility.
         self.heat_transfer_efficiency = heat_transfer_efficiency
     
-    def add_heat_utility(self, 
-            unit_duty: float, 
-            T_in: float,
-            T_out: Optional[float]=None, 
-            agent: Optional[UtilityAgent]=None,
-            heat_transfer_efficiency: Optional[float]=None,
-        ):
-        """
-        Add utility requirement given the duty and inlet and outlet 
-        temperatures.
-        
-        Parameters
-        ----------
-        unit_duty :
-               Unit duty requirement [kJ/hr]
-        T_in : 
-               Inlet process stream temperature [K]
-        T_out : 
-               Outlet process stream temperature [K]
-        agent : 
-                Utility agent to use. Defaults to a suitable agent from 
-                predefined heating/cooling utility agents.
-        heat_transfer_efficiency : 
-            Enforced fraction of heat transfered from utility (due
-            to losses to environment).
-            
-        """
-        hu = bst.HeatUtility(heat_transfer_efficiency, self)
-        self.heat_utilities.append(hu)
-        hu(unit_duty, T_in, T_out, agent)
-    
     @property
     def total_heat_transfer(self):
         """[float] Heat transfer in kJ/hr, including environmental losses."""
@@ -565,7 +534,9 @@ class HXutility(HX):
             if T_out > T_in: T_in = T_out
         else:
             if T_out < T_in: T_out = T_in
-        self.add_heat_utility(duty, T_in, T_out, heat_transfer_efficiency=self.heat_transfer_efficiency)
+        self.add_heat_utility(duty, T_in, T_out, 
+                              heat_transfer_efficiency=self.heat_transfer_efficiency,
+                              hxn_ok=True)
         super()._design()
 
 
