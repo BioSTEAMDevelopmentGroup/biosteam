@@ -12,7 +12,7 @@ from .utils import streams_from_units
 from warnings import warn
 from thermosteam import Stream
 import biosteam as bst
-from collections import Iterable
+from collections.abc import Iterable
 from .utils import piping
 from ._temporary_connection import TemporaryUnit
 
