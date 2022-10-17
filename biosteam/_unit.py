@@ -1228,7 +1228,7 @@ class Unit:
     def _check_utilities(self):
         if len(set(self.heat_utilities)) != len(self.heat_utilities):
             raise UnitInheritanceError(
-                'heat utilities are repeated possibly because auxiliary utilities '
+                'found repeated heat utilities, possibly because auxiliary utilities '
                 'were manualy added; note that utilities from auxiliary units '
                 'are automatically added to main unit operation'
             )
