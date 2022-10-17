@@ -183,8 +183,7 @@ class Unit:
         if '_N_heat_utilities' in dct:
             warn("'_N_heat_utilities' class attribute is scheduled for deprecation; "
                  "use the `add_heat_utility` method instead",
-                 DeprecationWarning, stacklevel=2,
-            )
+                 DeprecationWarning, stacklevel=2)
         if 'run' in dct:
             raise UnitInheritanceError(
                  "the 'run' method cannot be overrided; implement `_run` instead"
@@ -836,7 +835,18 @@ class Unit:
                 self.installed_costs]):
             raise UnitInheritanceError(
                 '`_setup` method did not clear unit results; a potential solution is to'
-                'run `super()._setup()` in the `_setup` method of the unit subclass.'
+                'run `super()._setup()` in the `_setup` method of the unit subclass'
+            )
+    
+    def _check_run(self):
+        if any([self.power_utility, 
+                self.heat_utilities, 
+                self.baseline_purchase_costs, 
+                self.purchase_costs, 
+                self.installed_costs]):
+            raise UnitInheritanceError(
+                '`_run` method added unit results (e.g., purchase costs, heat and power utilities); '
+                'unit results should only be added in `_design` or `_cost` methods'
             )
     
     def materialize_connections(self):
@@ -1215,13 +1225,23 @@ class Unit:
         self._setup()
         self._summary()
     
+    def _check_utilities(self):
+        if len(set(self.heat_utilities)) != len(self.heat_utilities):
+            raise UnitInheritanceError(
+                'heat utilities are repeated possibly because auxiliary utilities '
+                'were manualy added; note that utilities from auxiliary units '
+                'are automatically added to main unit operation'
+            )
+    
     def _summary(self):
         """Run design and cost algorithms and compile capital and utility costs."""
+        self._check_run()
         if not (self._design or self._cost): return
         self._design()
         self._cost()
         self._load_auxiliary_costs()
         self._load_costs()
+        self._check_utilities()
         ins = self._ins._streams
         outs = self._outs._streams
         prices = bst.stream_utility_prices
@@ -1344,7 +1364,7 @@ class Unit:
 
     def empty(self):
         """
-        Empty all unit operation results.
+        Empty all unit operation results and outlet flows.
         """
         self.design_results.clear()
         self.baseline_purchase_costs.clear()
