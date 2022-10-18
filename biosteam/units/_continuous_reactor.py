@@ -103,12 +103,12 @@ class ContinuousReactor(PressureVessel, Unit, isabstract=True):
         Design.update(self._vessel_design(float(P_psi), float(D), float(L)))
         self.vacuum_system = bst.VacuumSystem(self) if P_pascal < 1e5 else None
         duty = self.Hnet
-        self.in_parallel['self'] = N
-        self.in_parallel['vacuum_system'] = None # Not in parallel
+        self.parallel['self'] = N
+        self.parallel['vacuum_system'] = 1 # Not in parallel
         if duty: 
             # Note: Flows and duty are multiplied by scale to simulate an individual
             # heat exchanger, then BioSTEAM accounts for number of units in parallel
-            # through the `in_parallel` attribute.
+            # through the `parallel` attribute.
             self.heat_exchanger.simulate_as_auxiliary_exchanger(
                 self.ins, self.outs, duty, vle=False, scale=1 / N,
             )

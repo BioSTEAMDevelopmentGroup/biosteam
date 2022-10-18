@@ -807,9 +807,9 @@ class Distillation(Unit, isabstract=True):
             for length, diameter in dimensions:
                 R = diameter * 0.5
                 volume += 0.02832 * np.pi * length * R * R # m3
-        self.vacuum_system = bst.VacuumSystem(
-            self, self.vacuum_system_preference, vessel_volume=volume,
-        )
+            self.vacuum_system = bst.VacuumSystem(
+                self, self.vacuum_system_preference, vessel_volume=volume,
+            )
     
     def _cost(self):
         Design = self.design_results

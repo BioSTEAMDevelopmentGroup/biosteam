@@ -214,18 +214,19 @@ class RotaryVacuumFilter(SolidsSeparator):
         ub = self._bounds['Individual area'][1]
         N_vessels = np.ceil(Area/ub)
         iArea = Area/N_vessels # individual vessel
-        Design['Units in parallel'] = N_vessels
+        self.parallel['self'] = N_vessels
+        self.parallel['vacuum_system'] = 1
         Design['Individual area'] = iArea
         self._load_vacuum_system(Area, N_vessels)
         logArea = np.log(iArea)
-        Cost = np.exp(11.796-0.1905*logArea+0.0554*logArea**2)
-        self.baseline_purchase_costs['Vessels'] = N_vessels*Cost*bst.CE/567
+        Cost = np.exp(11.796 - 0.1905 * logArea + 0.0554 * logArea**2)
+        self.baseline_purchase_costs['Vessels'] = Cost * bst.CE/567
     
     def _load_vacuum_system(self, area, N_vessels):
         s_cake, s_vacuumed = self.outs
         radius = self.radius
         Area = self.design_results['Individual area']
-        N = self.design_results['Units in parallel']
+        N = self.parallel['self']
         vacummed_air = s_vacuumed.F_vol # Flow rate sucked-in displaces air
         air_density = 1.2754 # kg /m3
         self.vacuum_system = bst.VacuumSystem(

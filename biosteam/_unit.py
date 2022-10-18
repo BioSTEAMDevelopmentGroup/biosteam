@@ -412,7 +412,7 @@ class Unit:
         #: Dictionary of units in parallel. Use 'self' to refer to the main unit, 
         #: otherwise, use the auxiliary unit name. Capital and heat and power utilities 
         #: set by user will become propotional to this value.
-        self.in_parallel: dict[str, int|None] = {}
+        self.parallel: dict[str, int|None] = {}
         
         self._assert_compatible_property_package()
     
@@ -710,11 +710,11 @@ class Unit:
         F_M = self.F_M
         heat_utilities = self.heat_utilities
         power_utility = self.power_utility
-        parallel = self.in_parallel
+        parallel = self.parallel
         N_default = parallel.get('self', 1)
         for name, unit in self.get_auxiliary_units_with_names():
             unit.owner = self
-            N = parallel.get(name, N_default)
+            N = int(parallel.get(name, N_default))
             if N == 1:
                 heat_utilities.extend(unit.heat_utilities)
                 power_utility.consumption += unit.power_utility.consumption
@@ -730,7 +730,7 @@ class Unit:
             bpc_auxiliary = unit.baseline_purchase_costs
             pc_auxiliary = unit.purchase_costs
             ic_auxiliary = unit.installed_costs
-            for i in unit.baseline_purchase_costs:
+            for i in bpc_auxiliary:
                 j = ' - '.join([name.capitalize().replace('_', ' '), i])
                 if j in baseline_purchase_costs: 
                     raise RuntimeError(
@@ -806,8 +806,11 @@ class Unit:
         baseline_purchase_costs = self.baseline_purchase_costs
         purchase_costs = self.purchase_costs
         installed_costs = self.installed_costs
-        parallel = self.in_parallel
-        N_default = parallel.get('self', 1)
+        parallel = self.parallel
+        N_default = int(parallel.get('self', 1))
+        if N_default != 1:
+            self.heat_utilities.extend((N_default - 1) * self.heat_utilities)
+            self.power_utility.scale(N_default)
         for i in purchase_costs:
             if i not in baseline_purchase_costs:
                 warning = RuntimeWarning(
@@ -818,7 +821,7 @@ class Unit:
                 warn(warning)
                 baseline_purchase_costs[i] = purchase_costs[i]
         for name, Cpb in baseline_purchase_costs.items(): 
-            N = parallel.get(name, N_default)
+            N = int(parallel.get(name, N_default))
             if N == 1:
                 if name in installed_costs and name in purchase_costs:
                     continue # Assume costs already added elsewhere using another method
@@ -852,6 +855,7 @@ class Unit:
         self.power_utility.empty()
         for i in self.heat_utilities: i.empty()
         if not hasattr(self, '_N_heat_utilities'): self.heat_utilities.clear()
+        self.parallel.clear()
         self.baseline_purchase_costs.clear()
         self.purchase_costs.clear()
         self.installed_costs.clear()
@@ -863,8 +867,9 @@ class Unit:
                 self.purchase_costs, 
                 self.installed_costs]):
             raise UnitInheritanceError(
-                '`_setup` method did not clear unit results; a potential solution is to'
-                'run `super()._setup()` in the `_setup` method of the unit subclass'
+               f'`{type(self).__name__}._setup` method did not clear unit results; '
+                'a potential solution is to run `super()._setup()` in the `_setup` '
+                'method of the unit subclass'
             )
     
     def _check_run(self):
@@ -874,8 +879,9 @@ class Unit:
                 self.purchase_costs, 
                 self.installed_costs]):
             raise UnitInheritanceError(
-                '`_run` method added unit results (e.g., purchase costs, heat and power utilities); '
-                'unit results should only be added in `_design` or `_cost` methods'
+               f'`{type(self).__name__}._run` method added unit results '
+                '(e.g., purchase costs, heat and power utilities); unit results '
+                'should only be added in `_design` or `_cost` methods'
             )
     
     def materialize_connections(self):
@@ -1264,12 +1270,12 @@ class Unit:
                     'added to main unit operation'
                 )
     
-    def _summary(self):
+    def _summary(self, design_kwargs=None, cost_kwargs=None):
         """Run design and cost algorithms and compile capital and utility costs."""
         self._check_run()
         if not (self._design or self._cost): return
-        self._design()
-        self._cost()
+        self._design(**design_kwargs) if design_kwargs else self._design()
+        self._cost(**cost_kwargs) if cost_kwargs else self._cost()
         self._check_utilities()
         self._load_costs()
         self._load_auxiliary_costs()
@@ -1423,10 +1429,10 @@ class Unit:
         def addcapex(key):
             if key_hook: key = key_hook(key)
             *others, name = key
-            N = parallel.get(name, N_default)
+            N = int(parallel.get(name, N_default))
             if N != 1: key = (*others, name + f' (x{N})')
             keys.append(key)
-        parallel = self.in_parallel
+        parallel = self.parallel
         N_default = parallel.get('self', 1)
         keys = []; 
         vals = []; addval = vals.append
