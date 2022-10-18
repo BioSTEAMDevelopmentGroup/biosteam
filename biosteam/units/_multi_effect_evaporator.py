@@ -420,9 +420,7 @@ class MultiEffectEvaporator(Unit):
         Cost['Evaporators'] = sum(evap_costs)
         
         self.vacuum_system = bst.VacuumSystem(
-            F_mass=0, F_vol=0, P_suction=evap.outs[0].P,
-            vessel_volume=total_volume,
-            vacuum_system_preference='Steam-jet ejector'
+            self, 'Steam-jet ejector', vessel_volume=total_volume,
         )
             
         

@@ -800,15 +800,15 @@ class Distillation(Unit, isabstract=True):
     
     def _cost_vacuum(self, dimensions):
         P = self.P
-        if not P or P > 1e5: return 
-        # if not hasattr(self, 'splitter'): 
-        #     warn('running vacuum distillation with a partial condenser is not advised')
-        volume = 0.
-        for length, diameter in dimensions:
-            R = diameter * 0.5
-            volume += 0.02832 * np.pi * length * R * R # m3
+        if not P or P > 1e5: 
+            self.vacuum_system = None
+        else:
+            volume = 0.
+            for length, diameter in dimensions:
+                R = diameter * 0.5
+                volume += 0.02832 * np.pi * length * R * R # m3
         self.vacuum_system = bst.VacuumSystem(
-            0., 0., P, volume, self.vacuum_system_preference
+            self, self.vacuum_system_preference, vessel_volume=volume,
         )
     
     def _cost(self):

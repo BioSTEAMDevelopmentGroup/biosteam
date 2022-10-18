@@ -214,47 +214,31 @@ class RotaryVacuumFilter(SolidsSeparator):
         ub = self._bounds['Individual area'][1]
         N_vessels = np.ceil(Area/ub)
         iArea = Area/N_vessels # individual vessel
-        Design['# RVF'] = N_vessels
+        Design['Units in parallel'] = N_vessels
         Design['Individual area'] = iArea
-        self._power(Area, N_vessels)
+        self._load_vacuum_system(Area, N_vessels)
         logArea = np.log(iArea)
         Cost = np.exp(11.796-0.1905*logArea+0.0554*logArea**2)
         self.baseline_purchase_costs['Vessels'] = N_vessels*Cost*bst.CE/567
     
-    def _power(self, area, N_vessels):
+    def _load_vacuum_system(self, area, N_vessels):
         s_cake, s_vacuumed = self.outs
-        
-        # # Weight of empty plate
-        # mass_plates = 10*N_vessels
-        
-        # # Revolutions per s
-        # rps = self.rps
-        
-        # # Cake volumetric flow meter per sec
-        # Volcake = s_cake.volnet / 3600
-        
-        # # Thickness of cake layer, assumed uniform and constant
-        # thCake = Volcake / rps;
-        
-        # # Mass of Cake
-        # mass_cake = thCake * s_cake.rho
         radius = self.radius
-        # cent_a = (2*np.pi*rps)**2*radius
-        # cent_F = (mass_cake + mass_plates)*cent_a
-        # work_rot = rps*2*np.pi*radius*cent_F
         Area = self.design_results['Individual area']
-        N = self.design_results['# RVF']
-        vessel_volume = N * radius*Area*0.0929/2. # m3
+        N = self.design_results['Units in parallel']
         vacummed_air = s_vacuumed.F_vol # Flow rate sucked-in displaces air
         air_density = 1.2754 # kg /m3
         self.vacuum_system = bst.VacuumSystem(
-            vacummed_air * air_density, vacummed_air, self.P_suction, vessel_volume
+            F_mass=vacummed_air * air_density, 
+            F_vol=vacummed_air, 
+            P_suction=self.P_suction, 
+            vessel_volume=N * radius * Area * 0.0929 / 2., # m3
         )
         
     @staticmethod
     def _calc_Area(flow, filter_rate):
         """Return area in ft^2 given flow in kg/hr and filter rate in lb/day-ft^2."""
-        return flow*52.91 / filter_rate
+        return flow * 52.91 / filter_rate
     
 RVF = RotaryVacuumFilter
 

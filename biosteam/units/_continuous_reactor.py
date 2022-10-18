@@ -11,14 +11,17 @@ from .. import Unit
 from math import ceil
 from biosteam.units.design_tools import PressureVessel
 from biosteam.units.design_tools.geometry import cylinder_diameter_from_volume
+import biosteam as bst
 
-__all__ = ('ContinuousReactor',)
+__all__ = ('ContinuousReactor', 'CSTR')
 
 
 class ContinuousReactor(PressureVessel, Unit, isabstract=True):
     '''    
     Abstract class for reactor unit, modeled as a pressure vessel with 
-    a given aspect ratio and residence time.
+    a given aspect ratio and residence time. A heat exchanger recirculation 
+    loop is used to satisfy the duty, if any. A vacuum system is also 
+    automatically added if the operating pressure is at a vacuum.
 
     Parameters
     ----------
@@ -50,6 +53,7 @@ class ContinuousReactor(PressureVessel, Unit, isabstract=True):
     _N_outs = 1
     _ins_size_is_fixed = False
     _outs_size_is_fixed = True
+    auxiliary_unit_names = ('heat_exchanger', 'vacuum_system')
     
     _units = {**PressureVessel._units,
               'Residence time': 'hr',
@@ -58,12 +62,13 @@ class ContinuousReactor(PressureVessel, Unit, isabstract=True):
               'Single reactor volume': 'm3'}
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
-                  P=101325, tau=0.5, V_wf=0.8, V_max=355,
-                  length_to_diameter=2, kW_per_m3=0.985,
-                  vessel_material='Stainless steel 316',
-                  vessel_type='Vertical'):
+                 T=None, P=None, tau=0.5, V_wf=0.8, V_max=355,
+                 length_to_diameter=2, kW_per_m3=0.985,
+                 vessel_material='Stainless steel 316',
+                 vessel_type='Vertical'):
         
         Unit.__init__(self, ID, ins, outs, thermo)
+        self.T = T
         self.P = P
         self.tau = tau
         self.V_wf = V_wf
@@ -72,12 +77,14 @@ class ContinuousReactor(PressureVessel, Unit, isabstract=True):
         self.kW_per_m3 = kW_per_m3
         self.vessel_material = vessel_material
         self.vessel_type = vessel_type
+        self.heat_exchanger = bst.HXutility(None, (None,), (None,), thermo=self.thermo) 
 
     def _design(self):
         Design = self.design_results
         ins_F_vol = self.F_vol_in
         V_total = ins_F_vol * self.tau / self.V_wf
-        P = self.P * 0.000145038 # Pa to psi
+        P_pascal = (self.P if self.P else self.outs[0].P)
+        P_psi = P_pascal * 0.000145038 # Pa to psi
         length_to_diameter = self.length_to_diameter
         N = ceil(V_total/self.V_max)
         if N == 0:
@@ -93,18 +100,29 @@ class ContinuousReactor(PressureVessel, Unit, isabstract=True):
         Design['Total volume'] = V_total
         Design['Single reactor volume'] = V_reactor
         Design['Number of reactors'] = N
-        Design.update(self._vessel_design(float(P), float(D), float(L)))
+        Design.update(self._vessel_design(float(P_psi), float(D), float(L)))
+        self.vacuum_system = bst.VacuumSystem(self) if P_pascal < 1e5 else None
+        duty = self.Hnet
+        self.in_parallel['self'] = N
+        self.in_parallel['vacuum_system'] = None # Not in parallel
+        if duty: 
+            # Note: Flows and duty are multiplied by scale to simulate an individual
+            # heat exchanger, then BioSTEAM accounts for number of units in parallel
+            # through the `in_parallel` attribute.
+            self.heat_exchanger.simulate_as_auxiliary_exchanger(
+                self.ins, self.outs, duty, vle=False, scale=1 / N,
+            )
             
     def _cost(self):
         Design = self.design_results
         baseline_purchase_costs = self.baseline_purchase_costs
-        if Design['Total volume'] != 0:
+        volume = Design['Single reactor volume']
+        if volume != 0:
             baseline_purchase_costs.update(
                 self._vessel_purchase_cost(
                     Design['Weight'], Design['Diameter'], Design['Length']
                 )
             )
-            for i, j in baseline_purchase_costs.items():
-                baseline_purchase_costs[i] *= Design['Number of reactors']
-            self.add_power_utility(self.kW_per_m3 * Design['Total volume'])
+            self.add_power_utility(self.kW_per_m3 * volume)
     
+CSTR = ContinuousReactor

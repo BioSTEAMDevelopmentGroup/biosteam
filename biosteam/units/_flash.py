@@ -150,7 +150,8 @@ class Flash(design.PressureVessel, Unit):
     _units = {'Length': 'ft',
               'Diameter': 'ft',
               'Weight': 'lb',
-              'Wall thickness': 'in'}
+              'Wall thickness': 'in',
+              'Total volume': 'ft3'}
     _max_agile_design = (
         'Length',
         'Diameter',
@@ -291,36 +292,15 @@ class Flash(design.PressureVessel, Unit):
 
     def _cost_vacuum(self):
         P = self.P
-        if not P or P > 101320: return 
-        
-        Design = self.design_results
-        R = Design['Diameter'] * 0.5
-        volume = 0.02832 * np.pi * Design['Length'] * R * R
-        
-        # If vapor is condensed, assume vacuum system is after condenser
-        vapor = self.outs[0]
-        hx = vapor.sink
-        if isinstance(hx, HX):
-            index = hx.ins.index(vapor)
-            stream = hx.outs[index]
-            if isinstance(stream, MultiStream): # pragma: no cover
-                vapor = stream['g']
-                F_mass = vapor.F_mass
-                F_vol = vapor.F_vol
-            else:
-                if stream.phase == 'g': # pragma: no cover
-                    F_mass = stream.F_mass
-                    F_vol = stream.F_vol
-                else:
-                    F_mass = 0
-                    F_vol = 0
+        if not P or P > 101320: 
+            self.vacuum_system = None
         else:
-            F_mass = vapor.F_mass
-            F_vol = vapor.F_vol
-        
-        self.vacuum_system = bst.VacuumSystem(
-            F_mass, F_vol, P, volume, self.vacuum_system_preference
-        )
+            Design = self.design_results
+            R = Design['Diameter'] * 0.5
+            volume = 0.02832 * np.pi * Design['Length'] * R * R # Volume ft3 to m3
+            self.vacuum_system = bst.VacuumSystem(
+                self, self.vacuum_system_preference, volume=volume,
+            )
 
     def _design_parameters(self):
         # Retrieve run_args and properties
