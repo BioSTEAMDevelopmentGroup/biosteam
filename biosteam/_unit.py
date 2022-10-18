@@ -415,6 +415,8 @@ class Unit:
         self.parallel: dict[str, int|None] = {}
         
         self._assert_compatible_property_package()
+        
+        self._utility_cost = None
     
     def _init_ins(self, ins):
         self._ins = piping.Inlets(
