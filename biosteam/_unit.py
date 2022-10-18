@@ -700,62 +700,6 @@ class Unit:
             "with a compatible thermodynamic property package"
         )
     
-    def _load_auxiliary_costs(self):
-        baseline_purchase_costs = self.baseline_purchase_costs
-        purchase_costs = self.purchase_costs
-        installed_costs = self.installed_costs
-        F_BM = self.F_BM
-        F_D = self.F_D
-        F_P = self.F_P
-        F_M = self.F_M
-        heat_utilities = self.heat_utilities
-        power_utility = self.power_utility
-        parallel = self.parallel
-        N_default = parallel.get('self', 1)
-        for name, unit in self.get_auxiliary_units_with_names():
-            unit.owner = self
-            N = int(parallel.get(name, N_default))
-            if N == 1:
-                heat_utilities.extend(unit.heat_utilities)
-                power_utility.consumption += unit.power_utility.consumption
-                power_utility.production += unit.power_utility.production
-            else:
-                heat_utilities.extend(N * unit.heat_utilities)
-                power_utility.consumption += N * unit.power_utility.consumption
-                power_utility.production += N * unit.power_utility.production
-            F_BM_auxiliary = unit.F_BM
-            F_D_auxiliary = unit.F_D
-            F_P_auxiliary = unit.F_P
-            F_M_auxiliary = unit.F_M
-            bpc_auxiliary = unit.baseline_purchase_costs
-            pc_auxiliary = unit.purchase_costs
-            ic_auxiliary = unit.installed_costs
-            for i in bpc_auxiliary:
-                j = ' - '.join([name.capitalize().replace('_', ' '), i])
-                if j in baseline_purchase_costs: 
-                    raise RuntimeError(
-                        f"'{j}' already in `baseline_purchase_cost` "
-                        f"dictionary of {repr(self)}; try using a different key"
-                    )
-                else:
-                    F_D[j] = fd = F_D_auxiliary.get(i, 1.)
-                    F_P[j] = fp = F_P_auxiliary.get(i, 1.)
-                    F_M[j] = fm = F_M_auxiliary.get(i, 1.)
-                    if N == 1:
-                        baseline_purchase_costs[j] = Cpb = bpc_auxiliary[i]
-                        purchase_costs[j] = pc_auxiliary[i]
-                        installed_costs[j] = Cbm = ic_auxiliary[i]
-                    else:
-                        baseline_purchase_costs[j] = Cpb = N * bpc_auxiliary[i]
-                        purchase_costs[j] = N * pc_auxiliary[i]
-                        installed_costs[j] = Cbm = N * ic_auxiliary[i]
-                    try:
-                        F_BM[j] = F_BM_auxiliary[i]
-                    except KeyError:
-                        # Assume costs already added elsewhere using another method.
-                        # Calculate BM as an estimate.
-                        F_BM[j] = Cbm / Cpb + 1 - fd * fp * fm
-    
     def _load_costs(self):
         r"""
         Calculate and save free on board (f.o.b.) purchase costs and
@@ -799,6 +743,7 @@ class Unit:
         .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R., & Ng, M. K. (2017). Product and Process Design Principles. Wiley. Cost Accounting and Capital Cost Estimation (Chapter 16)
         
         """
+        if self._costs_loaded: return
         F_BM = self.F_BM
         F_D = self.F_D
         F_P = self.F_P
@@ -807,10 +752,15 @@ class Unit:
         purchase_costs = self.purchase_costs
         installed_costs = self.installed_costs
         parallel = self.parallel
-        N_default = int(parallel.get('self', 1))
+        heat_utilities = self.heat_utilities
+        power_utility = self.power_utility
+        integer = int
+        N_default = integer(parallel.get('self', 1))
+        
+        # Load main costs
         if N_default != 1:
-            self.heat_utilities.extend((N_default - 1) * self.heat_utilities)
-            self.power_utility.scale(N_default)
+            heat_utilities.extend((N_default - 1) * heat_utilities)
+            power_utility.scale(N_default)
         for i in purchase_costs:
             if i not in baseline_purchase_costs:
                 warning = RuntimeWarning(
@@ -821,7 +771,7 @@ class Unit:
                 warn(warning)
                 baseline_purchase_costs[i] = purchase_costs[i]
         for name, Cpb in baseline_purchase_costs.items(): 
-            N = int(parallel.get(name, N_default))
+            N = integer(parallel.get(name, N_default))
             if N == 1:
                 if name in installed_costs and name in purchase_costs:
                     continue # Assume costs already added elsewhere using another method
@@ -845,6 +795,57 @@ class Unit:
                 installed_costs[name] = purchase_costs[name] = Cpb * F
             else:
                 purchase_costs[name] = Cpb * F
+        
+        # Load auxiliary costs
+        isa = isinstance
+        for name, unit in self.get_auxiliary_units_with_names():
+            unit.owner = self
+            if isa(unit, Unit):
+                if not (unit._design or unit._cost): continue
+                unit._load_costs() # Just in case user did not simulate or run summary.
+            N = integer(parallel.get(name, N_default))
+            if N == 1:
+                heat_utilities.extend(unit.heat_utilities)
+                power_utility.consumption += unit.power_utility.consumption
+                power_utility.production += unit.power_utility.production
+            else:
+                heat_utilities.extend(N * unit.heat_utilities)
+                power_utility.consumption += N * unit.power_utility.consumption
+                power_utility.production += N * unit.power_utility.production
+            F_BM_auxiliary = unit.F_BM
+            F_D_auxiliary = unit.F_D
+            F_P_auxiliary = unit.F_P
+            F_M_auxiliary = unit.F_M
+            bpc_auxiliary = unit.baseline_purchase_costs
+            pc_auxiliary = unit.purchase_costs
+            ic_auxiliary = unit.installed_costs
+            for i in bpc_auxiliary:
+                j = ' - '.join([name.capitalize().replace('_', ' '), i])
+                if j in baseline_purchase_costs: 
+                    raise RuntimeError(
+                        f"'{j}' already in `baseline_purchase_cost` "
+                        f"dictionary of {repr(self)}; try using a different key"
+                    )
+                else:
+                    F_D[j] = fd = F_D_auxiliary.get(i, 1.)
+                    F_P[j] = fp = F_P_auxiliary.get(i, 1.)
+                    F_M[j] = fm = F_M_auxiliary.get(i, 1.)
+                    if N == 1:
+                        baseline_purchase_costs[j] = Cpb = bpc_auxiliary[i]
+                        purchase_costs[j] = pc_auxiliary[i]
+                        installed_costs[j] = Cbm = ic_auxiliary[i]
+                    else:
+                        baseline_purchase_costs[j] = Cpb = N * bpc_auxiliary[i]
+                        purchase_costs[j] = N * pc_auxiliary[i]
+                        installed_costs[j] = Cbm = N * ic_auxiliary[i]
+                    try:
+                        F_BM[j] = F_BM_auxiliary[i]
+                    except KeyError:
+                        # Assume costs already added elsewhere using another method.
+                        # Calculate BM as an estimate.
+                        F_BM[j] = Cbm / Cpb + 1 - fd * fp * fm
+            
+            self._costs_loaded = True
     
     def _setup(self):
         """Clear all results, setup up stream conditions and constant data, 
@@ -859,6 +860,7 @@ class Unit:
         self.baseline_purchase_costs.clear()
         self.purchase_costs.clear()
         self.installed_costs.clear()
+        self._costs_loaded = False
     
     def _check_setup(self):
         if any([self.power_utility, 
@@ -1278,7 +1280,6 @@ class Unit:
         self._cost(**cost_kwargs) if cost_kwargs else self._cost()
         self._check_utilities()
         self._load_costs()
-        self._load_auxiliary_costs()
     
     @property
     def specifications(self) -> list[tuple[Callable, tuple]]:
@@ -1402,18 +1403,31 @@ class Unit:
         self.heat_utilities.clear()
         self.power_utility.empty()
 
-    def simulate(self, mass_and_energy_balance=True):
+    def simulate(self, 
+            run: Optional[bool]=None,
+            design_kwargs: Optional[dict]=None,
+            cost_kwargs: Optional[dict]=None):
         """
         Run rigorous simulation and determine all design requirements.
         
+        Parameters
+        ----------
+        run :
+            Whether to run mass and energy balance or to assume the same inlet
+            and outlet conditions. Defaults to True.
+        design_kwargs :
+            Keyword arguments passed to `_design` method.
+        cost_kwargs :
+            Keyword arguments passed to `_cost` method.
+            
         """
         self._setup()
         self._check_setup()
-        if mass_and_energy_balance:
+        if run is None or run:
             for ps in self._specifications: ps.compile_path(self)
             self._load_stream_links()
             self.run()
-        self._summary()
+        self._summary(design_kwargs, cost_kwargs)
 
     def results(self, with_units=True, include_utilities=True,
                 include_total_cost=True, include_installed_cost=False,

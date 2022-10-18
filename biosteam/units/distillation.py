@@ -673,8 +673,6 @@ class Distillation(Unit, isabstract=True):
     def _simulate_components(self): 
         boiler = self.boiler
         condenser = self.condenser
-        boiler._setup()
-        condenser._setup()
         Q_condenser = condenser.outs[0].H - condenser.ins[0].H
         H_out = self.H_out
         H_in = self.H_in
@@ -684,13 +682,19 @@ class Distillation(Unit, isabstract=True):
             liquid = boiler.ins[0]
             H_out_boiler = boiler.outs[0].H
             liquid.H = H_out_boiler - Q_overall_boiler
-            boiler._design(Q_overall_boiler)
-            condenser._design(Q_condenser)
+            boiler_kwargs = dict(duty=Q_overall_boiler)
+            condenser_kwargs = dict(duty=Q_condenser)
         else:
-            boiler._design(Q_boiler)
-            condenser._design(Q_condenser)
-        boiler._cost()
-        condenser._cost()
+            boiler_kwargs = dict(duty=Q_boiler)
+            condenser_kwargs = dict(duty=Q_condenser)
+        boiler.simulate(
+            run=False,
+            design_kwargs=boiler_kwargs,
+        )
+        condenser.simulate(
+            run=False,
+            design_kwargs=condenser_kwargs,
+        )
     
     def _compute_N_stages(self):
         """Return a tuple with the actual number of stages for the rectifier and the stripper."""

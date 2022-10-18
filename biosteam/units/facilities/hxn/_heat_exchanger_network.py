@@ -238,16 +238,13 @@ class HeatExchangerNetwork(Facility):
             #     if all([isinstance(i.sink, bst.HXutility) for i in hx.outs]):
             #         hx.Tlim1 = None
             #         hx.Hlim1 = hx.outs[1].sink.H
+            sys._setup()
             try: 
                 sys.converge()
             except:
                 for i in sys.units: i._run()
                 warn('heat exchanger network was not able to converge', RuntimeWarning)
-            for i in sys.units:
-                i.baseline_purchase_costs.clear()
-                i.purchase_costs.clear()
-                i.installed_costs.clear()
-                i._summary()
+            for i in sys.units: i._summary()
             for i in range(len(stream_life_cycles)):
                 hx = hx_utils_rearranged[i].unit
                 s_util = hx.outs[0]

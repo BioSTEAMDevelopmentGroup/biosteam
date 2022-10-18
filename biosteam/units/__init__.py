@@ -10,7 +10,7 @@
 from .._unit import Unit
 from .mixing import *
 from .splitting import *
-from .auxiliary import *
+from .vacuum_system import *
 from ._pump import *
 from .heat_exchange import *
 from .tank import *
@@ -64,7 +64,7 @@ from . import (
     _balance,  
     _screw_feeder,
     _continuous_reactor,
-    auxiliary,
+    vacuum_system,
     adsorption,
     size_reduction, 
     size_enlargement,
@@ -128,7 +128,7 @@ __all__ = ('Unit',
            *compressor.__all__,
            *turbine.__all__,
            *valve.__all__,
-           *auxiliary.__all__,
+           *vacuum_system.__all__,
            'adsorption',
            'drying',
            'tank',

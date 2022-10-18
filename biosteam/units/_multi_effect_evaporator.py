@@ -191,7 +191,7 @@ class MultiEffectEvaporator(Unit):
     
     """
     line = 'Multi-Effect Evaporator'
-    auxiliary_unit_names = ('evaporators', 'condenser', 'mixer', 'vacuum_system')
+    auxiliary_unit_names = ('condenser', 'mixer', 'vacuum_system')
     _units = {'Area': 'm^2',
               'Volume': 'm^3'}
     _F_BM_default = {'Evaporators': 2.45,
@@ -344,7 +344,7 @@ class MultiEffectEvaporator(Unit):
 
         # Mix liquid streams
         mixer.ins[:] = outs_liq
-        mixer._run()
+        mixer.simulate()
         liq.copy_like(mixer.outs[0])
         
         if self.flash:
@@ -366,15 +366,9 @@ class MultiEffectEvaporator(Unit):
         CE = bst.CE
         
         first_evaporator = evaporators[0]
-        first_evaporator.simulate(mass_and_energy_balance=False)
-        # Do not cost as flash vessel; cost accounted for later
-        first_evaporator.baseline_purchase_costs.clear()
-        first_evaporator.purchase_costs.clear()
-        first_evaporator.installed_costs.clear()
+        first_evaporator.simulate(run=False)
         hx = first_evaporator.heat_exchanger
-        hx.baseline_purchase_costs.clear()
-        hx.purchase_costs.clear()
-        hx.installed_costs.clear()
+        self.heat_utilities.append(hx.heat_utilities[0])
         
         # Cost first evaporators
         duty = hx.total_heat_transfer
@@ -390,7 +384,7 @@ class MultiEffectEvaporator(Unit):
         
         # Find condenser requirements
         condenser = self.condenser
-        condenser.simulate(mass_and_energy_balance=False)
+        condenser.simulate(run=False)
         
         # Find area and cost of evaporators
         As = [A]

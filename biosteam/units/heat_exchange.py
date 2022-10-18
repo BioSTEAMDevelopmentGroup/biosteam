@@ -390,10 +390,9 @@ class HXutility(HX):
     Q = total_heat_transfer # Alias for backward compatibility
     
     def simulate_as_auxiliary_exchanger(self, 
-            ins=None, outs=None, duty=None, vle=True, scale=None, hxn_ok=False,
+            ins=None, outs=None, duty=None, vle=True, scale=None, hxn_ok=True,
         ):
         if not ins: raise ValueError('must pass inlet streams `ins`')
-        self._setup()
         inlet = self.ins[0]
         outlet = self.outs[0]
         if not inlet: inlet = inlet.materialize_connection(None)
@@ -410,8 +409,9 @@ class HXutility(HX):
             duty *= scale
             inlet.scale(scale)
             outlet.scale(scale)
-        for ps in self._specifications: ps.compile_path(self)
-        self._summary()
+        self.simulate(
+            run=False, # Do not run mass and energy balance
+        )
         for i in self.heat_utilities: i.hxn_ok = hxn_ok
         
     def _run(self):
@@ -739,10 +739,6 @@ class HXprocess(HX):
         if self.reset_streams_at_setup:
             for i in self._ins:
                 if i.source: i.empty()
-            
-    def simulate(self):
-        self._run()
-        self._summary()
     
     def _run(self):
         s1_in, s2_in = self._ins

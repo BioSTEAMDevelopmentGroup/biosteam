@@ -914,7 +914,6 @@ class MixerSettler(bst.Unit):
         #: All data and settings for the design of the settler are stored here.
         self.settler = Settler(None, multi_stream, None, self.thermo, **settler_data)
         self.settler._outs = self._outs
-        self.power_utility = mixer.power_utility
         
         #: [str] ID of carrier component in the feed.
         self.solvent_ID = solvent_ID 
