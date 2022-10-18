@@ -409,6 +409,11 @@ class Unit:
         #: Safety toggle to prevent infinite recursion
         self._active_specifications: set[ProcessSpecification] = set()
         
+        #: Dictionary of units in parallel. Use 'self' to refer to the main unit, 
+        #: otherwise, use the auxiliary unit name. Capital and heat and power utilities 
+        #: set by user will become propotional to this value.
+        self.in_parallel: dict[str, int|None] = {}
+        
         self._assert_compatible_property_package()
     
     def _init_ins(self, ins):
@@ -705,12 +710,19 @@ class Unit:
         F_M = self.F_M
         heat_utilities = self.heat_utilities
         power_utility = self.power_utility
+        parallel = self.in_parallel
+        N_default = parallel.get('self', 1)
         for name, unit in self.get_auxiliary_units_with_names():
-            unit._load_costs()
             unit.owner = self
-            heat_utilities.extend(unit.heat_utilities)
-            power_utility.consumption += unit.power_utility.consumption
-            power_utility.production += unit.power_utility.production
+            N = parallel.get(name, N_default)
+            if N is None:
+                heat_utilities.extend(unit.heat_utilities)
+                power_utility.consumption += unit.power_utility.consumption
+                power_utility.production += unit.power_utility.production
+            else:
+                heat_utilities.extend(N * unit.heat_utilities)
+                power_utility.consumption += N * unit.power_utility.consumption
+                power_utility.production += N * unit.power_utility.production
             F_BM_auxiliary = unit.F_BM
             F_D_auxiliary = unit.F_D
             F_P_auxiliary = unit.F_P
@@ -729,9 +741,14 @@ class Unit:
                     F_D[j] = fd = F_D_auxiliary.get(i, 1.)
                     F_P[j] = fp = F_P_auxiliary.get(i, 1.)
                     F_M[j] = fm = F_M_auxiliary.get(i, 1.)
-                    baseline_purchase_costs[j] = Cpb = bpc_auxiliary[i]
-                    purchase_costs[j] = pc_auxiliary[i]
-                    installed_costs[j] = Cbm = ic_auxiliary[i]
+                    if N == 1:
+                        baseline_purchase_costs[j] = Cpb = bpc_auxiliary[i]
+                        purchase_costs[j] = pc_auxiliary[i]
+                        installed_costs[j] = Cbm = ic_auxiliary[i]
+                    else:
+                        baseline_purchase_costs[j] = Cpb = N * bpc_auxiliary[i]
+                        purchase_costs[j] = N * pc_auxiliary[i]
+                        installed_costs[j] = Cbm = N * ic_auxiliary[i]
                     try:
                         F_BM[j] = F_BM_auxiliary[i]
                     except KeyError:
@@ -789,6 +806,8 @@ class Unit:
         baseline_purchase_costs = self.baseline_purchase_costs
         purchase_costs = self.purchase_costs
         installed_costs = self.installed_costs
+        parallel = self.in_parallel
+        N_default = parallel.get('self', 1)
         for i in purchase_costs:
             if i not in baseline_purchase_costs:
                 warning = RuntimeWarning(
@@ -799,8 +818,17 @@ class Unit:
                 warn(warning)
                 baseline_purchase_costs[i] = purchase_costs[i]
         for name, Cpb in baseline_purchase_costs.items(): 
-            if name in installed_costs and name in purchase_costs: 
-                continue # Assume costs already added elsewhere using another method
+            N = parallel.get(name, N_default)
+            if N == 1:
+                if name in installed_costs and name in purchase_costs:
+                    continue # Assume costs already added elsewhere using another method
+            else:
+                Cpb *= N
+                baseline_purchase_costs[name] = Cpb
+                if name in installed_costs and name in purchase_costs:
+                    purchase_costs[name] *= N
+                    installed_costs[name] *= N
+                    continue # Assume costs already added elsewhere using another method
             F = F_D.get(name, 1.) * F_P.get(name, 1.) * F_M.get(name, 1.)
             try:
                 installed_costs[name] = Cpb * (F_BM[name] + F - 1.)
@@ -820,6 +848,7 @@ class Unit:
         and update system configuration based on units impacted by process 
         specifications. This method is run at the start of unit simulation, 
         before running mass and energy balances."""
+        for i in self.auxiliary_units: i._setup()
         self.power_utility.empty()
         for i in self.heat_utilities: i.empty()
         if not hasattr(self, '_N_heat_utilities'): self.heat_utilities.clear()
@@ -1226,12 +1255,14 @@ class Unit:
         self._summary()
     
     def _check_utilities(self):
-        if len(set(self.heat_utilities)) != len(self.heat_utilities):
-            raise UnitInheritanceError(
-                'found repeated heat utilities, possibly because auxiliary utilities '
-                'were manualy added; note that utilities from auxiliary units '
-                'are automatically added to main unit operation'
-            )
+        auxiliary_heat_utilities = set(sum([i.heat_utilities for i in self.auxiliary_units], []))
+        for i in self.heat_utilities:
+            if i in auxiliary_heat_utilities:
+                raise UnitInheritanceError(
+                    'auxiliary heat utilities were manualy added to main utilities; '
+                    'note that utilities from auxiliary units are already automatically '
+                    'added to main unit operation'
+                )
     
     def _summary(self):
         """Run design and cost algorithms and compile capital and utility costs."""
@@ -1239,18 +1270,9 @@ class Unit:
         if not (self._design or self._cost): return
         self._design()
         self._cost()
-        self._load_auxiliary_costs()
-        self._load_costs()
         self._check_utilities()
-        ins = self._ins._streams
-        outs = self._outs._streams
-        prices = bst.stream_utility_prices
-        self._utility_cost = (
-            sum([i.cost for i in self.heat_utilities]) 
-            + self.power_utility.cost
-            + sum([ins[index].F_mass * prices[name] for name, index in self._inlet_utility_indices.items()])
-            - sum([outs[index].F_mass * prices[name] for name, index in self._outlet_utility_indices.items()])
-        )
+        self._load_costs()
+        self._load_auxiliary_costs()
     
     @property
     def specifications(self) -> list[tuple[Callable, tuple]]:
@@ -1394,11 +1416,18 @@ class Unit:
         Return key results from simulation as a DataFrame if `with_units`
         is True or as a Series otherwise.
         """
-        # TODO: Divide this into functions
         def addkey(key):
             if key_hook: key = key_hook(key)
             keys.append(key)
-        
+            
+        def addcapex(key):
+            if key_hook: key = key_hook(key)
+            *others, name = key
+            N = parallel.get(name, N_default)
+            if N != 1: key = (*others, name + f' (x{N})')
+            keys.append(key)
+        parallel = self.in_parallel
+        N_default = parallel.get('self', 1)
         keys = []; 
         vals = []; addval = vals.append
         stream_utility_prices = bst.stream_utility_prices
@@ -1446,7 +1475,7 @@ class Unit:
                 addkey(('Design', ki))
                 addval((ui, vi))
             for ki, vi in Cost.items():
-                addkey(('Purchase cost', ki))
+                addcapex(('Purchase cost', ki))
                 addval(('USD', vi))
             if include_total_cost:
                 addkey(('Total purchase cost', ''))
@@ -1505,7 +1534,7 @@ class Unit:
                 addkey(('Design', ki))
                 addval(vi)
             for ki, vi in self.purchase_costs.items():
-                addkey(('Purchase cost', ki))
+                addcapex(('Purchase cost', ki))
                 addval(vi)
             if include_total_cost:
                 addkey(('Total purchase cost', ''))
