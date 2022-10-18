@@ -299,7 +299,7 @@ class Flash(design.PressureVessel, Unit):
             R = Design['Diameter'] * 0.5
             volume = 0.02832 * np.pi * Design['Length'] * R * R # Volume ft3 to m3
             self.vacuum_system = bst.VacuumSystem(
-                self, self.vacuum_system_preference, volume=volume,
+                self, self.vacuum_system_preference, vessel_volume=volume,
             )
 
     def _design_parameters(self):
