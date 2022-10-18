@@ -715,7 +715,7 @@ class Unit:
         for name, unit in self.get_auxiliary_units_with_names():
             unit.owner = self
             N = parallel.get(name, N_default)
-            if N is None:
+            if N == 1:
                 heat_utilities.extend(unit.heat_utilities)
                 power_utility.consumption += unit.power_utility.consumption
                 power_utility.production += unit.power_utility.production
