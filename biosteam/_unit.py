@@ -1280,6 +1280,15 @@ class Unit:
         self._cost(**cost_kwargs) if cost_kwargs else self._cost()
         self._check_utilities()
         self._load_costs()
+        ins = self._ins._streams
+        outs = self._outs._streams
+        prices = bst.stream_utility_prices
+        self._utility_cost = (
+            sum([i.cost for i in self.heat_utilities]) 
+            + self.power_utility.cost
+            + sum([ins[index].F_mass * prices[name] for name, index in self._inlet_utility_indices.items()])
+            - sum([outs[index].F_mass * prices[name] for name, index in self._outlet_utility_indices.items()])
+        )
     
     @property
     def specifications(self) -> list[tuple[Callable, tuple]]:
@@ -1328,19 +1337,7 @@ class Unit:
     @property
     def utility_cost(self) -> float:
         """Total utility cost [USD/hr]."""
-        try:
-            return self._utility_cost
-        except:
-            ins = self._ins._streams
-            outs = self._outs._streams
-            prices = bst.stream_utility_prices
-            self._utility_cost = (
-                sum([i.cost for i in self.heat_utilities]) 
-                + self.power_utility.cost
-                + sum([ins[index].F_mass * prices[name] for name, index in self._inlet_utility_indices.items()])
-                - sum([outs[index].F_mass * prices[name] for name, index in self._outlet_utility_indices.items()])
-            )
-            return self._utility_cost
+        return self._utility_cost
 
     @property
     def auxiliary_units(self) -> list[Unit]:
