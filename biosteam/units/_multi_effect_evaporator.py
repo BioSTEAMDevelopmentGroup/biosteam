@@ -129,9 +129,9 @@ class MultiEffectEvaporator(Unit):
                         Cost                                  USD/hr     0.116
     Design              Area                                     m^2      11.1
                         Volume                                   m^3      1.26
-    Purchase cost       Condenser - Double pipe                  USD  5.35e+03
+    Purchase cost       Evaporators                              USD  9.62e+03
+                        Condenser - Double pipe                  USD  5.35e+03
                         Vacuum system - Liquid-ring pump...      USD  1.24e+04
-                        Evaporators                              USD  9.62e+03
     Total purchase cost                                          USD  2.74e+04
     Utility cost                                              USD/hr      4.12
     
@@ -183,15 +183,15 @@ class MultiEffectEvaporator(Unit):
                         Cost                                  USD/hr    0.0383
     Design              Area                                     m^2      1.67
                         Volume                                   m^3      6.62
-    Purchase cost       Condenser - Double pipe                  USD  3.89e+03
+    Purchase cost       Evaporators                              USD  2.79e+03
+                        Condenser - Double pipe                  USD  3.89e+03
                         Vacuum system - Liquid-ring pump...      USD  1.24e+04
-                        Evaporators                              USD  2.79e+03
     Total purchase cost                                          USD  1.91e+04
     Utility cost                                              USD/hr      2.83
     
     """
     line = 'Multi-Effect Evaporator'
-    auxiliary_unit_names = ('evaporators', 'condenser', 'mixer', 'vacuum_system')
+    auxiliary_unit_names = ('condenser', 'mixer', 'vacuum_system')
     _units = {'Area': 'm^2',
               'Volume': 'm^3'}
     _F_BM_default = {'Evaporators': 2.45,
@@ -344,7 +344,7 @@ class MultiEffectEvaporator(Unit):
 
         # Mix liquid streams
         mixer.ins[:] = outs_liq
-        mixer._run()
+        mixer.simulate()
         liq.copy_like(mixer.outs[0])
         
         if self.flash:
@@ -366,15 +366,9 @@ class MultiEffectEvaporator(Unit):
         CE = bst.CE
         
         first_evaporator = evaporators[0]
-        first_evaporator.simulate(mass_and_energy_balance=False)
-        # Do not cost as flash vessel; cost accounted for later
-        first_evaporator.baseline_purchase_costs.clear()
-        first_evaporator.purchase_costs.clear()
-        first_evaporator.installed_costs.clear()
+        first_evaporator.simulate(run=False)
         hx = first_evaporator.heat_exchanger
-        hx.baseline_purchase_costs.clear()
-        hx.purchase_costs.clear()
-        hx.installed_costs.clear()
+        self.heat_utilities.append(hx.heat_utilities[0])
         
         # Cost first evaporators
         duty = hx.total_heat_transfer
@@ -390,7 +384,7 @@ class MultiEffectEvaporator(Unit):
         
         # Find condenser requirements
         condenser = self.condenser
-        condenser.simulate(mass_and_energy_balance=False)
+        condenser.simulate(run=False)
         
         # Find area and cost of evaporators
         As = [A]
@@ -420,9 +414,7 @@ class MultiEffectEvaporator(Unit):
         Cost['Evaporators'] = sum(evap_costs)
         
         self.vacuum_system = bst.VacuumSystem(
-            F_mass=0, F_vol=0, P_suction=evap.outs[0].P,
-            vessel_volume=total_volume,
-            vacuum_system_preference='Steam-jet ejector'
+            self, 'Steam-jet ejector', vessel_volume=total_volume, P_suction=self.outs[0].P,
         )
             
         

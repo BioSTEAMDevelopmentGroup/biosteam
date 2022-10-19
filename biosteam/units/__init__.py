@@ -10,7 +10,7 @@
 from .._unit import Unit
 from .mixing import *
 from .splitting import *
-from .auxiliary import *
+from .vacuum_system import *
 from ._pump import *
 from .heat_exchange import *
 from .tank import *
@@ -35,7 +35,7 @@ from ._conveying_belt import *
 from ._vent_scrubber import *
 from ._vibrating_screen import *
 from ._carbon_capture import *
-from ._continuous_reactor import *
+from .cstr import *
 from .compressor import *
 from .turbine import *
 from .valve import *
@@ -63,8 +63,8 @@ from . import (
     _clarifier, 
     _balance,  
     _screw_feeder,
-    _continuous_reactor,
-    auxiliary,
+    cstr,
+    vacuum_system,
     adsorption,
     size_reduction, 
     size_enlargement,
@@ -101,7 +101,7 @@ __all__ = ('Unit',
            *_multi_effect_evaporator.__all__,
            *distillation.__all__,
            *tank.__all__,
-           *_continuous_reactor.__all__,
+           *cstr.__all__,
            *_molecular_sieve.__all__,
            *_conveying_belt.__all__,
            *_vent_scrubber.__all__,
@@ -128,7 +128,7 @@ __all__ = ('Unit',
            *compressor.__all__,
            *turbine.__all__,
            *valve.__all__,
-           *auxiliary.__all__,
+           *vacuum_system.__all__,
            'adsorption',
            'drying',
            'tank',

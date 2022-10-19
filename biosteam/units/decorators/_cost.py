@@ -123,33 +123,36 @@ class CostItem:
 def _decorated_cost(self):
     D = self.design_results
     C = self.baseline_purchase_costs
+    P = self.parallel
     kW = 0
     for i, x in self.cost_items.items():
         if x.condition is not None: 
             if not x.condition(): continue
+        I = bst.CE / x.CE
         S = D[x._basis]
         if x.lb is not None and S < x.lb:
             S = x.lb
-            D[x.N or '#' + i] = 1
         elif x.ub is not None:
-            D[x.N or '#' + i] = N = ceil(S/x.ub)
+            N = ceil(S / x.ub)
             if N == 0.:
                 C[i] = 0.
             else:
                 q = S/x.S
                 F = q/N
-                C[i] = N*bst.CE/x.CE*(x.f(F) if x.f else x.cost*F**x.n)
+                C[i] = I * (x.f(F) if x.f else x.cost * F**x.n)
+                P[i] = N
                 kW += x.kW*q
             continue
         if x.N:
             N = getattr(self, x.N, None) or D[x.N]
-            F = S/x.S
-            C[i] = N*bst.CE/x.CE*(x.f(F) if x.f else x.cost*F**x.n)
-            kW += N*x.kW*F
+            F = S / x.S
+            C[i] = I * (x.f(F) if x.f else x.cost * F**x.n)
+            P[i] = N
+            kW += N * x.kW * F
         else:
-            F = S/x.S
-            C[i] = bst.CE/x.CE*(x.f(F) if x.f else x.cost*F**x.n)
-            kW += x.kW*F
+            F = S / x.S
+            C[i] = I * (x.f(F) if x.f else x.cost * F**x.n)
+            kW += x.kW * F
     if kW: self.add_power_utility(kW)
 
 def copy_algorithm(other, cls=None, run=True, design=True, cost=True):

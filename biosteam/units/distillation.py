@@ -673,8 +673,6 @@ class Distillation(Unit, isabstract=True):
     def _simulate_components(self): 
         boiler = self.boiler
         condenser = self.condenser
-        boiler._setup()
-        condenser._setup()
         Q_condenser = condenser.outs[0].H - condenser.ins[0].H
         H_out = self.H_out
         H_in = self.H_in
@@ -684,13 +682,19 @@ class Distillation(Unit, isabstract=True):
             liquid = boiler.ins[0]
             H_out_boiler = boiler.outs[0].H
             liquid.H = H_out_boiler - Q_overall_boiler
-            boiler._design(Q_overall_boiler)
-            condenser._design(Q_condenser)
+            boiler_kwargs = dict(duty=Q_overall_boiler)
+            condenser_kwargs = dict(duty=Q_condenser)
         else:
-            boiler._design(Q_boiler)
-            condenser._design(Q_condenser)
-        boiler._cost()
-        condenser._cost()
+            boiler_kwargs = dict(duty=Q_boiler)
+            condenser_kwargs = dict(duty=Q_condenser)
+        boiler.simulate(
+            run=False,
+            design_kwargs=boiler_kwargs,
+        )
+        condenser.simulate(
+            run=False,
+            design_kwargs=condenser_kwargs,
+        )
     
     def _compute_N_stages(self):
         """Return a tuple with the actual number of stages for the rectifier and the stripper."""
@@ -800,16 +804,16 @@ class Distillation(Unit, isabstract=True):
     
     def _cost_vacuum(self, dimensions):
         P = self.P
-        if not P or P > 1e5: return 
-        # if not hasattr(self, 'splitter'): 
-        #     warn('running vacuum distillation with a partial condenser is not advised')
-        volume = 0.
-        for length, diameter in dimensions:
-            R = diameter * 0.5
-            volume += 0.02832 * np.pi * length * R * R # m3
-        self.vacuum_system = bst.VacuumSystem(
-            0., 0., P, volume, self.vacuum_system_preference
-        )
+        if not P or P > 1e5: 
+            self.vacuum_system = None
+        else:
+            volume = 0.
+            for length, diameter in dimensions:
+                R = diameter * 0.5
+                volume += 0.02832 * np.pi * length * R * R # m3
+            self.vacuum_system = bst.VacuumSystem(
+                self, self.vacuum_system_preference, vessel_volume=volume,
+            )
     
     def _cost(self):
         Design = self.design_results
@@ -1042,15 +1046,15 @@ class BinaryDistillation(Distillation, new_graphics=False):
                         Stripper wall thickness              in     0.312
                         Rectifier weight                     lb  6.04e+03
                         Stripper weight                      lb  4.45e+03
-    Purchase cost       Condenser - Floating head           USD  3.33e+04
-                        Boiler - Floating head              USD  2.71e+04
-                        Rectifier trays                     USD   1.5e+04
+    Purchase cost       Rectifier trays                     USD   1.5e+04
                         Stripper trays                      USD  1.25e+04
                         Rectifier tower                     USD  4.58e+04
                         Stripper platform and ladders       USD   1.4e+04
                         Stripper tower                      USD  3.84e+04
                         Rectifier platform and ladders      USD  1.14e+04
-    Total purchase cost                                     USD  1.97e+05
+                        Condenser - Floating head           USD  3.33e+04
+                        Boiler - Floating head              USD  2.71e+04
+    Total purchase cost                                     USD  1.98e+05
     Utility cost                                         USD/hr      64.3
     
     """
@@ -1440,14 +1444,14 @@ class ShortcutColumn(Distillation, new_graphics=False):
                         Stripper wall thickness              in     0.312
                         Rectifier weight                     lb  6.76e+03
                         Stripper weight                      lb  7.96e+03
-    Purchase cost       Condenser - Floating head           USD  4.07e+04
-                        Boiler - Floating head              USD  2.98e+04
-                        Rectifier trays                     USD  1.58e+04
+    Purchase cost       Rectifier trays                     USD  1.59e+04
                         Stripper trays                      USD  2.01e+04
                         Rectifier tower                     USD  4.89e+04
-                        Stripper platform and ladders       USD  1.47e+04
+                        Stripper platform and ladders       USD  1.48e+04
                         Stripper tower                      USD  5.39e+04
                         Rectifier platform and ladders      USD  1.81e+04
+                        Condenser - Floating head           USD  4.07e+04
+                        Boiler - Floating head              USD  2.98e+04
     Total purchase cost                                     USD  2.42e+05
     Utility cost                                         USD/hr      85.1
     
