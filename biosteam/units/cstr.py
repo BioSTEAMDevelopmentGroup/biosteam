@@ -6,6 +6,10 @@
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 """
+.. contents:: :local:
+
+.. autoclass:: biosteam.units.cstr.CSTR
+
 """
 from .. import Unit
 from typing import Optional
