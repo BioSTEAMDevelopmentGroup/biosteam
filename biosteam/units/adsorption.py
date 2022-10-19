@@ -139,10 +139,10 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
                          Weight                                                   2.9e+03
                          Wall thickness                                              0.25
                          Vessel material                              Stainless steel 316
-    Purchase cost        Heat exchanger regeneration - Double pipe                    117
-                         Vertical pressure vessel                                1.47e+05
+    Purchase cost        Vertical pressure vessel                                1.47e+05
                          Platform and ladders                                    2.95e+04
                          Silica gel                                              7.23e+04
+                         Heat exchanger regeneration - Double pipe                    117
     Total purchase cost                                                          2.49e+05
     Utility cost                                                                   0.0103
     Name: A1, dtype: object

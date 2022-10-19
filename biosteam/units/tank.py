@@ -267,9 +267,10 @@ class Tank(Unit, isabstract=True):
         N, Cp = compute_number_of_tanks_and_purchase_cost(
             V, self.purchase_cost_algorithm
         )
-        self.parallel['self'] = N
-        self.baseline_purchase_costs['Tank']  = Cp / vessel_material_factors.get(self._vessel_material, 1.)
-        self.add_power_utility(self.kW_per_m3 * V / N)
+        if N:
+            self.parallel['self'] = N
+            self.baseline_purchase_costs['Tank']  = Cp / vessel_material_factors.get(self._vessel_material, 1.)
+            self.add_power_utility(self.kW_per_m3 * V / N)
 
 
 # %% Storage tank purchase costs    

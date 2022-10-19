@@ -129,9 +129,9 @@ class MultiEffectEvaporator(Unit):
                         Cost                                  USD/hr     0.116
     Design              Area                                     m^2      11.1
                         Volume                                   m^3      1.26
-    Purchase cost       Condenser - Double pipe                  USD  5.35e+03
+    Purchase cost       Evaporators                              USD  9.62e+03
+                        Condenser - Double pipe                  USD  5.35e+03
                         Vacuum system - Liquid-ring pump...      USD  1.24e+04
-                        Evaporators                              USD  9.62e+03
     Total purchase cost                                          USD  2.74e+04
     Utility cost                                              USD/hr      4.12
     
@@ -183,9 +183,9 @@ class MultiEffectEvaporator(Unit):
                         Cost                                  USD/hr    0.0383
     Design              Area                                     m^2      1.67
                         Volume                                   m^3      6.62
-    Purchase cost       Condenser - Double pipe                  USD  3.89e+03
+    Purchase cost       Evaporators                              USD  2.79e+03
+                        Condenser - Double pipe                  USD  3.89e+03
                         Vacuum system - Liquid-ring pump...      USD  1.24e+04
-                        Evaporators                              USD  2.79e+03
     Total purchase cost                                          USD  1.91e+04
     Utility cost                                              USD/hr      2.83
     

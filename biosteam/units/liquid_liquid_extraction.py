@@ -262,14 +262,13 @@ class LLECentrifuge(LLEUnit, LiquidsCentrifuge):
                      Biodiesel  26.9
                      TriOlein   0.996
     >>> C1.results()
-    Liquids centrifuge                          Units       C1
-    Electricity         Power                      kW     17.1
-                        Cost                   USD/hr     1.34
-    Design              Flow rate              m^3/hr     12.2
-                        Number of centrifuges                1
-    Purchase cost       Liquids centrifuge        USD 1.28e+05
-    Total purchase cost                           USD 1.28e+05
-    Utility cost                               USD/hr     1.34
+    Liquids centrifuge                       Units       C1
+    Electricity         Power                   kW     17.1
+                        Cost                USD/hr     1.34
+    Design              Flow rate           m^3/hr     12.2
+    Purchase cost       Liquids centrifuge     USD 1.28e+05
+    Total purchase cost                        USD 1.28e+05
+    Utility cost                            USD/hr     1.34
     
     """
     line = 'Liquids centrifuge'
@@ -343,7 +342,6 @@ class SLLECentrifuge(Unit):
     Electricity         Power                            kW   0.0101
                         Cost                         USD/hr  0.00079
     Design              Flow rate                     L/min      249
-                        Number of centrifuges                      1
     Purchase cost       3-Phase decanter centrifuge     USD 2.87e+05
     Total purchase cost                                 USD 2.87e+05
     Utility cost                                     USD/hr  0.00079
@@ -457,7 +455,6 @@ class SolidLiquidsSplitCentrifuge(Unit):
     Electricity         Power                            kW   0.0101
                         Cost                         USD/hr  0.00079
     Design              Flow rate                     L/min      249
-                        Number of centrifuges                      1
     Purchase cost       3-Phase decanter centrifuge     USD 2.87e+05
     Total purchase cost                                 USD 2.87e+05
     Utility cost                                     USD/hr  0.00079

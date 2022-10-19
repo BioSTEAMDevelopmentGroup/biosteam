@@ -112,11 +112,7 @@ class DrumDryer(Unit):
     
     @utility_agent.setter
     def utility_agent(self, utility_agent):
-        if utility_agent == 'Natural gas':
-            pass
-        elif utility_agent == 'Steam':
-            self.heat_utilities = (bst.HeatUtility(),)
-        else:
+        if utility_agent not in ('Natural gas', 'Steam'):
             raise ValueError(f"utility agent must be either 'Steam' or 'Natural gas'; not '{utility_agent}'")
         self._utility_agent = utility_agent
         
@@ -155,7 +151,7 @@ class DrumDryer(Unit):
         design_results['Length'] = length = diameter * length_to_diameter
         design_results['Peripheral drum area'] = cylinder_area(diameter, length)
         if self.utility_agent == 'Steam':
-            self.heat_utilities[0](self.H_out - self.H_in, self.T)
+            self.add_heat_utility(self.H_out - self.H_in, self.T)
         
         
 class ThermalOxidizer(Unit):

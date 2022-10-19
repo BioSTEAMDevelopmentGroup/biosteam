@@ -1293,11 +1293,9 @@ class Unit:
         )
     
     @property
-    def specifications(self) -> list[tuple[Callable, tuple]]:
+    def specifications(self) -> list[ProcessSpecification]:
         """
-        Process specifications as a list of specification functions and their 
-        arguments in the following format, [(<function0(*args0)>, args0), 
-        (<function1(*args1)>, args1), ...].
+        Process specifications as a list of process specification objects.
         
         See Also
         --------
