@@ -696,7 +696,7 @@ class HeatUtility:
         
         # Update utility flow
         self.outlet_utility_stream.mol[:] = F_mol = duty / dh
-            
+        
         # Update results
         self.unit_duty = unit_duty
         self.flow = F_mol
