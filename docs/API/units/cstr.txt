@@ -1,4 +1,4 @@
-compressor
-==========
+CSTR
+====
 
-.. automodule:: biosteam.units.compressor
+.. automodule:: biosteam.units.cstr
