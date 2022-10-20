@@ -444,10 +444,11 @@ class Unit:
         #: Safety toggle to prevent infinite recursion
         self._active_specifications: set[ProcessSpecification] = set()
         
-        #: Dictionary of units in parallel. Use 'self' to refer to the main unit, 
-        #: otherwise, use the auxiliary unit name. Capital and heat and power utilities 
-        #: set by user will become propotional to this value.
-        self.parallel: dict[str, int|None] = {}
+        #: Name-number pairs of baseline purchase costs and auxiliary unit 
+        #: operations in parallel. Use 'self' to refer to the main unit. Capital 
+        #: and heat and power utilities in parallel will become propotional to this 
+        #: value.
+        self.parallel: dict[str, int] = {}
         
         self._assert_compatible_property_package()
         
