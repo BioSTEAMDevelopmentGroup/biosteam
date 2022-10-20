@@ -33,22 +33,22 @@ class CSTR(PressureVessel, Unit, isabstract=True):
     tau :
         Residence time [hr].
     T : 
-        Operating temperature.
+        Operating temperature [K].
     P : 
-        Operating pressure.
+        Operating pressure [Pa].
     dT_hx_loop : 
         Maximum change in temperature for the heat exchanger loop. Defaults to 5 K.
     V_wf : 
         Fraction of working volume over total volume. Defaults to 0.8.
     V_max :
-        Maximum volume of a reactor in ft3. Defaults to 355.
+        Maximum volume of a reactor [m3]. Defaults to 355.
     kW_per_m3: 
         Power usage of agitator. Defaults to 0.985 [kW / m3] converted from 
         5 hp/1000 gal as in [1]_, for liquid–liquid reaction or extraction.
     vessel_material : 
         Vessel material. Defaults to 'Stainless steel 316'.
     vessel_type : 
-        Vessel type. Can only be 'Horizontal' or 'Vertical'. Defaults to 'Vertical'
+        Vessel type. Valid options are 'Horizontal' or 'Vertical'. Defaults to 'Vertical'
     
     Notes
     -----
