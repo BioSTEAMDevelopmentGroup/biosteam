@@ -164,6 +164,36 @@ class Unit:
         Thermo object to initialize inlet and outlet streams. Defaults to
         :meth:`settings.thermo <thermosteam._settings.ProcessSettings.thermo>`.
     
+    Notes
+    -----
+    The free on board (f.o.b.) purchase costs and installed equipment costs 
+    (i.e. bare-module cost) for each item in the :attr:`~Unit.baseline_purchase_costs` 
+    dictionary and in auxiliary units are automatically added to the 
+    :attr:`~Unit.purchase_costs` and :attr:`~Unit.installed_costs` dictionaries. 
+    
+    As explained in [1]_, the f.o.b. purchase cost is given by:
+    
+    .. math::
+       
+       C_{P} = C_{Pb}F_{D}F_{P}F_{M}
+    
+    And the installed equipment cost is given by:
+    
+    .. math::
+       
+       C_{BM} = C_{Pb} (F_{BM} + F_{D}F_{P}F_{M} - 1)
+    
+    Where:
+        * :math:`C_{Pb}`: Baseline purchase cost.
+        * :math:`F_{BM}`: Bare module factor.
+        * :math:`F_{D}`: Design factor.
+        * :math:`F_{P}`: Pressure factor.
+        * :math:`F_{M}`: Material factor.
+    
+    Values for the bare-module, design, pressure, and material factors of 
+    each equipment should be stored in the :attr:`~Unit.F_BM`, :attr:`~Unit.F_D`, 
+    :attr:`~Unit.F_P`, and :attr:`~Unit.F_M` dictionaries.
+    
     Examples
     --------
     :doc:`../tutorial/Creating_a_Unit`
@@ -171,6 +201,11 @@ class Unit:
     :doc:`../tutorial/-pipe-_notation`
     
     :doc:`../tutorial/Inheriting_from_Unit`
+    
+    References
+    ----------
+    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R., & Ng, M. K. (2017). Product and Process Design Principles. Wiley. Cost Accounting and Capital Cost Estimation (Chapter 16)
+    
     
     """ 
     
