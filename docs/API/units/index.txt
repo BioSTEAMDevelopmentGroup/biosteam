@@ -16,7 +16,8 @@ units
    tank
    solids_separation
    splitting
-   valve
+   vacuum_system
+   valve   
    wastewater
    Pump
    BatchBioreactor

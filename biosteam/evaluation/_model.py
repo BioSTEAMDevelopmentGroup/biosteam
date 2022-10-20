@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>,
+# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>,
 #                          Yalin Li <mailto.yalin.li@gmail.com>
 #
 # This module implements a filtering feature from the stats module of the QSDsan library:
