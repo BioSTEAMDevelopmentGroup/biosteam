@@ -27,18 +27,6 @@ class CSTR(PressureVessel, Unit, isabstract=True):
     a given aspect ratio and residence time. A pump-heat exchanger recirculation 
     loop is used to satisfy the duty, if any. A vacuum system is also 
     automatically added if the operating pressure is at a vacuum. 
-    
-    Notes
-    -----
-    The recirculation loop takes into account the required flow rate needed to
-    reach the maximum temperature change of the heat exchanger, `dT_hx_loop`. 
-    Decreasing `dT_hx_loop` decreases the required recirculation flow rate and
-    therfore decreases pump costs.
-    
-    When parallel reactors are required, one recirculation loop (each with a
-    pump and heat exchanger) is assumed. Although it is possible to use the
-    same recirculation loop for all reactors, this conservative assumption allows
-    for each reactor to be operated independently from each other.
 
     Parameters
     ----------
@@ -66,6 +54,18 @@ class CSTR(PressureVessel, Unit, isabstract=True):
     vessel_type : 
         Vessel type. Can only be 'Horizontal' or 'Vertical'. Defaults to 'Vertical'
     
+    Notes
+    -----
+    The recirculation loop takes into account the required flow rate needed to
+    reach the maximum temperature change of the heat exchanger, `dT_hx_loop`. 
+    Decreasing `dT_hx_loop` decreases the required recirculation flow rate and
+    therfore decreases pump costs.
+    
+    When parallel reactors are required, one recirculation loop (each with a
+    pump and heat exchanger) is assumed. Although it is possible to use the
+    same recirculation loop for all reactors, this conservative assumption allows
+    for each reactor to be operated independently from each other.
+    
     Examples
     --------
     Inherit from ContinuousStirredTankReactor to create a new class that
@@ -90,9 +90,9 @@ class CSTR(PressureVessel, Unit, isabstract=True):
     ...     def _run(self):
     ...         vent, effluent = self.outs
     ...         effluent.mix_from(self.ins, energy_balance=False)
-    ...         self.hydrolysis_reaction.force_reaction(effluent)
-    ...         self.fermentation_reaction.force_reaction(effluent)
-    ...         self.cell_growth_reaction.force_reaction(effluent)
+    ...         self.hydrolysis_reaction(effluent)
+    ...         self.fermentation_reaction(effluent)
+    ...         self.cell_growth_reaction(effluent)
     ...         effluent.T = vent.T = self.T
     ...         effluent.P = vent.P = self.P
     ...         vent.phase = 'g'
