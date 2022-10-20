@@ -156,6 +156,8 @@ tools for sustainability assessments. Here is a short list of related publicatio
 
 * **Bioproduct and biofuel studies**:
 
+  - `Economic and Environmental Sustainability of Vegetative Oil Extraction Strategies at Integrated Oilcane and Oil-sorghum Biorefineries. ACS Sustainable Chem. Eng. 2022 <https://doi.org/10.1021/acssuschemeng.2c04204>`_
+
   - `Adsorptive separation and recovery of triacetic acid lactone from fermentation broth. Biofuels Bioprod Bioref 2022 <https://doi.org/10.1002/bbb.2427>`_
 
   - `Rewiring yeast metabolism for producing 2,3-butanediol and two downstream applications: Techno-economic analysis and life cycle assessment of methyl ethyl ketone (MEK) and agricultural biostimulant production. Chemical Engineering Journal 2022 <https://doi.org/10.1016/j.cej.2022.138886>`_
