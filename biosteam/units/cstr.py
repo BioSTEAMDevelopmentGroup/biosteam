@@ -30,10 +30,6 @@ class CSTR(PressureVessel, Unit, isabstract=True):
 
     Parameters
     ----------
-    ins : stream
-        Inlet.        
-    outs : stream
-        Outlet.
     tau :
         Residence time [hr].
     T : 
@@ -58,8 +54,8 @@ class CSTR(PressureVessel, Unit, isabstract=True):
     -----
     The recirculation loop takes into account the required flow rate needed to
     reach the maximum temperature change of the heat exchanger, `dT_hx_loop`. 
-    Decreasing `dT_hx_loop` decreases the required recirculation flow rate and
-    therfore decreases pump costs.
+    Increasing `dT_hx_loop` decreases the required recirculation flow rate and
+    therefore decreases pump costs.
     
     When parallel reactors are required, one recirculation loop (each with a
     pump and heat exchanger) is assumed. Although it is possible to use the
@@ -261,7 +257,7 @@ class CSTR(PressureVessel, Unit, isabstract=True):
         else:
             V_reactor = V_total / N
             D = cylinder_diameter_from_volume(V_reactor, self.length_to_diameter)
-            D *= 3.28084 # convert from m to ft
+            D *= 3.28084 # Convert from m to ft
             L = D * length_to_diameter
         Design['Residence time'] = self.tau
         Design['Total volume'] = V_total
