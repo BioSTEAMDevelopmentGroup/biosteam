@@ -44,6 +44,7 @@ The Biorefinery Simulation and TEA Modules
 
        .. figure:: images/aerobic_chamber.png
           :height: 100
+          :class: dark-light
           :align: center
           
        Tutorial on BioSTEAM's features.
@@ -57,6 +58,7 @@ The Biorefinery Simulation and TEA Modules
        
        .. figure:: images/boiler.png
           :height: 100
+          :class: dark-light
           :align: center
        
        Repository for biorefinery models.
@@ -70,6 +72,7 @@ The Biorefinery Simulation and TEA Modules
        
        .. figure:: images/fermenter.png
           :height: 100
+          :class: dark-light
           :align: center
        
        Documentation on all functionality. 
@@ -83,6 +86,7 @@ The Biorefinery Simulation and TEA Modules
        
        .. figure:: images/GG_logo.png
           :height: 100
+          :class: dark-light
           :align: center
        
        Sanitation and resource recovery. 
