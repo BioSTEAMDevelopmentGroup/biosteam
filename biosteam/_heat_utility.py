@@ -244,42 +244,36 @@ class HeatUtility:
     heat_transfer_efficiency : 
         Enforced fraction of heat transfered from utility (due
         to losses to environment).
-    heat_exchanger : 
-        Parent heat exchanger using this heat utility.
+    unit : 
+        Parent unit using this heat utility.
     hxn_ok :
         Whether heat utility can be satisfied within a heat exchanger network.
     
     Examples
     --------
     Create a heat utility:
-        
-    .. code-block:: python
     
-       >>> from biosteam import HeatUtility
-       >>> hu = HeatUtility()
-       >>> hu.show()
-       HeatUtility: None
-        duty: 0
-        flow: 0
-        cost: 0
+    >>> from biosteam import HeatUtility
+    >>> hu = HeatUtility()
+    >>> hu.show()
+    HeatUtility: None
+     duty: 0
+     flow: 0
+     cost: 0
     
     Calculate utility requirement by calling it with a duty (kJ/hr), and entrance and exit temperature (K):
-        
-    .. code-block:: python
-    
-       >>> hu(1000, 300, 350)
-       >>> hu.show()
-       HeatUtility: low_pressure_steam
-        duty: 1.05e+03 kJ/hr
-        flow: 0.0271 kmol/hr
-        cost: 0.00645 USD/hr
+     
+    >>> hu(1000, 300, 350)
+    >>> hu.show()
+    HeatUtility: low_pressure_steam
+     duty: 1.05e+03 kJ/hr
+     flow: 0.0271 kmol/hr
+     cost: 0.00645 USD/hr
    
     All results are accessible:
-        
-    .. code-block:: python
     
-       >>> hu.ID, hu.duty, hu.flow, hu.cost
-       ('low_pressure_steam', 1052., 0.02711, 0.006448)
+    >>> hu.ID, hu.duty, hu.flow, hu.cost
+    ('low_pressure_steam', 1052., 0.02711, 0.006448)
            
     """
     __slots__ = ('inlet_utility_stream', 'outlet_utility_stream', 'duty',
