@@ -7,6 +7,7 @@ units
    decorators
    design_tools/design_tools
    facilities/facilities
+   cstr
    compressor
    distillation
    heat_exchange
@@ -15,7 +16,8 @@ units
    tank
    solids_separation
    splitting
-   valve
+   vacuum_system
+   valve   
    wastewater
    Pump
    BatchBioreactor

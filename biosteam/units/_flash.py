@@ -123,9 +123,9 @@ class Flash(design.PressureVessel, Unit):
                           Weight                               lb      9.57e+03
                           Wall thickness                       in         0.438
                           Vessel material                          Carbon steel
-    Purchase cost         Heat exchanger - Floating head      USD      4.48e+04
-                          Vertical pressure vessel            USD      4.63e+04
+    Purchase cost         Vertical pressure vessel            USD      4.63e+04
                           Platform and ladders                USD      1.39e+04
+                          Heat exchanger - Floating head      USD      4.48e+04
     Total purchase cost                                       USD      1.05e+05
     Utility cost                                           USD/hr           367
 
@@ -146,11 +146,12 @@ class Flash(design.PressureVessel, Unit):
         Cost Accounting and Capital Cost Estimation (Chapter 16)
     
     """
-    auxiliary_unit_names = ('heat_exchanger',)
+    auxiliary_unit_names = ('heat_exchanger', 'vacuum_system')
     _units = {'Length': 'ft',
               'Diameter': 'ft',
               'Weight': 'lb',
-              'Wall thickness': 'in'}
+              'Wall thickness': 'in',
+              'Total volume': 'ft3'}
     _max_agile_design = (
         'Length',
         'Diameter',
@@ -161,7 +162,6 @@ class Flash(design.PressureVessel, Unit):
                      **design.PressureVessel._F_BM_default}
     _graphics = vertical_vessel_graphics 
     _N_outs = 2
-    _N_heat_utilities = 0
 
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
                  V=None, T=None, Q=None, P=None, y=None, x=None,
@@ -220,9 +220,7 @@ class Flash(design.PressureVessel, Unit):
         
     def _load_components(self):
         self._multi_stream = ms = MultiStream(None, thermo=self.thermo)
-        self.heat_exchanger = hx = HXutility(None, (None,), ms, thermo=self.thermo) 
-        hx.owner = self.owner
-        self.heat_utilities = (*hx.heat_utilities, bst.HeatUtility(), bst.HeatUtility())
+        self.heat_exchanger = HXutility(None, (None,), ms, thermo=self.thermo) 
         
     def reset_cache(self, isdynamic=None):
         self._multi_stream.reset_cache()
@@ -279,15 +277,10 @@ class Flash(design.PressureVessel, Unit):
             self.design_results.update(
                 self._vessel_design(*args)
             )
-        if self.Q == 0:
-            self.heat_exchanger.baseline_purchase_costs.clear()
-            self.heat_exchanger.purchase_costs.clear()
-            self.heat_exchanger.installed_costs.clear()
+        if self.Q == 0.:
+            self.heat_exchanger._setup() # Removes results
         else:
-            feed = self.heat_exchanger.ins[0]
-            feed.mix_from(self.ins)
-            feed.vle(P=self.outs[0].P, H=feed.H)
-            self.heat_exchanger._summary()
+            self.heat_exchanger.simulate_as_auxiliary_exchanger(self.ins, [self._multi_stream])
 
     def _cost(self):
         D = self.design_results
@@ -299,45 +292,15 @@ class Flash(design.PressureVessel, Unit):
 
     def _cost_vacuum(self):
         P = self.P
-        if not P or P > 101320: return 
-        
-        Design = self.design_results
-        R = Design['Diameter'] * 0.5
-        volume = 0.02832 * np.pi * Design['Length'] * R * R
-        
-        # If vapor is condensed, assume vacuum system is after condenser
-        vapor = self.outs[0]
-        hx = vapor.sink
-        if isinstance(hx, HX):
-            index = hx.ins.index(vapor)
-            stream = hx.outs[index]
-            if isinstance(stream, MultiStream): # pragma: no cover
-                vapor = stream['g']
-                F_mass = vapor.F_mass
-                F_vol = vapor.F_vol
-            else:
-                if stream.phase == 'g': # pragma: no cover
-                    F_mass = stream.F_mass
-                    F_vol = stream.F_vol
-                else:
-                    F_mass = 0
-                    F_vol = 0
+        if not P or P > 101320: 
+            self.vacuum_system = None
         else:
-            F_mass = vapor.F_mass
-            F_vol = vapor.F_vol
-        
-        vacuum_results = design.compute_vacuum_system_power_and_cost(
-            F_mass, F_vol, P, volume, self.vacuum_system_preference
-        )
-        self.baseline_purchase_costs['Vacuum system'] = vacuum_results['Cost']
-        self.design_results['Vacuum system'] = vacuum_results['Name']
-        hx_hu, vacuum_steam, vacuum_cooling_water = self.heat_utilities
-        vacuum_steam.set_utility_by_flow_rate(vacuum_results['Heating agent'], vacuum_results['Steam flow rate'])
-        if vacuum_results['Condenser']: 
-            vacuum_cooling_water(-vacuum_steam.unit_duty, 373.15)
-        else:
-            vacuum_cooling_water.empty()
-        self.power_utility(vacuum_results['Work'])
+            Design = self.design_results
+            R = Design['Diameter'] * 0.5
+            volume = 0.02832 * np.pi * Design['Length'] * R * R # Volume ft3 to m3
+            self.vacuum_system = bst.VacuumSystem(
+                self, self.vacuum_system_preference, vessel_volume=volume,
+            )
 
     def _design_parameters(self):
         # Retrieve run_args and properties
@@ -579,13 +542,11 @@ class SplitFlash(Flash):
         bot.P = top.P = self.P
 
     def _design(self):
-        self.heat_exchanger.outs[0] = ms = self._multi_stream
-        ms.mix_from(self.outs)
+        self.heat_exchanger.simulate_as_auxiliary_exchanger(self.ins, self.outs, vle=False)
         super()._design()
     
 # TODO: Remove this in favor of partition coefficients
 class RatioFlash(Flash):
-    _N_heat_utilities = 1
 
     def __init__(self, ID='', ins=None, outs=(), *,
                  K_chemicals, Ks, top_solvents=(), top_split=(),
@@ -634,8 +595,7 @@ class RatioFlash(Flash):
         bot.T, bot.P = feed.T, feed.P
 
     def _design(self): # pragma: no cover
-        self.heat_exchanger.outs[0] = ms = self._multi_stream
-        ms.mix_from(self.outs)
+        self.heat_exchanger.simulate_as_auxiliary_exchanger(self.ins, self.outs, vle=False)
         super()._design()
 
 # %% Single Component
@@ -711,11 +671,10 @@ class Evaporator_PQ(Unit):
 
 
 class Evaporator_PV(Flash):
-    _N_heat_utilities = 0
     _N_outs = 2
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P=None, V=None, chemical='7732-18-5'):
-        super().__init__(ID, ins, outs, thermo)
+        super().__init__(ID, ins, outs, thermo, vessel_type='Vertical')
         self.chemical = self.chemicals[chemical]
         self.P = P
         self.V = V
@@ -750,9 +709,27 @@ class Evaporator_PV(Flash):
         vapor.mol[index] = self.V * chemical_mol
         liquid_mol = liquid.mol
         liquid_mol[:] = feed.mol
-        liquid_mol[index] = (1-self.V) * chemical_mol
+        liquid_mol[index] = (1 - self.V) * chemical_mol
         ms = self._multi_stream
-        self.heat_exchanger._summary()
-        self.design_results['Heat transfer'] = self.heat_exchanger.Q
         ms['g'].copy_like(vapor)
         ms['l'].copy_like(liquid)
+        
+    def _design(self):
+        vap, liq = self.outs
+        self.vessel_needed = not (vap.isempty() or liq.isempty())
+        if self.vessel_needed:
+            args = self._vertical_vessel_pressure_diameter_and_length()
+            self.design_results.update(
+                self._vessel_design(*args)
+            )
+            if self.Q == 0.:
+                self.heat_exchanger._setup() # Removes previous results
+            else:
+                self.heat_exchanger.simulate_as_auxiliary_exchanger(self.ins, self.outs, vle=True)
+
+    def _cost(self):
+        D = self.design_results
+        if self.vessel_needed:
+            self.baseline_purchase_costs.update(
+                self._vessel_purchase_cost(D['Weight'], D['Diameter'], D['Length'])
+            )

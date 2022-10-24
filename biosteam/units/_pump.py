@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -88,21 +88,20 @@ class Pump(Unit):
         phase: 'l', T: 350 K, P: 200000 Pa
         flow (kmol/hr): Water  200
     >>> P1.results()
-    Pump                               Units           P1
-    Power               Rate              kW        0.289
-                        Cost          USD/hr       0.0226
-    Design              Ideal power       hp        0.136
-                        Flow rate        gpm         16.3
-                        Efficiency                  0.352
-                        Actual power                0.387
-                        Pump power                    0.5
-                        N                               1
-                        Head              ft         96.5
-                        Type                  Centrifugal
-    Purchase cost       Pump             USD     4.37e+03
-                        Motor            USD          311
-    Total purchase cost                  USD     4.68e+03
-    Utility cost                      USD/hr       0.0226
+    Pump                              Units           P1
+    Electricity         Power            kW        0.289
+                        Cost         USD/hr       0.0226
+    Design              Type                 Centrifugal
+                        Ideal power      hp        0.136
+                        Flow rate       gpm         16.3
+                        Efficiency                 0.352
+                        Power            hp        0.387
+                        Head             ft         96.5
+                        Motor size       hp          0.5
+    Purchase cost       Pump            USD     4.37e+03
+                        Motor           USD          273
+    Total purchase cost                 USD     4.64e+03
+    Utility cost                     USD/hr       0.0226
     
     References
     ----------
@@ -112,6 +111,7 @@ class Pump(Unit):
     
     """
     _units = {'Ideal power': 'hp',
+              'Motor size': 'hp',
               'Power': 'hp',
               'Head': 'ft',
               'NPSH': 'ft',
@@ -177,12 +177,16 @@ class Pump(Unit):
         if dP < 1: dP = self.dP_design
         power_ideal = Qi*dP*3.725e-7 # hp
         q = Qi*4.403 # gpm
-        # Assume 100% efficiency to estimate the number of pumps
-        # Note: i subscript refers to an individual pump
+        
+        # Note:
+        # A pump motor can have maximally `max_hp` power, so need to first solve
+        # for how many pumps with maximally `max_hp` are needed. 
+        # Assume 100% efficiency to estimate the number of pumps.
         N_min = 1
         N_guess = -1
         N = max(ceil(power_ideal / max_hp), N_min)
         while N != N_guess: 
+            # i subscript refers to an individual pump
             N_guess = N
             power_ideal_i = power_ideal / N_guess
             q_i = q / N_guess
@@ -190,52 +194,61 @@ class Pump(Unit):
             efficiency = pump_efficiency(q_i, power_ideal_i)
             power = power_ideal / efficiency
             N = max(ceil(power / max_hp), N_min)
-        Design['Ideal power'] = power_ideal_i
-        Design['Flow rate'] = q_i
-        Design['Efficiency'] = efficiency = pump_efficiency(q_i, power_ideal_i) 
-        Design['Actual power'] = power_i = power_ideal_i/efficiency
-        Design['Pump power'] = nearest_NEMA_motor_size(power_i)
-        Design['N'] = N
-        Design['Head'] = head = power / mass*897806 # ft
-        # Note that:
-        # head = power / (mass * gravity)
-        # head [ft] = power[hp]/mass[kg/hr]/9.81[m/s^2] * conversion_factor
-        # and 897806 = (conversion_factor/9.81)
         
-        if self.ignore_NPSH:
-            NPSH_satisfied = True
-        else:
-            Design['NPSH'] = NPSH = calculate_NPSH(Pi, si.P_vapor, si.rho)
-            NPSH_satisfied = NPSH > 1.52
-        
-        # Get type
-        pump_type = self.pump_type
-        if pump_type == 'Default':
-            if (0.00278 <= q_i <= 5000
-                and 15.24 <= head <= 3200
-                and nu <= 0.00002
-                and NPSH_satisfied):
-                pump_type = 'Centrifugal'
-            elif (q_i <= 1500
-                  and head <= 914.4
-                  and 0.00001 <= nu <= 0.252):
-                pump_type = 'Gear'
-            elif (head <= 20000
-                  and q_i <= 500
-                  and power <= 200
-                  and nu <= 0.01):
-                pump_type = 'MeteringPlunger'
+        # Pump types have their own maximum size, so we'll need to iterate again.
+        N_guess = -1
+        while N != N_guess:
+            N_guess = N
+            power_ideal_i = power_ideal / N_guess
+            efficiency = pump_efficiency(q_i, power_ideal_i) 
+            power_i = power_ideal_i / efficiency
+            head = N * power_i / mass * 897806 # ft
+            # Note that:
+            # head = power / (mass * gravity)
+            # head [ft] = power[hp]/mass[kg/hr]/9.81[m/s^2] * conversion_factor
+            # and 897806 = (conversion_factor/9.81)
+            
+            if self.ignore_NPSH:
+                NPSH_satisfied = True
             else:
-                NPSH = calculate_NPSH(Pi, si.P_vapor, si.rho)
-                warn(f'{repr(self)} no pump type available at current power '
-                     f'({power:.3g} hp), flow rate ({q_i:.3g} gpm), and head '
-                     f'({head:.3g} ft), kinematic viscosity ({nu:.3g} m2/s), '
-                     f'and NPSH ({NPSH:.3g} ft); assuming centrigugal pump',
-                     RuntimeWarning)
-                pump_type = 'Centrifugal'
+                Design['NPSH'] = NPSH = calculate_NPSH(Pi, si.P_vapor, si.rho)
+                NPSH_satisfied = NPSH > 1.52
+            
+            # Get type
+            pump_type = self.pump_type
+            if pump_type == 'Default':
+                if (15.24 <= head <= 3200
+                    and nu <= 0.00002
+                    and NPSH_satisfied):
+                    N = max(ceil(q_i / 5000), N)
+                    pump_type = 'Centrifugal'
+                elif (head <= 914.4
+                      and 0.00001 <= nu <= 0.252):
+                    N = max(ceil(q_i / 1500), N)
+                    pump_type = 'Gear'
+                elif (head <= 20000
+                      and power <= 200
+                      and nu <= 0.01):
+                    N = max(ceil(q_i / 500), N)
+                    pump_type = 'MeteringPlunger'
+                else:
+                    NPSH = calculate_NPSH(Pi, si.P_vapor, si.rho)
+                    warn(f'{repr(self)} no pump type available at current power '
+                         f'({power:.3g} hp), head ({head:.3g} ft), kinematic '
+                         f'viscosity ({nu:.3g} m2/s), and NPSH ({NPSH:.3g} ft); '
+                          'assuming centrigugal pump',
+                         RuntimeWarning)
+                    pump_type = 'Centrifugal'
                 
         Design['Type'] = pump_type
-        self.power_utility(power/N/1.341) # Set power in kW
+        Design['Ideal power'] = power_ideal_i
+        Design['Flow rate'] = q_i
+        Design['Efficiency'] = pump_efficiency(q_i, power_ideal_i) 
+        Design['Power'] = power_ideal_i / efficiency
+        Design['Head'] = N * power_i / mass * 897806 # ft
+        Design['Motor size'] = nearest_NEMA_motor_size(power_i)
+        self.add_power_utility(power_i / 1.341) # Add power for individual pump in kW
+        self.parallel['self'] = N # BioSTEAM will multiply all costs (both capital and utility) by this number
     
     def _cost(self):
         Design = self.design_results
@@ -244,7 +257,7 @@ class Pump(Unit):
         pump_type = Design['Type']
         q = Design['Flow rate']
         h = Design['Head']
-        p = Design['Pump power']
+        p = Design['Power']
         I = bst.CE/567
         
         # TODO: Add cost equation for small pumps

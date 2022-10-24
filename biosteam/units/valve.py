@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2022, Yoel Cortes-Pena <yoelcortes@gmail.com>, Ben Portner <github.com/BenPortner>
+# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>, Ben Portner <github.com/BenPortner>
 #
 # This module is under the UIUC open-source license. See
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -62,7 +62,6 @@ class IsenthalpicValve(Valve, new_graphics=False):
     (which serve preliminary techno-economic analysis purposes).
 
     """
-    _N_heat_utilities = 0
 
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, vle=False):
         Unit.__init__(self, ID, ins, outs, thermo)

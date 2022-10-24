@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -57,7 +57,6 @@ class Junction(Unit):
     """
     _stacklevel = Unit._stacklevel
     _graphics = junction_graphics
-    heat_utilities = ()
     power_utility = PowerUtility()
     design_results = {}
     baseline_purchase_cost = 0.
@@ -73,6 +72,7 @@ class Junction(Unit):
         thermo = self._load_thermo(thermo)
         self._init_specifications()
         self._isdynamic = False
+        self.heat_utilities = []
         self._ins = Inlets(self, 1, upstream, thermo, True, self._stacklevel)
         self._outs = Outlets(self, 1, downstream, thermo, True, self._stacklevel)
     

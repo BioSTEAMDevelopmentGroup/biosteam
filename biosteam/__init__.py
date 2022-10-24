@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -42,7 +42,8 @@ else:
 
 # %% Initialize BioSTEAM 
 
-from thermosteam import Chemical, Chemicals, Thermo, Stream, MultiStream, settings, ProcessSettings, speed_up
+import thermosteam
+from thermosteam import *
 from ._preferences import preferences
 from ._heat_utility import *
 from ._power_utility import PowerUtility

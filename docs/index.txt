@@ -44,6 +44,7 @@ The Biorefinery Simulation and TEA Modules
 
        .. figure:: images/aerobic_chamber.png
           :height: 100
+          :class: dark-light
           :align: center
           
        Tutorial on BioSTEAM's features.
@@ -57,6 +58,7 @@ The Biorefinery Simulation and TEA Modules
        
        .. figure:: images/boiler.png
           :height: 100
+          :class: dark-light
           :align: center
        
        Repository for biorefinery models.
@@ -70,6 +72,7 @@ The Biorefinery Simulation and TEA Modules
        
        .. figure:: images/fermenter.png
           :height: 100
+          :class: dark-light
           :align: center
        
        Documentation on all functionality. 
@@ -83,6 +86,7 @@ The Biorefinery Simulation and TEA Modules
        
        .. figure:: images/GG_logo.png
           :height: 100
+          :class: dark-light
           :align: center
        
        Sanitation and resource recovery. 
@@ -151,6 +155,8 @@ tools for sustainability assessments. Here is a short list of related publicatio
   - `An agent-based modeling tool supporting bioenergy and bio-product community communication regarding cellulosic bioeconomy development. Renewable and Sustainable Energy Reviews 2022 <https://doi.org/10.1016/j.rser.2022.112745>`_
 
 * **Bioproduct and biofuel studies**:
+
+  - `Economic and Environmental Sustainability of Vegetative Oil Extraction Strategies at Integrated Oilcane and Oil-sorghum Biorefineries. ACS Sustainable Chem. Eng. 2022 <https://doi.org/10.1021/acssuschemeng.2c04204>`_
 
   - `Adsorptive separation and recovery of triacetic acid lactone from fermentation broth. Biofuels Bioprod Bioref 2022 <https://doi.org/10.1002/bbb.2427>`_
 

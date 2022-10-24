@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -141,7 +141,6 @@ class SteamMixer(Unit):
     _N_outs = 1
     _N_ins = 3
     _ins_size_is_fixed = False
-    _N_heat_utilities = 1
     _graphics = mixer_graphics
     installation_cost = purchase_cost = 0.
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
@@ -210,7 +209,7 @@ class SteamMixer(Unit):
     def _design(self): 
         steam = self.ins[1]
         mixed = self.outs[0]
-        self.heat_utilities[0](steam.H, mixed.T)
+        self.add_heat_utility(steam.H, mixed.T)
         
 class MockMixer(Unit):
     """

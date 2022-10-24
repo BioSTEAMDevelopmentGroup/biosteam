@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -32,7 +32,6 @@ class RefrigerationPackage(Facility):
     """
     ticket_name = 'RP'
     network_priority = 0
-    _N_heat_utilities = 1
     _units = {'Duty': 'kJ/hr'}
     def __init__(self, ID='', agent=None, efficiency=0.35):
         raise NotImplementedError('not yet ready for users')
@@ -53,7 +52,7 @@ class RefrigerationPackage(Facility):
         self._load_refrigeration_utilities()
         ru = self.refrigeration_utilities
         self.design_results['Duty'] = duty = sum([i.duty for i in ru])        
-        hu, = self.heat_utilities
+        hu = self.create_heat_utility()
         hu.mix_from(ru)
         hu.reverse()
         self.power_utility.consumption = duty /3600 * self.efficiency

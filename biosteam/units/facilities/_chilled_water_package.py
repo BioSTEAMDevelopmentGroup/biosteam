@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -37,7 +37,6 @@ class ChilledWaterPackage(Facility):
     """
     ticket_name = 'CWP'
     network_priority = 0
-    _N_heat_utilities = 2
     _units = {'Duty': 'kJ/hr'}
     def __init__(self, ID='', agent=None):
         self.agent = chilled_water = agent or HeatUtility.get_cooling_agent('chilled_water')
@@ -59,10 +58,10 @@ class ChilledWaterPackage(Facility):
         self._load_chilled_water_utilities()
         cwu = self.chilled_water_utilities
         self.design_results['Duty'] = duty = sum([i.duty for i in cwu])        
-        hu_cooling, hu_chilled = self.heat_utilities
+        hu_chilled = self.create_heat_utility()
         hu_chilled.mix_from(cwu)
         hu_chilled.reverse()
-        hu_cooling(duty, 330)
+        self.add_heat_utility(duty, 330) # Cooling water
         used = self.ins[0]
         used.mol[0] = sum([i.flow for i in cwu])
         Ts = [i.outlet_utility_stream.T for i in cwu]

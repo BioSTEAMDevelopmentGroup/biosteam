@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -27,7 +27,7 @@ from ...utils import ExponentialFunctor
 
 __all__ = ('TankPurchaseCostAlgorithm',
            'field_erected_tank_purchase_cost',
-           'compute_number_of_tanks_and_total_purchase_cost',
+           'compute_number_of_tanks_and_purchase_cost',
            'storage_tank_purchase_cost_algorithms',
            'mix_tank_purchase_cost_algorithms')
 
@@ -86,10 +86,10 @@ class TankPurchaseCostAlgorithm:
         return f"{type(self).__name__}(f_Cp={f_name}, V_min={self.V_min}, V_max={self.V_max}, CE={self.CE}, material={self.material}, V_units={self.V_units})"
     
     
-def compute_number_of_tanks_and_total_purchase_cost(total_volume,
+def compute_number_of_tanks_and_purchase_cost(total_volume,
                                                     purchase_cost_algorithm):
     """
-    Return number of tanks and total purchase cost of all tanks.
+    Return number of tanks and purchase cost of a single tank.
 
     Parameters
     ----------
@@ -111,7 +111,7 @@ def compute_number_of_tanks_and_total_purchase_cost(total_volume,
     if N:
         V = V_total / N
         F_CE = bst.CE / purchase_cost_algorithm.CE
-        Cp = N * F_CE * purchase_cost_algorithm.f_Cp(V)
+        Cp = F_CE * purchase_cost_algorithm.f_Cp(V)
     else:
         Cp = 0.
     return N, Cp

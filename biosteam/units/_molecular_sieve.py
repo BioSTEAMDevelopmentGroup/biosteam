@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -65,7 +65,7 @@ class MolecularSieve(Splitter):
     
     >>> MS1.results()
     Molecular sieve                  Units       MS1
-    Power               Rate            kW      14.2
+    Electricity         Power           kW      14.2
                         Cost        USD/hr      1.11
     Low pressure steam  Duty         kJ/hr  3.21e+06
                         Flow       kmol/hr      82.7
@@ -89,7 +89,6 @@ class MolecularSieve(Splitter):
         Washington and Atlanta, Georgia)
     
     """
-    _N_heat_utilities = 2
     _units = {'Flow rate': 'kg/hr'}
     def __init__(self, ID='', ins=None, outs=(), *, order=None, split,
                  P=101325, approx_duty=True):
@@ -105,7 +104,6 @@ class MolecularSieve(Splitter):
         self.design_results['Flow rate'] = flow = self._outs[1].F_mass
         if self.approx_duty:
             T = self.outs[0].T
-            hu1, hu2 = self.heat_utilities
-            hu1(1429.65*flow, T)
-            hu2(-55.51*flow, T)
+            self.add_heat_utility(1429.65 * flow, T)
+            self.add_heat_utility(-55.51 * flow, T)
 

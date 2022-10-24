@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -123,34 +123,37 @@ class CostItem:
 def _decorated_cost(self):
     D = self.design_results
     C = self.baseline_purchase_costs
+    P = self.parallel
     kW = 0
     for i, x in self.cost_items.items():
         if x.condition is not None: 
             if not x.condition(): continue
+        I = bst.CE / x.CE
         S = D[x._basis]
         if x.lb is not None and S < x.lb:
             S = x.lb
-            D[x.N or '#' + i] = 1
         elif x.ub is not None:
-            D[x.N or '#' + i] = N = ceil(S/x.ub)
+            N = ceil(S / x.ub)
             if N == 0.:
                 C[i] = 0.
             else:
                 q = S/x.S
                 F = q/N
-                C[i] = N*bst.CE/x.CE*(x.f(F) if x.f else x.cost*F**x.n)
+                C[i] = I * (x.f(F) if x.f else x.cost * F**x.n)
+                P[i] = N
                 kW += x.kW*q
             continue
         if x.N:
             N = getattr(self, x.N, None) or D[x.N]
-            F = S/x.S
-            C[i] = N*bst.CE/x.CE*(x.f(F) if x.f else x.cost*F**x.n)
-            kW += N*x.kW*F
+            F = S / x.S
+            C[i] = I * (x.f(F) if x.f else x.cost * F**x.n)
+            P[i] = N
+            kW += N * x.kW * F
         else:
-            F = S/x.S
-            C[i] = bst.CE/x.CE*(x.f(F) if x.f else x.cost*F**x.n)
-            kW += x.kW*F
-    if kW: self.power_utility(kW)
+            F = S / x.S
+            C[i] = I * (x.f(F) if x.f else x.cost * F**x.n)
+            kW += x.kW * F
+    if kW: self.add_power_utility(kW)
 
 def copy_algorithm(other, cls=None, run=True, design=True, cost=True):
     if not cls: return lambda cls: copy_algorithm(other, cls, run, design, cost)

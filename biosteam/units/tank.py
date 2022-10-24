@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -30,7 +30,7 @@ References
 from .design_tools.specification_factors import vessel_material_factors
 from .design_tools.tank_design import (
     TankPurchaseCostAlgorithm,
-    compute_number_of_tanks_and_total_purchase_cost,
+    compute_number_of_tanks_and_purchase_cost,
     storage_tank_purchase_cost_algorithms,
     mix_tank_purchase_cost_algorithms)
 from ..utils import ExponentialFunctor
@@ -105,13 +105,12 @@ def tank_factory(name, *, CE, cost, S, tau, n=0.6, kW_per_m3=0., V_wf=0.9,
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): Corn  4.64e+04
     >>> T101.results()
-    Corn storage                          Units     T101
-    Design              Residence time       hr      259
-                        Total volume        m^3 1.33e+04
-                        Number of tanks                1
-    Purchase cost       Tanks               USD 7.62e+04
-    Total purchase cost                     USD 7.62e+04
-    Utility cost                         USD/hr        0
+    Corn storage                         Units     T101
+    Design              Residence time      hr      259
+                        Total volume       m^3 1.33e+04
+    Purchase cost       Tank               USD 7.62e+04
+    Total purchase cost                    USD 7.62e+04
+    Utility cost                        USD/hr        0
 
     """
     dct = {
@@ -188,7 +187,7 @@ class Tank(Unit, isabstract=True):
     _default_kW_per_m3 = 0.
     _units = {'Total volume': 'm^3',
               'Residence time': 'hr'}
-    _F_BM_default = {'Tanks': 2.3}
+    _F_BM_default = {'Tank': 2.3}
     _N_outs = 1
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
@@ -265,11 +264,13 @@ class Tank(Unit, isabstract=True):
     def _cost(self):
         design_results = self.design_results
         V = design_results['Total volume']
-        design_results['Number of tanks'], Cp = compute_number_of_tanks_and_total_purchase_cost(
+        N, Cp = compute_number_of_tanks_and_purchase_cost(
             V, self.purchase_cost_algorithm
         )
-        self.baseline_purchase_costs['Tanks']  = Cp / vessel_material_factors.get(self._vessel_material, 1.)
-        self.power_utility.consumption = self.kW_per_m3 * V
+        if N:
+            self.parallel['self'] = N
+            self.baseline_purchase_costs['Tank']  = Cp / vessel_material_factors.get(self._vessel_material, 1.)
+            self.add_power_utility(self.kW_per_m3 * V / N)
 
 
 # %% Storage tank purchase costs    
@@ -332,13 +333,12 @@ class StorageTank(Tank):
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow (kg/hr): Ethanol  2.3e+04
     >>> T1.results()
-    Storage tank                          Units       T1
-    Design              Residence time       hr      168
-                        Total volume        m^3 4.92e+03
-                        Number of tanks                2
-    Purchase cost       Tanks               USD 8.41e+05
-    Total purchase cost                     USD 8.41e+05
-    Utility cost                         USD/hr        0
+    Storage tank                         Units       T1
+    Design              Residence time      hr      168
+                        Total volume       m^3 4.92e+03
+    Purchase cost       Tank (x2)          USD 8.41e+05
+    Total purchase cost                    USD 8.41e+05
+    Utility cost                        USD/hr        0
     
     """
     _outs_size_is_fixed = _ins_size_is_fixed = True

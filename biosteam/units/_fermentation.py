@@ -99,7 +99,7 @@ class Fermentation(BatchBioreactor):
                         Yeast    484
     >>> F1.results()
     Fermentation                                       Units        F1
-    Power               Rate                              kW      66.6
+    Electricity         Power                             kW      66.6
                         Cost                          USD/hr      5.21
     Chilled water       Duty                           kJ/hr -6.96e+06
                         Flow                         kmol/hr  4.67e+03
@@ -112,11 +112,11 @@ class Fermentation(BatchBioreactor):
                         Reactor duty                   kJ/hr  6.96e+06
                         Cleaning and unloading time       hr         3
                         Working volume fraction                    0.9
-    Purchase cost       Heat exchangers                  USD  9.62e+04
-                        Reactors                         USD  1.88e+06
-                        Agitators                        USD  1.17e+05
+    Purchase cost       Heat exchangers (x8)             USD  9.62e+04
+                        Reactors (x8)                    USD  1.88e+06
+                        Agitators (x8)                   USD  1.17e+05
                         Cleaning in place                USD   8.9e+04
-                        Recirculation pumps              USD  1.26e+05
+                        Recirculation pumps (x8)         USD  1.26e+05
     Total purchase cost                                  USD   2.3e+06
     Utility cost                                      USD/hr        40
     

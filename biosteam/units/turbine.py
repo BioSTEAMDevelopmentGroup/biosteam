@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2022, Yoel Cortes-Pena <yoelcortes@gmail.com>, Ben Portner <github.com/BenPortner>
+# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>, Ben Portner <github.com/BenPortner>
 #
 # This module is under the UIUC open-source license. See
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -51,7 +51,6 @@ class Turbine(Unit, isabstract=True):
     _graphics = turbine_graphics
     _N_ins = 1
     _N_outs = 1
-    _N_heat_utilities = 1
     _units = {
         'Ideal power': 'kW',
         'Ideal duty': 'kJ/hr',
@@ -195,7 +194,6 @@ class IsentropicTurbine(Turbine, new_graphics=False):
         will be determined automatically.
 
     """
-    _N_heat_utilities = 0
 
     def _run(self):
         feed = self.ins[0]
