@@ -126,7 +126,7 @@ def tank_factory(name, *, CE, cost, S, tau, n=0.6, kW_per_m3=0., V_wf=0.9,
         '_default_kW_per_m3': kW_per_m3,
     }
     if BM: 
-        dct['_F_BM_default'] = {'Tanks': BM}
+        dct['_F_BM_default'] = {'Tank': BM}
     if mixing:
         dct['_ins_size_is_fixed'] = False
         dct['_N_ins'] = 2
@@ -232,10 +232,10 @@ class Tank(Unit, isabstract=True):
         self._vessel_material = material
         default_material = self.purchase_cost_algorithm.material
         if material == default_material:
-            self.F_M['Tanks'] = vessel_material_factors.get(default_material, 1.)
+            self.F_M['Tank'] = vessel_material_factors.get(default_material, 1.)
         else:
             try:
-                self.F_M['Tanks'] = vessel_material_factors[material]
+                self.F_M['Tank'] = vessel_material_factors[material]
             except:
                 raise ValueError("no material factor available for "
                                 f"vessel construction material '{material}';"
@@ -269,7 +269,8 @@ class Tank(Unit, isabstract=True):
         )
         if N:
             self.parallel['self'] = N
-            self.baseline_purchase_costs['Tank']  = Cp / vessel_material_factors.get(self._vessel_material, 1.)
+            default_material = self.purchase_cost_algorithm.material
+            self.baseline_purchase_costs['Tank']  = Cp / vessel_material_factors.get(default_material, 1.)
             self.add_power_utility(self.kW_per_m3 * V / N)
 
 
