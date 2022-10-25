@@ -67,6 +67,7 @@ from . import evaluation
 from .evaluation import *
 from . import exceptions
 from . import report
+from . import _settings
 
 __all__ = (
     'Unit', 'PowerUtility', 'UtilityAgent', 'HeatUtility',
@@ -84,10 +85,3 @@ def nbtutorial():
     preferences.graphviz_format = 'html'
     from warnings import filterwarnings
     filterwarnings('ignore')
-
-try:
-    settings.register_utility('Natural gas', 0.218)
-    settings.register_utility('Ash disposal', -0.0318)
-except: # For ReadTheDocs in the meanwhile that a new thermosteam version is uploaded
-    stream_utility_prices['Natural gas'] = 0.218
-    stream_utility_prices['Ash disposal'] = -0.0318

@@ -112,8 +112,8 @@ def set_feed_priority(stream, value):
     else:
         raise RuntimeError(f"stream '{stream}' is not a feed")
     
-bst.Stream.get_feed_priority = get_feed_priority
-bst.Stream.set_feed_priority = set_feed_priority
+Stream.get_feed_priority = get_feed_priority
+Stream.set_feed_priority = set_feed_priority
 
 def get_streams_from_context_level(level=None):
     """
