@@ -12,6 +12,7 @@ import numpy as np
 from biosteam.utils.piping import ignore_docking_warnings
 from warnings import warn
 import biosteam as bst
+from biosteam.utils.piping import Connection
 from graphviz import Digraph
 from IPython import display
 from thermosteam import Stream
@@ -32,8 +33,7 @@ __all__ = ('digraph_from_system',
            'finalize_digraph',
            'extend_surface_units',
            'display_digraph',
-           'save_digraph',
-           'get_all_connections')
+           'save_digraph')
 
 stream_node = dict(
     fillcolor='#55a8b5',
@@ -75,14 +75,14 @@ def sort_streams(streams):
 def has_path(obj):
     return hasattr(obj, 'path')
 
-def blank_digraph(format='svg', maxiter='10000000', 
+def blank_digraph(format='svg', maxiter='10000000000000000000', 
                   Damping='0.995', K='0.5', **graph_attrs):
     # Create a digraph and set direction left to right
     f = Digraph(format=format)
     f.attr(rankdir='LR', maxiter=maxiter, Damping=Damping, K=K,
            penwidth='0', color='none', bgcolor=preferences.background_color,
            fontcolor=preferences.label_color, fontname="Arial",
-           labeljust='l', labelloc='t', fontsize='24',
+           labeljust='l', labelloc='t', fontsize='24', constraint='false',
            **graph_attrs)
     return f
 
@@ -188,8 +188,7 @@ def digraph_from_units(units, **graph_attrs):
     return digraph_from_units_and_streams(units, streams, **graph_attrs)
 
 def digraph_from_units_and_streams(units, streams, **graph_attrs):
-    connections = get_all_connections(streams)
-    return digraph_from_units_and_connections(units, connections, **graph_attrs)
+    return digraph_from_units_and_connections(units, get_all_connections(streams), **graph_attrs)
 
 def digraph_from_system(system, **graph_attrs):
     f = blank_digraph(**graph_attrs) 
@@ -199,7 +198,7 @@ def digraph_from_system(system, **graph_attrs):
     update_digraph_from_path(f, (*system.path, *system.facilities), 
                              system.recycle, 0, unit_names, excluded_connections,
                              other_streams)
-    connections = get_all_connections(other_streams).difference(excluded_connections)
+    connections = get_all_connections(other_streams, excluded_connections)
     add_connections(f, connections, unit_names)
     return f
 
@@ -227,12 +226,10 @@ def update_digraph_from_path(f, path, recycle, depth, unit_names,
         recycles = []
     streams = [i for i in all_streams if (not i.sink or i.sink in units) and (not i.source or i.source in units)]
     other_streams.update(all_streams.difference(streams))
-    connections = get_all_connections(recycles)
+    connections = get_all_connections(recycles, excluded_connections)
     add_connections(f, connections, unit_names, color='#f98f60', fontcolor='#f98f60')
-    excluded_connections.update(connections)
-    connections = get_all_connections(streams).difference(excluded_connections)
+    connections = get_all_connections(streams, excluded_connections)
     add_connections(f, connections, unit_names)
-    excluded_connections.update(connections)
     depth += 1
     N_colors = len(preferences.depth_colors)
     color = preferences.depth_colors[(depth - 1) % N_colors]
@@ -258,8 +255,7 @@ def fill_info_from_path(path, indices, info_by_unit):
     TicToc = bst.utils.TicToc
     for u in path:
         if isa(u, bst.Junction):
-            info_by_unit[u] = [[], None]
-            continue
+            continue # Do no include junctions
         if isa(u, bst.System):
             fill_info_from_path(u.path, [*indices, 0], info_by_unit)
             indices[-1] += 1
@@ -301,10 +297,16 @@ def get_unit_names(f: Digraph, path):
 def update_digraph_from_units_and_connections(f: Digraph, units, connections):
     add_connections(f, connections, get_unit_names(f, units))    
 
-def get_all_connections(streams):
-    return {s.get_connection()
-            for s in streams 
-            if (s._source or s._sink)}
+def get_all_connections(streams, added_connections=None):
+    if added_connections is None: added_connections = set()
+    connections = []
+    for s in streams:
+        if (s._source or s._sink): 
+            connection = s.get_connection(junction=False)
+            if connection not in added_connections:
+                connections.append(connection)
+                added_connections.add(connection)
+    return connections
 
 def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_options):
     source, source_index, stream, sink_index, sink = connection

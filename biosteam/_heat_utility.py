@@ -701,9 +701,9 @@ class HeatUtility:
     def inlet_process_stream(self) -> Stream:
         """If a heat exchanger is available, this stream is the inlet 
         process stream to the heat exchanger."""
-        heat_exchanger = self.heat_exchanger
+        heat_exchanger = self.unit
         if heat_exchanger:
-            return heat_exchanger.ins[0]
+            return heat_exchanger.inlet
         else:
             raise AttributeError('no heat exchanger available '
                                  'to retrieve process stream')
@@ -712,9 +712,9 @@ class HeatUtility:
     def outlet_process_stream(self) -> Stream:
         """If a heat exchanger is available,
         this stream is the outlet process stream to the heat exchanger."""
-        heat_exchanger = self.heat_exchanger
+        heat_exchanger = self.unit
         if heat_exchanger:
-            return heat_exchanger.outs[0]
+            return heat_exchanger.outlet
         else:
             raise AttributeError('no heat exchanger available '
                                  'to retrieve process stream')
@@ -801,7 +801,9 @@ class HeatUtility:
             self.empty()
         if agent.utility_stream_dump:
             self.inlet_utility_stream, self.outlet_utility_stream = agent.utility_stream_dump.pop()
-            self.inlet_utility_stream.copy_like(agent) # Prevent errors where utility streams are altered
+            # Prevent errors where utility streams are altered
+            self.inlet_utility_stream.copy_like(agent) 
+            self.outlet_utility_stream.copy_thermal_condition(agent)
         else:
             self.inlet_utility_stream = agent.to_stream()
             self.outlet_utility_stream = self.inlet_utility_stream.flow_proxy()
