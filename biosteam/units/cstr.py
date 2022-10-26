@@ -174,6 +174,7 @@ class CSTR(PressureVessel, Unit, isabstract=True):
                         Recirculation pump - Motor (x4)                  5.1e+03  
     Total purchase cost                                                 1.59e+06  
     Utility cost                                                             140  
+    Utility cost                                                             140  
     
     References
     ----------
