@@ -420,7 +420,7 @@ class HeatUtility:
             original_units = settings.get_impact_indicator_units(key)
             value = original_units.convert(value, units)
         if basis is None:
-            return value, basis_units._units
+            return value, basis_units.units
         else:
             return value / basis_units.conversion_factor(basis)
 
