@@ -80,5 +80,5 @@ setup(
                  'Programming Language :: Python :: 3.10',
                  'Programming Language :: Python :: Implementation :: CPython',
                  'Topic :: Education'],
-    keywords=['chemical process simmulation', 'bioprocess engineering', 'mass and energy balance', 'material properties', 'phase equilibrium', 'CABBI', 'biorefinery', 'biofuel', 'bioproducts'],
+    keywords=['chemical process simulation', 'bioprocess engineering', 'mass and energy balance', 'material properties', 'phase equilibrium', 'CABBI', 'biorefinery', 'biofuel', 'bioproducts'],
 )
