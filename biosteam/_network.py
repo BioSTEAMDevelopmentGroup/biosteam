@@ -253,6 +253,9 @@ class Network:
         return all_recycles
     
     def sort(self, ends):
+        isa = isinstance
+        for i in self.path: 
+            if isa(i, Network): i.sort(ends)
         path_sources = [PathSource(i, ends) for i in self.path]
         N = len(path_sources)
         if not N: return
