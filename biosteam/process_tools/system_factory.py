@@ -12,6 +12,7 @@ import biosteam as bst
 from biosteam.utils import as_stream
 from biosteam.process_tools import utils
 from inspect import signature
+from typing import TYPE_CHECKING
 
 __all__ = ('SystemFactory', 'stream_kwargs')
 
@@ -71,6 +72,7 @@ def get_name(obj):
         return obj
     elif callable(obj):
         return obj.__name__
+
 
 # %% System factory
 
@@ -231,7 +233,22 @@ class SystemFactory:
         system.load_inlet_ports(ins, {k: i for i, j in enumerate(self.ins) if (k:=get_name(j)) is not None})
         system.load_outlet_ports(outs, {k: i for i, j in enumerate(self.outs) if (k:=get_name(j)) is not None})
         if autorename is not None: tmo.utils.Registry.AUTORENAME = original_autorename
-        if udct: unit_dct = {i.ID: i for i in system.units}
+        if udct: 
+            unit_dct = {}
+            def add(key, unit):
+                if key in unit_dct:
+                    obj = unit_dct[key]
+                    if isinstance(obj, list):
+                        obj.append(unit)
+                    else:
+                        unit_dct[key] = [obj, unit]
+                else:
+                    unit_dct[key] = unit
+            
+            for unit in system.units:
+                cls = unit.__class__
+                add(unit._ID, unit)
+                add(cls.line, unit)
         if rename: 
             unit_registry.track(irrelevant_units)
             utils.rename_units(system.units, area)
