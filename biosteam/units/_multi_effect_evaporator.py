@@ -172,7 +172,7 @@ class MultiEffectEvaporator(Unit):
                         Furfural    0.000462
     
     >>> E1.results()
-    Multi-Effect Evaporator                                    Units        E1
+    Multi-effect evaporator                                    Units        E1
     Electricity         Power                                     kW      5.72
                         Cost                                  USD/hr     0.447
     Low pressure steam  Duty                                   kJ/hr  3.82e+05
@@ -190,7 +190,7 @@ class MultiEffectEvaporator(Unit):
     Utility cost                                              USD/hr      2.83
     
     """
-    line = 'Multi-Effect Evaporator'
+    line = 'Multi-effect evaporator'
     auxiliary_unit_names = ('condenser', 'mixer', 'vacuum_system')
     _units = {'Area': 'm^2',
               'Volume': 'm^3'}
@@ -356,7 +356,9 @@ class MultiEffectEvaporator(Unit):
         liq.P = out_wt_solids.P
         
     def _design(self):
-        if self.V == 0: return
+        if self.V == 0: 
+            for i in self.auxiliary_units: i._setup()
+            return
         
         # This functions also finds the cost
         A_range, C_func, U, _ = self._evap_data
