@@ -304,7 +304,7 @@ class Flowsheet:
                 obj = obj[0]
             return obj
         else:
-            raise ValueError('ID must be either a string or a Unit subclass')
+            raise TypeError('ID must be either a string or a Unit subclass')
     
     def __str__(self):
         return self.ID
