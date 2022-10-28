@@ -7,6 +7,7 @@
 # for license details.
 """
 """
+from . import segment
 from . import bounded_numerical_specification
 from . import reactor_specification
 from . import system_factory
@@ -14,14 +15,17 @@ from . import system_mesh
 from . import unit_group
 from . import utils
 
-__all__ = (*bounded_numerical_specification.__all__,
-           *reactor_specification.__all__,
-           *system_factory.__all__,
-           *system_mesh.__all__,
-           *unit_group.__all__,
-           *utils.__all__,
+__all__ = (
+    *segment.__all__,
+    *bounded_numerical_specification.__all__,
+    *reactor_specification.__all__,
+    *system_factory.__all__,
+    *system_mesh.__all__,
+    *unit_group.__all__,
+    *utils.__all__,
 )
 
+from .segment import *
 from .bounded_numerical_specification import *
 from .reactor_specification import *
 from .system_factory import *
