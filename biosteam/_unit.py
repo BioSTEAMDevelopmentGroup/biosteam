@@ -497,20 +497,28 @@ class Unit:
         if thermo is self.thermo: return
         self._load_thermo(thermo)
         chemicals = thermo.chemicals
-        dcts = [self.__dict__]
-        if hasattr(self, 'components') and isinstance(self.components, dict):
-            dcts.append(self.components)
-        for dct in dcts:
-            for i, j in dct.items():
-                if isinstance(j, tmo.ReactionSystem):
-                    for rxn in j._reactions:
-                        if hasattr(rxn, 'reset_chemicals') and rxn.chemicals is not chemicals:
-                            rxn.reset_chemicals(chemicals)
-                elif hasattr(j, 'reset_chemicals') and j.chemicals is not chemicals:
-                    j.reset_chemicals(chemicals)
-                elif hasattr(j, '_reset_thermo') and j.thermo is not thermo:
-                    j._reset_thermo(thermo)
-    
+        isa = isinstance
+        hasfield = hasattr
+        def reset_thermo(obj, old=set()):
+            hash = id(obj)
+            if hash in old: return 
+            old.add(hash)
+            if isa(obj, tmo.ReactionSystem):
+                for rxn in obj._reactions:
+                    if hasfield(rxn, 'reset_chemicals') and rxn.chemicals is not chemicals:
+                        rxn.reset_chemicals(chemicals)
+            elif hasfield(obj, 'reset_chemicals') and obj.chemicals is not chemicals:
+                obj.reset_chemicals(chemicals)
+            elif hasfield(obj, '_reset_thermo') and obj.thermo is not thermo:
+                obj._reset_thermo(thermo)
+            elif isa(obj, dict):
+                for i in obj.values(): reset_thermo(i)
+            elif isa(obj, Iterable):
+                for i in obj: reset_thermo(i)
+                
+        for obj in self.__dict__.values(): reset_thermo(obj)
+            
+                        
     @property
     def net_power(self) -> float:
         """Net power consumption [kW]."""
