@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -965,8 +965,10 @@ def plot_contour_2d(X_grid, Y_grid, Z_1d, data,
         ncols = len(metric_bars[0])
         row_bars = False
     assert data.shape == (*X_grid.shape, nrows, ncols), (
+       f"data was shape {data.shape}, but expeted shape {(*X_grid.shape, nrows, ncols)}; "
         "data shape must be (X, Y, M, Z), where (X, Y) is the shape of both X_grid and Y_grid, "
         "M is the number of metrics, and Z is the number of elements in Z_1d"
+       
     )
     if row_bars:
         fig, axes = contour_subplots(nrows, ncols)

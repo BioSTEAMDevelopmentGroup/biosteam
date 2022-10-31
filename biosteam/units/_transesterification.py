@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -43,7 +43,6 @@ class Transesterification(Unit):
     _tau = 1
     _N_ins = 2
     _N_outs = 1
-    _N_heat_utilities = 1
 
     def _get_design_info(self):
         return (('Residence time', self.tau, 'hr'),
@@ -103,7 +102,7 @@ class Transesterification(Unit):
     def _design(self):
         effluent = self._outs[0]
         self.design_results['Volume'] = self._tau * effluent.F_vol / 0.8
-        self.heat_utilities[0](self.Hnet, effluent.T)
+        self.add_heat_utility(self.Hnet, effluent.T)
 
         
     

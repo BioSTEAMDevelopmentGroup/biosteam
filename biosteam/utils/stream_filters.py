@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -112,8 +112,8 @@ def set_feed_priority(stream, value):
     else:
         raise RuntimeError(f"stream '{stream}' is not a feed")
     
-bst.Stream.get_feed_priority = get_feed_priority
-bst.Stream.set_feed_priority = set_feed_priority
+Stream.get_feed_priority = get_feed_priority
+Stream.set_feed_priority = set_feed_priority
 
 def get_streams_from_context_level(level=None):
     """

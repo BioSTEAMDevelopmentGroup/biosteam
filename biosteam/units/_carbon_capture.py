@@ -98,7 +98,7 @@ class AmineAbsorption(Unit):
         flow (kmol/hr): CO2  2.61e+03
     >>> U1.results()
     Amine absorption                            Units       U1
-    Power               Rate                       kW 1.23e+03
+    Electricity         Power                      kW 1.23e+03
                         Cost                   USD/hr     96.4
     Low pressure steam  Duty                    kJ/hr 4.36e+08
                         Flow                  kmol/hr 1.12e+04
@@ -134,7 +134,6 @@ class AmineAbsorption(Unit):
     
     _N_ins = 3
     _N_outs = 2
-    _N_heat_utilities = 1
     _units = {'Total flow': 'kmol/hr',
               'CO2 flow':'kmol/hr'}
     
@@ -159,7 +158,7 @@ class AmineAbsorption(Unit):
         self.design_results['Total flow'] = self.ins[0].F_mol
         self.design_results['CO2 flow'] = self.outs[1].F_mol
         duty = self.heat_ratio * self.outs[1].F_mass
-        self.heat_utilities[0](duty, T_in=self.ins[0].T)
+        self.add_heat_utility(duty, T_in=self.ins[0].T)
     
 
 @cost(basis='Total flow', ID='Compressor', units='kmol/hr',
@@ -202,7 +201,7 @@ class CO2Compression(Unit):
         flow (kmol/hr): CO2  2.61e+03
     >>> U1.results()
     CO2Compression                    Units       U1
-    Power               Rate             kW      360
+    Electricity         Power            kW      360
                         Cost         USD/hr     28.2
     Design              Total flow  kmol/hr 2.61e+03
     Purchase cost       Compressor      USD 1.45e+06

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -79,17 +79,12 @@ class UnitGroup:
     Get all metric results:
         
     >>> ugroup.to_dict()
-    {'Installed equipment cost [MM$]': 0.056,
-     'Cooling duty [GJ/hr]': 0.37,
-     'Heating duty [GJ/hr]': 0.0,
-     'Electricity consumption [MW]': 0.00082,
-     'Electricity production [MW]': 0.0,
-     'Materiral cost [USD/hr]': 0.0}
+    {'Installed equipment cost [MM$]': 0.05622413450241316, 'Cooling duty [GJ/hr]': 0.3745229830178544, 'Heating duty [GJ/hr]': 0.0, 'Electricity consumption [MW]': 0.0008217541061790893, 'Electricity production [MW]': 0.0, 'Materiral cost [USD/hr]': 0.0}
     
     Each result can be retrieved separately:
     
     >>> ugroup.get_installed_cost()
-    0.056
+    0.05622413450241316
     
     >>> ugroup.get_cooling_duty()
     0.37
@@ -119,14 +114,7 @@ class UnitGroup:
               Sucrose flow rate [kg/hr]
     
     >>> ugroup.to_dict()
-    {'Installed equipment cost [MM$]': 0.056,
-     'Cooling duty [GJ/hr]': 0.37,
-     'Heating duty [GJ/hr]': 0.0,
-     'Electricity consumption [MW]': 0.00082,
-     'Electricity production [MW]': 0.0,
-     'Materiral cost [USD/hr]': 0.0,
-     'Moisture content': 0.63,
-     'Sucrose flow rate [kg/hr]': 1026.8}
+    {'Installed equipment cost [MM$]': 0.05622413450241316, 'Cooling duty [GJ/hr]': 0.3745229830178544, 'Heating duty [GJ/hr]': 0.0, 'Electricity consumption [MW]': 0.0008217541061790893, 'Electricity production [MW]': 0.0, 'Materiral cost [USD/hr]': 0.0, 'Moisture content': 0.6369385135738662, 'Sucrose flow rate [kg/hr]': 1026.88944}
     
     """
     __slots__ = ('name', 'units', 'metrics', 'filter_savings', 'extend_feed_ends')

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -11,12 +11,12 @@ setup(
     name='biosteam',
     packages=['biosteam'],
     license='MIT',
-    version='2.33.3',
+    version='2.34.1',
     description='The Biorefinery Simulation and Techno-Economic Analysis Modules',
     long_description=open('README.rst', encoding='utf-8').read(),
     author='Yoel Cortes-Pena',
     install_requires=['IPython>=7.9.0',
-                      'thermosteam>=0.29.2', 
+                      'thermosteam>=0.30.0,<0.31.0', 
                       'graphviz>=0.17',
                       'chaospy>=3.3.9',
                       'pyyaml'],
@@ -53,7 +53,7 @@ setup(
         'biosteam': ['graphviz_color_settings.txt',
                      'preferences.yaml'],
     },
-    python_requires='>=3.8',
+    python_requires='>=3.9',
     platforms=['Windows', 'Mac', 'Linux'],
     author_email='yoelcortes@gmail.com',
     url='https://github.com/BioSTEAMDevelopmentGroup/biosteam',
@@ -80,5 +80,5 @@ setup(
                  'Programming Language :: Python :: 3.10',
                  'Programming Language :: Python :: Implementation :: CPython',
                  'Topic :: Education'],
-    keywords=['chemical process simmulation', 'bioprocess engineering', 'mass and energy balance', 'material properties', 'phase equilibrium', 'CABBI', 'biorefinery', 'biofuel', 'bioproducts'],
+    keywords=['chemical process simulation', 'bioprocess engineering', 'mass and energy balance', 'material properties', 'phase equilibrium', 'CABBI', 'biorefinery', 'biofuel', 'bioproducts'],
 )

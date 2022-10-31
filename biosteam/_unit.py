@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -22,10 +22,13 @@ from copy import copy
 import biosteam as bst
 from thermosteam import Stream
 from thermosteam.base import display_asfunctor
-from typing import Callable, Optional, TYPE_CHECKING, Sequence
+from typing import Callable, Optional, TYPE_CHECKING, Sequence, Iterable
 from numpy.typing import NDArray
 import thermosteam as tmo
-if TYPE_CHECKING: System = bst.System
+if TYPE_CHECKING: 
+    System = bst.System
+    HXutility = bst.HXutility
+    UtilityAgent = bst.UtilityAgent
 
 __all__ = ('Unit',)
 
@@ -161,6 +164,36 @@ class Unit:
         Thermo object to initialize inlet and outlet streams. Defaults to
         :meth:`settings.thermo <thermosteam._settings.ProcessSettings.thermo>`.
     
+    Notes
+    -----
+    The free on board (f.o.b.) purchase costs and installed equipment costs 
+    (i.e. bare-module cost) for each item in the :attr:`~Unit.baseline_purchase_costs` 
+    dictionary and in auxiliary units are automatically added to the 
+    :attr:`~Unit.purchase_costs` and :attr:`~Unit.installed_costs` dictionaries. 
+    
+    As explained in [1]_, the f.o.b. purchase cost is given by:
+    
+    .. math::
+       
+       C_{P} = C_{Pb}F_{D}F_{P}F_{M}
+    
+    And the installed equipment cost is given by:
+    
+    .. math::
+       
+       C_{BM} = C_{Pb} (F_{BM} + F_{D}F_{P}F_{M} - 1)
+    
+    Where:
+        * :math:`C_{Pb}`: Baseline purchase cost.
+        * :math:`F_{BM}`: Bare module factor.
+        * :math:`F_{D}`: Design factor.
+        * :math:`F_{P}`: Pressure factor.
+        * :math:`F_{M}`: Material factor.
+    
+    Values for the bare-module, design, pressure, and material factors of 
+    each equipment should be stored in the :attr:`~Unit.F_BM`, :attr:`~Unit.F_D`, 
+    :attr:`~Unit.F_P`, and :attr:`~Unit.F_M` dictionaries.
+    
     Examples
     --------
     :doc:`../tutorial/Creating_a_Unit`
@@ -168,6 +201,11 @@ class Unit:
     :doc:`../tutorial/-pipe-_notation`
     
     :doc:`../tutorial/Inheriting_from_Unit`
+    
+    References
+    ----------
+    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R., & Ng, M. K. (2017). Product and Process Design Principles. Wiley. Cost Accounting and Capital Cost Estimation (Chapter 16)
+    
     
     """ 
     
@@ -177,6 +215,10 @@ class Unit:
                           does_nothing=None):
         if does_nothing: return 
         dct = cls.__dict__
+        if '_N_heat_utilities' in dct:
+            warn("'_N_heat_utilities' class attribute is scheduled for deprecation; "
+                 "use the `add_heat_utility` method instead",
+                 DeprecationWarning, stacklevel=2)
         if 'run' in dct:
             raise UnitInheritanceError(
                  "the 'run' method cannot be overrided; implement `_run` instead"
@@ -261,8 +303,7 @@ class Unit:
     #: **class-attribute** Name of attributes that are auxiliary units. These units
     #: will be accounted for in the purchase and installed equipment costs
     #: without having to add these costs in the :attr:`~Unit.baseline_purchase_costs` dictionary.
-    #: Utility costs, however, are not automatically accounted for and must
-    #: be hardcoded in the unit operation logic.
+    #: Heat and power utilities are also automatically accounted for.
     auxiliary_unit_names: tuple[str, ...] = ()
     
     #: **class-attribute** Expected number of inlet streams. Defaults to 1.
@@ -276,9 +317,6 @@ class Unit:
     
     #: **class-attribute** Whether the number of streams in :attr:`~Unit.outs` is fixed.
     _outs_size_is_fixed: bool = True
-    
-    #: **class-attribute** Number of heat utilities created with each instance. Defaults to 0.
-    _N_heat_utilities: int = 0
     
     #: **class-attribute** Options for linking streams
     _stream_link_options: StreamLinkOptions = None
@@ -333,9 +371,8 @@ class Unit:
         ### Initialize utilities
     
         #: All heat utilities associated to unit. Cooling and heating requirements 
-        #: are stored here (including auxiliary requirements). The number of heat utilities created is given by the
-        #: class attribute :attr:`~Unit._N_heat_utilities`.
-        self.heat_utilities: tuple[HeatUtility, ...] = tuple([HeatUtility() for i in range(self._N_heat_utilities)])
+        #: are stored here (including auxiliary requirements).
+        self.heat_utilities: list[HeatUtility, ...] = [HeatUtility for i in range(getattr(self, '_N_heat_utilities', 0))]
         
         #: Electric utility associated to unit (including auxiliary requirements).
         self.power_utility: PowerUtility = PowerUtility()
@@ -407,7 +444,15 @@ class Unit:
         #: Safety toggle to prevent infinite recursion
         self._active_specifications: set[ProcessSpecification] = set()
         
+        #: Name-number pairs of baseline purchase costs and auxiliary unit 
+        #: operations in parallel. Use 'self' to refer to the main unit. Capital 
+        #: and heat and power utilities in parallel will become propotional to this 
+        #: value.
+        self.parallel: dict[str, int] = {}
+        
         self._assert_compatible_property_package()
+        
+        self._utility_cost = None
     
     def _init_ins(self, ins):
         self._ins = piping.Inlets(
@@ -420,7 +465,7 @@ class Unit:
         )
 
     def _init_utils(self):
-        self.heat_utilities = tuple([HeatUtility() for i in range(self._N_heat_utilities)])
+        self.heat_utilities = [HeatUtility for i in range(getattr(self, '_N_heat_utilities', 0))]
         self.power_utility = PowerUtility()
         
     def _init_results(self):
@@ -452,24 +497,32 @@ class Unit:
         if thermo is self.thermo: return
         self._load_thermo(thermo)
         chemicals = thermo.chemicals
-        dcts = [self.__dict__]
-        if hasattr(self, 'components') and isinstance(self.components, dict):
-            dcts.append(self.components)
-        for dct in dcts:
-            for i, j in dct.items():
-                if isinstance(j, tmo.ReactionSystem):
-                    for rxn in j._reactions:
-                        if hasattr(rxn, 'reset_chemicals') and rxn.chemicals is not chemicals:
-                            rxn.reset_chemicals(chemicals)
-                elif hasattr(j, 'reset_chemicals') and j.chemicals is not chemicals:
-                    j.reset_chemicals(chemicals)
-                elif hasattr(j, '_reset_thermo') and j.thermo is not thermo:
-                    j._reset_thermo(thermo)
-    
+        isa = isinstance
+        hasfield = hasattr
+        def reset_thermo(obj, old=set()):
+            hash = id(obj)
+            if hash in old: return 
+            old.add(hash)
+            if isa(obj, tmo.ReactionSystem):
+                for rxn in obj._reactions:
+                    if hasfield(rxn, 'reset_chemicals') and rxn.chemicals is not chemicals:
+                        rxn.reset_chemicals(chemicals)
+            elif hasfield(obj, 'reset_chemicals') and obj.chemicals is not chemicals:
+                obj.reset_chemicals(chemicals)
+            elif hasfield(obj, '_reset_thermo') and obj.thermo is not thermo:
+                obj._reset_thermo(thermo)
+            elif isa(obj, dict):
+                for i in obj.values(): reset_thermo(i)
+            elif isa(obj, Iterable):
+                for i in obj: reset_thermo(i)
+                
+        for obj in self.__dict__.values(): reset_thermo(obj)
+            
+                        
     @property
     def net_power(self) -> float:
         """Net power consumption [kW]."""
-        return self.power_utility.rate
+        return self.power_utility.power
     @property
     def net_duty(self) -> float:
         """Net duty including heat transfer losses [kJ/hr]."""
@@ -518,6 +571,59 @@ class Unit:
         elif size > 1: raise AttributeError(f"{repr(self)} has more than one outlet")
         else: raise AttributeError(f"{repr(self)} has no outlet")
     outlet = effluent = product
+    
+    def add_power_utility(self, power):
+        """Add power utility [kW]. Use a postive value for consumption and 
+        a negative for production."""
+        power_utility = self.power_utility
+        if power >= 0.:
+            power_utility.consumption += power
+        else:
+            power_utility.production -= power
+    
+    def create_heat_utility(self,
+            agent: Optional[UtilityAgent]=None,
+            heat_transfer_efficiency: Optional[float]=None,
+        ):
+        """Create heat utility object associated to unit."""
+        hu = HeatUtility(heat_transfer_efficiency, None)
+        self.heat_utilities.append(hu)
+        return hu
+    
+    def add_heat_utility(self, 
+            unit_duty: float, 
+            T_in: float,
+            T_out: Optional[float]=None, 
+            agent: Optional[UtilityAgent]=None,
+            heat_transfer_efficiency: Optional[float]=None,
+            hxn_ok: Optional[bool]=False,
+        ):
+        """
+        Add utility requirement given the duty and inlet and outlet 
+        temperatures.
+        
+        Parameters
+        ----------
+        unit_duty :
+               Unit duty requirement [kJ/hr]
+        T_in : 
+               Inlet process stream temperature [K]
+        T_out : 
+               Outlet process stream temperature [K]
+        agent : 
+                Utility agent to use. Defaults to a suitable agent from 
+                predefined heating/cooling utility agents.
+        heat_transfer_efficiency : 
+            Enforced fraction of heat transfered from utility (due
+            to losses to environment).
+        hxn_ok :
+            Whether heat utility can be satisfied within a heat exchanger network.
+            
+        """
+        hu = HeatUtility(heat_transfer_efficiency, self, hxn_ok)
+        self.heat_utilities.append(hu)
+        hu(unit_duty, T_in, T_out, agent)
+        return hu
     
     def define_utility(self, name: str, stream: Stream):
         """
@@ -584,7 +690,7 @@ class Unit:
             Unit._setup(self)
             try:
                 self._cost()
-                self._load_capital_costs()
+                self._load_costs()
             except:
                 warn(f"failed to create agile design for {repr(self)}; "
                       "assuming design with highest capital cost will do",
@@ -640,47 +746,7 @@ class Unit:
             "with a compatible thermodynamic property package"
         )
     
-    def _load_auxiliary_capital_costs(self):
-        for i in self.auxiliary_units: i._load_capital_costs()
-        baseline_purchase_costs = self.baseline_purchase_costs
-        purchase_costs = self.purchase_costs
-        installed_costs = self.installed_costs
-        F_BM = self.F_BM
-        F_D = self.F_D
-        F_P = self.F_P
-        F_M = self.F_M
-        for name in self.auxiliary_unit_names:
-            unit = getattr(self, name)
-            if not unit: continue
-            F_BM_auxiliary = unit.F_BM
-            F_D_auxiliary = unit.F_D
-            F_P_auxiliary = unit.F_P
-            F_M_auxiliary = unit.F_M
-            bpc_auxiliary = unit.baseline_purchase_costs
-            pc_auxiliary = unit.purchase_costs
-            ic_auxiliary = unit.installed_costs
-            for i in unit.baseline_purchase_costs:
-                j = ' - '.join([name.capitalize().replace('_', ' '), i])
-                if j in baseline_purchase_costs: 
-                    raise RuntimeError(
-                        f"'{j}' already in `baseline_purchase_cost` "
-                        f"dictionary of {repr(self)}; try using a different key"
-                    )
-                else:
-                    F_D[j] = fd = F_D_auxiliary.get(i, 1.)
-                    F_P[j] = fp = F_P_auxiliary.get(i, 1.)
-                    F_M[j] = fm = F_M_auxiliary.get(i, 1.)
-                    baseline_purchase_costs[j] = Cpb = bpc_auxiliary[i]
-                    purchase_costs[j] = pc_auxiliary[i]
-                    installed_costs[j] = Cbm = ic_auxiliary[i]
-                    try:
-                        F_BM[j] = F_BM_auxiliary[i]
-                    except KeyError:
-                        # Assume costs already added elsewhere using another method.
-                        # Calculate BM as an estimate.
-                        F_BM[j] = Cbm / Cpb + 1 - fd * fp * fm
-    
-    def _load_capital_costs(self):
+    def _load_costs(self):
         r"""
         Calculate and save free on board (f.o.b.) purchase costs and
         installed equipment costs (i.e. bare-module cost) for each item in the 
@@ -723,14 +789,24 @@ class Unit:
         .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R., & Ng, M. K. (2017). Product and Process Design Principles. Wiley. Cost Accounting and Capital Cost Estimation (Chapter 16)
         
         """
+        if self._costs_loaded: return
         F_BM = self.F_BM
         F_D = self.F_D
         F_P = self.F_P
         F_M = self.F_M
-        self._load_auxiliary_capital_costs()
         baseline_purchase_costs = self.baseline_purchase_costs
         purchase_costs = self.purchase_costs
         installed_costs = self.installed_costs
+        parallel = self.parallel
+        heat_utilities = self.heat_utilities
+        power_utility = self.power_utility
+        integer = int
+        N_default = integer(parallel.get('self', 1))
+        
+        # Load main costs
+        if N_default != 1:
+            heat_utilities.extend((N_default - 1) * heat_utilities)
+            power_utility.scale(N_default)
         for i in purchase_costs:
             if i not in baseline_purchase_costs:
                 warning = RuntimeWarning(
@@ -741,32 +817,120 @@ class Unit:
                 warn(warning)
                 baseline_purchase_costs[i] = purchase_costs[i]
         for name, Cpb in baseline_purchase_costs.items(): 
-            if name in installed_costs and name in purchase_costs: 
-                continue # Assume costs already added elsewhere using another method
+            N = integer(parallel.get(name, N_default))
+            if N == 1:
+                if name in installed_costs and name in purchase_costs:
+                    continue # Assume costs already added elsewhere using another method
+            else:
+                Cpb *= N
+                baseline_purchase_costs[name] = Cpb
+                if name in installed_costs and name in purchase_costs:
+                    purchase_costs[name] *= N
+                    installed_costs[name] *= N
+                    continue # Assume costs already added elsewhere using another method
             F = F_D.get(name, 1.) * F_P.get(name, 1.) * F_M.get(name, 1.)
             try:
                 installed_costs[name] = Cpb * (F_BM[name] + F - 1.)
             except KeyError:
-                warning = RuntimeWarning(
-                   f"the purchase cost item, '{name}', has "
-                    "no defined bare-module factor in the "
-                  f"'{type(self).__name__}.F_BM' dictionary; "
-                   "bare-module factor now has a default value of 1"
-                 )
-                warn(warning)
+                warn(f"the purchase cost item, '{name}', has "
+                      "no defined bare-module factor in the "
+                     f"'{type(self).__name__}.F_BM' dictionary; "
+                      "bare-module factor now has a default value of 1",
+                      RuntimeWarning)
                 F_BM[name] = 1.
                 installed_costs[name] = purchase_costs[name] = Cpb * F
             else:
                 purchase_costs[name] = Cpb * F
+        
+        # Load auxiliary costs
+        isa = isinstance
+        for name, unit in self.get_auxiliary_units_with_names():
+            unit.owner = self
+            if isa(unit, Unit):
+                if not (unit._design or unit._cost): continue
+                unit._load_costs() # Just in case user did not simulate or run summary.
+            N = integer(parallel.get(name, N_default))
+            if N == 1:
+                heat_utilities.extend(unit.heat_utilities)
+                power_utility.consumption += unit.power_utility.consumption
+                power_utility.production += unit.power_utility.production
+            else:
+                heat_utilities.extend(N * unit.heat_utilities)
+                power_utility.consumption += N * unit.power_utility.consumption
+                power_utility.production += N * unit.power_utility.production
+            F_BM_auxiliary = unit.F_BM
+            F_D_auxiliary = unit.F_D
+            F_P_auxiliary = unit.F_P
+            F_M_auxiliary = unit.F_M
+            bpc_auxiliary = unit.baseline_purchase_costs
+            pc_auxiliary = unit.purchase_costs
+            ic_auxiliary = unit.installed_costs
+            for i in bpc_auxiliary:
+                j = ' - '.join([name.capitalize().replace('_', ' '), i])
+                if j in baseline_purchase_costs: 
+                    raise RuntimeError(
+                        f"'{j}' already in `baseline_purchase_cost` "
+                        f"dictionary of {repr(self)}; try using a different key"
+                    )
+                else:
+                    F_D[j] = fd = F_D_auxiliary.get(i, 1.)
+                    F_P[j] = fp = F_P_auxiliary.get(i, 1.)
+                    F_M[j] = fm = F_M_auxiliary.get(i, 1.)
+                    if N == 1:
+                        baseline_purchase_costs[j] = Cpb = bpc_auxiliary[i]
+                        purchase_costs[j] = pc_auxiliary[i]
+                        installed_costs[j] = Cbm = ic_auxiliary[i]
+                    else:
+                        baseline_purchase_costs[j] = Cpb = N * bpc_auxiliary[i]
+                        purchase_costs[j] = N * pc_auxiliary[i]
+                        installed_costs[j] = Cbm = N * ic_auxiliary[i]
+                    try:
+                        F_BM[j] = F_BM_auxiliary[i]
+                    except KeyError:
+                        # Assume costs already added elsewhere using another method.
+                        # Calculate BM as an estimate.
+                        F_BM[j] = Cbm / Cpb + 1 - fd * fp * fm
+            
+            self._costs_loaded = True
     
     def _setup(self):
         """Clear all results, setup up stream conditions and constant data, 
         and update system configuration based on units impacted by process 
         specifications. This method is run at the start of unit simulation, 
         before running mass and energy balances."""
+        for i in self.auxiliary_units: i._setup()
+        self.power_utility.empty()
+        for i in self.heat_utilities: i.empty()
+        if not hasattr(self, '_N_heat_utilities'): self.heat_utilities.clear()
+        self.parallel.clear()
         self.baseline_purchase_costs.clear()
         self.purchase_costs.clear()
         self.installed_costs.clear()
+        self._costs_loaded = False
+    
+    def _check_setup(self):
+        if any([self.power_utility, 
+                self.heat_utilities, 
+                self.baseline_purchase_costs, 
+                self.purchase_costs, 
+                self.installed_costs]):
+            raise UnitInheritanceError(
+               f'`{type(self).__name__}._setup` method did not clear unit results; '
+                'a potential solution is to run `super()._setup()` in the `_setup` '
+                'method of the unit subclass'
+            )
+    
+    def _check_run(self):
+        if any([self.power_utility, 
+                self.heat_utilities, 
+                self.baseline_purchase_costs, 
+                self.purchase_costs, 
+                self.installed_costs]):
+            raise UnitInheritanceError(
+               f'`{type(self).__name__}._run` method added unit results '
+                '(e.g., purchase costs, heat and power utilities); unit results '
+                'should only be added in `_design` or `_cost` methods'
+            )
     
     def materialize_connections(self):
         for s in self._ins + self._outs: 
@@ -1141,17 +1305,27 @@ class Unit:
         
     def _reevaluate(self):
         """Reevaluate design and costs."""
-        self.baseline_purchase_costs.clear()
-        self.purchase_costs.clear()
-        self.installed_costs.clear()
+        self._setup()
         self._summary()
     
-    def _summary(self):
+    def _check_utilities(self):
+        auxiliary_heat_utilities = set(sum([i.heat_utilities for i in self.auxiliary_units], []))
+        for i in self.heat_utilities:
+            if i in auxiliary_heat_utilities:
+                raise UnitInheritanceError(
+                    'auxiliary heat utilities were manualy added to main utilities; '
+                    'note that utilities from auxiliary units are already automatically '
+                    'added to main unit operation'
+                )
+    
+    def _summary(self, design_kwargs=None, cost_kwargs=None):
         """Run design and cost algorithms and compile capital and utility costs."""
+        self._check_run()
         if not (self._design or self._cost): return
-        self._design()
-        self._cost()
-        self._load_capital_costs()
+        self._design(**design_kwargs) if design_kwargs else self._design()
+        self._cost(**cost_kwargs) if cost_kwargs else self._cost()
+        self._check_utilities()
+        self._load_costs()
         ins = self._ins._streams
         outs = self._outs._streams
         prices = bst.stream_utility_prices
@@ -1163,11 +1337,9 @@ class Unit:
         )
     
     @property
-    def specifications(self) -> list[tuple[Callable, tuple]]:
+    def specifications(self) -> list[ProcessSpecification]:
         """
-        Process specifications as a list of specification functions and their 
-        arguments in the following format, [(<function0(*args0)>, args0), 
-        (<function1(*args1)>, args1), ...].
+        Process specifications as a list of process specification objects.
         
         See Also
         --------
@@ -1209,25 +1381,41 @@ class Unit:
     @property
     def utility_cost(self) -> float:
         """Total utility cost [USD/hr]."""
-        try:
-            return self._utility_cost
-        except:
-            ins = self._ins._streams
-            outs = self._outs._streams
-            prices = bst.stream_utility_prices
-            self._utility_cost = (
-                sum([i.cost for i in self.heat_utilities]) 
-                + self.power_utility.cost
-                + sum([ins[index].F_mass * prices[name] for name, index in self._inlet_utility_indices.items()])
-                - sum([outs[index].F_mass * prices[name] for name, index in self._outlet_utility_indices.items()])
-            )
-            return self._utility_cost
+        return self._utility_cost
 
     @property
-    def auxiliary_units(self) -> tuple[Unit, ...]:
-        """All associated auxiliary units."""
+    def auxiliary_units(self) -> list[Unit]:
+        """Return list of all auxiliary units."""
         getfield = getattr
-        return tuple([getfield(self, i) for i in self.auxiliary_unit_names])
+        isa = isinstance
+        auxiliary_units = []
+        for name in self.auxiliary_unit_names:
+            unit = getfield(self, name, None)
+            if unit is None: continue 
+            if isa(unit, Iterable):
+                auxiliary_units.extend(unit)
+            else:
+                auxiliary_units.append(unit)
+        return auxiliary_units
+
+    def get_auxiliary_units_with_names(self) -> list[tuple[str, Unit]]:
+        """Return list of name - auxiliary unit pairs."""
+        getfield = getattr
+        isa = isinstance
+        auxiliary_units = []
+        for name in self.auxiliary_unit_names:
+            unit = getfield(self, name, None)
+            if unit is None: continue 
+            if isa(unit, Iterable):
+                for i, u in enumerate(unit):
+                    auxiliary_units.append(
+                        (f"{name}[{i}]", u)
+                    )
+            else:
+                auxiliary_units.append(
+                    (name, unit)
+                )
+        return auxiliary_units
 
     def mass_balance_error(self):
         """Return error in stoichiometric mass balance. If positive,
@@ -1246,52 +1434,75 @@ class Unit:
 
     def empty(self):
         """
-        Empty all unit operation results.
+        Empty all unit operation results and outlet flows.
         """
         self.design_results.clear()
         self.baseline_purchase_costs.clear()
         self.purchase_costs.clear()
         self.installed_costs.clear()
         for i in self.outs: i.empty()
-        for i in self.heat_utilities: i.empty()
+        self.heat_utilities.clear()
         self.power_utility.empty()
 
-    def simulate(self):
+    def simulate(self, 
+            run: Optional[bool]=None,
+            design_kwargs: Optional[dict]=None,
+            cost_kwargs: Optional[dict]=None):
         """
         Run rigorous simulation and determine all design requirements.
         
+        Parameters
+        ----------
+        run :
+            Whether to run mass and energy balance or to assume the same inlet
+            and outlet conditions. Defaults to True.
+        design_kwargs :
+            Keyword arguments passed to `_design` method.
+        cost_kwargs :
+            Keyword arguments passed to `_cost` method.
+            
         """
         self._setup()
-        for ps in self._specifications: ps.compile_path(self)
-        self._load_stream_links()
-        self.run()
-        self._summary()
+        self._check_setup()
+        if run is None or run:
+            for ps in self._specifications: ps.compile_path(self)
+            self._load_stream_links()
+            self.run()
+        self._summary(design_kwargs, cost_kwargs)
 
     def results(self, with_units=True, include_utilities=True,
                 include_total_cost=True, include_installed_cost=False,
-                include_zeros=True, external_utilities=(), key_hook=None):
+                include_zeros=True, external_utilities=None, key_hook=None):
         """
         Return key results from simulation as a DataFrame if `with_units`
         is True or as a Series otherwise.
         """
-        # TODO: Divide this into functions
         def addkey(key):
             if key_hook: key = key_hook(key)
             keys.append(key)
-        
+            
+        def addcapex(key):
+            if key_hook: key = key_hook(key)
+            *others, name = key
+            N = int(parallel.get(name, N_default))
+            if N != 1: key = (*others, name + f' (x{N})')
+            keys.append(key)
+        parallel = self.parallel
+        N_default = parallel.get('self', 1)
         keys = []; 
         vals = []; addval = vals.append
         stream_utility_prices = bst.stream_utility_prices
+        all_utilities = self.heat_utilities + external_utilities if external_utilities else self.heat_utilities
         if with_units:
             if include_utilities:
                 power_utility = self.power_utility
                 if power_utility:
-                    addkey(('Power', 'Rate'))
-                    addval(('kW', power_utility.rate))
+                    addkey(('Electricity', 'Power'))
+                    addval(('kW', power_utility.power))
                     if include_zeros or power_utility.cost:
-                        addkey(('Power', 'Cost'))
+                        addkey(('Electricity', 'Cost'))
                         addval(('USD/hr', power_utility.cost))
-                for heat_utility in HeatUtility.sum_by_agent(self.heat_utilities + external_utilities):
+                for heat_utility in HeatUtility.sum_by_agent(all_utilities):
                     if heat_utility:
                         ID = heat_utility.ID.replace('_', ' ').capitalize()
                         addkey((ID, 'Duty'))
@@ -1325,7 +1536,7 @@ class Unit:
                 addkey(('Design', ki))
                 addval((ui, vi))
             for ki, vi in Cost.items():
-                addkey(('Purchase cost', ki))
+                addcapex(('Purchase cost', ki))
                 addval(('USD', vi))
             if include_total_cost:
                 addkey(('Total purchase cost', ''))
@@ -1347,12 +1558,12 @@ class Unit:
             if include_utilities:
                 power_utility = self.power_utility
                 if power_utility:
-                    addkey(('Power', 'Rate'))
-                    addval(power_utility.rate)
+                    addkey(('Electricity', 'Power'))
+                    addval(power_utility.power)
                     if include_zeros or power_utility.cost:
-                        addkey(('Power', 'Cost'))
+                        addkey(('Electricity', 'Cost'))
                         addval(power_utility.cost)
-                for heat_utility in HeatUtility.sum_by_agent(self.heat_utilities + external_utilities):
+                for heat_utility in HeatUtility.sum_by_agent(all_utilities):
                     if heat_utility:
                         ID = heat_utility.ID.replace('_', ' ').capitalize()
                         addkey((ID, 'Duty'))
@@ -1384,7 +1595,7 @@ class Unit:
                 addkey(('Design', ki))
                 addval(vi)
             for ki, vi in self.purchase_costs.items():
-                addkey(('Purchase cost', ki))
+                addcapex(('Purchase cost', ki))
                 addval(vi)
             if include_total_cost:
                 addkey(('Total purchase cost', ''))

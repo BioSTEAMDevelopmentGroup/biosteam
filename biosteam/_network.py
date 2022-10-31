@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -12,7 +12,7 @@ from .utils import streams_from_units
 from warnings import warn
 from thermosteam import Stream
 import biosteam as bst
-from collections import Iterable
+from collections.abc import Iterable
 from .utils import piping
 from ._temporary_connection import TemporaryUnit
 
@@ -253,6 +253,9 @@ class Network:
         return all_recycles
     
     def sort(self, ends):
+        isa = isinstance
+        for i in self.path: 
+            if isa(i, Network): i.sort(ends)
         path_sources = [PathSource(i, ends) for i in self.path]
         N = len(path_sources)
         if not N: return

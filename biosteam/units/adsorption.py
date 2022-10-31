@@ -139,10 +139,10 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
                          Weight                                                   2.9e+03
                          Wall thickness                                              0.25
                          Vessel material                              Stainless steel 316
-    Purchase cost        Heat exchanger regeneration - Double pipe                    117
-                         Vertical pressure vessel                                1.47e+05
+    Purchase cost        Vertical pressure vessel                                1.47e+05
                          Platform and ladders                                    2.95e+04
                          Silica gel                                              7.23e+04
+                         Heat exchanger regeneration - Double pipe                    117
     Total purchase cost                                                          2.49e+05
     Utility cost                                                                   0.0103
     Name: A1, dtype: object
@@ -179,7 +179,6 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
     # NOTE: Unit ignores cost of compressing 2.
     _N_ins = 3
     _N_outs = 3
-    _N_heat_utilities = 1
     
     def __init__(self, 
             ID='', ins=None, outs=(), thermo=None, *,
@@ -231,10 +230,6 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
         self.rho_adsorbent = rho_adsorbent if rho_adsorbent else rho_adsorbent_solid * (1-void_fraction)
         self.heat_exchanger_regeneration = bst.HXutility(None, None, None, thermo=thermo)
         self.heat_exchanger_drying = bst.HXutility(None, None, None, thermo=thermo)
-        self.heat_utilities = (
-            *self.heat_exchanger_regeneration.heat_utilities,
-            *self.heat_exchanger_drying.heat_utilities,
-        )
         
     @property
     def effluent(self):

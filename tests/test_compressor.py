@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -151,7 +151,7 @@ def test_polytropic_hydrogen_compressor():
     K_isen = bst.units.IsentropicCompressor(ins=feed, P=P, eta=eta)
     K_isen.simulate()
     out_isen = K_isen.outs[0]
-    assert len(K.heat_utilities) == 1 and K.heat_utilities[0].duty == 0.
+    assert len(K.heat_utilities) == 0 and K.net_duty == 0.
     assert_allclose(
         [out_poly.T, out_poly.P, out_poly.H, K.power_utility.rate],
         [out_isen.T, out_isen.P, out_isen.H, K_isen.power_utility.rate],
@@ -160,7 +160,7 @@ def test_polytropic_hydrogen_compressor():
     K = bst.units.PolytropicCompressor(ins=feed, P=P, eta=eta, method="hundseid")
     K.simulate()
     out_poly = K.outs[0]
-    assert len(K.heat_utilities) == 1 and K.heat_utilities[0].duty == 0.
+    assert len(K.heat_utilities) == 0 and K.net_duty == 0.
     assert_allclose(
         [out_poly.T, out_poly.P, out_poly.H, K.power_utility.rate],
         [out_isen.T, out_isen.P, out_isen.H, K_isen.power_utility.rate],
@@ -179,7 +179,7 @@ def test_polytropic_hydrogen_compressor():
     # check compressor design
     assert K.design_results["Type"] == "Reciprocating"
     assert K.design_results["Driver"] == "Electric motor"
-    assert len(K.heat_utilities) == 1 and K.heat_utilities[0].duty == 0.
+    assert len(K.heat_utilities) == 0 and K.net_duty == 0.
     expected_power = 6.482427434951657
     actual_power = K.power_utility.rate
     assert_allclose(
@@ -224,9 +224,10 @@ def test_multistage_hydrogen_compressor_simple():
         [1.7911402030788341, 15.0, 25.0],
     )
     # check heat utilities
-    assert K.heat_utilities[1].ID == 'chilled_water'
+    heat_utilities = bst.HeatUtility.sum_by_agent(K.heat_utilities)
+    assert heat_utilities[1].ID == 'chilled_water'
     assert_allclose(
-        [len(K.heat_utilities), K.heat_utilities[1].duty, K.heat_utilities[1].flow, K.heat_utilities[1].cost],
+        [len(heat_utilities), heat_utilities[1].duty, heat_utilities[1].flow, heat_utilities[1].cost],
         [2, -11360.047353143065, 7.528681881161173, 0.056800236765715335],
     )
     # check power utility
@@ -280,16 +281,17 @@ def test_multistage_hydrogen_compressor_advanced():
         [1.1011570059916886, 15.0, 25.0],
     )
     # check heat utilities
-    assert len(K.heat_utilities) == 3
-    assert K.heat_utilities[2].ID == 'chilled_water'
-    assert K.heat_utilities[1].ID == 'cooling_water'
-    assert K.heat_utilities[0].ID == 'high_pressure_steam'
+    heat_utilities = bst.HeatUtility.sum_by_agent(K.heat_utilities)
+    assert len(heat_utilities) == 3
+    assert heat_utilities[2].ID == 'chilled_water'
+    assert heat_utilities[1].ID == 'cooling_water'
+    assert heat_utilities[0].ID == 'high_pressure_steam'
     assert_allclose(
-        [K.heat_utilities[2].duty, K.heat_utilities[2].flow, K.heat_utilities[2].cost],
+        [heat_utilities[2].duty, heat_utilities[2].flow, heat_utilities[2].cost],
         [-3694.971298724524, 2.448780590727134, 0.018474856493622623],
     )
     assert_allclose(
-        [K.heat_utilities[1].duty, K.heat_utilities[1].flow, K.heat_utilities[1].cost],
+        [heat_utilities[1].duty, heat_utilities[1].flow, heat_utilities[1].cost],
         [-10376.320213906532, 7.091122145383326, 0.0034594039386252554],
     )
     # check power utility

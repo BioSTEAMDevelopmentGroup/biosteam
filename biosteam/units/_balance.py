@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -100,7 +100,6 @@ class MassBalance(Unit):
     
     """
     _graphics = process_specification_graphics
-    _N_heat_utilities = 0
     _N_ins = _N_outs = 1
 
     def __init__(self, ID='', ins=None, outs=(), thermo=None,

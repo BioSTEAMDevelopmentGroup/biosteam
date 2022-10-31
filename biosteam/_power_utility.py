@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -45,26 +45,26 @@ class PowerUtility:
     PowerUtility(consumption=0.0, production=0.0)
     
     PowerUtility objects have `consumption` and `production` attributes
-    which are updated when setting the rate with the assumption that
-    a positive rate means no production (only consumption) and a negative
-    rate means no consumption (only production).
+    which are updated when setting the power with the assumption that
+    a positive power means no production (only consumption) and a negative
+    power means no consumption (only production).
     
-    >>> pu(rate=-500)
+    >>> pu(power=-500)
     >>> pu.consumption, pu.production
     (0.0, 500.0)
     
-    >>> pu(rate=500.)
+    >>> pu(power=500.)
     >>> pu.consumption, pu.production
     (500.0, 0.0)
     
     It is possible to have both consumption and production by setting these
-    attributes individually (instead of setting rate)
+    attributes individually (instead of setting power)
     
     >>> pu.production = 100. 
-    >>> pu.rate
+    >>> pu.power
     400.0
     
-    Notice how the rate is equal to the consumption minus the production.
+    Notice how the power is equal to the consumption minus the production.
     
     The cost is available as a property:
     
@@ -73,11 +73,11 @@ class PowerUtility:
     
     It may be useful to print results in different units of measure:
     
-    >>> pu.show(rate='BTU/s')
+    >>> pu.show(power='BTU/s')
     PowerUtility:
      consumption: 474 BTU/s
      production: 94.8 BTU/s
-     rate: 379 BTU/s
+     power: 379 BTU/s
      cost: 31.3 USD/hr
     
     """
@@ -87,7 +87,7 @@ class PowerUtility:
     characterization_factors: dict[tuple[str, str], float] = {}
     
     #: Units of measure for IPython display
-    display_units: DisplayUnits = DisplayUnits(rate='kW', cost='USD/hr')
+    display_units: DisplayUnits = DisplayUnits(power='kW', cost='USD/hr')
     
     def __init__(self, consumption: float=0., production: float=0.):
         #: Electricity consumption [kW]
@@ -200,41 +200,42 @@ class PowerUtility:
         cls.price: float = default_price #: Electricity price [USD/kWhr]
     
     @property
-    def rate(self) -> float:
+    def power(self) -> float:
         """Power requirement [kW]."""
         return self.consumption - self.production
-    @rate.setter
-    def rate(self, rate: float):
-        rate = float(rate)
-        if rate >= 0.:
-            self.consumption = rate
+    @power.setter
+    def power(self, power: float):
+        power = float(power)
+        if power >= 0.:
+            self.consumption = power
             self.production = 0.
         else:
             self.consumption = 0.
-            self.production = -rate
+            self.production = -power
+    rate = power # For backwards compatibility
     
     @property
     def cost(self) -> float:
         """Cost [USD/hr]"""
-        return self.price * self.rate
+        return self.price * self.power
     
     def get_impact(self, key: str):
         """Return the impact [impact/hr] given characterization factor keys 
         for consumption and production. If no production key given, it defaults
         to the consumption key."""
-        rate = self.consumption - self.production
+        power = self.consumption - self.production
         try: 
             cf = self.characterization_factors[key]
         except:
             return 0.
-        return (cf[0] if rate > 0. else cf[1]) * rate
+        return (cf[0] if power > 0. else cf[1]) * power
     
     def __bool__(self):
         return bool(self.consumption or self.production)
     
-    def __call__(self, rate: float):
-        """Set rate [kW]."""
-        self.rate = rate
+    def __call__(self, power: float):
+        """Set power [kW]."""
+        self.power = power
     
     def copy(self):
         return self.__class__(self.consumption, self.production)
@@ -258,7 +259,7 @@ class PowerUtility:
         self.production = sum([i.production for i in power_utilities])
     
     def copy_like(self, power_utility: PowerUtility):
-        """Copy consumption anf production rates from another power utility."""
+        """Copy consumption and production from another power utility."""
         self.consumption = power_utility.consumption
         self.production = power_utility.production
     
@@ -286,19 +287,19 @@ class PowerUtility:
         power_utility.mix_from(power_utilities)
         return power_utility
     
-    def show(self, rate: Optional[str]=None, cost: Optional[str]=None):
+    def show(self, power: Optional[str]=None, cost: Optional[str]=None):
         # Get units of measure
         display_units = self.display_units
-        rate_units = rate or display_units.rate
+        power_units = power or display_units.power
         cost_units = cost or display_units.cost
-        production = convert(self.production, 'kW', rate_units)
-        consumption = convert(self.consumption, 'kW', rate_units)
-        rate = consumption - production
+        production = convert(self.production, 'kW', power_units)
+        consumption = convert(self.consumption, 'kW', power_units)
+        power = consumption - production
         cost = convert(self.cost, 'USD/hr', cost_units)
         print(f'{type(self).__name__}:\n'
-              f' consumption: {consumption:.3g} {rate_units}\n'
-              f' production: {production:.3g} {rate_units}\n'
-              f' rate: {rate:.3g} {rate_units}\n'
+              f' consumption: {consumption:.3g} {power_units}\n'
+              f' production: {production:.3g} {power_units}\n'
+              f' power: {power:.3g} {power_units}\n'
               f' cost: {cost:.3g} {cost_units}')
     _ipython_display_ = show    
     

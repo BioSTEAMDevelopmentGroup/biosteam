@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -13,7 +13,7 @@
 
 """
 from __future__ import annotations
-__version__ = '2.33.3'
+__version__ = '2.34.1'
 
 #: Chemical engineering plant cost index (defaults to 567.5 at 2017).
 CE: float = 567.5 
@@ -42,7 +42,8 @@ else:
 
 # %% Initialize BioSTEAM 
 
-from thermosteam import Chemical, Chemicals, Thermo, Stream, MultiStream, settings, ProcessSettings, speed_up
+import thermosteam
+from thermosteam import *
 from ._preferences import preferences
 from ._heat_utility import *
 from ._power_utility import PowerUtility
@@ -66,6 +67,7 @@ from . import evaluation
 from .evaluation import *
 from . import exceptions
 from . import report
+from . import _settings
 
 __all__ = (
     'Unit', 'PowerUtility', 'UtilityAgent', 'HeatUtility',
@@ -83,10 +85,3 @@ def nbtutorial():
     preferences.graphviz_format = 'html'
     from warnings import filterwarnings
     filterwarnings('ignore')
-
-try:
-    settings.register_utility('Natural gas', 0.218)
-    settings.register_utility('Ash disposal', -0.0318)
-except: # For ReadTheDocs in the meanwhile that a new thermosteam version is uploaded
-    stream_utility_prices['Natural gas'] = 0.218
-    stream_utility_prices['Ash disposal'] = -0.0318

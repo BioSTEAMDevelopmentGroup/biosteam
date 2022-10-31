@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -16,12 +16,13 @@ from thermosteam.utils import unregistered, units_of_measure
 from thermosteam import Thermo, Stream, ThermalCondition, settings
 from .exceptions import DimensionError
 from math import copysign
+from collections import deque
 from typing import Optional, TYPE_CHECKING, Iterable, Literal, Sequence
-if TYPE_CHECKING: from biosteam import HXutility
+if TYPE_CHECKING: from biosteam import Unit
 
 __all__ = ('HeatUtility', 'UtilityAgent')
 
-# Costs from Table 17.1 in Warren D.  Seider et al.-Product and Process Design Principles_ Synthesis, Analysis and Evaluation-Wiley (2016)
+# Costs from Table 17.1 in Warren D.  Seider et al.-Product and Process Design Principles Synthesis, Analysis and Evaluation-Wiley (2016)
 # ^This table was made using data from Busche, 1995
 # Entry temperature conditions of coolants taken from Table 12.1 in Warren, 2016
 
@@ -70,11 +71,10 @@ class UtilityAgent(Stream):
         ID - flow pairs.
         
     """
-    __slots__ = ('T_limit', '_heat_transfer_price',
+    __slots__ = ('T_limit', '_heat_transfer_price', 'utility_stream_dump',
                  '_regeneration_price', 'heat_transfer_efficiency')
     def __init__(self, 
-                 ID: Optional[str]='', 
-                 flow: Sequence[float]=(),
+                 ID: Optional[str]='',
                  phase: Optional[str]='l',
                  T: Optional[float]=298.15,
                  P: Optional[float]=101325.,
@@ -87,11 +87,13 @@ class UtilityAgent(Stream):
                  **chemical_flows: float):
         self._thermal_condition = ThermalCondition(T, P)
         thermo = self._load_thermo(thermo)
-        self._init_indexer(flow, phase, thermo.chemicals, chemical_flows)
+        self._init_indexer((), phase, thermo.chemicals, chemical_flows)
         if units is not None:
             name, factor = self._get_flow_name_and_factor(units)
             flow = getattr(self, name)
             flow[:] = self.mol / factor
+        self.mol[:] /= self.mol.sum() # Total flow must be 1 kmol / hr
+        self.mol.setflags(0) # Flow rate cannot change anymore
         self._sink = self._source = None
         self._user_equilibrium = None
         self.reset_cache()
@@ -100,6 +102,36 @@ class UtilityAgent(Stream):
         self.heat_transfer_price = heat_transfer_price
         self.regeneration_price = regeneration_price
         self.heat_transfer_efficiency = heat_transfer_efficiency
+        self.utility_stream_dump = []
+    
+    def _get_property(self, name, flow=False, nophase=False, T=None, P=None):
+        # Take advantage of how composition is always constant and temperatures
+        # and pressures are not expected to vary much.
+        property_cache = self._property_cache
+        thermal_condition = self._thermal_condition
+        imol = self._imol
+        data = imol._data
+        composition = data
+        if not T: T = thermal_condition._T
+        if not P: P = thermal_condition._P
+        if nophase:
+            literal = (T, P)
+        else:
+            phase = imol._phase._phase
+            literal = (phase, T, P)
+        key = (name, literal)
+        if key in property_cache: return property_cache[key]
+        calculate = getattr(self.mixture, name)
+        if nophase:
+            property_cache[name] = value = calculate(
+                composition, T, P
+            )
+        else:
+            property_cache[name] = value = calculate(
+                phase, composition, T, P
+            )
+        if len(property_cache) > 100: property_cache.pop(property_cache.__iter__().__next__())
+        return value
     
     @property
     def iscooling_agent(self) -> bool:
@@ -196,7 +228,7 @@ class UtilityAgent(Stream):
     def __repr__(self):
         return f"<{type(self).__name__}: {self.ID}>"
 
-       
+
 # %%
 
 @units_of_measure(heat_utility_units_of_measure)
@@ -212,45 +244,41 @@ class HeatUtility:
     heat_transfer_efficiency : 
         Enforced fraction of heat transfered from utility (due
         to losses to environment).
-    heat_exchanger : 
-        Parent heat exchanger using this heat utility.
+    unit : 
+        Parent unit using this heat utility.
+    hxn_ok :
+        Whether heat utility can be satisfied within a heat exchanger network.
     
     Examples
     --------
     Create a heat utility:
-        
-    .. code-block:: python
     
-       >>> from biosteam import HeatUtility
-       >>> hu = HeatUtility()
-       >>> hu.show()
-       HeatUtility: None
-        duty: 0
-        flow: 0
-        cost: 0
+    >>> from biosteam import HeatUtility
+    >>> hu = HeatUtility()
+    >>> hu.show()
+    HeatUtility: None
+     duty: 0
+     flow: 0
+     cost: 0
     
     Calculate utility requirement by calling it with a duty (kJ/hr), and entrance and exit temperature (K):
-        
-    .. code-block:: python
-    
-       >>> hu(1000, 300, 350)
-       >>> hu.show()
-       HeatUtility: low_pressure_steam
-        duty: 1.05e+03 kJ/hr
-        flow: 0.0271 kmol/hr
-        cost: 0.00645 USD/hr
+     
+    >>> hu(1000, 300, 350)
+    >>> hu.show()
+    HeatUtility: low_pressure_steam
+     duty: 1.05e+03 kJ/hr
+     flow: 0.0271 kmol/hr
+     cost: 0.00645 USD/hr
    
     All results are accessible:
-        
-    .. code-block:: python
     
-       >>> hu.ID, hu.duty, hu.flow, hu.cost
-       ('low_pressure_steam', 1052., 0.02711, 0.006448)
+    >>> hu.ID, hu.duty, hu.flow, hu.cost
+    ('low_pressure_steam', 1052., 0.02711, 0.006448)
            
     """
     __slots__ = ('inlet_utility_stream', 'outlet_utility_stream', 'duty',
-                 'flow', 'cost', 'heat_transfer_efficiency', 'T_pinch',
-                 'heat_exchanger', 'iscooling', 'agent', 'unit_duty')
+                 'flow', 'cost', 'heat_transfer_efficiency', 
+                 'unit', 'hxn_ok', 'agent', 'unit_duty')
     #: Minimum approach temperature difference. Used to assign
     #: the pinch temperature of the utility stream.
     dT: float = 5  
@@ -392,7 +420,7 @@ class HeatUtility:
             original_units = settings.get_impact_indicator_units(key)
             value = original_units.convert(value, units)
         if basis is None:
-            return value, basis_units._units
+            return value, basis_units.units
         else:
             return value / basis_units.conversion_factor(basis)
 
@@ -421,13 +449,20 @@ class HeatUtility:
         else:
             raise RuntimeError("unknown error")
 
-    def __init__(self, heat_transfer_efficiency: Optional[float]=None, heat_exchanger: Optional[HXutility]=None):
+    def __init__(self,
+            heat_transfer_efficiency: Optional[float]=None, 
+            unit: Optional[Unit]=None,
+            hxn_ok: Optional[bool]=False,
+        ):
         #: Enforced fraction of heat transfered from utility (due
         #: to losses to environment).
         self.heat_transfer_efficiency: float = heat_transfer_efficiency
         
-        #: Parent heat exchanger using this heat utility.
-        self.heat_exchanger: HXutility|None = heat_exchanger
+        #: Parent unit using this heat utility.
+        self.unit: Unit|None = unit
+        
+        #: Whether heat utility can be satisfied within a heat exchanger network.
+        self.hxn_ok: bool = hxn_ok
         
         #: Total heat transfered from utility to both the process and the environment [kJ/hr].
         self.duty: float = 0.
@@ -440,13 +475,6 @@ class HeatUtility:
         
         #: Cost of utility [USD/hr].
         self.cost: float = 0.
-        
-        #: If cooling, the minimum utility temperature required.
-        #: If heating, the maximum utility temperature required.
-        self.T_pinch: float|None = None
-        
-        #: Whether the utility is cooling the process.
-        self.iscooling: bool|None = None
         
         #: Utility agent being used.
         self.agent: UtilityAgent|None = None
@@ -560,8 +588,6 @@ class HeatUtility:
         self.unit_duty = other.unit_duty
         self.cost = other.cost
         self.heat_transfer_efficiency = other.heat_transfer_efficiency
-        self.T_pinch = other.T_pinch
-        self.iscooling = other.iscooling
 
     def scale(self, factor: float):
         """Scale utility data."""
@@ -574,8 +600,15 @@ class HeatUtility:
 
     def empty(self):
         """Remove utility requirements."""
+        if self.agent:
+            agent = self.agent
+            dump = agent.utility_stream_dump
+            if len(dump) < 1000:
+                dump.append(
+                    (self.inlet_utility_stream, self.outlet_utility_stream)
+                )
         self.cost = self.flow = self.duty = self.unit_duty = 0
-        self.iscooling = self.agent = self.T_pinch = None
+        self.outlet_utility_stream = self.inlet_utility_stream = self.agent = None
         
     def set_utility_by_flow_rate(self, agent: Optional[UtilityAgent], F_mol: float):
         if F_mol == 0.: 
@@ -584,15 +617,23 @@ class HeatUtility:
         self.load_agent(agent)
         heat_transfer_efficiency = self.heat_transfer_efficiency or agent.heat_transfer_efficiency
         if agent.T_limit: raise ValueError('agent must work by latent heat to set by flow rate')
-        self.outlet_utility_stream.phase = 'g' if self.inlet_utility_stream.phase == 'l' else 'l'
-        dH = self.outlet_utility_stream.Hvap
-        self.duty = duty = dH * F_mol
+        if self.inlet_utility_stream.phase == 'l' :
+            self.outlet_utility_stream.phase = 'g'
+            dh = -agent._get_property('Hvap', nophase=True)
+        else:
+            dh = agent._get_property('Hvap', nophase=True)
+            self.outlet_utility_stream.phase = 'l'
+        self.duty = duty = dh * F_mol
         self.unit_duty = duty * heat_transfer_efficiency
         self.outlet_utility_stream.mol[:] = F_mol
         self.flow = F_mol
         self.cost = agent._heat_transfer_price * abs(duty) + agent._regeneration_price * F_mol
         
-    def __call__(self, unit_duty: float, T_in: float, T_out: Optional[float]=None, agent: Optional[UtilityAgent]=None):
+    def __call__(self, 
+            unit_duty: float, 
+            T_in: float, 
+            T_out: Optional[float]=None, 
+            agent: Optional[UtilityAgent]=None):
         """
         Calculate utility requirements given the essential parameters.
         
@@ -613,50 +654,46 @@ class HeatUtility:
             self.empty()
             return
         T_out = T_out or T_in
-        iscooling = unit_duty < 0.
+        iscooling = unit_duty < 0. #: Whether the utility is cooling the process.
         
         # Note: These are pinch temperatures at the utility inlet and outlet. 
         # Not to be confused with the inlet and outlet of the process stream.
+        # If cooling, T_pinch_in is the minimum utility temperature required.
+        # If heating, T_pinch_in is the maximum utility temperature required.
         T_pinch_in, T_pinch_out = self.get_inlet_and_outlet_pinch_temperature(
-            iscooling, T_in, T_out)
-
+            iscooling, T_in, T_out
+        )
         ## Select heat transfer agent ##
         if agent:
-            self.load_agent(agent)
-        elif self.iscooling == iscooling and self.T_pinch == T_pinch_in:
-            agent = self.agent
+            if agent is not self.agent: self.load_agent(agent)
         else:
-            self.iscooling = iscooling
-            self.T_pinch = T_pinch_in
-            if iscooling:
-                agent = self.get_suitable_cooling_agent(T_pinch_in)
-            else:
-                agent = self.get_suitable_heating_agent(T_pinch_in)
+            agent = (self.get_suitable_cooling_agent if iscooling else self.get_suitable_heating_agent)(T_pinch_in)
             self.load_agent(agent)
             
         ## Calculate utility requirement ##
         heat_transfer_efficiency = self.heat_transfer_efficiency or agent.heat_transfer_efficiency
-        duty = unit_duty/heat_transfer_efficiency
+        duty = unit_duty / heat_transfer_efficiency
         if agent.T_limit:
             # Temperature change
-            self.outlet_utility_stream.T = self.get_outlet_temperature(
-                T_pinch_out, agent.T_limit, iscooling)
-            dH = self.inlet_utility_stream.H - self.outlet_utility_stream.H
+            self.outlet_utility_stream.T = T_outlet = self.get_outlet_temperature(
+                T_pinch_out, agent.T_limit, iscooling
+            )
+            dh = agent._get_property('H') - agent._get_property('H', T=T_outlet)
         else:
             # Phase change
-            if self.inlet_utility_stream.phase == 'l' :
+            if agent.phase == 'l':
                 self.outlet_utility_stream.phase = 'g'
-                dH = -self.outlet_utility_stream.Hvap
+                dh = -agent._get_property('Hvap', nophase=True)
             else:
-                dH = self.outlet_utility_stream.Hvap
+                dh = agent._get_property('Hvap', nophase=True)
                 self.outlet_utility_stream.phase = 'l'
         
         # Update utility flow
-        self.outlet_utility_stream.mol[:] *= duty / dH
+        self.outlet_utility_stream.mol[:] = F_mol = duty / dh
         
         # Update results
         self.unit_duty = unit_duty
-        self.flow = F_mol = self.inlet_utility_stream.F_mol
+        self.flow = F_mol
         self.duty = duty
         self.cost = agent._heat_transfer_price * abs(duty) + agent._regeneration_price * F_mol
 
@@ -664,9 +701,9 @@ class HeatUtility:
     def inlet_process_stream(self) -> Stream:
         """If a heat exchanger is available, this stream is the inlet 
         process stream to the heat exchanger."""
-        heat_exchanger = self.heat_exchanger
+        heat_exchanger = self.unit
         if heat_exchanger:
-            return heat_exchanger.ins[0]
+            return heat_exchanger.inlet
         else:
             raise AttributeError('no heat exchanger available '
                                  'to retrieve process stream')
@@ -675,9 +712,9 @@ class HeatUtility:
     def outlet_process_stream(self) -> Stream:
         """If a heat exchanger is available,
         this stream is the outlet process stream to the heat exchanger."""
-        heat_exchanger = self.heat_exchanger
+        heat_exchanger = self.unit
         if heat_exchanger:
-            return heat_exchanger.outs[0]
+            return heat_exchanger.outlet
         else:
             raise AttributeError('no heat exchanger available '
                                  'to retrieve process stream')
@@ -701,10 +738,10 @@ class HeatUtility:
 
     @classmethod
     def sum_by_agent(cls, heat_utilities: Iterable[HeatUtility]):
-        """Return a tuple of heat utilities that reflect the sum of heat utilities
+        """Return a list of heat utilities that reflect the sum of heat utilities
         by agent."""
         heat_utilities_by_agent = cls.heat_utilities_by_agent(heat_utilities)
-        return tuple([cls.sum(i) for i in heat_utilities_by_agent.values()])
+        return [cls.sum(i) for i in heat_utilities_by_agent.values()]
 
     @classmethod
     def get_agent(cls, ID: str):
@@ -758,9 +795,18 @@ class HeatUtility:
 
     def load_agent(self, agent: UtilityAgent):
         """Initialize utility streams with given agent."""
-        # Initialize streams
-        self.inlet_utility_stream = agent.to_stream()
-        self.outlet_utility_stream = self.inlet_utility_stream.flow_proxy()
+        if self.agent is agent: 
+            return
+        elif self.agent: 
+            self.empty()
+        if agent.utility_stream_dump:
+            self.inlet_utility_stream, self.outlet_utility_stream = agent.utility_stream_dump.pop()
+            # Prevent errors where utility streams are altered
+            self.inlet_utility_stream.copy_like(agent) 
+            self.outlet_utility_stream.copy_thermal_condition(agent)
+        else:
+            self.inlet_utility_stream = agent.to_stream()
+            self.outlet_utility_stream = self.inlet_utility_stream.flow_proxy()
         self.agent = agent
 
     def mix_from(self, heat_utilities: Iterable[HeatUtility]):
@@ -782,12 +828,11 @@ class HeatUtility:
                     )
             self.load_agent(agent)
             self.flow = self.inlet_utility_stream.F_mol = sum([i.flow for i in heat_utilities])
+            self.outlet_utility_stream.mix_from([i.outlet_utility_stream for i in heat_utilities])
             self.duty = sum([i.duty for i in heat_utilities])
             self.unit_duty = sum([i.unit_duty for i in heat_utilities])
             self.cost = sum([i.cost for i in heat_utilities])
             self.heat_transfer_efficiency = None
-            self.T_pinch = None
-            self.iscooling = None
 
     def reverse(self):
         """Reverse direction of utility. If utility is being consumed,
@@ -835,6 +880,7 @@ class HeatUtility:
             T_pinch_out = T_in + dT
         return T_pinch_in, T_pinch_out
 
+    # Representation
     def _info_data(self, duty: None, flow: None, cost: None):
         # Get units of measure
         su = self.display_units
@@ -855,7 +901,6 @@ class HeatUtility:
         else:
             return f'<{type(self).__name__}: None>'
         
-    # Representation
     def _info(self, duty: str|None, flow: str|None, cost: str|None):
         """Return string related to specifications"""
         if not self.agent:

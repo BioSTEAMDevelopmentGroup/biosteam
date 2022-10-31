@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -12,6 +12,7 @@ from thermosteam.utils.decorators import registered_franchise
 from thermosteam import Stream
 from typing import NamedTuple
 from warnings import warn
+import biosteam as bst
 __all__ = ('TemporaryStream', 'Dependency', 'MissingStream', 'MockStream', 'Inlets', 
            'Outlets', 'Sink', 'Source', 'InletPort', 'OutletPort', 'StreamPorts', 
            'Connection', 'as_stream', 'as_upstream', 'as_downstream', 
@@ -108,9 +109,9 @@ class MissingStream:
         self._source = source
         self._sink = sink
     
-    def get_connection(self):
+    def get_connection(self, junction=None):
         self = self.materialize_connection()
-        return self.get_connection()
+        return self.get_connection(junction)
     
     def materialize_connection(self, ID=""):
         """
@@ -814,11 +815,28 @@ def __rsub__(self, index):
                        f"'{type(index).__name__}' and '{type(self).__name__}'")
     return index.__sub__(self)
 
-def get_connection(self):
-    source = self._source
-    source_index = source._outs.index(self) if source else None
-    sink = self._sink
-    sink_index = sink._ins.index(self) if sink else None
+def get_connection(self, junction=None):
+    if junction is None or junction:
+        source = self._source
+        source_index = source._outs.index(self) if source else None
+        sink = self._sink
+        sink_index = sink._ins.index(self) if sink else None
+    else:
+        source = self._source
+        sink = self._sink
+        isa = isinstance
+        if isa(source, bst.Junction):
+            stream = source._ins[0]
+            source = stream._source
+        else:
+            stream = self
+        source_index = source._outs.index(stream) if source else None
+        if isa(sink, bst.Junction):
+            stream = sink._outs[0]
+            sink = stream._sink
+        else:
+            stream = self
+        sink_index = sink._ins.index(stream) if sink else None
     return Connection(source, source_index, self, sink_index, sink)
 
 Stream.get_connection = get_connection
