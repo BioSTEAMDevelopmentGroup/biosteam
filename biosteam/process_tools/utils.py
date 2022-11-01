@@ -41,10 +41,31 @@ __all__ = (
     'set_construction_material_to_carbon_steel',
     'get_OSBL',
     'heat_exchanger_operation',
+    'connect_by_ID',
     'default_utilities',
     'default',
 )
 
+def connect_by_ID(units):
+    """Connect unit inlets and outlets where streams have the same ID."""
+    connections = []
+    inlets = {}
+    outlets = {}
+    units = tuple(units)
+    for u in units:
+        for i, s in enumerate(u._ins):
+            ID = s.ID
+            if ID in outlets: connections.append(ID)
+            inlets[ID] = (u, i)
+        for i, s in enumerate(u._outs):
+            ID = s.ID
+            if ID in inlets: connections.append(ID)
+            outlets[ID] = (u, i)
+    for ID in connections:
+        upstream, index = outlets[ID]
+        stream = upstream.outs[index]
+        downstream, index = inlets[ID]
+        downstream.ins[index] = stream
 
 def group_units_by_available_chemicals(units):
     groups = {}
@@ -56,7 +77,6 @@ def group_units_by_available_chemicals(units):
             groups[available_chemicals] = [u]
     return groups
         
-
 def is_storage_unit(unit):
     return (
         ('storage' in unit.line.lower() 
