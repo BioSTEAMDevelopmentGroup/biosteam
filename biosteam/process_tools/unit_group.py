@@ -10,11 +10,12 @@ import pandas as pd
 import biosteam as bst
 import numpy as np
 from . import utils
-from ..utils import misc
+from .._unit import Unit
+from ..utils import misc, streams_from_units
 from .._heat_utility import HeatUtility
 from collections.abc import Mapping
 
-__all__ = ('UnitGroup',)
+__all__ = ('UnitGroup', 'GroupedUnit', 'create_connected_grouped_units')
 
 INST_EQ_COST = 'Inst. eq. cost'
 ELEC_CONS = 'Elec. cons.'
@@ -176,6 +177,9 @@ class UnitGroup:
     
     def __iter__(self):
         return iter(self.units)
+    
+    def to_unit(self, ID=None, thermo=None):
+        return GroupedUnit(ID, units=self.units)
     
     def to_system(self, ID=None):
         """Return a System object of all units."""
@@ -488,3 +492,40 @@ class UnitGroup:
 
     def __repr__(self):
         return f"{type(self).__name__}({repr(self.name)}, {self.units}, metrics={self.metrics})"
+
+# %% UnitGroup as an actual unit operation
+
+def create_connected_grouped_units(unit_groups):
+    grouped_units = [GroupedUnit('.' + i.name, units=i) for i in unit_groups]
+    utils.connect_by_ID(grouped_units)
+    return grouped_units
+
+class GroupedUnit(Unit):
+    line = ''
+    _ins_size_is_fixed = _outs_size_is_fixed = False
+    _N_ins = _N_outs = 0
+    
+    def __init__(self, ID=None, thermo=None, *, units):
+        ins = []
+        outs = []
+        self.units = set(units)
+        for s in streams_from_units(units):
+            source = s._source
+            sink = s._sink
+            if source in units and sink not in units:
+                outs.append(s.copy('.' + s.ID))
+            elif sink in units and source not in units:
+                ins.append(s.copy('.' + s.ID))
+        super().__init__(ID, ins, outs, thermo)
+    
+    def _assert_compatible_property_package(self): pass
+    
+    @property
+    def auxiliary_unit_names(self):
+        return [i.ID for i in self.units]
+    
+    @property
+    def auxiliary_units(self):
+        return self.units
+    
+    def _run(self): pass
