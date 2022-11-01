@@ -97,7 +97,7 @@ class UnitGraphics:
     def get_node_tailored_to_unit(self, unit): # pragma: no coverage
         """Return node tailored to unit specifications"""
         node = self.node.copy()
-        node['name'] = unit.ID + '\n' + unit.line
+        node['name'] = '\n'.join([unit.ID, unit.line]) if unit.line else unit.ID
         tailor_node_to_unit = self.tailor_node_to_unit
         if 'fillcolor' not in node:
             node['fillcolor'] = bst.preferences.unit_color
