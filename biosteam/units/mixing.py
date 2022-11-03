@@ -208,8 +208,9 @@ class SteamMixer(Unit):
         
     def _design(self): 
         steam = self.ins[1]
+        warm_process_water = self.ins[2]
         mixed = self.outs[0]
-        self.add_heat_utility(steam.H, mixed.T)
+        self.add_heat_utility(steam.H + warm_process_water.H, mixed.T)
         
 class MockMixer(Unit):
     """

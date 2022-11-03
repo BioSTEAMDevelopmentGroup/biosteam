@@ -13,7 +13,7 @@ from thermosteam import Stream
 from typing import NamedTuple
 from warnings import warn
 import biosteam as bst
-__all__ = ('TemporaryStream', 'Dependency', 'MissingStream', 'MockStream', 'Inlets', 
+__all__ = ('TemporaryStream', 'MissingStream', 'MockStream', 'Inlets', 
            'Outlets', 'Sink', 'Source', 'InletPort', 'OutletPort', 'StreamPorts', 
            'Connection', 'as_stream', 'as_upstream', 'as_downstream', 
            'materialize_connections', 'ignore_docking_warnings',
@@ -148,7 +148,6 @@ class MissingStream:
     def get_flow(self, units, key=None):
         return 0.
     
-    link = None
     H = Hf = Hnet = LHV = HHV = Hvap = C = F_mol = F_mass = F_vol = cost = price = 0.
     
     def isempty(self):
@@ -181,7 +180,6 @@ class TemporaryStream:
     def __repr__(self):
         return f"<{type(self).__name__}>"
 
-Dependency = TemporaryStream # For backwards compatibility (scheduled for deprecation)
 
 @registered_franchise(Stream)
 class MockStream:
@@ -240,7 +238,6 @@ class MockStream:
     set_data = MissingStream.set_data
     get_total_flow = MissingStream.get_total_flow
     get_flow = MissingStream.get_flow
-    link = MissingStream.link
     H = MissingStream.H
     Hf = MissingStream.Hf
     Hnet = MissingStream.Hnet

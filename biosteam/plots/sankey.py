@@ -57,7 +57,10 @@ cycle_colors = ('aliceblue', 'chocolate', 'peachpuff',
 # %% Helpful functions
 
 def stream_cost(stream):
-    return abs(stream.cost)
+    try:
+        return abs(stream.cost)
+    except:
+        return 0. # Doesn't matter, this is used only for sorting
 
 def abbreviate_word(word):
     if len(word) < 5: return word 
@@ -81,17 +84,6 @@ def abbreviate_name(name):
     words = name.split(' ')
     return ' '.join([abbreviate_word(i) for i in words])
 
-def reduced_feed(feeds, unit_group):
-    feed = bst.Stream.sum(feeds)
-    feed._ID = ''
-    feed._sink = unit_group.units[0]
-    return feed
-
-def reduced_product(products, unit_group):
-    product = bst.Stream.sum(products)
-    product._ID = ''
-    product._source = unit_group.units[0]
-    return product
 
 def get_unit_group(stream, unit_groups):
     for group in unit_groups:        
@@ -204,10 +196,17 @@ class Handle: # pragma: no coverage
         products = [i for i in streams if i._sink not in nodes_index and i._source and i not in self.ignore and not i.isempty()]
         main_products = self.main_products or sorted(products, key=stream_cost, reverse=True)[:self.max_products]
         products = reduced_streams(main_products, unit_groups)
+        breakpoint()
         for product in products:
             node = self.product_node(product)
             nodes.append(node)
         return nodes
+    
+    def sankey_data(self, unit_groups, *args, **kwargs):
+        return sankey_data(self.nodes(unit_groups), *args, **kwargs)
+    
+    def sankey_figure(self, data, *args, **kwargs):
+        return sankey_figure(data, *args, **kwargs)
 
 # %% Custom hanldes
 
@@ -425,9 +424,9 @@ class Link: # pragma: no coverage
 
 # %% Functions that use plotly to create diagrams
 
-def sankey_figure(nodes, arrangement=None, node_kwargs=None, link_kwargs=None, links=None, orientation=None, add_label=None, **kwargs): # pragma: no coverage
+def sankey_figure(data, **kwargs): # pragma: no coverage
     import plotly.graph_objects as go
-    return go.Figure(data=sankey_data(nodes, arrangement, node_kwargs, link_kwargs, links, orientation, add_label), **kwargs)
+    return go.Figure(data=data, **kwargs)
 
 def sankey_data(nodes, arrangement=None, 
                 node_kwargs=None, link_kwargs=None,

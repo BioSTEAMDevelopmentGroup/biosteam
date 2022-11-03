@@ -106,17 +106,19 @@ def fill_path(feed, path, paths_with_recycle,
         ends.add(feed)
     else:
         path.append(unit)
-        first_outlet, *other_outlets = unit._outs
-        for outlet in other_outlets:
-            new_path = path.copy()
-            fill_path(outlet, new_path,
+        outlets = unit._outs
+        if outlets:
+            first_outlet, *other_outlets = outlets
+            for outlet in other_outlets:
+                new_path = path.copy()
+                fill_path(outlet, new_path,
+                          paths_with_recycle,
+                          paths_without_recycle,
+                          ends, units)
+            fill_path(first_outlet, path,
                       paths_with_recycle,
                       paths_without_recycle,
                       ends, units)
-        fill_path(first_outlet, path,
-                  paths_with_recycle,
-                  paths_without_recycle,
-                  ends, units)
 
 def path_with_recycle_to_cyclic_path_with_recycle(path_with_recycle):
     path, recycle = path_with_recycle
