@@ -943,14 +943,10 @@ class Unit:
     @property
     def owner(self) -> Unit:
         owner = getattr(self, '_owner', None)
-        if owner is None:
-            return self
-        else:
-            return owner.owner
+        if owner is not None: return owner.owner
     @owner.setter
     def owner(self, owner):
-        if owner is self: return
-        self._owner = owner
+        self._owner = None if owner is self else owner
     
     def disconnect(self, discard=False):
         self._ins[:] = ()
