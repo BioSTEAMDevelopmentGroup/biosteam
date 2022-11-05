@@ -12,6 +12,19 @@ import biosteam as bst
 import numpy as np
 from numpy.testing import assert_allclose
 
+def test_auxiliary_unit_owners():
+    with bst.System() as sys:
+        class NewUnit(bst.Unit):
+            auxiliary_unit_names = ('mixer',)
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.mixer = bst.Mixer()
+                
+        bst.settings.set_thermo(['Water'], cache=True)
+        unit = NewUnit()
+    # Once unit is in a system, auxiliary units must have an owner
+    assert unit.mixer.owner is unit
+
 def test_unit_inheritance_setup_method():
     class NewUnit(bst.Unit):
         def _setup(self):
@@ -152,7 +165,8 @@ def test_unit_connections():
     assert u.R301.neighborhood(1) == {u.T301, u.D301, u.S302, u.H301}
     assert u.R301.neighborhood(2) == {u.S302, u.C301, u.H301, u.M302, u.D301, u.R301,
                                     u.T301, u.M301}
-    assert u.R301.neighborhood(100) == u.R301.neighborhood(1000) == all_units
+    assert u.R301.neighborhood(200) == u.R301.neighborhood(1000) == all_units
+    
     recycle_units = set(sc.sys.find_system(u.R301).units)
     assert recycle_units == upstream_units.intersection(downstream_units)
     ins = tuple(u.R301.ins)
@@ -266,6 +280,7 @@ def test_equipment_lifetimes():
     assert_allclose(tea.cashflow_array, cashflows)
     
 if __name__ == '__main__':
+    test_auxiliary_unit_owners()
     test_unit_inheritance_setup_method()
     test_process_specifications_linear()
     test_process_specifications_with_recycles()
