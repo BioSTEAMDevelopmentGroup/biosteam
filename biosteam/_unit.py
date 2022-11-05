@@ -946,8 +946,7 @@ class Unit:
         if owner is not None: return owner.owner
     @owner.setter
     def owner(self, owner):
-        if owner is self: self._owner = None
-        self._owner = owner
+        self._owner = None if owner is self else owner
     
     def disconnect(self, discard=False):
         self._ins[:] = ()
