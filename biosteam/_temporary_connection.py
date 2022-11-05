@@ -36,6 +36,7 @@ def temporary_connection(source, sink):
 
 class TemporaryUnit:
     __slots__ = ('ID', '_ID', 'ins', 'outs', '_ins', '_outs', 'old_connection')
+    auxiliary_units = ()
     def __init__(self, ins, outs, old_connection):
         temporary_units_dump.append(self)
         self.ID = self._ID = 'TU' + str(len(temporary_units_dump))

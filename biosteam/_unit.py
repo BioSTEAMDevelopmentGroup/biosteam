@@ -845,7 +845,7 @@ class Unit:
         # Load auxiliary costs
         isa = isinstance
         for name, unit in self.get_auxiliary_units_with_names():
-            unit.owner = self
+            unit.owner = self # In case units are created dynamically
             if isa(unit, Unit):
                 if not (unit._design or unit._cost): continue
                 unit._load_costs() # Just in case user did not simulate or run summary.
@@ -943,7 +943,7 @@ class Unit:
     @property
     def owner(self) -> Unit:
         owner = getattr(self, '_owner', None)
-        if owner is not None: return owner.owner
+        return self if owner is None else owner.owner
     @owner.setter
     def owner(self, owner):
         self._owner = None if owner is self else owner
