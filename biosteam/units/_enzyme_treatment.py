@@ -19,17 +19,19 @@ class EnzymeTreatment(MixTank):
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
                  vessel_type='Conventional', tau=1.0, V_wf=0.9,
-                 vessel_material='Stainless steel', T):
+                 vessel_material='Stainless steel', T=None):
         MixTank.__init__(self, ID, ins, outs, thermo, vessel_type=vessel_type,
                          tau=tau, V_wf=V_wf, vessel_material=vessel_material)
-        self.T = T #: Operating temperature
+        self.T = T #: Operating temperature (if any)
         self.heat_exchanger = HXutility(None, None, None, T=T, thermo=thermo)
     
     def _run(self):
-        feed = self.ins[0]
         out = self.outs[0]
-        out.copy_like(feed)
-        out.T = self.T
+        if self.T is None:
+            out.mix_from(self.ins)
+        else:
+            out.mix_from(self.ins, energy_balance=False)
+            out.T = self.T
         
     def _design(self):
         super()._design()

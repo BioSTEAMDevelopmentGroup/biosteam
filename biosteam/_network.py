@@ -357,6 +357,13 @@ class Network:
             recycle streams should be ignored.
 
         """
+        unit_set = set(units)
+        for u in tuple(unit_set):
+            # Do not include auxiliary units
+            for au in u.auxiliary_units: 
+                au.owner = u
+                unit_set.discard(au)
+        units = [u for u in units if u in unit_set] 
         feeds = bst.utils.feeds_from_units(units) + [piping.MissingStream(None, i) for i in units if not i._ins]
         bst.utils.sort_feeds_big_to_small(feeds)
         if feeds:
