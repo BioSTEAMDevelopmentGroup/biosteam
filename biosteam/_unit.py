@@ -1322,6 +1322,9 @@ class Unit:
         self._cost(**cost_kwargs) if cost_kwargs else self._cost()
         self._check_utilities()
         self._load_costs()
+        self._load_utility_cost()
+        
+    def _load_utility_cost(self):
         ins = self._ins._streams
         outs = self._outs._streams
         prices = bst.stream_utility_prices
