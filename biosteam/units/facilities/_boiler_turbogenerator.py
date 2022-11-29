@@ -493,6 +493,9 @@ class BoilerTurbogenerator(Facility):
         self._load_utility_agents()
         mol_steam = sum([i.flow for i in self.steam_utilities])
         feed_solids, feed_gas, makeup_water, feed_CH4, lime, chems = self.ins
+        feed_CH4.phase = 'g'
+        feed_CH4.set_property('T', 60, 'degF')
+        feed_CH4.set_property('P', 14.73, 'psi')
         emissions, blowdown_water, ash_disposal = self.outs
         if not lime.price:
             lime.price = 0.19937504680689402
