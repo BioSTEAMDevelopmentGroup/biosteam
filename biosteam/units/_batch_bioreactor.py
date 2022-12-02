@@ -31,8 +31,7 @@ class BatchBioreactor(Unit, isabstract=True):
     Abstract Bioreactor class. Conversion is based on reaction time, `tau`.
     Cleaning and unloading time,`tau_0`, fraction of working volume, `V_wf`,
     and number of reactors, `N_reactors`, are attributes that can be changed.
-    The cost of a reactor is based on the NREL batch fermentation tank cost 
-    assuming volumetric scaling with a 6/10th exponent [1]_. 
+    The cost of a reactor is based on the NREL batch fermentation tank cost [1]_. 
     
     **Abstract methods**
     
