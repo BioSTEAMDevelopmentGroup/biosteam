@@ -23,7 +23,7 @@ __all__ = ('BatchBioreactor',)
 @cost('Reactor volume', 'Agitators', CE=521.9, cost=52500,
       S=3785, n=0.5, kW=22.371, BM=1.5, N='Number of reactors')
 @cost('Reactor volume', 'Reactors', CE=521.9, cost=844000,
-      S=3785, n=0.5, BM=2.3, N='Number of reactors')
+      S=3785, n=0.5, BM=1.5, N='Number of reactors')
 @cost('Reactor duty', 'Heat exchangers', CE=522, cost=23900,
       S=20920000.0, n=0.7, BM=2.2, N='Number of reactors') # Based on a similar heat exchanger
 class BatchBioreactor(Unit, isabstract=True):
