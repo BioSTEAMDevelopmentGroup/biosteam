@@ -64,8 +64,6 @@ class CostItem:
             if not isinstance(N, str): # Prevent downstream error for common mistakes
                 raise ValueError("N parameter must be a string or None; not a "
                                  "'{type(N).__name__}' object")
-        elif ub is not None:
-            N = '#'
         else:
             N = None
         self._basis = str(basis)
