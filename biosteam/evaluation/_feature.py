@@ -84,12 +84,14 @@ class Feature:
     def short_description(self):
         element, name = self.index
         name, *_ = name.split(' [')
-        name = ' '.join([element, name])
+        if element not in name:
+            name = ' '.join([element, name])
         if len(name) > 31:
             words = name.split(' ')
             words = [(i[:4]+'.' if len(i) > 5 else i) for i in words]
             name = ' '.join(words)
         name = name.strip(' ')
+        if len(name) > 31: name = name[:31]
         return name
     
     def describe(self, number_format='.3g', distribution=True) -> str:

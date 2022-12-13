@@ -244,8 +244,8 @@ class Model(State):
                     N_remaining -= 1
                     break
         
-    def load_samples(self, samples=None, optimize=None, ss=None, 
-                     file=None, autoload=None, autosave=None, distance=None):
+    def load_samples(self, samples=None, optimize=None, file=None, 
+                     autoload=None, autosave=None, distance=None):
         """
         Load samples for evaluation.
         
@@ -256,9 +256,6 @@ class Model(State):
         optimize : bool, optional
             Whether to internally sort the samples to optimize convergence speed
             by minimizing perturbations to the system between simulations.
-            Defaults to False.
-        ss : bool, optional
-            Whether to use single point sensitivity to inform the sorting algorithm. 
             Defaults to False.
         file : str, optional
             File to load/save samples and simulation order to/from.
@@ -533,8 +530,7 @@ class Model(State):
         
         """
         if self._samples is None: raise RuntimeError('must load samples before evaluating')
-        table = self.table
-        N_samples, N_parameters = table.shape
+        N_samples, _ = self.table.shape
         N_points = len(coordinate)
         
         # Initialize data containers
@@ -558,7 +554,7 @@ class Model(State):
             f_coordinate(*x) if multi_coordinate else f_coordinate(x)
             evaluate()
             for metric in metric_data:
-                metric_data[metric][:, n] = table[metric]
+                metric_data[metric][:, n] = self.table[metric]
         
         if xlfile:
             if multi_coordinate:

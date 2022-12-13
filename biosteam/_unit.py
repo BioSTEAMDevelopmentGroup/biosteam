@@ -286,6 +286,12 @@ class Unit:
                         "'isabstract' keyword argument is True"
                     )
         if '__init__' in dct and '_stacklevel' not in dct: cls._stacklevel += 1
+        name = cls.__name__
+        if hasattr(bst, 'units'): # Add 3rd party unit to biosteam module for convinience
+            if name not in bst.units.__dict__:
+                bst.units.__dict__[name] = cls
+            if name not in bst.__dict__:
+                bst.__dict__[name] = cls
         
     ### Abstract Attributes ###
     #: **class-attribute** Units of measure for :attr:`~Unit.design_results` dictionary.

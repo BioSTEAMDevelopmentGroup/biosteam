@@ -49,7 +49,7 @@ class Parameter(Feature):
     """
     __slots__ = ('setter', 'system', 'distribution', 
                  'baseline', 'bounds', 'kind', 'hook',
-                 'description', 'scale')
+                 'description', 'scale', 'active')
     
     def __init__(self, name, setter, element, system, distribution,
                  units, baseline, bounds, kind, hook, description, scale):
