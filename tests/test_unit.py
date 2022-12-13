@@ -200,6 +200,32 @@ def test_unit_graphics():
     with pytest.warns(GraphicsWarning):
         assert M._graphics.get_outlet_options(M, 1) == {'tailport': 'c'}
 
+def test_cost_decorator():
+    from biosteam.units.decorators import cost
+    bst.settings.set_thermo(['Water'], cache=True)
+    @cost('Flow rate', CE=bst.settings.CEPCI, cost=1, n=0.6, lb=2, ub=10, units='kg/hr', BM=2.)
+    class A(bst.Unit): pass
+    
+    feed = bst.Stream('feed', Water=1, units='kg/hr')
+    
+    # Test when size factor is under lower bound
+    A1 = A('A1', ins=feed)
+    A1.simulate()
+    assert_allclose(A1.purchase_cost, 2 ** 0.6)
+    assert_allclose(A1.installed_cost, 2 ** 1.6)
+    
+    # Test when size factor is between lower and upper bound
+    feed.imass['Water'] = 5
+    A1.simulate()
+    assert_allclose(A1.purchase_cost, 5 ** 0.6)
+    assert_allclose(A1.installed_cost, 2 * 5 ** 0.6)
+    
+    # Test when size factor is above upper bound
+    feed.imass['Water'] = 20
+    A1.simulate()
+    assert_allclose(A1.purchase_cost, 2 * 10 ** 0.6)
+    assert_allclose(A1.installed_cost, 4 * 10 ** 0.6)
+    
 def test_equipment_lifetimes():
     from biorefineries.sugarcane import create_tea
     bst.settings.set_thermo(['Water'], cache=True)
@@ -286,4 +312,5 @@ if __name__ == '__main__':
     test_process_specifications_with_recycles()
     test_unit_connections()
     test_unit_graphics()
+    test_cost_decorator()
     test_equipment_lifetimes()
