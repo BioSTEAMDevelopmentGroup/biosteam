@@ -128,7 +128,7 @@ class Model(State):
         Metric.check_indices_unique(metrics)
         self._metrics = metrics
     
-    def metric(self, getter=None, name=None, units=None, element='Biorefinery'):
+    def metric(self, getter=None, name=None, units=None, element=None):
         """
         Define and register metric.
         
@@ -149,7 +149,14 @@ class Model(State):
         This method works as a decorator.
         
         """
-        if not getter: return lambda getter: self.metric(getter, name, units, element)
+        
+        if isinstance(getter, Metric):
+            getter = getter.getter
+            if name is None: name = getter.name
+            if units is None: units = getter.units
+            if element is None: element = getter.element
+        elif not getter: 
+            return lambda getter: self.metric(getter, name, units, element)
         metric = Metric(name, getter, units, element)
         Metric.check_index_unique(metric, self._metrics)
         self._metrics.append(metric)
