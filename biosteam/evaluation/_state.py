@@ -223,7 +223,6 @@ class State:
         
         """
         if isinstance(setter, Parameter):
-            setter = setter.setter
             if element is None: element = setter.element
             if kind is None: kind = setter.kind
             if name is None: name = setter.name
@@ -234,6 +233,7 @@ class State:
             if hook is None: hook = setter.hook
             if description is None: description = setter.description
             if scale is None: scale = setter.scale
+            setter = setter.setter
         elif not setter:
             return lambda setter: self.parameter(setter, element, kind, name,
                                                  distribution, units, baseline,
