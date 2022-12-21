@@ -514,3 +514,4 @@ def default(utilities=True, CEPCI=True, flowsheet=False):
     for i in (bst.Stream, bst.Unit, bst.System): i.ticket_numbers.clear()
     if flowsheet: 
         for i in bst.main_flowsheet.flowsheet: i.clear(False)
+    bst.Chemical.chemical_cache.clear()
