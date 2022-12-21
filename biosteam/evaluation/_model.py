@@ -151,10 +151,10 @@ class Model(State):
         """
         
         if isinstance(getter, Metric):
-            getter = getter.getter
             if name is None: name = getter.name
             if units is None: units = getter.units
             if element is None: element = getter.element
+            getter = getter.getter
         elif not getter: 
             return lambda getter: self.metric(getter, name, units, element)
         metric = Metric(name, getter, units, element)
