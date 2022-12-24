@@ -355,6 +355,18 @@ class BoilerTurbogenerator(Facility):
     ash_disposal_price : float
         Price of disposing ash [USD/kg]. Same as `bst.stream_utility_prices['Ash disposal']`,
         defaults to -0.0318.
+    satisfy_system_electricity_demand : bool
+        Whether to purchase natural gas to satisfy system electricity demand
+        if there is not enough heat from the feed waste and gas.
+        If True, will purchase natural gas to satisfy system heat and electricity demand
+        (even if there is not enough heat from the feed wastes and gas);
+        if False, will only purchase natural gas to satisfy system heat demand
+        (i.e., electricity will be purchased from the grid if there is not
+         enough heat from the feed wastes and gas).
+        In either case, if there is excess heat from the feed wastes and gas,
+        electricity will still be produced
+        (i.e., this arg only affects the calculation of natural gas flow).
+        
         
     Notes
     -----
@@ -392,7 +404,9 @@ class BoilerTurbogenerator(Facility):
                  other_agents = (),
                  natural_gas_price=None,
                  ash_disposal_price=None,
-                 T_emissions=None):
+                 T_emissions=None,
+                 satisfy_system_electricity_demand=True,
+                 ):
         Facility.__init__(self, ID, ins, outs, thermo)
         self.agent = agent = agent or HeatUtility.get_heating_agent('low_pressure_steam')
         self.define_utility('Natural gas', self.natural_gas)
@@ -407,6 +421,7 @@ class BoilerTurbogenerator(Facility):
         self.T_emissions = self.agent.T if T_emissions is None else T_emissions # Assume no heat integration
         if natural_gas_price is not None: self.natural_gas_price = natural_gas_price
         if ash_disposal_price is not None: self.ash_disposal_price = ash_disposal_price
+        self.satisfy_system_electricity_demand = satisfy_system_electricity_demand
         self._load_components()
         
     def _load_components(self):
@@ -545,7 +560,8 @@ class BoilerTurbogenerator(Facility):
             Design['Work'] = work = electricity/3600
             boiler = self.cost_items['Boiler']
             rate_boiler = boiler.kW * flow_rate / boiler.S
-            return work - self.electricity_demand - rate_boiler
+            needed_electricity_H = self.electricity_demand if self.satisfy_system_electricity_demand else 0
+            return work - needed_electricity_H - rate_boiler
         
         self._excess_electricity_without_natural_gas = excess_electricity = calculate_excess_electricity_at_natual_gas_flow(0)
         if excess_electricity < 0:
