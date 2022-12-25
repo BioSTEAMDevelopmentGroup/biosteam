@@ -9,6 +9,7 @@
 """
 from typing import Callable
 from ._parameter import Parameter
+from ._feature import MockFeature
 from .. import System
 import numpy as np
 import pandas as pd
@@ -234,6 +235,10 @@ class State:
             if description is None: description = setter.description
             if scale is None: scale = setter.scale
             setter = setter.setter
+        elif isinstance(setter, MockFeature):
+            if element is None: element = setter.element
+            if name is None: name = setter.name
+            if units is None: units = setter.units
         elif not setter:
             return lambda setter: self.parameter(setter, element, kind, name,
                                                  distribution, units, baseline,
