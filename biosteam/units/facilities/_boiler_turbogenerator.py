@@ -256,12 +256,12 @@ class BoilerTurbogenerator(Facility):
         boiler_efficiency_basis = self.boiler_efficiency_basis
         electricity_demand = self.electricity_demand if self.satisfy_system_electricity_demand else 0
         def calculate_excess_electricity_at_natual_gas_flow(natural_gas_flow):
-            emissions_mol[:] = 0.
             if natural_gas_flow:
                 natural_gas_flow = abs(natural_gas_flow)
                 feed_CH4.imol['CH4'] = natural_gas_flow
             else:
                 feed_CH4.empty()
+            emissions_mol[:] = feed_CH4.mol
             for feed in non_empty_feeds: emissions_mol[:] += feed.mol
             combustion_rxns.force_reaction(emissions_mol)
             emissions.imol['O2'] = 0
