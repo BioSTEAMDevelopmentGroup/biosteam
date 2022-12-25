@@ -254,8 +254,9 @@ class BoilerTurbogenerator(Facility):
         self.combustion_reactions = combustion_rxns = chemicals.get_combustion_reactions()
         non_empty_feeds = [i for i in (feed_solids, feed_gas) if not i.isempty()]
         boiler_efficiency_basis = self.boiler_efficiency_basis
-        
+        electricity_demand = self.electricity_demand if self.satisfy_system_electricity_demand else 0
         def calculate_excess_electricity_at_natual_gas_flow(natural_gas_flow):
+            emissions_mol.empty()
             if natural_gas_flow:
                 natural_gas_flow = abs(natural_gas_flow)
                 feed_CH4.imol['CH4'] = natural_gas_flow
@@ -292,8 +293,7 @@ class BoilerTurbogenerator(Facility):
             Design['Work'] = work = electricity/3600
             boiler = self.cost_items['Boiler']
             rate_boiler = boiler.kW * flow_rate / boiler.S
-            needed_electricity_H = self.electricity_demand if self.satisfy_system_electricity_demand else 0
-            return work - needed_electricity_H - rate_boiler
+            return work - electricity_demand - rate_boiler
         
         self._excess_electricity_without_natural_gas = excess_electricity = calculate_excess_electricity_at_natual_gas_flow(0)
         if excess_electricity < 0:
@@ -306,7 +306,10 @@ class BoilerTurbogenerator(Facility):
             flx.IQ_interpolation(f, lb, ub, xtol=1, ytol=1)
         
         hu_cooling = bst.HeatUtility()
-        hu_cooling(self.cooling_duty, steam_demand.T)
+        try:
+            hu_cooling(self.cooling_duty, steam_demand.T)
+        except:
+            breakpoint()
         hus_heating = bst.HeatUtility.sum_by_agent(tuple(self.steam_utilities))
         for hu in hus_heating: hu.reverse()
         self.heat_utilities = [*hus_heating, hu_cooling]
