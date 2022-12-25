@@ -164,7 +164,8 @@ class Fermentation(BatchBioreactor):
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
                  tau,  N=None, V=None, T=305.15, P=101325., Nmin=2, Nmax=36,
-                 efficiency=None, iskinetic=False, fermentation_reaction=None):
+                 efficiency=None, iskinetic=False, fermentation_reaction=None,
+                 cell_growth_reaction=None):
         BatchBioreactor.__init__(self, ID, ins, outs, thermo,
                                  tau=tau, N=N, V=V, T=T, P=P, Nmin=Nmin, Nmax=Nmax)
         self._load_components()
@@ -177,8 +178,10 @@ class Fermentation(BatchBioreactor):
         else:
             efficiency = fermentation_reaction.X
         self.fermentation_reaction = fermentation_reaction 
-        self.cell_growth_reaction = cell_growth = Reaction('Glucose -> Yeast', 'Glucose', 0.70, chemicals, basis='wt')
-        cell_growth.basis = 'mol'
+        if cell_growth_reaction is None:
+            cell_growth_reaction = Reaction('Glucose -> Yeast', 'Glucose', 0.70, chemicals, basis='wt')
+            cell_growth_reaction.basis = 'mol'
+        self.cell_growth_reaction = cell_growth_reaction
         if all([i in self.chemicals for i in ('FFA', 'DAG', 'TAG', 'Glycerol')]):
             self.lipid_reaction = self.oil_reaction = ParallelReaction([
                 Reaction('TAG + 3Water -> 3FFA + Glycerol', 'TAG', 0.23, chemicals),

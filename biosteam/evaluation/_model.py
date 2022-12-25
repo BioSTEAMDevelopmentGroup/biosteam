@@ -15,6 +15,7 @@ import numpy as np
 import pandas as pd
 from ._state import State
 from ._metric import Metric
+from ._feature import MockFeature
 from ._parameter import Parameter
 from ._utils import var_indices, var_columns, indices_to_multiindex
 from biosteam.exceptions import FailedEvaluation
@@ -155,6 +156,10 @@ class Model(State):
             if units is None: units = getter.units
             if element is None: element = getter.element
             getter = getter.getter
+        elif isinstance(getter, MockFeature):
+            if element is None: element = getter.element
+            if name is None: name = getter.name
+            if units is None: units = getter.units
         elif not getter: 
             return lambda getter: self.metric(getter, name, units, element)
         metric = Metric(name, getter, units, element)
