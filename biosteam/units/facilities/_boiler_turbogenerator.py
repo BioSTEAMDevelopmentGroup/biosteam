@@ -306,10 +306,7 @@ class BoilerTurbogenerator(Facility):
             flx.IQ_interpolation(f, lb, ub, xtol=1, ytol=1)
         
         hu_cooling = bst.HeatUtility()
-        try:
-            hu_cooling(self.cooling_duty, steam_demand.T)
-        except:
-            breakpoint()
+        hu_cooling(self.cooling_duty, steam_demand.T)
         hus_heating = bst.HeatUtility.sum_by_agent(tuple(self.steam_utilities))
         for hu in hus_heating: hu.reverse()
         self.heat_utilities = [*hus_heating, hu_cooling]
