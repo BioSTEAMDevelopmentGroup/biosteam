@@ -7,7 +7,6 @@
 # for license details.
 """
 """
-from ... import HeatUtility
 from . import Facility
 from ..decorators import cost
 import flexsolve as flx
@@ -59,33 +58,83 @@ class BoilerTurbogenerator(Facility):
         
         [2] Ash disposal.
         
-    boiler_efficiency : float
-        Fraction of heat transferred to steam.
-    turbo_generator_efficiency : float
-        Fraction of steam heat converted to electricity.
+    boiler_efficiency : float, optional
+        Fraction of heat transferred to steam. Defaults to 0.8.
+    turbo_generator_efficiency : float, optional
+        Fraction of steam heat converted to electricity. Defaults to 0.85.
     agent : UtilityAgent, optional
         Steam produced. Defaults to low pressure steam.
-    other_agents = () : Iterable[UtilityAgent]
-        Other steams produced.
-    natural_gas_price : float
+    other_agents = () : Iterable[UtilityAgent], optional
+        Other steams produced. Defaults to all other heating agents.
+    natural_gas_price : float, optional
         Price of natural gas [USD/kg]. Same as `bst.stream_utility_prices['Natural gas']`,
-        defaults to 0.218.
-    ash_disposal_price : float
+        which defaults to 0.218.
+    ash_disposal_price : float, optional
         Price of disposing ash [USD/kg]. Same as `bst.stream_utility_prices['Ash disposal']`,
-        defaults to -0.0318.
-    satisfy_system_electricity_demand : bool
+        which defaults to -0.0318.
+    satisfy_system_electricity_demand : bool, optional
         Whether to purchase natural gas to satisfy system electricity demand
-        if there is not enough heat from the feed waste and gas.
-        If True, will purchase natural gas to satisfy system heat and electricity demand
+        if there is not enough heat from process feeds (i.e., inlets 0 and 1).
+        If True, natural gas is purchased to satisfy system heat and electricity demand
         (even if there is not enough heat from the feed wastes and gas);
-        if False, will only purchase natural gas to satisfy system heat demand
+        if False, natural gas is only purchased to satisfy system heat demand
         (i.e., electricity will be purchased from the grid if there is not
-         enough heat from the feed wastes and gas).
-        In either case, if there is excess heat from the feed wastes and gas,
+         enough heat from the feeds).
+        In either case, if there is excess heat from the process feeds,
         electricity will still be produced
-        (i.e., this arg only affects the calculation of natural gas flow).
+        (i.e., this argument only affects the calculation of natural gas flow).
+    boiler_efficiency_basis : str, optional
+        Basis of boiler efficiency. Defaults to 'LHV' (i.e., lower heating value).
+        'HHV' (i.e., higher heating value) is also a valid basis. 
         
-        
+    Examples
+    --------
+    Create a boiler-turbogenerator system that uses sugarcane bagasse to 
+    produce steam for a distillation unit and any excess steam for surplus electricity:
+    
+    >>> import biosteam as bst
+    >>> from biorefineries import cane
+    >>> chemicals = cane.create_sugarcane_chemicals()
+    >>> chemicals.define_group(
+    ... name='Fiber',
+    ... IDs=['Cellulose', 'Hemicellulose', 'Lignin'],
+    ... composition=[0.4704 , 0.2775, 0.2520],
+    ... wt=True, # Composition is given as weight
+    )
+    >>> bst.settings.set_thermo(chemicals)
+    >>> dilute_ethanol = bst.Stream('dilute_ethanol', Water=1390, Ethanol=590)
+    >>> bagasse = bst.Stream('bagasse', Water=0.4, Fiber=0.6, total_flow=8e4, units='kg/hr')
+    >>> with bst.System('sys') as sys:
+    ...     D1 = bst.BinaryDistillation('D1', ins=dilute_ethanol, Lr=0.999, Hr=0.89, k=1.25, LHK=('Ethanol', 'Water'))
+    ...     BT = bst.BoilerTurbogenerator('BT')
+    ...     BT.ins[0] = bagasse
+    >>> sys.simulate()
+    >>> BT.results() # Steam and electricity are produced, so costs are negative
+    Boiler turbogenerator                                      Units        BT
+    Electricity           Power                                   kW -1.31e+05
+                          Cost                                USD/hr -1.02e+04
+    Low pressure steam    Duty                                 kJ/hr -7.31e+07
+                          Flow                               kmol/hr -1.88e+03
+                          Cost                                USD/hr      -448
+    Cooling water         Duty                                 kJ/hr -8.42e+07
+                          Flow                               kmol/hr  5.76e+04
+                          Cost                                USD/hr      28.1
+    Natural gas (inlet)   Flow                                 kg/hr         0
+                          Cost                                USD/hr         0
+    Ash disposal (outlet) Flow                                 kg/hr     0.737
+                          Cost                                USD/hr    0.0234
+    Design                Flow rate                            kg/hr  2.93e+05
+                          Work                                    kW  1.33e+05
+                          Ash disposal                         kg/hr     0.737
+    Purchase cost         Baghouse bags                          USD      81.1
+                          Boiler                                 USD  3.33e+07
+                          Deaerator                              USD  3.58e+05
+                          Amine addition pkg                     USD  4.69e+04
+                          Hot process water softener system      USD  9.16e+04
+                          Turbogenerator                         USD  1.94e+07
+    Total purchase cost                                          USD  5.32e+07
+    Utility cost                                              USD/hr -1.07e+04
+    
     Notes
     -----
     The flow rate of natural gas, lime, and boiler chemicals (streams 3-5)
@@ -104,7 +153,6 @@ class BoilerTurbogenerator(Facility):
     network_priority = 0
     boiler_blowdown = 0.03
     RO_rejection = 0
-    default_boiler_efficiency_basis = 'LHV'
     _N_ins = 6
     _N_outs = 3
     _units = {'Flow rate': 'kg/hr',
@@ -116,22 +164,24 @@ class BoilerTurbogenerator(Facility):
                        'rejected_water_and_blowdown',
                        'ash_disposal'),
                  thermo=None, *,
-                 boiler_efficiency=0.80,
-                 turbogenerator_efficiency=0.85,
+                 boiler_efficiency=None,
+                 turbogenerator_efficiency=None,
                  side_steam=None,
                  agent=None,
-                 other_agents = (),
+                 other_agents=None,
                  natural_gas_price=None,
                  ash_disposal_price=None,
                  T_emissions=None,
                  satisfy_system_electricity_demand=True,
                  boiler_efficiency_basis=None,
         ):
-        if boiler_efficiency_basis is None:
-            boiler_efficiency_basis = self.default_boiler_efficiency_basis
-        self.boiler_efficiency_basis = boiler_efficiency_basis
+        if boiler_efficiency_basis is None: boiler_efficiency_basis = 'LHV'
+        if boiler_efficiency is None: boiler_efficiency = 0.80
+        if turbogenerator_efficiency is None: turbogenerator_efficiency = 0.85
         Facility.__init__(self, ID, ins, outs, thermo)
-        self.agent = agent = agent or HeatUtility.get_heating_agent('low_pressure_steam')
+        settings = bst.settings
+        self.boiler_efficiency_basis = boiler_efficiency_basis
+        self.agent = agent = agent or settings.get_heating_agent('low_pressure_steam')
         self.define_utility('Natural gas', self.natural_gas)
         self.define_utility('Ash disposal', self.ash_disposal)
         self.boiler_efficiency = boiler_efficiency
@@ -140,7 +190,7 @@ class BoilerTurbogenerator(Facility):
         self.power_utilities = set()
         self.steam_demand = agent.to_stream()
         self.side_steam = side_steam
-        self.other_agents = other_agents
+        self.other_agents = [i for i in settings.heating_agents if i is not agent] if other_agents is None else other_agents
         self.T_emissions = self.agent.T if T_emissions is None else T_emissions # Assume no heat integration
         if natural_gas_price is not None: self.natural_gas_price = natural_gas_price
         if ash_disposal_price is not None: self.ash_disposal_price = ash_disposal_price
