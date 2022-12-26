@@ -13,7 +13,6 @@ from ..decorators import cost
 import flexsolve as flx
 import biosteam as bst
 import thermosteam as tmo
-from warnings import warn
 
 __all__ = ('BoilerTurbogenerator',)
 
@@ -105,7 +104,7 @@ class BoilerTurbogenerator(Facility):
     network_priority = 0
     boiler_blowdown = 0.03
     RO_rejection = 0
-    default_boiler_efficiency_basis = 'LHV and sensible heat'
+    default_boiler_efficiency_basis = 'LHV'
     _N_ins = 6
     _N_outs = 3
     _units = {'Flow rate': 'kg/hr',
@@ -265,10 +264,7 @@ class BoilerTurbogenerator(Facility):
             for feed in non_empty_feeds: emissions_mol[:] += feed.mol
             combustion_rxns.force_reaction(emissions_mol)
             emissions.imol['O2'] = 0
-            if boiler_efficiency_basis == 'LHV and sensible heat':
-                H_combustion = feed_CH4.HHV - emissions.H
-                for feed in non_empty_feeds: H_combustion += feed.H + feed.HHV
-            elif boiler_efficiency_basis == 'LHV':
+            if boiler_efficiency_basis == 'LHV':
                 H_combustion = feed_CH4.LHV
                 for feed in non_empty_feeds: H_combustion += feed.LHV
             elif boiler_efficiency_basis == 'HHV':
@@ -277,9 +273,9 @@ class BoilerTurbogenerator(Facility):
             else:
                 raise ValueError(
                     f"invalid boiler efficiency basis {boiler_efficiency_basis}; "
-                    f"valid values include 'LHV and sensible heat', 'LHV', or 'HHV'"
+                    f"valid values include 'LHV', or 'HHV'"
                 )
-            H_content = B_eff * H_combustion
+            H_content = B_eff * H_combustion 
             #: [float] Total steam produced by the boiler (kmol/hr)
             self.total_steam = H_content / duty_over_mol 
             Design['Flow rate'] = flow_rate = self.total_steam * 18.01528
