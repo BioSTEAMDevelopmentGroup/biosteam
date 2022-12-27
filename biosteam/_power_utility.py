@@ -85,6 +85,14 @@ class PowerUtility:
     
     #: Characterization factors for life cycle assessment [impact/kWhr] by impact key and kind (None, 'consumption', or 'production').
     characterization_factors: dict[tuple[str, str], float] = {}
+
+    @property
+    def CFs(self):
+        '''Same as `characterization_factors`.'''
+        return self.characterization_factors
+    @CFs.setter
+    def CFs(self, values):
+        raise ValueError('Please use `set_CF` to set characterization_factors.')
     
     #: Units of measure for IPython display
     display_units: DisplayUnits = DisplayUnits(power='kW', cost='USD/hr')

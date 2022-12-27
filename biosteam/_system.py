@@ -1349,7 +1349,7 @@ class System:
 
     @property
     def unit_path(self) -> list[Unit]:
-        """Unit perations as ordered in the path (some units may be repeated)."""
+        """Unit operations as ordered in the path (some units may be repeated)."""
         try:
             return self._unit_path
         except:
@@ -2828,6 +2828,7 @@ class System:
                 u.run = _wrap_method(u, u.run)
             u._design = _wrap_method(u, u._design)
             u._cost = _wrap_method(u, u._cost)
+            u._lca = _wrap_method(u, u._lca)
 
     def _turn_off(self):
         """Turn off special simulation modes like `profile` or `debug`."""
@@ -2838,6 +2839,7 @@ class System:
                 u.run = u.run._original
             u._design = u._design._original
             u._cost = u._cost._original
+            u._lca = u._lca._original
 
     def debug(self):
         """Simulate in debug mode. If an exception is raised, it will
