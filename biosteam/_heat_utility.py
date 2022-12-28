@@ -60,13 +60,13 @@ class UtilityAgent(Stream):
         Temperature limit of outlet utility streams [K]. If no limit is given,
         phase change is assumed. If utility agent heats up, `T_limit` is
         the maximum temperature. If utility agent cools down, `T_limit` is
-        the minumum temperature. 
+        the minimum temperature. 
     heat_transfer_price :
-        Price of transfered heat [USD/kJ]. Defautls to 1.
+        Price of transferred heat [USD/kJ]. Defautls to 1.
     regeneration_price :
         Price of regenerating the fluid for reuse [USD/kmol]. Defaults to 0.
     heat_transfer_efficiency :
-        Fraction of heat transfered accounting for losses to the environment (must be between 0 to 1). Defaults to 1.
+        Fraction of heat transferred accounting for losses to the environment (must be between 0 to 1). Defaults to 1.
     **chemical_flows : float
         ID - flow pairs.
         
@@ -242,7 +242,7 @@ class HeatUtility:
     Parameters
     ----------
     heat_transfer_efficiency : 
-        Enforced fraction of heat transfered from utility (due
+        Enforced fraction of heat transferred from utility (due
         to losses to environment).
     unit : 
         Parent unit using this heat utility.
@@ -300,11 +300,11 @@ class HeatUtility:
         
     #: All heating utilities available.
     heating_agents: list[UtilityAgent]
-    
+
     @classmethod
     def set_CF(self, ID: str, key: str, value: float, basis: Optional[str]=None, units: Optional[str]=None):
         """
-        Set the cacharacterization factor of a utility agent for a given impact 
+        Set the characterization factor of a utility agent for a given impact 
         key.
 
         Parameters
@@ -454,7 +454,7 @@ class HeatUtility:
             unit: Optional[Unit]=None,
             hxn_ok: Optional[bool]=False,
         ):
-        #: Enforced fraction of heat transfered from utility (due
+        #: Enforced fraction of heat transferred from utility (due
         #: to losses to environment).
         self.heat_transfer_efficiency: float = heat_transfer_efficiency
         
@@ -464,10 +464,10 @@ class HeatUtility:
         #: Whether heat utility can be satisfied within a heat exchanger network.
         self.hxn_ok: bool = hxn_ok
         
-        #: Total heat transfered from utility to both the process and the environment [kJ/hr].
+        #: Total heat transferred from utility to both the process and the environment [kJ/hr].
         self.duty: float = 0.
         
-        #: Effective heat transfered from utility to the unit operation [kJ/hr].
+        #: Effective heat transferred from utility to the unit operation [kJ/hr].
         self.unit_duty: float = 0.
         
         #: Flow rate of utility [kmol/hr].

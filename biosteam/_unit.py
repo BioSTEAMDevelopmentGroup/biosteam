@@ -221,7 +221,7 @@ class Unit:
                  DeprecationWarning, stacklevel=2)
         if 'run' in dct:
             raise UnitInheritanceError(
-                 "the 'run' method cannot be overrided; implement `_run` instead"
+                 "the 'run' method cannot be overridden; implement `_run` instead"
             )
         if 'line' not in dct:
             cls.line = format_title(cls.__name__)
@@ -351,7 +351,10 @@ class Unit:
     _design = AbstractMethod
     
     #: Add itemized purchase costs to the :attr:`~Unit.baseline_purchase_costs` dictionary.
-    _cost = AbstractMethod    
+    _cost = AbstractMethod
+
+    #: For embodied emissions (e.g., unit construction) in LCA
+    _lca = AbstractMethod
     
     def __init__(self, ID: Optional[str]='', ins=None, outs=(), thermo: tmo.Thermo=None):
         self._system = None
@@ -377,7 +380,7 @@ class Unit:
         #: Electric utility associated to unit (including auxiliary requirements).
         self.power_utility: PowerUtility = PowerUtility()
     
-        ### Initialize design and cost results
+        ### Initialize design/cost/LCA results
         
         try:
             #: All bare-module factors for each purchase cost. Defaults to values in 
@@ -446,7 +449,7 @@ class Unit:
         
         #: Name-number pairs of baseline purchase costs and auxiliary unit 
         #: operations in parallel. Use 'self' to refer to the main unit. Capital 
-        #: and heat and power utilities in parallel will become propotional to this 
+        #: and heat and power utilities in parallel will become proportional to this 
         #: value.
         self.parallel: dict[str, int] = {}
         
@@ -573,7 +576,7 @@ class Unit:
     outlet = effluent = product
     
     def add_power_utility(self, power):
-        """Add power utility [kW]. Use a postive value for consumption and 
+        """Add power utility [kW]. Use a positive value for consumption and 
         a negative for production."""
         power_utility = self.power_utility
         if power >= 0.:
@@ -1300,7 +1303,7 @@ class Unit:
             else: i.converge() # Must be a system
         
     def _reevaluate(self):
-        """Reevaluate design and costs."""
+        """Reevaluate design/cost/LCA results."""
         self._setup()
         self._summary()
     
@@ -1309,17 +1312,18 @@ class Unit:
         for i in self.heat_utilities:
             if i in auxiliary_heat_utilities:
                 raise UnitInheritanceError(
-                    'auxiliary heat utilities were manualy added to main utilities; '
+                    'auxiliary heat utilities were manually added to main utilities; '
                     'note that utilities from auxiliary units are already automatically '
                     'added to main unit operation'
                 )
     
-    def _summary(self, design_kwargs=None, cost_kwargs=None):
-        """Run design and cost algorithms and compile capital and utility costs."""
+    def _summary(self, design_kwargs=None, cost_kwargs=None, lca_kwargs=None):
+        """Run design/cost/LCA algorithms and compile results."""
         self._check_run()
         if not (self._design or self._cost): return
         self._design(**design_kwargs) if design_kwargs else self._design()
         self._cost(**cost_kwargs) if cost_kwargs else self._cost()
+        self._lca(**lca_kwargs) if lca_kwargs else self._lca()
         self._check_utilities()
         self._load_costs()
         self._load_utility_cost()
