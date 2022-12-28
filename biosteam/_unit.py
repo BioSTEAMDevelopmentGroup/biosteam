@@ -1341,8 +1341,8 @@ class Unit:
         self._utility_cost = (
             sum([i.cost for i in self.heat_utilities]) 
             + self.power_utility.cost
-            + sum([ins[index].F_mass * prices[name] for name, index in self._inlet_utility_indices.items()])
-            - sum([outs[index].F_mass * prices[name] for name, index in self._outlet_utility_indices.items()])
+            + sum([s.F_mass * prices[name] for name, index in self._inlet_utility_indices.items() if (s:=ins[index]).price == 0.])
+            - sum([s.F_mass * prices[name] for name, index in self._outlet_utility_indices.items() if (s:=outs[index]).price == 0.])
         )
     
     @property
