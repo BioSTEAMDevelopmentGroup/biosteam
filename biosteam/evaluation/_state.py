@@ -9,6 +9,7 @@
 """
 from typing import Callable
 from ._parameter import Parameter
+from ._feature import MockFeature
 from .. import System
 import numpy as np
 import pandas as pd
@@ -184,7 +185,7 @@ class State:
                     df.to_excel(writer, sheet_name=shape)
         return tables_by_shape    
     
-    def parameter(self, setter=None, element=None, kind='isolated', name=None, 
+    def parameter(self, setter=None, element=None, kind=None, name=None, 
                   distribution=None, units=None, baseline=None, bounds=None, 
                   hook=None, description=None, scale=None):
         """
@@ -222,11 +223,27 @@ class State:
         element must be a Unit object.
         
         """
-        if not setter:
+        if isinstance(setter, Parameter):
+            if element is None: element = setter.element
+            if kind is None: kind = setter.kind
+            if name is None: name = setter.name
+            if distribution is None: distribution = setter.distribution
+            if units is None: units = setter.units
+            if baseline is None: baseline = setter.baseline
+            if bounds is None: bounds = setter.bounds
+            if hook is None: hook = setter.hook
+            if description is None: description = setter.description
+            if scale is None: scale = setter.scale
+            setter = setter.setter
+        elif isinstance(setter, MockFeature):
+            if element is None: element = setter.element
+            if name is None: name = setter.name
+            if units is None: units = setter.units
+        elif not setter:
             return lambda setter: self.parameter(setter, element, kind, name,
                                                  distribution, units, baseline,
                                                  bounds, hook, description, scale)
-        p = Parameter(name, setter, element or 'biorefinery',
+        p = Parameter(name, setter, element,
                       self.system, distribution, units, 
                       baseline, bounds, kind, hook, description, scale)
         Parameter.check_index_unique(p, self._parameters)

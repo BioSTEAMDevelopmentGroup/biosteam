@@ -15,6 +15,7 @@ import numpy as np
 import pandas as pd
 from ._state import State
 from ._metric import Metric
+from ._feature import MockFeature
 from ._parameter import Parameter
 from ._utils import var_indices, var_columns, indices_to_multiindex
 from biosteam.exceptions import FailedEvaluation
@@ -128,7 +129,7 @@ class Model(State):
         Metric.check_indices_unique(metrics)
         self._metrics = metrics
     
-    def metric(self, getter=None, name=None, units=None, element='Biorefinery'):
+    def metric(self, getter=None, name=None, units=None, element=None):
         """
         Define and register metric.
         
@@ -149,7 +150,18 @@ class Model(State):
         This method works as a decorator.
         
         """
-        if not getter: return lambda getter: self.metric(getter, name, units, element)
+        
+        if isinstance(getter, Metric):
+            if name is None: name = getter.name
+            if units is None: units = getter.units
+            if element is None: element = getter.element
+            getter = getter.getter
+        elif isinstance(getter, MockFeature):
+            if element is None: element = getter.element
+            if name is None: name = getter.name
+            if units is None: units = getter.units
+        elif not getter: 
+            return lambda getter: self.metric(getter, name, units, element)
         metric = Metric(name, getter, units, element)
         Metric.check_index_unique(metric, self._metrics)
         self._metrics.append(metric)
@@ -244,8 +256,8 @@ class Model(State):
                     N_remaining -= 1
                     break
         
-    def load_samples(self, samples=None, optimize=None, ss=None, 
-                     file=None, autoload=None, autosave=None, distance=None):
+    def load_samples(self, samples=None, optimize=None, file=None, 
+                     autoload=None, autosave=None, distance=None):
         """
         Load samples for evaluation.
         
@@ -256,9 +268,6 @@ class Model(State):
         optimize : bool, optional
             Whether to internally sort the samples to optimize convergence speed
             by minimizing perturbations to the system between simulations.
-            Defaults to False.
-        ss : bool, optional
-            Whether to use single point sensitivity to inform the sorting algorithm. 
             Defaults to False.
         file : str, optional
             File to load/save samples and simulation order to/from.
@@ -533,8 +542,7 @@ class Model(State):
         
         """
         if self._samples is None: raise RuntimeError('must load samples before evaluating')
-        table = self.table
-        N_samples, N_parameters = table.shape
+        N_samples, _ = self.table.shape
         N_points = len(coordinate)
         
         # Initialize data containers
@@ -558,7 +566,7 @@ class Model(State):
             f_coordinate(*x) if multi_coordinate else f_coordinate(x)
             evaluate()
             for metric in metric_data:
-                metric_data[metric][:, n] = table[metric]
+                metric_data[metric][:, n] = self.table[metric]
         
         if xlfile:
             if multi_coordinate:
