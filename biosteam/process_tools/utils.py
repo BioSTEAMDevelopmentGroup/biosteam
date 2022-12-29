@@ -196,7 +196,6 @@ def rename_units(units, area):
     ...          Splitter(split=0.5),
     ...          MixTank(),
     ...          StorageTank(),
-    ...          MolecularSieve(split=0.5),
     ...          MultiEffectEvaporator(P=[101325, 9e4], V=0.5)]
     >>> rename_units(units, 200)
     >>> units
@@ -208,7 +207,6 @@ def rename_units(units, area):
      <Splitter: S201>,
      <MixTank: T201>,
      <StorageTank: T202>,
-     <MolecularSieve: U201>,
      <MultiEffectEvaporator: E201>]
     
     >>> # ID conflicts are taken care of internally
@@ -223,7 +221,6 @@ def rename_units(units, area):
      <Splitter: S201>,
      <MixTank: T201>,
      <StorageTank: T202>,
-     <MolecularSieve: U201>,
      <MultiEffectEvaporator: E201>]
     
     """
@@ -503,10 +500,10 @@ def default_utilities():
     bst.HeatUtility.default_agents()
     bst.PowerUtility.default_price()
     
-def default(utilities=True, CEPCI=True, flowsheet=False):
+def default(utilities=True, CEPCI=True, flowsheet=True):
     """
-    Reset utilities, and chemical plant cost index (CEPCI) back to 
-    BioSTEAM's defaults. May also reset all flowsheets if requested.
+    Reset utilities, flowsheets, and chemical plant cost index (CEPCI) back to 
+    BioSTEAM's defaults (if requested).
     
     """
     if utilities: default_utilities()

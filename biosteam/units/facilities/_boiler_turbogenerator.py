@@ -96,11 +96,11 @@ class BoilerTurbogenerator(Facility):
     >>> from biorefineries import cane
     >>> chemicals = cane.create_sugarcane_chemicals()
     >>> chemicals.define_group(
-    ... name='Fiber',
-    ... IDs=['Cellulose', 'Hemicellulose', 'Lignin'],
-    ... composition=[0.4704 , 0.2775, 0.2520],
-    ... wt=True, # Composition is given as weight
-    )
+    ...     name='Fiber',
+    ...     IDs=['Cellulose', 'Hemicellulose', 'Lignin'],
+    ...     composition=[0.4704 , 0.2775, 0.2520],
+    ...     wt=True, # Composition is given as weight
+    ... )
     >>> bst.settings.set_thermo(chemicals)
     >>> dilute_ethanol = bst.Stream('dilute_ethanol', Water=1390, Ethanol=590)
     >>> bagasse = bst.Stream('bagasse', Water=0.4, Fiber=0.6, total_flow=8e4, units='kg/hr')
@@ -113,10 +113,10 @@ class BoilerTurbogenerator(Facility):
     Boiler turbogenerator                                      Units        BT
     Electricity           Power                                   kW -1.31e+05
                           Cost                                USD/hr -1.02e+04
-    Low pressure steam    Duty                                 kJ/hr -7.31e+07
-                          Flow                               kmol/hr -1.88e+03
-                          Cost                                USD/hr      -448
-    Cooling water         Duty                                 kJ/hr -8.42e+07
+    Low pressure steam    Duty                                 kJ/hr -7.27e+07
+                          Flow                               kmol/hr -1.87e+03
+                          Cost                                USD/hr      -446
+    Cooling water         Duty                                 kJ/hr -8.43e+07
                           Flow                               kmol/hr  5.76e+04
                           Cost                                USD/hr      28.1
     Natural gas (inlet)   Flow                                 kg/hr         0
@@ -131,7 +131,7 @@ class BoilerTurbogenerator(Facility):
                           Deaerator                              USD  3.58e+05
                           Amine addition pkg                     USD  4.69e+04
                           Hot process water softener system      USD  9.16e+04
-                          Turbogenerator                         USD  1.94e+07
+                          Turbogenerator                         USD  1.95e+07
     Total purchase cost                                          USD  5.32e+07
     Utility cost                                              USD/hr -1.07e+04
     
@@ -172,12 +172,13 @@ class BoilerTurbogenerator(Facility):
                  natural_gas_price=None,
                  ash_disposal_price=None,
                  T_emissions=None,
-                 satisfy_system_electricity_demand=True,
+                 satisfy_system_electricity_demand=None,
                  boiler_efficiency_basis=None,
         ):
         if boiler_efficiency_basis is None: boiler_efficiency_basis = 'LHV'
         if boiler_efficiency is None: boiler_efficiency = 0.80
         if turbogenerator_efficiency is None: turbogenerator_efficiency = 0.85
+        if satisfy_system_electricity_demand is None: satisfy_system_electricity_demand = True
         Facility.__init__(self, ID, ins, outs, thermo)
         settings = bst.settings
         self.boiler_efficiency_basis = boiler_efficiency_basis
@@ -303,7 +304,6 @@ class BoilerTurbogenerator(Facility):
         self.combustion_reactions = combustion_rxns = chemicals.get_combustion_reactions()
         non_empty_feeds = [i for i in (feed_solids, feed_gas) if not i.isempty()]
         boiler_efficiency_basis = self.boiler_efficiency_basis
-        electricity_demand = self.electricity_demand if self.satisfy_system_electricity_demand else 0
         def calculate_excess_electricity_at_natual_gas_flow(natural_gas_flow):
             if natural_gas_flow:
                 natural_gas_flow = abs(natural_gas_flow)
@@ -335,11 +335,13 @@ class BoilerTurbogenerator(Facility):
             
             electricity = H_electricity * TG_eff  # Electricity produced
             self.cooling_duty = electricity - H_electricity
-            
             Design['Work'] = work = electricity/3600
-            boiler = self.cost_items['Boiler']
-            rate_boiler = boiler.kW * flow_rate / boiler.S
-            return work - electricity_demand - rate_boiler
+            if self.satisfy_system_electricity_demand:
+                boiler = self.cost_items['Boiler']
+                rate_boiler = boiler.kW * flow_rate / boiler.S
+                return work - self.electricity_demand - rate_boiler
+            else:
+                return work
         
         self._excess_electricity_without_natural_gas = excess_electricity = calculate_excess_electricity_at_natual_gas_flow(0)
         if excess_electricity < 0:

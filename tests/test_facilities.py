@@ -35,12 +35,35 @@ def test_boiler_turbogenerator():
         D1 = bst.BinaryDistillation('D1', ins=dilute_ethanol, Lr=0.999, Hr=0.89, k=1.25, LHK=('Ethanol', 'Water'))
         BT = bst.BoilerTurbogenerator('BT')
         BT.ins[0] = bagasse
+   
+    # Make sure no natural gas is consumed when excess electricity is produced
+    for BT.satisfy_system_electricity_demand in (False, True):
+        sys.simulate()
+        assert_allclose(
+            -BT.results().loc['Low pressure steam', 'Duty']['BT'],
+            D1.results().loc['Low pressure steam', 'Duty']['D1'],
+        )
+        assert BT.natural_gas.isempty()
+        assert sys.power_utility.rate < 0.
+
+    # Natural gas should meet electricity demand
+    bagasse.empty()
     sys.simulate()
     assert_allclose(
         -BT.results().loc['Low pressure steam', 'Duty']['BT'],
         D1.results().loc['Low pressure steam', 'Duty']['D1'],
     )
-    assert sys.power_utility.rate < 0. # Make sure there is excess electricity
+    assert_allclose(sys.power_utility.rate, 0., atol=1e-6)
+    
+    # No natural gas should be used to satisfy electricity demand (only for steam utilities)
+    BT.satisfy_system_electricity_demand = False
+    sys.simulate()
+    assert_allclose(
+        -BT.results().loc['Low pressure steam', 'Duty']['BT'],
+        D1.results().loc['Low pressure steam', 'Duty']['D1'],
+    ) # Steam utility should always be satisfied
+    assert_allclose(sys.power_utility.production, 0., atol=1e-6)
+    assert sys.power_utility.consumption > 0
 
     
 if __name__ == '__main__':
