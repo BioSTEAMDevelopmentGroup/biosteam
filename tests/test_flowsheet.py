@@ -21,7 +21,7 @@ def test_flowsheet_magic_methods():
     with pytest.raises(TypeError): 
         F.flowsheet.default_flowsheet = flowsheet
     assert len(list(F.flowsheet)) >= 1
-    flowsheet.set_flowsheet('default')
+    F.set_flowsheet('default')
     with pytest.raises(AttributeError):
         del F.flowsheet.default
     assert repr(bst.F.flowsheet) == '<FlowsheetRegistry: default>'
