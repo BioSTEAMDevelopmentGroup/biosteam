@@ -172,12 +172,13 @@ class BoilerTurbogenerator(Facility):
                  natural_gas_price=None,
                  ash_disposal_price=None,
                  T_emissions=None,
-                 satisfy_system_electricity_demand=True,
+                 satisfy_system_electricity_demand=None,
                  boiler_efficiency_basis=None,
         ):
         if boiler_efficiency_basis is None: boiler_efficiency_basis = 'LHV'
         if boiler_efficiency is None: boiler_efficiency = 0.80
         if turbogenerator_efficiency is None: turbogenerator_efficiency = 0.85
+        if satisfy_system_electricity_demand is None: satisfy_system_electricity_demand = True
         Facility.__init__(self, ID, ins, outs, thermo)
         settings = bst.settings
         self.boiler_efficiency_basis = boiler_efficiency_basis
@@ -303,7 +304,6 @@ class BoilerTurbogenerator(Facility):
         self.combustion_reactions = combustion_rxns = chemicals.get_combustion_reactions()
         non_empty_feeds = [i for i in (feed_solids, feed_gas) if not i.isempty()]
         boiler_efficiency_basis = self.boiler_efficiency_basis
-        electricity_demand = self.electricity_demand if self.satisfy_system_electricity_demand else 0
         def calculate_excess_electricity_at_natual_gas_flow(natural_gas_flow):
             if natural_gas_flow:
                 natural_gas_flow = abs(natural_gas_flow)
@@ -335,11 +335,13 @@ class BoilerTurbogenerator(Facility):
             
             electricity = H_electricity * TG_eff  # Electricity produced
             self.cooling_duty = electricity - H_electricity
-            
             Design['Work'] = work = electricity/3600
-            boiler = self.cost_items['Boiler']
-            rate_boiler = boiler.kW * flow_rate / boiler.S
-            return work - electricity_demand - rate_boiler
+            if self.satisfy_system_electricity_demand:
+                boiler = self.cost_items['Boiler']
+                rate_boiler = boiler.kW * flow_rate / boiler.S
+                return work - self.electricity_demand - rate_boiler
+            else:
+                return work
         
         self._excess_electricity_without_natural_gas = excess_electricity = calculate_excess_electricity_at_natual_gas_flow(0)
         if excess_electricity < 0:
