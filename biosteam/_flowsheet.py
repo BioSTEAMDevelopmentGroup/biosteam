@@ -159,7 +159,6 @@ class Flowsheet:
     
     def clear(self, reset_ticket_numbers=True):
         for registry in self.registries: registry.clear()
-        self.flowsheet.clear()
         if reset_ticket_numbers:
             for i in (Stream, Unit, System): i.ticket_numbers.clear()
     

@@ -286,6 +286,12 @@ class Unit:
                         "'isabstract' keyword argument is True"
                     )
         if '__init__' in dct and '_stacklevel' not in dct: cls._stacklevel += 1
+        name = cls.__name__
+        if hasattr(bst, 'units'): # Add 3rd party unit to biosteam module for convinience
+            if name not in bst.units.__dict__:
+                bst.units.__dict__[name] = cls
+            if name not in bst.__dict__:
+                bst.__dict__[name] = cls
         
     ### Abstract Attributes ###
     #: **class-attribute** Units of measure for :attr:`~Unit.design_results` dictionary.
@@ -1335,8 +1341,8 @@ class Unit:
         self._utility_cost = (
             sum([i.cost for i in self.heat_utilities]) 
             + self.power_utility.cost
-            + sum([ins[index].F_mass * prices[name] for name, index in self._inlet_utility_indices.items()])
-            - sum([outs[index].F_mass * prices[name] for name, index in self._outlet_utility_indices.items()])
+            + sum([s.F_mass * prices[name] for name, index in self._inlet_utility_indices.items() if (s:=ins[index]).price == 0.])
+            - sum([s.F_mass * prices[name] for name, index in self._outlet_utility_indices.items() if (s:=outs[index]).price == 0.])
         )
     
     @property
