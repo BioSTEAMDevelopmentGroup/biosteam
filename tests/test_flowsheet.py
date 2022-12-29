@@ -24,7 +24,6 @@ def test_flowsheet_magic_methods():
     F.set_flowsheet('default')
     with pytest.raises(AttributeError):
         del F.flowsheet.default
-    assert repr(bst.F.flowsheet) == '<FlowsheetRegistry: default>'
     
     F.set_flowsheet('new_flowsheet')
     del F.flowsheet.default
