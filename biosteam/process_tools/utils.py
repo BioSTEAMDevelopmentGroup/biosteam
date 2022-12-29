@@ -500,7 +500,7 @@ def default_utilities():
     bst.HeatUtility.default_agents()
     bst.PowerUtility.default_price()
     
-def default(utilities=True, CEPCI=True, flowsheet=True):
+def default(utilities=True, CEPCI=True, flowsheet=False):
     """
     Reset utilities, flowsheets, and chemical plant cost index (CEPCI) back to 
     BioSTEAM's defaults (if requested).
