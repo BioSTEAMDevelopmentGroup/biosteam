@@ -690,8 +690,9 @@ def test_sugarcane_ethanol_biorefinery_network():
     f.clear()
     
 def test_corn_ethanol_biorefinery_system_creation():
-    from biorefineries.corn import flowsheet as f
-    corn_sys = f.create_system('corn_sys')
+    from biorefineries import corn
+    br = corn.Biorefinery()
+    corn_sys = br.flowsheet.create_system('corn_sys')
     corn_sys.empty_recycles()
     corn_sys.simulate()
     bst.process_tools.default()

@@ -1216,16 +1216,17 @@ class System:
 
         Examples
         --------
-        >>> from biorefineries.cornstover import cornstover_sys, M201
+        >>> from biorefineries import cellulosic
         >>> from biosteam import default
-        >>> upstream_sys, downstream_sys = cornstover_sys.split(M201-0)
+        >>> cs = cellulosic.Biorefinery() # Create corn stover biorefinery
+        >>> upstream_sys, downstream_sys = cs.cornstover_sys.split(cs.M201-0)
         >>> upstream_group = upstream_sys.to_unit_group()
         >>> upstream_group.show()
         UnitGroup: Unnamed
          units: U101, H2SO4_storage, T201, M201
         >>> downstream_group = downstream_sys.to_unit_group()
         >>> for i in upstream_group: assert i not in downstream_group.units
-        >>> assert set(upstream_group.units + downstream_group.units) == set(cornstover_sys.units)
+        >>> assert set(upstream_group.units + downstream_group.units) == set(cs.cornstover_sys.units)
         >>> default() # Reset to biosteam defaults
 
         """
@@ -1932,7 +1933,7 @@ class System:
                 i._summary()
             else: i() # Assume it is a function
         for i in self._facilities:
-            if isa(i, (bst.BoilerTurbogenerator, bst.Boiler)): f(i, i.simulate)
+            if isa(i, bst.BoilerTurbogenerator): f(i, i.simulate)
 
     def _reset_iter(self):
         self._iter = 0
