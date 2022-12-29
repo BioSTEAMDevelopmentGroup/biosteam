@@ -125,28 +125,29 @@ def test_kendall_tau(model):
     assert_allclose(np.round(tau), expected, atol=0.15)
     
 def test_model_index():
-    from biorefineries.sugarcane import sugarcane_sys, flowsheet as f
     import biosteam as bst
+    bst.settings.set_thermo(['Water'])
+    with bst.System() as sys:
+        H1 = bst.HXutility('H1', ins=bst.Stream('feed', Water=1000), T=310)
     
     # Make sure repeated metrics raise an error
-    biorefinery = bst.process_tools.UnitGroup('Biorefinery', sugarcane_sys.units)
+    biorefinery = bst.process_tools.UnitGroup('Biorefinery', sys.units)
     heating_duty = bst.Metric('Heating duty', biorefinery.get_heating_duty, 'GJ/hr')
     heating_duty_repeated = bst.Metric('Heating duty', biorefinery.get_heating_duty, 'GJ/hr')
     with pytest.raises(ValueError):
-        model = bst.Model(sugarcane_sys, [heating_duty, heating_duty_repeated])
+        model = bst.Model(sys, [heating_duty, heating_duty_repeated])
     
-    model = bst.Model(sugarcane_sys, [heating_duty])
+    model = bst.Model(sys, [heating_duty])
     
     # Make sure repeated parameters raise an error
-    R301 = f.unit.R301
-    @model.parameter(element=R301)
-    def set_efficiency(efficiency):
-        R301.efficiency = efficiency
+    @model.parameter(element=H1)
+    def set_temperature(temperature):
+        H1.T = temperature
     
     with pytest.raises(ValueError):
-        @model.parameter(element=R301)
-        def set_efficiency(efficiency):
-            R301.efficiency = efficiency
+        @model.parameter(element=H1)
+        def set_efficiency(temperature):
+            H1.T = temperature
     
     bst.default()
     
