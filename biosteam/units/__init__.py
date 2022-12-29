@@ -10,6 +10,7 @@
 from .._unit import Unit
 from .mixing import *
 from .splitting import *
+from .molecular_sieve import *
 from .vacuum_system import *
 from ._pump import *
 from .heat_exchange import *
@@ -60,6 +61,7 @@ from . import (
     _balance,  
     _screw_feeder,
     cstr,
+    molecular_sieve,
     vacuum_system,
     adsorption,
     size_reduction, 
@@ -87,6 +89,7 @@ from . import (
 )
 
 __all__ = ('Unit',
+           *molecular_sieve.__all__,
            *liquid_liquid_extraction.__all__,
            *_diagram_only_units.__all__,
            *_flash.__all__,

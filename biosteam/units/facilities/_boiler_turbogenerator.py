@@ -96,11 +96,11 @@ class BoilerTurbogenerator(Facility):
     >>> from biorefineries import cane
     >>> chemicals = cane.create_sugarcane_chemicals()
     >>> chemicals.define_group(
-    ... name='Fiber',
-    ... IDs=['Cellulose', 'Hemicellulose', 'Lignin'],
-    ... composition=[0.4704 , 0.2775, 0.2520],
-    ... wt=True, # Composition is given as weight
-    )
+    ...     name='Fiber',
+    ...     IDs=['Cellulose', 'Hemicellulose', 'Lignin'],
+    ...     composition=[0.4704 , 0.2775, 0.2520],
+    ...     wt=True, # Composition is given as weight
+    ... )
     >>> bst.settings.set_thermo(chemicals)
     >>> dilute_ethanol = bst.Stream('dilute_ethanol', Water=1390, Ethanol=590)
     >>> bagasse = bst.Stream('bagasse', Water=0.4, Fiber=0.6, total_flow=8e4, units='kg/hr')
@@ -113,10 +113,10 @@ class BoilerTurbogenerator(Facility):
     Boiler turbogenerator                                      Units        BT
     Electricity           Power                                   kW -1.31e+05
                           Cost                                USD/hr -1.02e+04
-    Low pressure steam    Duty                                 kJ/hr -7.31e+07
-                          Flow                               kmol/hr -1.88e+03
-                          Cost                                USD/hr      -448
-    Cooling water         Duty                                 kJ/hr -8.42e+07
+    Low pressure steam    Duty                                 kJ/hr -7.27e+07
+                          Flow                               kmol/hr -1.87e+03
+                          Cost                                USD/hr      -446
+    Cooling water         Duty                                 kJ/hr -8.43e+07
                           Flow                               kmol/hr  5.76e+04
                           Cost                                USD/hr      28.1
     Natural gas (inlet)   Flow                                 kg/hr         0
@@ -131,7 +131,7 @@ class BoilerTurbogenerator(Facility):
                           Deaerator                              USD  3.58e+05
                           Amine addition pkg                     USD  4.69e+04
                           Hot process water softener system      USD  9.16e+04
-                          Turbogenerator                         USD  1.94e+07
+                          Turbogenerator                         USD  1.95e+07
     Total purchase cost                                          USD  5.32e+07
     Utility cost                                              USD/hr -1.07e+04
     
