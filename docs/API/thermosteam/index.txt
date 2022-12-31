@@ -40,10 +40,10 @@ and the equlibrium estimation methods. Each Chemical object contains objects
 that manages the thermodynamic methods and makes sure to use a valid method at 
 given temperatures and pressures whenever estimating properties. 
 
-.. figure:: class_diagram_light.svg
+.. figure:: class_diagram_light.png
    :class: only-light
    :align: center
-.. figure:: class_diagram_dark.svg
+.. figure:: class_diagram_dark.png
    :class: only-dark
    :align: center
 

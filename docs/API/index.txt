@@ -4,16 +4,18 @@
    <style> .green {color:#7ac083; font-weight:bold} </style>
    <style> .orange {color:#f98f60; font-weight:bold} </style>
    <style> .blue {color:#60c1cf; font-weight:bold} </style>
+   <style> .purple {color:#a180b8; font-weight:bold} </style>
 
 .. role:: red
 .. role:: green
 .. role:: orange
 .. role:: blue
+.. role:: purple
 
 API reference
 -------------
 
-BioSTEAM's main components can be categorized by 4 functionality levels: 
+BioSTEAM's main components can be categorized by 5 functionality levels: 
 
 .. figure:: ../images/UML.png
    :width: 400
@@ -31,6 +33,7 @@ BioSTEAM's main components can be categorized by 4 functionality levels:
 
 - :green:`Thermodynamic` equilibrium and mass and energy balances are facilitated by :doc:`../API/thermosteam/Stream` objects, which define material flows, temperature and pressure. Chemical properties and models are imported from `thermo <https://thermo.readthedocs.io/>`_, a community-driven open-source library developed by Caleb Bell. 
 
+- :purple:`Biorefinery` models and results are available through the `Bioindustrial-Park <https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park>`_. A number of key biorefinery systems for cellulosic pretreatment, fermentation, and product purification can be imported from the :doc:`../API/biorefineries` library. 
 
 .. toctree::
    :maxdepth: 2
@@ -41,7 +44,7 @@ BioSTEAM's main components can be categorized by 4 functionality levels:
 
 .. toctree::
    :maxdepth: 2
-   :caption: Evaluation
+   :caption: Simulation
    :hidden:
    
    System
@@ -68,6 +71,13 @@ BioSTEAM's main components can be categorized by 4 functionality levels:
    
    thermosteam <thermosteam/index>
    
+.. toctree::
+   :maxdepth: 2
+   :caption: Biorefineries
+   :hidden:
+   
+   Bioindustrial-Park <biorefineries/index>
+
 .. toctree::
    :maxdepth: 2
    :caption: [Other]
