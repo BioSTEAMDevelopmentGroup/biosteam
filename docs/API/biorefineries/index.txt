@@ -5,7 +5,7 @@ Bioindustrial-Park: BioSTEAM's Premier Biorefinery Models and Results
 The Bioindustrial-Park is a repository for complete biorefinery
 models and results generated with BioSTEAM. The repository is meant to 
 foster accessibility, transparency, and deeper communication within the BioSTEAM biorefinery 
-simulation community. All biorefinery models are in the "biorefineries" 
+simulation community. All biorefinery models are in the `biorefineries`
 package, as an installable package for complete biorefinery models in BioSTEAM.
 
 .. toctree::
@@ -15,7 +15,7 @@ package, as an installable package for complete biorefinery models in BioSTEAM.
    
    cellulosic <cellulosic/index>
    biodiesel <biodiesel/index>
-   ethanol <ethanol/index>
+   ethanol <ethanol>
    cane <cane/index>
    corn <corn/index>
 

@@ -34,7 +34,7 @@ BioSTEAM's main components can be categorized by 5 functionality levels:
 
 - :green:`Thermodynamic` equilibrium and mass and energy balances are facilitated by :doc:`../API/thermosteam/Stream` objects, which define material flows, temperature and pressure. Chemical properties and models are imported from `thermo <https://thermo.readthedocs.io/>`_, a community-driven open-source library developed by Caleb Bell. 
 
-- :purple:`Biorefinery` models and results are available through the `Bioindustrial-Park <https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park>`_. A number of key biorefinery systems for cellulosic pretreatment, fermentation, and product purification can be imported from the :doc:`../API/biorefineries` library. 
+- :purple:`Biorefinery` models and results are available through the `Bioindustrial-Park <https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park>`_. A number of key biorefinery systems for cellulosic pretreatment, fermentation, and product purification can be imported from the :doc:`biorefineries <../API/biorefineries/index>` library. 
 
 .. toctree::
    :maxdepth: 2
@@ -70,14 +70,14 @@ BioSTEAM's main components can be categorized by 5 functionality levels:
    :caption: Thermodynamics
    :hidden:
    
-   thermosteam <thermosteam/index>
+   Thermosteam <thermosteam/index>
    
 .. toctree::
    :maxdepth: 2
-   :caption: Biorefineries
+   :caption: Bioindustrial-Park
    :hidden:
    
-   Bioindustrial-Park <biorefineries/index>
+   Biorefineries <biorefineries/index>
 
 .. toctree::
    :maxdepth: 2
