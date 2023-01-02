@@ -1,0 +1,10 @@
+Biodiesel production
+--------------------
+
+The `biodiesel` module includes systems and units for the production and purification of biodiesel from vegetable oil.
+
+.. toctree::
+   :hidden:
+
+   systems
+   units

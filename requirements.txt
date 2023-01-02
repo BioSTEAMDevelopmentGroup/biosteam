@@ -6,3 +6,4 @@ sphinx_design
 pyyaml
 ipykernel
 nbsphinx
+myst_parser

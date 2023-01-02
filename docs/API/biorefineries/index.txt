@@ -1,0 +1,34 @@
+=====================================================================
+Bioindustrial-Park: BioSTEAM's Premier Biorefinery Models and Results
+=====================================================================
+
+The Bioindustrial-Park is a repository for complete biorefinery
+models and results generated with BioSTEAM. The repository is meant to 
+foster accessibility, transparency, and deeper communication within the BioSTEAM biorefinery 
+simulation community. All biorefinery models are in the `biorefineries`
+package, as an installable package for complete biorefinery models in BioSTEAM.
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Biorefineries
+   :hidden:
+   
+   cellulosic <cellulosic/index>
+   biodiesel <biodiesel/index>
+   ethanol <ethanol>
+   cane <cane/index>
+   corn <corn/index>
+
+Installation
+------------
+
+Get the latest version of biorefineries from
+https://pypi.python.org/pypi/biorefineries/
+
+If you have an installation of Python with pip, simple install it with:
+
+    $ pip install biorefineries
+
+To get the git version, run:
+
+    $ git clone https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park.git
