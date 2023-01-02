@@ -6,31 +6,24 @@ This module contains units and systems specific to lignocellulosic
 biomass processing. Various pretreatment and fermentation systems
 are available for users to plug and play.
 
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+   
+   chemicals
+   systems/index
+   units
+
 Getting Started
 ---------------
 
 One full biorefinery configuration is available in this module, a corn stover biorefinery 
-design for the production of cellulosic ethanol. This configuration follows all 
-assumptions from a study by Humbird et. al. executed with Aspen 
-plus [1]_. As discussed in the original BioSTEAM manuscript [2]_, the 
-corn stover biorefinery can be divided into eight areas: feedstock handling, 
-pretreatment and conditioning, enzyme production, recovery, wastewater 
-treatment, storage, boiler and turbo-generator system, and utilities. In 
-contrast to the original report by Humbird et al., the on-site enzyme 
-production model is not included. Instead, the cellulase mixture is bought at 
+design for the production of cellulosic ethanol. With the exception of the on-site enzyme
+production, this configuration follows all assumptions from a study by Humbird et. al. executed with Aspen 
+plus [1]_.  In contrast to the original report by Humbird et al., the cellulase mixture is bought at 
 the same concentration of 50 g·L–1 and at a price of 0.424 $·kg–1, which is 
 the back-calculated cost of on-site enzyme production as reported in the 
-benchmark study. During pretreatment, the corn stover is presteamed and 
-loaded into pretreatment reactors with dilute sulfuric acid under high 
-pressures and temperatures to break down the biomass and facilitate enzymatic 
-hydrolysis (Area 200). The hydrolysate is then saccharified and fermented in 
-the fermentation area (Area 300). In the recovery area, the beer is distilled, 
-and the lignin-rich solid fraction is filter-pressed (Area 400). The stillage 
-is sent to wastewater treatment to produce biogas (Area 500), while the lignin 
-is sent to the boiler-turbo-generator section (Area 700) to produce steam and 
-electricity.
-
-.. figure:: ./images/cornstover_areas.png
+benchmark study. Please checkout the original BioSTEAM manuscript [2]_ for additional details.
 
 .. code-block:: python
 

@@ -13,6 +13,7 @@ from biosteam.utils import as_stream
 from biosteam.process_tools import utils
 from inspect import signature
 from typing import TYPE_CHECKING
+import re
 
 __all__ = ('SystemFactory', 'stream_kwargs')
 
@@ -180,21 +181,16 @@ class SystemFactory:
     <Pump: P201>
     
     """
-    __slots__ = (
-        'f', 'ID', 'ins', 'outs',
-        'fixed_ins_size',
-        'fixed_outs_size',
-        'fthermo',
-    )
     
     def __new__(cls, f=None, ID=None, ins=None, outs=None,
                 fixed_ins_size=True, fixed_outs_size=True,
                 fthermo=None):
         if f:
-            params = list(signature(f).parameters)
+            fsig = signature(f)
+            params = list(fsig.parameters)
             if params[:2] != ['ins', 'outs']:
                 raise ValueError('function must have a signature of function(ins, outs, *args, **kwargs)')
-            other_params = params[3:]
+            other_params = params[2:]
             reserved_parameters = ('mockup', 'area', 'udct', 'autorename', 'operating_hours')
             for i in reserved_parameters:
                 if i in other_params:
@@ -209,6 +205,11 @@ class SystemFactory:
             self.fixed_ins_size = fixed_ins_size
             self.fixed_outs_size = fixed_outs_size
             self.fthermo = fthermo
+            self.__name__ = f.__name__
+            self.__doc__ = f.__doc__
+            self.__signature__ = fsig.replace(
+                parameters=[*system_factory_parameters, *[fsig.parameters[i].replace(kind=3) for i in other_params]]
+            )
             return self
         else:
             return lambda f: cls(f, ID, ins, outs, 
@@ -261,7 +262,7 @@ class SystemFactory:
         return get_stream('outlet', self._outs, ID)
     
     def __repr__(self):
-        return f"<{type(self).__name__}: {self.ID}>"
+        return f"{self.__name__}{self.__signature__}"
     
     def show(self):
         """Print decorator in nice format."""
@@ -334,3 +335,6 @@ def create_streams(defaults, user_streams, kind, fixed_size):
         streams += [as_stream(i) for i in user_streams[N_defaults:]]
     return streams
     
+system_factory_signature = signature(SystemFactory.__call__)
+system_factory_parameters = list(system_factory_signature.parameters.values())[1:-1]
+del system_factory_signature

@@ -15,7 +15,7 @@
 import os
 import sys
 
-new_path = ['..\\', '..\\thermosteam\\']
+new_path = ['..\\', '..\\thermosteam\\', '..\\Bioindustrial-Park\\']
 for p in new_path:
      sys.path.insert(0, os.path.abspath(p))
 
@@ -83,6 +83,7 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx_multitoc_numbering',
     'sphinx_autodoc_typehints',
+    'myst_parser',
     'nbsphinx']
 
 try:
@@ -230,7 +231,7 @@ templates_path = ['_templates']
 # You can specify multiple suffix as a list of string:
 #
 # source_suffix = ['.rst', '.md']
-source_suffix = ['.txt', '.rst']
+source_suffix = ['.txt', '.rst', '.md']
 
 # The master toctree document.
 master_doc = 'index'
