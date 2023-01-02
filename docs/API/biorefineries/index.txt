@@ -19,6 +19,54 @@ package, as an installable package for complete biorefinery models in BioSTEAM.
    cane <cane/index>
    corn <corn/index>
 
+.. card-carousel:: 3
+
+    .. card:: 
+       :link: https://biosteam.readthedocs.io/en/latest/API/biorefineries/cellulosic/index.html
+       :width: 25%
+       :text-align: center
+       :margin: 1
+       :img-top: ./corn_stover.jpg
+       
+       Cellulosic
+
+    .. card:: 
+       :link: https://biosteam.readthedocs.io/en/latest/API/biorefineries/cane/index.html
+       :width: 25%
+       :text-align: center
+       :margin: 1
+       :img-top: ./cane.png
+       
+       Cane
+       
+    .. card:: 
+       :link: https://biosteam.readthedocs.io/en/latest/API/biorefineries/corn/index.html
+       :width: 25%
+       :text-align: center
+       :margin: 1
+       :img-top: ./corn.png
+
+       Corn
+
+    .. card:: 
+       :width: 25%
+       :text-align: center
+       :margin: 1
+       :link: https://biosteam.readthedocs.io/en/latest/API/biorefineries/biodiesel/index.html
+       :img-top: ./biodiesel.png
+       
+       Biodiesel
+       
+    .. card:: 
+       :width: 25%
+       :text-align: center
+       :margin: 1
+       :link: https://biosteam.readthedocs.io/en/latest/API/biorefineries/ethanol.html
+       :img-top: ./ethanol.jpg
+       
+       Ethanol
+
+       
 Installation
 ------------
 
