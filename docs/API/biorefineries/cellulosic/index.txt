@@ -1,6 +1,6 @@
-=============================================
-cellulosic: Lignocellulosic Biomass Processes
-=============================================
+=================================
+Lignocellulosic Biomass Processes
+=================================
 
 This module contains units and systems specific to lignocellulosic 
 biomass processing. Various pretreatment and fermentation systems
@@ -11,8 +11,8 @@ are available for users to plug and play.
    :hidden:
    
    chemicals
-   systems/index
    units
+   systems/index
 
 Getting Started
 ---------------
