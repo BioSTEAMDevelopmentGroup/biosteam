@@ -12,8 +12,6 @@ import biosteam as bst
 from biosteam.utils import as_stream
 from biosteam.process_tools import utils
 from inspect import signature
-from typing import TYPE_CHECKING
-import re
 
 __all__ = ('SystemFactory', 'stream_kwargs')
 
