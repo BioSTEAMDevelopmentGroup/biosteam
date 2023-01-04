@@ -166,8 +166,9 @@ class SteamMixer(Unit):
             feed, steam, process_water, *others = self.ins
         except ValueError:
             feed, steam, *others = self.ins
-        feeds = [feed, *others]
+        feeds = self.ins
         mixed = self.outs[0]
+        process_water.empty()
         steam.imol['7732-18-5'] = steam_mol # Only change water
         solids_loading = self.solids_loading
         if solids_loading is not None:
