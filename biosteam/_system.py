@@ -88,12 +88,13 @@ def get_recycle_data(stream):
     1d array.
     
     """
-    data = stream._imol._data
+    data = stream.mol
+    size = data.size
     TP = stream._thermal_condition
-    arr = np.zeros(data.size + 2)
+    arr = np.zeros(size + 2)
     arr[0] = TP.T
     arr[1] = TP.P
-    arr[2:] = data.flat
+    arr[2:] = data.flat_array(vector_size=size)
     return arr
 
 def set_recycle_data(stream, arr):
@@ -102,8 +103,8 @@ def set_recycle_data(stream, arr):
     1d array.
     
     """
-    data = stream._imol._data
-    data.flat[:] = arr[2:]
+    data = stream.mol
+    data.flat_array(arr[2:], vector_size=arr.size - 2)
     TP = stream._thermal_condition
     T = float(arr[0]) # ndfloat objects are slow and parasitic (don't go away)
     P = float(arr[1])
@@ -1691,9 +1692,9 @@ class System:
         recycles = self.get_all_recycles()
         N = len(recycles)
         if N == 1:
-            return recycles[0]._imol._data.copy()
+            return recycles[0].mol.copy()
         elif N > 1: 
-            return np.hstack([i._imol._data for i in recycles])
+            return np.hstack([i.mol for i in recycles])
         else:
             raise RuntimeError('no recycle available')
 
@@ -1714,11 +1715,11 @@ class System:
             set_recycle_data(recycles[0], data)
         elif N > 1:
             N = data.size
-            M = sum([i._imol._data.size + 2 for i in recycles])
+            M = sum([i.mol.size + 2 for i in recycles])
             if M != N: raise IndexError(f'expected {N} elements; got {M} instead')
             index = 0
             for i in recycles:
-                end = index + i._imol._data.size + 2
+                end = index + i.mol.size + 2
                 set_recycle_data(i, data[index:end])
                 index = end
         else:
@@ -1833,16 +1834,18 @@ class System:
             M = len(recycles)
             N = len(IDs)
             material_flows = np.zeros([M, N])
-            for i, s in enumerate(recycles): material_flows[i] = s.mol
+            for i, s in enumerate(recycles): 
+                mol = s.mol
+                for j, v in mol.nonzero_items(): material_flows[i, j] = v
         else:
             IDs = sorted(set(sum(all_IDs, ())))
             index = {j: i for i, j in enumerate(IDs)}
             M = len(recycles)
             N = len(IDs)
             material_flows = np.zeros([M, N])
+            IDs_old = s.chemicals.IDs
             for i, s in enumerate(recycles):
-                for ID, value in zip(s.chemicals.IDs, s.mol):
-                    material_flows[i, index[ID]] = value
+                for j, v in mol.nonzero_items(): material_flows[i, index[IDs_old[j]]] = v
             IDs = None
         return MaterialData(
             material_flows=material_flows,
