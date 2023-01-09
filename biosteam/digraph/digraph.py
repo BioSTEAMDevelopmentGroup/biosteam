@@ -52,10 +52,14 @@ class PenWidth:
     __slots__ = ('name', 'percentiles')
     def __init__(self, name, streams):
         self.name = name
-        self.percentiles = np.percentile(
-            [s.get_property(name) for s in streams if not s.isempty()] or [0], 
-            [33, 66, 100]
-        )
+        values = [s.get_property(name) for s in streams if not s.isempty()] or [0] 
+        try:
+            self.percentiles = np.percentile(
+                values, 
+                [33, 66, 100]
+            )
+        except:
+            self.percentiles = 3 * [max(values)]
     
     def __call__(self, stream):
         value = stream.get_property(self.name)

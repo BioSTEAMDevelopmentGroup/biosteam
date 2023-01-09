@@ -19,6 +19,7 @@ from .digraph import (digraph_from_units_and_streams,
                       surface_digraph,
                       finalize_digraph)
 from thermosteam import Stream, MultiStream, Chemical
+from thermosteam.base import SparseArray
 from . import HeatUtility, PowerUtility
 from thermosteam.utils import registered
 from scipy.optimize import root
@@ -1641,18 +1642,17 @@ class System:
             if i is recycle: j.append(i.copy(None))
         mol_new = self._get_recycle_mol()
         T_new = self._get_recycle_temperatures()
-        mol_errors = np.abs(mol - mol_new)
-        positive_index = mol_errors > 1e-16
-        mol_errors = mol_errors[positive_index]
-        if mol_errors.size == 0:
-            self._mol_error = mol_error = 0.
-            self._rmol_error = rmol_error = 0.
-        else:
+        mol_errors = abs(mol - mol_new)
+        if mol_errors.any():
             self._mol_error = mol_error = mol_errors.max()
+            nonzero_index = [*mol_errors.nonzero_keys()]
             if mol_error > 1e-12:
-                self._rmol_error = rmol_error = (mol_errors / np.maximum.reduce([np.abs(mol[positive_index]), np.abs(mol_new[positive_index])])).max()
+                self._rmol_error = rmol_error = (mol_errors / np.maximum.reduce([np.abs(mol[nonzero_index]), np.abs(mol_new[nonzero_index])])).max()
             else:
                 self._rmol_error = rmol_error = 0.
+        else:
+            self._mol_error = mol_error = 0.
+            self._rmol_error = rmol_error = 0.
         T_errors = np.abs(T - T_new)
         self._T_error = T_error = T_errors.max()
         self._rT_error = rT_error = (T_errors / T).max()
@@ -1694,7 +1694,7 @@ class System:
         if N == 1:
             return recycles[0].mol.copy()
         elif N > 1: 
-            return np.hstack([i.mol for i in recycles])
+            return SparseArray([i.mol for i in recycles])
         else:
             raise RuntimeError('no recycle available')
 
