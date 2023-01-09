@@ -1645,9 +1645,14 @@ class System:
         mol_errors = abs(mol - mol_new)
         if mol_errors.any():
             self._mol_error = mol_error = mol_errors.max()
-            nonzero_index = [*mol_errors.nonzero_keys()]
             if mol_error > 1e-12:
-                self._rmol_error = rmol_error = (mol_errors / np.maximum.reduce([np.abs(mol[nonzero_index]), np.abs(mol_new[nonzero_index])])).max()
+                nonzero_index = [*mol_errors.nonzero_keys()]
+                mol_errors = mol_errors[nonzero_index]
+                max_errors = np.maximum.reduce([np.abs(mol[nonzero_index]), np.abs(mol_new[nonzero_index])])
+                try:
+                    self._rmol_error = rmol_error = (mol_errors / max_errors).max()
+                except:
+                    breakpoint()
             else:
                 self._rmol_error = rmol_error = 0.
         else:
