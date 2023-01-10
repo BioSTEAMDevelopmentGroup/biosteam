@@ -110,7 +110,7 @@ class UtilityAgent(Stream):
         property_cache = self._property_cache
         thermal_condition = self._thermal_condition
         imol = self._imol
-        composition = imol.sparse_data
+        composition = imol.data
         if not T: T = thermal_condition._T
         if not P: P = thermal_condition._P
         if nophase:

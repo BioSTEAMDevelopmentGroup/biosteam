@@ -146,7 +146,7 @@ class Splitter(Unit):
     @property
     def split(self):
         """[SparseArray] Componentwise split of feed to 0th outlet stream."""
-        return self._isplit.sparse_data
+        return self._isplit.data
     @split.setter
     def split(self, values):
         split = self.split
@@ -161,7 +161,7 @@ class Splitter(Unit):
         feed = self._ins[0]
         isplit = self._isplit
         if isplit.chemicals is not feed.chemicals: self._reset_thermo(feed._thermo)
-        feed.split_to(*self.outs, isplit.sparse_data)
+        feed.split_to(*self.outs, isplit.data)
 
 
 class PhaseSplitter(Unit):

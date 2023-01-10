@@ -83,7 +83,7 @@ class DrumDryer(Unit):
     @property
     def split(self):
         """[Array] Componentwise split of feed to 0th outlet stream."""
-        return self._isplit.sparse_data
+        return self._isplit.data
     
     @property
     def natural_gas(self):

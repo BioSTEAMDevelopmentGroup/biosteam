@@ -353,7 +353,7 @@ class SLLECentrifuge(Unit):
     
     @property
     def solids_split(self):
-        return self._solids_isplit.sparse_data
+        return self._solids_isplit.data
     @property
     def solids_isplit(self):
         return self._solids_isplit
@@ -466,14 +466,14 @@ class SolidLiquidsSplitCentrifuge(Unit):
     
     @property
     def solids_split(self):
-        return self._solids_isplit.sparse_data
+        return self._solids_isplit.data
     @property
     def solids_isplit(self):
         return self._solids_isplit
     
     @property
     def aqueous_split(self):
-        return self._aqueous_isplit.sparse_data
+        return self._aqueous_isplit.data
     @property
     def aqueous_isplit(self):
         return self._aqueous_isplit
