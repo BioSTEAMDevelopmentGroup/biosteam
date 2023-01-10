@@ -89,13 +89,13 @@ def get_recycle_data(stream):
     1d array.
     
     """
-    data = stream.mol
+    data = stream.imol.data
     size = data.size
     TP = stream._thermal_condition
     arr = np.zeros(size + 2)
     arr[0] = TP.T
     arr[1] = TP.P
-    arr[2:] = data.flat_array(vector_size=size)
+    arr[2:] = data.flat_array()
     return arr
 
 def set_recycle_data(stream, arr):
@@ -104,8 +104,8 @@ def set_recycle_data(stream, arr):
     1d array.
     
     """
-    data = stream.mol
-    data.flat_array(arr[2:], vector_size=arr.size - 2)
+    data = stream.imol.data
+    data.flat_array(arr[2:])
     TP = stream._thermal_condition
     T = float(arr[0]) # ndfloat objects are slow and parasitic (don't go away)
     P = float(arr[1])
@@ -1646,16 +1646,16 @@ class System:
         if mol_errors.any():
             self._mol_error = mol_error = mol_errors.max()
             if mol_error > 1e-12:
-                nonzero_index = [*mol_errors.nonzero_keys()]
+                nonzero_index = mol_errors.nonzero_index()
                 mol_errors = mol_errors[nonzero_index]
-                max_errors = np.maximum.reduce([np.abs(mol[nonzero_index]), np.abs(mol_new[nonzero_index])])
+                max_errors = np.maximum.reduce([abs(mol[nonzero_index]), abs(mol_new[nonzero_index])])
                 self._rmol_error = rmol_error = (mol_errors / max_errors).max()
             else:
                 self._rmol_error = rmol_error = 0.
         else:
             self._mol_error = mol_error = 0.
             self._rmol_error = rmol_error = 0.
-        T_errors = np.abs(T - T_new)
+        T_errors = abs(T - T_new)
         self._T_error = T_error = T_errors.max()
         self._rT_error = rT_error = (T_errors / T).max()
         self._iter += 1
@@ -1696,7 +1696,7 @@ class System:
         if N == 1:
             return recycles[0].mol.copy()
         elif N > 1: 
-            return SparseArray([i.mol for i in recycles])
+            return SparseArray([i.mol.copy() for i in recycles])
         else:
             raise RuntimeError('no recycle available')
 
