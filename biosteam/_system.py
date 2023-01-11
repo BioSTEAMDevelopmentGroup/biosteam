@@ -95,7 +95,7 @@ def get_recycle_data(stream):
     arr = np.zeros(size + 2)
     arr[0] = TP.T
     arr[1] = TP.P
-    arr[2:] = data.flat_array()
+    data.to_flat_array(arr[2:])
     return arr
 
 def set_recycle_data(stream, arr):
@@ -105,7 +105,7 @@ def set_recycle_data(stream, arr):
     
     """
     data = stream.imol.data
-    data.flat_array(arr[2:])
+    data.from_flat_array(arr[2:])
     TP = stream._thermal_condition
     T = float(arr[0]) # ndfloat objects are slow and parasitic (don't go away)
     P = float(arr[1])

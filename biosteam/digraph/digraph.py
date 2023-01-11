@@ -272,7 +272,7 @@ def fill_info_from_path(path, indices, info_by_unit):
         else:
             if profile: # pragma: no cover
                 t = TicToc()
-                for n in range(10):
+                for n in range(1):
                     t.tic(); u.simulate(); t.toc()
                     if n > 1 and sum(t.record) > 0.2: break 
                 time = f"{1000 * t.mean:.2g} ms"
