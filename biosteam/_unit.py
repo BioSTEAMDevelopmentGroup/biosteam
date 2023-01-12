@@ -863,6 +863,8 @@ class Unit:
                 heat_utilities.extend(unit.heat_utilities)
                 power_utility.consumption += unit.power_utility.consumption
                 power_utility.production += unit.power_utility.production
+            elif N > 1e6:
+                raise RuntimeError('cannot have over a million unit operations in parallel')
             else:
                 heat_utilities.extend(N * unit.heat_utilities)
                 power_utility.consumption += N * unit.power_utility.consumption

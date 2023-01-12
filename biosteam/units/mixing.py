@@ -166,9 +166,9 @@ class SteamMixer(Unit):
             feed, steam, process_water, *others = self.ins
         except ValueError:
             feed, steam, *others = self.ins
-        feeds = [feed, *others]
+        # feeds = [feed, *others]
         # TODO: Replace previews line with the following:
-        # feeds = self.ins
+        feeds = self.ins
         # This will change results, so review is needed.
         mixed = self.outs[0]
         process_water.empty()
