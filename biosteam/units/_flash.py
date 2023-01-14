@@ -576,7 +576,7 @@ class RatioFlash(Flash):
                 else:
                     flat_index.extend(i)
                     flat_split.extend([j] * len(i))
-            return np.array(flat_index), np.array(flat_split)
+            return flat_index, flat_split
         
         K_index, Ks = flattend(indices(self.K_chemicals), self.Ks)
         top_index, top_split = flattend(indices(self.top_solvents), self.top_split)

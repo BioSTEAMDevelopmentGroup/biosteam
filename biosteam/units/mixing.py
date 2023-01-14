@@ -177,7 +177,7 @@ class SteamMixer(Unit):
         if solids_loading is not None:
             chemicals = self.chemicals
             index = chemicals.get_index(self.liquid_IDs)
-            available_water = (18.01528 * sum([i.mol[index].sum() for i in feeds if i])).sum()
+            available_water = (18.01528 * sum([(j.sum() if hasattr((j:=i.mol[index]), 'sum') else j) for i in feeds if i]))
             solid_IDs = self.solid_IDs
             if solid_IDs:
                 F_mass_solids = sum([i.imass[solid_IDs].sum() for i in feeds if i])
