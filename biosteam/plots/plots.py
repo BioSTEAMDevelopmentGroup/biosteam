@@ -1044,11 +1044,11 @@ def plot_contour_2d(X_grid, Y_grid, Z_1d, data,
                               levels=metric_bar.levels,
                               cmap=metric_bar.cmap)
             if label:
-                cs = plt.contour(cp, zorder=1e16,
+                cs = plt.contour(cp, zorder=1,
                                  linestyles='dashed', linewidths=0.5,
                                  levels=cp.levels, colors=[linecolor])
                 clabels = ax.clabel(cs, levels=[i for i in cs.levels[::2] if i!=metric_bar.levels[-1]], inline=True, fmt=metric_bar.fmt,
-                          colors=['k'], zorder=1e16)
+                          colors=['k'], zorder=1)
                 for i in clabels: i.set_rotation(0)
             cps[row, col] = cp
             if not row_bars:
