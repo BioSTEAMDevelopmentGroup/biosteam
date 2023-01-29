@@ -13,7 +13,7 @@
 
 """
 from __future__ import annotations
-__version__ = '2.36.0'
+__version__ = '2.36.1'
 
 #: Chemical engineering plant cost index (defaults to 567.5 at 2017).
 CE: float = 567.5 
