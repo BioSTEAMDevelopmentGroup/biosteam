@@ -145,13 +145,13 @@ class SteamMixer(Unit):
     --------
     >>> import biosteam as bst
     >>> bst.settings.set_thermo(['Water', 'Glucose'])
-    >>> feed = bst.Stream(None, Water=10, Glucose=10)
-    >>> M1 = bst.SteamMixer(None, ins=[feed, 'steam', 'process_water'], T=431.15, P=557287.5, solids_loading=0.3)
+    >>> feed = bst.Stream('feed', Water=10, Glucose=10)
+    >>> M1 = bst.SteamMixer(None, ins=[feed, 'steam', 'process_water'], outs='outlet', T=431.15, P=557287.5, solids_loading=0.3)
     >>> M1.simulate()
     >>> M1.show('cwt100') # Note that outlet solids loading is not exactly 0.3 because of the steam requirement.
     SteamMixer: M.1
     ins...
-    [0] s.1
+    [0] feed
         phase: 'l', T: 298.15 K, P: 101325 Pa
         composition (%): Water    9.09
                          Glucose  90.9
@@ -165,7 +165,7 @@ class SteamMixer(Unit):
         composition (%): Water  100
                          -----  4.02e+03 kg/hr
     outs...
-    [0] s1
+    [0] outlet
         phase: 'l', T: 431.15 K, P: 557288 Pa
         composition (%): Water    75.3
                          Glucose  24.7
@@ -176,7 +176,7 @@ class SteamMixer(Unit):
     >>> M1.show('cwt100') # Now the outlet solids content is exactly 0.3
     SteamMixer: M.1
     ins...
-    [0] s.1
+    [0] feed
         phase: 'l', T: 298.15 K, P: 101325 Pa
         composition (%): Water    9.09
                          Glucose  90.9
@@ -190,7 +190,7 @@ class SteamMixer(Unit):
         composition (%): Water  100
                          -----  3.01e+03 kg/hr
     outs...
-    [0] s1
+    [0] outlet
         phase: 'l', T: 431.15 K, P: 557288 Pa
         composition (%): Water    70
                          Glucose  30
@@ -203,7 +203,7 @@ class SteamMixer(Unit):
     _graphics = mixer_graphics
     installation_cost = purchase_cost = 0.
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
-                 P, T, solids_loading=None, 
+                 P, T=None, solids_loading=None, 
                  liquid_IDs=['7732-18-5'], solid_IDs=None,
                  solids_loading_includes_steam=None):
         Unit.__init__(self, ID, ins, outs, thermo)
