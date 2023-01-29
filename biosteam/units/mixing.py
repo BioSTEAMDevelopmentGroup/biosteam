@@ -162,19 +162,28 @@ class SteamMixer(Unit):
         self.steam.copy_like(utility)
     
     def pressure_objective_function(self, steam_mol):
-        try:
-            feed, steam, process_water, *others = self.ins
-        except ValueError:
-            feed, steam, *others = self.ins
-        feeds = [feed, *others]
-        # TODO: Replace previews line with the following:
-        # feeds = self.ins
-        # This will change results, so review is needed.
         mixed = self.outs[0]
-        process_water.empty()
-        steam.imol['7732-18-5'] = steam_mol # Only change water
+        self.steam.imol['7732-18-5'] = steam_mol # Only change water
+        if self.P: mixed.P = self.P # Assume pumps take care of this
+        mixed.mix_from(self.ins)
+        if self.T:
+            return self.T - mixed.T
+        else: # If no pressure, assume it is at the boiling point
+            P_new = mixed.chemicals.Water.Psat(min(mixed.T, mixed.chemicals.Water.Tc - 1))
+            return self.P - P_new
+    
+    def _setup(self):
+        super()._setup()
+        if self.steam.isempty(): self.reset_cache()
+    
+    def _run(self):
         solids_loading = self.solids_loading
         if solids_loading is not None:
+            # Solids loading need to be achieved first before mixing with steam
+            # to avoid pumping issues (see Humbird 2011 NREL report).
+            feed, steam, process_water, *others = self.ins
+            process_water.empty()
+            feeds = [feed, *others]
             chemicals = self.chemicals
             index = chemicals.get_index(self.liquid_IDs)
             available_water = 18.01528 * sum([(j.sum() if hasattr((j:=i.mol[index]), 'sum') else j) for i in feeds if i])
@@ -189,20 +198,8 @@ class SteamMixer(Unit):
                 process_water.imol['7732-18-5'] = max(required_water - available_water, 0.) / 18.01528
             except NameError:
                 raise RuntimeError('missing process water stream')
-        if self.P: mixed.P = self.P # Assume pumps take care of this
-        mixed.mix_from(self.ins)
-        if self.T:
-            return self.T - mixed.T
-        else: # If no pressure, assume it is at the boiling point
-            P_new = mixed.chemicals.Water.Psat(min(mixed.T, mixed.chemicals.Water.Tc - 1))
-            return self.P - P_new
-    
-    def _setup(self):
-        super()._setup()
-        if self.steam.isempty(): self.reset_cache()
-    
-    def _run(self):
-        steam = self.ins[1]
+        else:
+            steam = self.steam
         steam_mol = steam.F_mol or 1.
         f = self.pressure_objective_function
         steam_mol = flx.IQ_interpolation(f, *flx.find_bracket(f, 0., steam_mol, None, None), 
