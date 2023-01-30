@@ -156,6 +156,8 @@ tools for sustainability assessments. Here is a short list of related publicatio
 
 * **Bioproduct and biofuel studies**:
 
+  - `Metabolic engineering of Yarrowia lipolytica to produce 1,2-diacyl-3-acetyl triacylglycerol. Metabolic Engineering. 2023 <https://doi.org/10.1016/j.ymben.2023.01.003>`_
+
   - `Economic and Environmental Sustainability of Vegetative Oil Extraction Strategies at Integrated Oilcane and Oil-sorghum Biorefineries. ACS Sustainable Chem. Eng. 2022 <https://doi.org/10.1021/acssuschemeng.2c04204>`_
 
   - `Adsorptive separation and recovery of triacetic acid lactone from fermentation broth. Biofuels Bioprod Bioref 2022 <https://doi.org/10.1002/bbb.2427>`_
