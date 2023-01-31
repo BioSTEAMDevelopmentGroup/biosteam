@@ -38,14 +38,14 @@ def test_unit_inheritance_setup_method():
 def test_process_specifications_linear():
     bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
     with bst.System() as sys:
-        T1 = bst.StorageTank(ins=bst.Stream(Water=1000))
-        H1 = bst.HXutility(ins=T1-0, T=320)
-        T2 = bst.StorageTank(ins=bst.Stream(Ethanol=1000))
-        H2 = bst.HXutility(ins=T2-0, T=320)
-        T3 = bst.StorageTank(ins=bst.Stream(Water=10))
-        H3 = bst.HXutility(ins=T3-0, T=320)
-        M1 = bst.Mixer(ins=[H1-0, H2-0, H3-0])
-        H4 = bst.HXutility(ins=M1-0, T=350)
+        T1 = bst.StorageTank('T1', ins=bst.Stream(Water=1000))
+        H1 = bst.HXutility('H1', ins=T1-0, T=320)
+        T2 = bst.StorageTank('T2', ins=bst.Stream(Ethanol=1000))
+        H2 = bst.HXutility('H2', ins=T2-0, T=320)
+        T3 = bst.StorageTank('T3', ins=bst.Stream(Water=10))
+        H3 = bst.HXutility('H3', ins=T3-0, T=320)
+        M1 = bst.Mixer('M1', ins=[H1-0, H2-0, H3-0])
+        H4 = bst.HXutility('H4', ins=M1-0, T=350)
     
     # Specification impacting upstream units
     @M1.add_specification(run=True, impacted_units=[T1, T2])
@@ -53,7 +53,6 @@ def test_process_specifications_linear():
         water = T1.ins[0]
         ethanol = T2.ins[0]
         water.F_mass = ethanol.F_mass
-    
     sys.simulate()
     assert set(M1.specifications[0].path) == set([T1, T2, H1, H2])
     assert (H4.outs[0].mol == sum([i.ins[0].mol for i in (T1, T2, T3)])).all()
@@ -200,6 +199,32 @@ def test_unit_graphics():
     with pytest.warns(GraphicsWarning):
         assert M._graphics.get_outlet_options(M, 1) == {'tailport': 'c'}
 
+def test_cost_decorator():
+    from biosteam.units.decorators import cost
+    bst.settings.set_thermo(['Water'], cache=True)
+    @cost('Flow rate', CE=bst.settings.CEPCI, cost=1, n=0.6, lb=2, ub=10, units='kg/hr', BM=2.)
+    class A(bst.Unit): pass
+    
+    feed = bst.Stream('feed', Water=1, units='kg/hr')
+    
+    # Test when size factor is under lower bound
+    A1 = A('A1', ins=feed)
+    A1.simulate()
+    assert_allclose(A1.purchase_cost, 2 ** 0.6)
+    assert_allclose(A1.installed_cost, 2 ** 1.6)
+    
+    # Test when size factor is between lower and upper bound
+    feed.imass['Water'] = 5
+    A1.simulate()
+    assert_allclose(A1.purchase_cost, 5 ** 0.6)
+    assert_allclose(A1.installed_cost, 2 * 5 ** 0.6)
+    
+    # Test when size factor is above upper bound
+    feed.imass['Water'] = 20
+    A1.simulate()
+    assert_allclose(A1.purchase_cost, 2 * 10 ** 0.6)
+    assert_allclose(A1.installed_cost, 4 * 10 ** 0.6)
+    
 def test_equipment_lifetimes():
     from biorefineries.sugarcane import create_tea
     bst.settings.set_thermo(['Water'], cache=True)
@@ -286,4 +311,5 @@ if __name__ == '__main__':
     test_process_specifications_with_recycles()
     test_unit_connections()
     test_unit_graphics()
+    test_cost_decorator()
     test_equipment_lifetimes()

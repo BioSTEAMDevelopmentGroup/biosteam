@@ -15,7 +15,7 @@
 import os
 import sys
 
-new_path = ['..\\', '..\\thermosteam\\']
+new_path = ['..\\', '..\\thermosteam\\', '..\\Bioindustrial-Park\\']
 for p in new_path:
      sys.path.insert(0, os.path.abspath(p))
 
@@ -69,6 +69,7 @@ extensions = [
     "matplotlib.sphinxext.plot_directive",
     # "myst_nb",
     # "sphinx_design",
+    'IPython.sphinxext.ipython_console_highlighting', # Fixes bug with pygments highlighting in nbsphinx (a workaround)
     'sphinx_design',
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
@@ -82,6 +83,7 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx_multitoc_numbering',
     'sphinx_autodoc_typehints',
+    'myst_parser',
     'nbsphinx']
 
 try:
@@ -229,7 +231,7 @@ templates_path = ['_templates']
 # You can specify multiple suffix as a list of string:
 #
 # source_suffix = ['.rst', '.md']
-source_suffix = ['.txt', '.rst']
+source_suffix = ['.txt', '.rst', '.md']
 
 # The master toctree document.
 master_doc = 'index'
@@ -269,7 +271,7 @@ html_theme_options = {
         'image_dark': 'logo_dark.png'
     },
     "announcement": (
-        "<p>Join us every 3rd Monday, 10am CST, for monthly BioSTEAM updates and Q&A! "
+        "<p>Join us on Feb 3, 9:15-10:15am CST, for a BioSTEAM workshop! "
         "<a href='mailto: biosteamdevelopmentgroup@gmail.com'>Email us for details</a></p>"
     ),
     "external_links": [

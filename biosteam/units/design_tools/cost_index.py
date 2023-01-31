@@ -48,6 +48,13 @@ CEPCI_by_year = {1980: 261,
                  2012: 585,
                  2013: 567,
                  2014: 576,
-                 2015: 542,
-                 2016: 568,
-                 2018: 603}
+                 # 2015-2021 updated based on
+                 # https://www.toweringskills.com/financial-analysis/cost-indices/ (accessed 11-25-22)
+                 2015: 557,
+                 2016: 542,
+                 2017: 568, 
+                 2018: 603,
+                 2019: 608,
+                 2020: 596,
+                 2021: 708,
+                 }

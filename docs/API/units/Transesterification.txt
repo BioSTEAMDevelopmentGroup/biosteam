@@ -1,5 +1,0 @@
-Transesterification
-===================
-
-.. autoclass:: biosteam.units.Transesterification
-   :members:

@@ -52,10 +52,14 @@ class PenWidth:
     __slots__ = ('name', 'percentiles')
     def __init__(self, name, streams):
         self.name = name
-        self.percentiles = np.percentile(
-            [s.get_property(name) for s in streams if not s.isempty()] or [0], 
-            [33, 66, 100]
-        )
+        values = [s.get_property(name) for s in streams if not s.isempty()] or [0] 
+        try:
+            self.percentiles = np.percentile(
+                values, 
+                [33, 66, 100]
+            )
+        except:
+            self.percentiles = 3 * [max(values)]
     
     def __call__(self, stream):
         value = stream.get_property(self.name)
@@ -268,7 +272,7 @@ def fill_info_from_path(path, indices, info_by_unit):
         else:
             if profile: # pragma: no cover
                 t = TicToc()
-                for n in range(10):
+                for n in range(1):
                     t.tic(); u.simulate(); t.toc()
                     if n > 1 and sum(t.record) > 0.2: break 
                 time = f"{1000 * t.mean:.2g} ms"

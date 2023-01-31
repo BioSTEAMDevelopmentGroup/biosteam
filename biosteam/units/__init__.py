@@ -10,6 +10,7 @@
 from .._unit import Unit
 from .mixing import *
 from .splitting import *
+from .molecular_sieve import *
 from .vacuum_system import *
 from ._pump import *
 from .heat_exchange import *
@@ -25,12 +26,10 @@ from .solids_separation import *
 from ._batch_bioreactor import *
 from ._batch_crystallizer import *
 from ._fermentation import *
-from ._transesterification import *
 from ._enzyme_treatment import *
 from ._clarifier import *
 from ._screw_feeder import *
 from ._magnetic_separator import *
-from ._molecular_sieve import *
 from ._conveying_belt import *
 from ._vent_scrubber import *
 from ._vibrating_screen import *
@@ -52,18 +51,17 @@ from . import (
     _pump, 
     _multi_effect_evaporator, 
     _magnetic_separator,
-    _molecular_sieve, 
     _conveying_belt, 
     _vent_scrubber,
     _vibrating_screen,
     _junction, 
-    _transesterification, 
     _fermentation, 
     _enzyme_treatment, 
     _clarifier, 
     _balance,  
     _screw_feeder,
     cstr,
+    molecular_sieve,
     vacuum_system,
     adsorption,
     size_reduction, 
@@ -91,6 +89,7 @@ from . import (
 )
 
 __all__ = ('Unit',
+           *molecular_sieve.__all__,
            *liquid_liquid_extraction.__all__,
            *_diagram_only_units.__all__,
            *_flash.__all__,
@@ -102,13 +101,11 @@ __all__ = ('Unit',
            *distillation.__all__,
            *tank.__all__,
            *cstr.__all__,
-           *_molecular_sieve.__all__,
            *_conveying_belt.__all__,
            *_vent_scrubber.__all__,
            *_vibrating_screen.__all__,
            *_junction.__all__,
            *solids_separation.__all__,
-           *_transesterification.__all__,
            *_fermentation.__all__, 
            *_enzyme_treatment.__all__,
            *_clarifier.__all__,

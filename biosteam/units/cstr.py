@@ -129,52 +129,28 @@ class CSTR(PressureVessel, Unit, isabstract=True):
                         Yeast    484
     
     >>> R1.results()
-    Continuous fermentation                                    Units  \
-    Electricity         Power                                     kW   
-                        Cost                                  USD/hr   
-    Chilled water       Duty                                   kJ/hr   
-                        Flow                                 kmol/hr   
-                        Cost                                  USD/hr   
-    Design              Residence time                            hr   
-                        Total volume                              m3   
-                        Single reactor volume                     m3   
-                        Vessel type                                    
-                        Length                                    ft   
-                        Diameter                                  ft   
-                        Weight                                    lb   
-                        Wall thickness                            in   
-                        Vessel material                                
-    Purchase cost       Vertical pressure vessel (x4)            USD   
-                        Platform and ladders (x4)                USD   
-                        Heat exchanger - Floating head (x4)      USD   
-                        Recirculation pump - Pump (x4)           USD   
-                        Recirculation pump - Motor (x4)          USD   
-    Total purchase cost                                          USD   
-    Utility cost                                              USD/hr   
-    <BLANKLINE>
-    Continuous fermentation                                                   R1  
-    Electricity         Power                                           1.34e+03  
-                        Cost                                                 105  
-    Chilled water       Duty                                           -6.96e+06  
-                        Flow                                            4.67e+03  
-                        Cost                                                34.8  
-    Design              Residence time                                         8  
-                        Total volume                                    1.28e+03  
-                        Single reactor volume                                319  
-                        Vessel type                                     Vertical  
-                        Length                                              38.6  
-                        Diameter                                            19.3  
-                        Weight                                           5.8e+04  
-                        Wall thickness                                     0.398  
-                        Vessel material                      Stainless steel 316  
-    Purchase cost       Vertical pressure vessel (x4)                   1.24e+06  
-                        Platform and ladders (x4)                       1.94e+05  
-                        Heat exchanger - Floating head (x4)             1.19e+05  
-                        Recirculation pump - Pump (x4)                  2.73e+04  
-                        Recirculation pump - Motor (x4)                  5.1e+03  
-    Total purchase cost                                                 1.59e+06  
-    Utility cost                                                             140  
-    Utility cost                                                             140  
+    Continuous fermentation                                    Units                   R1
+    Electricity         Power                                     kW             1.34e+03
+                        Cost                                  USD/hr                  105
+    Chilled water       Duty                                   kJ/hr            -6.99e+06
+                        Flow                                 kmol/hr             4.69e+03
+                        Cost                                  USD/hr                   35
+    Design              Residence time                            hr                    8
+                        Total volume                              m3             1.28e+03
+                        Single reactor volume                     m3                  319
+                        Vessel type                                              Vertical
+                        Length                                    ft                 38.6
+                        Diameter                                  ft                 19.3
+                        Weight                                    lb              5.8e+04
+                        Wall thickness                            in                0.398
+                        Vessel material                               Stainless steel 316
+    Purchase cost       Vertical pressure vessel (x4)            USD             1.24e+06
+                        Platform and ladders (x4)                USD             1.94e+05
+                        Heat exchanger - Floating head (x4)      USD             1.19e+05
+                        Recirculation pump - Pump (x4)           USD             2.73e+04
+                        Recirculation pump - Motor (x4)          USD             5.11e+03
+    Total purchase cost                                          USD             1.59e+06
+    Utility cost                                              USD/hr                  140
     
     References
     ----------

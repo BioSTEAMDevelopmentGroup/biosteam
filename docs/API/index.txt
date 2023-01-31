@@ -4,16 +4,18 @@
    <style> .green {color:#7ac083; font-weight:bold} </style>
    <style> .orange {color:#f98f60; font-weight:bold} </style>
    <style> .blue {color:#60c1cf; font-weight:bold} </style>
+   <style> .purple {color:#a180b8; font-weight:bold} </style>
 
 .. role:: red
 .. role:: green
 .. role:: orange
 .. role:: blue
+.. role:: purple
 
 API reference
 -------------
 
-BioSTEAM's main components can be categorized by 4 functionality levels: 
+BioSTEAM's main components can be categorized by 5 functionality levels: 
 
 .. figure:: ../images/UML.png
    :width: 400
@@ -23,14 +25,16 @@ BioSTEAM's main components can be categorized by 4 functionality levels:
    :width: 400
    :class: only-dark
    :align: center
-- :orange:`Automation` of the simulation of large sets of scenarios is facilitated by :doc:`../API/evaluation/Model` objects which define :doc:`../API/evaluation/Parameter` and :doc:`../API/evaluation/Metric` objects that dictate the input and output features of the model. 
-
-- :red:`Simulation` is carried out by :doc:`../API/System` objects, which can be created without supplying any information on the order of unit simulation. After simulation, :doc:`../API/TEA` objects can perform cashflow analysis to solve for a number of financial indicators.
 
 - :blue:`Equipment` design, costing, and utility requirements are evaluated by :doc:`../API/Unit` objects. All built-in and custom unit operations are subclasses of Unit. Adjustments can be made to the heating and cooling agents of the :doc:`../API/HeatUtility` class (e.g., steam pressure, price) as well as the electricity price of the :doc:`../API/PowerUtility` class.
 
 - :green:`Thermodynamic` equilibrium and mass and energy balances are facilitated by :doc:`../API/thermosteam/Stream` objects, which define material flows, temperature and pressure. Chemical properties and models are imported from `thermo <https://thermo.readthedocs.io/>`_, a community-driven open-source library developed by Caleb Bell. 
 
+- :orange:`Automation` of the simulation of large sets of scenarios is facilitated by :doc:`../API/evaluation/Model` objects which define :doc:`../API/evaluation/Parameter` and :doc:`../API/evaluation/Metric` objects that dictate the input and output features of the model. 
+
+- :red:`Simulation` is carried out by :doc:`../API/System` objects, which can be created without supplying any information on the order of unit simulation. After simulation, :doc:`../API/TEA` objects can perform cashflow analysis to solve for a number of financial indicators.
+
+- :purple:`Biorefinery` models and results are available through the `Bioindustrial-Park <https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park>`_. A number of key biorefinery systems for cellulosic pretreatment, fermentation, and product purification can be imported from the :doc:`biorefineries <../API/biorefineries/index>` library. 
 
 .. toctree::
    :maxdepth: 2
@@ -41,7 +45,7 @@ BioSTEAM's main components can be categorized by 4 functionality levels:
 
 .. toctree::
    :maxdepth: 2
-   :caption: Evaluation
+   :caption: Simulation
    :hidden:
    
    System
@@ -66,8 +70,15 @@ BioSTEAM's main components can be categorized by 4 functionality levels:
    :caption: Thermodynamics
    :hidden:
    
-   thermosteam <thermosteam/index>
+   Thermosteam <thermosteam/index>
    
+.. toctree::
+   :maxdepth: 2
+   :caption: Bioindustrial-Park
+   :hidden:
+   
+   Biorefineries <biorefineries/index>
+
 .. toctree::
    :maxdepth: 2
    :caption: [Other]

@@ -351,6 +351,7 @@ class IsothermalCompressor(Compressor, new_graphics=False):
         out.P = self.P
         out.T = feed.T
         if self.vle is True: out.vle(T=out.T, P=out.P)
+        self.ideal_power, self.ideal_duty = self._calculate_ideal_power_and_duty()
 
     def _design(self):
         super()._design()

@@ -1,13 +1,32 @@
+.. raw:: html
+
+   <style> .red {color:#ed5a6a; font-weight:bold} </style>
+   <style> .green {color:#7ac083; font-weight:bold} </style>
+   <style> .orange {color:#f98f60; font-weight:bold} </style>
+   <style> .blue {color:#60c1cf; font-weight:bold} </style>
+
+.. role:: red
+.. role:: green
+.. role:: orange
+.. role:: blue
+
 Thermosteam: BioSTEAM's Premier Thermodynamic Engine
 ====================================================
 
-Thermosteam is a standalone thermodynamic engine capable of estimating mixture
-properties, solving thermodynamic phase equilibria, and modeling 
-stoichiometric reactions. Thermosteam builds upon 
-`chemicals <https://github.com/CalebBell/chemicals>`_ and 
-`thermo <https://github.com/CalebBell/thermo>`_, from the
-Chemical Engineering Design Library, with a framework tailored to BioSTEAM
-for the simulation of unit operations.
+.. figure:: class_diagram_light.png
+   :class: only-light
+   :align: center
+.. figure:: class_diagram_dark.png
+   :class: only-dark
+   :align: center
+
+- :blue:`Properties:` Thermosteam builds upon `chemicals <https://github.com/CalebBell/chemicals>`_ and `thermo <https://github.com/CalebBell/thermo>`_, from the Chemical Engineering Design Library, for thermodynamic models and data which become encapsulated as callable property classes.
+
+- :green:`Data:` Chemical objects manage the thermodynamic methods and makes sure to use a valid method at given temperatures and pressures whenever estimating properties. 
+
+- :red:`Interface:` A thermodynamic property package is first defined through a Thermo object, which defines the working chemicals, mixing rules, and equlibrium estimation methods. Then, Stream objects can be used to estimate thermodynamic equilibrium, mixture properties, and mass and energy balances. 
+
+- :orange:`Equilibrium:` Phase equilibrium calculations are handled by callable equilibrium objects. The main vapor-liquid equilibrium algorithm solves the modified Raoult’s law equation with activity coefficients estimated through interaction parameters for UNIQUAC Functional-group Activity Coefficients. 
 
 .. toctree::
    :maxdepth: 2
@@ -27,31 +46,6 @@ for the simulation of unit operations.
    indexer/index
    mixture/index
    separations
-
-Overview
---------
-
-Thermosteam is an extensive object oriented package for the estimation of 
-thermodynamic equilibrium, mixture properties, and mass and energy balances. 
-The Stream object is the main interface for performing these calculations. 
-Before creating streams, a thermodynamic property package must be defined 
-through a Thermo object, which compiles the working chemicals, mixing rules, 
-and the equlibrium estimation methods. Each Chemical object contains objects 
-that manages the thermodynamic methods and makes sure to use a valid method at 
-given temperatures and pressures whenever estimating properties. 
-
-.. figure:: class_diagram_light.svg
-   :class: only-light
-   :align: center
-.. figure:: class_diagram_dark.svg
-   :class: only-dark
-   :align: center
-
-A functor-oriented class diagram describes the relationship between the core
-classes of Thermosteam. The function signature of callable objects is 
-presented after their name. For example, an ActivityCoefficients object 
-returns an array of activity coefficients when called with the liquid molar 
-composition (x) and temperature (T). 
 
 Related Projects
 ----------------

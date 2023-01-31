@@ -190,7 +190,7 @@ class HeatExchangerNetwork(Facility):
                     for s_in, s_out in zip(unit.ins, unit.outs):
                         if isinstance(s_out, bst.MultiStream):
                             s_out.F_mol = s_in.F_mol
-                            if not (s_out.mol == s_in.mol).all():
+                            if not s_out.mol.sparse_equal(s_in.mol):
                                 s_out.copy_flow(s_in)
                                 s_out.vle(T=s_out.T, P=s_out.P)
                         else:
@@ -309,6 +309,7 @@ class HeatExchangerNetwork(Facility):
                     self.heat_utilities = []
                     for hx_heat_util, new_hx_util in zip(hx_heat_utils_rearranged, new_HX_utils):
                         hx_heat_util.copy_like(new_hx_util.heat_utilities[0])
+                        hx_heat_util.unit.owner._load_utility_cost() # Update new utility cost
                 else:
                     self.heat_utilities = hus_final
             else: # if no matches were made, retain all original HXutilities (i.e., don't add the -- relatively minor -- differences between new and original HXutilities)

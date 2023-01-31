@@ -208,6 +208,7 @@ class Unit:
     
     
     """ 
+    max_parallel_units = int(10e3)
     
     def __init_subclass__(cls,
                           isabstract=False,
@@ -221,7 +222,7 @@ class Unit:
                  DeprecationWarning, stacklevel=2)
         if 'run' in dct:
             raise UnitInheritanceError(
-                 "the 'run' method cannot be overrided; implement `_run` instead"
+                 "the 'run' method cannot be overridden; implement `_run` instead"
             )
         if 'line' not in dct:
             cls.line = format_title(cls.__name__)
@@ -286,6 +287,12 @@ class Unit:
                         "'isabstract' keyword argument is True"
                     )
         if '__init__' in dct and '_stacklevel' not in dct: cls._stacklevel += 1
+        name = cls.__name__
+        if hasattr(bst, 'units'): # Add 3rd party unit to biosteam module for convinience
+            if name not in bst.units.__dict__:
+                bst.units.__dict__[name] = cls
+            if name not in bst.__dict__:
+                bst.__dict__[name] = cls
         
     ### Abstract Attributes ###
     #: **class-attribute** Units of measure for :attr:`~Unit.design_results` dictionary.
@@ -351,7 +358,10 @@ class Unit:
     _design = AbstractMethod
     
     #: Add itemized purchase costs to the :attr:`~Unit.baseline_purchase_costs` dictionary.
-    _cost = AbstractMethod    
+    _cost = AbstractMethod
+
+    #: For embodied emissions (e.g., unit construction) in LCA
+    _lca = AbstractMethod
     
     def __init__(self, ID: Optional[str]='', ins=None, outs=(), thermo: tmo.Thermo=None):
         self._system = None
@@ -377,7 +387,7 @@ class Unit:
         #: Electric utility associated to unit (including auxiliary requirements).
         self.power_utility: PowerUtility = PowerUtility()
     
-        ### Initialize design and cost results
+        ### Initialize design/cost/LCA results
         
         try:
             #: All bare-module factors for each purchase cost. Defaults to values in 
@@ -446,7 +456,7 @@ class Unit:
         
         #: Name-number pairs of baseline purchase costs and auxiliary unit 
         #: operations in parallel. Use 'self' to refer to the main unit. Capital 
-        #: and heat and power utilities in parallel will become propotional to this 
+        #: and heat and power utilities in parallel will become proportional to this 
         #: value.
         self.parallel: dict[str, int] = {}
         
@@ -573,7 +583,7 @@ class Unit:
     outlet = effluent = product
     
     def add_power_utility(self, power):
-        """Add power utility [kW]. Use a postive value for consumption and 
+        """Add power utility [kW]. Use a positive value for consumption and 
         a negative for production."""
         power_utility = self.power_utility
         if power >= 0.:
@@ -854,6 +864,8 @@ class Unit:
                 heat_utilities.extend(unit.heat_utilities)
                 power_utility.consumption += unit.power_utility.consumption
                 power_utility.production += unit.power_utility.production
+            elif N > self.max_parallel_units:
+                raise RuntimeError(f'cannot have over a {self.max_parallel_units} unit operations in parallel')
             else:
                 heat_utilities.extend(N * unit.heat_utilities)
                 power_utility.consumption += N * unit.power_utility.consumption
@@ -1300,7 +1312,7 @@ class Unit:
             else: i.converge() # Must be a system
         
     def _reevaluate(self):
-        """Reevaluate design and costs."""
+        """Reevaluate design/cost/LCA results."""
         self._setup()
         self._summary()
     
@@ -1309,27 +1321,31 @@ class Unit:
         for i in self.heat_utilities:
             if i in auxiliary_heat_utilities:
                 raise UnitInheritanceError(
-                    'auxiliary heat utilities were manualy added to main utilities; '
+                    'auxiliary heat utilities were manually added to main utilities; '
                     'note that utilities from auxiliary units are already automatically '
                     'added to main unit operation'
                 )
     
-    def _summary(self, design_kwargs=None, cost_kwargs=None):
-        """Run design and cost algorithms and compile capital and utility costs."""
+    def _summary(self, design_kwargs=None, cost_kwargs=None, lca_kwargs=None):
+        """Run design/cost/LCA algorithms and compile results."""
         self._check_run()
         if not (self._design or self._cost): return
         self._design(**design_kwargs) if design_kwargs else self._design()
         self._cost(**cost_kwargs) if cost_kwargs else self._cost()
+        self._lca(**lca_kwargs) if lca_kwargs else self._lca()
         self._check_utilities()
         self._load_costs()
+        self._load_utility_cost()
+        
+    def _load_utility_cost(self):
         ins = self._ins._streams
         outs = self._outs._streams
         prices = bst.stream_utility_prices
         self._utility_cost = (
             sum([i.cost for i in self.heat_utilities]) 
             + self.power_utility.cost
-            + sum([ins[index].F_mass * prices[name] for name, index in self._inlet_utility_indices.items()])
-            - sum([outs[index].F_mass * prices[name] for name, index in self._outlet_utility_indices.items()])
+            + sum([s.F_mass * prices[name] for name, index in self._inlet_utility_indices.items() if (s:=ins[index]).price == 0.])
+            - sum([s.F_mass * prices[name] for name, index in self._outlet_utility_indices.items() if (s:=outs[index]).price == 0.])
         )
     
     @property
