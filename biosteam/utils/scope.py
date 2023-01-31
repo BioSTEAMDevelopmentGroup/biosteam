@@ -32,7 +32,7 @@ class Scope():
 
     See Also
     --------
-    `pandas.MultiIndex <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.MultiIndex.html>`
+    `pandas.MultiIndex <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.MultiIndex.html>`_
 
     """    
     def __init__(self, subject, variables, header=None, **kwargs):
@@ -59,6 +59,7 @@ class Scope():
             log.append(self.getter(var))
     
     def reset_cache(self):
+        """Clears all recorded data."""
         self._ts = []
         self._record = {var:[] for var in self._record.keys()}
     
@@ -151,12 +152,12 @@ class SystemScope():
     interpolator : callable, optional
         An interpolation method that takes in time-series data and returns
         an interpolant. Used to export the data at certain time points. 
-        When none specified, will use `scipy.interpolate.InterpolatedUnivariateSpline` 
+        When none specified, will use :class:`scipy.interpolate.InterpolatedUnivariateSpline` 
         with k=1 (i.e., linear) and will raise error when trying to extrapolate.
         
     See Also
     --------
-    `scipy.interpolate.InterpolatedUnivariateSpline <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.InterpolatedUnivariateSpline.html>`
+    `scipy.interpolate.InterpolatedUnivariateSpline <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.InterpolatedUnivariateSpline.html>`_
     """
     def __init__(self, system, *subjects, interpolator=None, **kwargs):
         self.system = system
@@ -178,6 +179,7 @@ class SystemScope():
             s.scope(t)
     
     def reset_cache(self):
+        '''Clears all recorded data.'''
         self._ts = []
         self.sol = None
         for s in self.subjects:
