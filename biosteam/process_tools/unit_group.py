@@ -27,7 +27,7 @@ COOLING_DUTY = 'Cooling duty'
 HEATING_DUTY = 'Heating duty'
 ELECTRICITY_CONSUMPTION = 'Electricity consumption'
 ELECTRICITY_PRODUCTION = 'Electricity production'
-MATERIAL_COST = 'Materiral cost'
+MATERIAL_COST = 'Material cost'
 MAT_COST = 'Mat. cost'
 CAPITAL_UNITS = 'MM$'
 ELEC_UNITS = 'MW'
@@ -445,15 +445,18 @@ class UnitGroup:
         return pd.Series(self.to_dict(with_units), name=self.name)
 
     @classmethod
-    def df_from_groups(cls, unit_groups, fraction=False):
+    def df_from_groups(cls, unit_groups, fraction=False, scale_fractions_to_positive_values=True):
         """Return a pandas.DataFrame object from unit groups."""
         with_units = not fraction
         data = [i.to_series(with_units) for i in unit_groups]
         df = pd.DataFrame(data)
         if fraction:
             values = df.values
-            postive_values = np.where(values > 0., values, 0.)
-            values *= 100 / postive_values.sum(axis=0, keepdims=True)
+            if scale_fractions_to_positive_values:
+                postive_values = np.where(values > 0., values, 0.)
+                values *= 100 / postive_values.sum(axis=0, keepdims=True)
+            else:
+                values *= 100 / values.sum(axis=0, keepdims=True)
         return df
 
     @classmethod
