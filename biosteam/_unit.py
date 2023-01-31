@@ -208,6 +208,7 @@ class Unit:
     
     
     """ 
+    max_parallel_units = int(10e3)
     
     def __init_subclass__(cls,
                           isabstract=False,
@@ -863,6 +864,8 @@ class Unit:
                 heat_utilities.extend(unit.heat_utilities)
                 power_utility.consumption += unit.power_utility.consumption
                 power_utility.production += unit.power_utility.production
+            elif N > self.max_parallel_units:
+                raise RuntimeError(f'cannot have over a {self.max_parallel_units} unit operations in parallel')
             else:
                 heat_utilities.extend(N * unit.heat_utilities)
                 power_utility.consumption += N * unit.power_utility.consumption

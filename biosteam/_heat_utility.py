@@ -93,7 +93,7 @@ class UtilityAgent(Stream):
             flow = getattr(self, name)
             flow[:] = self.mol / factor
         self.mol[:] /= self.mol.sum() # Total flow must be 1 kmol / hr
-        self.mol.setflags(0) # Flow rate cannot change anymore
+        self.mol.read_only = True # Flow rate cannot change anymore
         self._sink = self._source = None
         self._user_equilibrium = None
         self.reset_cache()
@@ -110,8 +110,7 @@ class UtilityAgent(Stream):
         property_cache = self._property_cache
         thermal_condition = self._thermal_condition
         imol = self._imol
-        data = imol._data
-        composition = data
+        composition = imol.data
         if not T: T = thermal_condition._T
         if not P: P = thermal_condition._P
         if nophase:

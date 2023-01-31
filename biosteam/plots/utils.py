@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize, LinearSegmentedColormap
 from matplotlib.cm import ScalarMappable
 
-__all__ = ('annotate_line', 'CABBI_green_colormap', 'MetricBar',
+__all__ = ('CABBI_green_colormap', 'MetricBar',
            'color_bar', *plots.__all__)
 
 # %% Data classes
@@ -133,42 +133,4 @@ def closest_index(x, xs): # pragma: no coverage
             if x > xi: break
     return i
 
-def annotate_line(text, x, xs, ys, dy=0.2, dy_text=0.22, position='under', 
-                  color=colors.brown_shade.RGBn): # pragma: no coverage
-    """
-    Annotate line with text and arrow pointing to text.
-    
-    Parameters
-    ----------
-    text : str
-    x : float
-        Arrow position
-    xs : numpy.ndarray(dim=1)
-    ys : numpy.ndarray(dim=1)
-    dy : float
-        Length of arrow to y-position.
-    dy_text : float
-        Distance of text to arrow.
-    position : {'under', 'over'}
-        Relative position of text to line.
-    color : numpy.ndarray
-        RGB normalized to 1. Defaults to brown.
-    
-    """
-    index = closest_index(x, xs)
-    x = xs[index]
-    y = ys[index]
-    if position == 'under':
-        y *= 0.998
-        y_text = y - dy - dy_text
-    elif position == 'over':
-        y *= 1.002
-        y_text = y + dy + dy_text
-    else:
-        raise ValueError(f"position must be either 'over' or 'under', not '{position}'")
-    dx = 0
-    color = 0.60*color
-    plt.arrow(x, y, dx, dy, linestyle='-', alpha=0.8, color=color, linewidth=1)
-    plt.text(x, y_text, text, color=0.75*color, horizontalalignment='center', fontsize=12)
-    
 del plots

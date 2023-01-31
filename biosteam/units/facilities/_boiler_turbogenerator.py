@@ -373,7 +373,7 @@ class BoilerTurbogenerator(Facility):
             # 20% stoichiometric excess based on P52 of ref [1]
             
             lime.mol[lime_index] = lime_mol = max(0, emissions_mol[sulfur_index] * 1.2)
-            emissions_mol[emissions_mol < 0.] = 0.
+            emissions_mol.remove_negatives()
         else:
             lime.empty()
         # About 0.4536 kg/hr of boiler chemicals are needed per 234484 kg/hr steam produced

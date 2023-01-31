@@ -136,6 +136,65 @@ class SteamMixer(Unit):
         Outlet pressure.
     T : float
         Outlet temperature.
+    solids_loading : float, optional
+        Final solids loading after mixing in process water.
+    soilds_loading_includes_steam : bool, optional
+        Whether to include steam in solids loading calculation.
+    
+    Examples
+    --------
+    >>> import biosteam as bst
+    >>> bst.settings.set_thermo(['Water', 'Glucose'])
+    >>> feed = bst.Stream('feed', Water=10, Glucose=10)
+    >>> M1 = bst.SteamMixer(None, ins=[feed, 'steam', 'process_water'], outs='outlet', T=431.15, P=557287.5, solids_loading=0.3)
+    >>> M1.simulate()
+    >>> M1.show('cwt100') # Note that outlet solids loading is not exactly 0.3 because of the steam requirement.
+    SteamMixer: M.1
+    ins...
+    [0] feed
+        phase: 'l', T: 298.15 K, P: 101325 Pa
+        composition (%): Water    9.09
+                         Glucose  90.9
+                         -------  1.98e+03 kg/hr
+    [1] steam
+        phase: 'g', T: 454.77 K, P: 1.041e+06 Pa
+        composition (%): Water  100
+                         -----  1.28e+03 kg/hr
+    [2] process_water
+        phase: 'l', T: 298.15 K, P: 101325 Pa
+        composition (%): Water  100
+                         -----  4.02e+03 kg/hr
+    outs...
+    [0] outlet
+        phase: 'l', T: 431.15 K, P: 557288 Pa
+        composition (%): Water    75.3
+                         Glucose  24.7
+                         -------  7.29e+03 kg/hr
+    
+    >>> M1.solids_loading_includes_steam = True
+    >>> M1.simulate()
+    >>> M1.show('cwt100') # Now the outlet solids content is exactly 0.3
+    SteamMixer: M.1
+    ins...
+    [0] feed
+        phase: 'l', T: 298.15 K, P: 101325 Pa
+        composition (%): Water    9.09
+                         Glucose  90.9
+                         -------  1.98e+03 kg/hr
+    [1] steam
+        phase: 'g', T: 454.77 K, P: 1.041e+06 Pa
+        composition (%): Water  100
+                         -----  1.02e+03 kg/hr
+    [2] process_water
+        phase: 'l', T: 298.15 K, P: 101325 Pa
+        composition (%): Water  100
+                         -----  3.01e+03 kg/hr
+    outs...
+    [0] outlet
+        phase: 'l', T: 431.15 K, P: 557288 Pa
+        composition (%): Water    70
+                         Glucose  30
+                         -------  6.01e+03 kg/hr
     
     """
     _N_outs = 1
@@ -144,11 +203,14 @@ class SteamMixer(Unit):
     _graphics = mixer_graphics
     installation_cost = purchase_cost = 0.
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
-                 P=None, T=None, solids_loading=None, liquid_IDs=['7732-18-5'], solid_IDs=None):
+                 P, T=None, solids_loading=None, 
+                 liquid_IDs=['7732-18-5'], solid_IDs=None,
+                 solids_loading_includes_steam=None):
         Unit.__init__(self, ID, ins, outs, thermo)
         self.P = P
         self.T = T
         self.solids_loading = solids_loading
+        self.solids_loading_includes_steam = solids_loading_includes_steam
         self.liquid_IDs = tuple(liquid_IDs)
         self.solid_IDs = solid_IDs
     
@@ -162,18 +224,17 @@ class SteamMixer(Unit):
         self.steam.copy_like(utility)
     
     def pressure_objective_function(self, steam_mol):
-        try:
-            feed, steam, process_water, *others = self.ins
-        except ValueError:
-            feed, steam, *others = self.ins
-        feeds = [feed, *others]
         mixed = self.outs[0]
-        steam.imol['7732-18-5'] = steam_mol # Only change water
-        solids_loading = self.solids_loading
-        if solids_loading is not None:
+        self.steam.imol['7732-18-5'] = steam_mol # Only change water
+        if self.P: mixed.P = self.P # Assume pumps take care of this
+        if self.solids_loading_includes_steam and self.solids_loading:
+            solids_loading = self.solids_loading
+            feed, steam, process_water, *others = self.ins
+            process_water.empty()
+            feeds = self.ins
             chemicals = self.chemicals
             index = chemicals.get_index(self.liquid_IDs)
-            available_water = (18.01528 * sum([i.mol[index].sum() for i in feeds if i])).sum()
+            available_water = 18.01528 * sum([(j.sum() if hasattr((j:=i.mol[index]), 'sum') else j) for i in feeds if i])
             solid_IDs = self.solid_IDs
             if solid_IDs:
                 F_mass_solids = sum([i.imass[solid_IDs].sum() for i in feeds if i])
@@ -181,11 +242,7 @@ class SteamMixer(Unit):
                 F_mass_feed = sum([i.F_mass for i in feeds if i])
                 F_mass_solids = F_mass_feed - available_water
             required_water = F_mass_solids * (1. - solids_loading) / solids_loading
-            try:
-                process_water.imol['7732-18-5'] = max(required_water - available_water, 0.) / 18.01528
-            except NameError:
-                raise RuntimeError('missing process water stream')
-        if self.P: mixed.P = self.P # Assume pumps take care of this
+            process_water.imol['7732-18-5'] = max(required_water - available_water, 0.) / 18.01528
         mixed.mix_from(self.ins)
         if self.T:
             return self.T - mixed.T
@@ -198,7 +255,26 @@ class SteamMixer(Unit):
         if self.steam.isempty(): self.reset_cache()
     
     def _run(self):
-        steam = self.ins[1]
+        solids_loading = self.solids_loading
+        if solids_loading is not None and not self.solids_loading_includes_steam:
+            # Solids loading need to be achieved first before mixing with steam
+            # to avoid pumping issues (see Humbird 2011 NREL report).
+            feed, steam, process_water, *others = self.ins
+            process_water.empty()
+            feeds = [feed, *others]
+            chemicals = self.chemicals
+            index = chemicals.get_index(self.liquid_IDs)
+            available_water = 18.01528 * sum([(j.sum() if hasattr((j:=i.mol[index]), 'sum') else j) for i in feeds if i])
+            solid_IDs = self.solid_IDs
+            if solid_IDs:
+                F_mass_solids = sum([i.imass[solid_IDs].sum() for i in feeds if i])
+            else:
+                F_mass_feed = sum([i.F_mass for i in feeds if i])
+                F_mass_solids = F_mass_feed - available_water
+            required_water = F_mass_solids * (1. - solids_loading) / solids_loading
+            process_water.imol['7732-18-5'] = max(required_water - available_water, 0.) / 18.01528
+        else:
+            steam = self.steam
         steam_mol = steam.F_mol or 1.
         f = self.pressure_objective_function
         steam_mol = flx.IQ_interpolation(f, *flx.find_bracket(f, 0., steam_mol, None, None), 

@@ -19,6 +19,7 @@ from .digraph import (digraph_from_units_and_streams,
                       surface_digraph,
                       finalize_digraph)
 from thermosteam import Stream, MultiStream, Chemical
+from thermosteam.base import SparseArray
 from . import HeatUtility, PowerUtility
 from thermosteam.utils import registered
 from scipy.optimize import root
@@ -88,15 +89,13 @@ def get_recycle_data(stream):
     1d array.
     
     """
-    data = stream._imol._data
+    data = stream.imol.data
+    size = data.size
     TP = stream._thermal_condition
-    arr = np.zeros(data.size + 2)
+    arr = np.zeros(size + 2)
     arr[0] = TP.T
     arr[1] = TP.P
-    if hasattr(data, 'flat'): 
-        arr[2:] = data.flat
-    else:
-        data.to_flat_array(arr[2:])
+    data.to_flat_array(arr[2:])
     return arr
 
 def set_recycle_data(stream, arr):
@@ -105,11 +104,8 @@ def set_recycle_data(stream, arr):
     1d array.
     
     """
-    data = stream._imol._data
-    if hasattr(data, 'flat'):
-        data.flat[:] = arr[2:]
-    else:
-        data.from_flat_array(arr[2:])
+    data = stream.imol.data
+    data.from_flat_array(arr[2:])
     TP = stream._thermal_condition
     T = float(arr[0]) # ndfloat objects are slow and parasitic (don't go away)
     P = float(arr[1])
@@ -1646,19 +1642,20 @@ class System:
             if i is recycle: j.append(i.copy(None))
         mol_new = self._get_recycle_mol()
         T_new = self._get_recycle_temperatures()
-        mol_errors = np.abs(mol - mol_new)
-        positive_index = mol_errors > 1e-16
-        mol_errors = mol_errors[positive_index]
-        if mol_errors.size == 0:
-            self._mol_error = mol_error = 0.
-            self._rmol_error = rmol_error = 0.
-        else:
+        mol_errors = abs(mol - mol_new)
+        if mol_errors.any():
             self._mol_error = mol_error = mol_errors.max()
             if mol_error > 1e-12:
-                self._rmol_error = rmol_error = (mol_errors / np.maximum.reduce([np.abs(mol[positive_index]), np.abs(mol_new[positive_index])])).max()
+                nonzero_index = mol_errors.nonzero_index()
+                mol_errors = mol_errors[nonzero_index]
+                max_errors = np.maximum.reduce([abs(mol[nonzero_index]), abs(mol_new[nonzero_index])])
+                self._rmol_error = rmol_error = (mol_errors / max_errors).max()
             else:
                 self._rmol_error = rmol_error = 0.
-        T_errors = np.abs(T - T_new)
+        else:
+            self._mol_error = mol_error = 0.
+            self._rmol_error = rmol_error = 0.
+        T_errors = abs(T - T_new)
         self._T_error = T_error = T_errors.max()
         self._rT_error = rT_error = (T_errors / T).max()
         self._iter += 1
@@ -1697,9 +1694,9 @@ class System:
         recycles = self.get_all_recycles()
         N = len(recycles)
         if N == 1:
-            return recycles[0]._imol._data.copy()
+            return recycles[0].mol.copy()
         elif N > 1: 
-            return np.hstack([i._imol._data for i in recycles])
+            return SparseArray([i.mol.copy() for i in recycles])
         else:
             raise RuntimeError('no recycle available')
 
@@ -1720,11 +1717,11 @@ class System:
             set_recycle_data(recycles[0], data)
         elif N > 1:
             N = data.size
-            M = sum([i._imol._data.size + 2 for i in recycles])
+            M = sum([i.mol.size + 2 for i in recycles])
             if M != N: raise IndexError(f'expected {N} elements; got {M} instead')
             index = 0
             for i in recycles:
-                end = index + i._imol._data.size + 2
+                end = index + i.mol.size + 2
                 set_recycle_data(i, data[index:end])
                 index = end
         else:
@@ -1839,16 +1836,18 @@ class System:
             M = len(recycles)
             N = len(IDs)
             material_flows = np.zeros([M, N])
-            for i, s in enumerate(recycles): material_flows[i] = s.mol
+            for i, s in enumerate(recycles): 
+                mol = s.mol
+                for j, v in mol.nonzero_items(): material_flows[i, j] = v
         else:
             IDs = sorted(set(sum(all_IDs, ())))
             index = {j: i for i, j in enumerate(IDs)}
             M = len(recycles)
             N = len(IDs)
             material_flows = np.zeros([M, N])
+            IDs_old = s.chemicals.IDs
             for i, s in enumerate(recycles):
-                for ID, value in zip(s.chemicals.IDs, s.mol):
-                    material_flows[i, index[ID]] = value
+                for j, v in mol.nonzero_items(): material_flows[i, index[IDs_old[j]]] = v
             IDs = None
         return MaterialData(
             material_flows=material_flows,

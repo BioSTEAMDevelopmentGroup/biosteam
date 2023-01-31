@@ -541,14 +541,7 @@ class Model(State):
             Function to evaluate model. Defaults to evaluate method.
         
         """
-        if self._samples is None: raise RuntimeError('must load samples before evaluating')
-        N_samples, _ = self.table.shape
         N_points = len(coordinate)
-        
-        # Initialize data containers
-        metric_indices = var_indices(self.metrics)
-        shape = (N_samples, N_points)
-        metric_data = {i: np.zeros(shape) for i in metric_indices}
         if f_evaluate is None: f_evaluate = self.evaluate
         
         # Initialize timer
@@ -562,9 +555,16 @@ class Model(State):
         else:
             evaluate = f_evaluate
         
+        metric_data = None
         for n, x in enumerate(coordinate):
             f_coordinate(*x) if multi_coordinate else f_coordinate(x)
             evaluate()
+            # Initialize data containers dynamically in case samples are loaded during evaluation
+            if metric_data is None:
+                N_samples, _ = self.table.shape
+                metric_indices = var_indices(self.metrics)
+                shape = (N_samples, N_points)
+                metric_data = {i: np.zeros(shape) for i in metric_indices}
             for metric in metric_data:
                 metric_data[metric][:, n] = self.table[metric]
         

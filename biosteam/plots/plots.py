@@ -12,7 +12,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import biosteam as bst
 from biosteam.utils import colors as c, CABBI_colors
-from .utils import style_axis, style_plot_limits, fill_plot, set_axes_labels, MetricBar
+from .utils import style_axis, style_plot_limits, fill_plot, set_axes_labels, MetricBar, closest_index
 from thermosteam.units_of_measure import format_units, reformat_units
 import matplotlib.patches as mpatches
 from math import floor, ceil
@@ -23,6 +23,7 @@ from collections import deque
 __all__ = (
     'rounted_tickmarks_from_range',
     'rounded_tickmarks_from_data',
+    'annotate_line',
     'plot_unit_groups',
     'plot_unit_groups_across_coordinate',
     'plot_montecarlo', 
@@ -52,6 +53,46 @@ __all__ = (
 
 default_light_color = c.orange_tint.RGBn
 default_dark_color = c.orange_shade.RGBn
+
+def annotate_line(text, x, xs, ys, dy=0.2, dy_text=0.22, position='under', 
+                  color=None): # pragma: no coverage
+    """
+    Annotate line with text and arrow pointing to text.
+    
+    Parameters
+    ----------
+    text : str
+    x : float
+        Arrow position
+    xs : numpy.ndarray(dim=1)
+    ys : numpy.ndarray(dim=1)
+    dy : float
+        Length of arrow to y-position.
+    dy_text : float
+        Distance of text to arrow.
+    position : {'under', 'over'}
+        Relative position of text to line.
+    color : numpy.ndarray
+        RGB normalized to 1. Defaults to brown.
+    
+    """
+    index = closest_index(x, xs)
+    x = xs[index]
+    y = ys[index]
+    if position == 'under':
+        y *= 0.998
+        y_text = y - dy - dy_text
+    elif position == 'over':
+        y *= 1.002
+        y_text = y + dy + dy_text
+    else:
+        raise ValueError(f"position must be either 'over' or 'under', not '{position}'")
+    dx = 0
+    if color is None: color = default_dark_color
+    color = 0.60 * color
+    plt.arrow(x, y, dx, dy, linestyle='-', alpha=0.8, color=color, linewidth=1)
+    plt.text(x, y_text, text, color=0.75*color, horizontalalignment='center', fontsize=12)
+    
 
 def plot_horizontal_line(y, color='grey', **kwargs): # pragma: no coverage
     """Plot horizontal line."""
@@ -139,9 +180,10 @@ def subplots(N_axes):
         N_cols = 1
     return plt.subplots(nrows=N_rows, ncols=N_cols)
 
-def contour_subplots(N_rows, N_cols, single_colorbar=False):
+def contour_subplots(N_rows, N_cols, single_colorbar=False, wbar=None):
+    if wbar is None: wbar = 1
     widths = np.ones(N_cols + 1)
-    widths[-1] /= 4
+    widths[-1] *= wbar / 4
     gs_kw = dict(width_ratios=widths)
     fig, axes = plt.subplots(nrows=N_rows, ncols=N_cols + 1, gridspec_kw=gs_kw)
     axes = axes.reshape([N_rows, N_cols + 1])
@@ -954,7 +996,7 @@ def plot_contour_2d(X_grid, Y_grid, Z_1d, data,
                     metric_bars, Z_label=None,
                     Z_value_format=lambda Z: str(Z),
                     fillcolor=None, styleaxiskw=None,
-                    label=False): # pragma: no coverage
+                    label=False, wbar=1): # pragma: no coverage
     """Create contour plots and return the figure and the axes."""
     if isinstance(metric_bars[0], MetricBar):
         nrows = len(metric_bars)
@@ -971,11 +1013,11 @@ def plot_contour_2d(X_grid, Y_grid, Z_1d, data,
        
     )
     if row_bars:
-        fig, axes = contour_subplots(nrows, ncols)
+        fig, axes = contour_subplots(nrows, ncols, wbar=wbar)
         cbs = np.zeros([nrows], dtype=object)
     else:
         wr = np.ones(ncols)
-        wr[-1] += 1 / (3 * ncols)
+        wr[-1] += wbar / (3 * ncols)
         gs = dict(
             width_ratios=wr
         )
@@ -1002,11 +1044,11 @@ def plot_contour_2d(X_grid, Y_grid, Z_1d, data,
                               levels=metric_bar.levels,
                               cmap=metric_bar.cmap)
             if label:
-                cs = plt.contour(cp, zorder=1e16,
+                cs = plt.contour(cp, zorder=1,
                                  linestyles='dashed', linewidths=0.5,
                                  levels=cp.levels, colors=[linecolor])
                 clabels = ax.clabel(cs, levels=[i for i in cs.levels[::2] if i!=metric_bar.levels[-1]], inline=True, fmt=metric_bar.fmt,
-                          colors=['k'], zorder=1e16)
+                          colors=['k'], zorder=1)
                 for i in clabels: i.set_rotation(0)
             cps[row, col] = cp
             if not row_bars:

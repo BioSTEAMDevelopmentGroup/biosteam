@@ -38,14 +38,14 @@ def test_unit_inheritance_setup_method():
 def test_process_specifications_linear():
     bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
     with bst.System() as sys:
-        T1 = bst.StorageTank(ins=bst.Stream(Water=1000))
-        H1 = bst.HXutility(ins=T1-0, T=320)
-        T2 = bst.StorageTank(ins=bst.Stream(Ethanol=1000))
-        H2 = bst.HXutility(ins=T2-0, T=320)
-        T3 = bst.StorageTank(ins=bst.Stream(Water=10))
-        H3 = bst.HXutility(ins=T3-0, T=320)
-        M1 = bst.Mixer(ins=[H1-0, H2-0, H3-0])
-        H4 = bst.HXutility(ins=M1-0, T=350)
+        T1 = bst.StorageTank('T1', ins=bst.Stream(Water=1000))
+        H1 = bst.HXutility('H1', ins=T1-0, T=320)
+        T2 = bst.StorageTank('T2', ins=bst.Stream(Ethanol=1000))
+        H2 = bst.HXutility('H2', ins=T2-0, T=320)
+        T3 = bst.StorageTank('T3', ins=bst.Stream(Water=10))
+        H3 = bst.HXutility('H3', ins=T3-0, T=320)
+        M1 = bst.Mixer('M1', ins=[H1-0, H2-0, H3-0])
+        H4 = bst.HXutility('H4', ins=M1-0, T=350)
     
     # Specification impacting upstream units
     @M1.add_specification(run=True, impacted_units=[T1, T2])
@@ -53,7 +53,6 @@ def test_process_specifications_linear():
         water = T1.ins[0]
         ethanol = T2.ins[0]
         water.F_mass = ethanol.F_mass
-    
     sys.simulate()
     assert set(M1.specifications[0].path) == set([T1, T2, H1, H2])
     assert (H4.outs[0].mol == sum([i.ins[0].mol for i in (T1, T2, T3)])).all()

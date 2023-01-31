@@ -63,6 +63,7 @@ __all__ = (
     'AerobicDigestion', 
     'ReverseOsmosis',
     'WastewaterSystemCost',
+    'SludgeCentrifuge',
     'get_digestable_organic_chemicals',
     'create_wastewater_treatment_system',
 )
@@ -344,7 +345,7 @@ class SludgeCentrifuge(SolidsSeparator):
     """
     purchase_cost = installation_cost = 0
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
-                 split=None, order=None, moisture_content=None):
+                 split=None, order=None, moisture_content=None, strict_moisture_content=None):
         self._load_thermo(thermo)
         chemicals = self.chemicals
         ID_water = chemicals['7732-18-5'].ID # Water must be defined
@@ -407,14 +408,14 @@ class SludgeCentrifuge(SolidsSeparator):
             moisture_content = 0.79
         SolidsSeparator.__init__(
             self, ID, ins, outs, thermo, split=split, order=order,
-            moisture_content=moisture_content, 
+            moisture_content=moisture_content, strict_moisture_content=strict_moisture_content
         )
         
     def _run(self):
         ins = self.ins
         retentate, permeate = self.outs # Filtrate, solids
         separations.mix_and_split(ins, retentate, permeate, self.split)
-        separations.adjust_moisture_content(permeate, retentate, self.moisture_content, None)
+        separations.adjust_moisture_content(permeate, retentate, self.moisture_content, None, self.strict_moisture_content)
         
 # TODO: Split values seem arbitrary in NREL 2011 model, perhaps work on a better model
 class MembraneBioreactor(Splitter):

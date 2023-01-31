@@ -190,7 +190,7 @@ class HeatExchangerNetwork(Facility):
                     for s_in, s_out in zip(unit.ins, unit.outs):
                         if isinstance(s_out, bst.MultiStream):
                             s_out.F_mol = s_in.F_mol
-                            if not (s_out.mol == s_in.mol).all():
+                            if not s_out.mol.sparse_equal(s_in.mol):
                                 s_out.copy_flow(s_in)
                                 s_out.vle(T=s_out.T, P=s_out.P)
                         else:
