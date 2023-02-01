@@ -446,7 +446,52 @@ class UnitGroup:
 
     @classmethod
     def df_from_groups(cls, unit_groups, fraction=False, scale_fractions_to_positive_values=True):
-        """Return a pandas.DataFrame object from unit groups."""
+        """
+        Return a pandas.DataFrame object from unit groups.
+        
+        Parameters
+        ----------
+        fraction: Boolean, optional.
+                    Show metric values as fractions (if True) or actual values (if False).
+        scale_fractions_to_positive_values: Boolean, optional.
+                    If showing metric values as fractions, scale to the sum of positive values (if True)
+                    or to the sum of all values (if False).
+        Examples
+        --------
+        >>> import biosteam as bst
+        >>> from biorefineries import sugarcane as sc
+
+        >>> sc.load()
+        >>> unit_groups = bst.UnitGroup.group_by_area(sc.sys.units)
+
+        >>> for i in unit_groups: 
+        >>>     i.metric(i.get_net_electricity_production,
+        >>>             'Net electricity production',
+        >>>             'kW')
+
+        >>> df_TEA_breakdown = bst.UnitGroup.df_from_groups(
+        >>>     unit_groups, fraction=True,
+        >>>     scale_fractions_to_positive_values=True,
+        >>> )
+
+        >>> print(df_TEA_breakdown)
+        Net electricity production
+            0 100
+            100 -2.92
+            200 -3.55
+            300 -0.808
+        >>> df_TEA_breakdown = bst.UnitGroup.df_from_groups(
+        >>>     unit_groups, fraction=True,
+        >>>     scale_fractions_to_positive_values=False,
+        >>> )
+        
+        >>> print(df_TEA_breakdown)
+        Net electricity production
+        0 108
+        100 -3.14
+        200 -3.83
+        300 -0.872
+        """
         with_units = not fraction
         data = [i.to_series(with_units) for i in unit_groups]
         df = pd.DataFrame(data)
