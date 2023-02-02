@@ -2953,14 +2953,14 @@ class System:
         else: return f'<{type(self).__name__}>'
 
     def show(self, layout=None, T=None, P=None, flow=None, composition=None, N=None,
-             IDs=None, data=True):
+             IDs=None, sort=None, data=True):
         """Prints information on system."""
-        print(self._info(layout, T, P, flow, composition, N, IDs, data))
+        print(self._info(layout, T, P, flow, composition, N, IDs, sort, data))
 
-    def _info(self, layout, T, P, flow, composition, N, IDs, data):
+    def _info(self, layout, T, P, flow, composition, N, IDs, sort, data):
         """Return string with all stream specifications."""
         ins_and_outs = repr_ins_and_outs(layout, self.ins, self.outs,
-                                         T, P, flow, composition, N, IDs, data)
+                                         T, P, flow, composition, N, IDs, sort, data)
         error = self._error_info()
         if error:
             return (f"System: {self.ID}"
