@@ -70,17 +70,12 @@ class UnitGroup:
     
     >>> ugroup.autofill_metrics(electricity_production=True)
     >>> ugroup.metrics
-    [<Metric: Installed equipment cost (MM$)>,
-     <Metric: Cooling duty (GJ/hr)>,
-     <Metric: Heating duty (GJ/hr)>,
-     <Metric: Electricity consumption (MW)>,
-     <Metric: Electricity production (MW)>,
-     <Metric: Materiral cost (USD/hr)>]
+    [<Metric: Installed equipment cost (MM$)>, <Metric: Cooling duty (GJ/hr)>, <Metric: Heating duty (GJ/hr)>, <Metric: Electricity consumption (MW)>, <Metric: Electricity production (MW)>, <Metric: Material cost (USD/hr)>]
     
     Get all metric results:
         
     >>> ugroup.to_dict()
-    {'Installed equipment cost [MM$]': 0.056, 'Cooling duty [GJ/hr]': 0.37, 'Heating duty [GJ/hr]': 0.0, 'Electricity consumption [MW]': 0.00082, 'Electricity production [MW]': 0.0, 'Materiral cost [USD/hr]': 0.0}
+    {'Installed equipment cost [MM$]': 0.056, 'Cooling duty [GJ/hr]': 0.37, 'Heating duty [GJ/hr]': 0.0, 'Electricity consumption [MW]': 0.00082, 'Electricity production [MW]': 0.0, 'Material cost [USD/hr]': 0.0}
     
     Each result can be retrieved separately:
     
@@ -110,12 +105,12 @@ class UnitGroup:
               Heating duty [GJ/hr]
               Electricity consumption [MW]
               Electricity production [MW]
-              Materiral cost [USD/hr]
+              Material cost [USD/hr]
               Moisture content
               Sucrose flow rate [kg/hr]
     
     >>> ugroup.to_dict()
-    {'Installed equipment cost [MM$]': 0.056, 'Cooling duty [GJ/hr]': 0.37, 'Heating duty [GJ/hr]': 0.0, 'Electricity consumption [MW]': 0.00082, 'Electricity production [MW]': 0.0, 'Materiral cost [USD/hr]': 0.0, 'Moisture content': 0.63, 'Sucrose flow rate [kg/hr]': 1026.88}
+    {'Installed equipment cost [MM$]': 0.056, 'Cooling duty [GJ/hr]': 0.37, 'Heating duty [GJ/hr]': 0.0, 'Electricity consumption [MW]': 0.00082, 'Electricity production [MW]': 0.0, 'Material cost [USD/hr]': 0.0, 'Moisture content': 0.63, 'Sucrose flow rate [kg/hr]': 1026.88}
     
     """
     __slots__ = ('name', 'units', 'metrics', 'filter_savings', 'extend_feed_ends')
@@ -466,27 +461,30 @@ class UnitGroup:
         ...     i.metric(i.get_net_electricity_production,
         ...             'Net electricity production',
         ...             'kW')
+        <Metric: Net electricity production (kW)>
+        <Metric: Net electricity production (kW)>
+        <Metric: Net electricity production (kW)>
+        <Metric: Net electricity production (kW)>
         >>> df_TEA_breakdown = bst.UnitGroup.df_from_groups(
         ...     unit_groups, fraction=True,
         ...     scale_fractions_to_positive_values=True,
         ... )
-        >>> print(df_TEA_breakdown)
-        Net electricity production
-            0 100
-            100 -2.92
-            200 -3.55
-            300 -0.808
+        >>> df_TEA_breakdown
+             Net electricity production
+        0                           100
+        100                       -2.92
+        200                       -3.55
+        300                      -0.808
         >>> df_TEA_breakdown = bst.UnitGroup.df_from_groups(
         ...     unit_groups, fraction=True,
         ...     scale_fractions_to_positive_values=False,
         ... )
-        
-        >>> print(df_TEA_breakdown)
-        Net electricity production
-        0 108
-        100 -3.14
-        200 -3.83
-        300 -0.872
+        >>> df_TEA_breakdown
+             Net electricity production
+        0                           108
+        100                       -3.14
+        200                       -3.83
+        300                      -0.872
         """
         with_units = not fraction
         data = [i.to_series(with_units) for i in unit_groups]
