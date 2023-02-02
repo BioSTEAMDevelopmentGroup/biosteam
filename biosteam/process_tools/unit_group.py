@@ -460,20 +460,16 @@ class UnitGroup:
         --------
         >>> import biosteam as bst
         >>> from biorefineries import sugarcane as sc
-
         >>> sc.load()
         >>> unit_groups = bst.UnitGroup.group_by_area(sc.sys.units)
-
         >>> for i in unit_groups: 
-        >>>     i.metric(i.get_net_electricity_production,
-        >>>             'Net electricity production',
-        >>>             'kW')
-
+        ...     i.metric(i.get_net_electricity_production,
+        ...             'Net electricity production',
+        ...             'kW')
         >>> df_TEA_breakdown = bst.UnitGroup.df_from_groups(
-        >>>     unit_groups, fraction=True,
-        >>>     scale_fractions_to_positive_values=True,
-        >>> )
-
+        ...     unit_groups, fraction=True,
+        ...     scale_fractions_to_positive_values=True,
+        ... )
         >>> print(df_TEA_breakdown)
         Net electricity production
             0 100
@@ -481,9 +477,9 @@ class UnitGroup:
             200 -3.55
             300 -0.808
         >>> df_TEA_breakdown = bst.UnitGroup.df_from_groups(
-        >>>     unit_groups, fraction=True,
-        >>>     scale_fractions_to_positive_values=False,
-        >>> )
+        ...     unit_groups, fraction=True,
+        ...     scale_fractions_to_positive_values=False,
+        ... )
         
         >>> print(df_TEA_breakdown)
         Net electricity production
