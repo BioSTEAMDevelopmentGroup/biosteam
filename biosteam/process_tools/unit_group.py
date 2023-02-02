@@ -27,7 +27,7 @@ COOLING_DUTY = 'Cooling duty'
 HEATING_DUTY = 'Heating duty'
 ELECTRICITY_CONSUMPTION = 'Electricity consumption'
 ELECTRICITY_PRODUCTION = 'Electricity production'
-MATERIAL_COST = 'Materiral cost'
+MATERIAL_COST = 'Material cost'
 MAT_COST = 'Mat. cost'
 CAPITAL_UNITS = 'MM$'
 ELEC_UNITS = 'MW'
@@ -70,17 +70,12 @@ class UnitGroup:
     
     >>> ugroup.autofill_metrics(electricity_production=True)
     >>> ugroup.metrics
-    [<Metric: Installed equipment cost (MM$)>,
-     <Metric: Cooling duty (GJ/hr)>,
-     <Metric: Heating duty (GJ/hr)>,
-     <Metric: Electricity consumption (MW)>,
-     <Metric: Electricity production (MW)>,
-     <Metric: Materiral cost (USD/hr)>]
+    [<Metric: Installed equipment cost (MM$)>, <Metric: Cooling duty (GJ/hr)>, <Metric: Heating duty (GJ/hr)>, <Metric: Electricity consumption (MW)>, <Metric: Electricity production (MW)>, <Metric: Material cost (USD/hr)>]
     
     Get all metric results:
         
     >>> ugroup.to_dict()
-    {'Installed equipment cost [MM$]': 0.056, 'Cooling duty [GJ/hr]': 0.37, 'Heating duty [GJ/hr]': 0.0, 'Electricity consumption [MW]': 0.00082, 'Electricity production [MW]': 0.0, 'Materiral cost [USD/hr]': 0.0}
+    {'Installed equipment cost [MM$]': 0.056, 'Cooling duty [GJ/hr]': 0.37, 'Heating duty [GJ/hr]': 0.0, 'Electricity consumption [MW]': 0.00082, 'Electricity production [MW]': 0.0, 'Material cost [USD/hr]': 0.0}
     
     Each result can be retrieved separately:
     
@@ -110,12 +105,12 @@ class UnitGroup:
               Heating duty [GJ/hr]
               Electricity consumption [MW]
               Electricity production [MW]
-              Materiral cost [USD/hr]
+              Material cost [USD/hr]
               Moisture content
               Sucrose flow rate [kg/hr]
     
     >>> ugroup.to_dict()
-    {'Installed equipment cost [MM$]': 0.056, 'Cooling duty [GJ/hr]': 0.37, 'Heating duty [GJ/hr]': 0.0, 'Electricity consumption [MW]': 0.00082, 'Electricity production [MW]': 0.0, 'Materiral cost [USD/hr]': 0.0, 'Moisture content': 0.63, 'Sucrose flow rate [kg/hr]': 1026.88}
+    {'Installed equipment cost [MM$]': 0.056, 'Cooling duty [GJ/hr]': 0.37, 'Heating duty [GJ/hr]': 0.0, 'Electricity consumption [MW]': 0.00082, 'Electricity production [MW]': 0.0, 'Material cost [USD/hr]': 0.0, 'Moisture content': 0.63, 'Sucrose flow rate [kg/hr]': 1026.88}
     
     """
     __slots__ = ('name', 'units', 'metrics', 'filter_savings', 'extend_feed_ends')
@@ -445,15 +440,62 @@ class UnitGroup:
         return pd.Series(self.to_dict(with_units), name=self.name)
 
     @classmethod
-    def df_from_groups(cls, unit_groups, fraction=False):
-        """Return a pandas.DataFrame object from unit groups."""
+    def df_from_groups(cls, unit_groups, fraction=False, scale_fractions_to_positive_values=True):
+        """
+        Return a pandas.DataFrame object from unit groups.
+        
+        Parameters
+        ----------
+        fraction: Boolean, optional.
+                    Show metric values as fractions (if True) or actual values (if False).
+        scale_fractions_to_positive_values: Boolean, optional.
+                    If showing metric values as fractions, scale to the sum of positive values (if True)
+                    or to the sum of all values (if False).
+        Examples
+        --------
+        >>> import biosteam as bst
+        >>> from biorefineries import sugarcane as sc
+        >>> sc.load()
+        >>> unit_groups = bst.UnitGroup.group_by_area(sc.sys.units)
+        >>> for i in unit_groups: 
+        ...     i.metric(i.get_net_electricity_production,
+        ...             'Net electricity production',
+        ...             'kW')
+        <Metric: Net electricity production (kW)>
+        <Metric: Net electricity production (kW)>
+        <Metric: Net electricity production (kW)>
+        <Metric: Net electricity production (kW)>
+        >>> df_TEA_breakdown = bst.UnitGroup.df_from_groups(
+        ...     unit_groups, fraction=True,
+        ...     scale_fractions_to_positive_values=True,
+        ... )
+        >>> df_TEA_breakdown
+             Net electricity production
+        0                           100
+        100                       -2.92
+        200                       -3.55
+        300                      -0.808
+        >>> df_TEA_breakdown = bst.UnitGroup.df_from_groups(
+        ...     unit_groups, fraction=True,
+        ...     scale_fractions_to_positive_values=False,
+        ... )
+        >>> df_TEA_breakdown
+             Net electricity production
+        0                           108
+        100                       -3.14
+        200                       -3.83
+        300                      -0.872
+        """
         with_units = not fraction
         data = [i.to_series(with_units) for i in unit_groups]
         df = pd.DataFrame(data)
         if fraction:
             values = df.values
-            postive_values = np.where(values > 0., values, 0.)
-            values *= 100 / postive_values.sum(axis=0, keepdims=True)
+            if scale_fractions_to_positive_values:
+                postive_values = np.where(values > 0., values, 0.)
+                values *= 100 / postive_values.sum(axis=0, keepdims=True)
+            else:
+                values *= 100 / values.sum(axis=0, keepdims=True)
         return df
 
     @classmethod
