@@ -447,7 +447,7 @@ class UnitGroup:
     @classmethod
     def df_from_groups(cls, unit_groups, fraction=False, scale_fractions_to_positive_values=True):
         """
-        Return metric results from unit groups as a pandas DataFrame object.
+        Return a pandas DataFrame object of metric results from unit groups.
         
         Parameters
         ----------
@@ -467,7 +467,8 @@ class UnitGroup:
         >>> sc.load()
         >>> unit_groups = bst.UnitGroup.group_by_area(sc.sys.units)
         >>> for i in unit_groups: 
-        ...     metric = i.metric(i.get_net_electricity_production, 'Net electricity production', 'kW')
+        ...     metric = i.metric(i.get_net_electricity_production, 
+        ...                       'Net electricity production', 'kW')
         >>> bst.UnitGroup.df_from_groups(
         ...     unit_groups, fraction=True,
         ...     scale_fractions_to_positive_values=True,
