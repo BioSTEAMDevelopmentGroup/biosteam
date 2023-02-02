@@ -490,7 +490,7 @@ class UnitGroup:
         200                       -3.83
         300                      -0.872
         
-        >>> default() # Reset to biosteam defaults
+        >>> bst.default() # Reset to biosteam defaults
         
         """
         with_units = not fraction
