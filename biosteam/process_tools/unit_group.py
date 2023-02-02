@@ -467,9 +467,7 @@ class UnitGroup:
         >>> sc.load()
         >>> unit_groups = bst.UnitGroup.group_by_area(sc.sys.units)
         >>> for i in unit_groups: 
-        ...     i.metric(i.get_net_electricity_production,
-        ...             'Net electricity production',
-        ...             'kW')
+        ...     metric = i.metric(i.get_net_electricity_production, 'Net electricity production', 'kW')
         >>> bst.UnitGroup.df_from_groups(
         ...     unit_groups, fraction=True,
         ...     scale_fractions_to_positive_values=True,
@@ -478,7 +476,7 @@ class UnitGroup:
         0                           100
         100                       -2.92
         200                       -3.55
-        300                      -0.808
+        300                      -0.809
         
         >>> bst.UnitGroup.df_from_groups(
         ...     unit_groups, fraction=True,
@@ -488,7 +486,7 @@ class UnitGroup:
         0                           108
         100                       -3.14
         200                       -3.83
-        300                      -0.872
+        300                      -0.873
         
         >>> bst.default() # Reset to biosteam defaults
         
