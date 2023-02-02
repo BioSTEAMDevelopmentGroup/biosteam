@@ -70,7 +70,12 @@ class UnitGroup:
     
     >>> ugroup.autofill_metrics(electricity_production=True)
     >>> ugroup.metrics
-    [<Metric: Installed equipment cost (MM$)>, <Metric: Cooling duty (GJ/hr)>, <Metric: Heating duty (GJ/hr)>, <Metric: Electricity consumption (MW)>, <Metric: Electricity production (MW)>, <Metric: Material cost (USD/hr)>]
+    [<Metric: Installed equipment cost (MM$)>,
+     <Metric: Cooling duty (GJ/hr)>,
+     <Metric: Heating duty (GJ/hr)>,
+     <Metric: Electricity consumption (MW)>,
+     <Metric: Electricity production (MW)>,
+     <Metric: Material cost (USD/hr)>]
     
     Get all metric results:
         
@@ -442,17 +447,21 @@ class UnitGroup:
     @classmethod
     def df_from_groups(cls, unit_groups, fraction=False, scale_fractions_to_positive_values=True):
         """
-        Return a pandas.DataFrame object from unit groups.
+        Return metric results from unit groups as a pandas DataFrame object.
         
         Parameters
         ----------
-        fraction: Boolean, optional.
-                    Show metric values as fractions (if True) or actual values (if False).
-        scale_fractions_to_positive_values: Boolean, optional.
-                    If showing metric values as fractions, scale to the sum of positive values (if True)
-                    or to the sum of all values (if False).
+        fraction: bool, optional.
+            Whether to divide metric results by the total sum across all groups. 
+        scale_fractions_to_positive_values: bool, optional.
+            Whether to compute fractions by dividing results by the sum of only 
+            positive results.
+        
         Examples
         --------
+        Create a pandas DataFrame of the net eletricity production across
+        all areas in the sugarcane biorefinery:
+        
         >>> import biosteam as bst
         >>> from biorefineries import sugarcane as sc
         >>> sc.load()
@@ -461,30 +470,28 @@ class UnitGroup:
         ...     i.metric(i.get_net_electricity_production,
         ...             'Net electricity production',
         ...             'kW')
-        <Metric: Net electricity production (kW)>
-        <Metric: Net electricity production (kW)>
-        <Metric: Net electricity production (kW)>
-        <Metric: Net electricity production (kW)>
-        >>> df_TEA_breakdown = bst.UnitGroup.df_from_groups(
+        >>> bst.UnitGroup.df_from_groups(
         ...     unit_groups, fraction=True,
         ...     scale_fractions_to_positive_values=True,
         ... )
-        >>> df_TEA_breakdown
              Net electricity production
         0                           100
         100                       -2.92
         200                       -3.55
         300                      -0.808
-        >>> df_TEA_breakdown = bst.UnitGroup.df_from_groups(
+        
+        >>> bst.UnitGroup.df_from_groups(
         ...     unit_groups, fraction=True,
         ...     scale_fractions_to_positive_values=False,
         ... )
-        >>> df_TEA_breakdown
              Net electricity production
         0                           108
         100                       -3.14
         200                       -3.83
         300                      -0.872
+        
+        >>> default() # Reset to biosteam defaults
+        
         """
         with_units = not fraction
         data = [i.to_series(with_units) for i in unit_groups]
