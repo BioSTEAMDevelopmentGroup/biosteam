@@ -621,7 +621,7 @@ def test_nested_recycle_loops():
 
 def test_sugarcane_ethanol_biorefinery_network():
     from biorefineries import sugarcane as sc
-    sugarcane_sys = bst.System.from_units(sc.sys.units)
+    sugarcane_sys = bst.System.from_units('sugarcane_sys', sc.sys.units)
     network = sugarcane_sys._to_network()
     actual_network = Network(
         [sc.U101,
