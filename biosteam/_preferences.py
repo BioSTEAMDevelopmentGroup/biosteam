@@ -168,7 +168,7 @@ class DisplayPreferences:
     def sort(self) -> bool:
         """Whether to sort flows in decreasing order.""" 
         try: return Stream.display_units.sort
-        except: return None
+        except: return False
     @sort.setter
     def sort(self, sort):
         try: Stream.display_units.sort = sort
