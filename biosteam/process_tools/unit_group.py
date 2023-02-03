@@ -441,7 +441,7 @@ class UnitGroup:
         return bst.System(None, self.units).diagram(*args, **kwargs)
     
     def to_series(self, with_units=True):
-        """Return a pandas.Series object of results."""
+        """Return a pandas.Series object of metric results."""
         return pd.Series(self.to_dict(with_units), name=self.name)
 
     @classmethod
@@ -451,12 +451,14 @@ class UnitGroup:
         
         Parameters
         ----------
-        fraction: bool, optional.
+        unit_groups : Sequence[UnitGroup]
+            Metric results will be calculated from unit groups.
+        fraction : bool, optional.
             Whether to divide metric results by the total sum across all groups. 
-        scale_fractions_to_positive_values: bool, optional.
+        scale_fractions_to_positive_values : bool, optional.
             Whether to compute fractions by dividing results by the sum of only 
             positive results.
-        
+        s
         Examples
         --------
         Create a pandas DataFrame of the net eletricity production across
