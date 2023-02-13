@@ -154,6 +154,8 @@ tools for sustainability assessments. Here is a short list of related publicatio
 
   - `An agent-based modeling tool supporting bioenergy and bio-product community communication regarding cellulosic bioeconomy development. Renewable and Sustainable Energy Reviews 2022 <https://doi.org/10.1016/j.rser.2022.112745>`_
 
+  - `Implications of Biorefinery Policy Incentives and Location-Specific Economic Parameters for the Financial Viability of Biofuels. Environ. Sci. Technol. 2023 <https://doi.org/10.1021/acs.est.2c07936>`_
+
 * **Bioproduct and biofuel studies**:
 
   - `Metabolic engineering of Yarrowia lipolytica to produce 1,2-diacyl-3-acetyl triacylglycerol. Metabolic Engineering. 2023 <https://doi.org/10.1016/j.ymben.2023.01.003>`_

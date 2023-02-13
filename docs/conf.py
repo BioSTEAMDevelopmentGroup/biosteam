@@ -271,7 +271,7 @@ html_theme_options = {
         'image_dark': 'logo_dark.png'
     },
     "announcement": (
-        "<p>Join us on Feb 3, 9:15-10:15am CST, for a BioSTEAM workshop! "
+        "<p>Join us on Feb 17, 9:15-10:15am CST, for a BioSTEAM workshop! "
         "<a href='mailto: biosteamdevelopmentgroup@gmail.com'>Email us for details</a></p>"
     ),
     "external_links": [
