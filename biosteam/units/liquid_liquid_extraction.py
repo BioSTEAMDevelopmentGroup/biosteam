@@ -78,8 +78,8 @@ class LLEUnit(bst.Unit, isabstract=True):
     ins : stream
         Inlet fluid.
     outs : stream sequence
-        * [0] Low density fluid
-        * [1] Heavy fluid
+        * [0] Low density fluid.
+        * [1] Heavy fluid.
     top_chemical : str, optional
         Identifier of chemical that will be favored in the low density phase.
     efficiency=1. : float, optional
@@ -133,6 +133,13 @@ class LLEUnit(bst.Unit, isabstract=True):
         self.forced_split_IDs = forced_split_IDs
         self.multi_stream = bst.MultiStream(phases='lL', thermo=self.thermo)
         
+    @property
+    def solvent(self):
+        return self.top_chemical
+    @solvent.setter
+    def solvent(self, solvent):
+        self.top_chemical = solvent
+        
     def _run(self):
         sep.lle(*self.ins, *self.outs, self.top_chemical, self.efficiency, self.multi_stream)
         IDs = self.forced_split_IDs
@@ -163,8 +170,8 @@ class LiquidsCentrifuge(Unit, isabstract=True):
     ins : stream
         Inlet fluid.
     outs : stream sequence
-        * [0] Low density fluid
-        * [1] Heavy fluid
+        * [0] Low density fluid.
+        * [1] Heavy fluid.
     
     Notes
     -----
@@ -195,12 +202,12 @@ class LiquidsSplitCentrifuge(LiquidsCentrifuge):
     ins : stream
         Inlet fluid.
     outs : stream sequence
-        * [0] Low density fluid
-        * [1] Heavy fluid
+        * [0] Low density fluid.
+        * [1] Heavy fluid.
     split : Should be one of the following
-            * [float] The fraction of net feed in the 0th outlet stream
-            * [array_like] Componentwise split of feed to 0th outlet stream
-            * [dict] ID-split pairs of feed to 0th outlet stream
+            * [float] The fraction of net feed in the 0th outlet stream.
+            * [array_like] Componentwise split of feed to 0th outlet stream.
+            * [dict] ID-split pairs of feed to 0th outlet stream.
     order=None : Iterable[str], defaults to biosteam.settings.chemicals.IDs
         Chemical order of split.
     
@@ -228,8 +235,8 @@ class LLECentrifuge(LLEUnit, LiquidsCentrifuge):
     ins : stream
         Inlet fluid.
     outs : stream sequence
-        * [0] Low density fluid
-        * [1] Heavy fluid
+        * [0] Low density fluid.
+        * [1] Heavy fluid.
     top_chemical : str, optional
         Identifier of chemical that will be favored in the low density phase.
     efficiency : float,
@@ -287,8 +294,8 @@ class SLLECentrifuge(Unit):
     ins : stream
         feed
     outs : stream sequence
-        * [0] Oil fluid.
-        * [1] Aqueous fluid.
+        * [0] Low density fluid.
+        * [1] Heavy fluid.
         * [2] Solids.
     solids_split : dict[str, float]
         Splits to 2nd outlet stream.
@@ -351,6 +358,8 @@ class SLLECentrifuge(Unit):
     _N_ins = 1
     _N_outs = 3
     
+    solvent = LLEUnit.solvent
+    
     @property
     def solids_split(self):
         return self._solids_isplit.data
@@ -396,8 +405,8 @@ class SolidLiquidsSplitCentrifuge(Unit):
     ins : stream
         feed
     outs : stream sequence
-        * [0] Oil fluid.
-        * [1] Aqueous fluid.
+        * [0] Low density fluid.
+        * [1] Heavy fluid.
         * [2] Solids.
     aqueous_split : dict[str, float]
         Splits to [0] outlet stream.
@@ -413,8 +422,8 @@ class SolidLiquidsSplitCentrifuge(Unit):
     aqueous, oil, and solid fractions (i.e. DDGS) from the bottoms product 
     of the beer column [2]_.
     
-    The unit operation first splits the feed to the aqueous and oil fluids, 
-    then fractionates the solids from the aqueous phase.
+    The unit operation first splits the feed to the light and heavy fractions, 
+    then fractionates the solids from the heavy phase.
     
     Examples
     --------
@@ -580,8 +589,8 @@ class LiquidsSettler(bst.Unit, PressureVessel, isabstract=True):
     ins : stream
         Inlet fluid with two liquid phases.
     outs : stream sequence
-        * [0] Top fluid.
-        * [1] Bottom fluid.
+        * [0] Low density fluid.
+        * [1] Heavy fluid.
     vessel_material='Carbon steel' : str, optional
         Vessel construction material.
     vessel_type='Horizontal': 'Horizontal' or 'Vertical', optional
@@ -636,8 +645,8 @@ class LLESettler(LLEUnit, LiquidsSettler):
     ins : stream
         Inlet fluid with two liquid phases.
     outs : stream sequence
-        * [0] Top fluid.
-        * [1] Bottom fluid.
+        * [0] Low density fluid.
+        * [1] Heavy fluid.
     vessel_material='Carbon steel' : str, optional
         Vessel construction material.
     vessel_type='Horizontal': 'Horizontal' or 'Vertical', optional
@@ -681,8 +690,8 @@ class LiquidsSplitSettler(LiquidsSettler):
     ins : stream
         Inlet fluid with two liquid phases.
     outs : stream sequence
-        * [0] Top fluid.
-        * [1] Bottom fluid.
+        * [0] Low density fluid.
+        * [1] Heavy fluid.
     split : Should be one of the following
         * [float] The fraction of net feed in the 0th outlet stream
         * [array_like] Componentwise split of feed to 0th outlet stream
@@ -727,8 +736,8 @@ class LiquidsPartitionSettler(LiquidsSettler):
     ins : stream
         Inlet fluid with two liquid phases.
     outs : stream sequence
-        * [0] Top fluid.
-        * [1] Bottom fluid.
+        * [0] Low density fluid.
+        * [1] Heavy fluid.
     vessel_material='Carbon steel' : str, optional
         Vessel construction material.
     vessel_type='Horizontal': 'Horizontal' or 'Vertical', optional
@@ -842,7 +851,7 @@ class MixerSettler(bst.Unit):
     ...    ins=(feed, solvent), outs=('raffinate', 'extract'),
     ...    model='partition coefficients',
     ...    settler_data={
-    ...        'partition_coefficients': np.array([6.894, 0.7244, 3.381e-04]),
+    ...        'partition_coefficients': np.array([1.451e-01, 1.380e+00, 2.958e+03]),
     ...        'partion_IDs': ('Water', 'Methanol', 'Octanol'),
     ...    },
     ... )
@@ -855,7 +864,7 @@ class MixerSettler(bst.Unit):
     0.99
     >>> MS1.results() # doctest: +SKIP
     Mixer settler                                             Units         MS1
-    Power               Rate                                     kW        1.98
+    Electricity         Power                                    kW        1.98
                         Cost                                 USD/hr       0.155
     Design              Mixer - Volume                          m^3        1.98
                         Mixer - Power                            hp        2.65
@@ -865,16 +874,16 @@ class MixerSettler(bst.Unit):
                         Mixer - Weight                           lb        91.2
                         Mixer - Wall thickness                   in        0.25
                         Settler - Vessel type                        Horizontal
-                        Settler - Length                         ft        12.6
-                        Settler - Diameter                       ft        3.15
-                        Settler - Weight                         lb    1.44e+03
-                        Settler - Wall thickness                 in        0.25
+                        Settler - Length                                   12.6
+                        Settler - Diameter                                 3.15
+                        Settler - Weight                               1.44e+03
+                        Settler - Wall thickness                           0.25
     Purchase cost       Mixer - Turbine agitator                USD    6.32e+03
-                        Mixer - Vertical pressure vessel        USD    4.59e+03
-                        Mixer - Platform and ladders            USD         641
-                        Settler - Horizontal pressure ve...     USD    9.99e+03
-                        Settler - Platform and ladders          USD    2.66e+03
-    Total purchase cost                                         USD    2.42e+04
+                        Mixer - Vertical pressure vessel        USD    4.91e+03
+                        Mixer - Platform and ladders            USD         686
+                        Settler - Horizontal pressure ve...     USD    1.16e+04
+                        Settler - Platform and ladders          USD    3.08e+03
+    Total purchase cost                                         USD    2.65e+04
     Utility cost                                             USD/hr       0.155
     
     """
@@ -896,7 +905,7 @@ class MixerSettler(bst.Unit):
         #: [LiquidsMixingTank] Mixer portion of the mixer-settler.
         #: All data and settings for the design of the mixing tank are stored here.
         self.mixer = mixer = LiquidsMixingTank(None, None, (None,),
-                                                   self.thermo, **mixer_data)
+                                               self.thermo, **mixer_data)
         self.multi_stream = multi_stream = mixer-0
         mixer._ins = self._ins
         model = model.lower()
@@ -909,8 +918,7 @@ class MixerSettler(bst.Unit):
             
         #: [LiquidsSettler] Settler portion of the mixer-settler.
         #: All data and settings for the design of the settler are stored here.
-        self.settler = Settler(None, multi_stream, None, self.thermo, **settler_data)
-        self.settler._outs = self._outs
+        self.settler = Settler(None, multi_stream, thermo=self.thermo, **settler_data)
         
         #: [str] ID of carrier component in the feed.
         self.solvent_ID = solvent_ID 
@@ -951,6 +959,7 @@ class MixerSettler(bst.Unit):
         self.mixer._run()
         self.settler.solvent = self.solvent_ID or self.solvent.main_chemical
         self.settler._run()
+        for i, j in zip([self.extract, self.raffinate], self.settler.outs): i.copy_like(j)
         
     def _design(self):
         mixer = self.mixer
