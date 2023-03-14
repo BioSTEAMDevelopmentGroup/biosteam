@@ -7,7 +7,11 @@
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 
-import math, flexsolve as flx, biosteam as bst
+import math, flexsolve as flx
+from ... import Stream, Unit
+from .._pump import Pump
+from ..splitting import Splitter
+from ..solids_separation import SolidsCentrifuge
 from warnings import warn
 
 __all__ = ('SludgeHandling', 'BeltThickener', 'SludgeCentrifuge')
@@ -15,7 +19,7 @@ __all__ = ('SludgeHandling', 'BeltThickener', 'SludgeCentrifuge')
 
 # %%
 
-class SludgeHandling(bst.Unit):
+class SludgeHandling(Unit):
     '''
     A generic class for handling of wastewater treatment sludge.
 
@@ -47,7 +51,7 @@ class SludgeHandling(bst.Unit):
     '''
 
     SKIPPED = False
-    _graphics = bst.Splitter._graphics
+    _graphics = Splitter._graphics
     _ins_size_is_fixed = False
     _N_outs = 2
     auxiliary_unit_names = ('effluent_pump', 'sludge_pump')
@@ -55,16 +59,16 @@ class SludgeHandling(bst.Unit):
 
     def __init__(self, ID='', ins=None, outs=(), thermo=None,
                  sludge_moisture=0.96, solubles=()):
-        bst.Unit.__init__(self, ID, ins, outs, thermo)
+        Unit.__init__(self, ID, ins, outs, thermo)
         self.sludge_moisture = sludge_moisture
         self.solubles = tuple(solubles)
         self.solids = tuple(i.ID for i in self.chemicals
                             if (i.ID not in solubles) and (i.locked_state!='g'))
         ID = self.ID
-        self._mixed = bst.Stream(f'{ID}_mixed')
+        self._mixed = Stream(f'{ID}_mixed')
         # Add '.' in ID for auxiliary units
-        self.effluent_pump = bst.Pump(f'.{ID}_eff_pump', ins=self.outs[0].proxy(f'{ID}_eff'))
-        self.sludge_pump = bst.Pump(f'.{ID}_sludge_pump', ins=self.outs[1].proxy(f'{ID}_sludge'))
+        self.effluent_pump = Pump(f'.{ID}_eff_pump', ins=self.outs[0].proxy(f'{ID}_eff'))
+        self.sludge_pump = Pump(f'.{ID}_sludge_pump', ins=self.outs[1].proxy(f'{ID}_sludge'))
 
 
     @staticmethod
@@ -195,7 +199,7 @@ class BeltThickener(SludgeHandling):
         return self._N_thickener
 
 
-class SludgeCentrifuge(SludgeHandling, bst.SolidsCentrifuge):
+class SludgeCentrifuge(SludgeHandling, SolidsCentrifuge):
     '''
     Solid centrifuge for sludge dewatering.
 
@@ -226,6 +230,6 @@ class SludgeCentrifuge(SludgeHandling, bst.SolidsCentrifuge):
 
     _run = SludgeHandling._run
 
-    _design = bst.SolidsCentrifuge._design
+    _design = SolidsCentrifuge._design
 
     _cost = SludgeHandling._cost

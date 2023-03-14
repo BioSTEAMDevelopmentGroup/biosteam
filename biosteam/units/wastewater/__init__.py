@@ -8,14 +8,14 @@
 # for license details.
 
 
-# Units of measure
 from ._utils import *
 from ._internal_circulation_rx import *
 from ._wwt_pump import *
 from ._polishing_filter import *
 from ._membrane_bioreactor import *
 from ._sludge_handling import *
-from ._wwt_process import *
+from .conventional import *
+from .high_rate import *
 
 from . import (
     _utils,
@@ -24,7 +24,8 @@ from . import (
     _polishing_filter,
     _membrane_bioreactor,
     _sludge_handling,
-    _wwt_process,
+    conventional,
+    high_rate,
     )
 
 
@@ -35,5 +36,6 @@ __all__ = (
     *_polishing_filter.__all__,
     *_membrane_bioreactor.__all__,
     *_sludge_handling.__all__,
-    *_wwt_process.__all__,
+    *conventional.__all__,
+    *high_rate.__all__,
     )

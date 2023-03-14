@@ -8,8 +8,8 @@
 # for license details.
 
 import math
-import biosteam as bst
-from biosteam.units.design_tools.mechanical import (
+from ... import Unit, main_flowsheet
+from ..design_tools.mechanical import (
     brake_efficiency as brake_eff,
     motor_efficiency as motor_eff
     )
@@ -26,7 +26,7 @@ _m3_to_gal = 264.1721 # auom('m3').conversion_factor('gallon')
 
 # %%
 
-class WWTpump(bst.Unit):
+class WWTpump(Unit):
     '''
     Generic class for pumps used in wastewater treatment.
 
@@ -81,7 +81,7 @@ class WWTpump(bst.Unit):
 
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
                  pump_type, Q_mgd=None, add_inputs):
-        bst.Unit.__init__(self, ID, ins, outs, thermo)
+        Unit.__init__(self, ID, ins, outs, thermo)
         self.pump_type = pump_type
         self.Q_mgd = Q_mgd
         self.add_inputs = add_inputs

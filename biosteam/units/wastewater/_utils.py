@@ -32,25 +32,28 @@
 # https://doi.org/10.1039/C5EE03715H.
 
 
-import numpy as np, biosteam as bst
+import numpy as np
 from chemicals.elements import molecular_weight
 from warnings import warn
-from thermosteam import Chemical, settings
+from thermosteam import Chemical, Chemicals, Stream, settings
 from thermosteam.reaction import (
     Reaction as Rxn,
     ParallelReaction as PRxn
     )
-from biosteam.utils import (
+from ... import PowerUtility
+from ...utils import (
     ExponentialFunctor,
     remove_undefined_chemicals,
     default_chemical_dict
     )
-from biosteam.units.design_tools.tank_design import (
+from ..design_tools.tank_design import (
     mix_tank_purchase_cost_algorithms,
     TankPurchaseCostAlgorithm
     )
 
 __all__ = (
+    # Combustion
+    'get_combustion_energy',
     # Construction
     'IC_purchase_cost_algorithms',
     'select_pipe',
@@ -75,6 +78,51 @@ __all__ = (
     'GWP_CFs',
     )
 
+
+# %%
+
+# =============================================================================
+# Combustion
+# =============================================================================
+
+combustion_IDs = ['O2', 'H2O', 'CO2', 'N2', 'SO2', 'P4O10', 'Ash']
+def create_combustion_chemicals():
+    chems = Chemicals(combustion_IDs[:-1])
+    for chem in chems:
+        if chem.ID != 'P4O10': chem.at_state('g')
+        else: chem.at_state('s')
+    chems.append([Chemical('Ash', phase='s', phase_ref='s', search_db=False, MW=1.)])
+    return chems
+
+
+def get_combustion_energy(stream, combustion_eff=0.8):
+    '''
+    Estimate the amount of energy generated from combustion of incoming streams.
+    '''
+    chems = stream.chemicals
+    to_add = []
+    
+    for ID in combustion_IDs:
+        if not hasattr(chems, ID): to_add.append(ID)
+    if to_add:
+        combustion_chems = create_combustion_chemicals()
+        for ID in to_add:
+            to_add.append(combustion_chems.pop(ID))
+        new_chems = Chemicals(to_add)
+        new_chems.compile()
+        settings.set_thermo(new_chems)
+        new_stream = Stream()
+        new_stream.imass[chems.IDs] = stream.imass[chems.IDs]
+    else:
+        new_chems = chems
+        new_stream = stream
+    rxns = new_stream.chemicals.get_combustion_reactions()
+    reacted = new_stream.copy()
+    rxns.force_reaction(reacted.mol)
+    reacted.imol['O2'] = 0
+    H_net = new_stream.H + new_stream.HHV - reacted.H
+    settings.set_thermo(chems)
+    return H_net
 
 
 # %%
@@ -238,11 +286,12 @@ _cal2joule = 4.184 # auom('cal').conversion_factor('J')
 
 def append_wwt_chemicals(chemicals, set_thermo=True):
     chems = chemicals.copy()
-    exist_IDs = set([i.ID for i in chems])
-    for chem in chems: exist_IDs = exist_IDs.union(chem.aliases)
+    # exist_IDs = set([i.ID for i in chems])
+    # for chem in chems: exist_IDs = exist_IDs.union(chem.aliases)
 
     def add_chemical(ID, **data):
-        if not ID in exist_IDs:
+        if not hasattr(chemicals, ID):
+        # if not ID in exist_IDs:
             chemical = Chemical(ID, **data)
             chems.append(chemical)
 
@@ -483,7 +532,7 @@ def format_str(string):
 
 
 def get_split_dct(chemicals, **split):
-    # Copied from the cornstover biorefinery,
+    # Copied from the corn stover biorefinery,
     # which is based on the 2011 NREL report (Humbird et al.),
     # assume no insolubles go to permeate
     insolubles_dct = dict.fromkeys(default_insolubles, 0.)
@@ -540,14 +589,39 @@ def kph_to_tpd(stream):
 
 # %%
 
+# =============================================================================
 # Related to techno-economic analysis (TEA)
+# =============================================================================
+
+# Renewable natural gas, RIN D3, average of 2015 (first year with year-round data)-2021
+# https://www.epa.gov/fuels-registration-reporting-and-compliance-help/rin-trades-and-price-information
+# D3 designation based on entry Q of the approved pathways
+# https://www.epa.gov/renewable-fuel-standard-program/approved-pathways-renewable-fuel
+RIN_per_gal = 1.843 # $/gal ethanol
+
+# According to the statue:
+# https://www.ecfr.gov/current/title-40/chapter-I/subchapter-C/part-80/subpart-M/section-80.1415
+# https://www.ecfr.gov/current/title-40/chapter-I/subchapter-C/part-80/subpart-M/section-80.1426
+# "(5) 77,000 Btu (lower heating value) of compressed natural gas (CNG) or liquefied natural gas (LNG) shall represent one gallon of renewable fuel with an equivalence value of 1.0."
+# All heating values from the H2 tools, accessed 9/27/2022
+# https://h2tools.org/hyarc/calculator-tools/lower-and-higher-heating-values-fuels
+LHV_LNG = 48.62 # MJ/kg, liquefied natural gas
+MJ_per_BTU = 0.001055
+LHV_LNG /= MJ_per_BTU # Btu/kg
+LHV_ethanol = 77000 # Btu/gal per the statue instead of the 76330 from the H2 tools website
+LNG_to_ethanol = LHV_LNG/LHV_ethanol # gal ethanol/kg LNG
+RIN_price = RIN_per_gal * LNG_to_ethanol # $/kg LNG
+
 prices = {
     'bisulfite': 0.08, # $/L
     'citric_acid': 0.22, # $/L
     'naocl': 0.14, # $/L
+    'RIN': RIN_price, # in addition to the natural gas price
     }
 
-# Related to life cycle assessment (LCA)
+# =============================================================================
+# # Related to life cycle assessment (LCA)
+# =============================================================================
 # 100-year global warming potential (GWP) in kg CO2-eq/kg dry material
 # All ecoinvent entries are from v3.8, allocation at the point of substitution
 
@@ -562,10 +636,13 @@ citric_acid_CF = 5.9048
 # converted to 12.5 wt% solution (15 vol%)
 naocl_CF = 2.4871 * 0.125
 
+# GREET, North America, from shale and conventional recovery, average US
+ng_CF = 0.3899 + 1/16.04246*44.0095
 
 GWP_CFs = {
     'Bisulfite': bisulfite_CF,
     'CitricAcid': citric_acid_CF,
+    'CH4': ng_CF,
     'H2SO4': 43.3831/1e3, # assumed to be for the solution
     'HCl': 1.9683, # in the US, assumed to be concentrated solution
     'NaOCl': naocl_CF,
@@ -591,7 +668,7 @@ def add_CFs(stream_registry, unit_registry, stream_CF_dct):
             key, factor = (key_factor[0], 1.) if len(key_factor) == 1 else key_factor
 
             stream.characterization_factors['GWP'] = GWP_CFs[key]*factor
-    bst.PowerUtility.set_CF('GWP', *GWP_CFs['Electricity'])
+    PowerUtility.set_CF('GWP', *GWP_CFs['Electricity'])
     if has_steam:
         steam = stream_registry.search('steam')
         MJ = steam.H / 1e3 # enthalpy in kJ/hr

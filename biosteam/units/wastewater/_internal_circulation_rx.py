@@ -7,8 +7,12 @@
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 
-import sympy as sp, biosteam as bst
-from biosteam.exceptions import DesignError
+import sympy as sp
+from ... import Stream, Unit
+from ...exceptions import DesignError
+from .._pump import Pump
+from ..heat_exchange import HXutility
+from ..tank import MixTank
 from . import (
     get_BD_dct,
     compute_stream_COD,
@@ -21,7 +25,7 @@ __all__ = ('InternalCirculationRx',)
 
 # %%
 
-class InternalCirculationRx(bst.MixTank):
+class InternalCirculationRx(MixTank):
     '''
     Internal circulation (IC) reactor for anaerobic digestion (AD),
     including a high-rate bottom reactor for rapid organic removal and
@@ -122,7 +126,7 @@ class InternalCirculationRx(bst.MixTank):
                  method='lumped', OLRall=1.25, Y_biogas=0.86, Y_biomass=0.05, biodegradability={},
                  vessel_type='IC', vessel_material='Stainless steel',
                  V_wf=0.8, kW_per_m3=0., T=35+273.15, **kwargs):
-        bst.Unit.__init__(self, ID, ins, outs, thermo)
+        Unit.__init__(self, ID, ins, outs, thermo)
         self.method = method
         self.OLRall = OLRall
         self.Y_biogas = Y_biogas
@@ -136,16 +140,16 @@ class InternalCirculationRx(bst.MixTank):
         self.T = T
         # Initialize the attributes
         ID = self.ID
-        self._inf = bst.Stream(f'{ID}_inf')
-        hx_in = bst.Stream(f'{ID}_hx_in')
-        hx_out = bst.Stream(f'{ID}_hx_out')
+        self._inf = Stream(f'{ID}_inf')
+        hx_in = Stream(f'{ID}_hx_in')
+        hx_out = Stream(f'{ID}_hx_out')
         # Add '.' in ID for auxiliary units
-        self.heat_exchanger = bst.HXutility(ID=f'.{ID}_hx', ins=hx_in, outs=hx_out, T=T)
+        self.heat_exchanger = HXutility(ID=f'.{ID}_hx', ins=hx_in, outs=hx_out, T=T)
         self._refresh_rxns()
         # Conversion will be adjusted in the _run function
         self._decay_rxn = self.chemicals.WWTsludge.get_combustion_reaction(conversion=0.)
-        self.effluent_pump = bst.Pump(f'.{ID}_eff', ins=self.outs[1].proxy(f'{ID}_eff'))
-        self.sludge_pump = bst.Pump(f'.{ID}_sludge', ins=self.outs[2].proxy(f'{ID}_sludge'))
+        self.effluent_pump = Pump(f'.{ID}_eff', ins=self.outs[1].proxy(f'{ID}_eff'))
+        self.sludge_pump = Pump(f'.{ID}_sludge', ins=self.outs[2].proxy(f'{ID}_sludge'))
 
         for k, v in kwargs.items(): setattr(self, k, v)
 
@@ -309,7 +313,7 @@ class InternalCirculationRx(bst.MixTank):
 
 
     def _cost(self):       
-        bst.MixTank._cost(self)
+        MixTank._cost(self)
         
         hx = self.heat_exchanger
         ins0 = self.ins[0]

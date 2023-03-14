@@ -27,9 +27,11 @@ https://doi.org/10.2172/1483234
 
 # %%
 
-import thermosteam as tmo, biosteam as bst
-from biosteam import Unit
-from biosteam.units.decorators import cost
+import thermosteam as tmo
+from ... import Unit, main_flowsheet, SystemFactory, stream_utility_prices
+from .. import Mixer, Splitter
+from ..decorators import cost
+from ..design_tools import CEPCI_by_year as CEPCI
 from . import (
     default_insolubles,
     InternalCirculationRx, AnMBR, PolishingFilter, BeltThickener, SludgeCentrifuge,
@@ -43,7 +45,7 @@ _kW_to_kJhr = 3600 # auom('kW').conversion_factor('kJ/hr')
 
 Rxn = tmo.reaction.Reaction
 ParallelRxn = tmo.reaction.ParallelReaction
-CEPCI = bst.units.design_tools.CEPCI_by_year
+# CEPCI = bst.units.design_tools.CEPCI_by_year
 
 __all__ = (
     'BiogasUpgrading',
@@ -52,92 +54,6 @@ __all__ = (
     'ReverseOsmosis',
     'Skipped',
     )
-
-
-# %%
-
-# =============================================================================
-# Other units
-# =============================================================================
-
-# # The scaling basis of BeltThickener and Centrifuge changed significantly
-# # from previous report to this current one (ref [2]),
-# # therefore using alternative designs
-# @cost(basis='COD flow', ID='Thickeners', units='kg-O2/hr',
-#       kW=107.3808, cost=750000, S=5600, CE=CEPCI[2012], n=0.6, BM=1.6)
-# class BeltThickener(Unit):
-#     _ins_size_is_fixed = False
-#     _N_outs = 2
-#     _units= {'COD flow': 'kg-O2/hr'}
-
-#     def __init__(self, ID='', ins=None, outs=(), thermo=None,
-#                  insolubles=default_insolubles):
-#         Unit.__init__(self, ID, ins, outs, thermo)
-#         self.insolubles = get_insoluble_IDs(self.chemicals, insolubles)
-
-#     def _run(self):
-#         centrate, solids = self.outs
-#         insolubles = self.insolubles
-#         solubles = get_soluble_IDs(self.chemicals, insolubles)
-
-#         influent = self.ins[0].copy()
-#         influent.mix_from(self.ins)
-
-#         solids.copy_flow(influent, insolubles)
-#         # Concentrate sludge to 4% solids
-#         solids.imass['Water'] = 0.96/0.04 * influent.imass[insolubles].sum()
-#         if solids.imass['Water'] < influent.imass['Water']:
-#             ratio = solids.imass['Water'] / influent.imass['Water']
-#             solids.imass[solubles] = ratio * influent.imass[solubles]
-#             solids.T = influent.T
-
-#             centrate.mol = influent.mol - solids.mol
-#             centrate.T = influent.T
-#         else:
-#             centrate.empty()
-#             solids.copy_like(influent)
-
-#         self._inf = influent
-
-
-#     def _design(self):
-#         self.design_results['COD flow'] = compute_stream_COD(self._inf)
-
-
-# @cost(basis='COD flow', ID='Centrifuge', units='kg-O2/hr',
-#       # power usage includes feed pumping and centrifuge
-#       kW=22.371+123.0405, cost=686800, S=5600, CE=CEPCI[2012], n=0.6, BM=2.7)
-# class SludgeCentrifuge(Unit):
-#     _N_ins = 1
-#     _N_outs = 2
-#     _units= {'COD flow': 'kg-O2/hr'}
-
-#     __init__ = BeltThickener.__init__
-
-#     def _run(self):
-#         influent = self.ins[0]
-#         centrate, solids = self.outs
-#         centrate.T = solids.T = influent.T
-#         insolubles = self.insolubles
-#         solubles = get_soluble_IDs(self.chemicals, insolubles)
-
-#         # Centrifuge captures 95% of the solids at 20% solids
-#         solids.imass[insolubles] = 0.95 * influent.imass[insolubles]
-#         solids.imass['Water'] = 0.8/0.2 * (influent.imass[insolubles].sum())
-#         if solids.imass['Water'] < influent.imass['Water']:
-#             ratio = solids.imass['Water'] / influent.imass['Water']
-#             solids.imass[solubles] = ratio * influent.imass[solubles]
-
-#             centrate.mol = influent.mol - solids.mol
-#         else:
-#             centrate.empty()
-#             solids.copy_like(influent)
-
-#         self._inf = influent
-
-
-#     _design = BeltThickener._design
-
 
 @cost(basis='Volumetric flow', ID='Reactor', units='m3/hr',
       # 2.7 in million gallons per day (MGD)
@@ -305,12 +221,6 @@ class BiogasUpgrading(Unit):
     _N_ins = 2
     _N_outs = 2
 
-    RIN_incentive = prices['RIN']
-    # Credits from the displaced fossil natural gas
-    FNG_price = bst.stream_utility_prices['Natural gas'] # $/kg
-    FNG_CF = GWP_CFs['CH4']
-    # FNG_CF = GWP_CFs['CH4'] - 1/16.04246*44.0095 # do not subtract the direct emission
-
     def __init__(self, ID='', ins=None, outs=(), thermo=None,
                  ratio=0, loss=0.05,
                  unit_upgrading_cost=4.92,
@@ -320,6 +230,10 @@ class BiogasUpgrading(Unit):
         self.loss = loss
         self.unit_upgrading_cost = unit_upgrading_cost
         self.unit_upgrading_GWP = unit_upgrading_GWP
+        self.RIN_incentive = prices['RIN']
+        # Credits from the displaced fossil natural gas
+        self.FNG_price = stream_utility_prices.get('Natural gas', 0) # $/kg
+        self.FNG_CF = GWP_CFs['CH4']
 
 
     def _run(self):
@@ -345,7 +259,7 @@ class BiogasUpgrading(Unit):
 # System function
 # =============================================================================
 
-@bst.SystemFactory(
+@SystemFactory(
     ID='wastewater_sys',
     outs=[dict(ID='RNG'), # renewable natural gas
           dict(ID='biogas'),
@@ -358,15 +272,14 @@ def create_wastewater_process(ins, outs, process_ID='6', flowsheet=None,
                             skip_IC=False, IC_kwargs={},
                             skip_AnMBR=False, AnMBR_kwargs={},
                             skip_AeF=False, AF_kwargs={}):
-    if flowsheet:
-        bst.main_flowsheet.set_flowsheet(flowsheet)
+    if flowsheet: main_flowsheet.set_flowsheet(flowsheet)
     wwt_streams = ins
     RNG, biogas, sludge, recycled_water, brine = outs
 
     ##### Units #####
     # Mix waste liquids for treatment
     X = str(process_ID)
-    MX01 = bst.units.Mixer(f'M{X}01', ins=wwt_streams)
+    MX01 = Mixer(f'M{X}01', ins=wwt_streams)
 
     RX01_outs = (f'biogas_R{X}01', 'IC_eff', 'IC_sludge')
     if skip_IC:
@@ -413,12 +326,12 @@ def create_wastewater_process(ins, outs, process_ID='6', flowsheet=None,
                               include_excavation_cost=False,
                               **AF_kwargs)
 
-    MX02 = bst.units.Mixer(f'M{X}02', ins=(RX01-0, RX02-0, RX03-0))
+    MX02 = Mixer(f'M{X}02', ins=(RX01-0, RX02-0, RX03-0))
     BiogasUpgrading('Upgrading', ins=(MX02-0, 'foo'), outs=(RNG, biogas))
 
     # Recycled the majority of sludge (96%) to the aerobic filter,
     # 96% from the membrane bioreactor in ref [2]
-    SX01 = bst.units.Splitter(f'S{X}01', ins=RX03-2, outs=(f'recycled_S{X}01', f'wasted_S{X}01'),
+    SX01 = Splitter(f'S{X}01', ins=RX03-2, outs=(f'recycled_S{X}01', f'wasted_S{X}01'),
                               split=0.96)
 
     solubles = [i.ID for i in SX01.chemicals if not i.ID in default_insolubles]
@@ -432,12 +345,12 @@ def create_wastewater_process(ins, outs, process_ID='6', flowsheet=None,
                             centrifuge_type='reciprocating_pusher')
 
     # Mix recycles to aerobic digestion
-    bst.units.Mixer(f'M{X}03', ins=(SX01-0, SX02-0, SX03-0), outs=1-RX03)
+    Mixer(f'M{X}03', ins=(SX01-0, SX02-0, SX03-0), outs=1-RX03)
 
     # Reverse osmosis to treat aerobically polished water
     SX04 = ReverseOsmosis(f'S{X}04', ins=RX03-1, outs=(recycled_water, ''))
 
     # A process specification for wastewater treatment cost calculation
     Skipped('Caching', ins=SX04-1, outs=brine, main_in=0, main_out=0,
-            wwt_units=[u for u in bst.main_flowsheet.unit if (u.ID[1:1+len(X)]==X)],
+            wwt_units=[u for u in main_flowsheet.unit if (u.ID[1:1+len(X)]==X)],
             wwt_streams=[RNG, biogas, sludge])

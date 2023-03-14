@@ -7,8 +7,10 @@
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 
-import math, biosteam as bst
-from biosteam.exceptions import DesignError
+import math
+from ... import Stream, Unit
+from ...exceptions import DesignError
+from ..heat_exchange import HXutility
 from . import (
     default_insolubles,
     InternalCirculationRx, WWTpump,
@@ -28,7 +30,7 @@ _lb_to_kg = 0.4536 # auom('lb').conversion_factor('kg')
 
 # %%
 
-class AnMBR(bst.Unit):
+class AnMBR(Unit):
     '''
     Anaerobic membrane bioreactor (AnMBR) for wastewater treatment as in
     Shoener et al. [1]_ Some assumptions adopted from Humbird et al. [2]_
@@ -204,7 +206,7 @@ class AnMBR(bst.Unit):
                  include_pump_building_cost=False,
                  include_excavation_cost=False,
                  **kwargs):
-        bst.Unit.__init__(self, ID, ins, outs, thermo)
+        Unit.__init__(self, ID, ins, outs, thermo)
         self.reactor_type = reactor_type
         self.include_aerobic_filter = include_aerobic_filter
         self.membrane_configuration = membrane_configuration
@@ -224,14 +226,14 @@ class AnMBR(bst.Unit):
 
         # Initialize the attributes
         ID = self.ID
-        self._inf = bst.Stream(f'{ID}_inf')
-        self._mixed = bst.Stream(f'{ID}_mixed')
-        self._retent = bst.Stream(f'{ID}_retent')
-        self._recir = bst.Stream(f'{ID}_recir')        
-        hx_in = bst.Stream(f'{ID}_hx_in')
-        hx_out = bst.Stream(f'{ID}_hx_out')
+        self._inf = Stream(f'{ID}_inf')
+        self._mixed = Stream(f'{ID}_mixed')
+        self._retent = Stream(f'{ID}_retent')
+        self._recir = Stream(f'{ID}_recir')        
+        hx_in = Stream(f'{ID}_hx_in')
+        hx_out = Stream(f'{ID}_hx_out')
         # Add '.' in ID for auxiliary units
-        self.heat_exchanger = bst.HXutility(ID=f'.{ID}_hx', ins=hx_in, outs=hx_out)
+        self.heat_exchanger = HXutility(ID=f'.{ID}_hx', ins=hx_in, outs=hx_out)
         self._refresh_rxns()
 
         for k, v in kwargs.items(): setattr(self, k, v)

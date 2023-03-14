@@ -7,10 +7,11 @@
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 
-import biosteam as bst
 from math import pi, ceil
 from warnings import warn
 from thermosteam.reaction import ParallelReaction as PRxn
+from ... import Stream, Unit
+from ..heat_exchange import HXutility
 from . import (
     default_insolubles,
     InternalCirculationRx, WWTpump,
@@ -33,7 +34,7 @@ _A_to_d = lambda A: ((4*A)/pi)**0.5
 
 # %%
 
-class PolishingFilter(bst.Unit):
+class PolishingFilter(Unit):
     '''
     A superclass for anaerobic and aerobic polishing as in
     Shoener et al. [1]_ Some assumptions adopted from Humbird et al. [2]_
@@ -111,7 +112,7 @@ class PolishingFilter(bst.Unit):
                  include_degassing_membrane=False,
                  include_pump_building_cost=False,
                  include_excavation_cost=False):
-        bst.Unit.__init__(self, ID, ins, outs, thermo)
+        Unit.__init__(self, ID, ins, outs, thermo)
         self.filter_type = filter_type
         self.OLR = OLR
         self.HLR = HLR
@@ -124,12 +125,12 @@ class PolishingFilter(bst.Unit):
         self.include_excavation_cost = include_excavation_cost
         # Initialize the attributes
         ID = self.ID
-        self._inf = bst.Stream(f'{ID}_inf')
-        self._mixed = bst.Stream(f'{ID}_mixed')
-        hx_in = bst.Stream(f'{ID}_hx_in')
-        hx_out = bst.Stream(f'{ID}_hx_out')
+        self._inf = Stream(f'{ID}_inf')
+        self._mixed = Stream(f'{ID}_mixed')
+        hx_in = Stream(f'{ID}_hx_in')
+        hx_out = Stream(f'{ID}_hx_out')
         # Add '.' in ID for auxiliary units
-        self.heat_exchanger = bst.HXutility(ID=f'.{ID}_hx', ins=hx_in, outs=hx_out)
+        self.heat_exchanger = HXutility(ID=f'.{ID}_hx', ins=hx_in, outs=hx_out)
         self._refresh_rxns()
 
 

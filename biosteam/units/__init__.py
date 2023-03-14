@@ -42,7 +42,6 @@ from .drying import *
 from .size_reduction import *
 from .size_enlargement import *
 from .liquid_liquid_extraction import *
-from .wastewater import *
 from .facilities import *
 from .adsorption import *
 
@@ -68,13 +67,12 @@ from . import (
     size_enlargement,
     drying,
     distillation, 
-    tank, 
+    tank,
     liquid_liquid_extraction, 
     mixing, 
     splitting, 
     heat_exchange, 
     solids_separation,
-    wastewater,
     decorators, 
     design_tools, 
     facilities, 
@@ -87,6 +85,9 @@ from . import (
     turbine,
     valve,
 )
+
+from .wastewater import *
+from . import wastewater
 
 __all__ = ('Unit',
            *molecular_sieve.__all__,
