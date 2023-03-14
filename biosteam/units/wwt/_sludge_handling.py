@@ -17,7 +17,7 @@ __all__ = ('SludgeHandling', 'BeltThickener', 'SludgeCentrifuge')
 
 class SludgeHandling(bst.Unit):
     '''
-    A generic class for handling of wastewater treatment sludge. [1]_
+    A generic class for handling of wastewater treatment sludge.
 
     The 0th outs is the water-rich supernatant (effluent) and
     the 1st outs is the solid-rich sludge.
@@ -60,9 +60,11 @@ class SludgeHandling(bst.Unit):
         self.solubles = tuple(solubles)
         self.solids = tuple(i.ID for i in self.chemicals
                             if (i.ID not in solubles) and (i.locked_state!='g'))
-        self._mixed = bst.Stream(f'{self.ID}_mixed')
-        self.effluent_pump = bst.Pump(f'{self.ID}_eff')
-        self.sludge_pump = bst.Pump(f'{self.ID}_sludge')
+        ID = self.ID
+        self._mixed = bst.Stream(f'{ID}_mixed')
+        # Add '.' in ID for auxiliary units
+        self.effluent_pump = bst.Pump(f'.{ID}_eff_pump', ins=self.outs[0].proxy(f'{ID}_eff'))
+        self.sludge_pump = bst.Pump(f'.{ID}_sludge_pump', ins=self.outs[1].proxy(f'{ID}_sludge'))
 
 
     @staticmethod
@@ -111,11 +113,7 @@ class SludgeHandling(bst.Unit):
     def _cost(self):
         if self.SKIPPED == False:
             pumps = (self.effluent_pump, self.sludge_pump)
-            self.power_utility.rate = 0.
-            for i in range(2):
-                pumps[i].ins[0].copy_like(self.outs[i].copy()) # use `.proxy()` will interfere `_run`
-                pumps[i].simulate()
-                self.power_utility.rate += pumps[i].power_utility.rate
+            for i in range(2): pumps[i].simulate()
         else:
             self.baseline_purchase_costs.clear()
             self.power_utility.rate = 0
@@ -181,16 +179,20 @@ class BeltThickener(SludgeHandling):
 
     def _design(self):
         self._N_thickener = N = math.ceil(self._mixed.F_vol/self.max_capacity)
-        self.design_results['Number of thickners'] = N
+        self.design_results['Number of thickeners'] = N
         self.F_BM['Thickeners'] = 1.7 # ref [2]
         self.baseline_purchase_costs['Thickeners'] = 4000 * N
-        self.power_utility.rate = self.power_demand * N
+
+
+    def _cost(self):
+        super()._cost()
+        self.power_utility.rate += self.power_demand * self.N_thickener
 
 
     @property
     def N_thickener(self):
         '''[int] Number of required belt thickeners.'''
-        return self._N
+        return self._N_thickener
 
 
 class SludgeCentrifuge(SludgeHandling, bst.SolidsCentrifuge):

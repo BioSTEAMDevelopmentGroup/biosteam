@@ -123,9 +123,13 @@ class PolishingFilter(bst.Unit):
         self.include_pump_building_cost = include_pump_building_cost
         self.include_excavation_cost = include_excavation_cost
         # Initialize the attributes
+        ID = self.ID
+        self._inf = bst.Stream(f'{ID}_inf')
+        self._mixed = bst.Stream(f'{ID}_mixed')
         hx_in = bst.Stream(f'{ID}_hx_in')
         hx_out = bst.Stream(f'{ID}_hx_out')
-        self.heat_exchanger = bst.HXutility(ID=f'{ID}_hx', ins=hx_in, outs=hx_out)
+        # Add '.' in ID for auxiliary units
+        self.heat_exchanger = bst.HXutility(ID=f'.{ID}_hx', ins=hx_in, outs=hx_out)
         self._refresh_rxns()
 
 
@@ -151,8 +155,8 @@ class PolishingFilter(bst.Unit):
 
 
     @staticmethod
-    def _degassing(receiving_stream, original_stream):
-        InternalCirculationRx._degassing(receiving_stream, original_stream)
+    def _degassing(original_stream, receiving_stream):
+        InternalCirculationRx._degassing(original_stream, receiving_stream)
 
 
     @staticmethod
@@ -176,14 +180,13 @@ class PolishingFilter(bst.Unit):
         biogas.phase = 'g'
         biogas.empty()
 
-        inf = raw.copy()
-        inf.mix_from((raw, recycled))
-        self._inf = inf.copy() # this stream will be preserved (i.e., no reaction)
+        mixed = self._mixed
+        mixed.mix_from((raw, recycled))
+        self._inf.copy_like(mixed) # this stream will be preserved (i.e., no reaction)
 
-        self.growth_rxns(inf.mol)
-        self.decomp_rxns.force_reaction(inf.mol)
-        inf.split_to(eff, waste, self._isplit.data)
-        # tmo.separations.split(inf, eff, waste, self._isplit.data)
+        self.growth_rxns(mixed.mol)
+        self.decomp_rxns.force_reaction(mixed.mol)
+        mixed.split_to(eff, waste, self._isplit.data)
 
         sludge_conc = self._sludge_conc
         insolubles = tuple(i.ID for i in self.chemicals if i.ID in default_insolubles)
@@ -195,22 +198,22 @@ class PolishingFilter(bst.Unit):
 
         biogas.phase = air_in.phase = air_out.phase = 'g'
 
-        if inf.imol['O2'] < 0:
-            air_in.imol['O2'] = - inf.imol['O2']
-            air_in.imol['N2'] = - 0.79/0.21 * inf.imol['O2']
-            inf.imol['O2'] = 0
+        if mixed.imol['O2'] < 0:
+            air_in.imol['O2'] = - mixed.imol['O2']
+            air_in.imol['N2'] = - 0.79/0.21 * mixed.imol['O2']
+            mixed.imol['O2'] = 0
         else:
             air_in.empty()
 
         if self.filter_type == 'anaerobic':
-            degassing(biogas, eff)
-            degassing(biogas, waste)
+            degassing(eff, biogas)
+            degassing(waste, biogas)
             air_in.empty()
             air_out.empty()
         else:
             biogas.empty()
-            degassing(air_out, eff)
-            degassing(air_out, waste)
+            degassing(eff, air_out)
+            degassing(waste, air_out)
             air_out.imol['N2'] += air_in.imol['N2']
             air_out.imol['O2'] += air_in.imol['O2']
             self._recir_ratio = None
@@ -219,46 +222,11 @@ class PolishingFilter(bst.Unit):
 
 
     def _design(self):
-        func = self._design_anaerobic if self.filter_type=='anaerobic' \
-            else self._design_aerobic
-
-        V, VWC, VSC, VEX = func()
-        # Heat loss, assume air is 17°C, ground is 10°C
-        T = self.T
-        if T is None: loss = 0.
-        else:
-            N_filter, d, D = self.N_filter, self.d, self.D
-            A_W = pi * d * D
-            A_F = _d_to_A(d)
-            A_W *= N_filter * _ft2_to_m2
-            A_F *= N_filter * _ft2_to_m2
-
-            loss = 0.7 * (T-(17+273.15)) * A_W # 0.7 W/m2/°C for wall
-            loss += 1.7 * (T-(10+273.15)) * A_F # 1.7 W/m2/°C for floor
-            loss *= 3.6 # W (J/s) to kJ/hr
-
-        # Stream heating
-        hx = self.heat_exchanger
-        inf = self._inf
-        hx_ins0, hx_outs0 = hx.ins[0], hx.outs[0]
-        hx_ins0.copy_flow(inf)
-        hx_outs0.copy_flow(inf)
-        hx_ins0.T = inf.T
-        hx_outs0.T = T
-        hx.H = hx_ins0.H + loss # stream heating and heat loss
-        hx.simulate_as_auxiliary_exchanger(ins=hx.ins, outs=hx.outs)
-
-        # # Fluid heating
-        # inf = self._inf
-        # if T:
-        #     H_at_T = inf.thermo.mixture.H(mol=inf.mol, phase='l', T=T, P=101325)
-        #     duty = -(inf.H - H_at_T)
-        # else:
-        #     duty = 0
-        # self.heat_exchanger.simulate_as_auxiliary_exchanger(duty, inf)
-        
         ### Concrete and excavation ###
         D = self.design_results
+        func = self._design_anaerobic if self.filter_type=='anaerobic' \
+            else self._design_aerobic
+        V, VWC, VSC, VEX = func()
         D['Volume [ft3]'] = V
         D['Wall concrete [ft3]'] = VWC
         D['Slab concrete [ft3]'] = VSC
@@ -441,11 +409,34 @@ class PolishingFilter(bst.Unit):
         for k in C.keys():
             F_BM[k] = 1 if not F_BM.get(k) else F_BM.get(k)
 
+        # Heat loss, assume air is 17°C, ground is 10°C
+        T = self.T
+        if T is None: loss = 0.
+        else:
+            N_filter, d, D = self.N_filter, self.d, self.D
+            A_W = pi * d * D
+            A_F = _d_to_A(d)
+            A_W *= N_filter * _ft2_to_m2
+            A_F *= N_filter * _ft2_to_m2
+
+            loss = 0.7 * (T-(17+273.15)) * A_W # 0.7 W/m2/°C for wall
+            loss += 1.7 * (T-(10+273.15)) * A_F # 1.7 W/m2/°C for floor
+            loss *= 3.6 # W (J/s) to kJ/hr
+
+        # Stream heating
+        hx = self.heat_exchanger
+        inf = self._inf
+        hx_ins0, hx_outs0 = hx.ins[0], hx.outs[0]
+        hx_ins0.copy_flow(inf)
+        hx_outs0.copy_flow(inf)
+        hx_ins0.T = inf.T
+        hx_outs0.T = T
+        hx.H = hx_outs0.H + loss # stream heating and heat loss
+        hx.simulate_as_auxiliary_exchanger(ins=hx.ins, outs=hx.outs)
+
         # Pumping
         pumping = 0.
         for ID in self._pumps:
-            # if p is None:
-            #     continue
             p = getattr(self, f'{ID}_pump')
             pumping += p.power_utility.rate
 
