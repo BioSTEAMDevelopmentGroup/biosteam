@@ -4,6 +4,7 @@ biosteam.egg-info
 biosteam/graphviz_color_settings.txt
 biosteam/preferences.yaml
 **/__pycache__
+**/.ipynb_checkpoints
 *.pyc
 *.pyo
 .gitignore
