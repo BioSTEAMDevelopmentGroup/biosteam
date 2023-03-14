@@ -86,7 +86,7 @@ class ProcessSpecification:
 
 # %% Inlet and outlet representation
 
-def repr_ins_and_outs(layout, ins, outs, T, P, flow, composition, N, IDs, data):
+def repr_ins_and_outs(layout, ins, outs, T, P, flow, composition, N, IDs, sort, data):
     info = ''
     if ins:
         info += 'ins...\n'
@@ -95,7 +95,7 @@ def repr_ins_and_outs(layout, ins, outs, T, P, flow, composition, N, IDs, data):
             unit = stream._source
             source_info = f'  from  {type(unit).__name__}-{unit}\n' if unit else '\n'
             if stream and data:
-                stream_info = stream._info(layout, T, P, flow, composition, N, IDs)
+                stream_info = stream._info(layout, T, P, flow, composition, N, IDs, sort)
                 index = stream_info.index('\n')
                 info += f'[{i}] {stream}' + source_info + stream_info[index+1:] + '\n'
             else:
@@ -108,7 +108,7 @@ def repr_ins_and_outs(layout, ins, outs, T, P, flow, composition, N, IDs, data):
             unit = stream._sink
             sink_info = f'  to  {type(unit).__name__}-{unit}\n' if unit else '\n'
             if stream and data:
-                stream_info = stream._info(layout, T, P, flow, composition, N, IDs)
+                stream_info = stream._info(layout, T, P, flow, composition, N, IDs, sort)
                 index = stream_info.index('\n')
                 info += f'[{i}] {stream}' + sink_info + stream_info[index+1:] + '\n'
             else:
@@ -1882,17 +1882,17 @@ class Unit:
         return self.H_out - self.H_in + self.Hf_out - self.Hf_in
     
     # Representation
-    def _info(self, layout, T, P, flow, composition, N, IDs, data):
+    def _info(self, layout, T, P, flow, composition, N, IDs, sort, data):
         """Information on unit."""
         if self.ID:
             info = f'{type(self).__name__}: {self.ID}\n'
         else:
             info = f'{type(self).__name__}\n'
-        return info + repr_ins_and_outs(layout, self.ins, self.outs, T, P, flow, composition, N, IDs, data)
+        return info + repr_ins_and_outs(layout, self.ins, self.outs, T, P, flow, composition, N, IDs, sort, data)
 
-    def show(self, layout=None, T=None, P=None, flow=None, composition=None, N=None, IDs=None, data=True):
+    def show(self, layout=None, T=None, P=None, flow=None, composition=None, N=None, IDs=None, sort=None, data=True):
         """Prints information on unit."""
-        print(self._info(layout, T, P, flow, composition, N, IDs, data))
+        print(self._info(layout, T, P, flow, composition, N, IDs, sort, data))
     
     def _ipython_display_(self):
         if bst.preferences.autodisplay: self.diagram()

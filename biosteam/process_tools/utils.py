@@ -512,3 +512,4 @@ def default(utilities=True, CEPCI=True, flowsheet=False):
     if flowsheet: 
         for i in bst.main_flowsheet.flowsheet: i.clear(False)
     bst.Chemical.chemical_cache.clear()
+    
