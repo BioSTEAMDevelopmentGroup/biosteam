@@ -81,7 +81,7 @@ class Scope():
                 if isa(data, (float, int, str)): ni = 1
                 else: ni = len(data)
                 n.append(ni)
-                names += ['f{var}_i' for i in range(ni)]
+                names += [f'{var}_{i}' for i in range(ni)]
             return n, names
         else:
             for var in self._record.keys():
