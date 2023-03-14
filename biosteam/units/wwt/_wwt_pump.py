@@ -115,8 +115,9 @@ class WWTpump(bst.Unit):
                 if getattr(obj, 'system', None):                    
                     if not bst.main_flowsheet is obj.system.flowsheet:
                         bst.main_flowsheet.set_flowsheet(obj.system.flowsheet)
+                # Add '.' in ID for auxiliary units
                 pump = WWTpump(
-                    ID=f'{obj.ID}_{i}',
+                    ID=f'.{obj.ID}_{i}',
                     ins=ins_dct[i],
                     pump_type=type_dct[i],
                     add_inputs=inputs_dct[i])
@@ -153,7 +154,7 @@ class WWTpump(bst.Unit):
         M_SS_pipe = 0.29 * (V_s+V_d) * _lb_to_kg
 
         # Pump SS (for pumps within 300-1000 gpm)
-        # http://www.godwinpumps.com/images/uploads/ProductCatalog_Nov_2011_spread2.pdf
+        # https://www.godwinpumps.com/images/uploads/ProductCatalog_Nov_2011_spread2.pdf
         # assume 50% of the product weight is SS
         M_SS_pump = N_pump * (725*0.5)
 

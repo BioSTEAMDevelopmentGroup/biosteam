@@ -213,6 +213,9 @@ class Skipped(Unit):
             u._utility_cost = 0.
         for s in self.wwt_streams: s.empty()
 
+    @property
+    def utility_cost(self): return 0.
+
 
 class CHP(Unit):
     '''

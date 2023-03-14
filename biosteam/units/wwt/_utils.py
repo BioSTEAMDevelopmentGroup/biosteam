@@ -213,7 +213,7 @@ default_insolubles = {
     'CaO', 'Flocculant', 'Solids', 'Yeast',
     # Corn
     'Fiber', 'InsolubleProtein',
-    # Cornstover
+    # Corn stover
     'Ash', 'CaSO4', 'Cellulose', 'DenaturedEnzyme', 'Enzyme', 'Hemicellulose',
     'Lignin', 'Lime', 'P4O10', 'Protein', 'Tar', 'T_reesei', 'WWTsludge', 'Z_mobilis',
     # Lactic acid
@@ -238,7 +238,8 @@ _cal2joule = 4.184 # auom('cal').conversion_factor('J')
 
 def append_wwt_chemicals(chemicals, set_thermo=True):
     chems = chemicals.copy()
-    exist_IDs = [i.ID for i in chems]
+    exist_IDs = set([i.ID for i in chems])
+    for chem in chems: exist_IDs = exist_IDs.union(chem.aliases)
 
     def add_chemical(ID, **data):
         if not ID in exist_IDs:
