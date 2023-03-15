@@ -27,7 +27,7 @@ https://doi.org/10.2172/1483234
 
 # %%
 
-import thermosteam as tmo
+import thermosteam as tmo, biosteam as bst
 from ... import Unit, main_flowsheet, SystemFactory, stream_utility_prices
 from .. import Mixer, Splitter
 from ..decorators import cost
@@ -49,7 +49,7 @@ ParallelRxn = tmo.reaction.ParallelReaction
 
 __all__ = (
     'BiogasUpgrading',
-    'create_wastewater_process',
+    'create_high_rate_wastewater_treatment_system',
     'CHP',
     'ReverseOsmosis',
     'Skipped',
@@ -268,18 +268,30 @@ class BiogasUpgrading(Unit):
           dict(ID='brine')],
     fixed_ins_size=False,
 )
-def create_wastewater_process(ins, outs, process_ID='6', flowsheet=None,
-                            skip_IC=False, IC_kwargs={},
-                            skip_AnMBR=False, AnMBR_kwargs={},
-                            skip_AeF=False, AF_kwargs={}):
+def create_high_rate_wastewater_treatment_system(
+        ins=None, outs=None, process_ID='6',
+        flowsheet=None, autopopulate=False,
+        skip_IC=False, IC_kwargs={},
+        skip_AnMBR=False, AnMBR_kwargs={},
+        skip_AeF=False, AF_kwargs={}
+        ):
     if flowsheet: main_flowsheet.set_flowsheet(flowsheet)
-    wwt_streams = ins
     RNG, biogas, sludge, recycled_water, brine = outs
 
     ##### Units #####
     # Mix waste liquids for treatment
     X = str(process_ID)
-    MX01 = Mixer(f'M{X}01', ins=wwt_streams)
+    MX01 = Mixer(f'M{X}01', ins=ins or [])
+    MX01.autopopulate = False if autopopulate is None else autopopulate
+    
+    @MX01.add_specification(run=True)
+    def autopopulate_waste_streams():
+        if MX01.autopopulate and not MX01.ins: 
+            sys = MX01.system
+            streams = bst.FreeProductStreams(sys.streams)
+            MX01.ins.extend(streams.noncombustible_slurries)
+            for i in sys.facilities:
+                if isinstance(i, bst.BlowdownMixer): MX01.ins.append(i.outs[0])
 
     RX01_outs = (f'biogas_R{X}01', 'IC_eff', 'IC_sludge')
     if skip_IC:
@@ -348,9 +360,10 @@ def create_wastewater_process(ins, outs, process_ID='6', flowsheet=None,
     Mixer(f'M{X}03', ins=(SX01-0, SX02-0, SX03-0), outs=1-RX03)
 
     # Reverse osmosis to treat aerobically polished water
-    SX04 = ReverseOsmosis(f'S{X}04', ins=RX03-1, outs=(recycled_water, ''))
+    ReverseOsmosis(f'S{X}04', ins=RX03-1, outs=(recycled_water, brine))
+    # SX04 = ReverseOsmosis(f'S{X}04', ins=RX03-1, outs=(recycled_water, ''))
 
-    # A process specification for wastewater treatment cost calculation
-    Skipped('Caching', ins=SX04-1, outs=brine, main_in=0, main_out=0,
-            wwt_units=[u for u in main_flowsheet.unit if (u.ID[1:1+len(X)]==X)],
-            wwt_streams=[RNG, biogas, sludge])
+    # # A process specification for wastewater treatment cost calculation
+    # Skipped('Caching', ins=SX04-1, outs=brine, main_in=0, main_out=0,
+    #         wwt_units=[u for u in main_flowsheet.unit if (u.ID[1:1+len(X)]==X)],
+    #         wwt_streams=[RNG, biogas, sludge])

@@ -478,6 +478,7 @@ def compute_stream_COD(stream):
 def get_digestion_rxns(stream, BD, X_biogas, X_growth, biomass_ID):
     biomass_MW = getattr(stream.chemicals, biomass_ID).MW
     chems = [i for i in stream.chemicals if i.ID!=biomass_ID]
+    BD = 1. if not BD else BD
     if isinstance(BD, float):
         BD = dict.fromkeys([i.ID for i in chems], BD)
 

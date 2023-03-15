@@ -65,6 +65,7 @@ __all__ = (
     # 'WastewaterSystemCost',
     # 'SludgeCentrifuge',
     'get_digestable_organic_chemicals',
+    'create_conventional_wastewater_treatment_system',
     'create_wastewater_treatment_system',
 )
 
@@ -529,7 +530,7 @@ class ReverseOsmosis(Unit):
     fixed_ins_size=False,
     fthermo=create_cellulosic_ethanol_chemicals,
 )
-def create_wastewater_treatment_system(ins, outs, 
+def create_conventional_wastewater_treatment_system(ins, outs, 
         NaOH_price=None, autopopulate=None
     ):
     """
@@ -770,3 +771,6 @@ def create_wastewater_treatment_system(ins, outs,
     bst.Mixer('M604', [sludge_splitter-0, sludge_centrifuge-0], 0-recycled_sludge_mixer)
     reverse_osmosis = ReverseOsmosis('S604', membrane_bioreactor-0,
                                      outs=(treated_water, waste_brine))
+
+
+create_wastewater_treatment_system = create_conventional_wastewater_treatment_system

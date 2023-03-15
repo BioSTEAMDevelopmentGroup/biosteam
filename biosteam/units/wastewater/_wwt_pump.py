@@ -113,8 +113,8 @@ class WWTpump(Unit):
         for i in IDs:
             if not hasattr(obj, f'{i}_pump'):
                 if getattr(obj, 'system', None):                    
-                    if not bst.main_flowsheet is obj.system.flowsheet:
-                        bst.main_flowsheet.set_flowsheet(obj.system.flowsheet)
+                    if not main_flowsheet is obj.system.flowsheet:
+                        main_flowsheet.set_flowsheet(obj.system.flowsheet)
                 # Add '.' in ID for auxiliary units
                 pump = WWTpump(
                     ID=f'.{obj.ID}_{i}',
