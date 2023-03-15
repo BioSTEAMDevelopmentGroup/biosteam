@@ -112,7 +112,10 @@ def create_facilities(
                 if 'ID' not in i: i['ID'] = area
         if CT: bst.facilities.CoolingTower(**CT_kwargs)
         if CWP: bst.facilities.ChilledWaterPackage(**CWP_kwargs)
-        if WWT: WWT = bst.create_wastewater_treatment_system(mockup=True, autopopulate=True, **WWT_kwargs)
+        if WWT is True or 'conventional' in WWT:
+            WWT = bst.create_wastewater_treatment_system(mockup=True, autopopulate=True, **WWT_kwargs)
+        elif 'high' in WWT and 'rate' in WWT:
+            WWT = bst.create_high_rate_wastewater_treatment_system(**WWT_kwargs)
         if HXN: bst.HeatExchangerNetwork(**HXN_kwargs)
         if feedstock is not None:
             if CIP:
