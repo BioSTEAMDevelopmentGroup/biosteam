@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
 # Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
+#               2023-,     Yalin Li <mailto.yalin.li@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -112,10 +113,11 @@ def create_facilities(
                 if 'ID' not in i: i['ID'] = area
         if CT: bst.facilities.CoolingTower(**CT_kwargs)
         if CWP: bst.facilities.ChilledWaterPackage(**CWP_kwargs)
-        if WWT is True or 'conventional' in WWT:
-            WWT = bst.create_wastewater_treatment_system(mockup=True, autopopulate=True, **WWT_kwargs)
-        elif 'high' in WWT and 'rate' in WWT:
-            WWT = bst.create_high_rate_wastewater_treatment_system(**WWT_kwargs)
+        # Wastewater treatment system, two configurations with the conventional one as the default
+        WWT = 'conventional' if WWT == True else WWT
+        updated_WWT_kwargs = dict(autopopulate=True, mockup=True)
+        updated_WWT_kwargs .update(WWT_kwargs)
+        WWT = bst.create_wastewater_treatment_system(WWT=WWT, **updated_WWT_kwargs)
         if HXN: bst.HeatExchangerNetwork(**HXN_kwargs)
         if feedstock is not None:
             if CIP:
