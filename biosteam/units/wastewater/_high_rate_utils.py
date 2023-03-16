@@ -7,35 +7,38 @@
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 
-# References
-# ----------
-# [1] Kontos, G. A. Advanced Anaerobic Treatment for Energy Recovery and Improved Process Economics
-# in the Management of Biorefinery Wastewaters.
-# M.S. Thesis, University of Illinois Urbana-Champaign, Urbana, IL, 2021.
+'''
+This module contains data and utility functions for the high-rate wastewater treatment system.
 
-# [2] Schueller, D. MUNICIPAL RESIDENTIAL WASTEWATER RATES.
-# Metropolitan Council Environmental Services, 2020.
+References
+----------
+[1] Kontos, G. A. Advanced Anaerobic Treatment for Energy Recovery and Improved Process Economics
+in the Management of Biorefinery Wastewaters.
+M.S. Thesis, University of Illinois Urbana-Champaign, Urbana, IL, 2021.
 
-# [3] Humbird et al., Process Design and Economics for Biochemical Conversion of Lignocellulosic
-# Biomass to Ethanol: Dilute-Acid Pretreatment and Enzymatic Hydrolysis of Corn Stover;
-# Technical Report NREL/TP-5100-47764; DOE: NREL, 2011.
-# http://www.nrel.gov/docs/fy11osti/47764.pdf
+[2] Schueller, D. MUNICIPAL RESIDENTIAL WASTEWATER RATES.
+Metropolitan Council Environmental Services, 2020.
 
-# [4] Davis et al., Process Design and Economics for the Conversion of Lignocellulosic
-# Biomass to Hydrocarbon Fuels and Coproducts: 2018 Biochemical Design Case Update;
-# NREL/TP-5100-71949; National Renewable Energy Lab (NREL), 2018.
-# https://doi.org/10.2172/1483234.
+[3] Humbird et al., Process Design and Economics for Biochemical Conversion of Lignocellulosic
+Biomass to Ethanol: Dilute-Acid Pretreatment and Enzymatic Hydrolysis of Corn Stover;
+Technical Report NREL/TP-5100-47764; DOE: NREL, 2011.
+http://www.nrel.gov/docs/fy11osti/47764.pdf
 
-# [5] Shoener et al., Design of Anaerobic Membrane Bioreactors for the
-# Valorization of Dilute Organic Carbon Waste Streams.
-# Energy Environ. Sci. 2016, 9 (3), 1102–1112.
-# https://doi.org/10.1039/C5EE03715H.
+[4] Davis et al., Process Design and Economics for the Conversion of Lignocellulosic
+Biomass to Hydrocarbon Fuels and Coproducts: 2018 Biochemical Design Case Update;
+NREL/TP-5100-71949; National Renewable Energy Lab (NREL), 2018.
+https://doi.org/10.2172/1483234.
 
+[5] Shoener et al., Design of Anaerobic Membrane Bioreactors for the
+Valorization of Dilute Organic Carbon Waste Streams.
+Energy Environ. Sci. 2016, 9 (3), 1102–1112.
+https://doi.org/10.1039/C5EE03715H.
+'''
 
 import numpy as np
 from chemicals.elements import molecular_weight
 from warnings import warn
-from thermosteam import Chemical, Chemicals, Stream, settings
+from thermosteam import Chemical, Chemicals, Stream, settings, Thermo
 from thermosteam.reaction import (
     Reaction as Rxn,
     ParallelReaction as PRxn
@@ -285,13 +288,11 @@ def get_soluble_IDs(chemicals, insolubles):
 _cal2joule = 4.184 # auom('cal').conversion_factor('J')
 
 def append_wwt_chemicals(chemicals, set_thermo=True):
+    chemicals = chemicals.chemicals if isinstance(chemicals, Thermo) else chemicals
     chems = chemicals.copy()
-    # exist_IDs = set([i.ID for i in chems])
-    # for chem in chems: exist_IDs = exist_IDs.union(chem.aliases)
 
     def add_chemical(ID, **data):
         if not hasattr(chemicals, ID):
-        # if not ID in exist_IDs:
             chemical = Chemical(ID, **data)
             chems.append(chemical)
 
