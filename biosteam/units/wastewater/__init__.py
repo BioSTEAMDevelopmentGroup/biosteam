@@ -41,7 +41,8 @@ def create_wastewater_treatment_system(WWT='conventional', **WWT_kwargs):
     and the use of two anaerobic unit operations 
     (anaerobic process does not need aeration therefore saves electricity),
     the high-rate process is expected to have lower CAPEX/OPEX with 
-    lower environmental impacts.
+    lower environmental impacts
+    (see the example for MESP comparison for the corn stover biorefinery).
     
     Please see the specific functions below for more details on input parameters.
     
@@ -53,6 +54,33 @@ def create_wastewater_treatment_system(WWT='conventional', **WWT_kwargs):
         All remaining kwargs will be passed to either 
         `create_conventional_wastewater_treatment_system` or
         `create_high_rate_wastewater_treatment_system` depending on the configuration.
+        
+    Examples
+    --------
+    >>> import biosteam as bst
+    >>> from biorefineries import cornstover as cs
+    >>> factor = cs.ethanol_density_kggal
+    >>> bst.settings.set_thermo(cs.create_chemicals())
+    
+    >>> def get_MESP(sys):
+    ...     if not sys.TEA: cs.create_tea(sys)
+    ...     sys.simulate()
+    ...     MESP = sys.TEA.solve_price(sys.flowsheet.stream.ethanol)*factor
+    ...     print(f'{sys.ID} MESP: ${MESP:.2f}/gal')
+        
+    # With the conventional WWT process
+    >>> conv_f = bst.Flowsheet('conventional')
+    >>> bst.main_flowsheet.set_flowsheet(conv_f)
+    >>> conv_sys = cs.create_system('conventional', WWT='conventional')
+    >>> get_MESP(conv_sys)
+    conventional MESP: $2.10/gal
+    
+    # With the high-rate WWT process
+    >>> highr_f = bst.Flowsheet('high_rate')
+    >>> bst.main_flowsheet.set_flowsheet(highr_f)
+    >>> highr_sys = cs.create_system('high_rate', WWT='high_rate', WWT_kwargs=dict(process_ID=6),)
+    >>> get_MESP(highr_sys)
+    high_rate MESP: $1.72/gal
 
     See Also
     --------
@@ -90,6 +118,4 @@ __all__ = (
     *_high_rate_polishing_filter.__all__,
     *_high_rate_membrane_bioreactor.__all__,
     *_high_rate_sludge_handling.__all__,
-    # *conventional.__all__,
-    # *high_rate.__all__,
     )
