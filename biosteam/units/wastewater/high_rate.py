@@ -8,17 +8,53 @@
 # for license details.
 
 '''
-Unit construction and functions for creating wastewater treatment system.
+Unit construction and functions for creating a high-rate wastewater treatment system
+as described in Li et al., with some unit operations based on Humbird et al., and Davis et al.
+
+Note that specific chemicals (e.g., NaOCl) would be appended if not already in the set thermo obj.
+
+And the CHP unit is different from the default one in BioSTEAM.
+
+.. contents:: :local:
+
+Data
+----
+Please refer to biosteam.units.wastewater._high_rate_utils.py.
+    
+Utilities
+---------
+Please refer to biosteam.units.wastewater._high_rate_utils.py.
+    
+Unit operations
+---------------
+.. autoclass:: biosteam.units.wastewater._high_rate_internal_circulation_rx.InternalCirculationRx 
+.. autoclass:: biosteam.units.wastewater._high_rate_membrane_bioreactor.AnMBR
+.. autoclass:: biosteam.units.wastewater._high_rate_polishing_filter.PolishingFilter
+.. autoclass:: biosteam.units.wastewater._high_rate_sludge_handling.BeltThickener
+.. autoclass:: biosteam.units.wastewater._high_rate_sludge_handling.SludgeCentrifuge
+.. autoclass:: biosteam.units.wastewater.high_rate.BiogasUpgrading
+.. autoclass:: biosteam.units.wastewater.high_rate.CHP
+.. autoclass:: biosteam.units.wastewater.high_rate.ReverseOsmosis
+.. autoclass:: biosteam.units.wastewater.high_rate.Skipped
+
+System factories
+----------------
+.. autofunction:: biosteam.units.wastewater.high_rate.create_high_rate_wastewater_treatment_system
 
 References
 ----------
-[1] Humbird et al., Process Design and Economics for Biochemical Conversion of
+[1] Li et al., Design of a High-Rate Wastewater Treatment Process 
+for Energy and Water Recovery at Biorefineries. 
+ACS Sustainable Chem. Eng. 2023, 11 (9), 3861–3872. 
+https://doi.org/10.1021/acssuschemeng.2c07139.
+
+[2] Humbird et al., Process Design and Economics for Biochemical Conversion of
 Lignocellulosic Biomass to Ethanol: Dilute-Acid Pretreatment and Enzymatic
 Hydrolysis of Corn Stover; Technical Report NREL/TP-5100-47764;
 National Renewable Energy Lab (NREL), 2011.
 https://www.nrel.gov/docs/fy11osti/47764.pdf
 
-[2] Davis et al., Process Design and Economics for the Conversion of Lignocellulosic
+[3] Davis et al., Process Design and Economics for the Conversion of Lignocellulosic
 Biomass to Hydrocarbon Fuels and Coproducts: 2018 Biochemical Design Case Update;
 NREL/TP-5100-71949; National Renewable Energy Lab (NREL), 2018.
 https://doi.org/10.2172/1483234
@@ -33,7 +69,7 @@ from .. import Mixer, Splitter
 from ..decorators import cost
 from ..design_tools import CEPCI_by_year as CEPCI
 from . import (
-    default_insolubles,
+    append_wwt_chemicals, default_insolubles,
     InternalCirculationRx, AnMBR, PolishingFilter, BeltThickener, SludgeCentrifuge,
     get_combustion_energy, prices, GWP_CFs,
     )
@@ -45,7 +81,6 @@ _kW_to_kJhr = 3600 # auom('kW').conversion_factor('kJ/hr')
 
 Rxn = tmo.reaction.Reaction
 ParallelRxn = tmo.reaction.ParallelReaction
-# CEPCI = bst.units.design_tools.CEPCI_by_year
 
 __all__ = (
     'BiogasUpgrading',
@@ -267,14 +302,234 @@ class BiogasUpgrading(Unit):
           dict(ID='recycled_water'),
           dict(ID='brine')],
     fixed_ins_size=False,
+    fthermo=append_wwt_chemicals,
 )
 def create_high_rate_wastewater_treatment_system(
         ins=None, outs=None, process_ID='6',
         flowsheet=None, autopopulate=False,
         skip_IC=False, IC_kwargs={},
         skip_AnMBR=False, AnMBR_kwargs={},
-        skip_AeF=False, AF_kwargs={}
+        skip_AeF=False, AeF_kwargs={}
         ):
+    '''
+    Return a system for wastewater treatment (WWT) as described in Li et al.
+    The system includes internal circulation (IC), anaerobic membrane bioreactors (AnMBR), 
+    aerobic polishing filter (AeF),
+    belt thickener and sludge centrifuge, and a reverse osmosis unit.
+    
+    Users can choose whether to skip IC
+    (makes sense when influent COD is only on the order of grams per liter),
+    AnMBR (not recommended unless the COD is very low),
+    and/or AeF (not recommended if want to achieve low COD in the effluent).
+    
+    An optional biogas upgrading unit can be included to upgrade the biogas
+    (from IC and AnMBR) as renewable natural gas (RNG) for sale with incentives,
+    this is achieved through adjusting `BiogasUpgrading.ratio`.
+         
+    Parameters
+    ----------
+    ins : wastewater streams
+        Wastewater streams (without solids). Defaults to all product streams
+        at run time that are not sold and cannot generate energy through combustion
+        (i.e. streams that have no sink, no price, and a LHV less that 1 kJ / g).
+    outs : stream sequence
+        * [0] RNG
+        * [1] biogas
+        * [2] sludge
+        * [3] recycled_water
+        * [4] brine
+    process_ID : float
+        Number of the process.
+        E.g., the default `process_ID` is 6,
+        then the first mixer of this WWT system will be M601.
+    flowsheet : obj, optional
+        If provided, the WWT system will be added to the given flowsheet.
+    autopopulate : bool, optional
+        Whether to automatically add wastewater streams.
+    skip_IC : bool
+        Whether to skip the IC unit.
+    IC_kwargs : dict
+        kwargs to be passed to the IC unit (refer to the doc of the IC unit for details).
+    skip_AnMBR : bool
+        Whether to skip the AnMBR unit.
+    AnMBR_kwargs : dict
+        kwargs to be passed to the AnMBR unit (refer to the doc of the AnMBR unit for details).
+    skip_AeF : bool
+        Whether to skip the AeF unit.
+    AeF_kwargs : dict
+        kwargs to be passed to the AeF unit (refer to the doc of the AeF unit for details).
+
+    Examples
+    --------
+    >>> from biosteam import Stream, create_high_rate_wastewater_treatment_system, settings
+    >>> from biorefineries import cornstover as cs
+    >>> settings.set_thermo(cs.create_chemicals())
+    >>> feed = Stream(
+    ...     ID='wastewater', 
+    ...     Water=2.634e+04, 
+    ...     Ethanol=0.07225, 
+    ...     AceticAcid=24.67, 
+    ...     Furfural=6.206, 
+    ...     Glycerol=1.784, 
+    ...     LacticAcid=17.7, 
+    ...     SuccinicAcid=3.472, 
+    ...     DAP=1.001, 
+    ...     AmmoniumSulfate=17.63, 
+    ...     HMF=2.366, 
+    ...     Glucose=2.816, 
+    ...     Xylose=6.953, 
+    ...     Arabinose=12.78, 
+    ...     Extract=65.98, 
+    ...     Ash=83.52, 
+    ...     Lignin=1.659, 
+    ...     SolubleLignin=4.202, 
+    ...     GlucoseOligomer=6.796, 
+    ...     GalactoseOligomer=0.01718, 
+    ...     MannoseOligomer=0.009008, 
+    ...     XyloseOligomer=2.878, 
+    ...     ArabinoseOligomer=0.3508, 
+    ...     Z_mobilis=0.6668, 
+    ...     Protein=2.569, 
+    ...     Glucan=0.1555, 
+    ...     Xylan=0.06121, 
+    ...     Xylitol=4.88, 
+    ...     Cellobiose=0.9419, 
+    ...     Arabinan=0.02242, 
+    ...     Mannan=0.06448, 
+    ...     Galactan=0.01504, 
+    ...     Cellulase=25.4, 
+    ...     units='kmol/hr'
+    ... )
+    >>> wwt_sys = create_high_rate_wastewater_treatment_system(ins=feed)
+    >>> wwt_sys.simulate()
+    >>> wwt_sys.show('cwt100')
+    System: wastewater_sys
+    Highest convergence error among components in recycle
+    stream M603-0 after 6 loops:
+    - flow rate   1.77e+01 kmol/hr (0.073%)
+    - temperature 1.30e-03 K (0.00043%)
+    ins...
+    [0] wastewater
+        phase: 'l', T: 298.15 K, P: 101325 Pa
+        composition (%): Water              94.6
+                         Ethanol            0.000664
+                         AceticAcid         0.295
+                         Furfural           0.119
+                         Glycerol           0.0328
+                         LacticAcid         0.318
+                         SuccinicAcid       0.0818
+                         DAP                0.0264
+                         AmmoniumSulfate    0.465
+                         HMF                0.0595
+                         Glucose            0.101
+                         Xylose             0.208
+                         Arabinose          0.383
+                         Extract            2.37
+                         Ash                0.0167
+                         Lignin             0.0503
+                         SolubleLignin      0.128
+                         GlucoseOligomer    0.244
+                         GalactoseOligomer  0.000617
+                         MannoseOligomer    0.000324
+                         XyloseOligomer     0.0862
+                         ArabinoseOligomer  0.0105
+                         Z_mobilis          0.00328
+                         Protein            0.0117
+                         Glucan             0.00503
+                         Xylan              0.00161
+                         Xylitol            0.148
+                         Cellobiose         0.0643
+                         Arabinan           0.000591
+                         Mannan             0.00209
+                         Galactan           0.000486
+                         Cellulase          0.122
+                         -----------------  5.01e+05 kg/hr
+    outs...
+    [0] RNG
+        phase: 'l', T: 298.15 K, P: 101325 Pa
+        flow: 0
+    [1] biogas
+        phase: 'l', T: 298.15 K, P: 101325 Pa
+        composition (%): CH4  26.9
+                         H2S  0.0348
+                         CO2  73.1
+                         ---  4.33e+04 kg/hr
+    [2] sludge
+        phase: 'l', T: 307.84 K, P: 101325 Pa
+        composition (%): Water              80
+                         Ethanol            2.49e-05
+                         AceticAcid         0.0111
+                         Furfural           0.00446
+                         Glycerol           0.00123
+                         NH3                0.0447
+                         LacticAcid         0.0117
+                         SuccinicAcid       0.00307
+                         DAP                0.0635
+                         AmmoniumSulfate    1.12
+                         HMF                0.00223
+                         Glucose            0.0043
+                         Xylose             0.00678
+                         Arabinose          0.0144
+                         Extract            0.087
+                         Ash                0.852
+                         Lignin             2.51
+                         SolubleLignin      0.00468
+                         GlucoseOligomer    0.00899
+                         GalactoseOligomer  2.27e-05
+                         MannoseOligomer    1.19e-05
+                         XyloseOligomer     0.00317
+                         ArabinoseOligomer  0.000387
+                         Z_mobilis          0.163
+                         Protein            0.583
+                         Glucan             0.25
+                         Xylan              0.0803
+                         Xylitol            0.00555
+                         Cellobiose         0.00241
+                         Arabinan           0.0294
+                         Mannan             0.104
+                         Galactan           0.0242
+                         WWTsludge          14
+                         Cellulase          0.00447
+                         -----------------  1.01e+04 kg/hr
+    [3] recycled_water
+        phase: 'l', T: 303.15 K, P: 101325 Pa
+        composition (%): Water  100
+                         -----  4.59e+05 kg/hr
+    [4] brine
+        phase: 'l', T: 303.15 K, P: 101325 Pa
+        composition (%): Water              71.2
+                         Ethanol            2.18e-05
+                         AceticAcid         0.00971
+                         Furfural           0.00391
+                         Glycerol           0.00108
+                         NH3                1.08
+                         LacticAcid         0.0121
+                         SuccinicAcid       0.00269
+                         DAP                1.48
+                         AmmoniumSulfate    26.1
+                         HMF                0.00195
+                         Xylose             0.0133
+                         Arabinose          0.0126
+                         Extract            0.09
+                         SolubleLignin      0.00484
+                         GlucoseOligomer    0.00914
+                         GalactoseOligomer  2.31e-05
+                         MannoseOligomer    1.21e-05
+                         XyloseOligomer     0.00322
+                         ArabinoseOligomer  0.000393
+                         Xylitol            0.00486
+                         Cellobiose         0.00211
+                         Cellulase          0.00462
+                         -----------------  8.51e+03 kg/hr
+    
+    References
+    ----------
+    [1] Li et al., Design of a High-Rate Wastewater Treatment Process 
+    for Energy and Water Recovery at Biorefineries. 
+    ACS Sustainable Chem. Eng. 2023, 11 (9), 3861–3872. 
+    https://doi.org/10.1021/acssuschemeng.2c07139.
+    '''
+    # Setup
     if flowsheet: main_flowsheet.set_flowsheet(flowsheet)
     RNG, biogas, sludge, recycled_water, brine = outs
 
@@ -336,10 +591,11 @@ def create_high_rate_wastewater_treatment_system(
                               # Below include in the TEA
                               include_pump_building_cost=False,
                               include_excavation_cost=False,
-                              **AF_kwargs)
+                              **AeF_kwargs)
 
     MX02 = Mixer(f'M{X}02', ins=(RX01-0, RX02-0, RX03-0))
-    BiogasUpgrading('Upgrading', ins=(MX02-0, 'foo'), outs=(RNG, biogas))
+    
+    BiogasUpgrading('Upgrading', ins=(MX02-0, 'upgrading_placeholder'), outs=(RNG, biogas))
 
     # Recycled the majority of sludge (96%) to the aerobic filter,
     # 96% from the membrane bioreactor in ref [2]
@@ -361,9 +617,3 @@ def create_high_rate_wastewater_treatment_system(
 
     # Reverse osmosis to treat aerobically polished water
     ReverseOsmosis(f'S{X}04', ins=RX03-1, outs=(recycled_water, brine))
-    # SX04 = ReverseOsmosis(f'S{X}04', ins=RX03-1, outs=(recycled_water, ''))
-
-    # # A process specification for wastewater treatment cost calculation
-    # Skipped('Caching', ins=SX04-1, outs=brine, main_in=0, main_out=0,
-    #         wwt_units=[u for u in main_flowsheet.unit if (u.ID[1:1+len(X)]==X)],
-    #         wwt_streams=[RNG, biogas, sludge])
