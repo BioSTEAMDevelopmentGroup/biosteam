@@ -8,12 +8,12 @@
 # for license details.
 
 
-from ._utils import *
-from ._internal_circulation_rx import *
-from ._wwt_pump import *
-from ._polishing_filter import *
-from ._membrane_bioreactor import *
-from ._sludge_handling import *
+from ._high_rate_utils import *
+from ._high_rate_internal_circulation_rx import *
+from ._high_rate_wwt_pump import *
+from ._high_rate_polishing_filter import *
+from ._high_rate_membrane_bioreactor import *
+from ._high_rate_sludge_handling import *
 
 from .conventional import create_conventional_wastewater_treatment_system
 from .high_rate import create_high_rate_wastewater_treatment_system
@@ -69,12 +69,12 @@ def create_wastewater_treatment_system(WWT='conventional', **WWT_kwargs):
         
 
 from . import (
-    _utils,
-    _internal_circulation_rx,
-    _wwt_pump,
-    _polishing_filter,
-    _membrane_bioreactor,
-    _sludge_handling,
+    _high_rate_utils,
+    _high_rate_internal_circulation_rx,
+    _high_rate_wwt_pump,
+    _high_rate_polishing_filter,
+    _high_rate_membrane_bioreactor,
+    _high_rate_sludge_handling,
     conventional,
     high_rate,
     )
@@ -82,12 +82,14 @@ from . import (
 
 __all__ = (
     'create_wastewater_treatment_system',
-    *_utils.__all__,
-    *_internal_circulation_rx.__all__,
-    *_wwt_pump.__all__,
-    *_polishing_filter.__all__,
-    *_membrane_bioreactor.__all__,
-    *_sludge_handling.__all__,
-    *conventional.__all__,
-    *high_rate.__all__,
+    'create_conventional_wastewater_treatment_system',
+    'create_high_rate_wastewater_treatment_system',
+    *_high_rate_utils.__all__,
+    *_high_rate_internal_circulation_rx.__all__,
+    *_high_rate_wwt_pump.__all__,
+    *_high_rate_polishing_filter.__all__,
+    *_high_rate_membrane_bioreactor.__all__,
+    *_high_rate_sludge_handling.__all__,
+    # *conventional.__all__,
+    # *high_rate.__all__,
     )

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
 # Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
+#               2023-,     Yalin Li <mailto.yalin.li@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -13,22 +14,22 @@ cellulosic ethanol biorefinery as in [1]_.
 
 Data
 ----
-.. autodata:: biosteam.units.wastewater.non_digestables
+.. autodata:: biosteam.units.wastewater.conventional.non_digestables
     
 Unit operations
 ---------------
-.. autoclass:: biosteam.units.wastewater.AnaerobicDigestion 
-.. autoclass:: biosteam.units.wastewater.AerobicDigestion
-.. autoclass:: biosteam.units.wastewater.ReverseOsmosis
-.. autoclass:: biosteam.units.wastewater.WastewaterSystemCost
+.. autoclass:: biosteam.units.wastewater.conventional.AnaerobicDigestion 
+.. autoclass:: biosteam.units.wastewater.conventional.AerobicDigestion
+.. autoclass:: biosteam.units.wastewater.conventional.ReverseOsmosis
+.. autoclass:: biosteam.units.wastewater.conventional.WastewaterSystemCost
 
 Utilities
 ---------
-.. autofunction:: biosteam.units.wastewater.get_digestable_organic_chemicals
+.. autofunction:: biosteam.units.wastewater.conventional.get_digestable_organic_chemicals
 
 System factories
 ----------------
-.. autofunction:: biosteam.units.wastewater.create_wastewater_treatment_system
+.. autofunction:: biosteam.units.wastewater.conventional.create_conventional_wastewater_treatment_system
 
 References
 ----------
@@ -59,14 +60,13 @@ except:
     create_cellulosic_ethanol_chemicals = None
 
 __all__ = (
-    # 'AnaerobicDigestion', 
-    # 'AerobicDigestion', 
-    # 'ReverseOsmosis',
-    # 'WastewaterSystemCost',
-    # 'SludgeCentrifuge',
+    'AnaerobicDigestion', 
+    'AerobicDigestion', 
+    'ReverseOsmosis',
+    'WastewaterSystemCost',
+    'SludgeCentrifuge',
     'get_digestable_organic_chemicals',
     'create_conventional_wastewater_treatment_system',
-    'create_wastewater_treatment_system',
 )
 
 
@@ -534,9 +534,9 @@ def create_conventional_wastewater_treatment_system(ins, outs,
         NaOH_price=None, autopopulate=None
     ):
     """
-    Return a system for wastewater treatment, which includes anaerobic and aerobic 
-    digestion reactors, a membrane bioreactor, a sludge centrifuge, and a reverse 
-    osmosis unit.
+    Return a system for wastewater treatment (WWT) as described in Humbird et al.
+    The system includes anaerobic and aerobic  digestion reactors,
+    a membrane bioreactor, a sludge centrifuge, and a reverse osmosis unit.
          
     Parameters
     ----------
@@ -552,12 +552,12 @@ def create_conventional_wastewater_treatment_system(ins, outs,
     NaOH_price : float, optional
         Price of NaOH in USD/kg. The default is 0.07476.
     autopopulate : bool, optional
-        Whether to automatically add waste water streams.
+        Whether to automatically add wastewater streams.
 
     Examples
     --------
-    >>> from biosteam import Stream, create_wastewater_treatment_system, settings
-    >>> settings.set_thermo(create_wastewater_treatment_system.fthermo())
+    >>> from biosteam import Stream, create_conventional_wastewater_treatment_system, settings
+    >>> settings.set_thermo(create_conventional_wastewater_treatment_system.fthermo())
     >>> feed = Stream(
     ...     ID='wastewater', 
     ...     Water=2.634e+04, 
@@ -594,7 +594,7 @@ def create_conventional_wastewater_treatment_system(ins, outs,
     ...     Cellulase=25.4, 
     ...     units='kmol/hr'
     ... )
-    >>> wwt_sys = create_wastewater_treatment_system(ins=feed)
+    >>> wwt_sys = create_conventional_wastewater_treatment_system(ins=feed)
     >>> wwt_sys.simulate()
     >>> wwt_sys.show('cwt100')
     System: wastewater_treatment_sys
@@ -727,6 +727,14 @@ def create_conventional_wastewater_treatment_system(ins, outs,
                          WWTsludge          5.9
                          Cellulase          0.00292
                          -----------------  1.12e+04 kg/hr
+    
+    References
+    ----------
+    [1] Humbird et al., Process Design and Economics for 
+    Biochemical Conversion of Lignocellulosic Biomass 
+    to Ethanol: Dilute-Acid Pretreatment and Enzymatic Hydrolysis of Corn 
+    Stover, Technical Report NREL/TP-5100-47764; DOE: NREL, 2011.
+    https://www.nrel.gov/docs/fy11osti/47764.pdf
     """
     methane, sludge, treated_water, waste_brine = outs
     if NaOH_price is None: NaOH_price = 0.07476
