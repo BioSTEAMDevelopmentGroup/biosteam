@@ -14,8 +14,11 @@ def _setup(self):
     self.heat_utilities.clear()
     self.power_utility.empty()
     
+def reset_cache(self): pass
+    
 def auxiliary(cls):
     """Make class able to function as an auxiliary unit. The class should 
     compute all results during initialization."""
     if not hasattr(cls, '_setup'): cls._setup = _setup
+    if not hasattr(cls, 'reset_cache'): cls.reset_cache = reset_cache
     return cls
