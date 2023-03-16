@@ -184,7 +184,7 @@ class SystemFactory:
     
     def __new__(cls, f=None, ID=None, ins=None, outs=None,
                 fixed_ins_size=True, fixed_outs_size=True,
-                fthermo=None, fthermo_append=None):
+                fthermo=None):
         if f:
             fsig = signature(f)
             params = list(fsig.parameters)
