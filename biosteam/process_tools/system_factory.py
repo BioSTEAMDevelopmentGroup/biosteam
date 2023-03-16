@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
 # Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
+#               2023-,     Yalin Li <mailto.yalin.li@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -95,9 +96,10 @@ class SystemFactory:
     fixed_outs_size : bool, optional
         Whether the number of outlets must match the number expected.
     fthermo : callable, optional
-        Function that returns a :class:`~thermosteam.Thermo` object. The SystemFactory
-        object resorts to this function if no default thermodynamic property package
-        is available.
+        Function that returns a :class:`~thermosteam.Thermo` object. 
+        If there is existing thermo object as the default thermodynamic property package,
+        new thermo will be set using `fthermo(bst.settings.get_thermo())`.
+        Otherwise, the function will be called without parameters (i.e., `fthermo()`).
     
     Examples
     --------
@@ -216,7 +218,9 @@ class SystemFactory:
     
     def __call__(self, ID=None, ins=None, outs=None, mockup=False, area=None, udct=None, 
                  operating_hours=None, autorename=None, **kwargs):
-        if not hasattr(bst.settings, '_thermo') and self.fthermo: bst.settings.set_thermo(self.fthermo())
+        fthermo = self.fthermo
+        thermo = getattr(bst.settings, '_thermo', None)
+        if fthermo: bst.settings.set_thermo(self.fthermo(thermo))
         if autorename is not None: 
             original_autorename = tmo.utils.Registry.AUTORENAME
             tmo.utils.Registry.AUTORENAME = autorename
