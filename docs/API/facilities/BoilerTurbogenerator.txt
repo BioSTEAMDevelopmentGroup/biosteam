@@ -1,0 +1,5 @@
+BoilerTurbogenerator
+====================
+
+.. autoclass:: biosteam.facilities.BoilerTurbogenerator
+   :members:

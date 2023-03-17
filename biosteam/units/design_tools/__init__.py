@@ -17,6 +17,7 @@ from . import column_design
 from . import heat_transfer
 from . import tank_design
 from . import geometry
+from . import mechanical
 from . import utils
 
 __all__ = (*cost_index.__all__,
@@ -28,6 +29,7 @@ __all__ = (*cost_index.__all__,
            *column_design.__all__,
            *heat_transfer.__all__,
            *tank_design.__all__,
+           *mechanical.__all__,
            *utils.__all__,
            *geometry.__all__,
 )
@@ -41,5 +43,6 @@ from .cost_index import *
 from .batch import *
 from .heat_transfer import *
 from .tank_design import *
+from .mechanical import *
 from .utils import *
 from .geometry import *

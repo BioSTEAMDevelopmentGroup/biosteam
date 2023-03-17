@@ -45,7 +45,7 @@ else:
 import thermosteam
 from thermosteam import *
 from ._preferences import preferences
-from ._heat_utility import *
+from ._heat_utility import UtilityAgent, HeatUtility
 from ._power_utility import PowerUtility
 from . import plots
 from .utils import *
@@ -63,6 +63,11 @@ from . import _temporary_connection
 from ._temporary_connection import *
 from . import units
 from .units import *
+from ._facility import Facility
+from . import facilities
+from .facilities import *
+from . import wastewater
+from .wastewater import *
 from . import evaluation
 from .evaluation import *
 from . import exceptions
@@ -70,12 +75,12 @@ from . import report
 from . import _settings
 
 __all__ = (
-    'Unit', 'PowerUtility', 'UtilityAgent', 'HeatUtility',
-    'utils', 'units', 'evaluation', 'Chemical', 'Chemicals', 'Stream',
+    'Unit', 'PowerUtility', 'UtilityAgent', 'HeatUtility', 'Facility',
+    'utils', 'units', 'facilities', 'wastewater', 'evaluation', 'Chemical', 'Chemicals', 'Stream',
     'MultiStream', 'settings', 'exceptions', 'report',
     'process_tools', 'preferences', *_system.__all__, *_flowsheet.__all__, 
-    *_tea.__all__, *units.__all__, *evaluation.__all__, 
-    *process_tools.__all__, *_temporary_connection.__all__,
+    *_tea.__all__, *units.__all__, *facilities.__all__, *wastewater.__all__,
+    *evaluation.__all__, *process_tools.__all__, *_temporary_connection.__all__,
 )
 
 def nbtutorial():

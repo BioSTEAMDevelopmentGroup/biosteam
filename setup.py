@@ -47,6 +47,8 @@ setup(
                      'units/facilities/hxn/*',
                      'units/design_tools/*',
                      'units/facilities/*',
+                     'units/wastewater/*',
+                     'units/wastewater/high_rate',
                      'units/decorators/*']
     },
     exclude_package_data={

@@ -42,7 +42,6 @@ from .drying import *
 from .size_reduction import *
 from .size_enlargement import *
 from .liquid_liquid_extraction import *
-from .facilities import *
 from .adsorption import *
 
 from . import (
@@ -75,7 +74,6 @@ from . import (
     solids_separation,
     decorators, 
     design_tools, 
-    facilities, 
     _duplicator,
     _diagram_only_units, 
     _batch_bioreactor,
@@ -86,8 +84,6 @@ from . import (
     valve,
 )
 
-from .wastewater import *
-from . import wastewater
 
 __all__ = ('Unit',
            *molecular_sieve.__all__,
@@ -115,12 +111,10 @@ __all__ = ('Unit',
            *_balance.__all__, 
            *_screw_feeder.__all__,
            *_magnetic_separator.__all__,
-           *facilities.__all__,
            *_duplicator.__all__,
            *_batch_bioreactor.__all__,
            *_batch_crystallizer.__all__,
            *_carbon_capture.__all__,
-           *wastewater.__all__,
            *drying.__all__,
            *adsorption.__all__,
            *compressor.__all__,
@@ -133,10 +127,8 @@ __all__ = ('Unit',
            'mixing',
            'splitting',
            'distillation',
-           'facilities',
            'decorators',
            'design_tools',
-           'wastewater',
            'heat_exchange',
            'solids_separation',
            'liquid_liquid_extraction',

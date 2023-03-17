@@ -196,16 +196,6 @@ simplify_optional_unions = True
 always_document_param_types = False
 typehints_document_rtype = False
 typehints_use_rtype = False
-autodoc_type_aliases = {
-    'stream': 'stream',
-    'streams': 'streams',
-    'stream_sequence': 'stream-sequence',
-    'Union[Collection[Union[Stream, str, None]], Union[Stream, str, None]]': 'streams',
-    'Union[Annotated[Union[Stream, str, None], 1], Stream, str, None]': 'stream',
-    'Union[AnnotatedAlias[Union[Stream, str, None]], Stream, str, None]': 'stream',
-    'Collection[Union[Stream, str, None]]': 'stream-sequence',
-}
-
 
 imgmath_latex_preamble = r'\usepackage{xcolor}'
 nbsphinx_execute = 'never'

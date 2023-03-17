@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
-#               2023-,     Yalin Li <mailto.yalin.li@gmail.com>
+# Copyright (C) 2020-2024, Yoel Cortes-Pena <yoelcortes@gmail.com>
+#               2023-2024, Yalin Li <mailto.yalin.li@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -96,10 +96,10 @@ class SystemFactory:
     fixed_outs_size : bool, optional
         Whether the number of outlets must match the number expected.
     fthermo : callable, optional
-        Function that returns a :class:`~thermosteam.Thermo` object. 
-        If there is existing thermo object as the default thermodynamic property package,
-        new thermo will be set using `fthermo(bst.settings.get_thermo())`.
-        Otherwise, the function will be called without parameters (i.e., `fthermo()`).
+        Should return a :class:`~thermosteam.Thermo` object that may serve
+        as a property package for the system. It may optionally accept an
+        existing :class:`~thermosteam.Chemicals` object for compatibility with 
+        the default property package (i.e., bst.settings.chemicals).
     
     Examples
     --------
@@ -219,8 +219,18 @@ class SystemFactory:
     def __call__(self, ID=None, ins=None, outs=None, mockup=False, area=None, udct=None, 
                  operating_hours=None, autorename=None, **kwargs):
         fthermo = self.fthermo
-        thermo = getattr(bst.settings, '_thermo', None)
-        if fthermo: bst.settings.set_thermo(self.fthermo(thermo))
+        if fthermo: 
+            fthermo_sig = signature(fthermo)
+            if 'chemicals' in fthermo_sig.parameters:
+                chemicals = getattr(bst.settings, 'chemicals', None)
+                thermo = fthermo(chemicals=chemicals)
+            elif (thermo:=bst.settings.thermo):
+                new_thermo = fthermo()
+                chemicals = new_thermo.chemicals if hasattr(new_thermo, 'chemicals') else new_thermo
+                thermo = thermo.extended(chemicals)
+            else:
+                thermo = fthermo()
+            bst.settings.set_thermo(thermo)
         if autorename is not None: 
             original_autorename = tmo.utils.Registry.AUTORENAME
             tmo.utils.Registry.AUTORENAME = autorename
