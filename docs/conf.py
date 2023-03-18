@@ -183,7 +183,7 @@ try:
             for i in ['Unit', 'Facility', 'HeatUtility', 'PowerUtility', 'System', 'TEA', 'HXutility']:
                 name = name.replace(i, f':py:class:`~biosteam.{i}`')
                 pyclass_added = True
-            for i in ['Chemical', 'Thermo', 'Stream']:
+            for i in ['Chemical', 'Thermo', 'Stream', 'ReactionSet']:
                 name = name.replace(i, f':py:class:`~thermosteam.{i}`')
                 pyclass_added = True
             if pyclass_added: 
