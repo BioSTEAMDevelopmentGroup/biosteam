@@ -44,11 +44,11 @@ setup(
                      'process_tools/*',
                      'plots/*',
                      'units/*',
-                     'units/facilities/hxn/*',
                      'units/design_tools/*',
-                     'units/facilities/*',
-                     'units/wastewater/*',
-                     'units/wastewater/high_rate',
+                     'facilities/*',
+                     'facilities/hxn/*',
+                     'wastewater/*',
+                     'wastewater/high_rate',
                      'units/decorators/*']
     },
     exclude_package_data={
