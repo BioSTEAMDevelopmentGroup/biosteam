@@ -26,13 +26,13 @@ class ProcessWaterCenter(bst.Facility):
     
     Parameters
     ----------
-    ins : stream sequence
+    ins : 
         [0] Clean water.
         
         [1] Make-up water.
         
         [2] Recycled process water
-    outs : stream
+    outs : 
         [0] Process water.
         
         [1] Waste.

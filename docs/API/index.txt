@@ -89,3 +89,4 @@ BioSTEAM's main components can be categorized by 5 functionality levels:
    exceptions
    preferences
    settings
+   utils

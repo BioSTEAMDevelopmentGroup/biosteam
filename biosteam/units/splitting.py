@@ -30,9 +30,9 @@ class Splitter(Unit):
 
     Parameters
     ----------
-    ins : stream
+    ins : 
         Inlet fluid to be split.
-    outs : stream sequence
+    outs : 
         * [0] Split stream
         * [1] Remainder stream    
     split : Should be one of the following
@@ -170,9 +170,9 @@ class PhaseSplitter(Unit):
     
     Parameters
     ----------
-    ins : stream
+    ins : 
         Feed.
-    outs : streams
+    outs : 
         Outlets.
         
     Notes

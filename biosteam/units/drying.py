@@ -38,11 +38,11 @@ class DrumDryer(Unit):
     
     Parameters
     ----------
-    ins : stream sequence
+    ins : 
         * [0] Wet solids.
         * [1] Air.
         * [2] Natural gas.
-    outs : stream sequence
+    outs : 
         * [0] Dried solids
         * [1] Hot air
         * [2] Emissions
@@ -160,11 +160,11 @@ class ThermalOxidizer(Unit):
     
     Parameters
     ----------
-    ins : stream sequence
+    ins : 
         [0] Feed gas
         [1] Air
         [2] Natural gas
-    outs : stream
+    outs : 
         Emissions.
     tau : float, optional
         Residence time [hr]. Defaults to 0.00014 (0.5 seconds).

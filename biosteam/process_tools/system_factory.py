@@ -10,6 +10,7 @@
 """
 import thermosteam as tmo
 import biosteam as bst
+from .._unit import streams
 from biosteam.utils import as_stream
 from biosteam.process_tools import utils
 from inspect import signature
@@ -200,8 +201,8 @@ class SystemFactory:
             self = super().__new__(cls)
             self.f = f
             self.ID = ID
-            self.ins = [] if ins is None else [i if isa(i, dict) or isfunc(i) else dict(ID=i) for i in ins] 
-            self.outs = [] if outs is None else [i if isa(i, dict) or isfunc(i) else dict(ID=i) for i in outs] 
+            self.ins = ins = [] if ins is None else [i if isa(i, dict) or isfunc(i) else dict(ID=i) for i in ins] 
+            self.outs = outs = [] if outs is None else [i if isa(i, dict) or isfunc(i) else dict(ID=i) for i in outs] 
             self.fixed_ins_size = fixed_ins_size
             self.fixed_outs_size = fixed_outs_size
             self.fthermo = fthermo
@@ -210,6 +211,8 @@ class SystemFactory:
             self.__signature__ = fsig.replace(
                 parameters=[*system_factory_parameters, *[fsig.parameters[i].replace(kind=3) for i in other_params]]
             )
+            self.__annotations__ = annotations = f.__annotations__.copy()
+            annotations['ins'] = annotations['outs'] = streams
             return self
         else:
             return lambda f: cls(f, ID, ins, outs, 

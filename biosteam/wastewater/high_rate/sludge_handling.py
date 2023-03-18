@@ -26,9 +26,9 @@ class SludgeHandling(bst.Unit):
 
     Parameters
     ----------
-    ins : stream
+    ins : 
         Influent
-    outs : stream sequence
+    outs : 
         * [0] water-rich supernatant
         * [1] solid-rich sludge
     sludge_moisture : float
@@ -134,9 +134,9 @@ class BeltThickener(SludgeHandling):
 
     Parameters
     ----------
-    ins : stream
+    ins : 
         Influent
-    outs : stream sequence
+    outs : 
         * [0] water-rich supernatant
         * [1] solid-rich sludge
     sludge_moisture : float
@@ -191,9 +191,9 @@ class SludgeCentrifuge(SludgeHandling, bst.SolidsCentrifuge):
 
     Parameters
     ----------
-    ins : stream
+    ins : 
         Influent
-    outs : stream sequence
+    outs : 
         * [0] water-rich supernatant
         * [1] solid-rich sludge
     sludge_moisture : float

@@ -34,9 +34,9 @@ class InternalCirculationRx(bst.MixTank):
 
     Parameters
     ----------
-    ins : stream
+    ins : 
         Influent.
-    outs : stream sequence
+    outs : 
         * [0] biogas
         * [1] effluent
         * [2] waste sludge

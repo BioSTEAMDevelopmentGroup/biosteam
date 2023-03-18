@@ -39,11 +39,11 @@ class PolishingFilter(bst.Unit):
 
     Parameters
     ----------
-    ins : stream sequence
+    ins : 
         * [0] influent
         * [1] recycle
         * [2] air (optional & when aerobic).
-    outs : stream sequence
+    outs : 
         * [0] biogas (when anaerobic)
         * [1] effluent
         * [2] waste sludge

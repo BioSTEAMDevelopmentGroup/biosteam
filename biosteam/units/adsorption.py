@@ -79,10 +79,10 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
     
     Parameters
     ----------
-    ins : stream sequence
+    ins : 
         * [0] Feed
         * [1] Regeneration fluid
-    outs : stream sequence
+    outs : 
         * [0] Effluent
         * [1] Purge
     superficial_velocity : float, optional

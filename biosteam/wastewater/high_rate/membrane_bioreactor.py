@@ -38,14 +38,14 @@ class AnMBR(bst.Unit):
 
     Parameters
     ----------
-    ins : stream sequence
+    ins : 
         * [0] influent
         * [1] recycle (optional)
         * [2] NaOCl
         * [3] citric acid
         * [4] bisulfite
         * [5] air (optional)
-    outs : stream sequence
+    outs : 
         * [0] biogas
         * [1] effluent
         * [2] waste sludge

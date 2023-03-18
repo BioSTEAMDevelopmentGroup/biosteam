@@ -269,11 +269,11 @@ def create_high_rate_wastewater_treatment_system(
          
     Parameters
     ----------
-    ins : streams
+    ins : 
         Wastewater streams (without solids). Defaults to all product streams
         at run time that are not sold and cannot generate energy through combustion
         (i.e. streams that have no sink, no price, and a LHV less that 1 kJ / g).
-    outs : stream sequence
+    outs : 
         * [0] RNG
         * [1] biogas
         * [2] sludge
@@ -283,7 +283,7 @@ def create_high_rate_wastewater_treatment_system(
         Number of the process.
         E.g., the default `process_ID` is 6,
         then the first mixer of this WWT system will be M601.
-    flowsheet : FLowsheet, optional
+    flowsheet : Flowsheet, optional
         If provided, the WWT system will be added to the given flowsheet.
     autopopulate : bool, optional
         Whether to automatically add wastewater streams.

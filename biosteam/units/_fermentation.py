@@ -28,9 +28,9 @@ class Fermentation(BatchBioreactor):
     
     Parameters
     ----------
-    ins : streams
+    ins : 
         Inlet fluids to be mixed into the fermentor.
-    outs : stream sequence
+    outs : 
         * [0] Vent
         * [1] Effluent
     tau : float

@@ -30,45 +30,45 @@ Unit operations
 References
 ----------
 .. [1] Li et al., Design of a High-Rate Wastewater Treatment Process 
-for Energy and Water Recovery at Biorefineries. 
-ACS Sustainable Chem. Eng. 2023, 11 (9), 3861–3872. 
-https://doi.org/10.1021/acssuschemeng.2c07139.
+    for Energy and Water Recovery at Biorefineries. 
+    ACS Sustainable Chem. Eng. 2023, 11 (9), 3861–3872. 
+    https://doi.org/10.1021/acssuschemeng.2c07139.
 
 .. [2] Humbird et al., Process Design and Economics for Biochemical Conversion of
-Lignocellulosic Biomass to Ethanol: Dilute-Acid Pretreatment and Enzymatic
-Hydrolysis of Corn Stover; Technical Report NREL/TP-5100-47764;
-National Renewable Energy Lab (NREL), 2011.
-https://www.nrel.gov/docs/fy11osti/47764.pdf
+    Lignocellulosic Biomass to Ethanol: Dilute-Acid Pretreatment and Enzymatic
+    Hydrolysis of Corn Stover; Technical Report NREL/TP-5100-47764;
+    National Renewable Energy Lab (NREL), 2011.
+    https://www.nrel.gov/docs/fy11osti/47764.pdf
 
 .. [3] Davis et al., Process Design and Economics for the Conversion of Lignocellulosic
-Biomass to Hydrocarbon Fuels and Coproducts: 2018 Biochemical Design Case Update;
-NREL/TP-5100-71949; National Renewable Energy Lab (NREL), 2018.
-https://doi.org/10.2172/1483234
+    Biomass to Hydrocarbon Fuels and Coproducts: 2018 Biochemical Design Case Update;
+    NREL/TP-5100-71949; National Renewable Energy Lab (NREL), 2018.
+    https://doi.org/10.2172/1483234
 
 .. [4] Kontos, G. A. Advanced Anaerobic Treatment for Energy Recovery and Improved Process Economics
-in the Management of Biorefinery Wastewaters.
-M.S. Thesis, University of Illinois Urbana-Champaign, Urbana, IL, 2021.
+    in the Management of Biorefinery Wastewaters.
+    M.S. Thesis, University of Illinois Urbana-Champaign, Urbana, IL, 2021.
 
 .. [5] Schueller, D. MUNICIPAL RESIDENTIAL WASTEWATER RATES.
-Metropolitan Council Environmental Services, 2020.
+    Metropolitan Council Environmental Services, 2020.
 
 .. [6] Shoener et al., Design of Anaerobic Membrane Bioreactors for the
-Valorization of Dilute Organic Carbon Waste Streams.
-Energy Environ. Sci. 2016, 9 (3), 1102–1112.
-https://doi.org/10.1039/C5EE03715H.
+    Valorization of Dilute Organic Carbon Waste Streams.
+    Energy Environ. Sci. 2016, 9 (3), 1102–1112.
+    https://doi.org/10.1039/C5EE03715H.
 
 .. [7] Irizar et al., Model-Based Design of a Software Sensor for Real-Time
-Diagnosis of the Stability Conditions in High-Rate Anaerobic Reactors –
-Full-Scale Application to Internal Circulation Technology.
-Water Research 2018, 143, 479–491.
-`<https://doi.org/10.1016/j.watres.2018.06.055>`_.
+    Diagnosis of the Stability Conditions in High-Rate Anaerobic Reactors –
+    Full-Scale Application to Internal Circulation Technology.
+    Water Research 2018, 143, 479–491.
+    `<https://doi.org/10.1016/j.watres.2018.06.055>`_.
     
 .. [8] Tchobanoglous et al., Wastewater Engineering: Treatment and Resource Recovery,
-5th ed.; McGraw-Hill Education: New York, 2013.
+    5th ed.; McGraw-Hill Education: New York, 2013.
 
 .. [9] `Industrial filtering equipment gravity thickener rotary thickening belt filter press \
-<https://www.alibaba.com/product-detail/Industrial-filtering-equipment-gravity-thickener-rotary_60757627922.html?spm=a2700.galleryofferlist.normal_offer.d_title.78556be9t8szku>`_
-Data obtained on 7/21/2021.
+    <https://www.alibaba.com/product-detail/Industrial-filtering-equipment-gravity-thickener-rotary_60757627922.html?spm=a2700.galleryofferlist.normal_offer.d_title.78556be9t8szku>`_
+    Data obtained on 7/21/2021.
 
 """
 

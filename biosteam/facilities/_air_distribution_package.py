@@ -27,9 +27,9 @@ class AirDistributionPackage(bst.Facility):
     ----------
     ID : str, optional
         Unit ID.
-    ins : stream
+    ins : 
         Air flow to be distributed.
-    outs : stream
+    outs : 
         Distributed air flow.
     
     References

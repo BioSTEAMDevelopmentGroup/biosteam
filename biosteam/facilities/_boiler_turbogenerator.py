@@ -36,7 +36,7 @@ class BoilerTurbogenerator(bst.Facility):
     
     Parameters
     ----------
-    ins : stream sequence
+    ins : 
         [0] Liquid/solid feed that will be burned.
         
         [1] Gas feed that will be burned.
@@ -49,7 +49,7 @@ class BoilerTurbogenerator(bst.Facility):
         
         [5] Boiler chemicals.
         
-    outs : stream sequence
+    outs : 
         [0] Total emissions produced.
         
         [1] Blowdown water.

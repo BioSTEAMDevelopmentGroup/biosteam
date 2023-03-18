@@ -149,7 +149,7 @@ class WastewaterSystemCost(bst.Unit):
     
     Parameters
     ----------
-    ins : stream
+    ins : 
         Wastewater.
         
     """
@@ -169,9 +169,9 @@ class AnaerobicDigestion(bst.Unit):
         basis.
     sludge_split : Array, optional
         Split between wastewater and sludge.
-    ins : stream sequence
+    ins : 
         * [0] Wastewater
-    outs : stream sequence
+    outs : 
         * [0] Biogas
         * [1] Wastewater
         * [2] Sludge
@@ -271,11 +271,11 @@ class AerobicDigestion(bst.Unit):
     
     Parameters
     ----------
-    ins : stream sequence
+    ins : 
         * [0] Wastewater    
         * [1] Air    
         * [2] Caustic    
-    outs : stream sequence
+    outs : 
         * [0] Vent    
         * [1] Treated wastewater
     reactions : ReactionSet, optional
@@ -325,9 +325,9 @@ class SludgeCentrifuge(bst.SolidsSeparator):
     
     Parameters
     ----------
-    ins : stream
+    ins : 
         Inlet fluid to be split.
-    outs : stream sequence
+    outs : 
         * [0] Liquid
         * [1] Sludge
     split : Defaults to Should be one of the following
@@ -423,9 +423,9 @@ class MembraneBioreactor(bst.Splitter):
     
     Parameters 
     ----------
-    ins : stream
+    ins : 
         Inlet fluid to be split.
-    outs : stream sequence
+    outs : 
         * [0] Liquid
         * [1] Sludge
     split : Defaults to Should be one of the following
@@ -487,9 +487,9 @@ class ReverseOsmosis(bst.Unit):
     
     Parameters
     ----------
-    ins : stream
+    ins : 
         Inlet fluid to be split.
-    outs : stream sequence
+    outs : 
         * [0] Filtered water
         * [1] Brine
     water_recovery : float, optional
@@ -531,17 +531,17 @@ def create_conventional_wastewater_treatment_system(ins, outs,
         NaOH_price=None, autopopulate=None
     ):
     """
-    Return a system for wastewater treatment (WWT) as described in Humbird et al. [1]_
+    Return a system for wastewater treatment as described in Humbird et al. [1]_
     The system includes anaerobic and aerobic  digestion reactors,
     a membrane bioreactor, a sludge centrifuge, and a reverse osmosis unit.
          
     Parameters
     ----------
-    ins : streams, optional
+    ins : 
         Wastewater streams (without solids). Defaults to all product streams
         at run time that are not sold and cannot generate energy through combustion
         (i.e. streams that have no sink, no price, and a LHV less that 1 kJ / g).
-    outs : stream sequence
+    outs : 
         * [0] methane
         * [1] sludge
         * [2] treated_water

@@ -210,9 +210,9 @@ class HXutility(HX):
 
     Parameters
     ----------
-    ins : stream
+    ins : 
         Inlet.
-    outs : stream
+    outs : 
         Outlet.
     T=None : float
         Temperature of outlet stream [K].
@@ -560,10 +560,10 @@ class HXprocess(HX):
     
     Parameters
     ----------
-    ins : stream sequence
+    ins : 
         * [0] Inlet process fluid a
         * [1] Inlet process fluid b  
-    outs : stream sequence
+    outs : 
         * [0] Outlet process fluid a        
         * [1] Outlet process fluid b
     U=None : float, optional

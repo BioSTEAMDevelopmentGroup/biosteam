@@ -27,8 +27,8 @@ class PelletMill(Unit):
     
     Parameters
     ----------
-    ins : stream
-    outs : stream 
+    ins : 
+    outs :  
     kW : float, optional
         Power requirement [kWh/kg]. Defaults to 0.01 based on a heuristic from 
         Perry's handbook.
@@ -61,8 +61,8 @@ class BagassePelletMill(PelletMill):
     
     Parameters
     ----------
-    ins : stream
-    outs : stream 
+    ins : 
+    outs :  
     kW : float, optional
         User enforced power requirement [kWh/kg]. Defaults according to
         the `capacity_to_power` class attribute.
