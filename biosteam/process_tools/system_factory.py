@@ -226,14 +226,9 @@ class SystemFactory:
             fthermo_sig = signature(fthermo)
             if 'chemicals' in fthermo_sig.parameters:
                 chemicals = getattr(bst.settings, 'chemicals', None)
-                thermo = fthermo(chemicals=chemicals)
-            elif (thermo:=bst.settings.thermo):
-                new_thermo = fthermo()
-                chemicals = new_thermo.chemicals if hasattr(new_thermo, 'chemicals') else new_thermo
-                thermo = thermo.extended(chemicals)
-            else:
-                thermo = fthermo()
-            bst.settings.set_thermo(thermo)
+                bst.settings.set_thermo(fthermo(chemicals=chemicals))
+            elif not hasattr(bst.settings, '_thermo'):
+                bst.settings.set_thermo(fthermo())
         if autorename is not None: 
             original_autorename = tmo.utils.Registry.AUTORENAME
             tmo.utils.Registry.AUTORENAME = autorename
