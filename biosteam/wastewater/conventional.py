@@ -50,10 +50,6 @@ from thermosteam import (
     Reaction as Rxn,
     ParallelReaction as PRxn,
 )
-try:
-    from biorefineries.cellulosic import create_cellulosic_ethanol_chemicals
-except:
-    create_cellulosic_ethanol_chemicals = None
 cost = bst.decorators.cost
 
 __all__ = (
@@ -518,6 +514,10 @@ class ReverseOsmosis(bst.Unit):
         water.mol[water_index] = water_recovered
         brine.mol[water_index] = water_flow - water_recovered
 
+def _create_cellulosic_ethanol_chemicals():
+    from biorefineries.cellulosic import create_cellulosic_ethanol_chemicals
+    return create_cellulosic_ethanol_chemicals()
+
 @bst.SystemFactory(
     ID='wastewater_treatment_sys',
     outs=[dict(ID='methane'),
@@ -525,7 +525,7 @@ class ReverseOsmosis(bst.Unit):
           dict(ID='treated_water'),
           dict(ID='waste_brine')],
     fixed_ins_size=False,
-    fthermo=create_cellulosic_ethanol_chemicals,
+    fthermo=_create_cellulosic_ethanol_chemicals,
 )
 def create_conventional_wastewater_treatment_system(ins, outs, 
         NaOH_price=None, autopopulate=None

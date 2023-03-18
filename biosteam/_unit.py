@@ -295,7 +295,8 @@ class Unit:
                 if i not in annotations: annotations[i] = streams
             if '_stacklevel' not in dct: cls._stacklevel += 1
         name = cls.__name__
-        if hasattr(bst, 'units'): # Add 3rd party unit to biosteam module for convinience
+        if hasattr(bst, 'units') and hasattr(bst, 'wastewater') and hasattr(bst, 'facilities'):
+            # Add 3rd party unit to biosteam module for convinience
             if name not in bst.units.__dict__:
                 bst.units.__dict__[name] = cls
             if name not in bst.__dict__:

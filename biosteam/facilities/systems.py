@@ -114,10 +114,11 @@ def create_facilities(
         if CT: bst.facilities.CoolingTower(**CT_kwargs)
         if CWP: bst.facilities.ChilledWaterPackage(**CWP_kwargs)
         # Wastewater treatment system, two configurations with the conventional one as the default
-        WWT = 'conventional' if WWT == True else WWT
-        updated_WWT_kwargs = dict(autopopulate=True, mockup=True)
-        updated_WWT_kwargs .update(WWT_kwargs)
-        WWT = bst.create_wastewater_treatment_system(WWT=WWT, **updated_WWT_kwargs)
+        if WWT:
+            if 'autopopulate' not in WWT_kwargs:
+                WWT_kwargs = WWT_kwargs.copy()
+                WWT_kwargs['autopopulate'] = True
+            bst.create_wastewater_treatment_system(**WWT_kwargs, mockup=True)
         if HXN: bst.HeatExchangerNetwork(**HXN_kwargs)
         if feedstock is not None:
             if CIP:

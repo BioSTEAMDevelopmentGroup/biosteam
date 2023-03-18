@@ -49,29 +49,22 @@ class HeatExchangerNetwork(bst.Facility):
     
     Examples
     --------
-    >>> from biosteam.units import ShortcutColumn, HXutility, Flash
-    >>> from biosteam import Flowsheet
-    >>> from biosteam.units.facilities import HeatExchangerNetwork
-    >>> from biosteam import Stream, settings
-    >>> from biosteam import main_flowsheet as f
-    >>> flowsheet = Flowsheet('trial')
-    >>> f.set_flowsheet(flowsheet)
-    >>> settings.set_thermo(['Water', 'Methanol', 'Glycerol'])
-    >>> feed1 = Stream('feed1', flow=(8000, 100, 25))
-    >>> feed2 = Stream('feed2', flow=(10000, 1000, 10))
-    >>> D1 = ShortcutColumn('D1', ins=feed1,
+    >>> import biosteam as bst
+    >>> bst.settings.set_thermo(['Water', 'Methanol', 'Glycerol'])
+    >>> feed1 = bst.Stream('feed1', flow=(8000, 100, 25))
+    >>> feed2 = bst.Stream('feed2', flow=(10000, 1000, 10))
+    >>> D1 = bst.ShortcutColumn('D1', ins=feed1,
     ...                     outs=('distillate', 'bottoms_product'),
     ...                     LHK=('Methanol', 'Water'),
     ...                     y_top=0.99, x_bot=0.01, k=2,
     ...                     is_divided=True)
-    >>> D1_H1 = HXutility('D1_H1', ins = D1.outs[1], T = 300)
-    >>> D1_H2 = HXutility('D1_H2', ins = D1.outs[0], T = 300)
-    >>> F1 = Flash('F1', ins=feed2,
-    ...                     outs=('vapor', 'liquid'), V = 0.9, P = 101325)
-    >>> HXN = HeatExchangerNetwork('trial_HXN', T_min_app = 5.)
-    >>> trial_sys = f.create_system('trial_sys')
-    >>> trial_sys.simulate()
-    >>> HXN.simulate()
+    >>> D1_H1 = bst.HXutility('D1_H1', ins = D1.outs[1], T = 300)
+    >>> D1_H2 = bst.HXutility('D1_H2', ins = D1.outs[0], T = 300)
+    >>> F1 = bst.Flash('F1', ins=feed2,
+    ...                outs=('vapor', 'liquid'), V = 0.9, P = 101325)
+    >>> HXN = bst.HeatExchangerNetwork('HXN', T_min_app = 5.)
+    >>> sys = bst.System.from_units('sys', units=[D1, D1_H1, D1_H2, F1, HXN])
+    >>> sys.simulate()
     >>> # See all results
     >>> round(HXN.actual_heat_util_load/HXN.original_heat_util_load, 2)
     0.82

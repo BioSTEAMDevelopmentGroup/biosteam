@@ -24,7 +24,7 @@ additional details on the available wastewater treatment systems.
 from .high_rate import create_high_rate_wastewater_treatment_system
 from .conventional import create_conventional_wastewater_treatment_system
 
-def create_wastewater_treatment_system(kind='conventional', **kwargs):
+def create_wastewater_treatment_system(kind=None, **kwargs):
     """
     Create a wastewater treatment system. Two configurations are available: 
     conventional and high-rate. The conventional configuration is based on the 
@@ -49,9 +49,9 @@ def create_wastewater_treatment_system(kind='conventional', **kwargs):
     
     Parameters
     ----------
-    kind : str
-        Either "conventional" for the conventional configuration,
-        or "high-rate" for the high-rate process.
+    kind : str, optional
+        Either 'conventional' for the conventional configuration,
+        or "high-rate" for the high-rate process. Defaults to 'conventional'.
     
     Other Parameters
     ----------------
@@ -63,29 +63,29 @@ def create_wastewater_treatment_system(kind='conventional', **kwargs):
         
     Examples
     --------
+    Calculate the minimum ethanol selling price of the corn stover biorefinery 
+    with either the conventional or high-rate wastewater treatment configurations:
+    
     >>> import biosteam as bst
     >>> from biorefineries import cornstover as cs
-    >>> factor = cs.ethanol_density_kggal
     >>> bst.settings.set_thermo(cs.create_chemicals())
-    >>> def get_MESP(sys):
-    ...     if not sys.TEA: cs.create_tea(sys)
+    >>> def get_MESP(**WWT_kwargs):
+    ...     bst.main_flowsheet.set_flowsheet(WWT_kwargs['kind'])
+    ...     # WWT_kwargs will be passed to the wastewater treatment system creator
+    ...     sys = cs.create_system(WWT_kwargs=WWT_kwargs) 
     ...     sys.simulate()
-    ...     MESP = sys.TEA.solve_price(sys.flowsheet.stream.ethanol)*factor
-    ...     print(f'{sys.ID} MESP: ${MESP:.2f}/gal')
+    ...     tea = cs.create_tea(sys)
+    ...     ethanol = sys.get_outlet('ethanol')
+    ...     MESP = tea.solve_price(ethanol) * cs.ethanol_density_kggal
+    ...     print(f"{WWT_kwargs['kind']} MESP: ${MESP:.2f}/gal")
     
     >>> # With the conventional WWT process
-    >>> conv_f = bst.Flowsheet('conventional')
-    >>> bst.main_flowsheet.set_flowsheet(conv_f)
-    >>> conv_sys = cs.create_system('conventional', WWT='conventional')
-    >>> get_MESP(conv_sys)
-    conventional MESP: $2.10/gal
+    >>> get_MESP(kind='conventional')
+    conventional MESP: $2.08/gal
     
     >>> # With the high-rate WWT process
-    >>> highr_f = bst.Flowsheet('high_rate')
-    >>> bst.main_flowsheet.set_flowsheet(highr_f)
-    >>> highr_sys = cs.create_system('high_rate', WWT='high-rate', WWT_kwargs=dict(process_ID=6),)
-    >>> get_MESP(highr_sys)
-    high_rate MESP: $1.72/gal
+    >>> get_MESP(process_ID=6, kind='high-rate')
+    high-rate MESP: $1.74/gal
     
     References
     ----------
@@ -106,7 +106,7 @@ def create_wastewater_treatment_system(kind='conventional', **kwargs):
     https://doi.org/10.2172/1483234
     
     """
-    kind = kind.translate({ord(i): None for i in '_- '}).lower()
+    kind = 'conventional' if kind is None else kind.translate({ord(i): None for i in '_- '}).lower()
     if kind == 'conventional':
         return create_conventional_wastewater_treatment_system(**kwargs)
     elif kind == 'highrate':
