@@ -11,3 +11,13 @@ from biorefineries.tests.test_biorefineries import (
     test_cornstover,
     test_sugarcane,
 )
+
+def test_sugarcane_biorefinery():
+    from biorefineries import sugarcane as sc
+    sc._system_loaded = False
+    test_cornstover()
+
+def test_cornstover_biorefinery():
+    from biorefineries import cornstover as cs
+    cs.Biorefinery.cache.clear()
+    test_cornstover()
