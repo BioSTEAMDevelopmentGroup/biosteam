@@ -278,9 +278,9 @@ class IsothermalCompressor(Compressor, new_graphics=False):
 
     Parameters
     ----------
-    ins : stream
+    ins : 
         Inlet fluid.
-    outs : stream
+    outs : 
         Outlet fluid.
     P : float
         Outlet pressure [Pa].
@@ -371,9 +371,9 @@ class IsentropicCompressor(Compressor, new_graphics=False):
 
     Parameters
     ----------
-    ins : stream
+    ins : 
         Inlet fluid.
-    outs : stream
+    outs : 
         Outlet fluid.
     P : float
         Outlet pressure [Pa].
@@ -498,9 +498,9 @@ class PolytropicCompressor(Compressor, new_graphics=False):
 
     Parameters
     ----------
-    ins : stream
+    ins : 
         Inlet fluid.
-    outs : stream
+    outs : 
         Outlet fluid.
     P : float
         Outlet pressure [Pa].
@@ -685,9 +685,9 @@ class MultistageCompressor(Unit):
 
     Parameters
     ----------
-    ins : stream
+    ins : 
         Inlet fluid.
-    outs : stream
+    outs : 
         Outlet fluid.
     pr : float
         (setup option 1) Pressure ratio between isentropic stages.

@@ -180,12 +180,16 @@ try:
                       'bool', 'set', 'frozenset', 'float']:
                 name = name.replace(i, f':py:class:`{i}`')
                 pyclass_added = True
-            for i in ['Unit', 'Chemical', 'Thermo', 'Stream', 'Facility', 'HeatUtility', 'PowerUtility', 'System', 'TEA', 'HXutility']:
+            for i in ['Unit', 'Facility', 'HeatUtility', 'PowerUtility', 'System', 'TEA', 'HXutility']:
                 name = name.replace(i, f':py:class:`~biosteam.{i}`')
+                pyclass_added = True
+            for i in ['Chemical', 'Thermo', 'Stream', 'ReactionSet']:
+                name = name.replace(i, f':py:class:`~thermosteam.{i}`')
                 pyclass_added = True
             if pyclass_added: 
                 name = name.replace('[', '\[').replace(':py:class::py:class:', ':py:class:')
-        name = name.replace('bst.', '').replace('tmo.', '').replace('`biosteam', '`~biosteam').replace('._unit', '')
+        name = name.replace('bst.', '').replace('tmo.', '').replace(
+            '`biosteam', '`~biosteam').replace('._unit', '')
         # file = os.path.join(os.path.dirname(__file__), 'annotations.txt')
         # with open(file, 'a') as f: f.write(f"{name}  ({original})\n")
         return name
@@ -196,17 +200,7 @@ simplify_optional_unions = True
 always_document_param_types = False
 typehints_document_rtype = False
 typehints_use_rtype = False
-autodoc_type_aliases = {
-    'stream': 'stream',
-    'streams': 'streams',
-    'stream_sequence': 'stream-sequence',
-    'Union[Collection[Union[Stream, str, None]], Union[Stream, str, None]]': 'streams',
-    'Union[Annotated[Union[Stream, str, None], 1], Stream, str, None]': 'stream',
-    'Union[AnnotatedAlias[Union[Stream, str, None]], Stream, str, None]': 'stream',
-    'Collection[Union[Stream, str, None]]': 'stream-sequence',
-}
-
-
+autodoc_typehints_format = 'short'
 imgmath_latex_preamble = r'\usepackage{xcolor}'
 nbsphinx_execute = 'never'
 

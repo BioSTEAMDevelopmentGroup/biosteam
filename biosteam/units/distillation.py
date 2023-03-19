@@ -66,9 +66,9 @@ class Distillation(Unit, isabstract=True):
 
     Parameters
     ----------
-    ins : streams
+    ins : 
         Inlet fluids to be mixed into the feed stage.
-    outs : stream sequence
+    outs : 
         * [0] Distillate
         * [1] Bottoms product
     LHK : tuple[str]
@@ -935,9 +935,9 @@ class BinaryDistillation(Distillation, new_graphics=False):
 
     Parameters
     ----------
-    ins : streams
+    ins : 
         Inlet fluids to be mixed into the feed stage.
-    outs : stream sequence
+    outs : 
         * [0] Distillate
         * [1] Bottoms product
     LHK : tuple[str]
@@ -1336,9 +1336,9 @@ class ShortcutColumn(Distillation, new_graphics=False):
 
     Parameters
     ----------
-    ins : streams
+    ins : 
         Inlet fluids to be mixed into the feed stage.
-    outs : stream sequence
+    outs : 
         * [0] Distillate
         * [1] Bottoms product
     LHK : tuple[str]
@@ -1666,9 +1666,9 @@ class MESHDistillation(Distillation, new_graphics=False):
 
     Parameters
     ----------
-    ins : streams
+    ins : 
         Inlet fluids to be mixed into the feed stage.
-    outs : stream sequence
+    outs : 
         * [0] Distillate
         * [1] Bottoms product
     LHK : tuple[str]

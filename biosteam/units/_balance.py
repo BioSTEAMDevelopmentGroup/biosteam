@@ -25,10 +25,10 @@ class MassBalance(Unit):
 
     Parameters
     ----------
-    ins : stream
+    ins : 
         Inlet stream. Doesn't actually affect mass balance. It's just to
         show the position in the process.
-    outs : stream
+    outs : 
         Outlet stream. Doesn't actually affect mass balance. It's just to
         show the position in the process.
     chemical_IDs : tuple[str]

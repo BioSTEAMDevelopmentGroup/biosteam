@@ -75,9 +75,9 @@ class LLEUnit(bst.Unit, isabstract=True):
 
     Parameters
     ----------
-    ins : stream
+    ins : 
         Inlet fluid.
-    outs : stream sequence
+    outs : 
         * [0] Low density fluid.
         * [1] Heavy fluid.
     top_chemical : str, optional
@@ -167,9 +167,9 @@ class LiquidsCentrifuge(Unit, isabstract=True):
 
     Parameters
     ----------
-    ins : stream
+    ins : 
         Inlet fluid.
-    outs : stream sequence
+    outs : 
         * [0] Low density fluid.
         * [1] Heavy fluid.
     
@@ -199,9 +199,9 @@ class LiquidsSplitCentrifuge(LiquidsCentrifuge):
 
     Parameters
     ----------
-    ins : stream
+    ins : 
         Inlet fluid.
-    outs : stream sequence
+    outs : 
         * [0] Low density fluid.
         * [1] Heavy fluid.
     split : Should be one of the following
@@ -232,9 +232,9 @@ class LLECentrifuge(LLEUnit, LiquidsCentrifuge):
 
     Parameters
     ----------
-    ins : stream
+    ins : 
         Inlet fluid.
-    outs : stream sequence
+    outs : 
         * [0] Low density fluid.
         * [1] Heavy fluid.
     top_chemical : str, optional
@@ -291,9 +291,9 @@ class SLLECentrifuge(Unit):
     
     Parameters
     ----------
-    ins : stream
+    ins : 
         feed
-    outs : stream sequence
+    outs : 
         * [0] Low density fluid.
         * [1] Heavy fluid.
         * [2] Solids.
@@ -402,9 +402,9 @@ class SolidLiquidsSplitCentrifuge(Unit):
     
     Parameters
     ----------
-    ins : stream
+    ins : 
         feed
-    outs : stream sequence
+    outs : 
         * [0] Low density fluid.
         * [1] Heavy fluid.
         * [2] Solids.
@@ -520,9 +520,9 @@ class LiquidsMixingTank(bst.Unit, PressureVessel):
     
     Parameters
     ----------
-    ins : streams
+    ins : 
         Inlet fluids to be mixed.
-    outs : stream
+    outs : 
         Mixed outlet fluid.
     tau=0.022 : float
         Residence time [hr].
@@ -586,9 +586,9 @@ class LiquidsSettler(bst.Unit, PressureVessel, isabstract=True):
     
     Parameters
     ----------
-    ins : stream
+    ins : 
         Inlet fluid with two liquid phases.
-    outs : stream sequence
+    outs : 
         * [0] Low density fluid.
         * [1] Heavy fluid.
     vessel_material='Carbon steel' : str, optional
@@ -642,9 +642,9 @@ class LLESettler(LLEUnit, LiquidsSettler):
     
     Parameters
     ----------
-    ins : stream
+    ins : 
         Inlet fluid with two liquid phases.
-    outs : stream sequence
+    outs : 
         * [0] Low density fluid.
         * [1] Heavy fluid.
     vessel_material='Carbon steel' : str, optional
@@ -687,9 +687,9 @@ class LiquidsSplitSettler(LiquidsSettler):
     
     Parameters
     ----------
-    ins : stream
+    ins : 
         Inlet fluid with two liquid phases.
-    outs : stream sequence
+    outs : 
         * [0] Low density fluid.
         * [1] Heavy fluid.
     split : Should be one of the following
@@ -733,9 +733,9 @@ class LiquidsPartitionSettler(LiquidsSettler):
     
     Parameters
     ----------
-    ins : stream
+    ins : 
         Inlet fluid with two liquid phases.
-    outs : stream sequence
+    outs : 
         * [0] Low density fluid.
         * [1] Heavy fluid.
     vessel_material='Carbon steel' : str, optional
@@ -786,10 +786,10 @@ class MixerSettler(bst.Unit):
     
     Parameters
     ----------
-    ins : stream sequence
+    ins : 
         * [0] feed.
         * [1] solvent.
-    outs : stream sequence
+    outs : 
         * [0] raffinate
         * [1] extract
     solvent_ID : str, optional
@@ -983,10 +983,10 @@ class MultiStageMixerSettlers(bst.Unit):
     
     Parameters
     ----------
-    ins : stream sequence
+    ins : 
         * [0] feed.
         * [1] solvent.
-    outs : stream sequence
+    outs : 
         * [0] raffinate
         * [1] extract
     N_stages : int

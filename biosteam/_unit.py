@@ -22,13 +22,15 @@ from copy import copy
 import biosteam as bst
 from thermosteam import Stream
 from thermosteam.base import display_asfunctor
-from typing import Callable, Optional, TYPE_CHECKING, Sequence, Iterable
 from numpy.typing import NDArray
+from typing import Callable, Optional, TYPE_CHECKING, Sequence, Iterable
 import thermosteam as tmo
 if TYPE_CHECKING: 
     System = bst.System
     HXutility = bst.HXutility
     UtilityAgent = bst.UtilityAgent
+
+streams = Optional[Sequence[Stream]] # TODO: Replace with Stream|str and make it an explicit TypeAlias once BioSTEAM moves to Python 3.10
 
 __all__ = ('Unit',)
 
@@ -286,9 +288,15 @@ class Unit:
                         "must implement a '_run' method unless the "
                         "'isabstract' keyword argument is True"
                     )
-        if '__init__' in dct and '_stacklevel' not in dct: cls._stacklevel += 1
+        if '__init__' in dct:
+            init = dct['__init__']
+            annotations = init.__annotations__
+            for i in ('ins', 'outs'):
+                if i not in annotations: annotations[i] = streams
+            if '_stacklevel' not in dct: cls._stacklevel += 1
         name = cls.__name__
-        if hasattr(bst, 'units'): # Add 3rd party unit to biosteam module for convinience
+        if hasattr(bst, 'units') and hasattr(bst, 'wastewater') and hasattr(bst, 'facilities'):
+            # Add 3rd party unit to biosteam module for convinience
             if name not in bst.units.__dict__:
                 bst.units.__dict__[name] = cls
             if name not in bst.__dict__:

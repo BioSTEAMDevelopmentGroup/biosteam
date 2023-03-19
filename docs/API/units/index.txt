@@ -6,7 +6,6 @@ units
 
    decorators
    design_tools/design_tools
-   facilities/facilities
    cstr
    compressor
    distillation

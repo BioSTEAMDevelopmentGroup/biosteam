@@ -177,9 +177,9 @@ class IsentropicTurbine(Turbine, new_graphics=False):
 
     Parameters
     ----------
-    ins : stream
+    ins : 
         Inlet fluid.
-    outs : stream
+    outs : 
         Outlet fluid.
     P : float
         Outlet pressure [Pa].

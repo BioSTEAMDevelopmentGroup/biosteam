@@ -1,0 +1,4 @@
+High rate wastewater treatment
+==============================
+
+.. automodule:: biosteam.wastewater.high_rate

@@ -13,7 +13,8 @@ from thermosteam import Stream
 from typing import NamedTuple
 from warnings import warn
 import biosteam as bst
-__all__ = ('TemporaryStream', 'MissingStream', 'MockStream', 'Inlets', 
+
+__all__ = ('TemporaryStream', 'MissingStream', 'MockStream', 'Inlets',
            'Outlets', 'Sink', 'Source', 'InletPort', 'OutletPort', 'StreamPorts', 
            'Connection', 'as_stream', 'as_upstream', 'as_downstream', 
            'materialize_connections', 'ignore_docking_warnings',
@@ -34,6 +35,10 @@ def ignore_docking_warnings(f):
     return g
 
 class IgnoreDockingWarnings:
+    """
+    Ignore docking warnings within a context by using an IgnoreDockingWarnings object.
+    
+    """
     __slots__ = ('original_value',)
     
     def __enter__(self): 

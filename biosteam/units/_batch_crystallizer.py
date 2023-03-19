@@ -33,9 +33,9 @@ class BatchCrystallizer(Unit):
     
     Parameters
     ----------
-    ins : stream
+    ins : 
         Inlet.
-    outs : stream
+    outs : 
         Effluent.
     tau : float
         Reaction time [hr].
