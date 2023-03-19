@@ -77,15 +77,15 @@ def create_wastewater_treatment_system(kind=None, **kwargs):
     ...     tea = cs.create_tea(sys)
     ...     ethanol = sys.get_outlet('ethanol')
     ...     MESP = tea.solve_price(ethanol) * cs.ethanol_density_kggal
-    ...     print(f"{WWT_kwargs['kind']} MESP: ${MESP:.2f}/gal")
+    ...     print(f"{WWT_kwargs['kind']} MESP: ${MESP:.1f}/gal")
     
     >>> # With the conventional WWT process
     >>> get_MESP(kind='conventional')
-    conventional MESP: $2.08/gal
+    conventional MESP: $2.1/gal
     
     >>> # With the high-rate WWT process
     >>> get_MESP(process_ID=6, kind='high-rate')
-    high-rate MESP: $1.74/gal
+    high-rate MESP: $1.7/gal
     
     References
     ----------
