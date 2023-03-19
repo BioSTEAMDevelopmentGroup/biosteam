@@ -45,9 +45,9 @@ class Pump(Unit):
 
     Parameters
     ----------
-    ins : stream
+    ins : 
         Inlet.
-    outs : stream
+    outs : 
         Outlet.
     P=101325 : float, optional
         Pressure of output stream (Pa). If the pressure of the outlet is 

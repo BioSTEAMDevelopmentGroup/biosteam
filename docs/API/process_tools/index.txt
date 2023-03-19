@@ -6,5 +6,6 @@ process_tools
 
    UnitGroup
    SystemFactory
+   SystemMesh
    BoundedNumericalSpecification
    utils

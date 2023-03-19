@@ -65,9 +65,9 @@ class MultiEffectEvaporator(Unit):
 
     Parameters
     ----------
-    ins : stream
+    ins : 
         Inlet.
-    outs : stream sequence
+    outs : 
         * [0] Solid-rich stream.
         * [1] Condensate stream.
     P : tuple[float]

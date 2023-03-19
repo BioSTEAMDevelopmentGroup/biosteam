@@ -27,9 +27,9 @@ class Mixer(Unit):
     
     Parameters
     ----------
-    ins : streams
+    ins : 
         Inlet fluids to be mixed.
-    outs : stream
+    outs : 
         Mixed outlet fluid.
     
     Notes
@@ -126,11 +126,11 @@ class SteamMixer(Unit):
     
     Parameters
     ----------
-    ins : stream sequence
+    ins : 
         * [0] Feed    
         * [1] Steam
         * [2] Process water
-    outs : stream
+    outs : 
         Mixed product.
     P : float
         Outlet pressure.

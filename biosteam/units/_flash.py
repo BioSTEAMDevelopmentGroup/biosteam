@@ -40,9 +40,9 @@ class Flash(design.PressureVessel, Unit):
 
     Parameters
     ----------
-    ins : stream
+    ins : 
         Inlet fluid.
-    outs : stream sequence
+    outs : 
         * [0] Vapor product
         * [1] Liquid product
     P=None : float

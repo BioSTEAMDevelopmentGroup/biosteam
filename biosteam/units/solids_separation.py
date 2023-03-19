@@ -51,9 +51,9 @@ class SolidsSeparator(Splitter):
     
     Parameters
     ----------
-    ins : streams
+    ins : 
         Inlet fluids with solids.
-    outs : stream sequence
+    outs : 
         * [0] Retentate.
         * [1] Permeate.
     split : array_like
@@ -100,9 +100,9 @@ class SolidsCentrifuge(SolidsSeparator):
     
     Parameters
     ----------
-    ins : stream
+    ins : 
         Inlet fluid with solids.
-    outs : stream sequence
+    outs : 
         * [0] Solids-rich stream.
         * [1] Liquid-rich stream.
     split : array_like or dict[str, float]
@@ -174,10 +174,10 @@ class RotaryVacuumFilter(SolidsSeparator):
     
     Parameters
     ----------
-    ins : stream sequence
+    ins : 
         * [0] Feed
         * [1] Wash water
-    outs : stream sequence 
+    outs :  
         * [0] Retentate
         * [1] Permeate
     split : array_like or dict[str, float]
@@ -255,10 +255,10 @@ class CrushingMill(SolidsSeparator):
     
     Parameters
     ----------
-    ins : stream sequence
+    ins : 
         * [0] Shredded sugar cane
         * [1] Recycle water
-    outs : stream sequence 
+    outs :  
         * [0] Bagasse
         * [1] Juice
     split : array_like or dict[str, float]
@@ -306,9 +306,9 @@ class PressureFilter(SolidsSeparator):
     
     Parameters
     ----------
-    ins : stream
+    ins : 
         Contains structural carbohydrates, lignin, cell mass, and other solids.
-    outs : stream sequence
+    outs : 
         * [0] Retentate (i.e. solids)
         * [1] Filtrate
     split : array_like or dict[str, float]
@@ -392,9 +392,9 @@ class ScrewPress(SolidsSeparator):
     
     Parameters
     ----------
-    ins : stream sequence
+    ins : 
         * [0] Solids
-    outs : stream sequence 
+    outs :  
         * [0] Liquids
         * [1] Solids
     split : array_like or dict[str, float]

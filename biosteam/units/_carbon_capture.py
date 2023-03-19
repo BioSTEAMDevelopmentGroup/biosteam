@@ -40,11 +40,11 @@ class AmineAbsorption(Unit):
     
     Parameters
     ----------
-    ins : stream sequence
+    ins : 
         * [0] Flue gas containing CO2
         * [1] Makeup MEA (neat), updated by the unit
         * [2] Makeup water, updated by the unit
-    outs : stream sequence
+    outs : 
         * [0] CO2-stripped vent
         * [1] Concentrated CO2
     CO2_recovery :
@@ -173,9 +173,9 @@ class CO2Compression(Unit):
     
     Parameters
     ----------
-    ins : stream
+    ins : 
         CO2 gas.
-    outs : stream
+    outs : 
         Compressed CO2.
     
     Examples

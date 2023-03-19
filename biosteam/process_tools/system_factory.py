@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2024, Yoel Cortes-Pena <yoelcortes@gmail.com>
+#               2023-2024, Yalin Li <mailto.yalin.li@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -9,6 +10,7 @@
 """
 import thermosteam as tmo
 import biosteam as bst
+from .._unit import streams
 from biosteam.utils import as_stream
 from biosteam.process_tools import utils
 from inspect import signature
@@ -95,9 +97,10 @@ class SystemFactory:
     fixed_outs_size : bool, optional
         Whether the number of outlets must match the number expected.
     fthermo : callable, optional
-        Function that returns a :class:`~thermosteam.Thermo` object. The SystemFactory
-        object resorts to this function if no default thermodynamic property package
-        is available.
+        Should return a :class:`~thermosteam.Thermo` object that may serve
+        as a property package for the system. It may optionally accept an
+        existing :class:`~thermosteam.Chemicals` object for compatibility with 
+        the default property package (i.e., bst.settings.chemicals).
     
     Examples
     --------
@@ -198,8 +201,8 @@ class SystemFactory:
             self = super().__new__(cls)
             self.f = f
             self.ID = ID
-            self.ins = [] if ins is None else [i if isa(i, dict) or isfunc(i) else dict(ID=i) for i in ins] 
-            self.outs = [] if outs is None else [i if isa(i, dict) or isfunc(i) else dict(ID=i) for i in outs] 
+            self.ins = ins = [] if ins is None else [i if isa(i, dict) or isfunc(i) else dict(ID=i) for i in ins] 
+            self.outs = outs = [] if outs is None else [i if isa(i, dict) or isfunc(i) else dict(ID=i) for i in outs] 
             self.fixed_ins_size = fixed_ins_size
             self.fixed_outs_size = fixed_outs_size
             self.fthermo = fthermo
@@ -208,6 +211,8 @@ class SystemFactory:
             self.__signature__ = fsig.replace(
                 parameters=[*system_factory_parameters, *[fsig.parameters[i].replace(kind=3) for i in other_params]]
             )
+            self.__annotations__ = annotations = f.__annotations__.copy()
+            annotations['ins'] = annotations['outs'] = streams
             return self
         else:
             return lambda f: cls(f, ID, ins, outs, 
@@ -216,7 +221,14 @@ class SystemFactory:
     
     def __call__(self, ID=None, ins=None, outs=None, mockup=False, area=None, udct=None, 
                  operating_hours=None, autorename=None, **kwargs):
-        if not hasattr(bst.settings, '_thermo') and self.fthermo: bst.settings.set_thermo(self.fthermo())
+        fthermo = self.fthermo
+        if fthermo: 
+            fthermo_sig = signature(fthermo)
+            if 'chemicals' in fthermo_sig.parameters:
+                chemicals = getattr(bst.settings, 'chemicals', None)
+                bst.settings.set_thermo(fthermo(chemicals=chemicals))
+            elif not hasattr(bst.settings, '_thermo'):
+                bst.settings.set_thermo(fthermo())
         if autorename is not None: 
             original_autorename = tmo.utils.Registry.AUTORENAME
             tmo.utils.Registry.AUTORENAME = autorename

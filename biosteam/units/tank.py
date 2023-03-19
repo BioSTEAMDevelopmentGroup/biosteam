@@ -22,6 +22,7 @@ References
     (2009). Techno-economic analysis of a biodiesel production process from
     vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031.
     https://doi.org/10.1016/j.fuproc.2009.04.017
+    
 .. [2] Seider, W. D.; Lewin, D. R.; Seader, J. D.; Widagdo, S.; Gani, R.; 
     Ng, M. K. Cost Accounting and Capital Cost Estimation.
     In Product and Process Design Principles; Wiley, 2017; pp 426–485.
@@ -283,9 +284,9 @@ class StorageTank(Tank):
 
     Parameters
     ----------
-    ins : stream
+    ins : 
         Inlet.
-    outs : stream
+    outs : 
         Outlet.
     vessel_type : str, optional
         Vessel type. Defaults to 'Field erected'.
@@ -359,9 +360,9 @@ class MixTank(Tank):
 
     Parameters
     ----------
-    ins : streams
+    ins : 
         Inlet fluids to be mixed.
-    outs : stream
+    outs : 
         Outlet.
     vessel_type : str, optional
         Vessel type. Defaults to 'Conventional'.
@@ -377,7 +378,7 @@ class MixTank(Tank):
     Notes
     -----
     For a detailed discussion on the design and cost algorithm,
-    please read the :doc:`Tank` documentation.
+    please see :class:`~biosteam.units.tank.Tank`.
     
     The purchase cost algorithm is based on [1]_.
     The electricity rate is based on [2]_.

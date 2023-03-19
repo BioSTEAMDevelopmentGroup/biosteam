@@ -20,9 +20,9 @@ class Duplicator(Unit, isabstract=True):
 
     Parameters
     ----------
-    ins : stream
+    ins : 
         Inlet stream.
-    outs : stream sequence
+    outs : 
         Duplicated outlet streams.
 
     Examples
