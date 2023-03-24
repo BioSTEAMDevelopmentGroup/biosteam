@@ -41,7 +41,7 @@ class ProcessWaterCenter(bst.Facility):
         [1] Process water.
         
         [2] Excess water.
-    reverse_osmosis_grade_water_streams : List[Stream], optional
+    makeup_water_streams : List[Stream], optional
         All inlet RO-grade water streams.
         Defaults to boiler and cooling tower make-up water streams at run time.
     process_water_streams : List[Stream], optional
@@ -77,16 +77,16 @@ class ProcessWaterCenter(bst.Facility):
     _units = {'Makeup water flow rate': 'kg/hr',
               'Process water flow rate': 'kg/hr'}
     def __init__(self, ID='', ins=None, outs=(), thermo=None,
-                 reverse_osmosis_grade_water_streams=None,
+                 makeup_water_streams=None,
                  process_water_streams=None,
                  reverse_osmosis_water_price=None,
                  process_water_price=None):
         bst.Facility.__init__(self, ID, ins, outs, thermo)
-        if process_water_streams and reverse_osmosis_grade_water_streams:
+        if process_water_streams and makeup_water_streams:
             process_water_streams = list(process_water_streams)
-            for i in reverse_osmosis_grade_water_streams:
+            for i in makeup_water_streams:
                 if i in process_water_streams: process_water_streams.remove(i)
-        self.reverse_osmosis_grade_water_streams = reverse_osmosis_grade_water_streams
+        self.makeup_water_streams = makeup_water_streams
         self.process_water_streams = process_water_streams
         self.define_utility('Reverse osmosis water', self.makeup_reverse_osmosis_grade_water)
         self.define_utility('Process water', self.makeup_process_water)
@@ -149,13 +149,13 @@ class ProcessWaterCenter(bst.Facility):
         self.process_water.imol['7732-18-5'] = process_water
 
     def update_reverse_osmosis_grade_water(self):
-        reverse_osmosis_grade_water_streams = self.reverse_osmosis_grade_water_streams
-        if reverse_osmosis_grade_water_streams is None: 
-            self.reverse_osmosis_grade_water_streams = reverse_osmosis_grade_water_streams = [
+        makeup_water_streams = self.makeup_water_streams
+        if makeup_water_streams is None: 
+            self.makeup_water_streams = makeup_water_streams = [
                 i.makeup_water for i in self.system.facilities
                 if hasattr(i, 'makeup_water')
             ]
-        self.reverse_osmosis_grade_water.imol['7732-18-5'] = sum([stream.imol['7732-18-5'] for stream in reverse_osmosis_grade_water_streams])
+        self.reverse_osmosis_grade_water.imol['7732-18-5'] = sum([stream.imol['7732-18-5'] for stream in makeup_water_streams])
 
     def _run(self): 
         self.update_reverse_osmosis_grade_water()
