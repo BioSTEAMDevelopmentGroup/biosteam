@@ -21,28 +21,42 @@ __all__ = ('ProcessWaterCenter',)
 class ProcessWaterCenter(bst.Facility):
     """
     Create a ProcessWaterCenter object that takes care of balancing the amount
-    of make-up water required for the process. The capital cost and power
-    are based on the flow rate of process and make-up water as in [1]_.
+    of make-up process and reverse osmosis (RO) -grade water required for the
+    process. The capital cost and power are based on the flow rate of process
+    and make-up water as given in[1]_.
     
     Parameters
     ----------
     ins : 
-        [0] Clean water.
+        [0] Recycled RO-grade water.
         
-        [1] Make-up water.
+        [1] Make-up RO-grade water.
         
-        [2] Recycled process water
+        [2] Recycled process water.  
+        
+        [3] Make-up process water.
     outs : 
-        [0] Process water.
+        [0] RO-grade water.
         
-        [1] Waste.
-    makeup_water_streams : streams, optional
-        All fresh makeup water streams (must be a subset of `process_water_streams`).
-        Defaults to boiler and cooling tower make-up water streams at run times.
-    process_water_streams : streams, optional
-        All process water streams (including makeup water streams).
+        [1] Process water.
+        
+        [2] Excess water.
+    reverse_osmosis_grade_water_streams : List[Stream], optional
+        All inlet RO-grade water streams.
+        Defaults to boiler and cooling tower make-up water streams at run time.
+    process_water_streams : List[Stream], optional
+        All inlet process water streams (excluding makeup water streams).
         Defaults to all fresh process water streams within the system at 
         run time.
+    reverse_osmosis_water_price : float, optional
+        Defaults to 0.56 USD/gal.
+    process_water_price : float, optional
+        Defaults to 0.27 USD/gal.
+        
+    Notes
+    -----
+    Default prices for the RO-grade and process water are 0.56 and 0.27 USD/gal 
+    as given in Table 17.1 of [2]_.
     
     References
     ----------
@@ -51,61 +65,125 @@ class ProcessWaterCenter(bst.Facility):
         Conversion of Lignocellulosic Biomass to Ethanol: Dilute-Acid 
         Pretreatment and Enzymatic Hydrolysis of Corn Stover
         (No. NREL/TP-5100-47764, 1013269). https://doi.org/10.2172/1013269
+    .. [2] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani,
+        R., & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
+        Cost Accounting and Capital Cost Estimation (Chapter 16)
     
     """
     ticket_name = 'PWC'
     network_priority = 2
-    _N_ins = 3
-    _N_outs = 2
+    _N_ins = 4
+    _N_outs = 3
     _units = {'Makeup water flow rate': 'kg/hr',
               'Process water flow rate': 'kg/hr'}
     def __init__(self, ID='', ins=None, outs=(), thermo=None,
-                 makeup_water_streams=None,
-                 process_water_streams=None):
+                 reverse_osmosis_grade_water_streams=None,
+                 process_water_streams=None,
+                 reverse_osmosis_water_price=None,
+                 process_water_price=None):
         bst.Facility.__init__(self, ID, ins, outs, thermo)
-        self.makeup_water_streams = makeup_water_streams
+        if process_water_streams and reverse_osmosis_grade_water_streams:
+            process_water_streams = list(process_water_streams)
+            for i in reverse_osmosis_grade_water_streams:
+                if i in process_water_streams: process_water_streams.remove(i)
+        self.reverse_osmosis_grade_water_streams = reverse_osmosis_grade_water_streams
         self.process_water_streams = process_water_streams
+        self.define_utility('Reverse osmosis water', self.makeup_reverse_osmosis_grade_water)
+        self.define_utility('Process water', self.makeup_process_water)
+        if reverse_osmosis_water_price: self.reverse_osmosis_water_price = reverse_osmosis_water_price
+        if process_water_price: self.process_water_price = process_water_price
+    
+    @property
+    def reverse_osmosis_water_price(self):
+        """[Float] Price of reverse osmosis-grade water, same as `bst.stream_utility_prices['Reverse osmosis water']`."""
+        return bst.stream_utility_prices['Reverse osmosis water']
+    
+    @reverse_osmosis_water_price.setter
+    def reverse_osmosis_water_price(self, new_price):
+        bst.stream_utility_prices['Reverse osmosis water'] = new_price
+    
+    @property
+    def process_water_price(self):
+        """[Float] Price of process water, same as `bst.stream_utility_prices['Process water']`."""
+        return bst.stream_utility_prices['Process water']
+    
+    @process_water_price.setter
+    def process_water_price(self, new_price):
+        bst.stream_utility_prices['Process water'] = new_price
+    
+    @property
+    def recycled_reverse_osmosis_grade_water(self):
+        return self.ins[0]
+    
+    @property
+    def makeup_reverse_osmosis_grade_water(self):
+        return self.ins[1]
+    
+    @property
+    def recycled_process_water(self):
+        return self.ins[2]
+    
+    @property
+    def makeup_process_water(self):
+        return self.ins[3]
+        
+    @property
+    def reverse_osmosis_grade_water(self):
+        return self.outs[0]
+    
+    @property
+    def process_water(self):
+        return self.outs[1]
+    
+    @property
+    def excess_water(self):
+        return self.outs[2]
     
     def _assert_compatible_property_package(self): pass
     
     def update_process_water(self):
         process_water_streams = self.process_water_streams
         if process_water_streams is None:
-            self.process_water_streams = process_water_streams = [
-                *bst.get_fresh_process_water_streams(),
-                *self.makeup_water_streams
-            ]
-        s_process, _ = self.outs
-        process_water = sum([stream.imol['7732-18-5'] 
-                             for stream in process_water_streams])
-        s_process.imol['7732-18-5'] = process_water
+            self.process_water_streams = process_water_streams = bst.get_fresh_process_water_streams()
+        process_water = sum([stream.imol['7732-18-5'] for stream in process_water_streams])
+        self.process_water.imol['7732-18-5'] = process_water
 
-    def update_makeup_water(self):
-        makeup_water_streams = self.makeup_water_streams
-        if makeup_water_streams is None: 
-            self.makeup_water_streams = makeup_water_streams = [
+    def update_reverse_osmosis_grade_water(self):
+        reverse_osmosis_grade_water_streams = self.reverse_osmosis_grade_water_streams
+        if reverse_osmosis_grade_water_streams is None: 
+            self.reverse_osmosis_grade_water_streams = reverse_osmosis_grade_water_streams = [
                 i.makeup_water for i in self.system.facilities
                 if hasattr(i, 'makeup_water')
             ]
-        s_recycle, s_makeup, _ = self.ins
-        water = sum([stream.imol['7732-18-5'] for stream in makeup_water_streams]) - s_recycle.imol['7732-18-5']
-        s_makeup.imol['7732-18-5'] = max(water, 0)
+        self.reverse_osmosis_grade_water.imol['7732-18-5'] = sum([stream.imol['7732-18-5'] for stream in reverse_osmosis_grade_water_streams])
 
     def _run(self): 
-        self.update_makeup_water()
+        self.update_reverse_osmosis_grade_water()
         self.update_process_water()
-        s_recycle, s_makeup, s_recycle_process = self._ins
-        s_process, s_waste = self.outs
-        makeup_water = s_makeup.imol['7732-18-5']
-        recycle_water = sum([i.imol['7732-18-5'] for i in (s_recycle, s_recycle_process) if i])
-        process_water = s_process.imol['7732-18-5']
-        waste_water = recycle_water + makeup_water - process_water
-        if waste_water < 0.:
-            s_makeup.imol['7732-18-5'] -= waste_water
-            waste_water = 0.
-        s_waste.imol['7732-18-5'] = waste_water
+        s_recycle_rev_os, s_rev_os_makeup, s_recycle_process, s_process_makeup = self._ins
+        rrogw = s_recycle_rev_os.imol['7732-18-5']
+        rpw = s_recycle_process.imol['7732-18-5']
+        pw = self.process_water.imol['7732-18-5']
+        rogw = self.reverse_osmosis_grade_water.imol['7732-18-5']
+        mrogw = rogw - rrogw
+        if mrogw >= 0.:
+            s_rev_os_makeup.imol['7732-18-5'] = mrogw
+        else:
+            s_rev_os_makeup.imol['7732-18-5'] = 0.
+            rpw -= mrogw # Unused RO-grade water is added to recycled process water
+        mpw = pw - rpw
+        if mpw >= 0.:
+            s_process_makeup.imol['7732-18-5'] = mpw
+            self.excess_water.imol['7732-18-5'] = 0.
+        else:
+            s_process_makeup.imol['7732-18-5'] = 0.
+            self.excess_water.imol['7732-18-5'] = -mpw # Excess recycled water
         Design = self.design_results
-        Design['Process water flow rate'] = (process_water + waste_water) * 18.015
-        Design['Makeup water flow rate'] = makeup_water * 18.015
+        Design['Process water flow rate'] = (
+            self.excess_water.imol['7732-18-5'] + self.process_water.imol['7732-18-5']
+        ) * 18.015
+        Design['Makeup water flow rate'] = (
+            s_process_makeup.imol['7732-18-5']
+        ) * 18.015
         
         
