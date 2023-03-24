@@ -48,7 +48,7 @@ setup(
                      'facilities/*',
                      'facilities/hxn/*',
                      'wastewater/*',
-                     'wastewater/high_rate',
+                     'wastewater/high_rate/*',
                      'units/decorators/*']
     },
     exclude_package_data={
