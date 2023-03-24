@@ -55,7 +55,7 @@ class ProcessWaterCenter(bst.Facility):
         
     Notes
     -----
-    Default prices for the RO-grade and process water are 0.56 and 0.27 USD/gal 
+    Default prices for the RO-grade and process water are 0.56 and 0.27 USD/m3 
     as given in Table 17.1 of [2]_.
     
     References
