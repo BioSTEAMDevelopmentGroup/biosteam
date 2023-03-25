@@ -500,7 +500,7 @@ class ReverseOsmosis(bst.Unit):
         self.water_recovery = water_recovery
     
     @property
-    def treated_water(self):
+    def RO_treated_water(self):
         return self.outs[0]
     
     def _run(self):
@@ -520,10 +520,10 @@ def _create_cellulosic_ethanol_chemicals():
 
 @bst.SystemFactory(
     ID='wastewater_treatment_sys',
-    outs=[dict(ID='methane'),
+    outs=[dict(ID='biogas'),
           dict(ID='sludge'),
-          dict(ID='treated_water'),
-          dict(ID='waste_brine')],
+          dict(ID='RO_treated_water'),
+          dict(ID='brine')],
     fixed_ins_size=False,
     fthermo=_create_cellulosic_ethanol_chemicals,
 )
@@ -542,10 +542,10 @@ def create_conventional_wastewater_treatment_system(ins, outs,
         at run time that are not sold and cannot generate energy through combustion
         (i.e. streams that have no sink, no price, and a LHV less that 1 kJ / g).
     outs : 
-        * [0] methane
+        * [0] biogas
         * [1] sludge
-        * [2] treated_water
-        * [3] waste_brine 
+        * [2] RO_treated_water
+        * [3] brine 
     NaOH_price : float, optional
         Price of NaOH in USD/kg. The default is 0.07476.
     autopopulate : bool, optional
@@ -636,7 +636,7 @@ def create_conventional_wastewater_treatment_system(ins, outs,
                          Cellulase          0.122
                          -----------------  5.01e+05 kg/hr
     outs...
-    [0] methane
+    [0] biogas
         phase: 'g', T: 307.76 K, P: 101325 Pa
         composition (%): Water         3.18
                          Ethanol       2.46e-05
@@ -682,11 +682,11 @@ def create_conventional_wastewater_treatment_system(ins, outs,
                          WWTsludge          39.8
                          Cellulase          0.01
                          -----------------  2.57e+03 kg/hr
-    [2] treated_water
+    [2] RO_treated_water
         phase: 'l', T: 307.79 K, P: 101325 Pa
         composition (%): Water  100
                          -----  4.16e+05 kg/hr
-    [3] waste_brine
+    [3] brine
         phase: 'l', T: 307.79 K, P: 101325 Pa
         composition (%): Water              48.7
                          Ethanol            1.35e-05
@@ -726,7 +726,8 @@ def create_conventional_wastewater_treatment_system(ins, outs,
                          -----------------  1.12e+04 kg/hr
     
     """
-    methane, sludge, treated_water, waste_brine = outs
+    biogas, sludge, RO_treated_water, brine = outs
+    RO_treated_water.register_alias('recycled_water')
     if NaOH_price is None: NaOH_price = 0.07476
     air = bst.Stream('air_lagoon', O2=51061, N2=168162, phase='g', units='kg/hr')
     caustic = bst.Stream('caustic', Water=2252, NaOH=2252,
@@ -744,7 +745,7 @@ def create_conventional_wastewater_treatment_system(ins, outs,
                 if isinstance(i, bst.BlowdownMixer): wastewater_mixer.ins.append(i.outs[0])
             
     WWTC = WastewaterSystemCost('WWTC', wastewater_mixer-0)
-    anaerobic_digestion = AnaerobicDigestion('R601', WWTC-0, (methane, '', ''))
+    anaerobic_digestion = AnaerobicDigestion('R601', WWTC-0, (biogas, '', ''))
     recycled_sludge_mixer = bst.Mixer('M602', ('', anaerobic_digestion-1))
     
     caustic_over_waste = caustic.imol['Water', 'NaOH'] / 2544301
@@ -767,7 +768,7 @@ def create_conventional_wastewater_treatment_system(ins, outs,
     fresh_sludge_mixer = bst.Mixer('M603', (anaerobic_digestion-2, sludge_splitter-1))
     sludge_centrifuge = SludgeCentrifuge('S603', fresh_sludge_mixer-0, outs=('', sludge))
     bst.Mixer('M604', [sludge_splitter-0, sludge_centrifuge-0], 0-recycled_sludge_mixer)
-    ReverseOsmosis('S604', membrane_bioreactor-0, outs=(treated_water, waste_brine))
+    ReverseOsmosis('S604', membrane_bioreactor-0, outs=(RO_treated_water, brine))
 
 
 create_wastewater_treatment_system = create_conventional_wastewater_treatment_system

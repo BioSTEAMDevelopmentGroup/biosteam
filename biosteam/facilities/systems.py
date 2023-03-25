@@ -164,7 +164,7 @@ def create_facilities(
             process_water = process_water_mixer.outs[0]
             if treated_water_streams is None:
                 units = bst.main_flowsheet.unit.get_context_level(0)
-                treated_water_streams = [i.treated_water for i in units if hasattr(i, 'treated_water')]
+                treated_water_streams = [i.RO_treated_water for i in units if hasattr(i, 'RO_treated_water')]
             treated_water_mixer = bst.Mixer(area or '', ins=treated_water_streams)
             treated_water = treated_water_mixer.outs[0]
             bst.ProcessWaterCenter(ins=[treated_water, 'makeup_RO_water', process_water, 'makeup_process_water'], **PWC_kwargs)
