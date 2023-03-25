@@ -1759,10 +1759,9 @@ class System:
                 if u.prioritize: self.prioritize_unit(u)
                 prioritized_units.add(u)
                 
-    def _setup(self, update_configuration=False):
+    def _setup(self, update_configuration=False, units=None):
         """Setup each element of the system."""
-        units = self.units
-        self._load_facilities()
+        if units is None: units = self.units
         if update_configuration:
             self._temporary_connections_log.clear()
             self._create_temporary_connections()
@@ -1784,6 +1783,7 @@ class System:
                 self._load_stream_links()
             else:
                 self._setup_units()
+        self._load_facilities()
 
     @piping.ignore_docking_warnings
     def _remove_temporary_units(self):
@@ -2155,7 +2155,7 @@ class System:
             ws.state = y*0.0
             ws.dstate = y*0.0
 
-    def simulate(self, update_configuration: Optional[bool]=False, **kwargs):
+    def simulate(self, update_configuration: Optional[bool]=False, units=None, **kwargs):
         """
         If system is dynamic, run the system dynamically. Otherwise, converge 
         the path of unit operations to steady state. After running/converging 
@@ -2169,6 +2169,9 @@ class System:
         update_configuration :
             Whether to update system configuration if unit connections have
             changed. 
+        units : 
+            Unit operations of the system. If given, original unit operations of 
+            the system will be replaced.
             
         """
         with self.flowsheet.temporary():
@@ -2180,7 +2183,7 @@ class System:
                 finally:
                     self._running_specifications = False
             else:
-                self._setup(update_configuration)
+                self._setup(update_configuration, units)
                 if self.isdynamic: 
                     self.dynamic_run(**kwargs)
                     self._summary()

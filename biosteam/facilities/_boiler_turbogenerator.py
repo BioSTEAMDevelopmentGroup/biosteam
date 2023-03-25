@@ -150,7 +150,9 @@ class BoilerTurbogenerator(bst.Facility):
     ticket_name = 'BT'
     network_priority = 0
     boiler_blowdown = 0.03
-    RO_rejection = 0
+    # Reverse osmosis (RO) typically rejects 25% of water, but the boiler-feed water is assumed to come after RO.
+    # Setting this parameter to a fraction more than zero effectively assumes that this unit includes reverse osmosis.
+    RO_rejection = 0 
     _N_ins = 6
     _N_outs = 3
     _units = {'Flow rate': 'kg/hr',
@@ -357,8 +359,8 @@ class BoilerTurbogenerator(bst.Facility):
         for hu in hus_heating: hu.reverse()
         self.heat_utilities = [*hus_heating, hu_cooling]
         water_index = chemicals.index('7732-18-5')
-        blowdown_water.mol[water_index] = makeup_water.mol[water_index] = (
-                self.total_steam * self.boiler_blowdown * 1/(1-self.RO_rejection)
+        makeup_water.mol[water_index] = blowdown_water.mol[water_index] = (
+                self.total_steam * self.boiler_blowdown * 1 / (1 - self.RO_rejection)   
         )
         ash_IDs = [i.ID for i in self.chemicals if not i.formula]
         emissions_mol = emissions.mol

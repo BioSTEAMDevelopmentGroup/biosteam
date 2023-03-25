@@ -46,6 +46,14 @@ class ReverseOsmosis(bst.Unit):
     _N_outs = 2
     _units = {'Volumetric flow': 'm3/hr'}
 
+    @property
+    def RO_treated_water(self):
+        return self.outs[0]
+    
+    @property
+    def brine(self):
+        return self.outs[1]
+
     def _run(self):
         influent = self.ins[0]
         water, brine = self.outs
@@ -240,7 +248,7 @@ class BiogasUpgrading(bst.Unit):
     outs=[dict(ID='RNG'), # renewable natural gas
           dict(ID='biogas'),
           dict(ID='sludge'),
-          dict(ID='recycled_water'),
+          dict(ID='RO_treated_water'),
           dict(ID='brine')],
     fixed_ins_size=False,
     fthermo=append_wwt_chemicals,
@@ -277,7 +285,7 @@ def create_high_rate_wastewater_treatment_system(
         * [0] RNG
         * [1] biogas
         * [2] sludge
-        * [3] recycled_water
+        * [3] RO_treated_water
         * [4] brine
     process_ID : float
         Number of the process.
@@ -432,7 +440,7 @@ def create_high_rate_wastewater_treatment_system(
                          WWTsludge          14
                          Cellulase          0.00447
                          -----------------  1.01e+04 kg/hr
-    [3] recycled_water
+    [3] RO_treated_water
         phase: 'l', T: 303.15 K, P: 101325 Pa
         composition (%): Water  100
                          -----  4.59e+05 kg/hr
@@ -466,7 +474,8 @@ def create_high_rate_wastewater_treatment_system(
     """
     # Setup
     if flowsheet: bst.main_flowsheet.set_flowsheet(flowsheet)
-    RNG, biogas, sludge, recycled_water, brine = outs
+    RNG, biogas, sludge, RO_treated_water, brine = outs
+    RO_treated_water.register_alias('recycled_water')
 
     ##### Units #####
     # Mix waste liquids for treatment
@@ -551,4 +560,4 @@ def create_high_rate_wastewater_treatment_system(
     bst.Mixer(f'M{X}03', ins=(SX01-0, SX02-0, SX03-0), outs=1-RX03)
 
     # Reverse osmosis to treat aerobically polished water
-    ReverseOsmosis(f'S{X}04', ins=RX03-1, outs=(recycled_water, brine))
+    ReverseOsmosis(f'S{X}04', ins=RX03-1, outs=(RO_treated_water, brine))
