@@ -49,9 +49,9 @@ class ProcessWaterCenter(bst.Facility):
         Defaults to all fresh process water streams within the system at 
         run time.
     reverse_osmosis_water_price : float, optional
-        Defaults to 0.56 USD/gal.
+        Defaults to 5.6e-4 USD/kg.
     process_water_price : float, optional
-        Defaults to 0.27 USD/gal.
+        Defaults to 2.7e-4 USD/kg.
         
     Notes
     -----
