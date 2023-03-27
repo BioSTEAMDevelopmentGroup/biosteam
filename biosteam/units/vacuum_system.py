@@ -168,6 +168,5 @@ class VacuumSystem:
             vacuum_steam.set_utility_by_flow_rate(heating_agent, vacuum_results['Steam flow rate'])
             if vacuum_results['Condenser']: 
                 vacuum_cooling_water = bst.HeatUtility()
-                heat_utilities.append(vacuum_steam)
                 vacuum_cooling_water(-vacuum_steam.unit_duty, 373.15)
         self.power_utility = bst.PowerUtility(vacuum_results['Work'])
