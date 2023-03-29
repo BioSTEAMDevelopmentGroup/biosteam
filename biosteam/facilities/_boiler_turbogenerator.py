@@ -352,6 +352,12 @@ class BoilerTurbogenerator(bst.Facility):
                 lb = ub
                 ub *= 2
             flx.IQ_interpolation(f, lb, ub, xtol=1, ytol=1)
+            if self.cooling_duty < 0.: 
+                # In the event that no electricity is produced and the solver
+                # solution for natural gas is slightly below the requirement for steam
+                # (this would lead to a positive duty).
+                self.cooling_duty = 0.
+                Design['Work'] = 0.
         
         hu_cooling = bst.HeatUtility()
         hu_cooling(self.cooling_duty, steam_demand.T)
