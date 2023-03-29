@@ -77,13 +77,13 @@ class VacuumSystem:
     >>> V1.simulate()
     >>> V1.results()
     Vacuum vessel                                                Units       V1
-    Medium pressure steam Duty                                   kJ/hr 2.09e+07
-                          Flow                                 kmol/hr      575
-                          Cost                                  USD/hr      159
+    Medium pressure steam Duty                                   kJ/hr 1.04e+07
+                          Flow                                 kmol/hr      288
+                          Cost                                  USD/hr     79.3
     Design                Total volume                              m3 7.23e+04
     Purchase cost         Vacuum system - Steam-jet ejecto...      USD 8.18e+04
     Total purchase cost                                            USD 8.18e+04
-    Utility cost                                                USD/hr      159
+    Utility cost                                                USD/hr     79.3
     
     For simplicity, this example does not include the cost of the vessel, but 
     vessel costs should be included for techno-economic analysis.
@@ -168,6 +168,5 @@ class VacuumSystem:
             vacuum_steam.set_utility_by_flow_rate(heating_agent, vacuum_results['Steam flow rate'])
             if vacuum_results['Condenser']: 
                 vacuum_cooling_water = bst.HeatUtility()
-                heat_utilities.append(vacuum_steam)
                 vacuum_cooling_water(-vacuum_steam.unit_duty, 373.15)
         self.power_utility = bst.PowerUtility(vacuum_results['Work'])
