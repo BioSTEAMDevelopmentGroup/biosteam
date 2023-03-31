@@ -25,6 +25,10 @@ impact_indicators: dict[str, str] = {}
 #: inlets and outlets to unit operations.
 stream_utility_prices: dict[str, float] = {}
 
+#: Whether or not non-Facility units with zero flow in
+#: should have their run, simulate, and _summary function calls skipped.
+skip_non_facility_units_with_zero_flow = False 
+
 # %% Workaround for readthedocs, which fails to cache numba
 
 import numba

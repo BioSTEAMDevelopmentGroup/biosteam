@@ -112,6 +112,17 @@ def electricity_price(self, electricity_price):
     """Electricity price [USD/kWhr]"""
     bst.PowerUtility.price = electricity_price
 
+@property
+def skip_non_facility_units_with_zero_flow(self):
+    """Whether or not non-Facility units with zero flow in 
+    should have their run, simulate, and _summary function calls skipped."""
+    return bst.skip_non_facility_units_with_zero_flow
+@skip_non_facility_units_with_zero_flow.setter
+def skip_non_facility_units_with_zero_flow(self, skip):
+    """Whether or not non-Facility units with zero flow in
+    should have their run, simulate, and _summary function calls skipped."""
+    bst.skip_non_facility_units_with_zero_flow = skip
+
 def register_utility(self, name, price):
     """Register new stream utility in BioSTEAM given the name and the price 
     [USD/kg]."""
@@ -151,6 +162,7 @@ Settings.heating_agents = heating_agents
 Settings.impact_indicators = impact_indicators
 Settings.stream_utility_prices = stream_utility_prices
 Settings.electricity_price = electricity_price
+Settings.skip_non_facility_units_with_zero_flow = skip_non_facility_units_with_zero_flow
 
 # %% Register stream utilities
 

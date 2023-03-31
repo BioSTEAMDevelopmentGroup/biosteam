@@ -1253,20 +1253,199 @@ class Unit:
         add_bounded_numerical_specification
         
         """
-        specifications = self._specifications
-        if specifications:
-            active_specifications = self._active_specifications
-            if len(active_specifications) == len(specifications):
-                self._run()
+        if self._should_run:
+            specifications = self._specifications
+            if specifications:
+                active_specifications = self._active_specifications
+                if len(active_specifications) == len(specifications):
+                    self._run()
+                else:
+                    for ps in specifications: 
+                        if ps in active_specifications: continue
+                        active_specifications.add(ps)
+                        try: ps()
+                        finally: active_specifications.remove(ps)
+                    if self.run_after_specifications: self._run()
             else:
-                for ps in specifications: 
-                    if ps in active_specifications: continue
-                    active_specifications.add(ps)
-                    try: ps()
-                    finally: active_specifications.remove(ps)
-                if self.run_after_specifications: self._run()
-        else:
-            self._run()
+                self._run()
+    
+    @property
+    def _should_run(self): 
+        # returns False IFF 
+        # bst.settings.skip_non_facility_units_with_zero_flow is True AND 
+        # unit has zero flow in
+        # unit is not a Facility
+        """
+        Returns False IFF the following conditions are met:
+        1. bst.settings.skip_non_facility_units_with_zero_flow is True; AND 
+        2. unit has zero flow in; AND
+        3. unit is not a Facility.
+        
+        Examples
+        --------
+        >>> from biosteam.units import BinaryDistillation
+        >>> from biosteam import Stream, settings
+        >>> settings.set_thermo(['Water', 'Methanol', 'Glycerol'], cache=True)
+        >>> feed = Stream('feed', flow=(80, 100, 25))
+        >>> bp = feed.bubble_point_at_P()
+        >>> feed.T = bp.T # Feed at bubble point T
+        >>> D1 = BinaryDistillation('D1', ins=feed,
+        ...                         outs=('distillate', 'bottoms_product'),
+        ...                         LHK=('Methanol', 'Water'),
+        ...                         y_top=0.99, x_bot=0.01, k=2,
+        ...                         is_divided=True)
+        >>> ## With non-zero flow in
+        >>> settings.skip_non_facility_units_with_zero_flow = True
+        >>> D1.simulate()
+        >>> D1.show(T='degC', P='atm', composition=True)
+        BinaryDistillation: D1
+        ins...
+        [0] feed
+            phase: 'l', T: 76.12 degC, P: 1 atm
+            composition (%): Water     39
+                             Methanol  48.8
+                             Glycerol  12.2
+                             --------  205 kmol/hr
+        outs...
+        [0] distillate
+            phase: 'g', T: 64.909 degC, P: 1 atm
+            composition (%): Water     1
+                             Methanol  99
+                             --------  100 kmol/hr
+        [1] bottoms_product
+            phase: 'l', T: 100.03 degC, P: 1 atm
+            composition (%): Water     75.4
+                             Methanol  0.761
+                             Glycerol  23.9
+                             --------  105 kmol/hr
+        >>> for s in D1.outs: s.empty()
+        >>> settings.skip_non_facility_units_with_zero_flow = True
+        >>> D1.simulate()
+        >>> D1.show(T='degC', P='atm', composition=True)
+        BinaryDistillation: D1
+        ins...
+        [0] feed
+            phase: 'l', T: 76.12 degC, P: 1 atm
+            composition (%): Water     39
+                             Methanol  48.8
+                             Glycerol  12.2
+                             --------  205 kmol/hr
+        outs...
+        [0] distillate
+            phase: 'g', T: 64.909 degC, P: 1 atm
+            composition (%): Water     1
+                             Methanol  99
+                             --------  100 kmol/hr
+        [1] bottoms_product
+            phase: 'l', T: 100.03 degC, P: 1 atm
+            composition (%): Water     75.4
+                             Methanol  0.761
+                             Glycerol  23.9
+                             --------  105 kmol/hr
+        >>> settings.skip_non_facility_units_with_zero_flow = False
+        >>> D1.simulate()
+        >>> D1.show(T='degC', P='atm', composition=True)
+        BinaryDistillation: D1
+        ins...
+        [0] feed
+            phase: 'l', T: 76.12 degC, P: 1 atm
+            composition (%): Water     39
+                             Methanol  48.8
+                             Glycerol  12.2
+                             --------  205 kmol/hr
+        outs...
+        [0] distillate
+            phase: 'g', T: 64.909 degC, P: 1 atm
+            composition (%): Water     1
+                             Methanol  99
+                             --------  100 kmol/hr
+        [1] bottoms_product
+            phase: 'l', T: 100.03 degC, P: 1 atm
+            composition (%): Water     75.4
+                             Methanol  0.761
+                             Glycerol  23.9
+                             --------  105 kmol/hr
+        >>> for s in D1.outs: s.empty()
+        >>> settings.skip_non_facility_units_with_zero_flow = True
+        >>> D1.simulate()
+        >>> D1.show(T='degC', P='atm', composition=True)
+        BinaryDistillation: D1
+        ins...
+        [0] feed
+            phase: 'l', T: 76.12 degC, P: 1 atm
+            composition (%): Water     39
+                             Methanol  48.8
+                             Glycerol  12.2
+                             --------  205 kmol/hr
+        outs...
+        [0] distillate
+            phase: 'g', T: 64.909 degC, P: 1 atm
+            composition (%): Water     1
+                             Methanol  99
+                             --------  100 kmol/hr
+        [1] bottoms_product
+            phase: 'l', T: 100.03 degC, P: 1 atm
+            composition (%): Water     75.4
+                             Methanol  0.761
+                             Glycerol  23.9
+                             --------  105 kmol/hr
+        >>> ## With zero flow in
+        >>> feed.F_mol = 0
+        >>> settings.skip_non_facility_units_with_zero_flow = True
+        >>> D1.simulate()
+        >>> D1.show(T='degC', P='atm', composition=True)
+        BinaryDistillation: D1
+        ins...
+        [0] feed
+            phase: 'l', T: 76.12 degC, P: 1 atm
+            flow: 0
+        outs...
+        [0] distillate
+            phase: 'g', T: 64.909 degC, P: 1 atm
+            composition (%): Water     1
+                             Methanol  99
+                             --------  100 kmol/hr
+        [1] bottoms_product
+            phase: 'l', T: 100.03 degC, P: 1 atm
+            composition (%): Water     75.4
+                             Methanol  0.761
+                             Glycerol  23.9
+                             --------  105 kmol/hr
+        >>> for s in D1.outs: s.empty()
+        >>> settings.skip_non_facility_units_with_zero_flow = True
+        >>> D1.simulate()
+        >>> D1.show(T='degC', P='atm', composition=True)
+        BinaryDistillation: D1
+        ins...
+        [0] feed
+            phase: 'l', T: 76.12 degC, P: 1 atm
+            flow: 0
+        outs...
+        [0] distillate
+            phase: 'g', T: 64.909 degC, P: 1 atm
+            flow: 0
+        [1] bottoms_product
+            phase: 'l', T: 100.03 degC, P: 1 atm
+            flow: 0
+        >>> try:
+        ...     settings.skip_non_facility_units_with_zero_flow = False
+        ...     D1.simulate()
+        ...     D1.show(T='degC', P='atm', composition=True)
+        >>> except:
+        ...     print('D1.simulate() failed.')
+        D1.simulate() failed.
+        """
+        return not (bst.settings.skip_non_facility_units_with_zero_flow and
+            self.F_mol_in == 0. and
+            not isinstance(self, bst.Facility))
+    
+    @property
+    def _should_simulate(self): 
+        return self._should_run
+    
+    @property
+    def _should_summarize(self): 
+        return self._should_run
     
     def path_from(self, units, inclusive=False, system=None):
         """
@@ -1336,14 +1515,15 @@ class Unit:
     
     def _summary(self, design_kwargs=None, cost_kwargs=None, lca_kwargs=None):
         """Run design/cost/LCA algorithms and compile results."""
-        self._check_run()
-        if not (self._design or self._cost): return
-        self._design(**design_kwargs) if design_kwargs else self._design()
-        self._cost(**cost_kwargs) if cost_kwargs else self._cost()
-        self._lca(**lca_kwargs) if lca_kwargs else self._lca()
-        self._check_utilities()
-        self._load_costs()
-        self._load_utility_cost()
+        if self._should_summarize:
+            self._check_run()
+            if not (self._design or self._cost): return
+            self._design(**design_kwargs) if design_kwargs else self._design()
+            self._cost(**cost_kwargs) if cost_kwargs else self._cost()
+            self._lca(**lca_kwargs) if lca_kwargs else self._lca()
+            self._check_utilities()
+            self._load_costs()
+            self._load_utility_cost()
         
     def _load_utility_cost(self):
         ins = self._ins._streams
@@ -1482,13 +1662,14 @@ class Unit:
             Keyword arguments passed to `_cost` method.
             
         """
-        self._setup()
-        self._check_setup()
-        if run is None or run:
-            for ps in self._specifications: ps.compile_path(self)
-            self._load_stream_links()
-            self.run()
-        self._summary(design_kwargs, cost_kwargs)
+        if self._should_simulate:
+            self._setup()
+            self._check_setup()
+            if run is None or run:
+                for ps in self._specifications: ps.compile_path(self)
+                self._load_stream_links()
+                self.run()
+            self._summary(design_kwargs, cost_kwargs)
 
     def results(self, with_units=True, include_utilities=True,
                 include_total_cost=True, include_installed_cost=False,
