@@ -128,7 +128,7 @@ def register_utility(self, name, price):
     [USD/kg]."""
     if name not in bst.stream_utility_prices:
         docname = name.lower()
-        methname = docname.replace(' ', '_')
+        methname = docname.replace(' ', '_').replace('-', '_')
         flowmethname = f"get_{methname}_flow"
         costmethname = f"get_{methname}_cost"
         repname = repr(name)
@@ -163,12 +163,11 @@ Settings.impact_indicators = impact_indicators
 Settings.stream_utility_prices = stream_utility_prices
 Settings.electricity_price = electricity_price
 Settings.skip_non_facility_units_with_zero_flow = skip_non_facility_units_with_zero_flow
+Settings.register_utility = register_utility
 
 # %% Register stream utilities
 
-try:
-    settings.register_utility('Natural gas', 0.218)
-    settings.register_utility('Ash disposal', -0.0318)
-except: # For ReadTheDocs in the meanwhile that a new thermosteam version is uploaded
-    bst.stream_utility_prices['Natural gas'] = 0.218
-    bst.stream_utility_prices['Ash disposal'] = -0.0318
+settings.register_utility('Natural gas', 0.218)
+settings.register_utility('Ash disposal', -0.0318)
+settings.register_utility('Reverse osmosis water', 5.6e-4)
+settings.register_utility('Process water', 2.7e-4)

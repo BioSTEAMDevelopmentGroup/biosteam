@@ -24,7 +24,7 @@ additional details on the available wastewater treatment systems.
 from .high_rate import create_high_rate_wastewater_treatment_system
 from .conventional import create_conventional_wastewater_treatment_system
 
-def create_wastewater_treatment_system(kind=None, **kwargs):
+def create_wastewater_treatment_system(*args, kind=None, **kwargs):
     """
     Create a wastewater treatment system. Two configurations are available: 
     conventional and high-rate. The conventional configuration is based on the 
@@ -49,6 +49,11 @@ def create_wastewater_treatment_system(kind=None, **kwargs):
     
     Parameters
     ----------
+    *args: 
+        These parameters will be passed to either 
+        :func:`~biosteam.wastewater.conventional.create_conventional_wastewater_treatment_system` or
+        :func:`~biosteam.wastewater.high_rate.system.create_high_rate_wastewater_treatment_system`
+        depending on the configuration.
     kind : str, optional
         Either 'conventional' for the conventional configuration,
         or "high-rate" for the high-rate process. Defaults to 'conventional'.
@@ -108,9 +113,9 @@ def create_wastewater_treatment_system(kind=None, **kwargs):
     """
     kind = 'conventional' if kind is None else kind.translate({ord(i): None for i in '_- '}).lower()
     if kind == 'conventional':
-        return create_conventional_wastewater_treatment_system(**kwargs)
+        return create_conventional_wastewater_treatment_system(*args, **kwargs)
     elif kind == 'highrate':
-        return create_high_rate_wastewater_treatment_system(**kwargs)
+        return create_high_rate_wastewater_treatment_system(*args, **kwargs)
     else:
         raise ValueError(f"invalid `kind` '{kind}'; `kind` must be either "
                          "'conventional' or 'high-rate'")
