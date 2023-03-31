@@ -1431,7 +1431,7 @@ class Unit:
         ...     settings.skip_non_facility_units_with_zero_flow = False
         ...     D1.simulate()
         ...     D1.show(T='degC', P='atm', composition=True)
-        >>> except:
+        ... except:
         ...     print('D1.simulate() failed.')
         D1.simulate() failed.
         """
