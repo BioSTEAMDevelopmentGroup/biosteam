@@ -89,6 +89,10 @@ class AnMBR(bst.Unit):
         the treated water and all of the WWTsludge goes to the wasted sludge.
         Default splits (based on the membrane bioreactor in [2]_) will be used
         if not provided.
+    sludge_conc : float
+        Concentration of biomass in the waste sludge stream, in g/L. 
+        Note that the solids content of the effluent should be smaller than the
+        solids content of the waste sludge stream.
     T : float
         Temperature of the reactor.
         Will not control temperature if provided as None.
@@ -197,6 +201,7 @@ class AnMBR(bst.Unit):
                  Y_biomass=0.05, # from the 0.02-0.08 uniform range in ref [1]
                  biodegradability={},
                  split={},
+                 sludge_conc=10.5,
                  T=35+273.15,
                  include_pump_building_cost=False,
                  include_excavation_cost=False,
@@ -215,6 +220,7 @@ class AnMBR(bst.Unit):
         self.biodegradability = \
             biodegradability if biodegradability else get_BD_dct(self.chemicals)
         self.split = split if split else get_split_dct(self.chemicals)
+        self.sludge_conc = sludge_conc
         self.T = T
         self.include_pump_building_cost = include_pump_building_cost
         self.include_excavation_cost = include_excavation_cost
@@ -346,6 +352,9 @@ class AnMBR(bst.Unit):
             diff = sludge.ivol['Water'] - m_insolubles/sludge_conc
             sludge.ivol['Water'] = m_insolubles/sludge_conc
             perm.ivol['Water'] += diff
+        if perm.imass['Water'] < 0:
+            raise ValueError('Not enough moisture in the influent for waste sludge '
+                             f'with {sludge_conc} g/L sludge concentration.')
 
         degassing(perm, biogas)
         degassing(sludge, biogas)
