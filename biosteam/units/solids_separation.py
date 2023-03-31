@@ -96,7 +96,7 @@ class SolidsSeparator(Splitter):
 class SolidsCentrifuge(SolidsSeparator):
     """
     Create a solids centrifuge that separates out solids according to
-    user defined split. Capital cost is based on [1]_
+    user defined split. Capital cost is based on [1]_.
     
     Parameters
     ----------
@@ -383,12 +383,13 @@ class PressureFilter(SolidsSeparator):
 PressureFilter._stacklevel += 1
 
 #: TODO: Check BM assumption. Use 1.39 for crushing unit operations for now.
-@cost('Flow rate', units='lb/hr', CE=567, lb=150, ub=12000, kW=0.001, BM=1.39, 
+# Energy consumption - 5 bdmt (tonne dry biomass) https://www.andritz.com/products-en/group/pulp-and-paper/service-solutions/screw-press-service/screw-press-upgrade-case-study-1-less
+@cost('Flow rate', units='lb/hr', CE=567, lb=150, ub=12000, BM=1.39, 
       f=lambda S: exp((11.0991 - 0.3580*log(S) + 0.05853*log(S)**2)))
 class ScrewPress(SolidsSeparator):
     """
     Create screw press unit operation for the 
-    expression of liquids from solids.
+    expression of liquids from solids. Capital cost is based on [1]_.
     
     Parameters
     ----------
@@ -401,5 +402,13 @@ class ScrewPress(SolidsSeparator):
            Component splits.
     moisture_content : float
         Fraction of water in solids.
-                       
-    """
+                  
+    
+    """ 
+    kW_per_bdmt = 5 # Maximally 12
+    
+    def _cost(self):
+        self._decorated_cost()
+        feed = self.ins[0]
+        bdmt = (feed.F_mass - feed.imass['Water']) * 0.001
+        self.add_power_utility(bdmt * self.kW_per_bdmt)
