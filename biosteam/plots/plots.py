@@ -466,14 +466,14 @@ def plot_spearman(rhos, top=None, name=None, color_wheel=None, index=None):
     else:
         return plot_spearman_1d(rhos, top, name, color=color_wheel, index=index)
 
-def format_spearman_plot(ax, index, name, yranges):
+def format_spearman_plot(ax, index, name, yranges, xlabel_fn=lambda i: f"Spearman's correlation with {i}"):
     plot_vertical_line(0, color=c.neutral_shade.RGBn, lw=1)
     ax.xaxis.set_major_locator(MultipleLocator(0.5))
     ax.xaxis.set_major_formatter('{x:.2f}')
     ax.xaxis.set_minor_locator(MultipleLocator(0.25))
     yticks = [i[0]+i[1]/2 for i in yranges]
     ax.set_xlim(-1, 1)
-    if name: ax.set_xlabel(f"Spearman's correlation with {name}")
+    if name: ax.set_xlabel(xlabel_fn(name))
     ax.set_yticks(yticks)
     ax.tick_params(axis='y', right=False, direction="inout", length=4)
     ax.tick_params(which='both', axis='x', direction="inout", length=4)
@@ -593,7 +593,8 @@ def plot_single_point_sensitivity(baseline, lb, ub,
 def plot_spearman_1d(rhos, top=None, name=None, color=None, 
                      w=1., s=1., offset=0., style=True, 
                      fig=None, ax=None, sort=True, index=None,
-                     cutoff=None): # pragma: no coverage
+                     cutoff=None,
+                     xlabel_fn=None): # pragma: no coverage
     """
     Display Spearman's rank correlation plot.
     
@@ -641,7 +642,7 @@ def plot_spearman_1d(rhos, top=None, name=None, color=None,
     if style:
         if index is None:
             raise ValueError('must pass index if rhos is not a pandas Series object')
-        format_spearman_plot(ax, index, name, yranges)
+        format_spearman_plot(ax, index, name, yranges, xlabel_fn=xlabel_fn)
     return fig, ax
 
 def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
