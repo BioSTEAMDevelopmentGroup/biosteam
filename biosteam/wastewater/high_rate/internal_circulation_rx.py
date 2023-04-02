@@ -134,14 +134,14 @@ class InternalCirculationRx(bst.MixTank):
         self._decay_rxn = self.chemicals.WWTsludge.get_combustion_reaction(conversion=0.)
         self.effluent_pump = bst.Pump(f'.{ID}_eff', ins=self.outs[1].proxy(f'{ID}_eff'))
         self.sludge_pump = bst.Pump(f'.{ID}_sludge', ins=self.outs[2].proxy(f'{ID}_sludge'))
-
+        self.parallel['effluent_pump'] = 1 # Only one pump for all reactors in parallel
+        self.parallel['sludge_pump'] = 1
         for k, v in kwargs.items(): setattr(self, k, v)
 
 
     def _refresh_rxns(self, Y_biogas=None, Y_biomass=None):
         Y_biogas = Y_biogas if Y_biogas else self.Y_biogas
         Y_biomass = Y_biomass if Y_biomass else self.Y_biomass
-
         self._biogas_rxns = get_digestion_rxns(self.ins[0], self.biodegradability,
                                                Y_biogas, 0., 'WWTsludge')
         self._growth_rxns = get_digestion_rxns(self.ins[0], self.biodegradability,
@@ -298,7 +298,6 @@ class InternalCirculationRx(bst.MixTank):
 
     def _cost(self):       
         bst.MixTank._cost(self)
-        
         hx = self.heat_exchanger
         ins0 = self.ins[0]
         hx.ins[0].copy_flow(ins0)
@@ -306,11 +305,8 @@ class InternalCirculationRx(bst.MixTank):
         hx.ins[0].T = ins0.T
         hx.outs[0].T = self.T
         hx.ins[0].P = hx.outs[0].P = ins0.P
-        hx.simulate_as_auxiliary_exchanger(ins=hx.ins, outs=hx.outs)
-
+        hx.simulate_as_auxiliary_exchanger(ins=hx.ins, outs=hx.outs, scale=1./self.parallel.get('self', 1.))
         for p in (self.effluent_pump, self.sludge_pump): p.simulate()
-
-
 
     @property
     def method(self):
