@@ -355,3 +355,4 @@ if __name__ == '__main__':
     test_unit_graphics()
     test_cost_decorator()
     test_equipment_lifetimes()
+    test_skipping_units_with_zero_flow()
