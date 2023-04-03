@@ -315,14 +315,14 @@ def test_skipping_units_with_zero_flow():
     M1.simulate()
     assert not M1.installed_cost==0.
     assert not M1.utility_cost==0.
-    assert not M1.outs[0].isempty()
+    assert not all([i.isempty() for i in M1.outs])
     
     # Test with skip_units_with_zero_flow=True and NON-EMPTY s1, s2
     bst.settings.skip_non_facility_units_with_zero_flow = False
     M1.simulate()
     assert not M1.installed_cost==0.
     assert not M1.utility_cost==0.
-    assert not M1.outs[0].isempty()
+    assert not all([i.isempty() for i in M1.outs])
     
     # Test with skip_units_with_zero_flow=True and EMPTY s1, s2
     bst.settings.skip_non_facility_units_with_zero_flow = True
@@ -331,7 +331,7 @@ def test_skipping_units_with_zero_flow():
     M1.simulate()
     assert M1.installed_cost==0.
     assert M1.utility_cost==0.
-    assert M1.outs[0].isempty()
+    assert all([i.isempty() for i in M1.outs])
     
     # Test specifically whether the unit is simulated
     # with skip_units_with_zero_flow=True (here, s1 & s2 do not matter)
