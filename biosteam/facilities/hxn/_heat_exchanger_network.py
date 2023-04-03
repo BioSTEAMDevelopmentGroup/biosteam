@@ -239,6 +239,7 @@ class HeatExchangerNetwork(bst.Facility):
             for i in sys.units: i._summary()
             for i in range(len(stream_life_cycles)):
                 hx = hx_heat_utils_rearranged[i].unit
+                P = hx.ins[0].P
                 s_util = hx.outs[0]
                 lc = stream_life_cycles[i].life_cycle[-1]
                 s_lc = lc.unit.outs[lc.index]
@@ -247,7 +248,7 @@ class HeatExchangerNetwork(bst.Facility):
                     try:
                         assert np.isfinite(hx.installed_cost)
                         np.testing.assert_allclose(s_util.imol[IDs], s_lc.imol[IDs])
-                        np.testing.assert_allclose(s_util.P, s_lc.P, rtol=1e-3, atol=0.1)
+                        np.testing.assert_allclose(P, s_lc.P, rtol=1e-3, atol=0.1)
                         np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3, atol=1.)
                     except:
                         msg = ("heat exchanger network cache algorithm failed, cached network ignored")
@@ -257,7 +258,7 @@ class HeatExchangerNetwork(bst.Facility):
                         return
                 else:
                     np.testing.assert_allclose(s_util.imol[IDs], s_lc.imol[IDs])
-                    np.testing.assert_allclose(s_util.P, s_lc.P, rtol=1e-3, atol=0.1)
+                    np.testing.assert_allclose(P, s_lc.P, rtol=1e-3, atol=0.1)
                     np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3, atol=1.)
             new_purchase_costs_HXp = []
             new_purchase_costs_HXu = []
