@@ -303,7 +303,49 @@ def test_equipment_lifetimes():
        -7321300., -4321300., -4321300., -3556300.
     ]
     assert_allclose(tea.cashflow_array, cashflows)
+
+def test_skipping_units_with_zero_flow():
+    bst.settings.set_thermo(['Water', 'Ethanol', 'Butanol'])
+    s1 = bst.Stream('s1', Water=10, Ethanol=50)
+    s2 = bst.Stream('s2', Water=10, Butanol=50)
+    M1 = bst.MixTank('M1', ins=(s1, s2))
     
+    # Test with skip_units_with_zero_flow=False and NON-EMPTY s1, s2
+    bst.settings.skip_non_facility_units_with_zero_flow = False
+    M1.simulate()
+    assert not M1.installed_cost==0.
+    assert not M1.utility_cost==0.
+    assert not M1.outs[0].isempty()
+    
+    # Test with skip_units_with_zero_flow=True and NON-EMPTY s1, s2
+    bst.settings.skip_non_facility_units_with_zero_flow = False
+    M1.simulate()
+    assert not M1.installed_cost==0.
+    assert not M1.utility_cost==0.
+    assert not M1.outs[0].isempty()
+    
+    # Test with skip_units_with_zero_flow=True and EMPTY s1, s2
+    bst.settings.skip_non_facility_units_with_zero_flow = True
+    s1.empty()
+    s2.empty()
+    M1.simulate()
+    assert M1.installed_cost==0.
+    assert M1.utility_cost==0.
+    assert M1.outs[0].isempty()
+    
+    # Test specifically whether the unit is simulated
+    # with skip_units_with_zero_flow=True (here, s1 & s2 do not matter)
+    bst.settings.skip_non_facility_units_with_zero_flow = True
+    @M1.add_specification
+    def f(): raise RuntimeError('unit simulated')
+    M1.simulate()
+    
+    # Test specifically whether the unit is simulated
+    # with skip_units_with_zero_flow=False (here, s1 & s2 do not matter)
+    bst.settings.skip_non_facility_units_with_zero_flow = False
+    with pytest.raises(RuntimeError):
+        M1.simulate()
+        
 if __name__ == '__main__':
     test_auxiliary_unit_owners()
     test_unit_inheritance_setup_method()

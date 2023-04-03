@@ -1268,173 +1268,11 @@ class Unit:
                     if self.run_after_specifications: self._run()
             else:
                 self._run()
+        else:
+            for i in self._outs: i.empty()
     
     @property
     def _should_run(self): 
-        # returns False IFF 
-        # bst.settings.skip_non_facility_units_with_zero_flow is True AND 
-        # unit has zero flow in
-        # unit is not a Facility
-        """
-        Returns False IFF the following conditions are met:
-        1. bst.settings.skip_non_facility_units_with_zero_flow is True; AND 
-        2. unit has zero flow in; AND
-        3. unit is not a Facility.
-        
-        Examples
-        --------
-        >>> from biosteam.units import BinaryDistillation
-        >>> from biosteam import Stream, settings
-        >>> settings.set_thermo(['Water', 'Methanol', 'Glycerol'], cache=True)
-        >>> feed = Stream('feed', flow=(80, 100, 25))
-        >>> bp = feed.bubble_point_at_P()
-        >>> feed.T = bp.T # Feed at bubble point T
-        >>> D1 = BinaryDistillation('D1', ins=feed,
-        ...                         outs=('distillate', 'bottoms_product'),
-        ...                         LHK=('Methanol', 'Water'),
-        ...                         y_top=0.99, x_bot=0.01, k=2,
-        ...                         is_divided=True)
-        >>> ## With non-zero flow in
-        >>> settings.skip_non_facility_units_with_zero_flow = True
-        >>> D1.simulate()
-        >>> D1.show(T='degC', P='atm', composition=True)
-        BinaryDistillation: D1
-        ins...
-        [0] feed
-            phase: 'l', T: 76.12 degC, P: 1 atm
-            composition (%): Water     39
-                             Methanol  48.8
-                             Glycerol  12.2
-                             --------  205 kmol/hr
-        outs...
-        [0] distillate
-            phase: 'g', T: 64.909 degC, P: 1 atm
-            composition (%): Water     1
-                             Methanol  99
-                             --------  100 kmol/hr
-        [1] bottoms_product
-            phase: 'l', T: 100.03 degC, P: 1 atm
-            composition (%): Water     75.4
-                             Methanol  0.761
-                             Glycerol  23.9
-                             --------  105 kmol/hr
-        >>> for s in D1.outs: s.empty()
-        >>> settings.skip_non_facility_units_with_zero_flow = True
-        >>> D1.simulate()
-        >>> D1.show(T='degC', P='atm', composition=True)
-        BinaryDistillation: D1
-        ins...
-        [0] feed
-            phase: 'l', T: 76.12 degC, P: 1 atm
-            composition (%): Water     39
-                             Methanol  48.8
-                             Glycerol  12.2
-                             --------  205 kmol/hr
-        outs...
-        [0] distillate
-            phase: 'g', T: 64.909 degC, P: 1 atm
-            composition (%): Water     1
-                             Methanol  99
-                             --------  100 kmol/hr
-        [1] bottoms_product
-            phase: 'l', T: 100.03 degC, P: 1 atm
-            composition (%): Water     75.4
-                             Methanol  0.761
-                             Glycerol  23.9
-                             --------  105 kmol/hr
-        >>> settings.skip_non_facility_units_with_zero_flow = False
-        >>> D1.simulate()
-        >>> D1.show(T='degC', P='atm', composition=True)
-        BinaryDistillation: D1
-        ins...
-        [0] feed
-            phase: 'l', T: 76.12 degC, P: 1 atm
-            composition (%): Water     39
-                             Methanol  48.8
-                             Glycerol  12.2
-                             --------  205 kmol/hr
-        outs...
-        [0] distillate
-            phase: 'g', T: 64.909 degC, P: 1 atm
-            composition (%): Water     1
-                             Methanol  99
-                             --------  100 kmol/hr
-        [1] bottoms_product
-            phase: 'l', T: 100.03 degC, P: 1 atm
-            composition (%): Water     75.4
-                             Methanol  0.761
-                             Glycerol  23.9
-                             --------  105 kmol/hr
-        >>> for s in D1.outs: s.empty()
-        >>> settings.skip_non_facility_units_with_zero_flow = True
-        >>> D1.simulate()
-        >>> D1.show(T='degC', P='atm', composition=True)
-        BinaryDistillation: D1
-        ins...
-        [0] feed
-            phase: 'l', T: 76.12 degC, P: 1 atm
-            composition (%): Water     39
-                             Methanol  48.8
-                             Glycerol  12.2
-                             --------  205 kmol/hr
-        outs...
-        [0] distillate
-            phase: 'g', T: 64.909 degC, P: 1 atm
-            composition (%): Water     1
-                             Methanol  99
-                             --------  100 kmol/hr
-        [1] bottoms_product
-            phase: 'l', T: 100.03 degC, P: 1 atm
-            composition (%): Water     75.4
-                             Methanol  0.761
-                             Glycerol  23.9
-                             --------  105 kmol/hr
-        >>> ## With zero flow in
-        >>> feed.F_mol = 0
-        >>> settings.skip_non_facility_units_with_zero_flow = True
-        >>> D1.simulate()
-        >>> D1.show(T='degC', P='atm', composition=True)
-        BinaryDistillation: D1
-        ins...
-        [0] feed
-            phase: 'l', T: 76.12 degC, P: 1 atm
-            flow: 0
-        outs...
-        [0] distillate
-            phase: 'g', T: 64.909 degC, P: 1 atm
-            composition (%): Water     1
-                             Methanol  99
-                             --------  100 kmol/hr
-        [1] bottoms_product
-            phase: 'l', T: 100.03 degC, P: 1 atm
-            composition (%): Water     75.4
-                             Methanol  0.761
-                             Glycerol  23.9
-                             --------  105 kmol/hr
-        >>> for s in D1.outs: s.empty()
-        >>> settings.skip_non_facility_units_with_zero_flow = True
-        >>> D1.simulate()
-        >>> D1.show(T='degC', P='atm', composition=True)
-        BinaryDistillation: D1
-        ins...
-        [0] feed
-            phase: 'l', T: 76.12 degC, P: 1 atm
-            flow: 0
-        outs...
-        [0] distillate
-            phase: 'g', T: 64.909 degC, P: 1 atm
-            flow: 0
-        [1] bottoms_product
-            phase: 'l', T: 100.03 degC, P: 1 atm
-            flow: 0
-        >>> try:
-        ...     settings.skip_non_facility_units_with_zero_flow = False
-        ...     D1.simulate()
-        ...     D1.show(T='degC', P='atm', composition=True)
-        ... except:
-        ...     print('D1.simulate() failed.')
-        D1.simulate() failed.
-        """
         return not (bst.settings.skip_non_facility_units_with_zero_flow and
             self.F_mol_in == 0. and
             not isinstance(self, bst.Facility))
@@ -1524,7 +1362,9 @@ class Unit:
             self._check_utilities()
             self._load_costs()
             self._load_utility_cost()
-        
+        else:
+            self.empty()
+
     def _load_utility_cost(self):
         ins = self._ins._streams
         outs = self._outs._streams
@@ -1643,7 +1483,8 @@ class Unit:
         for i in self.outs: i.empty()
         self.heat_utilities.clear()
         self.power_utility.empty()
-
+        self._utility_cost = 0.
+        
     def simulate(self, 
             run: Optional[bool]=None,
             design_kwargs: Optional[dict]=None,
@@ -1670,6 +1511,8 @@ class Unit:
                 self._load_stream_links()
                 self.run()
             self._summary(design_kwargs, cost_kwargs)
+        else:
+            self.empty()
 
     def results(self, with_units=True, include_utilities=True,
                 include_total_cost=True, include_installed_cost=False,
