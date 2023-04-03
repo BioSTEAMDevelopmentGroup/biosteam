@@ -756,9 +756,9 @@ class Unit:
                     purchase_costs[name] = purchase_cost
     
     def _assert_compatible_property_package(self):
-        chemicals = self.chemicals
+        CASs = self.chemicals.CASs
         streams = self._ins + self._outs
-        assert all([s.chemicals is chemicals for s in streams if s]), (
+        assert all([s.chemicals.CASs == CASs for s in streams if s]), (
             "unit operation chemicals are incompatible with inlet and outlet streams; "
             "try using the `thermo` keyword argument to initialize the unit operation "
             "with a compatible thermodynamic property package"
