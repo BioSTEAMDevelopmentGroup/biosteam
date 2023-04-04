@@ -201,7 +201,7 @@ class FreeProductStreams:
     __slots__ = ('all_streams', 'cache', 'LHV_combustible', 'wastewater_keys', 'combustible_keys')
     LHV_combustible_default = 500.
     wastewater_keys_default = {'wastewater', 'brine'}
-    combustible_keys_default = {'boiler',}
+    combustible_keys_default = {'to_boiler',}
     
     def __init__(self, all_streams, LHV_combustible=None, wastewater_keys=None, combustible_keys=None):
         self.all_streams = all_streams
