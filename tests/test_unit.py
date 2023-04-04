@@ -317,7 +317,7 @@ def test_skipping_unit_simulation_with_empty_inlet_streams():
     assert M1.utility_cost > 0.
     assert not all([i.isempty() for i in M1.outs])
        
-    # Unit must simulate when skip flag is on
+    # Unit must simulate when skip flag is on and inlets are not empty
     bst.settings.skip_simulation_of_units_with_empty_inlets = True
     M1.simulate()
     assert M1.installed_cost > 0.
