@@ -224,6 +224,7 @@ class BiogasUpgrading(bst.Unit):
         biogas, foo = self.ins
         RNG, remained = self.outs
         RNG.empty()
+        RNG.phase = 'g'
         RNG.imass['CH4'] = biogas.imass['CH4'] * self.ratio
         foo.copy_like(RNG)
         remained.mass = biogas.mass - RNG.mass # assume impurities left in the unused biogas
