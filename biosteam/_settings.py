@@ -114,13 +114,23 @@ def electricity_price(self, electricity_price):
 
 @property
 def skip_non_facility_units_with_zero_flow(self):
-    """Whether or not non-Facility units with zero flow in 
-    should have their run, simulate, and _summary function calls skipped."""
+    """Whether or not non-Facility units with zero inlet flow
+    should have their run, simulate, and _summary function calls skipped.
+    If True, for non-facility units with zero inlet flow, these functions
+    when called will do the following:
+        (i) run: empties unit outlet flows
+        (ii) simulate or (iii) _summary: empties unit operation results and outlet flows
+    """
     return bst.skip_non_facility_units_with_zero_flow
 @skip_non_facility_units_with_zero_flow.setter
 def skip_non_facility_units_with_zero_flow(self, skip):
-    """Whether or not non-Facility units with zero flow in
-    should have their run, simulate, and _summary function calls skipped."""
+    """Whether or not non-Facility units with zero inlet flow
+    should have their run, simulate, and _summary function calls skipped.
+    If True, for non-facility units with zero inlet flow, these functions
+    when called will do the following:
+        (i) run: empties unit outlet flows
+        (ii) simulate or (iii) _summary: empties unit operation results and outlet flows
+    """
     bst.skip_non_facility_units_with_zero_flow = skip
 
 def register_utility(self, name, price):
