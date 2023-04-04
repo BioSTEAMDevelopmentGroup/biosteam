@@ -354,6 +354,12 @@ class Unit:
     #: and :attr:`~Unit._N_outs`.
     _graphics: UnitGraphics = box_graphics
 
+    #: **class-attribute** Whether to skip detailed simulation when inlet 
+    #: streams are empty. If inlets are empty and this flag is True,
+    #: detailed mass and energy balance, design, and costing algorithms are skipped
+    #: and all outlet streams are emptied.
+    _skip_simulation_when_inlets_are_empty = False
+
     ### Abstract methods ###
     
     #: Create auxiliary components.
@@ -1253,6 +1259,9 @@ class Unit:
         add_bounded_numerical_specification
         
         """
+        if self._skip_simulation_when_inlets_are_empty and all([i.isempty() for i in self._ins]):
+            for i in self._outs: i.empty()
+            return
         specifications = self._specifications
         if specifications:
             active_specifications = self._active_specifications
@@ -1338,13 +1347,14 @@ class Unit:
         """Run design/cost/LCA algorithms and compile results."""
         self._check_run()
         if not (self._design or self._cost): return
-        self._design(**design_kwargs) if design_kwargs else self._design()
-        self._cost(**cost_kwargs) if cost_kwargs else self._cost()
-        self._lca(**lca_kwargs) if lca_kwargs else self._lca()
-        self._check_utilities()
+        if not self._skip_simulation_when_inlets_are_empty or not all([i.isempty() for i in self._ins]): 
+            self._design(**design_kwargs) if design_kwargs else self._design()
+            self._cost(**cost_kwargs) if cost_kwargs else self._cost()
+            self._lca(**lca_kwargs) if lca_kwargs else self._lca()
+            self._check_utilities()
         self._load_costs()
         self._load_utility_cost()
-        
+
     def _load_utility_cost(self):
         ins = self._ins._streams
         outs = self._outs._streams
@@ -1463,7 +1473,8 @@ class Unit:
         for i in self.outs: i.empty()
         self.heat_utilities.clear()
         self.power_utility.empty()
-
+        self._utility_cost = 0.
+        
     def simulate(self, 
             run: Optional[bool]=None,
             design_kwargs: Optional[dict]=None,

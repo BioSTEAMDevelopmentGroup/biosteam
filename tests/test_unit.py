@@ -303,7 +303,51 @@ def test_equipment_lifetimes():
        -7321300., -4321300., -4321300., -3556300.
     ]
     assert_allclose(tea.cashflow_array, cashflows)
+
+def test_skipping_unit_simulation_with_empty_inlet_streams():
+    bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
+    s1 = bst.Stream('s1', Water=10, Ethanol=50)
+    s2 = bst.Stream('s2', Water=10)
+    M1 = bst.MixTank('M1', ins=(s1, s2))
     
+    # Unit must simulate when skip flag is off
+    bst.settings.skip_simulation_of_units_with_empty_inlets = False
+    M1.simulate()
+    assert M1.installed_cost > 0.
+    assert M1.utility_cost > 0.
+    assert not all([i.isempty() for i in M1.outs])
+       
+    # Unit must simulate when skip flag is on and inlets are not empty
+    bst.settings.skip_simulation_of_units_with_empty_inlets = True
+    M1.simulate()
+    assert M1.installed_cost > 0.
+    assert M1.utility_cost > 0.
+    assert not all([i.isempty() for i in M1.outs])
+    
+    # Unit must have no costs nor outlet flows when skip flag is on and inlets are empty
+    bst.settings.skip_simulation_of_units_with_empty_inlets = True
+    s1.empty()
+    s2.empty()
+    M1.simulate()
+    assert M1.installed_cost == 0.
+    assert M1.utility_cost == 0.
+    assert all([i.isempty() for i in M1.outs])
+    
+    # Unit should not simulate when the skip flag is on 
+    # and inlets are empty 
+    bst.settings.skip_simulation_of_units_with_empty_inlets = True
+    @M1.add_specification
+    def f(): raise RuntimeError('unit simulated')
+    M1._design = f
+    M1._cost = f
+    M1.simulate()
+    
+    # Unit should simulate when the skip flag is on 
+    # and inlets are not empty 
+    bst.settings.skip_simulation_of_units_with_empty_inlets = False
+    with pytest.raises(RuntimeError):
+        M1.simulate()
+        
 if __name__ == '__main__':
     test_auxiliary_unit_owners()
     test_unit_inheritance_setup_method()
@@ -313,3 +357,4 @@ if __name__ == '__main__':
     test_unit_graphics()
     test_cost_decorator()
     test_equipment_lifetimes()
+    test_skipping_unit_simulation_with_empty_inlet_streams()
