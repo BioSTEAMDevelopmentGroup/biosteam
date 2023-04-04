@@ -829,7 +829,7 @@ class Model(State):
                             "not a '{type(filter).__name__}' object")
 
         if 'thresholds' not in kwargs:
-            data = np.array([[corr(p, m) for m in metric_data] for p in parameter_data])
+            data = np.array([[corr(p.astype(float), m.astype(float)) for m in metric_data] for p in parameter_data])
         else: # KS test
             thresholds = kwargs.pop('thresholds')
             data = np.array(

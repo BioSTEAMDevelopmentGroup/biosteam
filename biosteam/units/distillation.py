@@ -1131,11 +1131,14 @@ class BinaryDistillation(Distillation, new_graphics=False):
         self._x_stages = x_stages = [x_bot]
         self._y_stages = y_stages = [x_bot]
         self._T_stages = T_stages = []
-        compute_stages_McCabeThiele(P, ss, x_stages, y_stages, T_stages, x_m, solve_Ty)
+        error = None
+        try: compute_stages_McCabeThiele(P, ss, x_stages, y_stages, T_stages, x_m, solve_Ty)
+        except RuntimeError as error: pass
         yi = y_stages[-1]
         xi = rs(yi)
         x_stages[-1] = xi if xi < 1 else 0.99999
-        compute_stages_McCabeThiele(P, rs, x_stages, y_stages, T_stages, y_top, solve_Ty)
+        try: compute_stages_McCabeThiele(P, rs, x_stages, y_stages, T_stages, y_top, solve_Ty)
+        except RuntimeError as error: pass
         
         # Find feed stage
         N_stages = len(x_stages)
@@ -1146,10 +1149,15 @@ class BinaryDistillation(Distillation, new_graphics=False):
         
         # Results
         Design = self.design_results
-        Design['Theoretical feed stage'] = N_stages - feed_stage
-        Design['Theoretical stages'] = N_stages
+        if error is None:
+            Design['Theoretical feed stage'] = N_stages - feed_stage
+            Design['Theoretical stages'] = N_stages
+        else:
+            Design['Theoretical feed stage'] = '?'
+            Design['Theoretical stages'] = '100+'
+            raise error from None
         Design['Minimum reflux'] = Rmin
-        Design['Reflux'] = R
+        Design['Reflux'] = R 
         
     def _get_relative_volatilities_LHK(self):
         x_stages = self._x_stages
