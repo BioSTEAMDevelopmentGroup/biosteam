@@ -354,6 +354,12 @@ class Unit:
     #: and :attr:`~Unit._N_outs`.
     _graphics: UnitGraphics = box_graphics
 
+    #: **class-attribute** Whether to skip detailed simulation when inlet 
+    #: streams are empty. If inlets are empty and this flag is True,
+    #: detailed mass and energy balance, design, and costing algorithms are skipped
+    #: and all outlet streams are emptied.
+    _skip_simulation_when_inlets_are_empty = False
+
     ### Abstract methods ###
     
     #: Create auxiliary components.
@@ -1253,37 +1259,23 @@ class Unit:
         add_bounded_numerical_specification
         
         """
-        if self._should_run:
-            specifications = self._specifications
-            if specifications:
-                active_specifications = self._active_specifications
-                if len(active_specifications) == len(specifications):
-                    self._run()
-                else:
-                    for ps in specifications: 
-                        if ps in active_specifications: continue
-                        active_specifications.add(ps)
-                        try: ps()
-                        finally: active_specifications.remove(ps)
-                    if self.run_after_specifications: self._run()
-            else:
-                self._run()
-        else:
+        if self._skip_simulation_when_inlets_are_empty and all([i.isempty() for i in self._ins]):
             for i in self._outs: i.empty()
-    
-    @property
-    def _should_run(self): 
-        return not (bst.settings.skip_non_facility_units_with_zero_flow and
-            self.F_mol_in == 0. and
-            not isinstance(self, bst.Facility))
-    
-    @property
-    def _should_simulate(self): 
-        return self._should_run
-    
-    @property
-    def _should_summarize(self): 
-        return self._should_run
+            return
+        specifications = self._specifications
+        if specifications:
+            active_specifications = self._active_specifications
+            if len(active_specifications) == len(specifications):
+                self._run()
+            else:
+                for ps in specifications: 
+                    if ps in active_specifications: continue
+                    active_specifications.add(ps)
+                    try: ps()
+                    finally: active_specifications.remove(ps)
+                if self.run_after_specifications: self._run()
+        else:
+            self._run()
     
     def path_from(self, units, inclusive=False, system=None):
         """
@@ -1353,17 +1345,15 @@ class Unit:
     
     def _summary(self, design_kwargs=None, cost_kwargs=None, lca_kwargs=None):
         """Run design/cost/LCA algorithms and compile results."""
-        if self._should_summarize:
-            self._check_run()
-            if not (self._design or self._cost): return
+        self._check_run()
+        if not (self._design or self._cost): return
+        if not self._skip_simulation_when_inlets_are_empty or not all([i.isempty() for i in self._ins]): 
             self._design(**design_kwargs) if design_kwargs else self._design()
             self._cost(**cost_kwargs) if cost_kwargs else self._cost()
             self._lca(**lca_kwargs) if lca_kwargs else self._lca()
             self._check_utilities()
-            self._load_costs()
-            self._load_utility_cost()
-        else:
-            self.empty()
+        self._load_costs()
+        self._load_utility_cost()
 
     def _load_utility_cost(self):
         ins = self._ins._streams
@@ -1503,16 +1493,13 @@ class Unit:
             Keyword arguments passed to `_cost` method.
             
         """
-        if self._should_simulate:
-            self._setup()
-            self._check_setup()
-            if run is None or run:
-                for ps in self._specifications: ps.compile_path(self)
-                self._load_stream_links()
-                self.run()
-            self._summary(design_kwargs, cost_kwargs)
-        else:
-            self.empty()
+        self._setup()
+        self._check_setup()
+        if run is None or run:
+            for ps in self._specifications: ps.compile_path(self)
+            self._load_stream_links()
+            self.run()
+        self._summary(design_kwargs, cost_kwargs)
 
     def results(self, with_units=True, include_utilities=True,
                 include_total_cost=True, include_installed_cost=False,

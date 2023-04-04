@@ -113,25 +113,15 @@ def electricity_price(self, electricity_price):
     bst.PowerUtility.price = electricity_price
 
 @property
-def skip_non_facility_units_with_zero_flow(self):
-    """Whether or not non-Facility units with zero inlet flow
-    should have their run, simulate, and _summary function calls skipped.
-    If True, for non-facility units with zero inlet flow, these functions
-    when called will do the following:
-        (i) run: empties unit outlet flows
-        (ii) simulate or (iii) _summary: empties unit operation results and outlet flows
-    """
-    return bst.skip_non_facility_units_with_zero_flow
-@skip_non_facility_units_with_zero_flow.setter
-def skip_non_facility_units_with_zero_flow(self, skip):
-    """Whether or not non-Facility units with zero inlet flow
-    should have their run, simulate, and _summary function calls skipped.
-    If True, for non-facility units with zero inlet flow, these functions
-    when called will do the following:
-        (i) run: empties unit outlet flows
-        (ii) simulate or (iii) _summary: empties unit operation results and outlet flows
-    """
-    bst.skip_non_facility_units_with_zero_flow = skip
+def skip_simulation_of_units_with_empty_inlets(self):
+    """Whether to assume unit does not exist when all inlet streams are empty. 
+    If inlets are empty and this flag is True, detailed mass and energy 
+    balance, design, and costing algorithms are skipped and all outlet streams 
+    are emptied."""
+    return bst.Unit._skip_simulation_when_empty
+@skip_simulation_of_units_with_empty_inlets.setter
+def skip_simulation_of_units_with_empty_inlets(self, skip):
+    bst.Unit._skip_simulation_when_empty = skip
 
 def register_utility(self, name, price):
     """Register new stream utility in BioSTEAM given the name and the price 
@@ -172,7 +162,7 @@ Settings.heating_agents = heating_agents
 Settings.impact_indicators = impact_indicators
 Settings.stream_utility_prices = stream_utility_prices
 Settings.electricity_price = electricity_price
-Settings.skip_non_facility_units_with_zero_flow = skip_non_facility_units_with_zero_flow
+Settings.skip_simulation_of_units_with_empty_inlets = skip_simulation_of_units_with_empty_inlets
 Settings.register_utility = register_utility
 
 # %% Register stream utilities

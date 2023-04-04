@@ -20,6 +20,7 @@ class Facility(Unit, isabstract=True,
     """Abstract class for facilities that are run after simulation of all
     unit operations within a system path."""
     autonumber = False # Default ID will not include number
+    _skip_simulation_when_empty = False # Should always be false.
     @staticmethod
     def ordered_facilities(facilities):
         """Return facilities ordered according to their network priority."""
