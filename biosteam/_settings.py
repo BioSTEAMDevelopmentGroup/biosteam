@@ -118,10 +118,10 @@ def skip_simulation_of_units_with_empty_inlets(self):
     If inlets are empty and this flag is True, detailed mass and energy 
     balance, design, and costing algorithms are skipped and all outlet streams 
     are emptied."""
-    return bst.Unit._skip_simulation_when_empty
+    return bst.Unit._skip_simulation_when_inlets_are_empty
 @skip_simulation_of_units_with_empty_inlets.setter
 def skip_simulation_of_units_with_empty_inlets(self, skip):
-    bst.Unit._skip_simulation_when_empty = skip
+    bst.Unit._skip_simulation_when_inlets_are_empty = skip
 
 def register_utility(self, name, price):
     """Register new stream utility in BioSTEAM given the name and the price 
