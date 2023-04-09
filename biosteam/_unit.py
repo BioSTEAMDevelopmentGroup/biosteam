@@ -1515,7 +1515,17 @@ class Unit:
         def addcapex(key):
             if key_hook: key = key_hook(key)
             *others, name = key
-            N = int(parallel.get(name, N_default))
+            if ' - ' in name:
+                auxname, _ = name.split(' - ')
+                auxname = auxname.replace(' ', '_').lower()
+                for i in self.auxiliary_unit_names:
+                    if auxname == i.lower():
+                        N = int(parallel.get(i, N_default))
+                        break
+                else:
+                    N = int(parallel.get(name, N_default))
+            else:
+                N = int(parallel.get(name, N_default))
             if N != 1: key = (*others, name + f' (x{N})')
             keys.append(key)
         parallel = self.parallel
