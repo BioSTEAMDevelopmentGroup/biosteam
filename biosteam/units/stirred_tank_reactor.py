@@ -8,7 +8,7 @@
 """
 .. contents:: :local:
 
-.. autoclass:: biosteam.units.cstr.CSTR
+.. autoclass:: biosteam.units.stirred_tank_reactor.StirredTankReactor
 
 """
 from .. import Unit
@@ -18,18 +18,20 @@ from biosteam.units.design_tools import (
     PressureVessel, compute_closed_vessel_turbine_purchase_cost, size_batch
 )
 from biosteam.units.design_tools.geometry import cylinder_diameter_from_volume
+from scipy.constants import g
 import flexsolve as flx
 import biosteam as bst
 
 __all__ = (
     'StirredTankReactor', 'STR',
     'ContinuousStirredTankReactor', 'CSTR',
+    'AeratedBioreactor', 'ABR',
 )
 
 
 class StirredTankReactor(PressureVessel, Unit, isabstract=True):
     '''    
-    Abstract class for a CSTR, modeled as a pressure vessel with 
+    Abstract class for a stirred tank reactor, modeled as a pressure vessel with 
     a given aspect ratio and residence time. A pump-heat exchanger recirculation 
     loop is used to satisfy the duty, if any. By default, a turbine agitator is
     also included if the power usage,`kW_per_m3`, is positive. A vacuum 
@@ -149,9 +151,8 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
     Chilled water       Duty                                   kJ/hr            -1.41e+07
                         Flow                                 kmol/hr             9.42e+03
                         Cost                                  USD/hr                 70.3
-    Design              Residence time                            hr                    8
-                        Total volume                              m3             1.28e+03
-                        Reactor volume                            m3                  319
+    Design              Reactor volume                            m3                  319
+                        Residence time                            hr                    8
                         Vessel type                                              Vertical
                         Length                                    ft                 38.6
                         Diameter                                  ft                 19.3
@@ -160,7 +161,7 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
                         Vessel material                               Stainless steel 316
     Purchase cost       Vertical pressure vessel (x4)            USD             1.24e+06
                         Platform and ladders (x4)                USD             1.94e+05
-                        Turbine (x4)                             USD                  198
+                        Turbine (x4)                             USD                  515
                         Heat exchanger - Floating head (x4)      USD             1.61e+05
                         Recirculation pump - Pump (x4)           USD             5.23e+04
                         Recirculation pump - Motor (x4)          USD             8.38e+03
@@ -179,8 +180,7 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
     _units = {**PressureVessel._units,
               'Residence time': 'hr',
               'Total volume': 'm3',
-              'Reactor volume': 'm3',
-              'Single reactor volume': 'm3'}
+              'Reactor volume': 'm3'}
     
     #: Default operating temperature [K]
     T_default: Optional[float] = None
@@ -197,14 +197,14 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
     #: Default fraction of working volume over total volume.
     V_wf_default: Optional[float] = 0.8
     
-    #: Default maximum volume of a reactor in ft3.
+    #: Default maximum volume of a reactor in m3.
     V_max_default: Optional[float] = 355
     
     #: Default length to diameter ratio.
-    length_to_diameter_default: Optional[float]  = 2
+    length_to_diameter_default: Optional[float] = 2
     
     #: Default power consumption for agitation [kW/m3].
-    kW_per_m3_defaul: Optional[float] = 0.985
+    kW_per_m3_default: Optional[float] = 0.985
     
     #: Default cleaning and unloading time (hr).
     tau_0_default: Optional[float]  = 3
@@ -325,9 +325,92 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
                     Design['Weight'], Design['Diameter'], Design['Length'],
                 )
             )
-            power = self.kW_per_m3 * volume
-            self.add_power_utility(power)
-            if power > 0:
-                baseline_purchase_costs['Turbine'] = compute_closed_vessel_turbine_purchase_cost(power)
+            kW = self.kW_per_m3 * volume
+            self.add_power_utility(kW)
+            if kW > 0:
+                hp = kW * 1.34102
+                baseline_purchase_costs['Turbine'] = compute_closed_vessel_turbine_purchase_cost(hp)
     
 ContinuousStirredTankReactor = CSTR = STR = StirredTankReactor
+
+class AeratedBioreactor(StirredTankReactor, isabstract=True):
+    """
+    Same as StirredTankReactor but includes aeration.
+    
+    Examples
+    --------
+    >>> import biosteam as bst
+    >>> from biorefineries.sugarcane import chemicals
+    >>> bst.settings.set_thermo(chemicals)
+    >>> feed = bst.Stream('feed',
+    ...                   Water=1.20e+05,
+    ...                   Glucose=2.5e+04,
+    ...                   units='kg/hr',
+    ...                   T=32+273.15)
+    >>> # Model oxygen uptake as combustion
+    >>> rxn = bst.Rxn('Glucose + O2 -> H2O + CO2', reactant='Glucose', X=0.5, correct_atomic_balance=True) 
+    >>> R1 = bst.AeratedBioreactor(
+    ...     'R1', ins=[feed, 'air'], outs=('vent', 'product'), tau=12, V_max=500,
+    ...     reactions=rxn,
+    ... )
+    >>> R1.simulate()
+    >>> R1.show()
+    
+    """
+    _N_ins = 2
+    _N_outs = 2
+    _ins_size_is_fixed = False
+    auxiliary_unit_names = (
+        'compressor',
+        'air_cooler',
+        *StirredTankReactor.auxiliary_unit_names
+    )
+    T_default = 273.15 + 32 
+    P_default = 101325
+    
+    def __init__(
+            self, ID='', ins=None, outs=(), thermo=None,  
+            *, reactions=None, **kwargs,
+        ):
+        StirredTankReactor.__init__(self, ID, ins, outs, thermo, **kwargs)
+        self.compressor = compressor = bst.IsentropicCompressor(None, (None,), (None,), thermo=self.thermo, P=2 * 101325) 
+        self.air_cooler = bst.HXutility(None, compressor-0, (None,), thermo=self.thermo, eta=0.85, T=self.T)
+        self.reactions = reactions
+        
+    def _run(self):
+        *feeds, air = self.ins
+        vent, effluent = self.outs
+        air.P = vent.P = effluent.P = self.P
+        air.T = vent.T = effluent.T = self.T
+        vent.empty()
+        vent.phase = 'g'
+        air.phase = 'g'
+        effluent.mix_from(feeds, energy_balance=False)
+        self.reactions.force_reaction(effluent)
+        OUR = -effluent.imass['O2'] # Oxygen uptake rate
+        air.imass['O2', 'N2'] = [OUR, OUR * 79. / 21.]
+        effluent.mix_from([effluent, air], energy_balance=False)
+        vent.empty()
+        vent.receive_vent(effluent, energy_balance=False)
+        
+    def _design(self):
+        StirredTankReactor._design(self)
+        liquid = bst.Stream(None, thermo=self.thermo)
+        liquid.mix_from([i for i in self.ins if i.phase != 'g'], energy_balance=False)
+        liquid.copy_thermal_condition(self.outs[0])
+        rho = liquid.rho
+        length = self.get_design_result('Length', 'm') * self.V_wf
+        compressor = self.compressor
+        compressor.P = g * rho * length + 101325
+        compressor.ins[0] = self.ins[-1]
+        compressor.simulate()
+        air_cooler = self.air_cooler
+        air_cooler.T = self.T
+        air_cooler.simulate()
+        self.parallel['compressor'] = 1
+        self.parallel['air_cooler'] = 1
+    
+ABR = AeratedBioreactor
+    
+    
+    

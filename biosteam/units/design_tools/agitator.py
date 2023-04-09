@@ -44,5 +44,5 @@ def compute_closed_vessel_turbine_purchase_cost(power):
     Plant Cost Index, `biosteam.CE`.
     
     """
-    C_p = 4.105 * power ** 0.57
+    C_p = 4105 * power ** 0.57
     return bst.CE / 567 * C_p
