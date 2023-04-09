@@ -6,7 +6,6 @@ units
 
    decorators
    design_tools/design_tools
-   cstr
    compressor
    distillation
    heat_exchange
@@ -15,6 +14,7 @@ units
    tank
    solids_separation
    splitting
+   stirred_tank_reactor
    vacuum_system
    valve   
    wastewater
