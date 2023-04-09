@@ -14,19 +14,26 @@
 from .. import Unit
 from typing import Optional
 from math import ceil
-from biosteam.units.design_tools import PressureVessel
+from biosteam.units.design_tools import (
+    PressureVessel, compute_closed_vessel_turbine_purchase_cost, size_batch
+)
 from biosteam.units.design_tools.geometry import cylinder_diameter_from_volume
+import flexsolve as flx
 import biosteam as bst
 
-__all__ = ('ContinuousStirredTankReactor', 'CSTR')
+__all__ = (
+    'StirredTankReactor', 'STR',
+    'ContinuousStirredTankReactor', 'CSTR',
+)
 
 
-class CSTR(PressureVessel, Unit, isabstract=True):
+class StirredTankReactor(PressureVessel, Unit, isabstract=True):
     '''    
     Abstract class for a CSTR, modeled as a pressure vessel with 
     a given aspect ratio and residence time. A pump-heat exchanger recirculation 
-    loop is used to satisfy the duty, if any. A vacuum system is also 
-    automatically added if the operating pressure is at a vacuum. 
+    loop is used to satisfy the duty, if any. By default, a turbine agitator is
+    also included if the power usage,`kW_per_m3`, is positive. A vacuum 
+    system is also automatically added if the operating pressure is at a vacuum. 
 
     Parameters
     ----------
@@ -49,6 +56,11 @@ class CSTR(PressureVessel, Unit, isabstract=True):
         Vessel material. Defaults to 'Stainless steel 316'.
     vessel_type : 
         Vessel type. Valid options are 'Horizontal' or 'Vertical'. Defaults to 'Vertical'
+    batch :
+        Whether to use batch operation mode. If False, operation mode is continuous.
+        Defaults to `continuous`.
+    tau_0 : 
+        Cleaning and unloading time (if batch mode). Defaults to 3 hr.
     
     Notes
     -----
@@ -61,6 +73,8 @@ class CSTR(PressureVessel, Unit, isabstract=True):
     pump and heat exchanger) is assumed. Although it is possible to use the
     same recirculation loop for all reactors, this conservative assumption allows
     for each reactor to be operated independently from each other.
+    
+    The capital cost for agitators are not yet included in 
     
     Examples
     --------
@@ -130,14 +144,14 @@ class CSTR(PressureVessel, Unit, isabstract=True):
     
     >>> R1.results()
     Continuous fermentation                                    Units                   R1
-    Electricity         Power                                     kW             1.34e+03
-                        Cost                                  USD/hr                  105
-    Chilled water       Duty                                   kJ/hr            -6.99e+06
-                        Flow                                 kmol/hr             4.69e+03
-                        Cost                                  USD/hr                   35
+    Electricity         Power                                     kW              1.4e+03
+                        Cost                                  USD/hr                  110
+    Chilled water       Duty                                   kJ/hr            -1.41e+07
+                        Flow                                 kmol/hr             9.42e+03
+                        Cost                                  USD/hr                 70.3
     Design              Residence time                            hr                    8
                         Total volume                              m3             1.28e+03
-                        Single reactor volume                     m3                  319
+                        Reactor volume                            m3                  319
                         Vessel type                                              Vertical
                         Length                                    ft                 38.6
                         Diameter                                  ft                 19.3
@@ -146,11 +160,12 @@ class CSTR(PressureVessel, Unit, isabstract=True):
                         Vessel material                               Stainless steel 316
     Purchase cost       Vertical pressure vessel (x4)            USD             1.24e+06
                         Platform and ladders (x4)                USD             1.94e+05
-                        Heat exchanger - Floating head (x4)      USD             1.19e+05
-                        Recirculation pump - Pump (x4)           USD             2.73e+04
-                        Recirculation pump - Motor (x4)          USD             5.11e+03
-    Total purchase cost                                          USD             1.59e+06
-    Utility cost                                              USD/hr                  140
+                        Turbine (x4)                             USD                  198
+                        Heat exchanger - Floating head (x4)      USD             1.61e+05
+                        Recirculation pump - Pump (x4)           USD             5.23e+04
+                        Recirculation pump - Motor (x4)          USD             8.38e+03
+    Total purchase cost                                          USD             1.66e+06
+    Utility cost                                              USD/hr                  180
     
     References
     ----------
@@ -185,6 +200,15 @@ class CSTR(PressureVessel, Unit, isabstract=True):
     #: Default maximum volume of a reactor in ft3.
     V_max_default: Optional[float] = 355
     
+    #: Default length to diameter ratio.
+    length_to_diameter_default: Optional[float]  = 2
+    
+    #: Default power consumption for agitation [kW/m3].
+    kW_per_m3_defaul: Optional[float] = 0.985
+    
+    #: Default cleaning and unloading time (hr).
+    tau_0_default: Optional[float]  = 3
+    
     @property
     def liquid_product(self):
         for i in self.outs:
@@ -192,17 +216,21 @@ class CSTR(PressureVessel, Unit, isabstract=True):
                 return i
         raise AttributeError('no liquid product available')
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
-                 T: Optional[float]=None, 
-                 P: Optional[float]=None, 
-                 dT_hx_loop: Optional[float]=None,
-                 tau: Optional[float]=None,
-                 V_wf: Optional[float]=None, 
-                 V_max: Optional[float]=None,
-                 length_to_diameter: Optional[float]=2, 
-                 kW_per_m3: Optional[float]=0.985,
-                 vessel_material: Optional[str]=None,
-                 vessel_type: Optional[str]=None):
+    def __init__(
+            self, ID='', ins=None, outs=(), thermo=None, *, 
+            T: Optional[float]=None, 
+            P: Optional[float]=None, 
+            dT_hx_loop: Optional[float]=None,
+            tau: Optional[float]=None,
+            V_wf: Optional[float]=None, 
+            V_max: Optional[float]=None,
+            length_to_diameter: Optional[float]=None, 
+            kW_per_m3: Optional[float]=None,
+            vessel_material: Optional[str]=None,
+            vessel_type: Optional[str]=None,
+            batch: Optional[bool]=None,
+            tau_0: Optional[float]=None,
+        ):
         
         Unit.__init__(self, ID, ins, outs, thermo)
         self.T = self.T_default if T is None else T
@@ -211,34 +239,55 @@ class CSTR(PressureVessel, Unit, isabstract=True):
         self.tau = self.tau_default if tau is None else tau
         self.V_wf = self.V_wf_default if V_wf is None else V_wf
         self.V_max = self.V_max_default if V_max is None else V_max
-        self.length_to_diameter = length_to_diameter
-        self.kW_per_m3 = kW_per_m3
+        self.length_to_diameter = self.length_to_diameter_default if length_to_diameter is None else length_to_diameter
+        self.kW_per_m3 = self.kW_per_m3_default if kW_per_m3 is None else kW_per_m3
         self.vessel_material = 'Stainless steel 316' if vessel_material is None else vessel_material
         self.vessel_type = 'Vertical' if vessel_type is None else vessel_type
         self.recirculation_pump = pump = bst.Pump(None, (None,), (None,), thermo=self.thermo)
         self.splitter = splitter = bst.Splitter(None, pump-0, split=0.5) # Split is updated later
         self.heat_exchanger = bst.HXutility(None, splitter-0, (None,), thermo=self.thermo) 
+        self.tau_0 = self.tau_0_default if tau_0 is None else tau_0
+        self.batch = batch
 
     def _design(self):
         Design = self.design_results
-        ins_F_vol = self.F_vol_in
-        V_total = ins_F_vol * self.tau / self.V_wf
+        ins_F_vol = sum([i.F_vol for i in self.ins if i.phase != 'g'])
         P_pascal = (self.P if self.P else self.outs[0].P)
         P_psi = P_pascal * 0.000145038 # Pa to psi
         length_to_diameter = self.length_to_diameter
-        N = ceil(V_total/self.V_max)
-        if N == 0:
-            V_reactor = 0
-            D = 0
-            L = 0
+        
+        if self.batch:
+            v_0 = ins_F_vol
+            tau = self._tau
+            tau_0 = self.tau_0
+            V_wf = self.V_wf
+            Design = self.design_results
+            V_max = self.V_max
+            N_min = 2
+            N_max = v_0 / V_wf * (tau + tau_0) / V_max
+            f = lambda N: v_0 / N / V_wf * (tau + tau_0) / (1 - 1 / N) - V_max
+            if f(N_min) < 0.:
+                N = N_min
+            else:
+                N = flx.IQ_interpolation(f, N_min, N_max,
+                                         xtol=0.01, ytol=0.5, checkbounds=False)
+                N = ceil(N)
+            Design.update(size_batch(v_0, tau, tau_0, N, V_wf))
         else:
-            V_reactor = V_total / N
-            D = cylinder_diameter_from_volume(V_reactor, self.length_to_diameter)
-            D *= 3.28084 # Convert from m to ft
-            L = D * length_to_diameter
+            V_total = ins_F_vol * self.tau / self.V_wf
+            N = ceil(V_total/self.V_max)
+            if N == 0:
+                V_reactor = 0
+                D = 0
+                L = 0
+            else:
+                V_reactor = V_total / N
+                D = cylinder_diameter_from_volume(V_reactor, self.length_to_diameter)
+                D *= 3.28084 # Convert from m to ft
+                L = D * length_to_diameter
+            Design['Reactor volume'] = V_reactor
+        
         Design['Residence time'] = self.tau
-        Design['Total volume'] = V_total
-        Design['Single reactor volume'] = V_reactor
         Design.update(self._vessel_design(float(P_psi), float(D), float(L)))
         self.vacuum_system = bst.VacuumSystem(self) if P_pascal < 1e5 else None
         duty = self.Hnet
@@ -269,13 +318,16 @@ class CSTR(PressureVessel, Unit, isabstract=True):
     def _cost(self):
         Design = self.design_results
         baseline_purchase_costs = self.baseline_purchase_costs
-        volume = Design['Single reactor volume']
+        volume = Design['Reactor volume']
         if volume != 0:
             baseline_purchase_costs.update(
                 self._vessel_purchase_cost(
                     Design['Weight'], Design['Diameter'], Design['Length'],
                 )
             )
-            self.add_power_utility(self.kW_per_m3 * volume)
+            power = self.kW_per_m3 * volume
+            self.add_power_utility(power)
+            if power > 0:
+                baseline_purchase_costs['Turbine'] = compute_closed_vessel_turbine_purchase_cost(power)
     
-ContinuousStirredTankReactor = CSTR
+ContinuousStirredTankReactor = CSTR = STR = StirredTankReactor

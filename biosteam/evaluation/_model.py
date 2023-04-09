@@ -478,8 +478,8 @@ class Model(State):
             state_updated = True
             return [i() for i in self.metrics]
         except Exception as exception:
-            self._reset_system()
             if self.retry_evaluation and state_updated:
+                self._reset_system()
                 try:
                     self._update_state(sample, **kwargs)
                     self._specification() if self._specification else self._system.simulate(**kwargs)
