@@ -211,7 +211,7 @@ class ThermalOxidizer(Unit):
         combustion_rxns = self.chemicals.get_combustion_reactions()
         combustion_rxns.force_reaction(emissions)
         O2 = max(-emissions.imol['O2'], 0.)
-        air.imol['N2', 'O2'] = [0.78/0.22 * O2, O2]
+        air.imol['N2', 'O2'] = [0.79/0.21 * O2, O2]
         emissions.mix_from(self.ins)
         combustion_rxns.adiabatic_reaction(emissions)
         
