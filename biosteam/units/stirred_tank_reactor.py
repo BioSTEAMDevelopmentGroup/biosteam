@@ -243,11 +243,14 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
         self.kW_per_m3 = self.kW_per_m3_default if kW_per_m3 is None else kW_per_m3
         self.vessel_material = 'Stainless steel 316' if vessel_material is None else vessel_material
         self.vessel_type = 'Vertical' if vessel_type is None else vessel_type
+        self.tau_0 = self.tau_0_default if tau_0 is None else tau_0
+        self.batch = batch
+        self.load_auxiliaries()
+
+    def load_auxiliaries(self):
         self.recirculation_pump = pump = bst.Pump(None, (None,), (None,), thermo=self.thermo)
         self.splitter = splitter = bst.Splitter(None, pump-0, split=0.5) # Split is updated later
         self.heat_exchanger = bst.HXutility(None, splitter-0, (None,), thermo=self.thermo) 
-        self.tau_0 = self.tau_0_default if tau_0 is None else tau_0
-        self.batch = batch
 
     def _design(self):
         Design = self.design_results
@@ -333,7 +336,7 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
     
 ContinuousStirredTankReactor = CSTR = STR = StirredTankReactor
 
-class AeratedBioreactor(StirredTankReactor, isabstract=True):
+class AeratedBioreactor(StirredTankReactor):
     """
     Same as StirredTankReactor but includes aeration.
     
@@ -367,18 +370,42 @@ class AeratedBioreactor(StirredTankReactor, isabstract=True):
     )
     T_default = 273.15 + 32 
     P_default = 101325
+    kW_per_m3_default = 0.2955 # Reaction in homogeneous liquid
     
     def __init__(
             self, ID='', ins=None, outs=(), thermo=None,  
-            *, reactions=None, **kwargs,
+            *, reactions, **kwargs,
         ):
         StirredTankReactor.__init__(self, ID, ins, outs, thermo, **kwargs)
-        self.compressor = compressor = bst.IsentropicCompressor(None, (None,), (None,), thermo=self.thermo, P=2 * 101325) 
-        self.air_cooler = bst.HXutility(None, compressor-0, (None,), thermo=self.thermo, eta=0.85, T=self.T)
         self.reactions = reactions
+    
+    @property
+    def feed(self):
+        return self._ins[0]
+    
+    @property
+    def air(self):
+        for i in self._ins:
+            if i.phase == 'g': return i
+    
+    @property
+    def vent(self):
+        return self._outs[0]
+    
+    @property
+    def effluent(self):
+        return self._outs[1]
+    
+    def load_auxiliaries(self):
+        super().load_auxiliaries()
+        self.compressor = compressor = bst.IsentropicCompressor(None, (None,), (None,), thermo=self.thermo, eta=0.85, P=2 * 101325) 
+        self.air_cooler = bst.HXutility(None, compressor-0, (None,), thermo=self.thermo, T=self.T)
         
     def _run(self):
-        *feeds, air = self.ins
+        air = self.air
+        if air is None:
+            self.ins.insert(1, bst.Stream(phase='g', thermo=self.thermo))
+        feeds = [i for i in self.ins if i.phase != 'g']
         vent, effluent = self.outs
         air.P = vent.P = effluent.P = self.P
         air.T = vent.T = effluent.T = self.T
@@ -386,12 +413,15 @@ class AeratedBioreactor(StirredTankReactor, isabstract=True):
         vent.phase = 'g'
         air.phase = 'g'
         effluent.mix_from(feeds, energy_balance=False)
-        self.reactions.force_reaction(effluent)
+        self.run_reactions(effluent)
         OUR = -effluent.imass['O2'] # Oxygen uptake rate
         air.imass['O2', 'N2'] = [OUR, OUR * 79. / 21.]
         effluent.mix_from([effluent, air], energy_balance=False)
         vent.empty()
         vent.receive_vent(effluent, energy_balance=False)
+        
+    def run_reactions(self, effluent):
+        self.reactions.force_reaction(effluent)
         
     def _design(self):
         StirredTankReactor._design(self)
@@ -402,7 +432,7 @@ class AeratedBioreactor(StirredTankReactor, isabstract=True):
         length = self.get_design_result('Length', 'm') * self.V_wf
         compressor = self.compressor
         compressor.P = g * rho * length + 101325
-        compressor.ins[0] = self.ins[-1]
+        compressor.ins[0].copy_like(self.air)
         compressor.simulate()
         air_cooler = self.air_cooler
         air_cooler.T = self.T
