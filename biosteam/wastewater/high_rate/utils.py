@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Bioindustrial-Park: BioSTEAM's Premier Biorefinery Models and Results
 # Copyright (C) 2021-2024, Yalin Li <mailto.yalin.li@gmail.com>
+# Copyright (C) 2023, Yoel Rene Cortes-Pena <yoelcortes@gmail.com>
 #
 # This module is under the UIUC open-source license. See
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -37,6 +38,7 @@ __all__ = (
     'get_insoluble_IDs',
     'get_soluble_IDs',
     'append_wwt_chemicals',
+    'create_missing_wwt_chemicals',
     # Digestion
     'get_BD_dct',
     'get_digestable_chemicals',
@@ -253,55 +255,55 @@ def get_insoluble_IDs(chemicals, insolubles):
     return tuple(new_insolubles)
 
 def get_soluble_IDs(chemicals, insolubles):
-    return tuple(i.ID for i in chemicals if not i.ID in insolubles)
+    return tuple([i.ID for i in chemicals if not i.ID in insolubles])
 
 
 _cal2joule = 4.184 # auom('cal').conversion_factor('J')
 
+def create_missing_wwt_chemicals(chemicals):
+    new_chemicals = Chemicals([])
+    def add_chemical(ID, **data):
+        missing = not hasattr(chemicals, ID)
+        if missing:
+            chemical = Chemical(ID, **data)
+            new_chemicals.append(chemical)
+        return missing
+
+    add_chemical('NH3', phase='g', Hf=-10963*_cal2joule)
+    add_chemical('H2S', phase='g', Hf=-4927*_cal2joule)
+    add_chemical('SO2', phase='g')
+    add_chemical('NH4OH', search_ID='AmmoniumHydroxide', phase='l', Hf=-336719)
+    add_chemical('H2SO4', phase='l')
+    add_chemical('HCl', phase='l')
+    add_chemical('HNO3', phase='l', Hf=-41406*_cal2joule)
+    add_chemical('NaOH', phase='l'),
+    add_chemical('NaNO3', phase='l', Hf=-118756*_cal2joule)
+    add_chemical('Na2SO4', phase='l', Hf=-1356380)
+    if add_chemical('CaSO4', phase='s', Hf=-342531*_cal2joule):
+        new_chemicals.CaSO4.Cn.move_up_model_priority('LASTOVKA_S', 0)
+    add_chemical('NaOCl', phase='l', Hf=-347*1e3) # https://en.wikipedia.org/wiki/Sodium_hypochlorite
+    add_chemical('CitricAcid', phase='l', Hf=-1543.8*1e3) # https://en.wikipedia.org/wiki/Citric_acid
+    add_chemical('Bisulfite', phase='l')
+    add_chemical('WWTsludge', search_db=False, phase='s',
+                formula='CH1.64O0.39N0.23S0.0035', Hf=-23200.01*_cal2joule)
+    if add_chemical('Polymer', search_db=False, phase='s', MW=1, Hf=0, HHV=0, LHV=0):
+        new_chemicals.Polymer.Cn.add_model(evaluate=0, name='Constant')
+    for i in new_chemicals: i.default()
+    return new_chemicals
+
+
 def append_wwt_chemicals(chemicals, set_thermo=True):
     chemicals = chemicals.chemicals if isinstance(chemicals, Thermo) else chemicals
-    chems = chemicals.copy()
-
-    def add_chemical(ID, **data):
-        if not hasattr(chemicals, ID):
-            chemical = Chemical(ID, **data)
-            chems.append(chemical)
-
-    add_chemical('NH3', phase='g', Hf=-10963*_cal2joule),
-    add_chemical('H2S', phase='g', Hf=-4927*_cal2joule),
-    add_chemical('SO2', phase='g'),
-    add_chemical('NH4OH', search_ID='AmmoniumHydroxide', phase='l', Hf=-336719),
-    add_chemical('H2SO4', phase='l'),
-    add_chemical('HCl', phase='l'),
-    add_chemical('HNO3', phase='l', Hf=-41406*_cal2joule),
-    add_chemical('NaOH', phase='l'),
-    add_chemical('NaNO3', phase='l', Hf=-118756*_cal2joule),
-    add_chemical('Na2SO4', phase='l', Hf=-1356380),
-    add_chemical('CaSO4', phase='s', Hf=-342531*_cal2joule),
-    add_chemical('NaOCl', phase='l', Hf=-347*1e3), # https://en.wikipedia.org/wiki/Sodium_hypochlorite
-    add_chemical('CitricAcid', phase='l', Hf=-1543.8*1e3), # https://en.wikipedia.org/wiki/Citric_acid
-    add_chemical('Bisulfite', phase='l'),
-    add_chemical('WWTsludge', search_db=False, phase='s',
-                formula='CH1.64O0.39N0.23S0.0035', Hf=-23200.01*_cal2joule),
-    add_chemical('Polymer', search_db=False, phase='s', MW=1, Hf=0, HHV=0, LHV=0),
-
-    chems.CaSO4.Cn.move_up_model_priority('LASTOVKA_S', 0)
-    chems.Polymer.Cn.add_model(evaluate=0, name='Constant')
-
-    for i in chems: i.default()
+    required_chemicals = (
+        'NH3', 'H2S', 'SO2', 'NH4OH', 'H2SO4', 'HCl', 'HNO3', 'NaOH', 'NaNO3',
+        'Na2SO4', 'CaSO4', 'NaOCl', 'CitricAcid', 'Bisulfite', 'WWTsludge', 'Polymer'
+    )
+    if all([(i in chemicals) for i in required_chemicals]): return chemicals
+    chems = Chemicals([*chemicals, *create_missing_wwt_chemicals(chemicals)])
     chems.compile()
 
     # Add aliases and groups
     get = getattr
-    for chem in chemicals:
-        aliases = chem.aliases
-        chem_ID = chem.ID
-        for alias in aliases:
-            try: chems.set_alias(chem_ID, alias)
-            except:
-                warn(f'Cannot set alias "{alias}" for chemical {chem_ID}, '
-                     'this alias might already be in use.')
-        get(chems, chem.ID).aliases = chem.aliases
     for grp in chemicals._group_mol_compositions.keys():
         group_IDs = [chem.ID for chem in get(chemicals, grp)]
         chems.define_group(grp, group_IDs)

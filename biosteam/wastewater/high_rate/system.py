@@ -224,17 +224,18 @@ class BiogasUpgrading(bst.Unit):
         biogas, foo = self.ins
         RNG, remained = self.outs
         RNG.empty()
+        RNG.phase = remained.phase = 'g'
         RNG.imass['CH4'] = biogas.imass['CH4'] * self.ratio
-        foo.copy_like(RNG)
         remained.mass = biogas.mass - RNG.mass # assume impurities left in the unused biogas
         RNG.mass *= (1 - self.loss) # lost methane not included in the unused biogas
         RNG.price = self.FNG_price + self.RIN_incentive
         RNG.characterization_factors['GWP'] = self.FNG_CF
-
+        foo.copy_like(RNG)
+        
         # Upgrading cost/GWP
-        if foo.F_mass == 0: foo.imass['CH4'] = 1
-        foo.price = self.unit_upgrading_cost/1055.056*(foo.HHV/1e3)/foo.F_mass # HHV in kJ/hr
-        foo.characterization_factors['GWP'] = self.unit_upgrading_GWP/1055.056*(foo.HHV/1e3)/foo.F_mass
+        if not foo.isempty(): 
+            foo.price = self.unit_upgrading_cost/1055.056*(foo.HHV/1e3)/foo.F_mass # HHV in kJ/hr
+            foo.characterization_factors['GWP'] = self.unit_upgrading_GWP/1055.056*(foo.HHV/1e3)/foo.F_mass
 
 
 # %%
