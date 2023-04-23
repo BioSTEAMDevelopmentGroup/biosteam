@@ -404,7 +404,8 @@ class AeratedBioreactor(StirredTankReactor):
     def _run(self):
         air = self.air
         if air is None:
-            self.ins.insert(1, bst.Stream(phase='g', thermo=self.thermo))
+            air = bst.Stream(phase='g', thermo=self.thermo)
+            self.ins.insert(1, air)
         feeds = [i for i in self.ins if i.phase != 'g']
         vent, effluent = self.outs
         air.P = vent.P = effluent.P = self.P
