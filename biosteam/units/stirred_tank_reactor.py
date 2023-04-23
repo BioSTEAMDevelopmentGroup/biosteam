@@ -14,6 +14,7 @@
 from .. import Unit
 from typing import Optional
 from math import ceil
+from biosteam.units.design_tools import aeration
 from biosteam.units.design_tools import (
     PressureVessel, compute_closed_vessel_turbine_purchase_cost, size_batch
 )
@@ -21,6 +22,7 @@ from biosteam.units.design_tools.geometry import cylinder_diameter_from_volume
 from scipy.constants import g
 import flexsolve as flx
 import biosteam as bst
+from math import pi
 
 __all__ = (
     'StirredTankReactor', 'STR',
@@ -201,7 +203,7 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
     V_max_default: Optional[float] = 355
     
     #: Default length to diameter ratio.
-    length_to_diameter_default: Optional[float] = 2
+    length_to_diameter_default: Optional[float] = 3
     
     #: Default power consumption for agitation [kW/m3].
     kW_per_m3_default: Optional[float] = 0.985
@@ -397,10 +399,11 @@ class AeratedBioreactor(StirredTankReactor):
     
     def __init__(
             self, ID='', ins=None, outs=(), thermo=None,  
-            *, reactions, **kwargs,
+            *, reactions, theta_O2=0.5, **kwargs,
         ):
         StirredTankReactor.__init__(self, ID, ins, outs, thermo, **kwargs)
         self.reactions = reactions
+        self.theta_O2 = theta_O2 # Concentration of O2 in the liquid as a fraction of saturation .
     
     @property
     def feed(self):
@@ -438,14 +441,48 @@ class AeratedBioreactor(StirredTankReactor):
         air.phase = 'g'
         effluent.mix_from(feeds, energy_balance=False)
         self.run_reactions(effluent)
-        OUR = -effluent.imass['O2'] # Oxygen uptake rate
-        air.imass['O2', 'N2'] = [OUR, OUR * 79. / 21.]
-        effluent.mix_from([effluent, air], energy_balance=False)
-        vent.empty()
-        vent.receive_vent(effluent, energy_balance=False)
+        self.OUR = OUR = -effluent.get_flow('mol/s', 'O2') # Oxygen uptake rate
+        # print('OUR', format(OUR, '.2f'))
+        
+        def air_flow_rate_objective(flow):
+            air.set_flow([flow, flow * 79. / 21.], 'mol/s', ['O2', 'N2'])
+            effluent.imol['O2', 'N2'] = 0.
+            effluent.mix_from([effluent, air], energy_balance=False)
+            effluent.set_flow(flow - OUR, 'mol/s', 'O2')
+            vent.empty()
+            vent.receive_vent(effluent, energy_balance=False)
+            self._design()
+            return OUR - self.get_OTR()
+        
+        y0 = air_flow_rate_objective(OUR)
+        if y0 > 0.: # Correlation is not perfect and special cases lead to OTR > OUR
+            flx.IQ_interpolation(air_flow_rate_objective, 
+                                 x0=OUR, x1=10 * OUR, 
+                                 y0=y0, ytol=1e-3, xtol=1e-3)
         
     def run_reactions(self, effluent):
         self.reactions.force_reaction(effluent)
+    
+    def get_OTR(self):
+        V = self.get_design_result('Reactor volume', 'm3') * self.V_wf
+        P = 1000 * self.compressor.power_utility.consumption # W
+        F = self.air.get_total_flow('m3/s')
+        D = self.get_design_result('Diameter', 'm')
+        R = 0.5 * D
+        A = pi * R * R
+        U = F / A
+        # print('U', format(U, '.2f'))
+        ka_L = aeration.ka_L(P, V, U)
+        air_in = self.compressor.outs[0]
+        vent = self.vent
+        P_O2_air = air_in.get_property('P', 'bar') * air_in.imol['O2'] / air_in.F_mol
+        P_O2_vent = vent.get_property('P', 'bar') * vent.imol['O2'] / vent.F_mol
+        P_O2_ave = 0.5 * (P_O2_air + P_O2_vent)
+        C_O2 = aeration.C_O2_L(self.T, P_O2_ave) # mol / kg
+        # print('ka_L', format(ka_L, '.2f'))
+        OTR = ka_L * C_O2 * (1. - self.theta_O2) * V * 1000 # mol / s
+        # print('OTR', format(OTR, '.2f'))
+        return OTR 
         
     def _design(self):
         StirredTankReactor._design(self)
