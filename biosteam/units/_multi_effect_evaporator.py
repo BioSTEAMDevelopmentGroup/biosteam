@@ -108,33 +108,33 @@ class MultiEffectEvaporator(Unit):
     [0] solids
         phase: 'l', T: 333.21 K, P: 20000 Pa
         flow (kmol/hr): Water       20.5
-                        AceticAcid  0.00183
-                        Furfural    6e-05
+                        AceticAcid  0.00182
+                        Furfural    5.96e-05
                         HMF         0.000793
                         Glucose     0.555
     [1] liquid
-        phase: 'l', T: 352.13 K, P: 20000 Pa
-        flow (kmol/hr): Water       35
-                        AceticAcid  0.00649
+        phase: 'l', T: 352.11 K, P: 20000 Pa
+        flow (kmol/hr): Water       35.1
+                        AceticAcid  0.0065
                         Furfural    0.000981
     
     >>> E1.results()
-    Multi-effect evaporator                                    Units       E1
-    Electricity         Power                                     kW     5.72
-                        Cost                                  USD/hr    0.447
-    Low pressure steam  Duty                                   kJ/hr 5.81e+05
-                        Flow                                 kmol/hr       15
-                        Cost                                  USD/hr     3.56
-    Cooling water       Duty                                   kJ/hr -3.5e+05
-                        Flow                                 kmol/hr      239
-                        Cost                                  USD/hr    0.117
-    Design              Area                                     m^2       11
-                        Volume                                   m^3     1.24
-    Purchase cost       Evaporators                              USD  9.6e+03
-                        Condenser - Double pipe                  USD 5.36e+03
-                        Vacuum system - Liquid-ring pump...      USD 1.24e+04
-    Total purchase cost                                          USD 2.74e+04
-    Utility cost                                              USD/hr     4.13
+    Multi-effect evaporator                                    Units        E1
+    Electricity         Power                                     kW      5.72
+                        Cost                                  USD/hr     0.447
+    Low pressure steam  Duty                                   kJ/hr  5.84e+05
+                        Flow                                 kmol/hr        15
+                        Cost                                  USD/hr      3.58
+    Cooling water       Duty                                   kJ/hr -3.52e+05
+                        Flow                                 kmol/hr       240
+                        Cost                                  USD/hr     0.117
+    Design              Area                                     m^2        11
+                        Volume                                   m^3      1.24
+    Purchase cost       Evaporators                              USD  9.61e+03
+                        Condenser - Double pipe                  USD  5.36e+03
+                        Vacuum system - Liquid-ring pump...      USD  1.24e+04
+    Total purchase cost                                          USD  2.74e+04
+    Utility cost                                              USD/hr      4.14
     
     Concentrate sugar setting overall vapor fraction:
     
@@ -167,7 +167,7 @@ class MultiEffectEvaporator(Unit):
                         HMF         0.000793
                         Glucose     0.555
     [1] liquid
-        phase: 'l', T: 361.16 K, P: 50892 Pa
+        phase: 'l', T: 361.13 K, P: 50892 Pa
         flow (kmol/hr): Water       5.55
                         AceticAcid  0.0015
                         Furfural    0.000506
@@ -176,19 +176,19 @@ class MultiEffectEvaporator(Unit):
     Multi-effect evaporator                                    Units        E1
     Electricity         Power                                     kW      5.72
                         Cost                                  USD/hr     0.447
-    Low pressure steam  Duty                                   kJ/hr  3.83e+05
-                        Flow                                 kmol/hr      9.86
-                        Cost                                  USD/hr      2.34
-    Cooling water       Duty                                   kJ/hr -1.15e+05
-                        Flow                                 kmol/hr      78.8
-                        Cost                                  USD/hr    0.0385
+    Low pressure steam  Duty                                   kJ/hr  3.85e+05
+                        Flow                                 kmol/hr      9.91
+                        Cost                                  USD/hr      2.36
+    Cooling water       Duty                                   kJ/hr -1.16e+05
+                        Flow                                 kmol/hr      79.1
+                        Cost                                  USD/hr    0.0386
     Design              Area                                     m^2      1.65
                         Volume                                   m^3      6.52
     Purchase cost       Evaporators                              USD  2.77e+03
                         Condenser - Double pipe                  USD   3.9e+03
                         Vacuum system - Liquid-ring pump...      USD  1.24e+04
     Total purchase cost                                          USD  1.91e+04
-    Utility cost                                              USD/hr      2.83
+    Utility cost                                              USD/hr      2.84
     
     """
     line = 'Multi-effect evaporator'

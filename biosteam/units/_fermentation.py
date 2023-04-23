@@ -101,24 +101,24 @@ class Fermentation(BatchBioreactor):
     Fermentation                                       Units        F1
     Electricity         Power                             kW      66.6
                         Cost                          USD/hr      5.21
-    Chilled water       Duty                           kJ/hr -6.99e+06
-                        Flow                         kmol/hr  4.69e+03
-                        Cost                          USD/hr        35
+    Chilled water       Duty                           kJ/hr -1.41e+07
+                        Flow                         kmol/hr  9.42e+03
+                        Cost                          USD/hr      70.3
     Design              Reactor volume                    m3       247
                         Batch time                        hr      12.6
                         Loading time                      hr      1.57
                         Number of reactors                           8
                         Recirculation flow rate        m3/hr      17.7
-                        Reactor duty                   kJ/hr  6.99e+06
+                        Reactor duty                   kJ/hr  1.41e+07
                         Cleaning and unloading time       hr         3
                         Working volume fraction                    0.9
-    Purchase cost       Heat exchangers (x8)             USD  9.65e+04
+    Purchase cost       Heat exchangers (x8)             USD  1.57e+05
                         Reactors (x8)                    USD  1.88e+06
                         Agitators (x8)                   USD  1.17e+05
                         Cleaning in place                USD   8.9e+04
                         Recirculation pumps (x8)         USD  1.26e+05
-    Total purchase cost                                  USD   2.3e+06
-    Utility cost                                      USD/hr      40.2
+    Total purchase cost                                  USD  2.36e+06
+    Utility cost                                      USD/hr      75.5
     
     References
     ----------

@@ -35,7 +35,7 @@ def compute_closed_vessel_turbine_purchase_cost(power):
     Examples
     --------
     >>> compute_closed_vessel_turbine_purchase_cost(power=10)
-    8857.9578
+    15264.97
     
     Notes
     -----

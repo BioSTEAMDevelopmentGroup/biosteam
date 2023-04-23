@@ -161,11 +161,11 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
                         Vessel material                               Stainless steel 316
     Purchase cost       Vertical pressure vessel (x4)            USD             1.24e+06
                         Platform and ladders (x4)                USD             1.94e+05
-                        Turbine (x4)                             USD                  515
+                        Turbine (x4)                             USD             5.15e+05
                         Heat exchanger - Floating head (x4)      USD             1.61e+05
                         Recirculation pump - Pump (x4)           USD             5.23e+04
                         Recirculation pump - Motor (x4)          USD             8.38e+03
-    Total purchase cost                                          USD             1.66e+06
+    Total purchase cost                                          USD             2.17e+06
     Utility cost                                              USD/hr                  180
     
     References
@@ -358,6 +358,29 @@ class AeratedBioreactor(StirredTankReactor):
     ... )
     >>> R1.simulate()
     >>> R1.show()
+    AeratedBioreactor: R1
+    ins...
+    [0] feed
+        phase: 'l', T: 305.15 K, P: 101325 Pa
+        flow (kmol/hr): Water    6.66e+03
+                        Glucose  139
+    [1] s40
+        phase: 'g', T: 305.15 K, P: 101325 Pa
+        flow (kmol/hr): O2  416
+                        N2  1.79e+03
+    [2] air
+        phase: 'l', T: 298.15 K, P: 101325 Pa
+        flow: 0
+    outs...
+    [0] vent
+        phase: 'g', T: 305.15 K, P: 101325 Pa
+        flow (kmol/hr): Water  78.4
+                        CO2    416
+                        N2     1.79e+03
+    [1] product
+        phase: 'l', T: 305.15 K, P: 101325 Pa
+        flow (kmol/hr): Water    7e+03
+                        Glucose  69.4
     
     """
     _N_ins = 2
