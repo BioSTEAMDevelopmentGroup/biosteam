@@ -376,7 +376,7 @@ class MultiEffectEvaporator(Unit):
         # Cost first evaporators
         duty = hx.total_heat_transfer
         Q = abs(duty)
-        Tci = first_evaporator.ins[0].T
+        Tci = first_evaporator.heat_exchanger.ins[0].T
         Tco = first_evaporator.outs[0].T
         hu = first_evaporator.heat_utilities[0]
         Th = hu.inlet_utility_stream.T

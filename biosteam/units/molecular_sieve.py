@@ -91,14 +91,16 @@ class MolecularSieve(Splitter):
     """
     _units = {'Flow rate': 'kg/hr'}
     def __init__(self, ID='', ins=None, outs=(), *, order=None, split,
-                 P=101325, approx_duty=True):
+                 P=None, approx_duty=True):
         Splitter.__init__(self, ID, ins, outs, order=order, split=split)
-        self.P = 101325
+        self.P = None
         self.approx_duty = approx_duty
         
     def _run(self):
         Splitter._run(self)
-        for i in self.outs: i.P = self.P
+        P = self.P
+        if P is None: P = self.ins[0].P
+        for i in self.outs: i.P = P
 
     def _design(self):
         self.design_results['Flow rate'] = flow = self._outs[1].F_mass
