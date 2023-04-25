@@ -151,12 +151,11 @@ class HeatExchangerNetwork(bst.Facility):
         flowsheet = bst.Flowsheet(sys.ID + '_HXN')
         use_cached_network = False
         if self.cache_network and hasattr(self, 'original_heat_utils'):
-            hxs_cache = self.original_heat_exchangers
             hxs = [hu.unit for hu in hx_utils]
-            hxs_dct = {(i.owner, i._ID): i for i in hxs}
-            try: hxs = [hxs_dct[i.owner, i._ID] for i in hxs_cache]
-            except: pass
-            else: use_cached_network = len(hxs) == len(hx_utils)
+            use_cached_network = (
+                sorted(hxs, key=lambda x: x.ID) 
+                == sorted(self.original_heat_exchangers, key=lambda x: x.ID)
+            )
         with flowsheet.temporary(), bst.IgnoreDockingWarnings():
             if use_cached_network:
                 hx_heat_utils_rearranged = [i.heat_utilities[0] for i in hxs]
@@ -308,7 +307,6 @@ class HeatExchangerNetwork(bst.Facility):
                 self.installed_costs['Heat exchangers'] = 0.
                 self.baseline_purchase_costs['Heat exchangers'] = self.purchase_costs['Heat exchangers'] = 0.
                 self.heat_utilities = []
-                
             self.original_heat_utils = hx_heat_utils_rearranged
             self.original_purchase_costs = original_purchase_costs
             self.original_utility_costs = hu_sums1
