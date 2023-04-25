@@ -99,7 +99,7 @@ class SludgeHandling(bst.Unit):
         eff.copy_flow(mixed, solubles)
 
         flx.IQ_interpolation(
-                f=self._mc_at_split, x0=1e-3, x1=1.-1e-3,
+                f=self._mc_at_split, x0=1e-3, x1=1.-1e-3, ytol=1e-3, maxiter=100,
                 args=(solubles, mixed, eff, sludge, target_mc),
                 checkbounds=False)
         self.SKIPPED = False
