@@ -399,11 +399,22 @@ class AeratedBioreactor(StirredTankReactor):
     
     def __init__(
             self, ID='', ins=None, outs=(), thermo=None,  
-            *, reactions, theta_O2=0.5, **kwargs,
+            *, reactions, theta_O2=0.5, Q_O2_consumption=None, **kwargs,
         ):
         StirredTankReactor.__init__(self, ID, ins, outs, thermo, **kwargs)
         self.reactions = reactions
-        self.theta_O2 = theta_O2 # Concentration of O2 in the liquid as a fraction of saturation .
+        self.theta_O2 = theta_O2 # Concentration of O2 in the liquid as a fraction of saturation.
+        self.Q_O2_consumption = Q_O2_consumption # Forced duty per O2 consummed [kJ/kmol].
+    
+    @property
+    def Hnet(self):
+        if self.Q_O2_consumption is None:
+            return self.H_out - self.H_in + self.Hf_out - self.Hf_in
+        else:
+            return self.Q_O2_consumption * (
+                sum([i.imol['O2'] for i in self.ins])
+                - sum([i.imol['O2'] for i in self.outs])
+            )
     
     @property
     def feed(self):
