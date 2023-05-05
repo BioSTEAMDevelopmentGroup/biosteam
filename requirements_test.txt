@@ -1,4 +1,3 @@
-importlib_metadata
 pytest-cov
 coveralls
 nbval
