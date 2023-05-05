@@ -76,10 +76,32 @@ def compute_vacuum_system_power_and_cost(
         F_vol_air = F_mass_air = 0
     F_vol_cfm = 0.5886*F_vol + F_vol_air
     if F_vol_cfm < 3.01:
-        factor = 3.01/F_vol_cfm
-        F_vol_cfm = 3.01
-    else:
-        factor = 1
+        # factor = 3.01/F_vol_cfm
+        # F_vol_cfm = 3.01
+        # https://www.amazon.com/stores/page/D93FDADF-4140-467A-92A3-751750064722?ingress=2&visitId=1d2a88aa-ecda-43a9-a273-d2917f91b76c&ref_=ast_bln
+        name = 'Liquid-ring pump'
+        grade = 'Oil seal'
+        if F_vol_cfm < 1.5: 
+            base_cost = 105 * 1.08   # 2023 price + tax & shipping
+            work = 1/5 * 0.7457      # hp to kW
+        else:
+            base_cost = 223 * 1.08
+            work = 1/3 * 0.7457
+        cost = bst.CE / 708. * base_cost # use 2021 CEPCI
+        has_condenser = False
+        agent = None
+        steam = 0.
+        N = 1
+        return {'Work': work, 
+                'Cost': N * cost, 
+                'Name': f"{name}, {grade.lower()}",
+                'In parallel': N,
+                'Condenser': has_condenser,
+                'Steam flow rate': steam, 
+                'Heating agent': agent}
+    # else:
+    #     factor = 1
+    factor = 1
     F_mass_kgph = (F_mass + 0.4536*F_mass_air)*factor # kg/hr
     F_mass_lbph = 2.205 * F_mass_kgph
     vacuum_systems = get_prefered_vacuum_systems(vacuum_system_preference)
