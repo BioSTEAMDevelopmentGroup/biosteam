@@ -268,7 +268,10 @@ class Compressor(Unit, isabstract=True):
         N = design_results['Compressors in parallel']
         Pc_per_compressor = Pc / N
         bounds_warning(self, 'power', Pc, 'hp', alg.hp_bounds, 'cost')
-        self.baseline_purchase_costs['Compressor(s)'] = N * bst.CE / alg.CE * alg.cost(Pc_per_compressor)
+        if Pc_per_compressor < 1.:
+            self.baseline_purchase_costs['Compressor(s)'] = 0.
+        else:
+            self.baseline_purchase_costs['Compressor(s)'] = N * bst.CE / alg.CE * alg.cost(Pc_per_compressor)
         self.F_D['Compressor(s)'] = self.design_factors[design_results['Driver']]
 
 

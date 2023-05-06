@@ -438,6 +438,9 @@ class AeratedBioreactor(StirredTankReactor):
         self.compressor = compressor = bst.IsentropicCompressor(None, (None,), (None,), thermo=self.thermo, eta=0.85, P=2 * 101325) 
         self.air_cooler = bst.HXutility(None, compressor-0, (None,), thermo=self.thermo, T=self.T)
         
+    def _run_vent(self, vent, effluent):
+        vent.receive_vent(effluent, energy_balance=False)
+        
     def _run(self):
         air = self.air
         if air is None:
@@ -450,9 +453,13 @@ class AeratedBioreactor(StirredTankReactor):
         vent.empty()
         vent.phase = 'g'
         air.phase = 'g'
+        air.empty()
         effluent.mix_from(feeds, energy_balance=False)
         self.run_reactions(effluent)
         self.OUR = OUR = -effluent.get_flow('mol/s', 'O2') # Oxygen uptake rate
+        if OUR < 0.:
+            self.OUR = 0.
+            return
         # print('OUR', format(OUR, '.2f'))
         
         def air_flow_rate_objective(flow):
@@ -461,7 +468,7 @@ class AeratedBioreactor(StirredTankReactor):
             effluent.mix_from([effluent, air], energy_balance=False)
             effluent.set_flow(flow - OUR, 'mol/s', 'O2')
             vent.empty()
-            vent.receive_vent(effluent, energy_balance=False)
+            self._run_vent(vent, effluent)
             self._design()
             return OUR - self.get_OTR()
         
@@ -497,6 +504,7 @@ class AeratedBioreactor(StirredTankReactor):
         
     def _design(self):
         StirredTankReactor._design(self)
+        if self.OUR == 0.: return
         liquid = bst.Stream(None, thermo=self.thermo)
         liquid.mix_from([i for i in self.ins if i.phase != 'g'], energy_balance=False)
         liquid.copy_thermal_condition(self.outs[0])

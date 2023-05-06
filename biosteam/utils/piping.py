@@ -220,6 +220,8 @@ class MockStream:
         else:
             self._ID = Stream._take_unregistered_ticket()
     
+    source = sink = None
+    
     @property
     def ID(self):
         """Unique identification (str). If set as '', it will choose a default ID."""
