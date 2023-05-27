@@ -220,6 +220,8 @@ class MockStream:
         else:
             self._ID = Stream._take_unregistered_ticket()
     
+    source = sink = None
+    
     @property
     def ID(self):
         """Unique identification (str). If set as '', it will choose a default ID."""
@@ -384,6 +386,13 @@ class StreamSequence:
     def empty(self):
         for i in self._streams: self._undock(i)
         self._initialize_missing_streams()
+    
+    def insert(self, index, stream):
+        if self._fixed_size: 
+            raise RuntimeError(f"size of '{type(self).__name__}' object is fixed")
+        self._undock(stream)
+        self._dock(stream)
+        self._streams.insert(index, stream)
     
     def append(self, stream):
         if self._fixed_size: 

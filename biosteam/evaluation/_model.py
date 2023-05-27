@@ -186,6 +186,10 @@ class Model(State):
         algorithm.
         
         """
+        N_samples = samples.shape[0]
+        if N_samples < 2: 
+            self._index = list(range(N_samples))
+            return
         if distance is None: distance = 'cityblock'
         length = samples.shape[0]
         columns = [i for i, parameter in enumerate(self._parameters) if parameter.kind == 'coupled']
@@ -478,8 +482,8 @@ class Model(State):
             state_updated = True
             return [i() for i in self.metrics]
         except Exception as exception:
-            self._reset_system()
             if self.retry_evaluation and state_updated:
+                self._reset_system()
                 try:
                     self._update_state(sample, **kwargs)
                     self._specification() if self._specification else self._system.simulate(**kwargs)

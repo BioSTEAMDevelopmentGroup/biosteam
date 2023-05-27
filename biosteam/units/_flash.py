@@ -280,7 +280,7 @@ class Flash(design.PressureVessel, Unit):
         if self.Q == 0.:
             self.heat_exchanger._setup() # Removes results
         else:
-            self.heat_exchanger.simulate_as_auxiliary_exchanger(self.ins, [self._multi_stream])
+            self.heat_exchanger.simulate_as_auxiliary_exchanger(self.ins, self.outs, P=self.ins[0].P)
 
     def _cost(self):
         D = self.design_results
@@ -725,7 +725,9 @@ class Evaporator_PV(Flash):
             if self.Q == 0.:
                 self.heat_exchanger._setup() # Removes previous results
             else:
-                self.heat_exchanger.simulate_as_auxiliary_exchanger(self.ins, self.outs, vle=True)
+                self.heat_exchanger.simulate_as_auxiliary_exchanger(
+                    self.ins, self.outs, P=self.ins[0].P, vle=True,
+                )
 
     def _cost(self):
         D = self.design_results

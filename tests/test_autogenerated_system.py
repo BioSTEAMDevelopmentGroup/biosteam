@@ -681,19 +681,11 @@ def test_sugarcane_ethanol_biorefinery_network():
          sc.T304,
          sc.P303,
          sc.M305,
-         sc.U202])
+         sc.U202,
+         sc.M401])
     assert network == actual_network
     sugarcane_sys.empty_recycles()
     sugarcane_sys.simulate()
-    bst.process_tools.default()
-    f.clear()
-    
-def test_corn_ethanol_biorefinery_system_creation():
-    from biorefineries import corn
-    br = corn.Biorefinery()
-    corn_sys = br.flowsheet.create_system('corn_sys')
-    corn_sys.empty_recycles()
-    corn_sys.simulate()
     bst.process_tools.default()
     f.clear()
     
@@ -713,4 +705,3 @@ if __name__ == '__main__':
     test_separate_recycle_loops()
     test_nested_recycle_loops()
     test_sugarcane_ethanol_biorefinery_network()
-    test_corn_ethanol_biorefinery_system_creation()

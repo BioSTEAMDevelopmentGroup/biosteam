@@ -245,7 +245,7 @@ def heat_exchanger_utilities_from_units(units):
     including the condensers and boilers of distillation columns and
     flash vessel heat exchangers."""
     heat_utilities = sum([i.heat_utilities for i in units], [])
-    return [i for i in heat_utilities if i.hxn_ok]
+    return [i for i in heat_utilities if i.hxn_ok and i.flow > 0.]
 
 def ID_number(ID):
     """
