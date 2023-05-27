@@ -31,6 +31,7 @@ if TYPE_CHECKING:
     UtilityAgent = bst.UtilityAgent
 
 streams = Optional[Sequence[Stream]] # TODO: Replace with Stream|str and make it an explicit TypeAlias once BioSTEAM moves to Python 3.10
+int_types = (int, np.int32)
 
 __all__ = ('Unit',)
 
@@ -1089,7 +1090,6 @@ class Unit:
     def __sub__(self, other):
         """Source streams."""
         isa = isinstance
-        int_types = (int, np.int)
         if isa(other, (Unit, bst.System)):
             other._ins[:] = self._outs
             return other
@@ -1111,7 +1111,6 @@ class Unit:
     def __rsub__(self, other):
         """Sink streams."""
         isa = isinstance
-        int_types = (int, np.int)
         if isa(other, int_types):
             return self._ins[other]
         elif isa(other, Stream):
