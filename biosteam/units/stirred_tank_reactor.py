@@ -156,18 +156,18 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
     Design              Reactor volume                            m3                  319
                         Residence time                            hr                    8
                         Vessel type                                              Vertical
-                        Length                                    ft                 38.6
-                        Diameter                                  ft                 19.3
-                        Weight                                    lb              5.8e+04
-                        Wall thickness                            in                0.398
+                        Length                                    ft                 50.5
+                        Diameter                                  ft                 16.8
+                        Weight                                    lb             5.39e+04
+                        Wall thickness                            in                0.363
                         Vessel material                               Stainless steel 316
-    Purchase cost       Vertical pressure vessel (x4)            USD             1.24e+06
-                        Platform and ladders (x4)                USD             1.94e+05
+    Purchase cost       Vertical pressure vessel (x4)            USD             1.18e+06
+                        Platform and ladders (x4)                USD             2.12e+05
                         Turbine (x4)                             USD             5.15e+05
                         Heat exchanger - Floating head (x4)      USD             1.61e+05
                         Recirculation pump - Pump (x4)           USD             5.23e+04
                         Recirculation pump - Motor (x4)          USD             8.38e+03
-    Total purchase cost                                          USD             2.17e+06
+    Total purchase cost                                          USD             2.13e+06
     Utility cost                                              USD/hr                  180
     
     References
@@ -371,20 +371,20 @@ class AeratedBioreactor(StirredTankReactor):
                         Glucose  139
     [1] s40
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): O2  416
-                        N2  1.79e+03
+        flow (kmol/hr): O2  914
+                        N2  3.44e+03
     [2] air
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow: 0
     outs...
     [0] vent
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water  78.4
-                        CO2    416
-                        N2     1.79e+03
+        flow (kmol/hr): Water  108
+                        O2     498
+                        N2     3.44e+03
     [1] product
         phase: 'l', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water    7e+03
+        flow (kmol/hr): Water    5.52e+03
                         Glucose  69.4
     
     """
