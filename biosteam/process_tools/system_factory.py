@@ -168,11 +168,7 @@ class SystemFactory:
     
     >>> sys = create_heating_system(outs=[''], T_out=350, area=100, mockup=True) 
     >>> sorted(main_flowsheet.unit, key=lambda u: u.ID) # Note how previous unit operations still exist in registry
-    [<HXutility: H1>,
-     <HXutility: H101>,
-     <Pump: P1>,
-     <Pump: P101>,
-     <StorageTank: T1>]
+    [<HXutility: H1>, <HXutility: H101>, <Pump: P1>, <Pump: P101>, <StorageTank: T1>]
     
     To access unit operations by the original ID given in the system factory,
     you can request a unit dictionary as follows:

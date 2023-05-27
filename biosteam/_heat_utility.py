@@ -170,8 +170,8 @@ class UtilityAgent(Stream):
         >>> cooling_water_copy = cooling_water.to_stream('cooling_water_copy')
         >>> cooling_water_copy.show(flow='kg/hr')
         Stream: cooling_water_copy
-         phase: 'l', T: 305.37 K, P: 101325 Pa
-         flow (kg/hr): Water  18
+        phase: 'l', T: 305.37 K, P: 101325 Pa
+        flow (kg/hr): Water  18
         
         """
         new = Stream.__new__(Stream)

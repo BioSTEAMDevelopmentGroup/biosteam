@@ -768,17 +768,17 @@ class MultistageCompressor(Unit):
     >>> for hx in K.hxs:
     ...  hx.outs[0].show()
     Stream: K_H1__K_K2 from <HXutility: K_H1> to <IsentropicCompressor: K_K2>
-     phase: 'g', T: 298.15 K, P: 4e+06 Pa
-     flow (kmol/hr): H2  1
+    phase: 'g', T: 298.15 K, P: 4e+06 Pa
+    flow (kmol/hr): H2  1
     Stream: K_H2__K_K3 from <HXutility: K_H2> to <IsentropicCompressor: K_K3>
-     phase: 'g', T: 298.15 K, P: 8e+06 Pa
-     flow (kmol/hr): H2  1
+    phase: 'g', T: 298.15 K, P: 8e+06 Pa
+    flow (kmol/hr): H2  1
     Stream: K_H3__K_K4 from <HXutility: K_H3> to <IsentropicCompressor: K_K4>
-     phase: 'g', T: 298.15 K, P: 1.6e+07 Pa
-     flow (kmol/hr): H2  1
+    phase: 'g', T: 298.15 K, P: 1.6e+07 Pa
+    flow (kmol/hr): H2  1
     Stream: outlet from <MultistageCompressor: K>
-     phase: 'g', T: 298.15 K, P: 3.2e+07 Pa
-     flow (kmol/hr): H2  1
+    phase: 'g', T: 298.15 K, P: 3.2e+07 Pa
+    flow (kmol/hr): H2  1
 
     If we want to setup more complex multistage compression schemes, we can pre-define the compressors and
     heat exchangers and pass them as a list to `MultistageCompressor`:

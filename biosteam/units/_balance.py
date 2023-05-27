@@ -94,9 +94,9 @@ class MassBalance(Unit):
     >>> sys.simulate();
     >>> target.show()
     Stream: target
-     phase: 'l', T: 298.15 K, P: 101325 Pa
-     flow (kmol/hr): Water    500
-                     Ethanol  500
+    phase: 'l', T: 298.15 K, P: 101325 Pa
+    flow (kmol/hr): Water    500
+                    Ethanol  500
     
     """
     _graphics = process_specification_graphics

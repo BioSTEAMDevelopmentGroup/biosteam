@@ -106,11 +106,11 @@ class LLEUnit(bst.Unit, isabstract=True):
     >>> C1.simulate()
     >>> C1.outs[0].show()
     Stream: light from <LLEUnit: C1>
-     phase: 'l', T: 333.15 K, P: 101325 Pa
-     flow (kmol/hr): Methanol   10.2
-                     Glycerol   0.0239
-                     Biodiesel  26.9
-                     TriOlein   0.996
+    phase: 'l', T: 333.15 K, P: 101325 Pa
+    flow (kmol/hr): Methanol   10.2
+                    Glycerol   0.0239
+                    Biodiesel  26.9
+                    TriOlein   0.996
     
     """
     _N_outs = 2
@@ -263,11 +263,11 @@ class LLECentrifuge(LLEUnit, LiquidsCentrifuge):
     >>> C1.simulate()
     >>> C1.outs[0].show()
     Stream: light from <LLECentrifuge: C1>
-     phase: 'l', T: 333.15 K, P: 101325 Pa
-     flow (kmol/hr): Methanol   10.2
-                     Glycerol   0.0239
-                     Biodiesel  26.9
-                     TriOlein   0.996
+    phase: 'l', T: 333.15 K, P: 101325 Pa
+    flow (kmol/hr): Methanol   10.2
+                    Glycerol   0.0239
+                    Biodiesel  26.9
+                    TriOlein   0.996
     >>> C1.results()
     Liquids centrifuge                       Units       C1
     Electricity         Power                   kW     17.1

@@ -580,11 +580,11 @@ class Sink:
         [0] missing stream
         [1] s1
             phase: 'l', T: 298.15 K, P: 101325 Pa
-            flow:  0
+            flow: 0
         outs...
         [0] out
             phase: 'l', T: 298.15 K, P: 101325 Pa
-            flow:  0
+            flow: 0
     
     """
     __slots__ = ('stream', 'index')
@@ -646,7 +646,7 @@ class Source:
         outs...
         [0] s1
             phase: 'l', T: 298.15 K, P: 101325 Pa
-            flow:  0
+            flow: 0
     
     """
     __slots__ = ('stream', 'index')

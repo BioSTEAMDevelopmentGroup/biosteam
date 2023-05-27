@@ -70,12 +70,7 @@ class UnitGroup:
     
     >>> ugroup.autofill_metrics(electricity_production=True)
     >>> ugroup.metrics
-    [<Metric: Installed equipment cost (MM$)>,
-     <Metric: Cooling duty (GJ/hr)>,
-     <Metric: Heating duty (GJ/hr)>,
-     <Metric: Electricity consumption (MW)>,
-     <Metric: Electricity production (MW)>,
-     <Metric: Material cost (USD/hr)>]
+    [<Metric: Installed equipment cost (MM$)>, <Metric: Cooling duty (GJ/hr)>, <Metric: Heating duty (GJ/hr)>, <Metric: Electricity consumption (MW)>, <Metric: Electricity production (MW)>, <Metric: Material cost (USD/hr)>]
     
     Get all metric results:
         
