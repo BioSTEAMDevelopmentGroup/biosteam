@@ -649,10 +649,7 @@ class TEA:
     @property
     def ROI(self) -> float:
         """Return on investment [1/yr] without accounting for annualized depreciation."""
-        FCI = self.FCI
-        net_earnings = self.net_earnings
-        TCI = FCI*(1.+self.WC_over_FCI)
-        return net_earnings/TCI
+        return self.net_earnings / self.TCI
     @property
     def net_earnings(self) -> float:
         """Net earnings without accounting for annualized depreciation."""
