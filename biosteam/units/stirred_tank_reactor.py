@@ -254,6 +254,9 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
         self.splitter = splitter = bst.Splitter(None, pump-0, split=0.5) # Split is updated later
         self.heat_exchanger = bst.HXutility(None, splitter-0, (None,), thermo=self.thermo) 
 
+    def _get_duty(self):
+        return self.Hnet
+
     def _design(self):
         Design = self.design_results
         ins_F_vol = sum([i.F_vol for i in self.ins if i.phase != 'g'])
@@ -295,7 +298,7 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
         Design['Residence time'] = self.tau
         Design.update(self._vessel_design(float(P_psi), float(D), float(L)))
         self.vacuum_system = bst.VacuumSystem(self) if P_pascal < 1e5 else None
-        duty = self.Hnet
+        duty = self._get_duty()
         self.parallel['self'] = N
         self.parallel['vacuum_system'] = 1 # Not in parallel
         if duty:
@@ -406,10 +409,10 @@ class AeratedBioreactor(StirredTankReactor):
         self.theta_O2 = theta_O2 # Concentration of O2 in the liquid as a fraction of saturation.
         self.Q_O2_consumption = Q_O2_consumption # Forced duty per O2 consummed [kJ/kmol].
     
-    @property
-    def Hnet(self):
+    def _get_duty(self):
         if self.Q_O2_consumption is None:
-            return self.H_out - self.H_in + self.Hf_out - self.Hf_in
+            H_in = sum([i.H for i in self.ins if i.phase != 'g'], self.air_cooler.outs[0].H)
+            return self.H_out - H_in + self.Hf_out - self.Hf_in
         else:
             return self.Q_O2_consumption * (
                 sum([i.imol['O2'] for i in self.ins])
