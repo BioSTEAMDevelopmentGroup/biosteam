@@ -96,28 +96,31 @@ def repr_ins_and_outs(layout, ins, outs, T, P, flow, composition, N, IDs, sort, 
         i = 0
         for stream in ins:
             unit = stream._source
-            source_info = f'  from  {type(unit).__name__}-{unit}\n' if unit else '\n'
+            source_info = f'  from  {type(unit).__name__}-{unit}' if unit else ''
             if stream and data:
                 stream_info = stream._info(layout, T, P, flow, composition, N, IDs, sort)
                 index = stream_info.index('\n')
-                info += f'[{i}] {stream}' + source_info + stream_info[index+1:] + '\n'
+                number = f'[{i}] '
+                spaces = len(number) * ' '
+                info += number + str(stream) + source_info + stream_info[index:].replace('\n', '\n' + spaces) + '\n'
             else:
-                info += f'[{i}] {stream}' + source_info
+                info += f'[{i}] {stream}' + source_info + '\n'
             i += 1
     if outs:
         info += 'outs...\n'
         i = 0
         for stream in outs:
             unit = stream._sink
-            sink_info = f'  to  {type(unit).__name__}-{unit}\n' if unit else '\n'
+            sink_info = f'  to  {type(unit).__name__}-{unit}' if unit else ''
             if stream and data:
                 stream_info = stream._info(layout, T, P, flow, composition, N, IDs, sort)
                 index = stream_info.index('\n')
-                info += f'[{i}] {stream}' + sink_info + stream_info[index+1:] + '\n'
+                number = f'[{i}] '
+                spaces = len(number) * ' '
+                info += number + str(stream) + sink_info + stream_info[index:].replace('\n', '\n' + spaces) + '\n'
             else:
-                info += f'[{i}] {stream}' + sink_info
+                info += f'[{i}] {stream}' + sink_info + '\n'
             i += 1
-    info = info.replace('\n ', '\n    ')
     return info[:-1]
 
 # %% Path utilities
