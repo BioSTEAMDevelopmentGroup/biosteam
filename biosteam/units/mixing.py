@@ -13,7 +13,6 @@
 .. autoclass:: biosteam.units.mixing.MockMixer
 
 """
-from ..utils import ignore_docking_warnings
 from .._unit import Unit
 from .._graphics import mixer_graphics
 import flexsolve as flx
@@ -82,40 +81,6 @@ class Mixer(Unit):
     def _run(self):
         s_out, = self.outs
         s_out.mix_from(self.ins, vle=self.rigorous)
-        
-    @ignore_docking_warnings
-    def insert(self, stream):
-        """
-        Insert Mixer object between two units at a given stream connection.
-        
-        Examples
-        --------
-        >>> from biosteam import *
-        >>> settings.set_thermo(['Water'], cache=True)
-        >>> feed = Stream('feed')
-        >>> other_feed = Stream('other_feed')
-        >>> P1 = Pump('P1', feed, 'pump_outlet')
-        >>> H1 = HXutility('H1', P1-0, T=310)
-        >>> M1 = Mixer('M1', other_feed, 'mixer_outlet')
-        >>> M1.insert(P1-0)
-        >>> M1.show()
-        Mixer: M1
-        ins...
-        [0] other_feed
-            phase: 'l', T: 298.15 K, P: 101325 Pa
-            flow: 0
-        [1] pump_outlet  from  Pump-P1
-            phase: 'l', T: 298.15 K, P: 101325 Pa
-            flow: 0
-        outs...
-        [0] mixer_outlet  to  HXutility-H1
-            phase: 'l', T: 298.15 K, P: 101325 Pa
-            flow: 0
-        
-        """
-        sink = stream.sink
-        sink.ins.replace(stream, self.outs[0])
-        self.ins.append(stream)
         
 
 class SteamMixer(Unit):
