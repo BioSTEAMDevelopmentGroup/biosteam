@@ -11,7 +11,7 @@
 import thermosteam as tmo
 import biosteam as bst
 from .._unit import streams
-from biosteam.utils import as_stream
+from biosteam.utils import as_stream, MissingStream
 from biosteam.process_tools import utils
 from inspect import signature
 
@@ -302,9 +302,10 @@ def create_streams(defaults, user_streams, kind, fixed_size):
     Stream = tmo.Stream
     isfunc = callable
     isa = isinstance
+    stream_types = (Stream, MissingStream)
     if user_streams is None:
         return [(kwargs() if isfunc(kwargs) else Stream(**ignore_undefined_chemicals(kwargs))) for kwargs in defaults]
-    if isa(user_streams, Stream):
+    if isa(user_streams, stream_types):
         user_streams = [user_streams]
     N_defaults = len(defaults)
     N_streams = len(user_streams)
@@ -314,7 +315,7 @@ def create_streams(defaults, user_streams, kind, fixed_size):
     streams = []
     index = 0
     for kwargs, stream in zip(defaults, user_streams):
-        if not isa(stream, Stream): 
+        if not isa(stream, stream_types): 
             if isa(stream, str):
                 if isfunc(kwargs): 
                     stream = kwargs()
