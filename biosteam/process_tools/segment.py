@@ -17,17 +17,16 @@ class Segment:
         self.source = source = end_stream.source # Segment ends here
         self.source_index = source.outs.index(end_stream)
         
-    def pop(self, join_ends=False):
-        if join_ends:
-            start_inlet = self.sink.ins[self.sink_index]
-            self.sink.ins[self.sink_index] = None
-        else:
-            self.sink.ins[self.sink_index] = None
+    def disconnect(self, join_ends=False):
         end_stream = self.source.outs[self.source_index] # Segment includes end stream
         end_unit = end_stream.sink # Segment does not include end unit
         inlet_index = end_unit.ins.index(end_stream)
         end_unit.ins[inlet_index] = None
-        if join_ends: end_unit.ins[inlet_index] = start_inlet
+        if join_ends: 
+            # Join the upstream and downstream ends.
+            # This maintains the path but without the segment.
+            end_unit.ins[inlet_index] = self.sink.ins[self.sink_index]
+        self.sink.ins[self.sink_index] = None
             
     def insert(self, stream):
         stream.sink.ins.replace(stream, self.source.outs[self.source_index])
