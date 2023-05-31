@@ -301,6 +301,8 @@ class Flowsheet:
                 raise LookupError(f"no registered item '{ID}'")
             elif N == 1:
                 obj = obj[0]
+            else:
+                obj = sorted(obj, key=lambda x: x.ID)
             return obj
         else:
             raise TypeError('ID must be either a string or a Unit subclass')
