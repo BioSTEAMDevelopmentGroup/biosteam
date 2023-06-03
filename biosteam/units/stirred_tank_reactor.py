@@ -132,19 +132,19 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
         flow (kmol/hr): Water    6.66e+03
                         Glucose  10.5
                         Sucrose  62.5
-                        Yeast    415
+                        Yeast    456
     outs...
     [0] CO2
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water    10
-                        Ethanol  3.73
+        flow (kmol/hr): Water    9.95
+                        Ethanol  3.7
                         CO2      244
     [1] product
         phase: 'l', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water    6.59e+03
                         Ethanol  240
                         Glucose  4.07
-                        Yeast    484
+                        Yeast    532
     
     >>> R1.results()
     Continuous fermentation                                    Units                   R1
@@ -369,22 +369,22 @@ class AeratedBioreactor(StirredTankReactor):
         phase: 'l', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water    6.66e+03
                         Glucose  139
-    [1] s40
+    [1] s3
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): O2  914
-                        N2  3.44e+03
+        flow (kmol/hr): O2  1.05e+03
+                        N2  3.97e+03
     [2] air
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow: 0
     outs...
     [0] vent
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water  108
-                        O2     498
-                        N2     3.44e+03
+        flow (kmol/hr): Water  112
+                        O2     639
+                        N2     3.97e+03
     [1] product
         phase: 'l', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water    5.52e+03
+        flow (kmol/hr): Water    4.94e+03
                         Glucose  69.4
     
     """
