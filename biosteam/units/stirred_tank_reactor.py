@@ -406,7 +406,7 @@ class AeratedBioreactor(StirredTankReactor):
         ):
         StirredTankReactor.__init__(self, ID, ins, outs, thermo, **kwargs)
         self.reactions = reactions
-        self.theta_O2 = theta_O2 # Concentration of O2 in the liquid as a fraction of saturation.
+        self.theta_O2 = theta_O2 # Average concentration of O2 in the liquid as a fraction of saturation.
         self.Q_O2_consumption = Q_O2_consumption # Forced duty per O2 consummed [kJ/kmol].
     
     def _get_duty(self):
@@ -498,10 +498,12 @@ class AeratedBioreactor(StirredTankReactor):
         vent = self.vent
         P_O2_air = air_in.get_property('P', 'bar') * air_in.imol['O2'] / air_in.F_mol
         P_O2_vent = vent.get_property('P', 'bar') * vent.imol['O2'] / vent.F_mol
-        P_O2_ave = 0.5 * (P_O2_air + P_O2_vent)
-        C_O2 = aeration.C_O2_L(self.T, P_O2_ave) # mol / kg
+        C_O2_sat_air = aeration.C_O2_L(self.T, P_O2_air) # mol / kg
+        C_O2_sat_vent = aeration.C_O2_L(self.T, P_O2_vent) # mol / kg
+        theta_O2 = self.theta_O2
+        LMDF = aeration.log_mean_driving_force(C_O2_sat_vent, C_O2_sat_air, theta_O2 * C_O2_sat_vent, theta_O2 * C_O2_sat_air)
         # print('ka_L', format(ka_L, '.2f'))
-        OTR = ka_L * C_O2 * (1. - self.theta_O2) * V * 1000 # mol / s
+        OTR = ka_L * LMDF * V * 1000 # mol / s
         # print('OTR', format(OTR, '.2f'))
         return OTR 
         
