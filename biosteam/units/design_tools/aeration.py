@@ -6,6 +6,7 @@ __all__ = (
     'H_O2',
     'C_O2_L',
     'ka_L',
+    'P_at_ka_L',
     'log_mean_driving_force',
 )
 
@@ -31,17 +32,36 @@ def C_O2_L(T, P_O2):
 
 def ka_L(P, V, U):
     """
-    Return the lumped mass transfer coefficient (k_L) and the
-    mean bubble specific interfacial area (a) given the
+    Return the lumped mass transfer coefficient and the
+    mean bubble specific interfacial area (k_L*a; 1/s) given the
     gassed power input (P; W), the total volume (V; m3), and the
     gas superficial velocity in the reactor (m/s).
     
     Correlation from:
-    Gregory T. Benz. Bioreactor Design for Chemical Engineers. Benz Technology International, Inc.
-    https://www.academia.edu/19636928/Bioreactor_Design_for_Chemical_Engineers
+    Humbird, D.; Davis, R.; McMillan, J. D. 
+    Aeration Costs in Stirred-Tank and Bubble Column Bioreactors.
+    Biochemical Engineering Journal 2017, 127, 161–166.
+    https://doi.org/10.1016/j.bej.2017.08.006.
+
 
     """
     return 0.002 * (P / V) ** 0.7 * U ** 0.2
+
+def P_at_ka_L(ka_L, V, U):
+    """
+    Return the gassed power input (P; W) given the lumped mass transfer 
+    coefficient and the mean bubble specific interfacial area (k_L*a; 1/s),
+    the total volume (V; m3), and the gas superficial velocity in the reactor (m/s).
+    
+    Correlation from:
+    Humbird, D.; Davis, R.; McMillan, J. D. 
+    Aeration Costs in Stirred-Tank and Bubble Column Bioreactors.
+    Biochemical Engineering Journal 2017, 127, 161–166.
+    https://doi.org/10.1016/j.bej.2017.08.006.
+
+
+    """
+    return (ka_L / (0.002 * U ** 0.2)) ** (1 / 0.7) * V
 
 def log_mean_driving_force(C_sat_out, C_sat_in, C_out, C_in=None):
     """
