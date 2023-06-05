@@ -5,12 +5,21 @@
 __all__ = (
     'H_O2',
     'C_O2_L',
-    'ka_L',
-    'P_at_ka_L',
+    'kLa',
+    'P_at_kLa',
     'log_mean_driving_force',
 )
 
 from math import exp, log
+
+kLa_coefficients = {
+    # Garcia-Ochoa, F.; Gomez, E. Bioreactor Scale-up and Oxygen Transfer Rate
+    # in Microbial Processes: An Overview. Biotechnology Advances 2009, 27 (2),
+    # 153–176. https://doi.org/10.1016/j.biotechadv.2008.10.006.
+    # Name: (a, b, c) # kLa = a * (P/V) ^ b * U^c 
+    'Figueiredo & Calderbank': (0.026, 0.6, 0.8),
+    "Van't Riet": (0.026, 0.4, 0.5),
+}
 
 def H_O2(T): 
     """
@@ -30,38 +39,67 @@ def C_O2_L(T, P_O2):
     partial pressure of O2 in the gas [bar]."""
     return P_O2 * H_O2(T)
 
-def ka_L(P, V, U):
+def kLa(P, V, U, coefficients=None):
     """
     Return the lumped mass transfer coefficient and the
     mean bubble specific interfacial area (k_L*a; 1/s) given the
     gassed power input (P; W), the total volume (V; m3), and the
     gas superficial velocity in the reactor (m/s).
     
+    Other Parameters
+    ----------------
+    coefficients : Iterable[float]|str, optional
+        Name of author or an iterable in the form of a, b, c. The
+        
+    Notes
+    ------
+    The correlation is kLa = a * (P/V) ^ b * U ^ c.
+        
     Correlation from:
-    Humbird, D.; Davis, R.; McMillan, J. D. 
-    Aeration Costs in Stirred-Tank and Bubble Column Bioreactors.
-    Biochemical Engineering Journal 2017, 127, 161–166.
-    https://doi.org/10.1016/j.bej.2017.08.006.
+    Van’t Riet, K. Review of Measuring Methods and Results in Nonviscous 
+    Gas-Liquid Mass Transfer in Stirred Vessels. Ind. Eng. Chem. Proc. Des. 
+    Dev. 1979, 18 (3), 357–364. https://doi.org/10.1021/i260071a001.
 
 
     """
-    return 0.002 * (P / V) ** 0.7 * U ** 0.2
+    if coefficients is None:
+        a, b, c = kLa_coefficients['Figueiredo & Calderbank']
+    elif isinstance(coefficients, str):
+        a, b, c = kLa_coefficients[coefficients]
+    else:
+        a, b, c = coefficients
+    return a * (P / V) ** b * U ** c
 
-def P_at_ka_L(ka_L, V, U):
+def P_at_kLa(kLa, V, U, coefficients=None):
     """
     Return the gassed power input (P; W) given the lumped mass transfer 
     coefficient and the mean bubble specific interfacial area (k_L*a; 1/s),
     the total volume (V; m3), and the gas superficial velocity in the reactor (m/s).
     
+    Other Parameters
+    ----------------
+    coefficients : Iterable[float]|str, optional
+        Name of author or an iterable in the form of a, b, c. The
+        
+    Notes
+    ------
+    The correlation is kLa = a * (P/V) ^ b * U ^ c.
+    
     Correlation from:
-    Humbird, D.; Davis, R.; McMillan, J. D. 
-    Aeration Costs in Stirred-Tank and Bubble Column Bioreactors.
-    Biochemical Engineering Journal 2017, 127, 161–166.
-    https://doi.org/10.1016/j.bej.2017.08.006.
+    Van’t Riet, K. Review of Measuring Methods and Results in Nonviscous 
+    Gas-Liquid Mass Transfer in Stirred Vessels. Ind. Eng. Chem. Proc. Des. 
+    Dev. 1979, 18 (3), 357–364. https://doi.org/10.1021/i260071a001.
+
 
 
     """
-    return (ka_L / (0.002 * U ** 0.2)) ** (1 / 0.7) * V
+    if coefficients is None:
+        a, b, c = kLa_coefficients['Figueiredo & Calderbank']
+    elif isinstance(coefficients, str):
+        a, b, c = kLa_coefficients[coefficients]
+    else:
+        a, b, c = coefficients
+    return (kLa / (a * U ** c)) ** (1 / b) * V
 
 def log_mean_driving_force(C_sat_out, C_sat_in, C_out, C_in=None):
     """

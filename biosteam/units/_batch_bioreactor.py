@@ -25,7 +25,7 @@ __all__ = ('BatchBioreactor',)
 @cost('Reactor volume', 'Reactors', CE=521.9, cost=844000,
       S=3785, n=0.5, BM=1.5, N='Number of reactors')
 @cost('Reactor duty', 'Heat exchangers', CE=522, cost=23900,
-      S=20920000.0, n=0.7, BM=2.2, N='Number of reactors') # Based on a similar heat exchanger
+      S=-20920000.0, n=0.7, BM=2.2, N='Number of reactors') # Based on a similar heat exchanger
 class BatchBioreactor(Unit, isabstract=True):
     """
     Abstract Bioreactor class. Conversion is based on reaction time, `tau`.
@@ -197,14 +197,10 @@ class BatchBioreactor(Unit, isabstract=True):
         if self.autoselect_N:
             N = self.N_at_minimum_capital_cost
         elif self.V:
-            f = lambda N: v_0 / N / V_wf * (tau + tau_0) / (1 - 1 / N) - self.V
-            if f(self.Nmax) > 0.:
-                N = self.Nmax
-            elif f(self.Nmin) < 0.:
-                N = self.Nmin
+            N = v_0 / self.V / V_wf * (tau + tau_0) + 1
+            if N < 2:
+                N = 2
             else:
-                N = flx.IQ_interpolation(f, self.Nmin, self.Nmax,
-                                         xtol=0.01, ytol=0.5, checkbounds=False)
                 N = ceil(N)
         else:
             N = self._N
@@ -212,7 +208,7 @@ class BatchBioreactor(Unit, isabstract=True):
         Design['Number of reactors'] = N
         Design['Recirculation flow rate'] = v_0 / N
         duty = self.Hnet
-        Design['Reactor duty'] = abs(duty)
+        Design['Reactor duty'] = duty
         self.add_heat_utility(duty, self.T)
         
     

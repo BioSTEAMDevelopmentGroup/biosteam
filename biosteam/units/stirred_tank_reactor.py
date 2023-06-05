@@ -294,35 +294,30 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
         
         if self.batch:
             v_0 = ins_F_vol
-            tau = self._tau
+            tau = self.tau
             tau_0 = self.tau_0
             V_wf = self.V_wf
             Design = self.design_results
             V_max = self.V_max
-            N_min = 2
-            N_max = v_0 / V_wf * (tau + tau_0) / V_max
-            f = lambda N: v_0 / N / V_wf * (tau + tau_0) / (1 - 1 / N) - V_max
-            if f(N_min) < 0.:
-                N = N_min
+            N = v_0 / V_max / V_wf * (tau + tau_0) + 1
+            if N < 2:
+                N = 2
             else:
-                N = flx.IQ_interpolation(f, N_min, N_max,
-                                         xtol=0.01, ytol=0.5, checkbounds=False)
                 N = ceil(N)
             Design.update(size_batch(v_0, tau, tau_0, N, V_wf))
+            V_reactor = Design['Reactor volume']
         else:
             V_total = ins_F_vol * self.tau / self.V_wf
             N = ceil(V_total/self.V_max)
             if N == 0:
                 V_reactor = 0
-                D = 0
-                L = 0
             else:
                 V_reactor = V_total / N
-                D = cylinder_diameter_from_volume(V_reactor, self.length_to_diameter)
-                D *= 3.28084 # Convert from m to ft
-                L = D * length_to_diameter
             Design['Reactor volume'] = V_reactor
-        
+            
+        D = cylinder_diameter_from_volume(V_reactor, self.length_to_diameter)
+        D *= 3.28084 # Convert from m to ft
+        L = D * length_to_diameter
         Design['Residence time'] = self.tau
         Design.update(self._vessel_design(float(P_psi), float(D), float(L)))
         self.vacuum_system = bst.VacuumSystem(self) if P_pascal < 1e5 else None
@@ -453,13 +448,14 @@ class AeratedBioreactor(StirredTankReactor):
     def __init__(
             self, ID='', ins=None, outs=(), thermo=None,  
             *, reactions, theta_O2=0.5, Q_O2_consumption=None,
-            optimize_power=None, **kwargs,
+            optimize_power=None, kLa_coefficients=None, **kwargs,
         ):
         StirredTankReactor.__init__(self, ID, ins, outs, thermo, **kwargs)
         self.reactions = reactions
         self.theta_O2 = theta_O2 # Average concentration of O2 in the liquid as a fraction of saturation.
         self.Q_O2_consumption = Q_O2_consumption # Forced duty per O2 consummed [kJ/kmol].
-        self.optimize_power = True if optimize_power is None else optimize_power # 
+        self.optimize_power = True if optimize_power is None else optimize_power
+        self.kLa_coefficients = kLa_coefficients
     
     def _get_duty(self):
         if self.Q_O2_consumption is None:
@@ -557,21 +553,25 @@ class AeratedBioreactor(StirredTankReactor):
             y0 = air_flow_rate_objective(OUR)
             if y0 <= 0.: # Correlation is not perfect and special cases lead to OTR > OUR
                 return
-            
-            flx.IQ_interpolation(f, x0=OUR, x1=10 * OUR, 
-                                 y0=y0, ytol=1e-3, xtol=1e-3)
+            try:
+                flx.IQ_interpolation(f, x0=OUR, x1=10 * OUR, 
+                                     y0=y0, ytol=1e-3, xtol=1e-3)
+            except:
+                breakpoint()
         
     def run_reactions(self, effluent):
         self.reactions.force_reaction(effluent)
     
     def solve_total_power(self, OUR): # For OTR = OUR [mol / s]
         air_in = self.cooled_compressed_air
+        N_reactors = self.parallel['self']
+        operating_time = self.tau / self.design_results.get('Batch time', 1.)
         V = self.get_design_result('Reactor volume', 'm3') * self.V_wf
         D = self.get_design_result('Diameter', 'm')
-        F = air_in.get_total_flow('m3/s')
+        F = air_in.get_total_flow('m3/s') / N_reactors / operating_time
         R = 0.5 * D
         A = pi * R * R
-        U = F / A
+        self.superficial_gas_flow = U = F / A # m / s 
         vent = self.vent
         P_O2_air = air_in.get_property('P', 'bar') * air_in.imol['O2'] / air_in.F_mol
         P_O2_vent = vent.get_property('P', 'bar') * vent.imol['O2'] / vent.F_mol
@@ -579,24 +579,23 @@ class AeratedBioreactor(StirredTankReactor):
         C_O2_sat_vent = aeration.C_O2_L(self.T, P_O2_vent) # mol / kg
         theta_O2 = self.theta_O2
         LMDF = aeration.log_mean_driving_force(C_O2_sat_vent, C_O2_sat_air, theta_O2 * C_O2_sat_vent, theta_O2 * C_O2_sat_air)
-        ka_L = OUR / (LMDF * V * self.effluent_density)
-        P = aeration.P_at_ka_L(ka_L, V, U)
-        self.kW_per_m3 = (P / 1000 - self.compressor.power_utility.consumption) / V
+        kLa = OUR / (LMDF * V * self.effluent_density * N_reactors * operating_time)
+        P = aeration.P_at_kLa(kLa, V, U, self.kLa_coefficients)
+        self.kW_per_m3 = P / 1000 / V
         return P
     
     def get_OTR(self):
         V = self.get_design_result('Reactor volume', 'm3') * self.V_wf
-        P = 1000 * (
-            self.compressor.power_utility.consumption 
-            + self.kW_per_m3 * V
-        ) # W
+        operating_time = self.tau / self.design_results.get('Batch time', 1.)
+        N_reactors = self.parallel['self']
+        P = 1000 * self.kW_per_m3 * V # W
         air_in = self.cooled_compressed_air
         D = self.get_design_result('Diameter', 'm')
-        F = air_in.get_total_flow('m3/s')
+        F = air_in.get_total_flow('m3/s') / N_reactors / operating_time
         R = 0.5 * D
         A = pi * R * R
-        U = F / A
-        ka_L = aeration.ka_L(P, V, U) # 1 / s 
+        self.superficial_gas_flow = U = F / A # m / s 
+        kLa = aeration.kLa(P, V, U, self.kLa_coefficients) # 1 / s 
         air_in = self.cooled_compressed_air
         vent = self.vent
         P_O2_air = air_in.get_property('P', 'bar') * air_in.imol['O2'] / air_in.F_mol
@@ -605,8 +604,8 @@ class AeratedBioreactor(StirredTankReactor):
         C_O2_sat_vent = aeration.C_O2_L(self.T, P_O2_vent) # mol / kg
         theta_O2 = self.theta_O2
         LMDF = aeration.log_mean_driving_force(C_O2_sat_vent, C_O2_sat_air, theta_O2 * C_O2_sat_vent, theta_O2 * C_O2_sat_air)
-        OTR = ka_L * LMDF * self.effluent_density * V # mol / s
-        return OTR 
+        OTR = kLa * LMDF * self.effluent_density * V * N_reactors * operating_time # mol / s
+        return OTR
         
     def _inlet_air_pressure(self):
         StirredTankReactor._design(self)
