@@ -266,13 +266,22 @@ class HeatUtility:
     >>> hu.show()
     HeatUtility: low_pressure_steam
      duty: 1.05e+03 kJ/hr
-     flow: 0.0271 kmol/hr
-     cost: 0.00645 USD/hr
+     flow: 0.0272 kmol/hr
+     cost: 0.00647 USD/hr
    
     All results are accessible:
     
     >>> hu.ID, hu.duty, hu.flow, hu.cost
-    ('low_pressure_steam', 1052., 0.02711, 0.006448)
+    ('low_pressure_steam', 1052.6315789473686, 0.02721274387089031, 0.006471190492497716)
+    HeatUtility: low_pressure_steam
+     duty: 1.05e+03 kJ/hr
+     flow: 0.0272 kmol/hr
+     cost: 0.00647 USD/hr
+   
+    All results are accessible:
+    
+    >>> hu.ID, hu.duty, hu.flow, hu.cost
+    ('low_pressure_steam', 1052.6315789473686, 0.02721274387089031, 0.006471190492497716)
            
     """
     __slots__ = ('inlet_utility_stream', 'outlet_utility_stream', 'duty',

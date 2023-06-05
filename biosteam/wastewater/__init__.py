@@ -90,7 +90,7 @@ def create_wastewater_treatment_system(*args, kind=None, **kwargs):
     
     >>> # With the high-rate WWT process
     >>> get_MESP(process_ID=6, kind='high-rate')
-    high-rate MESP: $1.7/gal
+    high-rate MESP: $1.6/gal
     
     References
     ----------

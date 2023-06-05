@@ -84,19 +84,39 @@ class Fermentation(BatchBioreactor):
         flow (kmol/hr): Water    6.66e+03
                         Glucose  10.5
                         Sucrose  62.5
-                        Yeast    415
+                        Yeast    456
     outs...
     [0] CO2
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water    10
-                        Ethanol  3.73
+        flow (kmol/hr): Water    9.95
+                        Ethanol  3.71
                         CO2      244
     [1] product
         phase: 'l', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water    6.59e+03
                         Ethanol  240
                         Glucose  4.07
-                        Yeast    484
+                        Yeast    532
+    Fermentation: F1
+    ins...
+    [0] feed
+        phase: 'l', T: 305.15 K, P: 101325 Pa
+        flow (kmol/hr): Water    6.66e+03
+                        Glucose  10.5
+                        Sucrose  62.5
+                        Yeast    456
+    outs...
+    [0] CO2
+        phase: 'g', T: 305.15 K, P: 101325 Pa
+        flow (kmol/hr): Water    9.95
+                        Ethanol  3.71
+                        CO2      244
+    [1] product
+        phase: 'l', T: 305.15 K, P: 101325 Pa
+        flow (kmol/hr): Water    6.59e+03
+                        Ethanol  240
+                        Glucose  4.07
+                        Yeast    532
     >>> F1.results()
     Fermentation                                       Units        F1
     Electricity         Power                             kW      66.6

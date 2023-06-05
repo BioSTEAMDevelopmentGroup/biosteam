@@ -130,12 +130,12 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
     >>> A1.simulate()
     >>> A1.results(with_units=False)
     Low pressure steam   Duty                                                    1.68e+03
-                         Flow                                                      0.0433
-                         Cost                                                      0.0103
+                         Flow                                                      0.0436
+                         Cost                                                      0.0104
     Design               Number of reactors                                             3
                          Vessel type                                             Vertical
                          Length                                                      52.1
-                         Diameter                                                    1.67
+                         Diameter                                                    1.68
                          Weight                                                   2.9e+03
                          Wall thickness                                              0.25
                          Vessel material                              Stainless steel 316
@@ -144,7 +144,24 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
                          Silica gel                                              7.23e+04
                          Heat exchanger regeneration - Double pipe                    117
     Total purchase cost                                                          2.49e+05
-    Utility cost                                                                   0.0103
+    Utility cost                                                                   0.0104
+    Name: A1, dtype: object
+    Low pressure steam   Duty                                                    1.68e+03
+                         Flow                                                      0.0436
+                         Cost                                                      0.0104
+    Design               Number of reactors                                             3
+                         Vessel type                                             Vertical
+                         Length                                                      52.1
+                         Diameter                                                    1.68
+                         Weight                                                   2.9e+03
+                         Wall thickness                                              0.25
+                         Vessel material                              Stainless steel 316
+    Purchase cost        Vertical pressure vessel                                1.47e+05
+                         Platform and ladders                                    2.95e+04
+                         Silica gel                                              7.23e+04
+                         Heat exchanger regeneration - Double pipe                    117
+    Total purchase cost                                                          2.49e+05
+    Utility cost                                                                   0.0104
     Name: A1, dtype: object
     
     References

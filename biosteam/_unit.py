@@ -1134,9 +1134,12 @@ class Unit:
         >>> tank = bst.StorageTank(None, feed)
         >>> tank.simulate()
         >>> tank.get_design_result('Total volume', 'm3')
-        1214.23
+        1214.1910732126264
         >>> tank.get_design_result('Total volume', 'L')
-        1214239.47
+        1214191.0732126262
+        1214.1910732126264
+        >>> tank.get_design_result('Total volume', 'L')
+        1214191.0732126262
         
         """
         return convert(self.design_results[key], self._units[key], units)

@@ -267,9 +267,9 @@ class HXutility(HX):
     >>> hx.results()
     Heat exchanger                                            Units       hx
     Low pressure steam  Duty                                  kJ/hr 1.01e+06
-                        Flow                                kmol/hr     26.1
-                        Cost                                 USD/hr     6.21
-    Design              Area                                   ft^2       60
+                        Flow                                kmol/hr     26.2
+                        Cost                                 USD/hr     6.22
+    Design              Area                                   ft^2     59.9
                         Overall heat transfer coefficient  kW/m^2/K      0.5
                         Log-mean temperature difference           K      101
                         Fouling correction factor                          1
@@ -279,7 +279,7 @@ class HXutility(HX):
                         Total tube length                        ft       20
     Purchase cost       Double pipe                             USD 4.78e+03
     Total purchase cost                                         USD 4.78e+03
-    Utility cost                                             USD/hr     6.21
+    Utility cost                                             USD/hr     6.22
     
     Run heat exchanger by vapor fraction:
     
@@ -296,13 +296,13 @@ class HXutility(HX):
                         Ethanol  200
     outs...
     [0] product
-        phase: 'g', T: 357.42 K, P: 101325 Pa
+        phase: 'g', T: 357.44 K, P: 101325 Pa
         flow (kmol/hr): Water    200
                         Ethanol  200
     >>> hx.results()
     Heat exchanger                                            Units       hx
     Low pressure steam  Duty                                  kJ/hr 1.94e+07
-                        Flow                                kmol/hr      499
+                        Flow                                kmol/hr      500
                         Cost                                 USD/hr      119
     Design              Area                                   ft^2      716
                         Overall heat transfer coefficient  kW/m^2/K        1
@@ -323,7 +323,78 @@ class HXutility(HX):
     >>> hx.results() # Notice how the duty, utility cost, and capital cost decreased
     Heat exchanger                                            Units       hx
     Low pressure steam  Duty                                  kJ/hr 1.84e+07
-                        Flow                                kmol/hr      474
+                        Flow                                kmol/hr      475
+                        Cost                                 USD/hr      113
+    Design              Area                                   ft^2      680
+                        Overall heat transfer coefficient  kW/m^2/K        1
+                        Log-mean temperature difference           K     80.8
+                        Fouling correction factor                          1
+                        Tube side pressure drop                 psi      1.5
+                        Shell side pressure drop                psi      1.5
+                        Operating pressure                      psi       50
+                        Total tube length                        ft       20
+    Purchase cost       Floating head                           USD 2.61e+04
+    Total purchase cost                                         USD 2.61e+04
+    Utility cost                                             USD/hr      113
+    Heat exchanger                                            Units       hx
+    Low pressure steam  Duty                                  kJ/hr 1.01e+06
+                        Flow                                kmol/hr     26.2
+                        Cost                                 USD/hr     6.22
+    Design              Area                                   ft^2     59.9
+                        Overall heat transfer coefficient  kW/m^2/K      0.5
+                        Log-mean temperature difference           K      101
+                        Fouling correction factor                          1
+                        Tube side pressure drop                 psi      1.5
+                        Shell side pressure drop                psi        5
+                        Operating pressure                      psi       50
+                        Total tube length                        ft       20
+    Purchase cost       Double pipe                             USD 4.78e+03
+    Total purchase cost                                         USD 4.78e+03
+    Utility cost                                             USD/hr     6.22
+    
+    Run heat exchanger by vapor fraction:
+    
+    >>> feed = Stream('feed', Water=200, Ethanol=200)
+    >>> hx = HXutility('hx', ins=feed, outs='product', V=1,
+    ...                rigorous=True) # Include VLE
+    >>> hx.simulate()
+    >>> hx.show()
+    HXutility: hx
+    ins...
+    [0] feed
+        phase: 'l', T: 298.15 K, P: 101325 Pa
+        flow (kmol/hr): Water    200
+                        Ethanol  200
+    outs...
+    [0] product
+        phase: 'g', T: 357.44 K, P: 101325 Pa
+        flow (kmol/hr): Water    200
+                        Ethanol  200
+    >>> hx.results()
+    Heat exchanger                                            Units       hx
+    Low pressure steam  Duty                                  kJ/hr 1.94e+07
+                        Flow                                kmol/hr      500
+                        Cost                                 USD/hr      119
+    Design              Area                                   ft^2      716
+                        Overall heat transfer coefficient  kW/m^2/K        1
+                        Log-mean temperature difference           K     80.8
+                        Fouling correction factor                          1
+                        Tube side pressure drop                 psi      1.5
+                        Shell side pressure drop                psi      1.5
+                        Operating pressure                      psi       50
+                        Total tube length                        ft       20
+    Purchase cost       Floating head                           USD 2.65e+04
+    Total purchase cost                                         USD 2.65e+04
+    Utility cost                                             USD/hr      119
+
+    We can also specify the heat transfer efficiency of the heat exchanger:
+        
+    >>> hx.heat_transfer_efficiency = 1. # Originally 0.95 for low pressure steam
+    >>> hx.simulate()
+    >>> hx.results() # Notice how the duty, utility cost, and capital cost decreased
+    Heat exchanger                                            Units       hx
+    Low pressure steam  Duty                                  kJ/hr 1.84e+07
+                        Flow                                kmol/hr      475
                         Cost                                 USD/hr      113
     Design              Area                                   ft^2      680
                         Overall heat transfer coefficient  kW/m^2/K        1
@@ -663,13 +734,41 @@ class HXprocess(HX):
         phase: 'l', T: 303.15 K, P: 101325 Pa
         flow (kmol/hr): Water  200
     [1] out_b
-        phase: 'l', T: 327.92 K, P: 101325 Pa
+        phase: 'l', T: 328.09 K, P: 101325 Pa
         flow (kmol/hr): Ethanol  200
     >>> hx.results()
     Heat exchanger                                            Units       hx
-    Design              Area                                   ft^2      367
+    Design              Area                                   ft^2      369
                         Overall heat transfer coefficient  kW/m^2/K      0.5
-                        Log-mean temperature difference           K     11.5
+                        Log-mean temperature difference           K     11.4
+                        Fouling correction factor                          1
+                        Tube side pressure drop                 psi        5
+                        Shell side pressure drop                psi        5
+                        Operating pressure                      psi     14.7
+                        Total tube length                        ft       20
+    Purchase cost       Floating head                           USD 2.23e+04
+    Total purchase cost                                         USD 2.23e+04
+    Utility cost                                             USD/hr        0
+    HXprocess: hx
+    ins...
+    [0] in_a
+        phase: 'l', T: 350 K, P: 101325 Pa
+        flow (kmol/hr): Water  200
+    [1] in_b
+        phase: 'l', T: 298.15 K, P: 101325 Pa
+        flow (kmol/hr): Ethanol  200
+    outs...
+    [0] out_a
+        phase: 'l', T: 303.15 K, P: 101325 Pa
+        flow (kmol/hr): Water  200
+    [1] out_b
+        phase: 'l', T: 328.09 K, P: 101325 Pa
+        flow (kmol/hr): Ethanol  200
+    >>> hx.results()
+    Heat exchanger                                            Units       hx
+    Design              Area                                   ft^2      369
+                        Overall heat transfer coefficient  kW/m^2/K      0.5
+                        Log-mean temperature difference           K     11.4
                         Fouling correction factor                          1
                         Tube side pressure drop                 psi        5
                         Shell side pressure drop                psi        5

@@ -19,6 +19,7 @@ def pytest_configure(config):
     os.environ["NUMBA_DISABLE_JIT"] = config.getoption("--disable-numba")
     os.environ["DISABLE_PREFERENCES"] = "1"
     os.environ["FILTER_WARNINGS"] = "1"
+    os.environ["PY_IGNORE_IMPORTMISMATCH"] = "1"
 
 # def pytest_collection_modifyitems(session, config, items):
 #     """Modifies test items in place to ensure test modules run in a given order."""
