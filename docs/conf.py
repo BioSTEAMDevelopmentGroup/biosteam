@@ -264,10 +264,10 @@ html_theme_options = {
         'image_light': 'logo.png',
         'image_dark': 'logo_dark.png'
     },
-    "announcement": (
-        "<p>Join us on Feb 17, 9:15-10:15am CST, for a BioSTEAM workshop! "
-        "<a href='mailto: biosteamdevelopmentgroup@gmail.com'>Email us for details</a></p>"
-    ),
+    # "announcement": (
+    #     "<p>Join us on Feb 17, 9:15-10:15am CST, for a BioSTEAM workshop! "
+    #     "<a href='mailto: biosteamdevelopmentgroup@gmail.com'>Email us for details</a></p>"
+    # ),
     "external_links": [
       {"name": "Bioindustrial-Park", "url": "https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park"},
       {"name": "QSDsan", "url": "https://qsdsan.readthedocs.io/en/latest/"},
