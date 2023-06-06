@@ -11,7 +11,6 @@ import numpy as np
 from .. import Unit
 from .design_tools import size_batch
 from .decorators import cost
-import flexsolve as flx
 from math import ceil
 
 __all__ = ('BatchBioreactor',)
@@ -25,7 +24,8 @@ __all__ = ('BatchBioreactor',)
 @cost('Reactor volume', 'Reactors', CE=521.9, cost=844000,
       S=3785, n=0.5, BM=1.5, N='Number of reactors')
 @cost('Reactor duty', 'Heat exchangers', CE=522, cost=23900,
-      S=-20920000.0, n=0.7, BM=2.2, N='Number of reactors') # Based on a similar heat exchanger
+      S=20920000.0, n=0.7, BM=2.2, N='Number of reactors',
+      magnitude=True) # Based on a similar heat exchanger
 class BatchBioreactor(Unit, isabstract=True):
     """
     Abstract Bioreactor class. Conversion is based on reaction time, `tau`.

@@ -45,11 +45,15 @@ class CostItem:
     condition : function(dict), optional
         Cost item is only evaluated if `condition` returns True given the 
         `design_results` dictionary.
+    magnitude : bool, optional
+        Whether to take the absolute value of the size parameter.
     
     """
     __slots__ = ('_basis', '_units', 'S', 'lb', 'ub', 'CE',
-                 'cost', 'n', 'kW', 'N', 'f', 'condition')
-    def __init__(self, basis, units, S, lb, ub, CE, cost, n, kW, N, f, condition):
+                 'cost', 'n', 'kW', 'N', 'f', 'condition', 'magnitude')
+    
+    def __init__(self, basis, units, S, lb, ub, CE, cost, n, kW, N, f, condition,
+                 magnitude):
         if f:
             if (cost is not None or n is not None):
                 raise ValueError('cannot define parameters `cost` and `n` '
@@ -58,24 +62,24 @@ class CostItem:
         else:
             self.cost = 0. if cost is None else float(cost)
             self.n = 1. if n is None else float(n)
-        if lb is not None: lb = float(lb)
-        if ub is not None: ub = float(ub)
         if N:
             if not isinstance(N, str): # Prevent downstream error for common mistakes
                 raise ValueError("N parameter must be a string or None; not a "
                                  "'{type(N).__name__}' object")
         else:
             N = None
+        if magnitude is None: magnitude = False
         self._basis = str(basis)
         self._units = str(units)
         self.S = float(S)
-        self.lb = lb
-        self.ub = ub
+        self.lb = lb if lb is None else float(lb)
+        self.ub = ub if ub is None else float(ub)
         self.CE = float(CE)
         self.kW = 0. if kW is None else float(kW)
         self.N = N
         self.f = f
         self.condition = condition
+        self.magnitude = magnitude
     
     __getitem__ = object.__getattribute__
     __setitem__ = object.__setattr__
@@ -94,6 +98,7 @@ class CostItem:
         new.N = self.N
         new.f = self.f
         new.condition = self.condition
+        new.magnitude = self.magnitude
         return new
     
     @property
@@ -128,6 +133,7 @@ def _decorated_cost(self):
             if not x.condition(): continue
         I = bst.CE / x.CE
         S = D[x._basis]
+        if x.magnitude: S = abs(S)
         if x.lb is not None and S < x.lb:
             S = x.lb
         elif x.ub is not None:
@@ -178,7 +184,7 @@ def copy_algorithm(other, cls=None, run=True, design=True, cost=True):
     return cls
 
 def cost(basis, ID=None, *, CE, cost=None, n=None, S=1., lb=None, ub=None, kW=None, BM=1.,
-         units=None, N=None, lifetime=None, f=None, annual=None, condition=None):    
+         units=None, N=None, lifetime=None, f=None, annual=None, condition=None, magnitude=None):    
     r"""
     Add item (free-on-board) purchase cost based on exponential scale up.
     
@@ -224,9 +230,9 @@ def cost(basis, ID=None, *, CE, cost=None, n=None, S=1., lb=None, ub=None, kW=No
     
     """
     
-    return lambda cls: add_cost(cls, ID, basis, units, S, lb, ub, CE, cost, n, kW, BM, N, lifetime, f, annual, condition)
+    return lambda cls: add_cost(cls, ID, basis, units, S, lb, ub, CE, cost, n, kW, BM, N, lifetime, f, annual, condition, magnitude)
 
-def add_cost(cls, ID, basis, units, S, lb, ub, CE, cost, n, kW, BM, N, lifetime, f, annual, condition):
+def add_cost(cls, ID, basis, units, S, lb, ub, CE, cost, n, kW, BM, N, lifetime, f, annual, condition, magnitude):
     # Make sure new _units dictionary is defined
     if '_units' not in cls.__dict__:
         cls._units = cls._units.copy() if hasattr(cls, '_units') else {}
@@ -246,12 +252,12 @@ def add_cost(cls, ID, basis, units, S, lb, ub, CE, cost, n, kW, BM, N, lifetime,
             raise ValueError("must pass an 'ID' for purchase cost item")
         if ID in cls.cost_items:
             raise ValueError(f"ID '{ID}' already in use")
-        cls.cost_items[ID] = CostItem(basis, units, S, lb, ub, CE, cost, n, kW, N, f, condition)
+        cls.cost_items[ID] = CostItem(basis, units, S, lb, ub, CE, cost, n, kW, N, f, condition, magnitude)
         cls._F_BM_default[ID] = BM
         if lifetime: cls._default_equipment_lifetime[ID] = lifetime
     else:
         ID = ID or cls.line
-        cls.cost_items = {ID: CostItem(basis, units, S, lb, ub, CE, cost, n, kW, N, f, condition)}
+        cls.cost_items = {ID: CostItem(basis, units, S, lb, ub, CE, cost, n, kW, N, f, condition, magnitude)}
         if '_F_BM_default' not in cls.__dict__:
             cls._F_BM_default = cls._F_BM_default.copy() if hasattr(cls, '_F_BM_default') else {}
         if '_default_equipment_lifetime' not in cls.__dict__:
