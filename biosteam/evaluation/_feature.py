@@ -9,6 +9,7 @@
 """
 __all__ = ('Feature', 'MockFeature', 'Variable', 'MockVariable')
 from ._name import element_name
+from ..utils import format_title
 
 class Feature:
     """
@@ -28,7 +29,7 @@ class Feature:
     include_units_in_index = True
     
     def __init__(self, name, units, element):
-        self.name = name
+        self.name = format_title(name)
         self.units = units
         self.element = element
     
@@ -143,14 +144,9 @@ class Feature:
 
 class MockFeature(Feature):
     __slots__ = ()
-    def __init__(self, name, units, element):
-        self.name = name
-        self.units = units
-        self.element = element_name(element)
     
-    @property
-    def element_name(self):
-        return self.element
+    def __init__(self, name, units, element):
+        super().__init__(name, units, element_name(element))
     
     def __repr__(self):
         return f"{type(self).__name__}('{self.name}', '{self.units}', '{self.element}')"

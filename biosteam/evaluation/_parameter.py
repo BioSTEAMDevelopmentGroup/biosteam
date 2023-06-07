@@ -56,7 +56,6 @@ class Parameter(Feature):
         if not name: name, *_ = signature(setter).parameters.keys()
         super().__init__(format_title(name), units, element)
         if kind is None: kind = 'isolated'
-        if element is None: element = 'Biorefinery'
         self.setter = setter.setter if isinstance(setter, Parameter) else setter
         self.system = system
         self.distribution = distribution

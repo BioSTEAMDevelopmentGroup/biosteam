@@ -13,9 +13,9 @@ __all__ = ('element_name',)
 def element_name(element):
     if element:
         if isinstance(element, str):
-            return element.replace('_', ' ')
+            return format_title(element)
         elif hasattr(element, 'line'):
-            return element.line + '-' + element.ID.replace('_', ' ')
+            return element.line + '-' + format_title(element)
         else:
             unformatted_name = (element if isinstance(element, type) else type(element)).__name__
             return format_title(unformatted_name)

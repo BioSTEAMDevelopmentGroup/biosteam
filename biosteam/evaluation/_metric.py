@@ -8,7 +8,6 @@
 """
 """
 from ._feature import Feature
-from ..utils import format_title
 
 __all__ = ('Metric', 'metric')
 
@@ -31,8 +30,7 @@ class Metric(Feature):
     __slots__ = ('getter', 'cache')
     distribution = None
     def __init__(self, name, getter, units=None, element=None):
-        if element is None: element = 'Biorefinery'
-        if name is None and hasattr(getter, '__name__'): name = format_title(getter.__name__)
+        if name is None and hasattr(getter, '__name__'): name = getter.__name__
         super().__init__(name, units, element)
         self.getter = getter
         
