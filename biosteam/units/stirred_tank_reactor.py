@@ -553,11 +553,8 @@ class AeratedBioreactor(StirredTankReactor):
             y0 = air_flow_rate_objective(OUR)
             if y0 <= 0.: # Correlation is not perfect and special cases lead to OTR > OUR
                 return
-            try:
-                flx.IQ_interpolation(f, x0=OUR, x1=10 * OUR, 
-                                     y0=y0, ytol=1e-3, xtol=1e-3)
-            except:
-                breakpoint()
+            flx.IQ_interpolation(f, x0=OUR, x1=10 * OUR, 
+                                 y0=y0, ytol=1e-3, xtol=1e-3)
         
     def run_reactions(self, effluent):
         self.reactions.force_reaction(effluent)
