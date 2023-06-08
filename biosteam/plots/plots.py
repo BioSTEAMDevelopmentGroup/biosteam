@@ -141,7 +141,8 @@ def rounded_linspace(lb, ub, N, step_min=None, f=None, center=None, p=None):
         step = (ub - lb) / (N - 1)
         x = step % p
         if x: step += p - x
-    if f is None:
+        f = lambda x: x
+    elif f is None:
         f = int
         step = int(ceil(step))
         lb = int(floor(lb))
@@ -921,8 +922,8 @@ def plot_kde_2d(xs, ys, nbins=100, axes=None, xboxes=None, yboxes=None,
 
 def generate_contour_data(
         z_at_xy, xlim, ylim, n=5, file=None, load=True, save=True,
-        strict_convergence=None, filterwarnings=True, args=(),
-        smooth=True, vectorize=True,
+        strict_convergence=None, filterwarnings=True, smooth=True, 
+        vectorize=True, args=(),
     ):
     if strict_convergence is not None: 
         bst.System.strict_convergence = strict_convergence
@@ -946,7 +947,7 @@ def generate_contour_data(
             )
         else:
             Z_at_XY = z_at_xy
-        Z = Z_at_XY(X, Y)
+        Z = Z_at_XY(X, Y, *args)
         if smooth: # Smooth curves due to avoid discontinuities
             from scipy.ndimage.filters import gaussian_filter
             *_, M, N = Z.shape
@@ -1044,10 +1045,10 @@ def plot_contour_2d(X, Y, Z,
     plt.subplots_adjust(hspace=0.1, wspace=0.1)
     return fig, axes, cps, cbs, other_axes
        
-def plot_contour_single_metric(X, Y, Z, 
-                    xlabel, ylabel, xticks, yticks, metric_bar,
-                    titles=None, fillcolor=None, styleaxiskw=None,
-                    label=False): # pragma: no coverage
+def plot_contour_single_metric(
+        X, Y, Z, xlabel, ylabel, xticks, yticks, metric_bar,
+        titles=None, fillcolor=None, styleaxiskw=None, label=False
+    ): # pragma: no coverage
     """Create contour plots and return the figure and the axes."""
     *_, nrows, ncols = Z.shape
     assert Z.shape == (*X.shape, nrows, ncols), (
