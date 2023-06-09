@@ -251,8 +251,9 @@ class PowerUtility:
         ...        PowerUtility(production=20)]
         >>> pu = PowerUtility()
         >>> pu.mix_from(pus)
-        >>> pu
-        PowerUtility(consumption=50.0, production=120.0)
+        >>> repr(pu)
+        'PowerUtility(consumption=50.0, production=120.0)'
+        'PowerUtility(consumption=50.0, production=120.0)'
         
         """
         self.consumption = sum([i.consumption for i in power_utilities])
@@ -279,8 +280,9 @@ class PowerUtility:
         ...        PowerUtility(consumption=50),
         ...        PowerUtility(production=20)]
         >>> pu = PowerUtility.sum(pus)
-        >>> pu
-        PowerUtility(consumption=50.0, production=120.0)
+        >>> repr(pu)
+        'PowerUtility(consumption=50.0, production=120.0)'
+        'PowerUtility(consumption=50.0, production=120.0)'
         
         """
         power_utility = cls()
@@ -297,10 +299,10 @@ class PowerUtility:
         power = consumption - production
         cost = convert(self.cost, 'USD/hr', cost_units)
         print(f'{type(self).__name__}:\n'
-              f' consumption: {consumption:.3g} {power_units}\n'
-              f' production: {production:.3g} {power_units}\n'
-              f' power: {power:.3g} {power_units}\n'
-              f' cost: {cost:.3g} {cost_units}')
+              f'consumption: {consumption:.3g} {power_units}\n'
+              f'production: {production:.3g} {power_units}\n'
+              f'power: {power:.3g} {power_units}\n'
+              f'cost: {cost:.3g} {cost_units}')
     _ipython_display_ = show    
     
     def __repr__(self) -> str:

@@ -2,10 +2,9 @@
 """
 This module contains functions for adding auxliary unit operations.
 """
-from . import design_tools as design
 import biosteam as bst
 
-__all__ = ('Auxiliary', 'VacuumSystem', 'Agitator')
+__all__ = ('Auxiliary',)
     
 
 class Auxiliary:
@@ -110,74 +109,3 @@ class Auxiliary:
                 installed_costs[name] = purchase_costs[name] = Cpb * F
             else:
                 purchase_costs[name] = Cpb * F
-
-        
-class Agitator(Auxiliary):
-    __slots__ = ()
-    
-    def __init__(self, kW):
-        super().__init__()
-        self.add_power_utility(kW) # kW
-        hp = kW * 1.34102
-        self.baseline_purchase_costs['Agitator'] = design.compute_closed_vessel_turbine_purchase_cost(hp)
-
-
-class VacuumSystem(Auxiliary): 
-    __slots__ = ()
-    
-    def __init__(self, unit=None, vacuum_system_preference=None, 
-                 F_mass=None, F_vol=None, P_suction=None, vessel_volume=None):
-        super().__init__()
-        if unit:
-            # Deduce arguments if unit given
-            if F_mass is None or F_vol is None:
-                # If vapor is condensed, assume vacuum system is after condenser
-                vents = [i for i in unit.outs if 'g' in i.phase]
-                F_mass = 0.
-                F_vol = 0.
-                for vapor in vents:
-                    hx = vapor.sink
-                    if isinstance(hx, bst.HX):
-                        index = hx.ins.index(vapor)
-                        vapor = hx.outs[index]
-                        if 'g' not in vapor.phase: continue
-                    if isinstance(vapor, bst.MultiStream):
-                        F_mass += vapor['g'].F_mass
-                        F_vol += vapor['g'].F_vol
-                    else:
-                        F_mass += vapor.F_mass
-                        F_vol += vapor.F_vol
-            if P_suction is None:
-                P_suction = getattr(unit, 'P', None) or getattr(unit, 'P_suction', None)
-                if P_suction is None: P_suction = min([i.P for i in unit.outs])
-            if vessel_volume is None:
-                if 'Total volume' in unit.design_results:
-                    vessel_volume = unit.get_design_result('Total volume', 'm3')
-                else:
-                    raise ValueError("'Total volume' was not found in design results; "
-                                     "'vesse_volume' parameter could not be deduced")
-        else:
-            # In case user does not supply all arguments
-            params = [('F_mass', F_mass), 
-                      ('F_vol', F_vol),
-                      ('P_suction', P_suction), 
-                      ('vessel_volume', vessel_volume)]
-            for name, value in params:
-                if value is None: 
-                    raise ValueError(
-                        f"missing argument '{name}'; cannot deduce '{name}'"
-                         "when no unit is specified"
-                    )
-        capex = self.baseline_purchase_costs # Assume all costs the same
-        vacuum_results = design.compute_vacuum_system_power_and_cost(
-            F_mass, F_vol, P_suction, vessel_volume, vacuum_system_preference
-        )
-        name = vacuum_results['Name']
-        capex[name] = vacuum_results['Cost']
-        heating_agent = vacuum_results['Heating agent']
-        if heating_agent: # Steam turbine
-            vacuum_steam = self.create_heat_utility()
-            vacuum_steam.set_utility_by_flow_rate(heating_agent, vacuum_results['Steam flow rate'])
-            if vacuum_results['Condenser']: 
-                self.add_heat_utility(-vacuum_steam.unit_duty, 373.15) # Vacuum cooling water
-        self.add_power_utility(vacuum_results['Work'])

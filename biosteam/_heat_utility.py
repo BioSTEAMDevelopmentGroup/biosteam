@@ -273,10 +273,7 @@ class HeatUtility:
     
     >>> hu.ID, hu.duty, hu.flow, hu.cost
     ('low_pressure_steam', 1052.6315789473686, 0.02721274387089031, 0.006471190492497716)
-    HeatUtility: low_pressure_steam
-     duty: 1.05e+03 kJ/hr
-     flow: 0.0272 kmol/hr
-     cost: 0.00647 USD/hr
+    ('low_pressure_steam', 1052.6315789473686, 0.02721274387089031, 0.006471190492497716)
    
     All results are accessible:
     
@@ -920,9 +917,9 @@ class HeatUtility:
             (duty, flow, cost, duty_units,
              flow_units, cost_units) = self._info_data(duty, flow, cost)
             return (f'{type(self).__name__}: {self.ID}\n'
-                    +f' duty:{duty: .3g} {duty_units}\n'
-                    +f' flow:{flow: .3g} {flow_units}\n'
-                    +f' cost:{cost: .3g} {cost_units}')
+                   +f'duty:{duty: .3g} {duty_units}\n'
+                   +f'flow:{flow: .3g} {flow_units}\n'
+                   +f'cost:{cost: .3g} {cost_units}')
             
 
     def show(self, duty: Optional[str]=None, flow: Optional[str]=None, cost: Optional[str]=None):

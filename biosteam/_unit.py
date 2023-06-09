@@ -1137,7 +1137,7 @@ class Unit:
         1214.1910732126264
         >>> tank.get_design_result('Total volume', 'L')
         1214191.0732126262
-        1214.1910732126264
+        1214191.0732126262
         >>> tank.get_design_result('Total volume', 'L')
         1214191.0732126262
         

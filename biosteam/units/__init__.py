@@ -44,6 +44,7 @@ from .size_enlargement import *
 from .liquid_liquid_extraction import *
 from .adsorption import *
 from .auxiliary import *
+from .agitator import *
 
 from . import (
     _flash, 
@@ -84,6 +85,7 @@ from . import (
     turbine,
     valve,
     auxiliary,
+    agitator,
 )
 
 
@@ -124,6 +126,7 @@ __all__ = ('Unit',
            *valve.__all__,
            *vacuum_system.__all__,
            *auxiliary.__all__,
+           *agitator.__all__,
            'adsorption',
            'drying',
            'tank',

@@ -11,12 +11,9 @@ __all__ = []
 
 from ._cost import *
 from ._design import *
-from ._auxiliary import *
 
 from . import _cost
 from . import _design
-from . import _auxiliary
 
 __all__.extend(_cost.__all__)
 __all__.extend(_design.__all__)
-__all__.extend(_auxiliary.__all__)
