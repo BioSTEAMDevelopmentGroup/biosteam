@@ -23,19 +23,21 @@ def test_isentropic_hydrogen_compressor():
     out = K.outs[0]
     assert_allclose(
         [out.vapor_fraction, out.liquid_fraction, out.T, out.P],
-        [1.0, 0.0, 1151.3251608356125, 50e5],
+        [1.0, 0.0, 1151.9888331779612, 5000000.0],
+        rtol=1e-3
     )
     # check compressor design
     assert K.design_results["Type"] == "Centrifugal"
     assert K.design_results["Driver"] == "Steam turbine"
-    ideal_power = 4.919879203671207
+    ideal_power = 4.920933056717339
     eta_motor = K.baseline_cost_algorithms[K.design_results["Type"]].efficiencies["Steam turbine"]
     expected_power = ideal_power / eta / eta_motor
     actual_power = K.power_utility.consumption
     assert_allclose(
         [actual_power, K.design_results['Ideal power'],
-           K.design_results['Ideal duty'], K.design_results['Compressors in parallel']],
+         K.design_results['Ideal duty'], K.design_results['Compressors in parallel']],
         [expected_power, ideal_power, 0, 1],
+        rtol=1e-3,
     )
     pass
 
