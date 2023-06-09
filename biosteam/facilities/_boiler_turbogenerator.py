@@ -132,30 +132,6 @@ class BoilerTurbogenerator(bst.Facility):
                           Turbogenerator                         USD  1.94e+07
     Total purchase cost                                          USD  5.32e+07
     Utility cost                                              USD/hr -1.07e+04
-    Boiler turbogenerator                                      Units        BT
-    Electricity           Power                                   kW -1.31e+05
-                          Cost                                USD/hr -1.02e+04
-    Low pressure steam    Duty                                 kJ/hr -7.32e+07
-                          Flow                               kmol/hr -1.89e+03
-                          Cost                                USD/hr      -450
-    Cooling water         Duty                                 kJ/hr -8.42e+07
-                          Flow                               kmol/hr  5.75e+04
-                          Cost                                USD/hr      28.1
-    Natural gas (inlet)   Flow                                 kg/hr         0
-                          Cost                                USD/hr         0
-    Ash disposal (outlet) Flow                                 kg/hr     0.737
-                          Cost                                USD/hr    0.0234
-    Design                Flow rate                            kg/hr  2.93e+05
-                          Work                                    kW  1.33e+05
-                          Ash disposal                         kg/hr     0.737
-    Purchase cost         Baghouse bags                          USD      81.1
-                          Boiler                                 USD  3.33e+07
-                          Deaerator                              USD  3.58e+05
-                          Amine addition pkg                     USD  4.69e+04
-                          Hot process water softener system      USD  9.16e+04
-                          Turbogenerator                         USD  1.94e+07
-    Total purchase cost                                          USD  5.32e+07
-    Utility cost                                              USD/hr -1.07e+04
     
     Notes
     -----

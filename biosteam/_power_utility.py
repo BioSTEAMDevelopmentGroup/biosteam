@@ -251,9 +251,8 @@ class PowerUtility:
         ...        PowerUtility(production=20)]
         >>> pu = PowerUtility()
         >>> pu.mix_from(pus)
-        >>> repr(pu)
-        'PowerUtility(consumption=50.0, production=120.0)'
-        'PowerUtility(consumption=50.0, production=120.0)'
+        >>> print(pu)
+        PowerUtility(consumption=50.0, production=120.0)
         
         """
         self.consumption = sum([i.consumption for i in power_utilities])
@@ -280,9 +279,8 @@ class PowerUtility:
         ...        PowerUtility(consumption=50),
         ...        PowerUtility(production=20)]
         >>> pu = PowerUtility.sum(pus)
-        >>> repr(pu)
-        'PowerUtility(consumption=50.0, production=120.0)'
-        'PowerUtility(consumption=50.0, production=120.0)'
+        >>> print(pu)
+        PowerUtility(consumption=50.0, production=120.0)
         
         """
         power_utility = cls()

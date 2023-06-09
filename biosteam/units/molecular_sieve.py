@@ -77,19 +77,6 @@ class MolecularSieve(Splitter):
     Purchase cost       Column         USD  6.85e+05
     Total purchase cost                USD  6.85e+05
     Utility cost                    USD/hr      20.9
-    Molecular sieve                  Units       MS1
-    Electricity         Power           kW      14.2
-                        Cost        USD/hr      1.11
-    Low pressure steam  Duty         kJ/hr  3.21e+06
-                        Flow       kmol/hr        83
-                        Cost        USD/hr      19.7
-    Cooling water       Duty         kJ/hr -1.18e+05
-                        Flow       kmol/hr      80.9
-                        Cost        USD/hr    0.0395
-    Design              Flow rate    kg/hr  2.13e+03
-    Purchase cost       Column         USD  6.85e+05
-    Total purchase cost                USD  6.85e+05
-    Utility cost                    USD/hr      20.9
     
     References
     ----------

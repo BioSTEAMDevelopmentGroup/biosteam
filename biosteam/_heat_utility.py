@@ -273,7 +273,6 @@ class HeatUtility:
     
     >>> hu.ID, hu.duty, hu.flow, hu.cost
     ('low_pressure_steam', 1052.6315789473686, 0.02721274387089031, 0.006471190492497716)
-    ('low_pressure_steam', 1052.6315789473686, 0.02721274387089031, 0.006471190492497716)
    
     All results are accessible:
     

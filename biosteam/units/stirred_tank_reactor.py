@@ -170,28 +170,6 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
                         Agitator - Agitator (x4)                 USD             4.53e+05
     Total purchase cost                                          USD             2.07e+06
     Utility cost                                              USD/hr                  160
-    Continuous fermentation                                    Units                   R1
-    Electricity         Power                                     kW             1.15e+03
-                        Cost                                  USD/hr                 89.8
-    Chilled water       Duty                                   kJ/hr            -1.41e+07
-                        Flow                                 kmol/hr             9.42e+03
-                        Cost                                  USD/hr                 70.3
-    Design              Reactor volume                            m3                  319
-                        Residence time                            hr                    8
-                        Vessel type                                              Vertical
-                        Length                                    ft                 50.5
-                        Diameter                                  ft                 16.8
-                        Weight                                    lb             5.39e+04
-                        Wall thickness                            in                0.363
-                        Vessel material                               Stainless steel 316
-    Purchase cost       Vertical pressure vessel (x4)            USD             1.18e+06
-                        Platform and ladders (x4)                USD             2.12e+05
-                        Heat exchanger - Floating head (x4)      USD             1.61e+05
-                        Recirculation pump - Pump (x4)           USD             5.23e+04
-                        Recirculation pump - Motor (x4)          USD             8.37e+03
-                        Agitator - Agitator (x4)                 USD             4.53e+05
-    Total purchase cost                                          USD             2.07e+06
-    Utility cost                                              USD/hr                  160
     
     References
     ----------
@@ -385,29 +363,6 @@ class AeratedBioreactor(StirredTankReactor):
     ... )
     >>> R1.simulate()
     >>> R1.show()
-    AeratedBioreactor: R1
-    ins...
-    [0] feed
-        phase: 'l', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water    6.66e+03
-                        Glucose  139
-    [1] s50
-        phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): O2  4.16e+03
-                        N2  1.57e+04
-    [2] air
-        phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow: 0
-    outs...
-    [0] vent
-        phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water  77.1
-                        O2     3.75e+03
-                        N2     1.57e+04
-    [1] product
-        phase: 'l', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water    1.72e+03
-                        Glucose  69.4
     AeratedBioreactor: R1
     ins...
     [0] feed

@@ -207,22 +207,6 @@ class MultiEffectEvaporator(Unit):
                         Vacuum system - Liquid-ring pump...      USD  1.24e+04
     Total purchase cost                                          USD  1.91e+04
     Utility cost                                              USD/hr      2.85
-    Multi-effect evaporator                                    Units        E1
-    Electricity         Power                                     kW      5.72
-                        Cost                                  USD/hr     0.447
-    Low pressure steam  Duty                                   kJ/hr  3.84e+05
-                        Flow                                 kmol/hr      9.94
-                        Cost                                  USD/hr      2.36
-    Cooling water       Duty                                   kJ/hr -1.15e+05
-                        Flow                                 kmol/hr      78.8
-                        Cost                                  USD/hr    0.0384
-    Design              Area                                     m^2      1.64
-                        Volume                                   m^3      6.52
-    Purchase cost       Evaporators                              USD  2.77e+03
-                        Condenser - Double pipe                  USD   3.9e+03
-                        Vacuum system - Liquid-ring pump...      USD  1.24e+04
-    Total purchase cost                                          USD  1.91e+04
-    Utility cost                                              USD/hr      2.85
     
     >>> E1.results()
     Multi-effect evaporator                                    Units        E1

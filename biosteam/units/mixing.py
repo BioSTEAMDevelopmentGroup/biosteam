@@ -63,19 +63,6 @@ class Mixer(Unit):
         phase: 'l', T: 315.14 K, P: 101325 Pa
         flow (kmol/hr): Ethanol  30
                         Water    20
-    Mixer: M1
-    ins...
-    [0] s1
-        phase: 'l', T: 350 K, P: 101325 Pa
-        flow (kmol/hr): Water  20
-    [1] s2
-        phase: 'l', T: 300 K, P: 101325 Pa
-        flow (kmol/hr): Ethanol  30
-    outs...
-    [0] s3
-        phase: 'l', T: 315.14 K, P: 101325 Pa
-        flow (kmol/hr): Ethanol  30
-                        Water    20
     
     
     """

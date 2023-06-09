@@ -15,7 +15,7 @@ def element_name(element):
         if isinstance(element, str):
             return format_title(element)
         elif hasattr(element, 'line'):
-            return element.line + '-' + format_title(element)
+            return element.line + '-' + format_title(str(element))
         else:
             unformatted_name = (str(element) if isinstance(element, type) else type(element)).__name__
             return format_title(unformatted_name)

@@ -86,17 +86,6 @@ class VacuumSystem(Auxiliary):
     Purchase cost         Vacuum system - Steam-jet ejecto...      USD  8.18e+04
     Total purchase cost                                            USD  8.18e+04
     Utility cost                                                USD/hr      82.4
-    Vacuum vessel                                                Units        V1
-    Medium pressure steam Duty                                   kJ/hr  1.04e+07
-                          Flow                                 kmol/hr       288
-                          Cost                                  USD/hr      79.3
-    Cooling water         Duty                                   kJ/hr -9.37e+06
-                          Flow                                 kmol/hr   6.4e+03
-                          Cost                                  USD/hr      3.12
-    Design                Total volume                              m3  7.23e+04
-    Purchase cost         Vacuum system - Steam-jet ejecto...      USD  8.18e+04
-    Total purchase cost                                            USD  8.18e+04
-    Utility cost                                                USD/hr      82.4
     
     For simplicity, this example does not include the cost of the vessel, but 
     vessel costs should be included for techno-economic analysis.
