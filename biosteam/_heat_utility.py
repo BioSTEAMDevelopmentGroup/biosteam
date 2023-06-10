@@ -220,13 +220,13 @@ class UtilityAgent(Stream):
         ht_price = self.heat_transfer_price
         rg_price = self.regeneration_price
         ht_eff = self.heat_transfer_efficiency
-        return (f" heat_transfer_efficiency: {ht_eff:.3f}\n"
-                f" heat_transfer_price: {ht_price:.3g} USD/kJ\n"
-                f" regeneration_price: {rg_price:.3g} USD/kmol\n"
-                f" T_limit: {T_limit}\n"
-                f" phase{s}: {repr(phase)}\n"
-                f" T: {T:{T_notation}} {T_units}\n"
-                f" P: {P:{P_notation}} {P_units}\n"
+        return (f"heat_transfer_efficiency: {ht_eff:.3f}\n"
+                f"heat_transfer_price: {ht_price:.3g} USD/kJ\n"
+                f"regeneration_price: {rg_price:.3g} USD/kmol\n"
+                f"T_limit: {T_limit}\n"
+                f"phase{s}: {repr(phase)}\n"
+                f"T: {T:{T_notation}} {T_units}\n"
+                f"P: {P:{P_notation}} {P_units}\n"
         )
     def __repr__(self):
         return f"<{type(self).__name__}: {self.ID}>"
