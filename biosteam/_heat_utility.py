@@ -204,7 +204,11 @@ class UtilityAgent(Stream):
         assert price >= 0, "regeneration price cannot be negative"
         self._regeneration_price = price
     
-    def _info_phaseTP(self, phase, T_units, P_units):
+    def _info_phaseTP(self, phase, units, notation):
+        T_notation = notation['T']
+        P_notation = notation['P']
+        T_units = units['T']
+        P_units = units['P']
         if self.T_limit is None:
             T_limit = "None"
         else:
@@ -221,8 +225,8 @@ class UtilityAgent(Stream):
                 f" regeneration_price: {rg_price:.3g} USD/kmol\n"
                 f" T_limit: {T_limit}\n"
                 f" phase{s}: {repr(phase)}\n"
-                f" T: {T:.5g} {T_units}\n"
-                f" P: {P:.6g} {P_units}\n"
+                f" T: {T:{T_notation}} {T_units}\n"
+                f" P: {P:{P_notation}} {P_units}\n"
         )
     def __repr__(self):
         return f"<{type(self).__name__}: {self.ID}>"
