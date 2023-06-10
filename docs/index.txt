@@ -174,6 +174,11 @@ tools for sustainability assessments. Here is a short list of related publicatio
 
   - `Techno-Economic Evaluation of Biorefineries Based on Low-Value Feedstocks Using the BioSTEAM Software: A Case Study for Animal Bedding. Processes 2020 <https://doi.org/10.3390/pr8080904>`_
 
+* **Plastics and recycling**:
+
+  - `High-purity polypropylene from disposable face masks via solvent-targeted recovery and precipitation. Green Chemistry. 2023 <https://doi.org/10.1039/D3GC00205E>`_
+
+
 Indices and tables
 ------------------
 
