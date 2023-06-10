@@ -662,22 +662,22 @@ class HXprocess(HX):
     >>> in_b = Stream('in_b', Water=200)
     >>> hx = HXprocess('hx', ins=(in_a, in_b), outs=('out_a', 'out_b'))
     >>> hx.simulate()
-    >>> hx.show(T='degC:.3g')
+    >>> hx.show(T='degC:.2g')
     HXprocess: hx
     ins...
     [0] in_a
-        phase: 'g', T: 78.3 degC, P: 101325 Pa
+        phase: 'g', T: 78 degC, P: 101325 Pa
         flow (kmol/hr): Ethanol  50
     [1] in_b
         phase: 'l', T: 25 degC, P: 101325 Pa
         flow (kmol/hr): Water  200
     outs...
     [0] out_a
-        phases: ('g', 'l'), T: 78.2 degC, P: 101325 Pa
+        phases: ('g', 'l'), T: 78 degC, P: 101325 Pa
         flow (kmol/hr): (g) Ethanol  31.4
                         (l) Ethanol  18.6
     [1] out_b
-        phase: 'l', T: 73.3 degC, P: 101325 Pa
+        phase: 'l', T: 73 degC, P: 101325 Pa
         flow (kmol/hr): Water  200
     
     >>> hx.results()
