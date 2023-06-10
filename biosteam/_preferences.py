@@ -30,14 +30,14 @@ class DisplayPreferences:
     profile: False
     raise_exception: False
     background_color: 'transparent'
-    stream_color: '#98a2ad'
-    label_color: '#e5e5e5'
-    depth_colors: ['#5172512f']
+    stream_color: '#90918e'
+    label_color: '#90918e'
+    depth_colors: ['#f98f609f']
     stream_width: 'F_mass'
     unit_color: '#555f69'
     unit_label_color: 'white'
-    unit_periphery_color: 'none'
-    fill_cluster: True
+    unit_periphery_color: '#90918e'
+    fill_cluster: False
     graphviz_format: 'svg'
     tooltips_full_results: False
     graphviz_html_height: {'system': ('400px', '600px'), 'unit': ('225px', '400px')}
@@ -45,7 +45,7 @@ class DisplayPreferences:
     T: 'K:.5g'
     P: 'Pa:.6g'
     composition: False
-    N: 100
+    N: 7
     sort: False
     
     """
