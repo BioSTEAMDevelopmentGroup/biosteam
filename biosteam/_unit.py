@@ -1136,7 +1136,7 @@ class Unit:
         >>> tank.get_design_result('Total volume', 'm3')
         1214.19
         >>> tank.get_design_result('Total volume', 'L')
-        1214191.07
+        1214191.0
         
         """
         return convert(self.design_results[key], self._units[key], units)

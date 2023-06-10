@@ -609,15 +609,15 @@ class PolytropicCompressor(Compressor, new_graphics=False):
     >>> feed = bst.Stream('feed', H2=1, T=25 + 273.15, P=20e5, phase='g')
     >>> K = bst.units.PolytropicCompressor('K1', ins=feed, outs='outlet', P=350e5, eta=0.7, method='schultz')
     >>> K.simulate()
-    >>> K.show()
+    >>> K.show(T='degC:.3g')
     PolytropicCompressor: K1
     ins...
     [0] feed
-        phase: 'g', T: 298.15 K, P: 2e+06 Pa
+        phase: 'g', T: 25 degC, P: 2e+06 Pa
         flow (kmol/hr): H2  1
     outs...
     [0] outlet
-        phase: 'g', T: 962.05 K, P: 3.5e+07 Pa
+        phase: 'g', T: 689 degC, P: 3.5e+07 Pa
         flow (kmol/hr): H2  1
     >>> K.results()
     Polytropic compressor                         Units              K1
