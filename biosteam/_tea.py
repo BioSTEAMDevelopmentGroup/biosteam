@@ -977,7 +977,7 @@ class TEA:
     
     def _info(self):
         return (f'{type(self).__name__}: {self.system}\n'
-                f' NPV: {self.NPV:,.0f} USD at {self.IRR:.1%} IRR')
+                f'NPV: {self.NPV:,.0f} USD at {self.IRR:.1%} IRR')
     
     def show(self):
         """Prints information on unit."""

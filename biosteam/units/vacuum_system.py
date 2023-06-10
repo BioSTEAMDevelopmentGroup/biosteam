@@ -12,15 +12,14 @@
 
 """
 from . import design_tools as design
-from .decorators import auxiliary
+from .auxiliary import Auxiliary
 from typing import Optional, Union
 import biosteam as bst
 from .._unit import Unit
 
 __all__ = ('VacuumSystem',)
        
-@auxiliary
-class VacuumSystem: 
+class VacuumSystem(Auxiliary): 
     """
     Create an auxiliary vacuum system for a unit operation. 
     
@@ -76,14 +75,17 @@ class VacuumSystem:
     >>> V1 = VacuumVessel('V1', ins=feed)
     >>> V1.simulate()
     >>> V1.results()
-    Vacuum vessel                                                Units       V1
-    Medium pressure steam Duty                                   kJ/hr 1.04e+07
-                          Flow                                 kmol/hr      288
-                          Cost                                  USD/hr     79.3
-    Design                Total volume                              m3 7.23e+04
-    Purchase cost         Vacuum system - Steam-jet ejecto...      USD 8.18e+04
-    Total purchase cost                                            USD 8.18e+04
-    Utility cost                                                USD/hr     79.3
+    Vacuum vessel                                                Units        V1
+    Medium pressure steam Duty                                   kJ/hr  1.04e+07
+                          Flow                                 kmol/hr       288
+                          Cost                                  USD/hr      79.3
+    Cooling water         Duty                                   kJ/hr -9.37e+06
+                          Flow                                 kmol/hr   6.4e+03
+                          Cost                                  USD/hr      3.12
+    Design                Total volume                              m3  7.23e+04
+    Purchase cost         Vacuum system - Steam-jet ejecto...      USD  8.18e+04
+    Total purchase cost                                            USD  8.18e+04
+    Utility cost                                                USD/hr      82.4
     
     For simplicity, this example does not include the cost of the vessel, but 
     vessel costs should be included for techno-economic analysis.
@@ -113,6 +115,7 @@ class VacuumSystem:
             P_suction: Optional[float]=None, 
             vessel_volume: Optional[Union[float, list[float]]]=None
         ):
+        super().__init__()
         if unit:
             # Deduce arguments if unit given
             if F_mass is None or F_vol is None:
@@ -153,20 +156,16 @@ class VacuumSystem:
                         f"missing argument '{name}'; cannot deduce '{name}'"
                          "when no unit is specified"
                     )
-        self.baseline_purchase_costs = self.purchase_costs = self.installed_costs = capex = {} # Assume all costs the same
-        self.F_M = self.F_D = self.F_P = self.F_BM = {} # No factors
+        capex = self.baseline_purchase_costs # Assume all costs the same
         vacuum_results = design.compute_vacuum_system_power_and_cost(
             F_mass, F_vol, P_suction, vessel_volume, vacuum_system_preference
         )
         name = vacuum_results['Name']
         capex[name] = vacuum_results['Cost']
         heating_agent = vacuum_results['Heating agent']
-        self.heat_utilities = heat_utilities = []
         if heating_agent: # Steam turbine
-            vacuum_steam = bst.HeatUtility()
-            heat_utilities.append(vacuum_steam)
+            vacuum_steam = self.create_heat_utility()
             vacuum_steam.set_utility_by_flow_rate(heating_agent, vacuum_results['Steam flow rate'])
             if vacuum_results['Condenser']: 
-                vacuum_cooling_water = bst.HeatUtility()
-                vacuum_cooling_water(-vacuum_steam.unit_duty, 373.15)
-        self.power_utility = bst.PowerUtility(vacuum_results['Work'])
+                self.add_heat_utility(-vacuum_steam.unit_duty, 373.15) # Vacuum cooling water
+        self.add_power_utility(vacuum_results['Work'])

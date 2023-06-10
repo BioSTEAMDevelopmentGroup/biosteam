@@ -60,7 +60,7 @@ class Mixer(Unit):
         flow (kmol/hr): Ethanol  30
     outs...
     [0] s3
-        phase: 'l', T: 315.11 K, P: 101325 Pa
+        phase: 'l', T: 315.14 K, P: 101325 Pa
         flow (kmol/hr): Ethanol  30
                         Water    20
     

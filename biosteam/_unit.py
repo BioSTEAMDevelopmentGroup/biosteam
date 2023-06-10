@@ -877,7 +877,7 @@ class Unit:
             unit.owner = self # In case units are created dynamically
             if isa(unit, Unit):
                 if not (unit._design or unit._cost): continue
-                unit._load_costs() # Just in case user did not simulate or run summary.
+            unit._load_costs() # Just in case user did not simulate or run summary.
             N = integer(parallel.get(name, N_default))
             if N == 1:
                 heat_utilities.extend(unit.heat_utilities)
@@ -922,7 +922,7 @@ class Unit:
                         # Calculate BM as an estimate.
                         F_BM[j] = Cbm / Cpb + 1 - fd * fp * fm
             
-            self._costs_loaded = True
+        self._costs_loaded = True
     
     def _setup(self):
         """Clear all results, setup up stream conditions and constant data, 
@@ -1134,9 +1134,9 @@ class Unit:
         >>> tank = bst.StorageTank(None, feed)
         >>> tank.simulate()
         >>> tank.get_design_result('Total volume', 'm3')
-        1214.23
+        1214.19
         >>> tank.get_design_result('Total volume', 'L')
-        1214239.47
+        1214191.0
         
         """
         return convert(self.design_results[key], self._units[key], units)

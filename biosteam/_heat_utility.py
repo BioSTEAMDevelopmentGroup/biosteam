@@ -204,7 +204,11 @@ class UtilityAgent(Stream):
         assert price >= 0, "regeneration price cannot be negative"
         self._regeneration_price = price
     
-    def _info_phaseTP(self, phase, T_units, P_units):
+    def _info_phaseTP(self, phase, units, notation):
+        T_notation = notation['T']
+        P_notation = notation['P']
+        T_units = units['T']
+        P_units = units['P']
         if self.T_limit is None:
             T_limit = "None"
         else:
@@ -221,8 +225,8 @@ class UtilityAgent(Stream):
                 f" regeneration_price: {rg_price:.3g} USD/kmol\n"
                 f" T_limit: {T_limit}\n"
                 f" phase{s}: {repr(phase)}\n"
-                f" T: {T:.5g} {T_units}\n"
-                f" P: {P:.6g} {P_units}\n"
+                f" T: {T:{T_notation}} {T_units}\n"
+                f" P: {P:{P_notation}} {P_units}\n"
         )
     def __repr__(self):
         return f"<{type(self).__name__}: {self.ID}>"
@@ -266,13 +270,18 @@ class HeatUtility:
     >>> hu.show()
     HeatUtility: low_pressure_steam
      duty: 1.05e+03 kJ/hr
-     flow: 0.0271 kmol/hr
-     cost: 0.00645 USD/hr
+     flow: 0.0272 kmol/hr
+     cost: 0.00647 USD/hr
    
     All results are accessible:
     
     >>> hu.ID, hu.duty, hu.flow, hu.cost
-    ('low_pressure_steam', 1052., 0.02711, 0.006448)
+    ('low_pressure_steam', 1052.6315789473686, 0.02721274387089031, 0.006471190492497716)
+   
+    All results are accessible:
+    
+    >>> hu.ID, hu.duty, hu.flow, hu.cost
+    ('low_pressure_steam', 1052.6315789473686, 0.02721274387089031, 0.006471190492497716)
            
     """
     __slots__ = ('inlet_utility_stream', 'outlet_utility_stream', 'duty',
@@ -911,9 +920,9 @@ class HeatUtility:
             (duty, flow, cost, duty_units,
              flow_units, cost_units) = self._info_data(duty, flow, cost)
             return (f'{type(self).__name__}: {self.ID}\n'
-                    +f' duty:{duty: .3g} {duty_units}\n'
-                    +f' flow:{flow: .3g} {flow_units}\n'
-                    +f' cost:{cost: .3g} {cost_units}')
+                   +f'duty:{duty: .3g} {duty_units}\n'
+                   +f'flow:{flow: .3g} {flow_units}\n'
+                   +f'cost:{cost: .3g} {cost_units}')
             
 
     def show(self, duty: Optional[str]=None, flow: Optional[str]=None, cost: Optional[str]=None):

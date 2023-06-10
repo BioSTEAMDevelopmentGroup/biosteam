@@ -141,7 +141,7 @@ H_units = stream_units_of_measure['H']
 def duty(self, units):
     duty = self.H_out - self.H_in
     self.add_heat_utility(duty, self.ins[0].T, self.outs[0].T)
-    return abs(H_units.conversion_factor(units) * duty)
+    return H_units.conversion_factor(units) * duty
     
 @design.define
 def dry_flow_rate(self, units):

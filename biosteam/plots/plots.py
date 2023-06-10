@@ -21,6 +21,7 @@ from scipy.stats import kde
 from collections import deque
 
 __all__ = (
+    'rounded_linspace',
     'rounted_tickmarks_from_range',
     'rounded_tickmarks_from_data',
     'annotate_line',
@@ -37,16 +38,14 @@ __all__ = (
     'plot_bars', 
     'plot_vertical_line', 
     'plot_scatter_points',
-    'plot_contour_1d', 
     'plot_contour_2d', 
     'plot_contour_single_metric',
-    'plot_contour_across_coordinate',
-    'plot_contour_2d_curves',
     'plot_heatmap',
     'plot_kde_2d',
     'plot_kde',
     'plot_quadrants',
     'plot_stacked_bar',
+    'generate_contour_data',
 )
 
 # %% Utilities
@@ -131,7 +130,7 @@ def rounted_tickmarks_from_range(lb, ub, N_ticks, step_min=None, lb_max=None, ub
     if lb_min is not None: lb = max(lb, lb_min)
     return rounded_linspace(lb, ub, N_ticks, step_min, f, center, p)
 
-def rounded_linspace(lb, ub, N, step_min, f=None, center=None, p=None):
+def rounded_linspace(lb, ub, N, step_min=None, f=None, center=None, p=None):
     if step_min is not None:
         lb = floor(lb / step_min) * step_min
         ub = ceil(ub / step_min) * step_min
@@ -142,7 +141,8 @@ def rounded_linspace(lb, ub, N, step_min, f=None, center=None, p=None):
         step = (ub - lb) / (N - 1)
         x = step % p
         if x: step += p - x
-    if f is None:
+        f = lambda x: x
+    elif f is None:
         f = int
         step = int(ceil(step))
         lb = int(floor(lb))
@@ -289,19 +289,7 @@ def plot_stacked_bar(data, names, xlabels, colors=None, hatches=None, legend=Tru
         units = other[-1].split(']')[0]
         units = format_units(units)
         ylabel += f"[{units}]"
-    # if fraction:
-    #     total = data.sum(axis=0)
-    #     postive_values = np.where(data > 0., data, 0.)
-    #     data *= 100 / postive_values.sum(axis=0, keepdims=True)
-    #     if format_total is None: format_total = lambda x: format(x, '.3g')
-    #     if bold_label:
-    #         bar_labels = [r"$\mathbf{" f"{format_total(i)}" "}$" for i in total]
-    #     else:
-    #         bar_labels = [f"{format_total(i)}" for i in total]
-    # else:
-    #     pass
     df = pd.DataFrame(data, index=names, columns=xlabels)
-    # values = df.values
     df.T.plot(kind='bar', stacked=True, edgecolor='k', **kwargs)
     locs, labels = plt.xticks()
     plt.xticks(locs, ['\n['.join(i.get_text().split(' [')) for i in labels])
@@ -310,13 +298,6 @@ def plot_stacked_bar(data, names, xlabels, colors=None, hatches=None, legend=Tru
     fig = plt.gcf()
     ax = plt.gca()
     if ylabel is not None: ax.set_ylabel(ylabel)
-    # if fraction:
-    #     negative_values = np.where(values < 0., values, 0.).sum(axis=0)
-    #     lb = min(0., 20 * floor(negative_values.min() / 20))
-    #     plt.ylim(lb, 100)
-    #     style_axis(top=False, yticks=np.arange(lb, 101, 20))
-    # else:
-    #     pass
     xticks, _ = plt.xticks()
     xlim = plt.xlim()
     y_twin = ax.twiny()
@@ -324,10 +305,6 @@ def plot_stacked_bar(data, names, xlabels, colors=None, hatches=None, legend=Tru
     y_twin.tick_params(axis='x', top=True, direction="in", length=0)
     y_twin.zorder = 2
     plt.xlim(xlim)
-    # if fraction:
-    #     if len(xticks) != len(bar_labels): xticks = xticks[1:]
-    #     plt.xticks(xticks, bar_labels, va='baseline')
-    # else:
     plt.xticks(xticks, ['' for i in xticks], va='baseline')
     N_marks = N_metrics
     axes = np.array([ax])
@@ -492,9 +469,6 @@ def format_spearman_plot(ax, index, name, yranges, xlabel=None):
     ax3 = ax.twiny()
     plt.sca(ax3)
     ax3.tick_params(which='both', direction="in", labeltop=False, bottom=False, length=2)
-    # ax3.xaxis.set_major_locator(MultipleLocator(0.5))
-    # ax3.xaxis.set_major_formatter('{x:.2f}')
-    # ax3.xaxis.set_minor_locator(MultipleLocator(0.25))
     ax3.zorder = 1000
 
 def format_single_point_sensitivity_plot(center, diff, ax, index, name, yranges):
@@ -520,9 +494,6 @@ def format_single_point_sensitivity_plot(center, diff, ax, index, name, yranges)
     ax3 = ax.twiny()
     plt.sca(ax3)
     ax3.tick_params(which='both', direction="in", labeltop=False, bottom=False, length=2)
-    # ax3.xaxis.set_major_locator(MultipleLocator(0.5))
-    # ax3.xaxis.set_major_formatter('{x:.2f}')
-    # ax3.xaxis.set_minor_locator(MultipleLocator(0.25))
     ax3.zorder = 1000
 
 def plot_single_point_sensitivity(baseline, lb, ub, 
@@ -948,70 +919,62 @@ def plot_kde_2d(xs, ys, nbins=100, axes=None, xboxes=None, yboxes=None,
 
     
 # %% Contours
-  
-def plot_contour_1d(X_grid, Y_grid, data, 
-                    xlabel, ylabel, xticks, yticks, 
-                    metric_bars, fillcolor=None, label=False, **styleaxiskw): # pragma: no coverage
-    """Create contour plots and return the figure and the axes."""
-    n = len(metric_bars)
-    assert data.shape == (*X_grid.shape, n), (
-        "data shape must be (X, Y, M), where (X, Y) is the shape of both X_grid and Y_grid, "
-        "and M is the number of metrics"
-    )
-    gs_kw = dict(height_ratios=[1, 0.25])
-    fig, axes = plt.subplots(ncols=n, nrows=2, gridspec_kw=gs_kw)
-    if styleaxiskw is None: styleaxiskw = {}
-    cps = np.zeros([n], dtype=object)
-    linecolor = c.neutral_shade.RGBn
-    for i in range(n):
-        metric_bar = metric_bars[i]
-        ax = axes[0, i]
-        plt.sca(ax)
-        style_plot_limits(xticks, yticks)
-        yticklabels = i == 0
-        xticklabels = True
-        if fillcolor is not None: fill_plot(fillcolor)
-        cp = plt.contourf(X_grid, Y_grid, data[:, :, i],
-                          levels=metric_bar.levels,
-                          cmap=metric_bar.cmap)
-        if label:
-            cs = plt.contour(cp, zorder=1e6,
-                             linestyles='dashed', linewidths=0.5,
-                             norm=metric_bar.norm,
-                             levels=metric_bar.levels, colors=[linecolor])
-            clabels = ax.clabel(cs, levels=[i for i in cs.levels if i!=metric_bar.levels[-1]], inline=True, fmt=metric_bar.fmt,
-                      colors=['k'], zorder=1e6)
-            for clabel in clabels: clabel.set_rotation(0)
-        cps[i] = cp
-        style_axis(ax, xticks, yticks, xticklabels, yticklabels)
-        cbar_ax = axes[1, i]
-        plt.sca(cbar_ax)
-        cb = metric_bar.colorbar(fig, cbar_ax, cp, shrink=0.8, orientation='horizontal')
-        plt.axis('off')
-    set_axes_labels(axes[:-1], xlabel, ylabel)
-    plt.subplots_adjust(hspace=0.1, wspace=0.1)
-    return fig, axes, cps, cb
 
-def plot_contour_2d(X_grid, Y_grid, Z_1d, data, 
+def generate_contour_data(
+        z_at_xy, xlim, ylim, n=5, file=None, load=True, save=True,
+        strict_convergence=None, filterwarnings=True, smooth=True, 
+        vectorize=True, args=(),
+    ):
+    if strict_convergence is not None: 
+        bst.System.strict_convergence = strict_convergence
+    x0, xf = xlim
+    y0, yf = ylim
+    x = np.linspace(x0, xf, n)
+    y = np.linspace(y0, yf, n)
+    X, Y = np.meshgrid(x, y)
+    if file and load:
+        Z = np.load(file, allow_pickle=True)
+    else:
+        if filterwarnings:
+            from warnings import filterwarnings
+            filterwarnings('ignore')
+        data0 = z_at_xy(x0, y0, *args)
+        if vectorize:
+            N_args = len(args)
+            Z_at_XY = np.vectorize(
+                z_at_xy, signature=f'(),()->{data0.shape}',
+                excluded=tuple(range(2, 2 + N_args)),
+            )
+        else:
+            Z_at_XY = z_at_xy
+        Z = Z_at_XY(X, Y, *args)
+        if smooth: # Smooth curves due to avoid discontinuities
+            from scipy.ndimage.filters import gaussian_filter
+            *_, M, N = Z.shape
+            for i in range(M):
+                for j in range(N):
+                    Z[:, :, i, j] = gaussian_filter(Z[:, :, i, j], smooth)
+    if file and save and not load: np.save(file, Z)
+    return X, Y, Z
+
+def plot_contour_2d(X, Y, Z, 
                     xlabel, ylabel, xticks, yticks, 
-                    metric_bars, Z_label=None,
-                    Z_value_format=lambda Z: str(Z),
+                    metric_bars, titles=None, 
                     fillcolor=None, styleaxiskw=None,
                     label=False, wbar=1): # pragma: no coverage
     """Create contour plots and return the figure and the axes."""
     if isinstance(metric_bars[0], MetricBar):
         nrows = len(metric_bars)
-        ncols = len(Z_1d)
+        ncols = Z.shape[-1] if titles is None else len(titles)
         row_bars = True
     else:
         nrows = len(metric_bars)
         ncols = len(metric_bars[0])
         row_bars = False
-    assert data.shape == (*X_grid.shape, nrows, ncols), (
-       f"data was shape {data.shape}, but expeted shape {(*X_grid.shape, nrows, ncols)}; "
-        "data shape must be (X, Y, M, Z), where (X, Y) is the shape of both X_grid and Y_grid, "
-        "M is the number of metrics, and Z is the number of elements in Z_1d"
-       
+    assert Z.shape == (*X.shape, nrows, ncols), (
+       f"Z was shape {Z.shape}, but expeted shape {(*X.shape, nrows, ncols)}; "
+        "Z.shape must be (X, Y, M, N), where (X, Y) is the shape of both X and Y, "
+        "M is the number of metrics, and N is the number of elements in titles (if given)"  
     )
     if row_bars:
         fig, axes = contour_subplots(nrows, ncols, wbar=wbar)
@@ -1027,6 +990,7 @@ def plot_contour_2d(X_grid, Y_grid, Z_1d, data,
     if styleaxiskw is None: styleaxiskw = {}
     cps = np.zeros([nrows, ncols], dtype=object)
     linecolor = c.neutral_shade.RGBn
+    other_axes = [[] for i in range(nrows)]
     for row in range(nrows):
         metric_row = metric_bars[row]
         for col in range(ncols):
@@ -1040,8 +1004,8 @@ def plot_contour_2d(X_grid, Y_grid, Z_1d, data,
             yticklabels = col == 0
             xticklabels = row == nrows - 1
             if fillcolor is not None: fill_plot(fillcolor)
-            metric_data = data[:, :, row, col]
-            cp = plt.contourf(X_grid, Y_grid, metric_data,
+            metric_data = Z[:, :, row, col]
+            cp = plt.contourf(X, Y, metric_data,
                               levels=metric_bar.levels,
                               cmap=metric_bar.cmap)
             if label:
@@ -1059,17 +1023,16 @@ def plot_contour_2d(X_grid, Y_grid, Z_1d, data,
                 else:
                     pad = 0.05
                 cbs[row, col] = metric_bar.colorbar(fig, ax, cp, shrink=metric_bar.shrink, label=clabel, pad=pad)
-            style_axis(ax, xticks, yticks, xticklabels, yticklabels, **styleaxiskw)
+            other_axes[row].append(
+                style_axis(ax, xticks, yticks, xticklabels, yticklabels, **styleaxiskw)
+            )
         if row_bars:
             cbar_ax = axes[row, -1]
             cbs[row] = metric_bar.colorbar(fig, cbar_ax, cp, fraction=0.5, shrink=metric_bar.shrink,)
         
         # plt.clim()
     for col in range(ncols):
-        if not col and Z_label:
-            title = f"{Z_label}: {Z_value_format(Z_1d[col])}"
-        else:
-            title = Z_value_format(Z_1d[col])
+        title = titles[col]
         ax = axes[0, col]
         ax.set_title(title)
     if row_bars:
@@ -1080,16 +1043,16 @@ def plot_contour_2d(X_grid, Y_grid, Z_1d, data,
     else:
         set_axes_labels(axes, xlabel, ylabel)
     plt.subplots_adjust(hspace=0.1, wspace=0.1)
-    return fig, axes, cps, cbs
+    return fig, axes, cps, cbs, other_axes
        
-def plot_contour_single_metric(X_grid, Y_grid, data, 
-                    xlabel, ylabel, xticks, yticks, metric_bar,
-                    titles=None, fillcolor=None, styleaxiskw=None,
-                    label=False): # pragma: no coverage
+def plot_contour_single_metric(
+        X, Y, Z, xlabel, ylabel, xticks, yticks, metric_bar,
+        titles=None, fillcolor=None, styleaxiskw=None, label=False
+    ): # pragma: no coverage
     """Create contour plots and return the figure and the axes."""
-    *_, nrows, ncols = data.shape
-    assert data.shape == (*X_grid.shape, nrows, ncols), (
-        "data shape must be (X, Y, M, N), where (X, Y) is the shape of both X_grid and Y_grid"
+    *_, nrows, ncols = Z.shape
+    assert Z.shape == (*X.shape, nrows, ncols), (
+        "Z.shape must be (X, Y, M, N), where (X, Y) is the shape of both X and Y"
     )
     fig, axes, ax_colorbar = contour_subplots(nrows, ncols, single_colorbar=True)
     if styleaxiskw is None: styleaxiskw = {}
@@ -1104,19 +1067,22 @@ def plot_contour_single_metric(X_grid, Y_grid, data,
             yticklabels = col == 0
             xticklabels = row == nrows - 1
             if fillcolor is not None: fill_plot(fillcolor)
-            metric_data = data[:, :, row, col]
-            cp = plt.contourf(X_grid, Y_grid, metric_data,
+            metric_data = Z[:, :, row, col]
+            cp = plt.contourf(X, Y, metric_data,
                               levels=metric_bar.levels,
                               cmap=metric_bar.cmap,
                               norm=metric_bar.norm)
-            for i in cp.collections: i.set_edgecolor('face') # For svg background
+            for i in cp.collections:
+                i.set_edgecolor('face') # For svg background
             if label:
                 cs = plt.contour(cp, zorder=1,
                                  linestyles='dashed', linewidths=1.,
                                  norm=metric_bar.norm,
                                  levels=metric_bar.levels, colors=[linecolor])
-                clabels = ax.clabel(cs, levels=[i for i in cs.levels if i!=metric_bar.levels[-1]], inline=True, fmt=metric_bar.fmt,
-                          colors=['k'], zorder=1)
+                clabels = ax.clabel(
+                    cs, levels=[i for i in cs.levels if i!=metric_bar.levels[-1]], inline=True, fmt=metric_bar.fmt,
+                    colors=['k'], zorder=1
+                )
                 for i in clabels: i.set_rotation(0)
             cps[row, col] = cp
             dct = style_axis(ax, xticks, yticks, xticklabels, yticklabels, **styleaxiskw)
@@ -1131,98 +1097,6 @@ def plot_contour_single_metric(X_grid, Y_grid, data,
     set_axes_labels(axes[:, :-1], xlabel, ylabel)
     plt.subplots_adjust(hspace=0.1, wspace=0.1)
     return fig, axes, cps, cb, other_axes
-
-def plot_contour_2d_curves(X_grid, Y_grid, Z_1d, data, 
-                    xlabel, ylabel, xticks, yticks, 
-                    metric_bars, Z_label=None,
-                    Z_value_format=lambda Z: str(Z),
-                    fillcolor=None, styleaxiskw=None): # pragma: no coverage
-    """Create contour curve plots and return the figure and the axes."""
-    nrows = len(metric_bars)
-    ncols = len(Z_1d)
-    assert data.shape == (*X_grid.shape, nrows, ncols), (
-        "data shape must be (X, Y, M, Z), where (X, Y) is the shape of both X_grid and Y_grid, "
-        "M is the number of metrics, and Z is the number of elements in Z_1d"
-    )
-    widths = np.ones(ncols)
-    gs_kw = dict(width_ratios=widths)
-    fig, axes = plt.subplots(ncols=ncols, nrows=nrows, gridspec_kw=gs_kw)
-    axes = axes.reshape([nrows, ncols])
-    if styleaxiskw is None: styleaxiskw = {}
-    cps = np.zeros([nrows, ncols], dtype=object)
-    for row in range(nrows):
-        metric_bar = metric_bars[row]
-        for col in range(ncols):
-            ax = axes[row, col]
-            plt.sca(ax)
-            style_plot_limits(xticks, yticks)
-            yticklabels = col == 0
-            xticklabels = row == nrows - 1
-            if fillcolor is not None: fill_plot(fillcolor)
-            metric_data = data[:, :, row, col]
-            cp = plt.contour(X_grid, Y_grid, metric_data,
-                              levels=metric_bar.levels,
-                              cmap=metric_bar.cmap)
-            clabels = ax.clabel(cp, levels=cp.levels, inline=True, fmt=lambda x: f'{round(x):,}',
-                      colors=['k'], zorder=1e16)
-            for i in clabels: i.set_rotation(0)
-            cps[row, col] = cp
-            style_axis(ax, xticks, yticks, xticklabels, yticklabels, **styleaxiskw)
-    for col in range(ncols):
-        if not col and Z_label:
-            title = f"{Z_label}: {Z_value_format(Z_1d[col])}"
-        else:
-            title = Z_value_format(Z_1d[col])
-        ax = axes[0, col]
-        ax.set_title(title)
-    for ax in axes[:, -1]:
-        plt.sca(ax)
-        plt.axis('off')
-    set_axes_labels(axes[:, :-1], xlabel, ylabel)
-    plt.subplots_adjust(hspace=0.1, wspace=0.1)
-    return fig, axes, cps
-
-def plot_contour_across_coordinate(X_grid, Y_grid, Z_1d, data, 
-                                   xlabel, ylabel, xticks, yticks, 
-                                   metric_bar, Z_label=None,
-                                   Z_value_format=lambda Z: str(Z),
-                                   fillcolor=None): # pragma: no coverage
-    """Create contour plots and return the figure and the axes."""
-    ncols = len(Z_1d)
-    assert data.shape == (*X_grid.shape, ncols), (
-        "data shape must be (X, Y, Z), where (X, Y) is the shape of both X_grid and Y_grid, "
-        "and Z is the number of elements in Z_1d"
-    )
-    widths = np.ones(ncols + 1)
-    widths[-1] *= 0.38196601125
-    gs_kw = dict(width_ratios=widths)
-    fig, axes = plt.subplots(ncols=ncols + 1, nrows=1, gridspec_kw=gs_kw)
-    xticklabels = True
-    for col in range(ncols):
-        ax = axes[col]
-        plt.sca(ax)
-        style_plot_limits(xticks, yticks)
-        yticklabels = col == 0
-        if fillcolor is not None: fill_plot(fillcolor)
-        cp = plt.contourf(X_grid, Y_grid, data[:, :, col],
-                          levels=metric_bar.levels,
-                          cmap=metric_bar.cmap)
-        style_axis(ax, xticks, yticks, xticklabels, yticklabels)
-    cbar_ax = axes[-1]
-    metric_bar.colorbar(fig, cbar_ax, cp, fraction=0.35, pad=0.15)
-    for col in range(ncols):
-        if not col and Z_label:
-            title = f"{Z_label}: {Z_value_format(Z_1d[col])}"
-        else:
-            title = Z_value_format(Z_1d[col])
-        ax = axes[col]
-        ax.set_title(title)
-    plt.sca(axes[-1])
-    style_plot_limits(xticks, yticks)
-    plt.axis('off')
-    set_axes_labels(axes[np.newaxis, :-1], xlabel, ylabel)
-    plt.subplots_adjust(hspace=0.1, wspace=0.1)
-    return fig, axes
             
 def color_quadrants(color=None, x=None, y=None, xlim=None, ylim=None, 
                     line_color=None, linewidth=1.0):

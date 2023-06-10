@@ -483,9 +483,9 @@ class UnitGroup:
         ... )
              Net electricity production
         0                           108
-        100                       -3.29
+        100                       -3.28
         200                          -4
-        300                      -0.974
+        300                      -0.973
         400                           0
         
         >>> bst.default() # Reset to biosteam defaults

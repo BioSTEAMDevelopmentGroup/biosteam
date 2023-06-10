@@ -68,7 +68,6 @@ class State:
         '_parameters', # list[Parameter] All parameters.
         '_specification', # [function] Loads specifications once all parameters are set.
     ) 
-    
     load_default_parameters = load_default_parameters
     
     def __init__(self, system, specification=None, parameters=None):
@@ -358,35 +357,4 @@ class State:
     def __call__(self, sample, **kwargs):
         """Update state given sample of parameters."""
         return self._update_state(np.asarray(sample, dtype=float), **kwargs)
-    
-    def _repr(self):
-        return f'{type(self).__name__}: {self._system}'
-    
-    def __repr__(self):
-        return '<' + self._repr() + '>'
-    
-    def _info(self):
-        if not self._parameters: return f'{self._repr()}\n (No parameters)'
-        lines = []
-        lengths_block = []
-        lastblk = None
-        for i in self._parameters:
-            blk = i.element_name
-            element = len(blk)*' ' if blk==lastblk else blk
-            lines.append(f" {element}${i.name}\n")
-            lastblk = blk
-            lengths_block.append(len(blk))
-        maxlen_block = max(lengths_block)
-        out = f'{self._repr()}\n'
-        maxlen_block = max(maxlen_block, 7)
-        out += ' Element:' + (maxlen_block - 7)*' ' + ' Parameter:\n'
-        for newline, len_ in zip(lines, lengths_block):
-            newline = newline.replace('$', ' '*(maxlen_block-len_) + '  ')
-            out += newline
-        return out.rstrip('\n ')
-    
-    def show(self):
-        """Return information on metric parameters."""
-        print(self._info())
-    _ipython_display_ = show
     
