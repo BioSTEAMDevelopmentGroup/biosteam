@@ -8,6 +8,7 @@
 """
 """
 from thermosteam import Stream
+from thermosteam.units_of_measure import parse_units_notation
 import yaml
 import os
 
@@ -22,30 +23,30 @@ class DisplayPreferences:
     >>> from biosteam import preferences
     >>> preferences.show()
     DisplayPreferences:
-     label_streams: True
-     autodisplay: True
-     minimal_nodes: False
-     number_path: False
-     profile: False
-     raise_exception: False
-     background_color: 'transparent'
-     stream_color: '#90918e'
-     label_color: '#90918e'
-     depth_colors: ['#f98f609f']
-     stream_width: 'F_mass'
-     unit_color: '#555f69'
-     unit_label_color: 'white'
-     unit_periphery_color: '#90918e'
-     fill_cluster: False
-     graphviz_format: 'svg'
-     tooltips_full_results: False
-     graphviz_html_height: {'system': ('400px', '600px'), 'unit': ('225px', '400px')}
-     flow: 'kmol/hr'
-     T: 'K'
-     P: 'Pa'
-     composition: False
-     N: 7
-     sort: False
+    label_streams: True
+    autodisplay: True
+    minimal_nodes: False
+    number_path: False
+    profile: False
+    raise_exception: False
+    background_color: 'transparent'
+    stream_color: '#90918e'
+    label_color: '#90918e'
+    depth_colors: ['#f98f609f']
+    stream_width: 'F_mass'
+    unit_color: '#555f69'
+    unit_label_color: 'white'
+    unit_periphery_color: '#90918e'
+    fill_cluster: False
+    graphviz_format: 'svg'
+    tooltips_full_results: False
+    graphviz_html_height: {'system': ('400px', '600px'), 'unit': ('225px', '400px')}
+    flow: 'kmol/hr:.3g'
+    T: 'K:.5g'
+    P: 'Pa:.6g'
+    composition: False
+    N: 7
+    sort: False
     
     """
     __slots__ = ('label_streams', 'autodisplay', 'minimal_nodes', 'number_path',
@@ -134,27 +135,39 @@ class DisplayPreferences:
         
     @property
     def flow(self) -> str:
-        """Flow rate units."""
-        return Stream.display_units.flow
+        """Flow rate units and notation."""
+        return ":".join([Stream.display_units.flow, Stream.display_notation.flow])
     @flow.setter
-    def flow(self, units):
-        Stream.display_units.flow = units
+    def flow(self, units_notation):
+        units, notation = parse_units_notation(units_notation)
+        if units is not None:
+            Stream.display_units.flow = units
+        if notation is not None:
+            Stream.display_notation.flow = notation
         
     @property
     def T(self) -> str:
-        """Temperature units."""
-        return Stream.display_units.T
+        """Temperature units and notation."""
+        return ":".join([Stream.display_units.T, Stream.display_notation.T])
     @T.setter
-    def T(self, units):
-        Stream.display_units.T = units
+    def T(self, units_notation):
+        units, notation = parse_units_notation(units_notation)
+        if units is not None:
+            Stream.display_units.T = units
+        if notation is not None:
+            Stream.display_notation.T = notation
 
     @property
     def P(self) -> str:
-        """Pressure units."""
-        return Stream.display_units.P
+        """Pressure units and notation."""
+        return ":".join([Stream.display_units.P, Stream.display_notation.P])
     @P.setter
-    def P(self, units):
-        Stream.display_units.P = units
+    def P(self, units_notation):
+        units, notation = parse_units_notation(units_notation)
+        if units is not None:
+            Stream.display_units.P = units
+        if notation is not None:
+            Stream.display_notation.P = notation
 
     @property
     def composition(self) -> bool:
@@ -249,6 +262,7 @@ class DisplayPreferences:
         dct['composition'] = self.composition
         dct['N'] = self.N
         dct['sort'] = self.sort
+        
         return dct
         
     def save(self):
@@ -262,7 +276,7 @@ class DisplayPreferences:
     def show(self):
         """Print all specifications."""
         dct = self.to_dict()
-        print(f'{type(self).__name__}:\n' + '\n'.join([f" {i}: {repr(j)}" for i, j in dct.items()])) 
+        print(f'{type(self).__name__}:\n' + '\n'.join([f"{i}: {repr(j)}" for i, j in dct.items()])) 
     _ipython_display_ = show
 
 

@@ -106,11 +106,11 @@ class LLEUnit(bst.Unit, isabstract=True):
     >>> C1.simulate()
     >>> C1.outs[0].show()
     Stream: light from <LLEUnit: C1>
-     phase: 'l', T: 333.15 K, P: 101325 Pa
-     flow (kmol/hr): Methanol   10.2
-                     Glycerol   0.0239
-                     Biodiesel  26.9
-                     TriOlein   0.996
+    phase: 'l', T: 333.15 K, P: 101325 Pa
+    flow (kmol/hr): Methanol   10.2
+                    Glycerol   0.0239
+                    Biodiesel  26.9
+                    TriOlein   0.996
     
     """
     _N_outs = 2
@@ -263,19 +263,19 @@ class LLECentrifuge(LLEUnit, LiquidsCentrifuge):
     >>> C1.simulate()
     >>> C1.outs[0].show()
     Stream: light from <LLECentrifuge: C1>
-     phase: 'l', T: 333.15 K, P: 101325 Pa
-     flow (kmol/hr): Methanol   10.2
-                     Glycerol   0.0239
-                     Biodiesel  26.9
-                     TriOlein   0.996
+    phase: 'l', T: 333.15 K, P: 101325 Pa
+    flow (kmol/hr): Methanol   10.2
+                    Glycerol   0.0239
+                    Biodiesel  26.9
+                    TriOlein   0.996
     >>> C1.results()
     Liquids centrifuge                       Units       C1
-    Electricity         Power                   kW     17.1
-                        Cost                USD/hr     1.34
-    Design              Flow rate           m^3/hr     12.2
-    Purchase cost       Liquids centrifuge     USD 1.28e+05
-    Total purchase cost                        USD 1.28e+05
-    Utility cost                            USD/hr     1.34
+    Electricity         Power                   kW     17.5
+                        Cost                USD/hr     1.37
+    Design              Flow rate           m^3/hr     12.5
+    Purchase cost       Liquids centrifuge     USD 1.29e+05
+    Total purchase cost                        USD 1.29e+05
+    Utility cost                            USD/hr     1.37
     
     """
     line = 'Liquids centrifuge'
@@ -347,11 +347,11 @@ class SLLECentrifuge(Unit):
     >>> C1.results()
     3-Phase decanter centrifuge                       Units       C1
     Electricity         Power                            kW   0.0101
-                        Cost                         USD/hr  0.00079
-    Design              Flow rate                     L/min      249
-    Purchase cost       3-Phase decanter centrifuge     USD 2.87e+05
-    Total purchase cost                                 USD 2.87e+05
-    Utility cost                                     USD/hr  0.00079
+                        Cost                         USD/hr 0.000792
+    Design              Flow rate                     L/min      250
+    Purchase cost       3-Phase decanter centrifuge     USD 2.88e+05
+    Total purchase cost                                 USD 2.88e+05
+    Utility cost                                     USD/hr 0.000792
 
     """
     line = '3-Phase decanter centrifuge'
@@ -462,11 +462,11 @@ class SolidLiquidsSplitCentrifuge(Unit):
     >>> C1.results()
     3-Phase decanter centrifuge                       Units       C1
     Electricity         Power                            kW   0.0101
-                        Cost                         USD/hr  0.00079
-    Design              Flow rate                     L/min      249
-    Purchase cost       3-Phase decanter centrifuge     USD 2.87e+05
-    Total purchase cost                                 USD 2.87e+05
-    Utility cost                                     USD/hr  0.00079
+                        Cost                         USD/hr 0.000792
+    Design              Flow rate                     L/min      250
+    Purchase cost       3-Phase decanter centrifuge     USD 2.88e+05
+    Total purchase cost                                 USD 2.88e+05
+    Utility cost                                     USD/hr 0.000792
     
     """
     line = SLLECentrifuge.line

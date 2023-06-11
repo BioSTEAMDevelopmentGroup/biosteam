@@ -53,9 +53,12 @@ jobs:
         python -c "import platform; print(platform.platform()); print(platform.architecture())"
         python -m pip install --upgrade pip
         python -m pip install wheel
-        pip install -r requirements_test.txt
+        pip install --no-cache-dir git+https://github.com/CalebBell/fluids.git
+        pip install --no-cache-dir git+https://github.com/CalebBell/chemicals.git
+        pip install --no-cache-dir git+https://github.com/CalebBell/thermo.git
         pip install --no-cache-dir git+https://github.com/BioSTEAMDevelopmentGroup/thermosteam.git
         pip install --no-cache-dir git+https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park.git
+        pip install -r requirements_test.txt
         pip install --no-cache-dir git+https://github.com/QSD-Group/QSDsan.git
         pip install --no-cache-dir git+https://github.com/QSD-Group/EXPOsan.git
         pip uninstall biosteam -y

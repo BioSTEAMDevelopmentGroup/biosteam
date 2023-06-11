@@ -9,6 +9,7 @@
 """
 __all__ = ('Feature', 'MockFeature', 'Variable', 'MockVariable')
 from ._name import element_name
+from ..utils import format_title
 
 class Feature:
     """
@@ -28,7 +29,7 @@ class Feature:
     include_units_in_index = True
     
     def __init__(self, name, units, element):
-        self.name = name
+        self.name = format_title(name)
         self.units = units
         self.element = element
     
@@ -94,17 +95,16 @@ class Feature:
         if len(name) > 31: name = name[:31]
         return name
     
-    def describe(self, number_format='.3g', distribution=True) -> str:
+    def describe(self, number_format='.3g', distribution=True, bounds=True) -> str:
         """Return description of feature."""
         name = self.name
-        if not name.isupper():
-            name = name.casefold()
         if self.element:
-            name = self.element_name + ' ' + name
+            name = self.element_name + ' - ' + name
         if self.units:
             units = (' [' + str(self.units) + ']')
         else:
             units = ''
+        description = name + units
         if distribution:
             if getattr(self, 'distribution', None):
                 dist_name = type(self.distribution).__name__
@@ -112,19 +112,15 @@ class Feature:
                 distribution = ', '.join([format(j, number_format)
                                           for j in distribution_values])
                 distribution = f' ({dist_name}; {distribution})'
-            else:
-                distribution = ''
-            description = name + units + distribution
-        else:
+                description += distribution
+        elif bounds:
             baseline = getattr(self, 'baseline', None)
             bounds = getattr(self, 'bounds', None)
             if bounds and baseline:
                 lb, ub = bounds
                 values = ', '.join([format(i, number_format)
                                     for i in (lb, baseline, ub)])
-                description = name + units + f' ({values})'
-            else:
-                description = name + units
+                description += f' ({values})'
         if description:
             first_letter = description[0]
             if first_letter.islower(): 
@@ -143,14 +139,9 @@ class Feature:
 
 class MockFeature(Feature):
     __slots__ = ()
-    def __init__(self, name, units, element):
-        self.name = name
-        self.units = units
-        self.element = element_name(element)
     
-    @property
-    def element_name(self):
-        return self.element
+    def __init__(self, name, units, element):
+        super().__init__(name, units, element_name(element))
     
     def __repr__(self):
         return f"{type(self).__name__}('{self.name}', '{self.units}', '{self.element}')"

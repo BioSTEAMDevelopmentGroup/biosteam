@@ -89,19 +89,19 @@ class Pump(Unit):
         flow (kmol/hr): Water  200
     >>> P1.results()
     Pump                              Units           P1
-    Electricity         Power            kW        0.289
-                        Cost         USD/hr       0.0226
+    Electricity         Power            kW        0.288
+                        Cost         USD/hr       0.0225
     Design              Type                 Centrifugal
                         Ideal power      hp        0.136
                         Flow rate       gpm         16.3
                         Efficiency                 0.352
-                        Power            hp        0.387
-                        Head             ft         96.5
+                        Power            hp        0.386
+                        Head             ft         96.3
                         Motor size       hp          0.5
     Purchase cost       Pump            USD     4.37e+03
                         Motor           USD          273
     Total purchase cost                 USD     4.64e+03
-    Utility cost                     USD/hr       0.0226
+    Utility cost                     USD/hr       0.0225
     
     References
     ----------

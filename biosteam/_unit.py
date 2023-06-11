@@ -8,6 +8,7 @@
 """
 """
 from __future__ import annotations
+from .utils import ignore_docking_warnings
 import numpy as np
 import pandas as pd
 from warnings import warn
@@ -31,6 +32,7 @@ if TYPE_CHECKING:
     UtilityAgent = bst.UtilityAgent
 
 streams = Optional[Sequence[Stream]] # TODO: Replace with Stream|str and make it an explicit TypeAlias once BioSTEAM moves to Python 3.10
+int_types = (int, np.int32)
 
 __all__ = ('Unit',)
 
@@ -95,28 +97,31 @@ def repr_ins_and_outs(layout, ins, outs, T, P, flow, composition, N, IDs, sort, 
         i = 0
         for stream in ins:
             unit = stream._source
-            source_info = f'  from  {type(unit).__name__}-{unit}\n' if unit else '\n'
+            source_info = f'  from  {type(unit).__name__}-{unit}' if unit else ''
             if stream and data:
                 stream_info = stream._info(layout, T, P, flow, composition, N, IDs, sort)
                 index = stream_info.index('\n')
-                info += f'[{i}] {stream}' + source_info + stream_info[index+1:] + '\n'
+                number = f'[{i}] '
+                spaces = len(number) * ' '
+                info += number + str(stream) + source_info + stream_info[index:].replace('\n', '\n' + spaces) + '\n'
             else:
-                info += f'[{i}] {stream}' + source_info
+                info += f'[{i}] {stream}' + source_info + '\n'
             i += 1
     if outs:
         info += 'outs...\n'
         i = 0
         for stream in outs:
             unit = stream._sink
-            sink_info = f'  to  {type(unit).__name__}-{unit}\n' if unit else '\n'
+            sink_info = f'  to  {type(unit).__name__}-{unit}' if unit else ''
             if stream and data:
                 stream_info = stream._info(layout, T, P, flow, composition, N, IDs, sort)
                 index = stream_info.index('\n')
-                info += f'[{i}] {stream}' + sink_info + stream_info[index+1:] + '\n'
+                number = f'[{i}] '
+                spaces = len(number) * ' '
+                info += number + str(stream) + sink_info + stream_info[index:].replace('\n', '\n' + spaces) + '\n'
             else:
-                info += f'[{i}] {stream}' + sink_info
+                info += f'[{i}] {stream}' + sink_info + '\n'
             i += 1
-    info = info.replace('\n ', '\n    ')
     return info[:-1]
 
 # %% Path utilities
@@ -872,7 +877,7 @@ class Unit:
             unit.owner = self # In case units are created dynamically
             if isa(unit, Unit):
                 if not (unit._design or unit._cost): continue
-                unit._load_costs() # Just in case user did not simulate or run summary.
+            unit._load_costs() # Just in case user did not simulate or run summary.
             N = integer(parallel.get(name, N_default))
             if N == 1:
                 heat_utilities.extend(unit.heat_utilities)
@@ -917,7 +922,7 @@ class Unit:
                         # Calculate BM as an estimate.
                         F_BM[j] = Cbm / Cpb + 1 - fd * fp * fm
             
-            self._costs_loaded = True
+        self._costs_loaded = True
     
     def _setup(self):
         """Clear all results, setup up stream conditions and constant data, 
@@ -974,10 +979,89 @@ class Unit:
     def owner(self, owner):
         self._owner = None if owner is self else owner
     
-    def disconnect(self, discard=False):
-        self._ins[:] = ()
-        self._outs[:] = ()
+    @ignore_docking_warnings
+    def disconnect(self, discard=False, inlets=None, outlets=None, join_ends=False):
+        ins = self._ins
+        outs = self._outs
+        if inlets is None: 
+            inlets = [i for i in ins if i.source]
+            ins[:] = ()
+        else:
+            for i in inlets: ins[ins.index(i) if isinstance(i, Stream) else i] = None
+        if outlets is None: 
+            outlets = [i for i in outs if i.sink]
+            outs[:] = ()
+        else:
+           for o in outlets: outs[ins.index(o) if isinstance(o, Stream) else o] = None
+        if join_ends:
+            if len(inlets) != len(outlets):
+                raise ValueError("number of inlets must match number of outlets to join ends")
+            for inlet, outlet in zip(inlets, outlets):
+                outlet.sink.ins.replace(outlet, inlet)
         if discard: bst.main_flowsheet.discard(self)
+
+    @ignore_docking_warnings
+    def insert(self, stream, inlet=None, outlet=None):
+        """
+        Insert unit between two units at a given stream connection.
+        
+        Examples
+        --------
+        >>> from biosteam import *
+        >>> settings.set_thermo(['Water'], cache=True)
+        >>> feed = Stream('feed')
+        >>> other_feed = Stream('other_feed')
+        >>> P1 = Pump('P1', feed, 'pump_outlet')
+        >>> H1 = HXutility('H1', P1-0, T=310)
+        >>> M1 = Mixer('M1', other_feed, 'mixer_outlet')
+        >>> M1.insert(P1-0)
+        >>> M1.show()
+        Mixer: M1
+        ins...
+        [0] other_feed
+            phase: 'l', T: 298.15 K, P: 101325 Pa
+            flow: 0
+        [1] pump_outlet  from  Pump-P1
+            phase: 'l', T: 298.15 K, P: 101325 Pa
+            flow: 0
+        outs...
+        [0] mixer_outlet  to  HXutility-H1
+            phase: 'l', T: 298.15 K, P: 101325 Pa
+            flow: 0
+        
+        """
+        source = stream.source
+        sink = stream.sink
+        added_stream = False
+        if outlet is None:
+            if self._outs_size_is_fixed:
+                if self._N_outs == 1:
+                    sink.ins.replace(stream, self.outs[0])
+                else:
+                    raise ValueError("undefined outlet; must pass outlet when outlets are fixed and multiple are available")
+            else:
+                self.outs.append(stream)
+                added_stream = True
+        else:
+            if isinstance(outlet, Stream) and outlet.source is not self:
+                raise ValueError("source of given outlet must be this unit")
+            else:
+                outlet = self.outs[outlet]
+            sink.ins.replace(stream, outlet)
+        if inlet is None:
+            if self._ins_size_is_fixed or added_stream:
+                if self._N_ins == 1:
+                    source.outs.replace(stream, self.ins[0])
+                else:
+                    raise ValueError("undefined inlet; must pass inlet when inlets are fixed and multiple are available")
+            else:
+                self.ins.append(stream)
+        else:
+            if isinstance(inlet, Stream) and inlet.sink is not self:
+                raise ValueError("sink of given inlet must be this unit")
+            else:
+                outlet = self.outs[outlet]
+            source.outs.replace(stream, inlet)
 
     def _get_tooltip_string(self, format=None, full=None):
         """Return a string that can be used as a Tippy tooltip in HTML output"""
@@ -1050,9 +1134,9 @@ class Unit:
         >>> tank = bst.StorageTank(None, feed)
         >>> tank.simulate()
         >>> tank.get_design_result('Total volume', 'm3')
-        1214.23
+        1214.19
         >>> tank.get_design_result('Total volume', 'L')
-        1214239.47
+        1214191.0
         
         """
         return convert(self.design_results[key], self._units[key], units)
@@ -1089,7 +1173,6 @@ class Unit:
     def __sub__(self, other):
         """Source streams."""
         isa = isinstance
-        int_types = (int, np.int)
         if isa(other, (Unit, bst.System)):
             other._ins[:] = self._outs
             return other
@@ -1111,7 +1194,6 @@ class Unit:
     def __rsub__(self, other):
         """Sink streams."""
         isa = isinstance
-        int_types = (int, np.int)
         if isa(other, int_types):
             return self._ins[other]
         elif isa(other, Stream):
@@ -1515,7 +1597,17 @@ class Unit:
         def addcapex(key):
             if key_hook: key = key_hook(key)
             *others, name = key
-            N = int(parallel.get(name, N_default))
+            if ' - ' in name:
+                auxname, _ = name.split(' - ')
+                auxname = auxname.replace(' ', '_').lower()
+                for i in self.auxiliary_unit_names:
+                    if auxname == i.lower():
+                        N = int(parallel.get(i, N_default))
+                        break
+                else:
+                    N = int(parallel.get(name, N_default))
+            else:
+                N = int(parallel.get(name, N_default))
             if N != 1: key = (*others, name + f' (x{N})')
             keys.append(key)
         parallel = self.parallel

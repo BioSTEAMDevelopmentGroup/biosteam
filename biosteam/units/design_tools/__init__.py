@@ -7,6 +7,7 @@
 # for license details.
 """
 """
+from . import agitator
 from . import vacuum
 from . import pressure_vessel
 from . import flash_vessel_design
@@ -20,20 +21,23 @@ from . import geometry
 from . import mechanical
 from . import utils
 
-__all__ = (*cost_index.__all__,
-           *pressure_vessel.__all__,
-           *vacuum.__all__,
-           *flash_vessel_design.__all__,
-           *batch.__all__,
-           *specification_factors.__all__,
-           *column_design.__all__,
-           *heat_transfer.__all__,
-           *tank_design.__all__,
-           *mechanical.__all__,
-           *utils.__all__,
-           *geometry.__all__,
+__all__ = (
+    *agitator.__all__,
+    *cost_index.__all__,
+    *pressure_vessel.__all__,
+    *vacuum.__all__,
+    *flash_vessel_design.__all__,
+    *batch.__all__,
+    *specification_factors.__all__,
+    *column_design.__all__,
+    *heat_transfer.__all__,
+    *tank_design.__all__,
+    *mechanical.__all__,
+    *utils.__all__,
+    *geometry.__all__,
 )
 
+from .agitator import *
 from .pressure_vessel import *
 from .specification_factors import *
 from .column_design import *

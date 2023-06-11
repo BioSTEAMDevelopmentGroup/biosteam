@@ -72,33 +72,29 @@ class HeatExchangerNetwork(bst.Facility):
     True
     >>> HXN.stream_life_cycles
     [<StreamLifeCycle: Stream_0, cold
-     	life_cycle = [
-     		<LifeStage: <HXprocess: HX_0_2_hs>, H_in = 5.93e+06 kJ, H_out = 4.25e+07 kJ>
-     		<LifeStage: <HXutility: Util_0_hs>, H_in = 4.25e+07 kJ, H_out = 7.11e+07 kJ>
-     	]>,
-     <StreamLifeCycle: Stream_1, cold
-     	life_cycle = [
-     		<LifeStage: <HXprocess: HX_1_4_hs>, H_in = 0 kJ, H_out = 3.35e+04 kJ>
-     		<LifeStage: <HXprocess: HX_1_2_hs>, H_in = 3.35e+04 kJ, H_out = 5.55e+06 kJ>
-     		<LifeStage: <HXprocess: HX_1_3_hs>, H_in = 5.55e+06 kJ, H_out = 2.48e+07 kJ>
-     		<LifeStage: <HXutility: Util_1_hs>, H_in = 2.48e+07 kJ, H_out = 2.8e+08 kJ>
-     	]>,
-     <StreamLifeCycle: Stream_2, hot
-     	life_cycle = [
-     		<LifeStage: <HXprocess: HX_0_2_hs>, H_in = 4.52e+07 kJ, H_out = 8.62e+06 kJ>
-     		<LifeStage: <HXprocess: HX_1_2_hs>, H_in = 8.62e+06 kJ, H_out = 3.1e+06 kJ>
-     		<LifeStage: <HXutility: Util_2_cs>, H_in = 3.1e+06 kJ, H_out = 1.14e+06 kJ>
-     	]>,
-     <StreamLifeCycle: Stream_3, hot
-     	life_cycle = [
-     		<LifeStage: <HXprocess: HX_1_3_hs>, H_in = 2.19e+07 kJ, H_out = 2.61e+06 kJ>
-     		<LifeStage: <HXutility: Util_3_cs>, H_in = 2.61e+06 kJ, H_out = 2.61e+06 kJ>
-     	]>,
-     <StreamLifeCycle: Stream_4, hot
-     	life_cycle = [
-     		<LifeStage: <HXprocess: HX_1_4_hs>, H_in = 7.49e+05 kJ, H_out = 7.15e+05 kJ>
-     		<LifeStage: <HXutility: Util_4_cs>, H_in = 7.15e+05 kJ, H_out = 7.15e+05 kJ>
-     	]>]
+    	life_cycle = [
+    		<LifeStage: <HXprocess: HX_0_2_hs>, H_in = 5.75e+06 kJ, H_out = 4.25e+07 kJ>
+    		<LifeStage: <HXutility: Util_0_hs>, H_in = 4.25e+07 kJ, H_out = 7.09e+07 kJ>
+    	]>, <StreamLifeCycle: Stream_1, cold
+    	life_cycle = [
+    		<LifeStage: <HXprocess: HX_1_4_hs>, H_in = 0 kJ, H_out = 3.34e+04 kJ>
+    		<LifeStage: <HXprocess: HX_1_2_hs>, H_in = 3.34e+04 kJ, H_out = 5.39e+06 kJ>
+    		<LifeStage: <HXprocess: HX_1_3_hs>, H_in = 5.39e+06 kJ, H_out = 2.46e+07 kJ>
+    		<LifeStage: <HXutility: Util_1_hs>, H_in = 2.46e+07 kJ, H_out = 2.79e+08 kJ>
+    	]>, <StreamLifeCycle: Stream_2, hot
+    	life_cycle = [
+    		<LifeStage: <HXprocess: HX_0_2_hs>, H_in = 4.52e+07 kJ, H_out = 8.46e+06 kJ>
+    		<LifeStage: <HXprocess: HX_1_2_hs>, H_in = 8.46e+06 kJ, H_out = 3.1e+06 kJ>
+    		<LifeStage: <HXutility: Util_2_cs>, H_in = 3.1e+06 kJ, H_out = 1.14e+06 kJ>
+    	]>, <StreamLifeCycle: Stream_3, hot
+    	life_cycle = [
+    		<LifeStage: <HXprocess: HX_1_3_hs>, H_in = 2.18e+07 kJ, H_out = 2.6e+06 kJ>
+    		<LifeStage: <HXutility: Util_3_cs>, H_in = 2.6e+06 kJ, H_out = 2.6e+06 kJ>
+    	]>, <StreamLifeCycle: Stream_4, hot
+    	life_cycle = [
+    		<LifeStage: <HXprocess: HX_1_4_hs>, H_in = 7.51e+05 kJ, H_out = 7.18e+05 kJ>
+    		<LifeStage: <HXutility: Util_4_cs>, H_in = 7.18e+05 kJ, H_out = 7.18e+05 kJ>
+    	]>]
     
     """
     ticket_name = 'HXN'
@@ -151,12 +147,11 @@ class HeatExchangerNetwork(bst.Facility):
         flowsheet = bst.Flowsheet(sys.ID + '_HXN')
         use_cached_network = False
         if self.cache_network and hasattr(self, 'original_heat_utils'):
-            hxs_cache = self.original_heat_exchangers
             hxs = [hu.unit for hu in hx_utils]
-            hxs_dct = {(i.owner, i._ID): i for i in hxs}
-            try: hxs = [hxs_dct[i.owner, i._ID] for i in hxs_cache]
-            except: pass
-            else: use_cached_network = len(hxs) == len(hx_utils)
+            use_cached_network = (
+                sorted(hxs, key=lambda x: x.ID) 
+                == sorted(self.original_heat_exchangers, key=lambda x: x.ID)
+            )
         with flowsheet.temporary(), bst.IgnoreDockingWarnings():
             if use_cached_network:
                 hx_heat_utils_rearranged = [i.heat_utilities[0] for i in hxs]
@@ -308,7 +303,6 @@ class HeatExchangerNetwork(bst.Facility):
                 self.installed_costs['Heat exchangers'] = 0.
                 self.baseline_purchase_costs['Heat exchangers'] = self.purchase_costs['Heat exchangers'] = 0.
                 self.heat_utilities = []
-                
             self.original_heat_utils = hx_heat_utils_rearranged
             self.original_purchase_costs = original_purchase_costs
             self.original_utility_costs = hu_sums1

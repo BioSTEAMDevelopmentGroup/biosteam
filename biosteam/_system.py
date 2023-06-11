@@ -400,6 +400,7 @@ class System:
         '_inlet_names',
         '_outlet_names',
         # Specifications
+        'simulate_after_specifications',
         '_specifications',
         '_running_specifications',
         # Dynamic simulation
@@ -664,6 +665,9 @@ class System:
 
         #: Log for all process specifications checked for temporary connections.
         self._temporary_connections_log = set()
+
+        #: Whether to simulate system after running all specifications.
+        self.simulate_after_specifications = False
 
         self._set_path(path)
         self._specifications = []
@@ -934,7 +938,8 @@ class System:
     add_bounded_numerical_specification = Unit.add_bounded_numerical_specification
     def add_specification(self, 
             specification: Optional[Callable]=None, 
-            args: Optional[tuple]=()
+            args: Optional[tuple]=(),
+            simulate: Optional[bool]=None,
         ):
         """
         Add a specification.
@@ -945,6 +950,8 @@ class System:
             Function runned for mass and energy balance.
         args : 
             Arguments to pass to the specification function.
+        simulate :
+            Whether to simulate after specification.
 
         Examples
         --------
@@ -963,6 +970,7 @@ class System:
         if not specification: return lambda specification: self.add_specification(specification, args)
         if not callable(specification): raise ValueError('specification must be callable')
         self._specifications.append(SystemSpecification(specification, args))
+        if simulate is not None: self.simulate_after_specifications = simulate
         return specification
 
     def _extend_recycles(self, recycles):
@@ -2180,6 +2188,7 @@ class System:
                 self._running_specifications = True
                 try:
                     for ss in specifications: ss()
+                    if self.simulate_after_specifications: self.simulate()
                 finally:
                     self._running_specifications = False
             else:

@@ -34,7 +34,7 @@ from ._conveying_belt import *
 from ._vent_scrubber import *
 from ._vibrating_screen import *
 from ._carbon_capture import *
-from .cstr import *
+from .stirred_tank_reactor import *
 from .compressor import *
 from .turbine import *
 from .valve import *
@@ -43,6 +43,8 @@ from .size_reduction import *
 from .size_enlargement import *
 from .liquid_liquid_extraction import *
 from .adsorption import *
+from .auxiliary import *
+from .agitator import *
 
 from . import (
     _flash, 
@@ -58,7 +60,7 @@ from . import (
     _clarifier, 
     _balance,  
     _screw_feeder,
-    cstr,
+    stirred_tank_reactor,
     molecular_sieve,
     vacuum_system,
     adsorption,
@@ -82,6 +84,8 @@ from . import (
     compressor,
     turbine,
     valve,
+    auxiliary,
+    agitator,
 )
 
 
@@ -97,7 +101,7 @@ __all__ = ('Unit',
            *_multi_effect_evaporator.__all__,
            *distillation.__all__,
            *tank.__all__,
-           *cstr.__all__,
+           *stirred_tank_reactor.__all__,
            *_conveying_belt.__all__,
            *_vent_scrubber.__all__,
            *_vibrating_screen.__all__,
@@ -121,6 +125,8 @@ __all__ = ('Unit',
            *turbine.__all__,
            *valve.__all__,
            *vacuum_system.__all__,
+           *auxiliary.__all__,
+           *agitator.__all__,
            'adsorption',
            'drying',
            'tank',

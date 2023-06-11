@@ -207,11 +207,10 @@ class InternalCirculationRx(bst.MixTank):
 
         eff.imass['WWTsludge'] = Xe*self.Qe
         waste.imass['WWTsludge'] = Xw*self.Qw
-
         diff = sum(i.imol['WWTsludge'] for i in self.outs) - inf.imol['WWTsludge']
-        if diff >0:
+        if diff > 0:
             decay_rxn = self.decay_rxn
-            decay_rxn._X = diff / inf.imol['WWTsludge']
+            decay_rxn._X = min(1., diff / inf.imol['WWTsludge'])
 
             for i in (eff, waste):
                 decay_rxn.force_reaction(i.mol)

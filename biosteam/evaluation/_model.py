@@ -186,6 +186,10 @@ class Model(State):
         algorithm.
         
         """
+        N_samples = samples.shape[0]
+        if N_samples < 2: 
+            self._index = list(range(N_samples))
+            return
         if distance is None: distance = 'cityblock'
         length = samples.shape[0]
         columns = [i for i, parameter in enumerate(self._parameters) if parameter.kind == 'coupled']
@@ -478,8 +482,8 @@ class Model(State):
             state_updated = True
             return [i() for i in self.metrics]
         except Exception as exception:
-            self._reset_system()
             if self.retry_evaluation and state_updated:
+                self._reset_system()
                 try:
                     self._update_state(sample, **kwargs)
                     self._specification() if self._specification else self._system.simulate(**kwargs)
@@ -855,12 +859,43 @@ class Model(State):
         super().__call__(sample)
         return pd.Series({i.index: i() for i in self._metrics})
     
-    def _repr(self):
+    def _repr(self, m):
         clsname = type(self).__name__
         newline = "\n" + " "*(len(clsname)+2)
         return f'{clsname}: {newline.join([i.describe() for i in self.metrics])}'
-        
-    def __repr__(self):
-        return f'<{type(self).__name__}: {", ".join([i.name for i in self.metrics])}>'
     
-        
+    def __repr__(self):
+        return f'<{type(self).__name__}: {len(self.parameters)}-parameters, {len(self.metrics)}-metrics>'
+    
+    def _info(self, p, m):
+        info = f'{type(self).__name__}:'
+        parameters = self._parameters
+        if parameters: 
+            if p is None: p = len(parameters)
+            ptitle = 'parameters: '
+            info += '\n' + ptitle
+            newline = "\n" + " "*(len(ptitle))
+            info += newline.join([
+                parameters[i].describe(
+                    distribution=False, bounds=False
+                ) for i in range(p)
+            ])
+        else:
+            info += '\n(No parameters)'
+        metrics = self._metrics
+        if metrics: 
+            if m is None: m = len(metrics)
+            mtitle = 'metrics: '
+            info += '\n' + mtitle
+            newline = "\n" + " "*(len(mtitle))
+            info += newline.join([
+                metrics[i].describe() for i in range(m)
+            ])
+        else:
+            info += '\n(No metrics)'
+        return info
+    
+    def show(self, p=None, m=None):
+        """Return information on p-parameters and m-metrics."""
+        print(self._info(p, m))
+    _ipython_display_ = show

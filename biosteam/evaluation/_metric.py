@@ -8,7 +8,6 @@
 """
 """
 from ._feature import Feature
-from ..utils import format_title
 
 __all__ = ('Metric', 'metric')
 
@@ -31,8 +30,7 @@ class Metric(Feature):
     __slots__ = ('getter', 'cache')
     distribution = None
     def __init__(self, name, getter, units=None, element=None):
-        if element is None: element = 'Biorefinery'
-        if name is None and hasattr(getter, '__name__'): name = format_title(getter.__name__)
+        if name is None and hasattr(getter, '__name__'): name = getter.__name__
         super().__init__(name, units, element)
         self.getter = getter
         
@@ -41,13 +39,12 @@ class Metric(Feature):
         return self.cache
     
     def get(self):
-        """Return value of metric. This method caches the value for future calls."""
+        """Return value of metric. This method used cached values."""
         try:
             return self.cache
         except:
             self.cache = self.getter()
             return self.cache
-        return self.getter()
     
     def difference(self):
         """Return the difference between the current metric value and the last one 

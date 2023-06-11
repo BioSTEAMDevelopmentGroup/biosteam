@@ -195,20 +195,20 @@ class PhaseSplitter(Unit):
     PhaseSplitter: PS
     ins...
     [0] feed
-        phases: ('g', 'l'), T: 353.86 K, P: 101325 Pa
-        flow (kmol/hr): (g) Water    3.86
-                            Ethanol  6.14
-                        (l) Water    6.14
-                            Ethanol  3.86
+        phases: ('g', 'l'), T: 353.94 K, P: 101325 Pa
+        flow (kmol/hr): (g) Water    3.87
+                            Ethanol  6.13
+                        (l) Water    6.13
+                            Ethanol  3.87
     outs...
     [0] s1
-        phase: 'g', T: 353.86 K, P: 101325 Pa
-        flow (kmol/hr): Water    3.86
-                        Ethanol  6.14
+        phase: 'g', T: 353.94 K, P: 101325 Pa
+        flow (kmol/hr): Water    3.87
+                        Ethanol  6.13
     [1] s2
-        phase: 'l', T: 353.86 K, P: 101325 Pa
-        flow (kmol/hr): Water    6.14
-                        Ethanol  3.86
+        phase: 'l', T: 353.94 K, P: 101325 Pa
+        flow (kmol/hr): Water    6.13
+                        Ethanol  3.87
     
     """
     _N_ins = 1

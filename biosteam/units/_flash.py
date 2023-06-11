@@ -114,9 +114,9 @@ class Flash(design.PressureVessel, Unit):
                         Glycerol  298
     >>> F1.results()
     Flash                                                   Units            F1
-    Medium pressure steam Duty                              kJ/hr      4.82e+07
+    Medium pressure steam Duty                              kJ/hr      4.81e+07
                           Flow                            kmol/hr      1.33e+03
-                          Cost                             USD/hr           367
+                          Cost                             USD/hr           366
     Design                Vessel type                                  Vertical
                           Length                               ft          15.5
                           Diameter                             ft           8.5
@@ -127,7 +127,7 @@ class Flash(design.PressureVessel, Unit):
                           Platform and ladders                USD      1.39e+04
                           Heat exchanger - Floating head      USD      4.48e+04
     Total purchase cost                                       USD      1.05e+05
-    Utility cost                                           USD/hr           367
+    Utility cost                                           USD/hr           366
 
 
     References
@@ -280,7 +280,7 @@ class Flash(design.PressureVessel, Unit):
         if self.Q == 0.:
             self.heat_exchanger._setup() # Removes results
         else:
-            self.heat_exchanger.simulate_as_auxiliary_exchanger(self.ins, [self._multi_stream])
+            self.heat_exchanger.simulate_as_auxiliary_exchanger(self.ins, self.outs, P=self.ins[0].P)
 
     def _cost(self):
         D = self.design_results
@@ -725,7 +725,9 @@ class Evaporator_PV(Flash):
             if self.Q == 0.:
                 self.heat_exchanger._setup() # Removes previous results
             else:
-                self.heat_exchanger.simulate_as_auxiliary_exchanger(self.ins, self.outs, vle=True)
+                self.heat_exchanger.simulate_as_auxiliary_exchanger(
+                    self.ins, self.outs, P=self.ins[0].P, vle=True,
+                )
 
     def _cost(self):
         D = self.design_results

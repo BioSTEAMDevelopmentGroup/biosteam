@@ -18,7 +18,7 @@ from matplotlib.colors import Normalize, LinearSegmentedColormap
 from matplotlib.cm import ScalarMappable
 
 __all__ = ('CABBI_green_colormap', 'MetricBar',
-           'color_bar', *plots.__all__)
+           'expand', 'closest_index', 'color_bar', *plots.__all__)
 
 # %% Data classes
 
