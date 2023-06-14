@@ -1,5 +1,0 @@
-ChilledWaterPackage
-===================
-
-.. autoclass:: biosteam.facilities.ChilledWaterPackage
-   :members:

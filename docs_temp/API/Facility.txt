@@ -1,5 +1,0 @@
-Facility
-========
-
-.. autoclass:: biosteam.Facility
-   :members:

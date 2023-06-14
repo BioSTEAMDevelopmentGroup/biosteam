@@ -1,5 +1,0 @@
-batch
------
-
-.. automodule:: biosteam.units.design_tools.batch
-   :members:

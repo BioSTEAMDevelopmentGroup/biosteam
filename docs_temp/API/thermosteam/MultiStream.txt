@@ -1,7 +1,0 @@
-MultiStream
-===========
-
-A MultiStream object represents a material flow with multiple phases in a chemical process.
-
-.. autoclass:: thermosteam.MultiStream
-   :members:

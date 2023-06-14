@@ -1,4 +1,0 @@
-compressor
-==========
-
-.. automodule:: biosteam.units.compressor

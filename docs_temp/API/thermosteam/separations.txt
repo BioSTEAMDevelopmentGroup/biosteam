@@ -1,5 +1,0 @@
-separations
-===========
-
-.. automodule:: thermosteam.separations
-   :members:

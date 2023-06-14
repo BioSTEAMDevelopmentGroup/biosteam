@@ -1,8 +1,0 @@
-IdealMixtureModel
------------------
-
-.. autoclass:: thermosteam.mixture.IdealTMixtureModel
-   :members:
-
-.. autoclass:: thermosteam.mixture.IdealTPMixtureModel
-   :members:

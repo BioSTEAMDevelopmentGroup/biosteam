@@ -1,5 +1,0 @@
-heat_transfer
--------------
-
-.. automodule:: biosteam.units.design_tools.heat_transfer
-   :members:

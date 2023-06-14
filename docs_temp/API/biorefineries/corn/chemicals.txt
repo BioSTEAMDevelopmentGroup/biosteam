@@ -1,4 +1,0 @@
-chemicals
----------
-
-.. automodule:: biorefineries.corn.chemicals

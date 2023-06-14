@@ -1,6 +1,0 @@
-Flowsheet
-=========
-
-.. autoclass:: biosteam.Flowsheet
-   :members:
-   :special-members: __call__

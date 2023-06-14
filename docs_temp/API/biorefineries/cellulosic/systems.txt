@@ -1,4 +1,0 @@
-systems
-=======
-
-.. automodule:: biorefineries.cellulosic.systems

@@ -1,5 +1,0 @@
-plot_equilibrium
-----------------
-
-.. automodule:: thermosteam.equilibrium.plot_equilibrium
-   :members:

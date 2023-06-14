@@ -1,4 +1,0 @@
-distillation
-============
-
-.. automodule:: biosteam.units.distillation

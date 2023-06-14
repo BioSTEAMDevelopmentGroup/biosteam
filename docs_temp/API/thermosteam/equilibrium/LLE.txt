@@ -1,6 +1,0 @@
-LLE
----
-
-.. autoclass:: thermosteam.equilibrium.LLE
-   :members:
-   :special-members: __call__

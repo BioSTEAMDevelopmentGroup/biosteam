@@ -1,6 +1,0 @@
-MolarFlowIndexer
-----------------
-
-.. autoclass:: thermosteam.indexer.MolarFlowIndexer
-   :members:
-

@@ -1,6 +1,0 @@
-Ethanol purification
---------------------
-
-The `ethanol` module includes systems for the purification of ethanol from fermentation broth.
-
-.. automodule:: biorefineries.ethanol

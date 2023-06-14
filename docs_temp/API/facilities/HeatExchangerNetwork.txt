@@ -1,5 +1,0 @@
-HeatExchangerNetwork
-====================
-
-.. autoclass:: biosteam.facilities.HeatExchangerNetwork
-   :members:

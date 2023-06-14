@@ -1,6 +1,0 @@
-MaterialIndexer
----------------
-
-.. autoclass:: thermosteam.indexer.MaterialIndexer
-   :members:
-
