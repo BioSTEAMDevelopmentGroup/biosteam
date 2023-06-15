@@ -69,6 +69,12 @@ class SystemSpecification:
 
 # %% Convergence tools
 
+class Methods(dict):
+    
+    def __repr__(self):
+        return f"{type(self).__name__}({', '.join(self)})"
+
+
 class MaterialData:
     __slots__ = (
         'material_flows',
@@ -440,7 +446,7 @@ class System:
     strict_convergence: bool = True
 
     #: Method definitions for convergence
-    available_methods: dict[str, tuple(Callable, bool, dict)] = {}
+    available_methods: Methods[str, tuple(Callable, bool, dict)] = Methods()
 
     @classmethod
     def register_method(cls, name, solver, conditional=False, **kwargs):
@@ -452,8 +458,8 @@ class System:
           where f(x) = 0 is the solution. This is common for scipy solvers.
         
         * If conditional is True, the signature must be solver(f, x, **kwargs) 
-          where f(x, converged) = x is the solution and the solver stops when
-          converged is True. This method is prefered in BioSTEAM.
+          where f(x) = (x, converged) is the solution and the solver stops 
+          when converged is True. This method is prefered in BioSTEAM.
         
         """
         name = name.lower().replace('-', '').replace('_', '').replace(' ', '')
