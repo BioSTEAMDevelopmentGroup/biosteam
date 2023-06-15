@@ -1,0 +1,5 @@
+cost_index
+----------
+
+.. automodule:: biosteam.units.design_tools.cost_index
+   :members:

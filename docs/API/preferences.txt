@@ -1,0 +1,8 @@
+preferences
+-----------
+
+.. autodata:: biosteam._preferences.preferences
+
+.. autoclass:: biosteam._preferences.DisplayPreferences
+   :members:
+   

@@ -1,0 +1,5 @@
+Fermentation
+============
+
+.. autoclass:: biosteam.units.Fermentation
+   :members:

@@ -1,0 +1,5 @@
+SeriesReaction
+--------------
+
+.. autoclass:: thermosteam.reaction.SeriesReaction
+   :members:

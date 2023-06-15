@@ -1,0 +1,4 @@
+chemicals
+=========
+
+.. automodule:: biorefineries.cellulosic.chemicals

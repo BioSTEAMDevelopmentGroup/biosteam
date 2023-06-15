@@ -1,0 +1,6 @@
+BubblePoint
+-----------
+
+.. autoclass:: thermosteam.equilibrium.BubblePoint
+   :members:
+   :special-members: __call__

@@ -1,0 +1,60 @@
+User guide
+----------
+
+.. grid:: 1 1 2 2
+   
+    .. grid-item::
+    
+        .. toctree::
+           :maxdepth: 1
+           :numbered:
+           :caption: Beginner's Guide
+    
+           Getting_started   
+           Creating_a_Unit
+           -pipe-_notation
+           Unit_operation_results
+           Managing_flowsheets
+           Convergence
+           Preferences
+
+
+    .. grid-item::
+       
+       .. toctree::
+          :maxdepth: 1
+          :numbered:
+          :caption: Process Development
+
+          Process_specifications
+          Inheriting_from_Unit
+          Creating_a_System
+          Building_a_biorefinery
+          Techno-economic_analysis
+          Life_cycle_assessment
+          Gotchas
+
+        
+    .. grid-item::
+       
+       .. toctree::
+          :maxdepth: 1
+          :numbered:
+          :caption: Thermodynamics
+
+          Thermosteam_101
+          Phase_equilibrium
+          Property_packages
+          Stoichiometric_reactions
+       
+       
+    .. grid-item::
+       
+       .. toctree::
+          :maxdepth: 1
+          :numbered:
+          :caption: Automation
+          
+          Operational_flexibility
+          Uncertainty_and_sensitivity
+
