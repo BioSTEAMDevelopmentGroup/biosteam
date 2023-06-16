@@ -47,7 +47,7 @@ bioproductos.
 Toda data en quimicos y algoritmos para estimar propiedades quimicos son importados 
 de `chemicals <https://github.com/CalebBell/chemicals>`_ y `thermo <https://github.com/CalebBell/chemicals>`_,
 paquetes abiertos dessarollado por Caleb Bell. El motor thermodynamico principal de BioSTEAM, 
-`thermosteam <https://github.com/BioSTEAMDevelopmentGroup/thermosteam>`_, facilita
+`ThermoSTEAM <https://github.com/BioSTEAMDevelopmentGroup/thermosteam>`_, facilita
 la creación de paquetes de propiedades thermodynamicas atravéz de estos paquetes.
 
 Instalación
