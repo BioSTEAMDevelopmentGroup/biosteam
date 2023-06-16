@@ -10,7 +10,7 @@
 .. role:: orange
 .. role:: blue
 
-Thermosteam: BioSTEAM's Premier Thermodynamic Engine
+ThermoSTEAM: BioSTEAM's Premier Thermodynamic Engine
 ====================================================
 
 .. figure:: class_diagram_light.png
@@ -20,7 +20,7 @@ Thermosteam: BioSTEAM's Premier Thermodynamic Engine
    :class: only-dark
    :align: center
 
-- :blue:`Properties:` Thermosteam builds upon `chemicals <https://github.com/CalebBell/chemicals>`_ and `thermo <https://github.com/CalebBell/thermo>`_, from the Chemical Engineering Design Library, for thermodynamic models and data which become encapsulated as callable property classes.
+- :blue:`Properties:` ThermoSTEAM builds upon `chemicals <https://github.com/CalebBell/chemicals>`_ and `thermo <https://github.com/CalebBell/thermo>`_, from the Chemical Engineering Design Library, for thermodynamic models and data which become encapsulated as callable property classes.
 
 - :green:`Data:` Chemical objects manage the thermodynamic methods and makes sure to use a valid method at given temperatures and pressures whenever estimating properties. 
 

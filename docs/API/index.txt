@@ -72,7 +72,7 @@ BioSTEAM's main components can be categorized by 5 functionality levels:
    :caption: Thermodynamics
    :hidden:
    
-   Thermosteam <thermosteam/index>
+   ThermoSTEAM <thermosteam/index>
    
 .. toctree::
    :maxdepth: 2
