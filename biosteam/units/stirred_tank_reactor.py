@@ -377,7 +377,7 @@ class AeratedBioreactor(StirredTankReactor):
     >>> # Model oxygen uptake as combustion
     >>> rxn = bst.Rxn('Glucose + O2 -> H2O + CO2', reactant='Glucose', X=0.5, correct_atomic_balance=True) 
     >>> R1 = bst.AeratedBioreactor(
-    ...     'R1', ins=[feed, 'air'], outs=('vent', 'product'), tau=12, V_max=500,
+    ...     'R1', ins=[feed, bst.Stream('air', phase='g')], outs=('vent', 'product'), tau=12, V_max=500,
     ...     reactions=rxn,
     ... )
     >>> R1.simulate()
@@ -388,13 +388,10 @@ class AeratedBioreactor(StirredTankReactor):
         phase: 'l', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water    6.66e+03
                         Glucose  139
-    [1] s50
+    [1] air
         phase: 'g', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): O2  4.16e+03
                         N2  1.57e+04
-    [2] air
-        phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow: 0
     outs...
     [0] vent
         phase: 'g', T: 305.15 K, P: 101325 Pa
