@@ -11,6 +11,7 @@ class Auxiliary:
     """Abstract class for light-weight auxiliary unit. The class should 
     compute all results during initialization."""
     __slots__ = (
+        'auxiliary_units',
         'power_utility',
         'heat_utilities', 
         'baseline_purchase_costs',

@@ -182,7 +182,9 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
         'heat_exchanger', 
         'vacuum_system', 
         'recirculation_pump',
-        'agitator'
+        'splitter',
+        'agitator',
+        'scaler',
     )
     
     _units = {**PressureVessel._units,
@@ -257,11 +259,18 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
 
     def load_auxiliaries(self):
         self.recirculation_pump = pump = bst.Pump(None, (None,), (None,), thermo=self.thermo)
+        self.auxlet(0**pump)
         if self.batch:
             self.heat_exchanger = bst.HXutility(None, pump-0, (None,), thermo=self.thermo) 
         else:
-            self.splitter = splitter = bst.Splitter(None, pump-0, split=0.5) # Split is updated later
+            self.splitter = splitter = bst.Splitter(
+                None, pump-0, 
+                [None, None],
+                split=0.5
+            ) # Split is updated later
             self.heat_exchanger = bst.HXutility(None, splitter-0, (None,), thermo=self.thermo) 
+            self.scaler = bst.Scaler(None, splitter-1, None)
+        self.auxlet(self.heat_exchanger-0)
 
     def _get_duty(self):
         return self.Hnet
@@ -328,6 +337,9 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
                 self.recirculation_pump.simulate()
                 self.splitter.split = recirculation_ratio / (1 + recirculation_ratio)
                 self.splitter.simulate()
+                self.scaler.scale = N
+                self.scaler.outs[0] = self.auxlet(self.liquid_product)
+                self.scaler.simulate()
             self.heat_exchanger.T = hx_outlet.T
             self.heat_exchanger.simulate()
             
@@ -452,8 +464,9 @@ class AeratedBioreactor(StirredTankReactor):
     
     def load_auxiliaries(self):
         super().load_auxiliaries()
-        self.compressor = compressor = bst.IsentropicCompressor(None, (None,), (None,), thermo=self.thermo, eta=0.85, P=2 * 101325) 
-        self.air_cooler = bst.HXutility(None, compressor-0, (None,), thermo=self.thermo, T=self.T)
+        self.compressor = compressor = bst.IsentropicCompressor(None, self.auxlet(self.air), (None,), thermo=self.thermo, eta=0.85, P=2 * 101325) 
+        self.air_cooler = air_cooler = bst.HXutility(None, compressor-0, (None,), thermo=self.thermo, T=self.T)
+        self.auxlet(air_cooler-0)
         
     def _run_vent(self, vent, effluent):
         vent.receive_vent(effluent, energy_balance=False)
@@ -463,6 +476,7 @@ class AeratedBioreactor(StirredTankReactor):
         if air is None:
             air = bst.Stream(phase='g', thermo=self.thermo)
             self.ins.insert(1, air)
+            self.compressor.ins[0] = self.auxlet(air)
         feeds = [i for i in self.ins if i.phase != 'g']
         vent, effluent = self.outs
         air.P = vent.P = effluent.P = self.P
@@ -485,7 +499,6 @@ class AeratedBioreactor(StirredTankReactor):
             def total_power_at_oxygen_flow(O2):
                 air.set_flow([O2, O2 * 79. / 21.], 'mol/s', ['O2', 'N2'])
                 air_cc.copy_flow(air) # Skip simulation of air cooler
-                compressor.ins[0].copy_like(air)
                 compressor.simulate()
                 effluent.imol['O2', 'N2'] = 0.
                 effluent.mix_from([effluent, air_cc], energy_balance=False)
@@ -501,7 +514,6 @@ class AeratedBioreactor(StirredTankReactor):
             def air_flow_rate_objective(O2):
                 air.set_flow([O2, O2 * 79. / 21.], 'mol/s', ['O2', 'N2'])
                 air_cc.copy_flow(air) # Skip simulation of air cooler
-                compressor.ins[0].copy_like(air)
                 compressor.simulate()
                 effluent.imol['O2', 'N2'] = 0.
                 effluent.mix_from([effluent, air_cc], energy_balance=False)
@@ -593,7 +605,6 @@ class AeratedBioreactor(StirredTankReactor):
         length = self.get_design_result('Length', 'm') * self.V_wf
         compressor = self.compressor
         compressor.P = g * rho * length + 101325
-        compressor.ins[0].copy_like(self.air)
         compressor.simulate()
         air_cooler = self.air_cooler
         air_cooler.T = self.T

@@ -122,12 +122,12 @@ class MultiEffectEvaporator(Unit):
     Multi-effect evaporator                                    Units       E1
     Electricity         Power                                     kW     5.72
                         Cost                                  USD/hr    0.447
-    Low pressure steam  Duty                                   kJ/hr 5.83e+05
-                        Flow                                 kmol/hr     15.1
-                        Cost                                  USD/hr     3.58
     Cooling water       Duty                                   kJ/hr -3.5e+05
                         Flow                                 kmol/hr      239
                         Cost                                  USD/hr    0.117
+    Low pressure steam  Duty                                   kJ/hr 5.83e+05
+                        Flow                                 kmol/hr     15.1
+                        Cost                                  USD/hr     3.58
     Design              Area                                     m^2       11
                         Volume                                   m^3     1.24
     Purchase cost       Evaporators                              USD 9.59e+03
@@ -176,12 +176,12 @@ class MultiEffectEvaporator(Unit):
     Multi-effect evaporator                                    Units        E1
     Electricity         Power                                     kW      5.72
                         Cost                                  USD/hr     0.447
-    Low pressure steam  Duty                                   kJ/hr  3.84e+05
-                        Flow                                 kmol/hr      9.94
-                        Cost                                  USD/hr      2.36
     Cooling water       Duty                                   kJ/hr -1.15e+05
                         Flow                                 kmol/hr      78.8
                         Cost                                  USD/hr    0.0384
+    Low pressure steam  Duty                                   kJ/hr  3.84e+05
+                        Flow                                 kmol/hr      9.94
+                        Cost                                  USD/hr      2.36
     Design              Area                                     m^2      1.64
                         Volume                                   m^3      6.52
     Purchase cost       Evaporators                              USD  2.77e+03
@@ -194,12 +194,12 @@ class MultiEffectEvaporator(Unit):
     Multi-effect evaporator                                    Units        E1
     Electricity         Power                                     kW      5.72
                         Cost                                  USD/hr     0.447
-    Low pressure steam  Duty                                   kJ/hr  3.84e+05
-                        Flow                                 kmol/hr      9.94
-                        Cost                                  USD/hr      2.36
     Cooling water       Duty                                   kJ/hr -1.15e+05
                         Flow                                 kmol/hr      78.8
                         Cost                                  USD/hr    0.0384
+    Low pressure steam  Duty                                   kJ/hr  3.84e+05
+                        Flow                                 kmol/hr      9.94
+                        Cost                                  USD/hr      2.36
     Design              Area                                     m^2      1.64
                         Volume                                   m^3      6.52
     Purchase cost       Evaporators                              USD  2.77e+03
@@ -212,12 +212,12 @@ class MultiEffectEvaporator(Unit):
     Multi-effect evaporator                                    Units        E1
     Electricity         Power                                     kW      5.72
                         Cost                                  USD/hr     0.447
-    Low pressure steam  Duty                                   kJ/hr  3.84e+05
-                        Flow                                 kmol/hr      9.94
-                        Cost                                  USD/hr      2.36
     Cooling water       Duty                                   kJ/hr -1.15e+05
                         Flow                                 kmol/hr      78.8
                         Cost                                  USD/hr    0.0384
+    Low pressure steam  Duty                                   kJ/hr  3.84e+05
+                        Flow                                 kmol/hr      9.94
+                        Cost                                  USD/hr      2.36
     Design              Area                                     m^2      1.64
                         Volume                                   m^3      6.52
     Purchase cost       Evaporators                              USD  2.77e+03
@@ -266,12 +266,12 @@ class MultiEffectEvaporator(Unit):
     Multi-effect evaporator                                    Units        E1
     Electricity         Power                                     kW      5.72
                         Cost                                  USD/hr     0.447
-    Low pressure steam  Duty                                   kJ/hr  3.84e+05
-                        Flow                                 kmol/hr      9.94
-                        Cost                                  USD/hr      2.36
     Cooling water       Duty                                   kJ/hr -1.15e+05
                         Flow                                 kmol/hr      78.8
                         Cost                                  USD/hr    0.0384
+    Low pressure steam  Duty                                   kJ/hr  3.84e+05
+                        Flow                                 kmol/hr      9.94
+                        Cost                                  USD/hr      2.36
     Design              Area                                     m^2      1.64
                         Volume                                   m^3      6.52
     Purchase cost       Evaporators                              USD  2.77e+03
@@ -282,7 +282,7 @@ class MultiEffectEvaporator(Unit):
     
     """
     line = 'Multi-effect evaporator'
-    auxiliary_unit_names = ('condenser', 'mixer', 'vacuum_system')
+    auxiliary_unit_names = ('condenser', 'mixer', 'vacuum_system', 'evaporators')
     _units = {'Area': 'm^2',
               'Volume': 'm^3'}
     _F_BM_default = {'Evaporators': 2.45,
@@ -356,17 +356,18 @@ class MultiEffectEvaporator(Unit):
             evaporators.append(evap)
         
         self.condenser = HXutility(None, outs=[None], thermo=thermo, V=0)
-        self.mixer = Mixer(None, outs=[None], thermo=thermo)
+        self.mixer = Mixer(None, outs=self.auxlet(self.outs[1]), thermo=thermo)
         
         # Set-up components
         other_evaporators = evaporators[1:]
-        first_evaporator.ins[:] = [i.copy() for i in self.ins]
+        first_evaporator.ins[:] = [self.auxlet(i) for i in self.ins]
         
         # Put liquid first, then vapor side stream
         ins = [first_evaporator.outs[1], first_evaporator.outs[0]]
         for evap in other_evaporators:
             evap.ins[:] = ins
             ins = [evap.outs[1], evap.outs[0]]
+        evap.outs[1] = self.auxlet(self.outs[0])
         
     def _V_overall(self, V_first_effect):
         first_evaporator, *other_evaporators = self.evaporators
@@ -393,7 +394,9 @@ class MultiEffectEvaporator(Unit):
             self._load_components()
             self._reload_components = False
         else:
-            self.evaporators[0].ins[:] = [i.copy() for i in ins]
+            self.evaporators[0].ins[:] = [self.auxlet(i) for i in ins]
+            self.mixer.outs[0] = self.auxlet(liq)
+            self.evaporators[-1].outs[1] = self.auxlet(out_wt_solids)
         
         if self.V_definition == 'Overall':
             P = tuple(self.P)
@@ -428,7 +431,6 @@ class MultiEffectEvaporator(Unit):
         outs_liq = [condenser.outs[0]]  # list containing all output liquids
 
         # Unpack other output streams
-        out_wt_solids.copy_like(last_evaporator.outs[1])
         for i in range(1, n):
             evap = evaporators[i]
             outs_liq.append(evap.outs[2])
@@ -436,7 +438,6 @@ class MultiEffectEvaporator(Unit):
         # Mix liquid streams
         mixer.ins[:] = outs_liq
         mixer.simulate()
-        liq.copy_like(mixer.outs[0])
         
         if self.flash:
             mixed_stream = MultiStream(None, thermo=self.thermo)
@@ -460,8 +461,12 @@ class MultiEffectEvaporator(Unit):
         
         first_evaporator = evaporators[0]
         first_evaporator.simulate(run=False)
-        hx = first_evaporator.heat_exchanger
-        self.heat_utilities.append(hx.heat_utilities[0])
+        if self.flash:
+            first_evaporator.baseline_purchase_costs.clear()
+            first_evaporator.purchase_costs.clear()
+            first_evaporator.installed_costs.clear()
+            if hasattr(first_evaporator, 'vacuum_system'): del first_evaporator.vacuum_system
+            hx = first_evaporator.heat_exchanger
         
         # Cost first evaporators
         duty = hx.total_heat_transfer

@@ -8,20 +8,18 @@
 """
 """
 from .._unit import Unit
-from .._graphics import junction_graphics
+from .._graphics import scaler_graphics
 from .._power_utility import PowerUtility
-from ..exceptions import UndefinedChemical
 from ..utils.piping import Inlets, Outlets
 
-__all__ = ('Junction',)
+__all__ = ('Scaler',)
 
 
 # %% Connect between different property packages
 
-class Junction(Unit):
+class Scaler(Unit):
     """
-    Create a Junction object that copies data from `upstream` to `downstream`. 
-    This serves to connect streams with different property packages.
+    Create a Scale object scales the flow rate of the outlet stream.
     
     Parameters
     ----------    
@@ -31,20 +29,22 @@ class Junction(Unit):
         Flow rate, T, P, and phase information
         will be copied from `upstream` to this stream.
         If None, stream will be missing.
+    scale=None : int, optional
+        Downstream flow rate will be the upstream flow rate multiplied by the scale.
     
     Examples
     --------
-    Create a Junction object and connect streams with different chemicals:
+    Scale outlet by 2:
         
     >>> from biosteam import *
     >>> settings.set_thermo(['Water'])
     >>> s1 = Stream('s1', Water=20)
     >>> settings.set_thermo(['Ethanol', 'Water'], cache=True)
     >>> s2 = Stream('s2') # Note that s2 and s1 have different chemicals defined
-    >>> J1 = units.Junction('J1', s1, s2)
-    >>> J1.simulate()
-    >>> J1.show()
-    Junction: J1
+    >>> S1 = units.Scaler('S1', s1, s2, 2)
+    >>> S1.simulate()
+    >>> S1.show()
+    Scaler: S1
     ins...
     [0] s1
         phase: 'l', T: 298.15 K, P: 101325 Pa
@@ -52,11 +52,11 @@ class Junction(Unit):
     outs...
     [0] s2
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Water  20
+        flow (kmol/hr): Water  40
         
     """
     _stacklevel = Unit._stacklevel
-    _graphics = junction_graphics
+    _graphics = scaler_graphics
     power_utility = PowerUtility()
     design_results = {}
     baseline_purchase_cost = 0.
@@ -67,7 +67,7 @@ class Junction(Unit):
     installed_costs = {}
     utility_cost = 0.
     
-    def __init__(self, ID="", upstream=None, downstream=None, thermo=None):
+    def __init__(self, ID="", upstream=None, downstream=None, scale=None, thermo=None):
         self._register(ID)
         thermo = self._load_thermo(thermo)
         self._init_specifications()
@@ -75,6 +75,7 @@ class Junction(Unit):
         self.heat_utilities = []
         self._ins = Inlets(self, 1, upstream, thermo, True, self._stacklevel)
         self._outs = Outlets(self, 1, downstream, thermo, True, self._stacklevel)
+        self.scale = scale
     
     @property
     def upstream(self):
@@ -96,14 +97,12 @@ class Junction(Unit):
     def _run(self): 
         upstream = self._ins[0]
         downstream = self._outs[0]
-        try: downstream.copy_like(upstream)
-        except UndefinedChemical:
-            self._reset_thermo(self._ins[0]._thermo)
-            downstream.copy_like(upstream)
+        downstream.copy_like(upstream)
+        downstream.scale(self.scale)
     simulate = Unit.run
 
     def _get_tooltip_string(self):
-        return f"{type(self).__name__}: {self.ID}"
+        return f"{type(self).__name__}"
 
     @property
     def _inlet_utility_indices(self): return {}

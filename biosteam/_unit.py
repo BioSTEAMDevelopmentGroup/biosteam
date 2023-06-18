@@ -1510,6 +1510,30 @@ class Unit:
                 auxiliary_units.append(unit)
         return auxiliary_units
 
+    @property
+    def nested_auxiliary_units(self) -> list[Unit]:
+        """Return list of all auxiliary units, including nested ones."""
+        getfield = getattr
+        isa = isinstance
+        auxiliary_units = []
+        for name in self.auxiliary_unit_names:
+            unit = getfield(self, name, None)
+            if unit is None: continue 
+            if isa(unit, Iterable):
+                auxiliary_units.extend(unit)
+                for u in unit:
+                    if not isinstance(u, Unit): continue
+                    for auxunit in u.auxiliary_units:
+                        auxiliary_units.append(auxunit)
+                        auxiliary_units.extend(auxunit.auxiliary_units)
+            else:
+                auxiliary_units.append(unit)
+                if not isinstance(unit, Unit): continue
+                for auxunit in unit.auxiliary_units:
+                    auxiliary_units.append(auxunit)
+                    auxiliary_units.extend(auxunit.auxiliary_units)
+        return auxiliary_units
+
     def get_auxiliary_units_with_names(self) -> list[tuple[str, Unit]]:
         """Return list of name - auxiliary unit pairs."""
         getfield = getattr
@@ -1528,6 +1552,30 @@ class Unit:
                     (name, unit)
                 )
         return auxiliary_units
+
+    def auxlet(self, stream: Stream):
+        """
+        Define auxiliary unit inlet or outlet. This method has two
+        behaviors:
+        
+        * If the stream is not connected to this unit, define the Stream 
+          object's source or sink to be this unit without actually connecting 
+          it to this unit.
+        
+        * If the stream is already connected to this unit, return a superposition
+          stream which can be connected to auxiliary units without being disconnected
+          from this unit. 
+        
+        """
+        if stream is None: return None
+        if self is stream._source:
+            stream = piping.SuperpositionOutlet(piping.OutletPort.from_outlet(stream))
+        elif self is stream._sink:
+            stream = piping.SuperpositionInlet(piping.InletPort.from_inlet(stream))
+        else:
+            if stream._source is None: stream._source = self
+            if stream._sink is None: stream._sink = self
+        return stream
 
     def mass_balance_error(self):
         """Return error in stoichiometric mass balance. If positive,
@@ -1847,6 +1895,7 @@ class Unit:
     def diagram(self, radius: Optional[int]=0, upstream: Optional[bool]=True,
                 downstream: Optional[bool]=True, file: Optional[str]=None, 
                 format: Optional[str]=None, display: Optional[bool]=True,
+                auxiliaries: Optional[bool]=True,
                 **graph_attrs):
         """
         Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram
@@ -1871,6 +1920,8 @@ class Unit:
         display : 
             Whether to display diagram in console or to return the graphviz 
             object.
+        auxiliaries:
+            Whether to include auxiliary units.
         
         """
         if radius > 0:
@@ -1878,7 +1929,10 @@ class Unit:
             units.add(self)
         else:
             units = [self]
-        return bst.System(None, units).diagram(format=format, display=display, file=file, title='', **graph_attrs)
+        return bst.System(None, units).diagram(
+            format=format, auxiliaries=auxiliaries, display=display, 
+            file=file, title='', **graph_attrs
+        )
     
     ### Net input and output flows ###
     

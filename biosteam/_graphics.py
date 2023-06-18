@@ -26,6 +26,7 @@ __all__ = ('UnitGraphics',
            'system_unit',
            'stream_unit',
            'junction_graphics',
+           'scaler_graphics',
            'compressor_graphics',
            'turbine_graphics',
            'valve_graphics')
@@ -97,7 +98,24 @@ class UnitGraphics:
     def get_node_tailored_to_unit(self, unit): # pragma: no coverage
         """Return node tailored to unit specifications"""
         node = self.node.copy()
-        node['name'] = '\n'.join([unit.ID, unit.line]) if unit.line else unit.ID
+        if getattr(unit, '_owner', None):
+            owner = unit._owner
+            for name, u in owner.get_auxiliary_units_with_names():
+                if u is unit: break
+            else:
+                raise RuntimeError('cannot find auxiliary unit name')
+            if name in owner.parallel:
+                N = owner.parallel[name]
+            elif 'self' in owner.parallel:
+                N = owner.parallel['self']
+            else:
+                N = None
+            name = bst.utils.format_title(name)
+            name = f"{owner.ID}, Auxiliary\n{name}"
+            if N is not None and N > 1: name = f"{name}\n1 of {N}"
+            node['name'] = name
+        else:
+            node['name'] = '\n'.join([unit.ID, unit.line]) if unit.line else unit.ID
         tailor_node_to_unit = self.tailor_node_to_unit
         if 'fillcolor' not in node:
             node['fillcolor'] = bst.preferences.unit_color
@@ -193,7 +211,8 @@ def tailor_utility_heat_exchanger_node(node, unit): # pragma: no coverage
             line = 'Heat exchanger'
     except:
         line = 'Heat exchanger'
-    node['name'] = unit.ID + "\n" + line
+    if unit.owner is unit:
+        node['name'] = '\n'.join([unit.ID, line])
 
 utility_heat_exchanger_graphics = UnitGraphics(single_edge_in, single_edge_out, node,
                                                tailor_utility_heat_exchanger_node)
@@ -205,7 +224,6 @@ node['margin'] = '0'
 node['gradientangle'] = '90'
 node['fillcolor'] = '#60c1cf:#ed5a6a'
 def tailor_process_heat_exchanger_node(node, unit): # pragma: no coverage
-    node['name'] = unit.ID + "\nHeat exchanger"
     node['fontcolor'] = 'white'
     node['color'] = 'none'
 
@@ -254,16 +272,26 @@ def tailor_junction_node(node, unit): # pragma: no coverage
 junction_graphics = UnitGraphics(single_edge_in, single_edge_out, node,
                                  tailor_junction_node)
 
+
+node = box_node.copy()
+def tailor_scalar_node(node, unit): # pragma: no coverage
+    node['name'] = f"x{unit.scale}"
+    node['width'] = '0.1'
+    node['shape'] = 'oval'
+    node['style'] = 'filled'
+    node['fillcolor'] = bst.preferences.unit_color
+    node['fontcolor'] = bst.preferences.unit_label_color
+    
+scaler_graphics = UnitGraphics(single_edge_in, single_edge_out, node,
+                               tailor_scalar_node)
+
 # Compressor graphics
 node = box_node.copy()
 node['shape'] = 'trapezium'
 node['orientation'] = '270'
 node['height'] = '1.5'
 node['margin'] = '0'
-def tailor_compressor_node(node, unit): # pragma: no coverage
-    node['name'] = unit.ID + "\nCompressor"
-compressor_graphics = UnitGraphics(single_edge_in, single_edge_out, node, tailor_compressor_node)
-
+compressor_graphics = UnitGraphics(single_edge_in, single_edge_out, node)
 
 # Turbine graphics
 node = box_node.copy()
@@ -271,10 +299,7 @@ node['shape'] = 'trapezium'
 node['orientation'] = '90'
 node['height'] = '1.5'
 node['margin'] = '0'
-def tailor_turbine_node(node, unit): # pragma: no coverage
-    node['name'] = unit.ID + "\nTurbine"
-turbine_graphics = UnitGraphics(single_edge_in, single_edge_out, node, tailor_turbine_node)
-
+turbine_graphics = UnitGraphics(single_edge_in, single_edge_out, node)
 
 # Valve graphics
 node = box_node.copy()
@@ -287,7 +312,6 @@ def tailor_valve_node(node, unit): # pragma: no coverage
         node['fillcolor'] = bst.preferences.unit_color
         node['fontcolor'] = bst.preferences.unit_label_color
         node['color'] = bst.preferences.unit_periphery_color
-        node['name'] = unit.ID + "\nValve"
     else:
         node['name'] = ''
         if bst.preferences.unit_color == "#555f69":

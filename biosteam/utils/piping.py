@@ -18,7 +18,7 @@ __all__ = ('TemporaryStream', 'MissingStream', 'MockStream', 'Inlets',
            'Outlets', 'Sink', 'Source', 'InletPort', 'OutletPort', 'StreamPorts', 
            'Connection', 'as_stream', 'as_upstream', 'as_downstream', 
            'materialize_connections', 'ignore_docking_warnings',
-           'IgnoreDockingWarnings')
+           'IgnoreDockingWarnings', 'SuperpositionInlet', 'SuperpositionOutlet')
 
 DOCKING_WARNINGS = True
 
@@ -338,10 +338,11 @@ class StreamSequence:
     def __radd__(self, other):
         return other + self._streams
     
-    def _dock(self, stream): return stream
-    def _redock(self, stream, stacklevel): return stream
-    def _undock(self, stream): pass
-        
+    # DO NOT DELETE: These should be implemented by child class
+    # def _dock(self, stream): return stream
+    # def _redock(self, stream, stacklevel): return stream
+    # def _undock(self, stream): pass
+
     def _set_streams(self, slice, streams, stacklevel):
         streams = [self._as_stream(i) for i in streams]
         all_streams = self._streams
@@ -360,7 +361,7 @@ class StreamSequence:
     def _as_stream(self, stream):
         if stream is None:
             stream = self._create_missing_stream()
-        elif not isinstance(stream, (Stream, TemporaryStream, MissingStream)):
+        elif not isinstance(stream, stream_types):
             raise TypeError(
                 f"'{type(self).__name__}' object can only contain "
                 f"'Stream' objects; not '{type(stream).__name__}'"
@@ -380,8 +381,7 @@ class StreamSequence:
     def _set_stream(self, int, stream, stacklevel):
         stream = self._as_stream(stream)
         self._undock(self._streams[int])
-        self._redock(stream, stacklevel+1)
-        self._streams[int] = stream
+        self._streams[int] = self._redock(stream, stacklevel+1)
     
     def empty(self):
         for i in self._streams: self._undock(i)
@@ -788,7 +788,44 @@ class StreamPorts:
         ports = ', '.join([str(i) for i in self._ports])
         return f"[{ports}]"
 
-
+# %% Auxiliary piping
+        
+class SuperpositionInlet(Stream): # Both parent and auxiliary unit inlet.
+    __slots__ = ('port', '_sink')
+    
+    def __init__(self, port, sink=None):
+        object.__setattr__(self, 'port', port)
+        object.__setattr__(self, '_sink', sink)
+        
+    def __getattr__(self, name):
+        port = object.__getattribute__(self, 'port')
+        return getattr(port.get_stream(), name)
+    
+    def __setattr__(self, name, value):
+        if name == '_sink':  
+            object.__setattr__(self, '_sink', value)
+            return
+        setattr(self.port.get_stream(), name, value)
+        
+        
+class SuperpositionOutlet(Stream): # Both parent and auxiliary unit outlet.
+    __slots__ = ('port', '_source')
+    
+    def __init__(self, port, source=None):
+        object.__setattr__(self, 'port', port)
+        object.__setattr__(self, '_source', source)
+        
+    def __getattr__(self, name):
+        port = object.__getattribute__(self, 'port')
+        return getattr(port.get_stream(), name)
+    
+    def __setattr__(self, name, value):
+        if name == '_source': 
+            object.__setattr__(self, '_source', value)
+            return
+        setattr(self.port.get_stream(), name, value)
+    
+          
 # %% Configuration bookkeeping
 
 class Connection(NamedTuple):
@@ -841,18 +878,27 @@ def get_connection(self, junction=None):
             source = stream._source
         else:
             stream = self
-        source_index = source._outs.index(stream) if source else None
+        try:
+            source_index = source._outs.index(stream) if source else None
+        except ValueError: # Auxiliary streams are not in inlets nor outlets
+            source_index = -1
         if isa(sink, bst.Junction):
             stream = sink._outs[0]
             sink = stream._sink
         else:
             stream = self
-        sink_index = sink._ins.index(stream) if sink else None
+        try:
+            sink_index = sink._ins.index(stream) if sink else None
+        except ValueError: # Auxiliary streams are not in inlets nor outlets
+            sink_index = -1
     return Connection(source, source_index, self, sink_index, sink)
 
 Stream.get_connection = get_connection
 TemporaryStream.get_connection = get_connection
-MissingStream.__pow__ = MissingStream.__sub__ = Stream.__pow__ = Stream.__sub__ = __sub__  # Forward pipping
-MissingStream.__rpow__ = MissingStream.__rsub__ = Stream.__rpow__ = Stream.__rsub__ = __rsub__ # Backward pipping    
+for cls in (MissingStream, Stream):
+    cls.__pow__ = cls.__sub__ = __sub__  # Forward pipping
+    cls.__rpow__ = cls.__rsub__ = __rsub__ # Backward pipping    
+
 Stream._basic_info = lambda self: (f"{type(self).__name__}: {self.ID or ''}"
                                    f"{pipe_info(self._source, self._sink)}\n")
+

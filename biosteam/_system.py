@@ -13,7 +13,7 @@
 from __future__ import annotations
 from typing import Optional, Callable, Iterable, Sequence, Collection, TYPE_CHECKING
 import flexsolve as flx
-from .digraph import (digraph_from_units_and_streams,
+from .digraph import (digraph_from_units,
                       digraph_from_system,
                       minimal_digraph,
                       surface_digraph,
@@ -1557,9 +1557,7 @@ class System:
         return surface_digraph(self._path, **graph_attrs)
 
     def _thorough_digraph(self, graph_attrs):
-        return digraph_from_units_and_streams(self.unit_path,
-                                              self.streams,
-                                              **graph_attrs)
+        return digraph_from_units(self.unit_path, self.streams, **graph_attrs)
 
     def _cluster_digraph(self, graph_attrs):
         return digraph_from_system(self, **graph_attrs)
@@ -1568,6 +1566,7 @@ class System:
                 format: Optional[str]=None, display: Optional[bool]=True,
                 number: Optional[bool]=None, profile: Optional[bool]=None,
                 label: Optional[bool]=None, title: Optional[str]=None,
+                auxiliaries: Optional[bool]=None,
                 **graph_attrs):
         """
         Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of
@@ -1594,12 +1593,15 @@ class System:
             Whether to clock the simulation time of unit operations.
         label : 
             Whether to label the ID of streams with sources and sinks.
-
+        auxiliaries:
+            Whether to include auxiliary units.
+        
         """
         self._load_configuration()
         if kind is None: kind = 1
         if title is None: title = ''
         graph_attrs['label'] = title
+        if auxiliaries is not None: graph_attrs['auxiliaries'] = auxiliaries 
         preferences = bst.preferences
         with preferences.temporary():
             if number is not None: preferences.number_path = number
