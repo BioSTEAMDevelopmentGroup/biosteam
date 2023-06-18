@@ -466,7 +466,7 @@ class MultiEffectEvaporator(Unit):
             first_evaporator.purchase_costs.clear()
             first_evaporator.installed_costs.clear()
             if hasattr(first_evaporator, 'vacuum_system'): del first_evaporator.vacuum_system
-            hx = first_evaporator.heat_exchanger
+        hx = first_evaporator.heat_exchanger
         
         # Cost first evaporators
         duty = hx.total_heat_transfer
