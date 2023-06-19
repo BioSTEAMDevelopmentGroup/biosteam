@@ -326,6 +326,12 @@ class Unit:
     #: Heat and power utilities are also automatically accounted for.
     auxiliary_unit_names: tuple[str, ...] = ()
     
+    #: **class-attribute** Index for auxiliary inlets to parent unit for graphviz diagram settings.
+    _auxin_index = {}
+    
+    #: **class-attribute** Index for auxiliary outlets to parent unit for graphviz diagram settings.
+    _auxout_index = {}
+    
     #: **class-attribute** Expected number of inlet streams. Defaults to 1.
     _N_ins: int = 1  
     
@@ -875,6 +881,7 @@ class Unit:
         isa = isinstance
         for name, unit in self.get_auxiliary_units_with_names():
             unit.owner = self # In case units are created dynamically
+            unit.auxname = name
             if isa(unit, Unit):
                 if not (unit._design or unit._cost): continue
             unit._load_costs() # Just in case user did not simulate or run summary.
@@ -1568,6 +1575,7 @@ class Unit:
         
         """
         if stream is None: return None
+        if isinstance(stream, str): stream = Stream(stream, thermo=self.thermo)
         if self is stream._source:
             stream = piping.SuperpositionOutlet(piping.OutletPort.from_outlet(stream))
         elif self is stream._sink:

@@ -231,11 +231,14 @@ class FreeProductStreams:
         LHV_combustible = self.LHV_combustible
         wastewater_keys = self.wastewater_keys
         combustible_keys = self.combustible_keys
-        cache['combustibles'] = combustibles = frozenset([
-            i for i in self.streams 
-            if not any([j in i.ID.lower() for j in wastewater_keys])
-            and (i.LHV / i.F_mass >= LHV_combustible)
-        ] + [i for i in self.all_streams if any([j in i.ID.lower() for j in combustible_keys])])
+        try:
+            cache['combustibles'] = combustibles = frozenset([
+                i for i in self.streams 
+                if not any([j in i.ID.lower() for j in wastewater_keys])
+                and (i.LHV / i.F_mass >= LHV_combustible)
+            ] + [i for i in self.all_streams if any([j in i.ID.lower() for j in combustible_keys])])
+        except:
+            breakpoint()
         return combustibles
     
     @property

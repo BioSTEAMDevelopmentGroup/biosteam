@@ -485,7 +485,7 @@ class UnitGroup:
         0                           108
         100                       -3.28
         200                          -4
-        300                      -0.973
+        300                       -1.04
         400                           0
         
         >>> bst.default() # Reset to biosteam defaults

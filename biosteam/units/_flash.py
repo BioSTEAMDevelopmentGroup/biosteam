@@ -117,16 +117,16 @@ class Flash(design.PressureVessel, Unit):
     Medium pressure steam Duty                              kJ/hr      4.81e+07
                           Flow                            kmol/hr      1.33e+03
                           Cost                             USD/hr           366
-    Design                Vessel type                                  Vertical
-                          Length                               ft          15.5
-                          Diameter                             ft           8.5
-                          Weight                               lb      9.57e+03
-                          Wall thickness                       in         0.438
+    Design                Vessel type                                Horizontal
+                          Length                               ft          8.46
+                          Diameter                             ft           5.5
+                          Weight                               lb      2.51e+03
+                          Wall thickness                       in         0.312
                           Vessel material                          Carbon steel
-    Purchase cost         Vertical pressure vessel            USD      4.63e+04
-                          Platform and ladders                USD      1.39e+04
+    Purchase cost         Horizontal pressure vessel          USD      1.47e+04
+                          Platform and ladders                USD      3.22e+03
                           Heat exchanger - Floating head      USD      4.48e+04
-    Total purchase cost                                       USD      1.05e+05
+    Total purchase cost                                       USD      6.26e+04
     Utility cost                                           USD/hr           366
 
 
@@ -147,6 +147,9 @@ class Flash(design.PressureVessel, Unit):
     
     """
     auxiliary_unit_names = ('heat_exchanger', 'vacuum_system')
+    _auxin_index = {
+        'heat_exchanger': 0
+    }
     _units = {'Length': 'ft',
               'Diameter': 'ft',
               'Weight': 'lb',
@@ -220,7 +223,7 @@ class Flash(design.PressureVessel, Unit):
         
     def _load_components(self):
         self._multi_stream = ms = MultiStream(None, thermo=self.thermo)
-        self.heat_exchanger = HXutility(None, (None,), ms, thermo=self.thermo) 
+        self.heat_exchanger = HXutility(None, None, self.auxlet(ms), thermo=self.thermo) 
         
     def reset_cache(self, isdynamic=None):
         self._multi_stream.reset_cache()
@@ -256,7 +259,7 @@ class Flash(design.PressureVessel, Unit):
         vap, liq = self.outs
         F_mass_vap = vap.F_mass
         F_mass_liq = liq.F_mass 
-        return 'Vertical' if F_mass_vap / F_mass_liq > 0.1 else 'Horizontal'
+        return 'Vertical' if F_mass_vap / F_mass_liq >= 1 else 'Horizontal'
 
     def _run(self):
         separations.vle(self.ins[0], *self.outs, self.T, self.P, self.V, 
@@ -280,6 +283,7 @@ class Flash(design.PressureVessel, Unit):
         if self.Q == 0.:
             self.heat_exchanger._setup() # Removes results
         else:
+            self.heat_exchanger.ins[0] = self.auxlet(self.feed)
             self.heat_exchanger.simulate_as_auxiliary_exchanger(self.ins, self.outs, P=self.ins[0].P)
 
     def _cost(self):
@@ -351,19 +355,19 @@ class Flash(design.PressureVessel, Unit):
         if P < 300:
             Hlll = 1.25
 
-        # Calculate the height from Hlll to Normal liq level, Hnll
+        # Calculate the height from Hlll to Normal liquid level, Hnll
         Hh = Vh/(pi/4.0*Dvd**2)
         if Hh < 1.0: Hh = 1.0
 
-        # Calculate the height from Hnll to  High liq level, Hhll
+        # Calculate the height from Hnll to High liquid level, Hhll
         Hs = Vs/(pi/4.0*Dvd**2)
         if Hs < 0.5: Hs = 0.5
 
         # Calculate dN
-        Qm = Qll + Qv
-        lamda = Qll/Qm
-        rhoM = rhol*lamda + rhov*(1-lamda)
-        dN = (4*Qm/(pi*60.0/(rhoM**0.5)))**0.5
+        Qm = Qll / 60 + Qv
+        lamda = Qll / 60 / Qm
+        rhoM = rhol * lamda + rhov * (1 - lamda)
+        dN = (4*Qm / (pi * 60.0 / (rhoM**0.5)))**0.5
         dN = design.ceil_half_step(dN)
 
         # Calculate Hlin, assume with inlet diverter

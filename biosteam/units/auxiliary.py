@@ -11,6 +11,8 @@ class Auxiliary:
     """Abstract class for light-weight auxiliary unit. The class should 
     compute all results during initialization."""
     __slots__ = (
+        'owner', 
+        'auxname',
         'auxiliary_units',
         'power_utility',
         'heat_utilities', 
@@ -18,7 +20,6 @@ class Auxiliary:
         'purchase_costs',
         'installed_costs',
         'F_M', 'F_D', 'F_P', 'F_BM',
-        'owner', 
     )
     
     add_power_utility = bst.Unit.add_power_utility

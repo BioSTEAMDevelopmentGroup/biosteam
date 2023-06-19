@@ -129,11 +129,11 @@ class MultiEffectEvaporator(Unit):
                         Flow                                 kmol/hr     15.1
                         Cost                                  USD/hr     3.58
     Design              Area                                     m^2       11
-                        Volume                                   m^3     1.24
+                        Volume                                   m^3     11.5
     Purchase cost       Evaporators                              USD 9.59e+03
                         Condenser - Double pipe                  USD 5.36e+03
-                        Vacuum system - Liquid-ring pump...      USD 1.24e+04
-    Total purchase cost                                          USD 2.74e+04
+                        Vacuum system - Liquid-ring pump...      USD 1.25e+04
+    Total purchase cost                                          USD 2.75e+04
     Utility cost                                              USD/hr     4.15
     
     Concentrate sugar setting overall vapor fraction:
@@ -361,7 +361,6 @@ class MultiEffectEvaporator(Unit):
         # Set-up components
         other_evaporators = evaporators[1:]
         first_evaporator.ins[:] = [self.auxlet(i) for i in self.ins]
-        
         # Put liquid first, then vapor side stream
         ins = [first_evaporator.outs[1], first_evaporator.outs[0]]
         for evap in other_evaporators:

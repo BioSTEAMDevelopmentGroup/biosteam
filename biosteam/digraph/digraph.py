@@ -196,7 +196,9 @@ def digraph_from_units(units, streams=None, auxiliaries=False, **graph_attrs):
                 elif s in stream_set: continue
                 streams.append(s)
                 stream_set.add(s)
-            for auxunit in unit.auxiliary_units:
+            for name, auxunit in unit.get_auxiliary_units_with_names():
+                auxunit._owner = unit # In case units have not been simulated
+                auxunit.auxname = name
                 if isinstance(auxunit, bst.Unit): 
                     all_units.append(auxunit)
                     for s in auxunit.ins + auxunit.outs:

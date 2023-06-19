@@ -100,18 +100,15 @@ class UnitGraphics:
         node = self.node.copy()
         if getattr(unit, '_owner', None):
             owner = unit._owner
-            for name, u in owner.get_auxiliary_units_with_names():
-                if u is unit: break
-            else:
-                raise RuntimeError('cannot find auxiliary unit name')
-            if name in owner.parallel:
-                N = owner.parallel[name]
+            auxname = unit.auxname
+            if auxname in owner.parallel:
+                N = owner.parallel[auxname]
             elif 'self' in owner.parallel:
                 N = owner.parallel['self']
             else:
                 N = None
-            name = bst.utils.format_title(name)
-            name = f"{owner.ID}, Auxiliary\n{name}"
+            name = bst.utils.format_title(auxname)
+            name = f"{owner.ID}\n{name}\nAuxiliary"
             if N is not None and N > 1: name = f"{name}\n1 of {N}"
             node['name'] = name
         else:
