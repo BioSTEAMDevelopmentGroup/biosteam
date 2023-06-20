@@ -40,7 +40,7 @@ class DisplayPreferences:
     fill_cluster: False
     graphviz_format: 'svg'
     tooltips_full_results: False
-    graphviz_html_height: {'system': ('400px', '600px'), 'unit': ('225px', '400px')}
+    graphviz_html_height: {'big-system': ('600px', '900px'), 'system': ('400px', '600px'), 'unit': ('225px', '400px')}
     flow: 'kmol/hr:.3g'
     T: 'K:.5g'
     P: 'Pa:.6g'
@@ -113,6 +113,7 @@ class DisplayPreferences:
         
         #: Displayed height of graphviz html diagrams without and with full results.
         self.graphviz_html_height: dict[str, tuple[str, str]] = {
+            'big-system': ('600px', '900px'),
             'system': ('400px', '600px'),
             'unit': ('225px', '400px'),
         }

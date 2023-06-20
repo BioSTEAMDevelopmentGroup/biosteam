@@ -395,12 +395,13 @@ class AeratedBioreactor(StirredTankReactor):
     outs...
     [0] vent
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water  77.1
+        flow (kmol/hr): Water  244
+                        CO2    416
                         O2     3.75e+03
                         N2     1.57e+04
     [1] product
         phase: 'l', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water    1.72e+03
+        flow (kmol/hr): Water    6.83e+03
                         Glucose  69.4
     
     """
@@ -485,6 +486,7 @@ class AeratedBioreactor(StirredTankReactor):
         compressor = self.compressor
         effluent.mix_from(feeds, energy_balance=False)
         self._run_reactions(effluent)
+        effluent_no_air_data = effluent.get_data()
         OUR = -effluent.get_flow('mol/s', 'O2') # Oxygen uptake rate
         if OUR < 0.: return
         air_cc = self.cooled_compressed_air
@@ -497,9 +499,8 @@ class AeratedBioreactor(StirredTankReactor):
                 air.set_flow([O2, O2 * 79. / 21.], 'mol/s', ['O2', 'N2'])
                 air_cc.copy_flow(air) # Skip simulation of air cooler
                 compressor.simulate()
-                effluent.imol['O2', 'N2'] = 0.
+                effluent.set_data(effluent_no_air_data)
                 effluent.mix_from([effluent, air_cc], energy_balance=False)
-                effluent.set_flow(O2 - OUR, 'mol/s', 'O2')
                 vent.empty()
                 self._run_vent(vent, effluent)
                 return self._solve_total_power(OUR)
@@ -512,9 +513,8 @@ class AeratedBioreactor(StirredTankReactor):
                 air.set_flow([O2, O2 * 79. / 21.], 'mol/s', ['O2', 'N2'])
                 air_cc.copy_flow(air) # Skip simulation of air cooler
                 compressor.simulate()
-                effluent.imol['O2', 'N2'] = 0.
+                effluent.set_data(effluent_no_air_data)
                 effluent.mix_from([effluent, air_cc], energy_balance=False)
-                effluent.set_flow(O2 - OUR, 'mol/s', 'O2')
                 vent.empty()
                 self._run_vent(vent, effluent)
                 return OUR - self.get_OTR()
@@ -541,7 +541,7 @@ class AeratedBioreactor(StirredTankReactor):
         self.superficial_gas_flow = U = F / A # m / s 
         vent = self.vent
         P_O2_air = air_in.get_property('P', 'bar') * air_in.imol['O2'] / air_in.F_mol
-        P_O2_vent = vent.get_property('P', 'bar') * vent.imol['O2'] / vent.F_mol
+        P_O2_vent = 0. if vent.isempty() else vent.get_property('P', 'bar') * vent.imol['O2'] / vent.F_mol
         C_O2_sat_air = aeration.C_O2_L(self.T, P_O2_air) # mol / kg
         C_O2_sat_vent = aeration.C_O2_L(self.T, P_O2_vent) # mol / kg
         theta_O2 = self.theta_O2

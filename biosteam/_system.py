@@ -1621,9 +1621,19 @@ class System:
                                  "0 or 'cluster', 1 or 'thorough', 2 or 'surface', "
                                  "3 or 'minimal'")
             if display or file:
+                def size_key(units):
+                    N = len(units)
+                    for u in units: N += len(u.auxiliary_units)
+                    if N < 2:
+                        return 'unit'
+                    elif N < 6:
+                        return 'system'
+                    else:
+                        return 'big-system'
+                    return True
                 height = (
                     preferences.graphviz_html_height
-                    ['unit' if len(self.units) == 1 else 'system']
+                    [size_key(self.units)]
                     [preferences.tooltips_full_results]
                 )
                 finalize_digraph(f, file, format, height)
