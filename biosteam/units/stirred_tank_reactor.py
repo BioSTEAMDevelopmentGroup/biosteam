@@ -467,7 +467,7 @@ class AeratedBioreactor(StirredTankReactor):
         self.auxlet(air_cooler-0)
         
     def _run_vent(self, vent, effluent):
-        vent.receive_vent(effluent, energy_balance=False)
+        vent.receive_vent(effluent, energy_balance=False, ideal=True)
         
     def _run(self):
         air = self.air
@@ -503,11 +503,11 @@ class AeratedBioreactor(StirredTankReactor):
                 effluent.mix_from([effluent, air_cc], energy_balance=False)
                 vent.empty()
                 self._run_vent(vent, effluent)
-                return self._solve_total_power(OUR)
+                total_power = self._solve_total_power(OUR)
+                return total_power
             
             f = total_power_at_oxygen_flow
-            sol = minimize_scalar(f, 1.2 * OUR, bounds=[OUR, 10 * OUR])
-            self.kW_per_m3 = sol.x
+            sol = minimize_scalar(f, 1.2 * OUR, bounds=[OUR, 10 * OUR], tol=1e-2)
         else:
             def air_flow_rate_objective(O2):
                 air.set_flow([O2, O2 * 79. / 21.], 'mol/s', ['O2', 'N2'])
@@ -548,8 +548,10 @@ class AeratedBioreactor(StirredTankReactor):
         LMDF = aeration.log_mean_driving_force(C_O2_sat_vent, C_O2_sat_air, theta_O2 * C_O2_sat_vent, theta_O2 * C_O2_sat_air)
         kLa = OUR / (LMDF * V * self.effluent_density * N_reactors * operating_time)
         P = aeration.P_at_kLa(kLa, V, U, self.kLa_coefficients)
-        kW_per_m3 = P / 1000 / V
-        return kW_per_m3
+        agitation_power_kW = P / 1000
+        total_power_kW = (agitation_power_kW + self.compressor.power_utility.consumption) / V
+        self.kW_per_m3 = agitation_power_kW / V 
+        return total_power_kW
     
     def get_OUR(self):
         """Return the oxygen uptake rate in mol/s."""
