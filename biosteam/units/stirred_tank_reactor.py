@@ -138,7 +138,7 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
     [0] CO2
         phase: 'g', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water    9.95
-                        Ethanol  3.7
+                        Ethanol  3.71
                         CO2      244
     [1] product
         phase: 'l', T: 305.15 K, P: 101325 Pa
@@ -390,18 +390,18 @@ class AeratedBioreactor(StirredTankReactor):
                         Glucose  139
     [1] air
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): O2  4.16e+03
-                        N2  1.57e+04
+        flow (kmol/hr): O2  544
+                        N2  2.05e+03
     outs...
     [0] vent
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water  244
+        flow (kmol/hr): Water  88.4
                         CO2    416
-                        O2     3.75e+03
-                        N2     1.57e+04
+                        O2     127
+                        N2     2.05e+03
     [1] product
         phase: 'l', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water    6.83e+03
+        flow (kmol/hr): Water    6.99e+03
                         Glucose  69.4
     
     """
@@ -507,7 +507,7 @@ class AeratedBioreactor(StirredTankReactor):
                 return total_power
             
             f = total_power_at_oxygen_flow
-            sol = minimize_scalar(f, 1.2 * OUR, bounds=[OUR, 10 * OUR], tol=1e-2)
+            minimize_scalar(f, 1.2 * OUR, bounds=[OUR, 10 * OUR], tol=1e-2)
         else:
             def air_flow_rate_objective(O2):
                 air.set_flow([O2, O2 * 79. / 21.], 'mol/s', ['O2', 'N2'])
