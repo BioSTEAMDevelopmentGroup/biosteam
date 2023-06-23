@@ -366,6 +366,8 @@ class MultiEffectEvaporator(Unit):
         for evap in other_evaporators:
             evap.ins[:] = ins
             ins = [evap.outs[1], evap.outs[0]]
+        if not other_evaporators:
+            evap = first_evaporator
         evap.outs[1] = self.auxlet(self.outs[0])
         
     def _V_overall(self, V_first_effect):
