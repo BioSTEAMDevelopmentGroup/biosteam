@@ -215,14 +215,8 @@ class Fermentation(BatchBioreactor):
         
     def _calc_efficiency(self, feed, tau): # pragma: no cover
         # Get initial concentrations
-        y, e, s, w = feed.indices(['Yeast',
-                                   '64-17-5',
-                                   '492-61-5',
-                                   '7732-18-5'])
-        mass = feed.mass
-        F_vol = feed.F_vol
-        concentration_in = mass/F_vol
-        X0, P0, S0 = (concentration_in[i] for i in (y, e, s))
+        IDs = 'Yeast', 'Ethanol', 'Glucose', 
+        X0, P0, S0 = feed.imass[IDs] / feed.F_vol
         
         # Integrate to get final concentration
         t = np.linspace(0, tau, 1000)
@@ -273,9 +267,10 @@ class Fermentation(BatchBioreactor):
         X, P, S = z
         
         # Compute coefficients
+        if P > Pm1: P = Pm1
         mu_X = mu_m1 * (S/(Ks1 + S)) * (1 - P/Pm1)**a*((1-X/Xm))
         mu_P = mu_m2 * (S/(Ks2 + S)) * (1 - P/Pm2)
-        mu_S = mu_P/0.45
+        mu_S = mu_P / 0.45
         
         # Compute derivatives
         dXdt = mu_X * X
