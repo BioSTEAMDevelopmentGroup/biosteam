@@ -390,18 +390,18 @@ class AeratedBioreactor(StirredTankReactor):
                         Glucose  139
     [1] air
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): O2  544
-                        N2  2.05e+03
+        flow (kmol/hr): O2  730
+                        N2  2.75e+03
     outs...
     [0] vent
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water  88.4
+        flow (kmol/hr): Water  109
                         CO2    416
-                        O2     127
-                        N2     2.05e+03
+                        O2     314
+                        N2     2.75e+03
     [1] product
         phase: 'l', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water    6.99e+03
+        flow (kmol/hr): Water    6.97e+03
                         Glucose  69.4
     
     """
@@ -507,7 +507,7 @@ class AeratedBioreactor(StirredTankReactor):
                 return total_power
             
             f = total_power_at_oxygen_flow
-            minimize_scalar(f, 1.2 * OUR, bounds=[OUR, 10 * OUR], tol=1e-2)
+            minimize_scalar(f, 1.2 * OUR, bounds=[OUR, 10 * OUR], tol=OUR * 1e-3)
         else:
             def air_flow_rate_objective(O2):
                 air.set_flow([O2, O2 * 79. / 21.], 'mol/s', ['O2', 'N2'])
@@ -549,7 +549,7 @@ class AeratedBioreactor(StirredTankReactor):
         kLa = OUR / (LMDF * V * self.effluent_density * N_reactors * operating_time)
         P = aeration.P_at_kLa(kLa, V, U, self.kLa_coefficients)
         agitation_power_kW = P / 1000
-        total_power_kW = (agitation_power_kW + self.compressor.power_utility.consumption) / V
+        total_power_kW = (agitation_power_kW + self.compressor.power_utility.consumption / N_reactors) / V
         self.kW_per_m3 = agitation_power_kW / V 
         return total_power_kW
     
@@ -610,6 +610,9 @@ class AeratedBioreactor(StirredTankReactor):
         air_cooler.simulate()
         self.parallel['compressor'] = 1
         self.parallel['air_cooler'] = 1
+        # For robust process control, do not include in HXN
+        for unit in self.auxiliary_units:
+            for hu in unit.heat_utilities: hu.hxn_ok = False
     
 ABR = AeratedBioreactor
     

@@ -800,6 +800,15 @@ class StreamPorts:
 
 # %% Auxiliary piping
         
+shared_data = {
+    '_imol', '_thermal_condition', '_thermo', '_streams',
+    '_bubble_point_cache', '_dew_point_cache',
+    '_vle_cache', '_lle_cache', '_sle_cache',
+    '_price', '_property_cache_key',
+    '_property_cache', 'characterization_factors', 
+    '_user_equilibrium',
+}
+
 class SuperpositionInlet(Stream): # Both parent and auxiliary unit inlet.
     __slots__ = ()
     
@@ -812,15 +821,21 @@ class SuperpositionInlet(Stream): # Both parent and auxiliary unit inlet.
         return getattr(port.get_stream(), name)
     
     def __setattr__(self, name, value):
-        try:
-            object.__setattr__(self, name, value)
-        except:
+        if name in shared_data:
             setattr(self.port.get_stream(), name, value)
+        else:
+            object.__setattr__(self, name, value)
         
     def _get_class(self):
-        return MultiStream
+        return Stream
     def _set_class(self, cls):
         if cls is MultiStream:
+            port = object.__getattribute__(self, 'port')
+            stream = port.get_stream()
+            if hasattr(stream, 'port'):
+                stream._set_class(cls)
+            else:
+                stream.__class__ = MultiStream
             object.__setattr__(self, '__class__', SuperpositionMultiInlet)
         else:
             raise ValueError(f'{type(self).__name__} does not support class override to {cls.__name__}')
@@ -838,15 +853,21 @@ class SuperpositionOutlet(Stream): # Both parent and auxiliary unit outlet.
         return getattr(port.get_stream(), name)
     
     def __setattr__(self, name, value):
-        try:
-            object.__setattr__(self, name, value)
-        except:
+        if name in shared_data:
             setattr(self.port.get_stream(), name, value)
+        else:
+            object.__setattr__(self, name, value)
         
     def _get_class(self):
-        return MultiStream
+        return Stream
     def _set_class(self, cls):
         if cls is MultiStream:
+            port = object.__getattribute__(self, 'port')
+            stream = port.get_stream()
+            if hasattr(stream, 'port'):
+                stream._set_class(cls)
+            else:
+                stream.__class__ = MultiStream
             object.__setattr__(self, '__class__', SuperpositionMultiOutlet)
         else:
             raise ValueError(f'{type(self).__name__} does not support class override to {cls.__name__}')
@@ -864,15 +885,21 @@ class SuperpositionMultiInlet(MultiStream): # Both parent and auxiliary unit inl
         return getattr(port.get_stream(), name)
     
     def __setattr__(self, name, value):
-        try:
-            object.__setattr__(self, name, value)
-        except:
+        if name in shared_data:
             setattr(self.port.get_stream(), name, value)
+        else:
+            object.__setattr__(self, name, value)
         
     def _get_class(self):
         return MultiStream
     def _set_class(self, cls):
         if cls is Stream:
+            port = object.__getattribute__(self, 'port')
+            stream = port.get_stream()
+            if hasattr(stream, 'port'):
+                stream._set_class(cls)
+            else:
+                stream.__class__ = Stream
             object.__setattr__(self, '__class__', SuperpositionInlet)
         else:
             raise ValueError(f'{type(self).__name__} does not support class override to {cls.__name__}')
@@ -890,15 +917,21 @@ class SuperpositionMultiOutlet(MultiStream): # Both parent and auxiliary unit ou
         return getattr(port.get_stream(), name)
     
     def __setattr__(self, name, value):
-        try:
+        if name in shared_data:
+            setattr(self.port.get_stream(), name, value)
+        else:
             object.__setattr__(self, name, value)
-        except:
-            setattr(self.port.get_stream(), name, value)   
     
     def _get_class(self):
         return MultiStream
     def _set_class(self, cls):
         if cls is Stream:
+            port = object.__getattribute__(self, 'port')
+            stream = port.get_stream()
+            if hasattr(stream, 'port'):
+                stream._set_class(cls)
+            else:
+                stream.__class__ = Stream
             object.__setattr__(self, '__class__', SuperpositionOutlet)
         else:
             raise ValueError(f'{type(self).__name__} does not support class override to {cls.__name__}')

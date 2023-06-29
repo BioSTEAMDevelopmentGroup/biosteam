@@ -824,7 +824,7 @@ class Unit:
         .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R., & Ng, M. K. (2017). Product and Process Design Principles. Wiley. Cost Accounting and Capital Cost Estimation (Chapter 16)
         
         """
-        if self._costs_loaded: return
+        if getattr(self, '_costs_loaded', False): return
         F_BM = self.F_BM
         F_D = self.F_D
         F_P = self.F_P
@@ -1577,9 +1577,17 @@ class Unit:
         if stream is None: return None
         if isinstance(stream, str): stream = Stream(stream, thermo=self.thermo)
         if self is stream._source:
-            stream = piping.SuperpositionOutlet(piping.OutletPort.from_outlet(stream))
+            if isinstance(stream, tmo.MultiStream):
+                SuperpositionStream = piping.SuperpositionMultiOutlet
+            else:
+                SuperpositionStream = piping.SuperpositionOutlet
+            stream = SuperpositionStream(piping.OutletPort.from_outlet(stream))
         elif self is stream._sink:
-            stream = piping.SuperpositionInlet(piping.InletPort.from_inlet(stream))
+            if isinstance(stream, tmo.MultiStream):
+                SuperpositionStream = piping.SuperpositionMultiInlet
+            else:
+                SuperpositionStream = piping.SuperpositionInlet
+            stream = SuperpositionStream(piping.InletPort.from_inlet(stream))
         else:
             if stream._source is None: stream._source = self
             if stream._sink is None: stream._sink = self

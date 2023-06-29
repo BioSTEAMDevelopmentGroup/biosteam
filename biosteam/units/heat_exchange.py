@@ -458,6 +458,7 @@ class HXutility(HX):
         else:
             inlet.mix_from(ins, energy_balance=False)
             inlet.vle(H=sum([i.H for i in ins]), P=P)
+            inlet.reduce_phases()
         if outs is None:
             if duty is None: raise ValueError('must pass duty when no outlets are given')
             outlet.copy_like(inlet)
@@ -769,7 +770,7 @@ class HXprocess(HX):
         #: [float] Enforced overall heat transfer coefficent (kW/m^2/K)
         self.U = U
         
-        #: [float] Total heat transfered in kW (not including losses).
+        #: [float] Total heat transfered in kJ/hr (not including losses).
         self.total_heat_transfer = None
         
         #: Number of shells for LMTD correction factor method.
