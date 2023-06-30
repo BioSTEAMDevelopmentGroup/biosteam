@@ -18,6 +18,7 @@ from .tank import *
 from .distillation import *
 from ._duplicator import *
 from ._junction import *
+from ._scaler import *
 from ._balance import *
 from ._diagram_only_units import *
 from ._flash import *
@@ -54,7 +55,8 @@ from . import (
     _conveying_belt, 
     _vent_scrubber,
     _vibrating_screen,
-    _junction, 
+    _junction,
+    _scaler,
     _fermentation, 
     _enzyme_treatment, 
     _clarifier, 
@@ -106,6 +108,7 @@ __all__ = ('Unit',
            *_vent_scrubber.__all__,
            *_vibrating_screen.__all__,
            *_junction.__all__,
+           *_scaler.__all__,
            *solids_separation.__all__,
            *_fermentation.__all__, 
            *_enzyme_treatment.__all__,

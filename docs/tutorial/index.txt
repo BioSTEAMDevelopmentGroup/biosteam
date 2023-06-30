@@ -42,7 +42,7 @@ User guide
           :numbered:
           :caption: Thermodynamics
 
-          Thermosteam_101
+          ThermoSTEAM_101
           Phase_equilibrium
           Property_packages
           Stoichiometric_reactions

@@ -19,6 +19,7 @@ from math import floor, ceil
 from matplotlib.ticker import MultipleLocator
 from scipy.stats import kde
 from collections import deque
+from itertools import product
 
 __all__ = (
     'rounded_linspace',
@@ -939,10 +940,13 @@ def generate_contour_data(
             from warnings import filterwarnings
             filterwarnings('ignore')
         data0 = z_at_xy(x0, y0, *args)
+        shape = data0.shape
+        if len(shape) == 1:
+            shape = f"({shape[0]})"
         if vectorize:
             N_args = len(args)
             Z_at_XY = np.vectorize(
-                z_at_xy, signature=f'(),()->{data0.shape}',
+                z_at_xy, signature=f'(),()->{shape}',
                 excluded=tuple(range(2, 2 + N_args)),
             )
         else:
@@ -950,10 +954,9 @@ def generate_contour_data(
         Z = Z_at_XY(X, Y, *args)
         if smooth: # Smooth curves due to avoid discontinuities
             from scipy.ndimage.filters import gaussian_filter
-            *_, M, N = Z.shape
-            for i in range(M):
-                for j in range(N):
-                    Z[:, :, i, j] = gaussian_filter(Z[:, :, i, j], smooth)
+            A, B, *other = Z.shape
+            for index in product(*[range(i) for i in other]):
+                Z[(..., *index)] = gaussian_filter(Z[(..., *index)], smooth)
     if file and save and not load: np.save(file, Z)
     return X, Y, Z
 

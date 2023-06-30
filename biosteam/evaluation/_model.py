@@ -871,7 +871,8 @@ class Model(State):
         info = f'{type(self).__name__}:'
         parameters = self._parameters
         if parameters: 
-            if p is None: p = len(parameters)
+            p_max = len(parameters)
+            if p is None: p = p_max
             ptitle = 'parameters: '
             info += '\n' + ptitle
             newline = "\n" + " "*(len(ptitle))
@@ -880,19 +881,23 @@ class Model(State):
                     distribution=False, bounds=False
                 ) for i in range(p)
             ])
+            if p < p_max: info += newline + "..." 
         else:
             info += '\n(No parameters)'
         metrics = self._metrics
         if metrics: 
-            if m is None: m = len(metrics)
+            m_max = len(metrics)
+            if m is None: m = m_max
             mtitle = 'metrics: '
             info += '\n' + mtitle
             newline = "\n" + " "*(len(mtitle))
             info += newline.join([
                 metrics[i].describe() for i in range(m)
             ])
+            if m < m_max: info += newline + "..." 
         else:
             info += '\n(No metrics)'
+            if m < m_max: info += newline + "..." 
         return info
     
     def show(self, p=None, m=None):

@@ -12,19 +12,16 @@ import numpy as np
 from biosteam.utils.piping import ignore_docking_warnings
 from warnings import warn
 import biosteam as bst
-from biosteam.utils.piping import Connection
 from graphviz import Digraph
 from IPython import display
 from thermosteam import Stream
 from xml.etree import ElementTree
 from typing import Optional
 import urllib
-import os
 import re
 
 __all__ = ('digraph_from_system',
            'digraph_from_units',
-           'digraph_from_units_and_streams',
            'digraph_from_units_and_connections',
            'update_digraph_from_units_and_connections',
            'blank_digraph',
@@ -187,11 +184,47 @@ def extend_surface_units(ID, streams, units, surface_units, old_unit_connections
     for i in (feed_box, subsystem_unit, product_box):
         if i: surface_units.append(i)
 
-def digraph_from_units(units, **graph_attrs):
-    streams = bst.utils.streams_from_units(units)
-    return digraph_from_units_and_streams(units, streams, **graph_attrs)
-
-def digraph_from_units_and_streams(units, streams, **graph_attrs):
+def digraph_from_units(units, streams=None, auxiliaries=False, **graph_attrs):
+    if auxiliaries:
+        all_units = []
+        streams = []
+        stream_set = set()
+        for unit in tuple(units):
+            all_units.append(unit)
+            for s in unit.ins + unit.outs:
+                if not s: s = s.materialize_connection()
+                elif s in stream_set: continue
+                streams.append(s)
+                stream_set.add(s)
+            for name, auxunit in unit.get_auxiliary_units_with_names():
+                auxunit.owner = unit # In case units have not been simulated
+                auxunit.auxname = name
+                if isinstance(auxunit, bst.Unit): 
+                    all_units.append(auxunit)
+                    for s in auxunit.ins + auxunit.outs:
+                        if not s: s = s.materialize_connection()
+                        elif s in stream_set: continue
+                        streams.append(s)
+                        stream_set.add(s)
+        units = all_units
+    else:
+        if streams is None:
+            streams = []
+            stream_set = set()
+            for u in units:
+                for s in u._ins + u._outs:
+                    if s in stream_set: continue
+                    streams.append(s)
+                    stream_set.add(s)
+        else:
+            stream_set = set(streams)
+    if auxiliaries:
+        for stream in tuple(streams):
+            if hasattr(stream, 'port'):
+                other = stream.port.get_stream()
+                if other in stream_set:
+                    streams.remove(other)
+                    stream_set.remove(other)
     return digraph_from_units_and_connections(units, get_all_connections(streams), **graph_attrs)
 
 def digraph_from_system(system, **graph_attrs):
@@ -307,7 +340,7 @@ def get_all_connections(streams, added_connections=None):
     for s in streams:
         if (s._source or s._sink): 
             connection = s.get_connection(junction=False)
-            if connection not in added_connections:
+            if connection and connection not in added_connections:
                 connections.append(connection)
                 added_connections.add(connection)
     return connections

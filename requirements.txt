@@ -1,5 +1,6 @@
 sphinx>=4.2.0
 pydata_sphinx_theme==0.11.0
+sphinxcontrib-jquery
 sphinx_multitoc_numbering
 sphinx_autodoc_typehints
 biorefineries

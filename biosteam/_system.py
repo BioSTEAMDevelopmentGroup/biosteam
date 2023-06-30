@@ -13,7 +13,7 @@
 from __future__ import annotations
 from typing import Optional, Callable, Iterable, Sequence, Collection, TYPE_CHECKING
 import flexsolve as flx
-from .digraph import (digraph_from_units_and_streams,
+from .digraph import (digraph_from_units,
                       digraph_from_system,
                       minimal_digraph,
                       surface_digraph,
@@ -68,6 +68,12 @@ class SystemSpecification:
 
 
 # %% Convergence tools
+
+class Methods(dict):
+    
+    def __repr__(self):
+        return f"{type(self).__name__}({', '.join(self)})"
+
 
 class MaterialData:
     __slots__ = (
@@ -440,7 +446,7 @@ class System:
     strict_convergence: bool = True
 
     #: Method definitions for convergence
-    available_methods: dict[str, tuple(Callable, bool, dict)] = {}
+    available_methods: Methods[str, tuple(Callable, bool, dict)] = Methods()
 
     @classmethod
     def register_method(cls, name, solver, conditional=False, **kwargs):
@@ -452,8 +458,8 @@ class System:
           where f(x) = 0 is the solution. This is common for scipy solvers.
         
         * If conditional is True, the signature must be solver(f, x, **kwargs) 
-          where f(x, converged) = x is the solution and the solver stops when
-          converged is True. This method is prefered in BioSTEAM.
+          where f(x) = (x, converged) is the solution and the solver stops 
+          when converged is True. This method is prefered in BioSTEAM.
         
         """
         name = name.lower().replace('-', '').replace('_', '').replace(' ', '')
@@ -1552,9 +1558,7 @@ class System:
         return surface_digraph(self._path, **graph_attrs)
 
     def _thorough_digraph(self, graph_attrs):
-        return digraph_from_units_and_streams(self.unit_path,
-                                              self.streams,
-                                              **graph_attrs)
+        return digraph_from_units(self.unit_path, self.streams, **graph_attrs)
 
     def _cluster_digraph(self, graph_attrs):
         return digraph_from_system(self, **graph_attrs)
@@ -1563,6 +1567,7 @@ class System:
                 format: Optional[str]=None, display: Optional[bool]=True,
                 number: Optional[bool]=None, profile: Optional[bool]=None,
                 label: Optional[bool]=None, title: Optional[str]=None,
+                auxiliaries: Optional[bool]=None,
                 **graph_attrs):
         """
         Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of
@@ -1589,12 +1594,15 @@ class System:
             Whether to clock the simulation time of unit operations.
         label : 
             Whether to label the ID of streams with sources and sinks.
-
+        auxiliaries:
+            Whether to include auxiliary units.
+        
         """
         self._load_configuration()
         if kind is None: kind = 1
         if title is None: title = ''
         graph_attrs['label'] = title
+        if auxiliaries is not None: graph_attrs['auxiliaries'] = auxiliaries 
         preferences = bst.preferences
         with preferences.temporary():
             if number is not None: preferences.number_path = number
@@ -1614,9 +1622,19 @@ class System:
                                  "0 or 'cluster', 1 or 'thorough', 2 or 'surface', "
                                  "3 or 'minimal'")
             if display or file:
+                def size_key(units):
+                    N = len(units)
+                    for u in units: N += len(u.auxiliary_units)
+                    if N < 2:
+                        return 'unit'
+                    elif N < 6:
+                        return 'system'
+                    else:
+                        return 'big-system'
+                    return True
                 height = (
                     preferences.graphviz_html_height
-                    ['unit' if len(self.units) == 1 else 'system']
+                    [size_key(self.units)]
                     [preferences.tooltips_full_results]
                 )
                 finalize_digraph(f, file, format, height)

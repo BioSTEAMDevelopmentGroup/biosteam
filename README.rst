@@ -53,7 +53,7 @@ Data on chemicals and algorithms to estimate thermodynamic properties are
 imported from `chemicals <https://github.com/CalebBell/chemicals>`_
 and `thermo <https://github.com/CalebBell/chemicals>`_,
 community-driven open-source libraries developed by Caleb Bell. BioSTEAM's 
-premire thermodynamic engine, `thermosteam <https://github.com/BioSTEAMDevelopmentGroup/thermosteam>`_, 
+premire thermodynamic engine, `ThermoSTEAM <https://github.com/BioSTEAMDevelopmentGroup/thermosteam>`_, 
 builds upon these libraries to facilitate the creation of thermodynamic property packages.
 
 Installation

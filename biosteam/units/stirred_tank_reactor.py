@@ -138,7 +138,7 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
     [0] CO2
         phase: 'g', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water    9.95
-                        Ethanol  3.7
+                        Ethanol  3.71
                         CO2      244
     [1] product
         phase: 'l', T: 305.15 K, P: 101325 Pa
@@ -182,7 +182,9 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
         'heat_exchanger', 
         'vacuum_system', 
         'recirculation_pump',
-        'agitator'
+        'splitter',
+        'agitator',
+        'scaler',
     )
     
     _units = {**PressureVessel._units,
@@ -257,8 +259,18 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
 
     def load_auxiliaries(self):
         self.recirculation_pump = pump = bst.Pump(None, (None,), (None,), thermo=self.thermo)
-        self.splitter = splitter = bst.Splitter(None, pump-0, split=0.5) # Split is updated later
-        self.heat_exchanger = bst.HXutility(None, splitter-0, (None,), thermo=self.thermo) 
+        self.auxlet(0**pump)
+        if self.batch:
+            self.heat_exchanger = bst.HXutility(None, pump-0, (None,), thermo=self.thermo) 
+        else:
+            self.splitter = splitter = bst.Splitter(
+                None, pump-0, 
+                [None, None],
+                split=0.5
+            ) # Split is updated later
+            self.heat_exchanger = bst.HXutility(None, splitter-0, (None,), thermo=self.thermo) 
+            self.scaler = bst.Scaler(None, splitter-1, None)
+        self.auxlet(self.heat_exchanger-0)
 
     def _get_duty(self):
         return self.Hnet
@@ -317,10 +329,17 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
             recirculation_ratio = reactor_duty / dH # Recirculated flow over net product flow
             hx_inlet.scale(recirculation_ratio)
             hx_outlet.scale(recirculation_ratio)
-            self.recirculation_pump.ins[0].mix_from([hx_inlet, reactor_product])
-            self.recirculation_pump.simulate()
-            self.splitter.split = recirculation_ratio / (1 + recirculation_ratio)
-            self.splitter.simulate()
+            if self.batch:
+                self.recirculation_pump.ins[0].copy_like(hx_inlet)
+                self.recirculation_pump.simulate()
+            else:
+                self.recirculation_pump.ins[0].mix_from([hx_inlet, reactor_product])
+                self.recirculation_pump.simulate()
+                self.splitter.split = recirculation_ratio / (1 + recirculation_ratio)
+                self.splitter.simulate()
+                self.scaler.scale = N
+                self.scaler.outs[0] = self.auxlet(self.liquid_product)
+                self.scaler.simulate()
             self.heat_exchanger.T = hx_outlet.T
             self.heat_exchanger.simulate()
             
@@ -358,7 +377,7 @@ class AeratedBioreactor(StirredTankReactor):
     >>> # Model oxygen uptake as combustion
     >>> rxn = bst.Rxn('Glucose + O2 -> H2O + CO2', reactant='Glucose', X=0.5, correct_atomic_balance=True) 
     >>> R1 = bst.AeratedBioreactor(
-    ...     'R1', ins=[feed, 'air'], outs=('vent', 'product'), tau=12, V_max=500,
+    ...     'R1', ins=[feed, bst.Stream('air', phase='g')], outs=('vent', 'product'), tau=12, V_max=500,
     ...     reactions=rxn,
     ... )
     >>> R1.simulate()
@@ -369,22 +388,20 @@ class AeratedBioreactor(StirredTankReactor):
         phase: 'l', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water    6.66e+03
                         Glucose  139
-    [1] s50
+    [1] air
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): O2  4.16e+03
-                        N2  1.57e+04
-    [2] air
-        phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow: 0
+        flow (kmol/hr): O2  730
+                        N2  2.75e+03
     outs...
     [0] vent
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water  77.1
-                        O2     3.75e+03
-                        N2     1.57e+04
+        flow (kmol/hr): Water  109
+                        CO2    416
+                        O2     314
+                        N2     2.75e+03
     [1] product
         phase: 'l', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water    1.72e+03
+        flow (kmol/hr): Water    6.97e+03
                         Glucose  69.4
     
     """
@@ -445,17 +462,19 @@ class AeratedBioreactor(StirredTankReactor):
     
     def load_auxiliaries(self):
         super().load_auxiliaries()
-        self.compressor = compressor = bst.IsentropicCompressor(None, (None,), (None,), thermo=self.thermo, eta=0.85, P=2 * 101325) 
-        self.air_cooler = bst.HXutility(None, compressor-0, (None,), thermo=self.thermo, T=self.T)
+        self.compressor = compressor = bst.IsentropicCompressor(None, self.auxlet(self.air), (None,), thermo=self.thermo, eta=0.85, P=2 * 101325) 
+        self.air_cooler = air_cooler = bst.HXutility(None, compressor-0, (None,), thermo=self.thermo, T=self.T)
+        self.auxlet(air_cooler-0)
         
     def _run_vent(self, vent, effluent):
-        vent.receive_vent(effluent, energy_balance=False)
+        vent.receive_vent(effluent, energy_balance=False, ideal=True)
         
     def _run(self):
         air = self.air
         if air is None:
             air = bst.Stream(phase='g', thermo=self.thermo)
             self.ins.insert(1, air)
+            self.compressor.ins[0] = self.auxlet(air)
         feeds = [i for i in self.ins if i.phase != 'g']
         vent, effluent = self.outs
         air.P = vent.P = effluent.P = self.P
@@ -466,10 +485,11 @@ class AeratedBioreactor(StirredTankReactor):
         air.empty()
         compressor = self.compressor
         effluent.mix_from(feeds, energy_balance=False)
-        self.run_reactions(effluent)
-        self.OUR = OUR = -effluent.get_flow('mol/s', 'O2') # Oxygen uptake rate
-        if OUR < 0.:
-            self.OUR = 0.
+        self._run_reactions(effluent)
+        effluent_no_air_data = effluent.get_data()
+        OUR = -effluent.get_flow('mol/s', 'O2') # Oxygen uptake rate
+        if OUR < 0.: 
+            self._run_vent(vent, effluent)
             return
         air_cc = self.cooled_compressed_air
         air_cc.copy_like(air)
@@ -480,26 +500,23 @@ class AeratedBioreactor(StirredTankReactor):
             def total_power_at_oxygen_flow(O2):
                 air.set_flow([O2, O2 * 79. / 21.], 'mol/s', ['O2', 'N2'])
                 air_cc.copy_flow(air) # Skip simulation of air cooler
-                compressor.ins[0].copy_like(air)
                 compressor.simulate()
-                effluent.imol['O2', 'N2'] = 0.
+                effluent.set_data(effluent_no_air_data)
                 effluent.mix_from([effluent, air_cc], energy_balance=False)
-                effluent.set_flow(O2 - OUR, 'mol/s', 'O2')
                 vent.empty()
                 self._run_vent(vent, effluent)
-                return self.solve_total_power(OUR)
+                total_power = self._solve_total_power(OUR)
+                return total_power
             
             f = total_power_at_oxygen_flow
-            minimize_scalar(f, 1.2 * OUR, bounds=[OUR, 10 * OUR])
+            minimize_scalar(f, 1.2 * OUR, bounds=[OUR, 10 * OUR], tol=OUR * 1e-3)
         else:
             def air_flow_rate_objective(O2):
                 air.set_flow([O2, O2 * 79. / 21.], 'mol/s', ['O2', 'N2'])
                 air_cc.copy_flow(air) # Skip simulation of air cooler
-                compressor.ins[0].copy_like(air)
                 compressor.simulate()
-                effluent.imol['O2', 'N2'] = 0.
+                effluent.set_data(effluent_no_air_data)
                 effluent.mix_from([effluent, air_cc], energy_balance=False)
-                effluent.set_flow(O2 - OUR, 'mol/s', 'O2')
                 vent.empty()
                 self._run_vent(vent, effluent)
                 return OUR - self.get_OTR()
@@ -511,10 +528,10 @@ class AeratedBioreactor(StirredTankReactor):
             flx.IQ_interpolation(f, x0=OUR, x1=10 * OUR, 
                                  y0=y0, ytol=1e-3, xtol=1e-3)
         
-    def run_reactions(self, effluent):
+    def _run_reactions(self, effluent):
         self.reactions.force_reaction(effluent)
     
-    def solve_total_power(self, OUR): # For OTR = OUR [mol / s]
+    def _solve_total_power(self, OUR): # For OTR = OUR [mol / s]
         air_in = self.cooled_compressed_air
         N_reactors = self.parallel['self']
         operating_time = self.tau / self.design_results.get('Batch time', 1.)
@@ -526,17 +543,28 @@ class AeratedBioreactor(StirredTankReactor):
         self.superficial_gas_flow = U = F / A # m / s 
         vent = self.vent
         P_O2_air = air_in.get_property('P', 'bar') * air_in.imol['O2'] / air_in.F_mol
-        P_O2_vent = vent.get_property('P', 'bar') * vent.imol['O2'] / vent.F_mol
+        P_O2_vent = 0. if vent.isempty() else vent.get_property('P', 'bar') * vent.imol['O2'] / vent.F_mol
         C_O2_sat_air = aeration.C_O2_L(self.T, P_O2_air) # mol / kg
         C_O2_sat_vent = aeration.C_O2_L(self.T, P_O2_vent) # mol / kg
         theta_O2 = self.theta_O2
         LMDF = aeration.log_mean_driving_force(C_O2_sat_vent, C_O2_sat_air, theta_O2 * C_O2_sat_vent, theta_O2 * C_O2_sat_air)
         kLa = OUR / (LMDF * V * self.effluent_density * N_reactors * operating_time)
         P = aeration.P_at_kLa(kLa, V, U, self.kLa_coefficients)
-        self.kW_per_m3 = P / 1000 / V
-        return P
+        agitation_power_kW = P / 1000
+        total_power_kW = (agitation_power_kW + self.compressor.power_utility.consumption / N_reactors) / V
+        self.kW_per_m3 = agitation_power_kW / V 
+        return total_power_kW
+    
+    def get_OUR(self):
+        """Return the oxygen uptake rate in mol/s."""
+        feeds = [i for i in self.ins if i.phase != 'g']
+        effluent = self.effluent.copy()
+        effluent.mix_from(feeds, energy_balance=False)
+        self._run_reactions(effluent)
+        return -effluent.get_flow('mol/s', 'O2') # Oxygen uptake rate
     
     def get_OTR(self):
+        """Return the oxygen transfer rate in mol/s."""
         V = self.get_design_result('Reactor volume', 'm3') * self.V_wf
         operating_time = self.tau / self.design_results.get('Batch time', 1.)
         N_reactors = self.parallel['self']
@@ -561,7 +589,6 @@ class AeratedBioreactor(StirredTankReactor):
         
     def _inlet_air_pressure(self):
         StirredTankReactor._design(self)
-        if self.OUR == 0.: return
         liquid = bst.Stream(None, thermo=self.thermo)
         liquid.mix_from([i for i in self.ins if i.phase != 'g'], energy_balance=False)
         liquid.copy_thermal_condition(self.outs[0])
@@ -571,7 +598,7 @@ class AeratedBioreactor(StirredTankReactor):
     
     def _design(self):
         StirredTankReactor._design(self)
-        if self.OUR == 0.: return
+        if self.air.isempty(): return
         liquid = bst.Stream(None, thermo=self.thermo)
         liquid.mix_from([i for i in self.ins if i.phase != 'g'], energy_balance=False)
         liquid.copy_thermal_condition(self.outs[0])
@@ -579,13 +606,15 @@ class AeratedBioreactor(StirredTankReactor):
         length = self.get_design_result('Length', 'm') * self.V_wf
         compressor = self.compressor
         compressor.P = g * rho * length + 101325
-        compressor.ins[0].copy_like(self.air)
         compressor.simulate()
         air_cooler = self.air_cooler
         air_cooler.T = self.T
         air_cooler.simulate()
         self.parallel['compressor'] = 1
         self.parallel['air_cooler'] = 1
+        # For robust process control, do not include in HXN
+        for unit in self.auxiliary_units:
+            for hu in unit.heat_utilities: hu.hxn_ok = False
     
 ABR = AeratedBioreactor
     

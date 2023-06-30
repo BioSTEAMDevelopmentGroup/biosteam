@@ -9,7 +9,7 @@
 This module includes classes and functions concerning Stream objects.
 """
 from thermosteam.utils.decorators import registered_franchise
-from thermosteam import Stream
+from thermosteam import Stream, MultiStream
 from typing import NamedTuple
 from warnings import warn
 import biosteam as bst
@@ -18,7 +18,7 @@ __all__ = ('TemporaryStream', 'MissingStream', 'MockStream', 'Inlets',
            'Outlets', 'Sink', 'Source', 'InletPort', 'OutletPort', 'StreamPorts', 
            'Connection', 'as_stream', 'as_upstream', 'as_downstream', 
            'materialize_connections', 'ignore_docking_warnings',
-           'IgnoreDockingWarnings')
+           'IgnoreDockingWarnings', 'SuperpositionInlet', 'SuperpositionOutlet')
 
 DOCKING_WARNINGS = True
 
@@ -102,6 +102,7 @@ class MissingStream:
     __slots__ = ('_source', '_sink')
     line = 'Stream'
     ID = 'missing stream'
+    T = P = phase = None
     disconnect = Stream.disconnect
     disconnect_source = Stream.disconnect_source
     disconnect_sink = Stream.disconnect_sink
@@ -168,6 +169,9 @@ class MissingStream:
     
     def __str__(self):
         return self.ID
+    
+    def show(self):
+        print(self._basic_info())
 
 class TemporaryStream:
     """
@@ -338,10 +342,11 @@ class StreamSequence:
     def __radd__(self, other):
         return other + self._streams
     
-    def _dock(self, stream): return stream
-    def _redock(self, stream, stacklevel): return stream
-    def _undock(self, stream): pass
-        
+    # DO NOT DELETE: These should be implemented by child class
+    # def _dock(self, stream): return stream
+    # def _redock(self, stream, stacklevel): return stream
+    # def _undock(self, stream): pass
+
     def _set_streams(self, slice, streams, stacklevel):
         streams = [self._as_stream(i) for i in streams]
         all_streams = self._streams
@@ -360,7 +365,7 @@ class StreamSequence:
     def _as_stream(self, stream):
         if stream is None:
             stream = self._create_missing_stream()
-        elif not isinstance(stream, (Stream, TemporaryStream, MissingStream)):
+        elif not isinstance(stream, stream_types):
             raise TypeError(
                 f"'{type(self).__name__}' object can only contain "
                 f"'Stream' objects; not '{type(stream).__name__}'"
@@ -380,8 +385,7 @@ class StreamSequence:
     def _set_stream(self, int, stream, stacklevel):
         stream = self._as_stream(stream)
         self._undock(self._streams[int])
-        self._redock(stream, stacklevel+1)
-        self._streams[int] = stream
+        self._streams[int] = self._redock(stream, stacklevel+1)
     
     def empty(self):
         for i in self._streams: self._undock(i)
@@ -482,14 +486,17 @@ class Inlets(StreamSequence):
         if sink:
             ins = sink._ins
             if ins is not self:
-                ins.remove(stream)
-                stream._sink = new_sink = self._sink
-                if (DOCKING_WARNINGS 
-                    and sink._ID and new_sink._ID
-                    and sink._ID != new_sink._ID):
-                    warn(f"undocked inlet stream {stream} from unit {sink}; "
-                         f"{stream} is now docked at {new_sink}", 
-                         RuntimeWarning, stacklevel + 1)
+                if stream in ins:
+                    ins.remove(stream)
+                    stream._sink = new_sink = self._sink
+                    if (DOCKING_WARNINGS 
+                        and sink._ID and new_sink._ID
+                        and sink._ID != new_sink._ID):
+                        warn(f"undocked inlet stream {stream} from unit {sink}; "
+                             f"{stream} is now docked at {new_sink}", 
+                             RuntimeWarning, stacklevel + 1)
+                else:
+                    stream._sink = self._sink
         else:
             stream._sink = self._sink
         return stream
@@ -522,14 +529,17 @@ class Outlets(StreamSequence):
         if source:
             outs = source._outs
             if outs is not self:
-                outs.remove(stream)
-                stream._source = new_source = self._source
-                if (DOCKING_WARNINGS 
-                    and source._ID and new_source._ID
-                    and source._ID != new_source._ID):
-                    warn(f"undocked outlet stream {stream} from unit {source}; "
-                         f"{stream} is now docked at {new_source}", 
-                         RuntimeWarning, stacklevel + 1)
+                if stream in outs:
+                    outs.remove(stream)
+                    stream._source = new_source = self._source
+                    if (DOCKING_WARNINGS 
+                        and source._ID and new_source._ID
+                        and source._ID != new_source._ID):
+                        warn(f"undocked outlet stream {stream} from unit {source}; "
+                             f"{stream} is now docked at {new_source}", 
+                             RuntimeWarning, stacklevel + 1)
+                else:
+                    stream._source = self._source
         else:
             stream._source = self._source
         return stream
@@ -788,7 +798,144 @@ class StreamPorts:
         ports = ', '.join([str(i) for i in self._ports])
         return f"[{ports}]"
 
+# %% Auxiliary piping
+        
+shared_data = {
+    '_imol', '_thermal_condition', '_thermo', '_streams',
+    '_bubble_point_cache', '_dew_point_cache',
+    '_vle_cache', '_lle_cache', '_sle_cache',
+    '_price', '_property_cache_key',
+    '_property_cache', 'characterization_factors', 
+    '_user_equilibrium',
+}
 
+class SuperpositionInlet(Stream): # Both parent and auxiliary unit inlet.
+    __slots__ = ()
+    
+    def __init__(self, port, sink=None):
+        object.__setattr__(self, 'port', port)
+        object.__setattr__(self, '_sink', sink)
+        
+    def __getattr__(self, name):
+        port = object.__getattribute__(self, 'port')
+        return getattr(port.get_stream(), name)
+    
+    def __setattr__(self, name, value):
+        if name in shared_data:
+            setattr(self.port.get_stream(), name, value)
+        else:
+            object.__setattr__(self, name, value)
+        
+    def _get_class(self):
+        return Stream
+    def _set_class(self, cls):
+        if cls is MultiStream:
+            port = object.__getattribute__(self, 'port')
+            stream = port.get_stream()
+            if hasattr(stream, 'port'):
+                stream._set_class(cls)
+            else:
+                stream.__class__ = MultiStream
+            object.__setattr__(self, '__class__', SuperpositionMultiInlet)
+        else:
+            raise ValueError(f'{type(self).__name__} does not support class override to {cls.__name__}')
+        
+        
+class SuperpositionOutlet(Stream): # Both parent and auxiliary unit outlet.
+    __slots__ = ()
+    
+    def __init__(self, port, source=None):
+        object.__setattr__(self, 'port', port)
+        object.__setattr__(self, '_source', source)
+        
+    def __getattr__(self, name):
+        port = object.__getattribute__(self, 'port')
+        return getattr(port.get_stream(), name)
+    
+    def __setattr__(self, name, value):
+        if name in shared_data:
+            setattr(self.port.get_stream(), name, value)
+        else:
+            object.__setattr__(self, name, value)
+        
+    def _get_class(self):
+        return Stream
+    def _set_class(self, cls):
+        if cls is MultiStream:
+            port = object.__getattribute__(self, 'port')
+            stream = port.get_stream()
+            if hasattr(stream, 'port'):
+                stream._set_class(cls)
+            else:
+                stream.__class__ = MultiStream
+            object.__setattr__(self, '__class__', SuperpositionMultiOutlet)
+        else:
+            raise ValueError(f'{type(self).__name__} does not support class override to {cls.__name__}')
+    
+    
+class SuperpositionMultiInlet(MultiStream): # Both parent and auxiliary unit inlet.
+    __slots__ = ()
+    
+    def __init__(self, port, sink=None):
+        object.__setattr__(self, 'port', port)
+        object.__setattr__(self, '_sink', sink)
+        
+    def __getattr__(self, name):
+        port = object.__getattribute__(self, 'port')
+        return getattr(port.get_stream(), name)
+    
+    def __setattr__(self, name, value):
+        if name in shared_data:
+            setattr(self.port.get_stream(), name, value)
+        else:
+            object.__setattr__(self, name, value)
+        
+    def _get_class(self):
+        return MultiStream
+    def _set_class(self, cls):
+        if cls is Stream:
+            port = object.__getattribute__(self, 'port')
+            stream = port.get_stream()
+            if hasattr(stream, 'port'):
+                stream._set_class(cls)
+            else:
+                stream.__class__ = Stream
+            object.__setattr__(self, '__class__', SuperpositionInlet)
+        else:
+            raise ValueError(f'{type(self).__name__} does not support class override to {cls.__name__}')
+        
+        
+class SuperpositionMultiOutlet(MultiStream): # Both parent and auxiliary unit outlet.
+    __slots__ = ()
+    
+    def __init__(self, port, source=None):
+        object.__setattr__(self, 'port', port)
+        object.__setattr__(self, '_source', source)
+        
+    def __getattr__(self, name):
+        port = object.__getattribute__(self, 'port')
+        return getattr(port.get_stream(), name)
+    
+    def __setattr__(self, name, value):
+        if name in shared_data:
+            setattr(self.port.get_stream(), name, value)
+        else:
+            object.__setattr__(self, name, value)
+    
+    def _get_class(self):
+        return MultiStream
+    def _set_class(self, cls):
+        if cls is Stream:
+            port = object.__getattribute__(self, 'port')
+            stream = port.get_stream()
+            if hasattr(stream, 'port'):
+                stream._set_class(cls)
+            else:
+                stream.__class__ = Stream
+            object.__setattr__(self, '__class__', SuperpositionOutlet)
+        else:
+            raise ValueError(f'{type(self).__name__} does not support class override to {cls.__name__}')
+    
 # %% Configuration bookkeeping
 
 class Connection(NamedTuple):
@@ -799,10 +946,13 @@ class Connection(NamedTuple):
     sink: object
     
     def reconnect(self):
-        if self.source:
-            self.source.outs[self.source_index] = self.stream
-        if self.sink:
-            self.sink.ins[self.sink_index] = self.stream
+        # Does not attempt to connect auxiliaries with owners (which should not be possible)
+        source = self.source
+        sink = self.sink
+        if source and not (sink and getattr(sink, '_owner', None) is source):
+            source.outs[self.source_index] = self.stream
+        if sink and not (source and getattr(source, '_owner', None) is sink):
+            sink.ins[self.sink_index] = self.stream
 
 # %% General
 
@@ -827,32 +977,46 @@ def __rsub__(self, index):
     return index.__sub__(self)
 
 def get_connection(self, junction=None):
-    if junction is None or junction:
-        source = self._source
-        source_index = source._outs.index(self) if source else None
-        sink = self._sink
-        sink_index = sink._ins.index(self) if sink else None
+    if junction is None: junction = True
+    source = self._source
+    sink = self._sink
+    isa = isinstance
+    if not junction and isa(source, bst.Junction):
+        stream = source._ins[0]
+        source = stream._source
     else:
-        source = self._source
-        sink = self._sink
-        isa = isinstance
-        if isa(source, bst.Junction):
-            stream = source._ins[0]
-            source = stream._source
-        else:
-            stream = self
+        stream = self
+    try:
         source_index = source._outs.index(stream) if source else None
-        if isa(sink, bst.Junction):
-            stream = sink._outs[0]
-            sink = stream._sink
-        else:
-            stream = self
+    except ValueError: # Auxiliary streams are not in inlets nor outlets  
+        try:
+            auxname = sink.auxname
+            source_index = source._auxout_index[auxname]
+        except:
+            source_index = -1
+    if not junction and isa(sink, bst.Junction):
+        stream = sink._outs[0]
+        sink = stream._sink
+    else:
+        stream = self
+    try:
         sink_index = sink._ins.index(stream) if sink else None
+    except ValueError: # Auxiliary streams are not in inlets nor outlets
+        try:
+            auxname = source.auxname
+            sink_index = sink._auxin_index[auxname]
+        except:
+            sink_index = -1
     return Connection(source, source_index, self, sink_index, sink)
 
 Stream.get_connection = get_connection
 TemporaryStream.get_connection = get_connection
-MissingStream.__pow__ = MissingStream.__sub__ = Stream.__pow__ = Stream.__sub__ = __sub__  # Forward pipping
-MissingStream.__rpow__ = MissingStream.__rsub__ = Stream.__rpow__ = Stream.__rsub__ = __rsub__ # Backward pipping    
-Stream._basic_info = lambda self: (f"{type(self).__name__}: {self.ID or ''}"
-                                   f"{pipe_info(self._source, self._sink)}\n")
+basic_stream_info = lambda self: (f"{type(self).__name__}: {self.ID or ''}"
+                                  f"{pipe_info(self._source, self._sink)}\n")
+source_info = lambda self: f"{source}-{source.outs.index(self)}" if (source:=self.source) else self.ID
+for cls in (MissingStream, Stream):
+    cls.__pow__ = cls.__sub__ = __sub__  # Forward pipping
+    cls.__rpow__ = cls.__rsub__ = __rsub__ # Backward pipping    
+    cls._basic_info = basic_stream_info
+    cls._source_info = source_info
+

@@ -117,16 +117,16 @@ class Flash(design.PressureVessel, Unit):
     Medium pressure steam Duty                              kJ/hr      4.81e+07
                           Flow                            kmol/hr      1.33e+03
                           Cost                             USD/hr           366
-    Design                Vessel type                                  Vertical
-                          Length                               ft          15.5
-                          Diameter                             ft           8.5
-                          Weight                               lb      9.57e+03
-                          Wall thickness                       in         0.438
+    Design                Vessel type                                Horizontal
+                          Length                               ft          8.46
+                          Diameter                             ft           5.5
+                          Weight                               lb      2.51e+03
+                          Wall thickness                       in         0.312
                           Vessel material                          Carbon steel
-    Purchase cost         Vertical pressure vessel            USD      4.63e+04
-                          Platform and ladders                USD      1.39e+04
+    Purchase cost         Horizontal pressure vessel          USD      1.47e+04
+                          Platform and ladders                USD      3.22e+03
                           Heat exchanger - Floating head      USD      4.48e+04
-    Total purchase cost                                       USD      1.05e+05
+    Total purchase cost                                       USD      6.26e+04
     Utility cost                                           USD/hr           366
 
 
@@ -147,6 +147,9 @@ class Flash(design.PressureVessel, Unit):
     
     """
     auxiliary_unit_names = ('heat_exchanger', 'vacuum_system')
+    _auxin_index = {
+        'heat_exchanger': 0
+    }
     _units = {'Length': 'ft',
               'Diameter': 'ft',
               'Weight': 'lb',
@@ -220,7 +223,7 @@ class Flash(design.PressureVessel, Unit):
         
     def _load_components(self):
         self._multi_stream = ms = MultiStream(None, thermo=self.thermo)
-        self.heat_exchanger = HXutility(None, (None,), ms, thermo=self.thermo) 
+        self.heat_exchanger = HXutility(None, None, self.auxlet(ms), thermo=self.thermo) 
         
     def reset_cache(self, isdynamic=None):
         self._multi_stream.reset_cache()
@@ -256,14 +259,14 @@ class Flash(design.PressureVessel, Unit):
         vap, liq = self.outs
         F_mass_vap = vap.F_mass
         F_mass_liq = liq.F_mass 
-        return 'Vertical' if F_mass_vap / F_mass_liq > 0.1 else 'Horizontal'
+        return 'Vertical' if F_mass_vap / F_mass_liq >= 1 else 'Horizontal'
 
     def _run(self):
         separations.vle(self.ins[0], *self.outs, self.T, self.P, self.V, 
                         self.Q, self.x, self.y, self._multi_stream)
             
-    def _design(self):
-        vap, liq = self.outs
+    def _size_flash_vessel(self):
+        vap, liq, *_ = self.outs
         self.no_vessel_needed = vap.isempty() or liq.isempty()
         if self.no_vessel_needed:
             self.design_results.clear()
@@ -277,9 +280,13 @@ class Flash(design.PressureVessel, Unit):
             self.design_results.update(
                 self._vessel_design(*args)
             )
+        
+    def _design(self):
+        self._size_flash_vessel()
         if self.Q == 0.:
             self.heat_exchanger._setup() # Removes results
         else:
+            self.heat_exchanger.ins[0] = self.auxlet(self.feed)
             self.heat_exchanger.simulate_as_auxiliary_exchanger(self.ins, self.outs, P=self.ins[0].P)
 
     def _cost(self):
@@ -304,7 +311,7 @@ class Flash(design.PressureVessel, Unit):
 
     def _design_parameters(self):
         # Retrieve run_args and properties
-        vap, liq = self._outs
+        vap, liq, *_ = self._outs
         rhov = vap.get_property('rho', 'lb/ft3')
         rhol = liq.get_property('rho', 'lb/ft3')
         P = liq.get_property('P', 'psi')  # Pressure (psi)
@@ -351,19 +358,19 @@ class Flash(design.PressureVessel, Unit):
         if P < 300:
             Hlll = 1.25
 
-        # Calculate the height from Hlll to Normal liq level, Hnll
+        # Calculate the height from Hlll to Normal liquid level, Hnll
         Hh = Vh/(pi/4.0*Dvd**2)
         if Hh < 1.0: Hh = 1.0
 
-        # Calculate the height from Hnll to  High liq level, Hhll
+        # Calculate the height from Hnll to High liquid level, Hhll
         Hs = Vs/(pi/4.0*Dvd**2)
         if Hs < 0.5: Hs = 0.5
 
         # Calculate dN
-        Qm = Qll + Qv
-        lamda = Qll/Qm
-        rhoM = rhol*lamda + rhov*(1-lamda)
-        dN = (4*Qm/(pi*60.0/(rhoM**0.5)))**0.5
+        Qm = Qll / 60 + Qv
+        lamda = Qll / 60 / Qm
+        rhoM = rhol * lamda + rhov * (1 - lamda)
+        dN = (4*Qm / (pi * 60.0 / (rhoM**0.5)))**0.5
         dN = design.ceil_half_step(dN)
 
         # Calculate Hlin, assume with inlet diverter
@@ -534,10 +541,10 @@ class SplitFlash(Flash):
         top, bot = self.outs
         feed, = self.ins
         feed_mol = feed.mol
-        top.mol[:] = top_mol = feed_mol * self.split
-        bot.mol[:] = feed_mol - top_mol
         top.phase = 'g'
         bot.phase = 'l'
+        top.mol[:] = top_mol = feed_mol * self.split
+        bot.mol[:] = feed_mol - top_mol
         bot.T = top.T = self.T
         bot.P = top.P = self.P
 
@@ -598,9 +605,10 @@ class RatioFlash(Flash):
         self.heat_exchanger.simulate_as_auxiliary_exchanger(self.ins, self.outs, vle=False)
         super()._design()
 
-# %% Single Component
+# %% Single Component for MultiEffectEvaporator
 
-class Evaporator_PQ(Unit):
+class Evaporator(Flash):
+    _ins_size_is_fixed = True
     _N_ins = 2
     _N_outs = 3
     @property
@@ -608,41 +616,60 @@ class Evaporator_PQ(Unit):
         return self._P
     @P.setter
     def P(self, P):
-        chemical = self.chemical
-        self._T = T = chemical.Tsat(P)
-        self._Hvap = chemical.Hvap(T)
-        self._P = P
+        if P is None: 
+            self._Hvap = self._P = self._T = None
+        else:
+            chemical = self.chemical
+            self._T = T = chemical.Tsat(P)
+            self._Hvap = chemical.Hvap(T)
+            self._P = P
     @property
     def T(self):
         return self._T
     @T.setter
     def T(self, T): # pragma: no cover
-        chemical = self.chemical
-        self._P = chemical.Psat(T)
-        self._Hvap = chemical.Hvap(T)
-        self._T = T
-    @property
-    def V(self):
-        return self._V
+        if T is None: 
+            self._Hvap = self._P = self._T = None
+        else:
+            chemical = self.chemical
+            self._P = chemical.Psat(T)
+            self._T = T
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
-                 Q=0, P=101325, chemical='7732-18-5'):
-        super().__init__(ID, ins, outs, thermo)
+                 Q=None, V=None, P=101325, chemical='7732-18-5'):
+        super().__init__(ID, ins, outs, thermo, vessel_type='Vertical')
         self.chemical = self.chemicals[chemical]
-        self.Q = Q
         self.P = P
-        self._V = None
+        self.Q = Q
+        self.V = V
+    
+    def _load_components(self): pass
     
     def _run(self):
         feed, utility_vapor = self.ins
         vapor, liquid, utility_liquid = self.outs
         
-        # Optional if Q also comes from condensing a side stream
-        Q = self.Q
-        if not utility_vapor.isempty():
+        u_given = not utility_vapor.isempty()
+        Q_given = self.Q is not None
+        V_given = self.V is not None
+        N_specs = u_given + Q_given + V_given
+        if N_specs > 1:
+            raise RuntimeError('can specify at most one of the following: Q, V, or utility vapor')
+        
+        if Q_given:
+            Q = self.Q
+        elif u_given:
+            # Q can come from condensing a side stream
             utility_liquid.copy_like(utility_vapor)
             utility_liquid.phase = 'l'
-            Q += utility_vapor.Hvap
+            Q = utility_vapor.Hvap
+            Q_given = True
+        elif V_given:
+            V = self.V
+        else:
+            # Default to no heat transfer
+            Q = 0
+            Q_given = True
         feed_H = feed.H
     
         # Set exit conditions
@@ -652,86 +679,37 @@ class Evaporator_PQ(Unit):
         vapor.phase = 'g'
         liquid.copy_flow(feed)
         chemical_ID = self.chemical.ID
-        # Energy balance to find vapor fraction
-        f = feed.imol[chemical_ID]
-        H = feed_H + Q - liquid.H
-        if f:
-            V = H/(f * self._Hvap)
-            if V < 0: 
-                V = 0
-            elif V > 1:
-                V = 1
-        else:
-            V = 0
-        evaporated = f * V
-        vapor.imol[chemical_ID] = evaporated
-        liquid.imol[chemical_ID] = (1-V)*f
-        self.design_results['Heat transfer'] = Q
-        self._V = V
-
-
-class Evaporator_PV(Flash):
-    _N_outs = 2
-    
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P=None, V=None, chemical='7732-18-5'):
-        super().__init__(ID, ins, outs, thermo, vessel_type='Vertical')
-        self.chemical = self.chemicals[chemical]
-        self.P = P
-        self.V = V
-    
-    @property
-    def P(self):
-        return self._P
-    @P.setter
-    def P(self, P):
-        if P is not None:
-            chemical = self.chemical
-            self._T = chemical.Tsat(P)
-        self._P = P
-    @property
-    def T(self):
-        return self._T
-    @T.setter
-    def T(self, T): # pragma: no cover
-        if T is not None:
-            chemical = self.chemical
-            self._P = chemical.Psat(T)
-        self._T = T
-
-    def _run(self):
-        feed = self.ins[0]
-        vapor, liquid = self.outs
-        vapor.phase = 'g'
-        vapor.T = liquid.T = self.T
-        vapor.P = liquid.P = self.P
-        index = self.chemicals.index(self.chemical.ID)
-        chemical_mol = feed.mol[index]
-        vapor.mol[index] = self.V * chemical_mol
-        liquid_mol = liquid.mol
-        liquid_mol[:] = feed.mol
-        liquid_mol[index] = (1 - self.V) * chemical_mol
-        ms = self._multi_stream
-        ms['g'].copy_like(vapor)
-        ms['l'].copy_like(liquid)
         
-    def _design(self):
-        vap, liq = self.outs
-        self.vessel_needed = not (vap.isempty() or liq.isempty())
-        if self.vessel_needed:
-            args = self._vertical_vessel_pressure_diameter_and_length()
-            self.design_results.update(
-                self._vessel_design(*args)
-            )
-            if self.Q == 0.:
-                self.heat_exchanger._setup() # Removes previous results
+        if Q_given:
+            # Energy balance to find vapor fraction
+            f = feed.imol[chemical_ID]
+            H = feed_H + Q
+            if f:
+                Hvap = f * self._Hvap
+                dH = (H - liquid.H)
+                V = dH / Hvap
+                if V < 0: 
+                    vapor.imol[chemical_ID] = 0
+                    liquid.imol[chemical_ID] = f
+                    liquid.H = H
+                elif V > 1:
+                    vapor.imol[chemical_ID] = f
+                    liquid.imol[chemical_ID] = 0
+                    utility_liquid.vle(H=utility_vapor.H - Hvap, P=utility_vapor.P)
+                else:
+                    vapor.imol[chemical_ID] = f * V
+                    liquid.imol[chemical_ID] = (1 - V) * f
             else:
-                self.heat_exchanger.simulate_as_auxiliary_exchanger(
-                    self.ins, self.outs, P=self.ins[0].P, vle=True,
-                )
-
-    def _cost(self):
-        D = self.design_results
-        if self.vessel_needed:
-            self.baseline_purchase_costs.update(
-                self._vessel_purchase_cost(D['Weight'], D['Diameter'], D['Length'])
-            )
+                V = 0
+                Q = 0
+        elif V_given:
+            # Specify fraction evaporated and compute Q
+            V = self.V
+            chemical_mol = feed.imol[chemical_ID]
+            liquid.copy_flow(feed)
+            liquid.imol[chemical_ID] = (1 - V) * chemical_mol
+            vapor.imol[chemical_ID] = V * chemical_mol
+            Q = liquid.H + vapor.H - feed.H
+        
+        self.design_results['Heat transfer'] = Q
+        
