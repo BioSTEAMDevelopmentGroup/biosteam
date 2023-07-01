@@ -20,4 +20,4 @@ def element_name(element):
             unformatted_name = (str(element) if isinstance(element, type) else type(element)).__name__
             return format_title(unformatted_name)
     else:
-        return ''
+        return '-'

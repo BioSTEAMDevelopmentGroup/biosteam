@@ -48,12 +48,14 @@ __all__ = (
     'plot_quadrants',
     'plot_stacked_bar',
     'generate_contour_data',
+    'title_color',
 )
 
 # %% Utilities
 
 default_light_color = c.orange_tint.RGBn
 default_dark_color = c.orange_shade.RGBn
+title_color = c.neutral.shade(25).RGBn
 
 def annotate_point(
         text, x, y, dx=0, dy=0.2, dx_text=0, dy_text=0.22,
@@ -90,7 +92,7 @@ def annotate_point(
     if arrowkwargs is None: arrowkwargs = {}
     if textkwargs is None: textkwargs = {}
     plt.arrow(x, y, dx, dy, linestyle=xlinestyle, alpha=0.8, color=linecolor, 
-              linewidth=1, **arrowkwargs)
+              **arrowkwargs)
     plt.text(xtext, ytext, text, color=textcolor, 
              horizontalalignment=horizontalalignment,
              verticalalignment=verticalalignment,
@@ -121,7 +123,6 @@ def annotate_line(text, x, xs, ys, *args, **kwargs): # pragma: no coverage
     x = xs[index]
     y = ys[index]
     annotate_point(text, x, y, **kwargs)
-    
 
 def plot_horizontal_line(y, color='grey', **kwargs): # pragma: no coverage
     """Plot horizontal line."""
@@ -768,8 +769,9 @@ def plot_montecarlo(data,
     return bx
 
 def plot_montecarlo_across_coordinate(xs, ys, 
-                                      light_color=None,
-                                      dark_color=None): # pragma: no coverage
+                                      p5_color=None,
+                                      fill_color=None,
+                                      median_color=None): # pragma: no coverage
     """
     Plot Monte Carlo evaluation across a coordinate.
     
@@ -780,9 +782,11 @@ def plot_montecarlo_across_coordinate(xs, ys,
     ys : numpy.ndarray(ndim=2)
         Metric values with uncertainty. Each row represents a sample and each 
         column represent a metric along the x-coordinate.
-    light_color : numpy.ndarray
+    p5_color : numpy.ndarray
         RGB normalized to 1. Defaults to brown.
-    dark_color : numpy.ndarray
+    fill_color : numpy.ndarray
+        RGB normalized to 1. Defaults to brown.
+    median_color : numpy.ndarray
         RGB normalized to 1. Defaults to brown.
     
     Returns
@@ -791,21 +795,22 @@ def plot_montecarlo_across_coordinate(xs, ys,
         5, 25, 50, 75 and 95th percentiles by row (5 rows total).
     
     """
-    if light_color is None: light_color = default_light_color
-    if dark_color is None: dark_color = default_dark_color
+    if fill_color is None: fill_color = default_light_color
+    if median_color is None: median_color = default_dark_color
+    if p5_color is None: p5_color = 0.5 * (default_light_color + default_dark_color)
     q05, q25, q50, q75, q95 = percentiles = np.percentile(ys, [5,25,50,75,95], axis=0)
 
     plt.plot(xs, q50, '-',
-             color=dark_color,
+             color=median_color,
              linewidth=1.5) # Median
     plt.fill_between(xs, q25, q75,
-                     color=light_color,
+                     color=fill_color,
                      linewidth=1.0)
     plt.plot(xs, q05, '-.',
-             color=dark_color,
+             color=p5_color,
              linewidth=1.0) # Lower whisker
     plt.plot(xs, q95, '-.',
-             color=dark_color,
+             color=p5_color,
              linewidth=1.0) # Upper whisker
     
     return percentiles
@@ -1069,7 +1074,7 @@ def plot_contour_2d(X, Y, Z,
     for col in range(ncols):
         title = titles[col]
         ax = axes[0, col]
-        ax.set_title(title)
+        ax.set_title(title, color=title_color, fontsize=10, fontweight='bold')
     if row_bars:
         for ax in axes[:, -1]:
             plt.sca(ax)
@@ -1128,7 +1133,7 @@ def plot_contour_single_metric(
     if titles:
         for col, title in enumerate(titles):
             ax = axes[0, col]
-            ax.set_title(title)
+            ax.set_title(title, color=title_color, fontsize=10, fontweight='bold')
     set_axes_labels(axes[:, :-1], xlabel, ylabel)
     plt.subplots_adjust(hspace=0.1, wspace=0.1)
     return fig, axes, cps, cb, other_axes
