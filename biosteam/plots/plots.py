@@ -25,6 +25,7 @@ __all__ = (
     'rounded_linspace',
     'rounted_tickmarks_from_range',
     'rounded_tickmarks_from_data',
+    'annotate_point',
     'annotate_line',
     'plot_unit_groups',
     'plot_unit_groups_across_coordinate',
@@ -54,8 +55,48 @@ __all__ = (
 default_light_color = c.orange_tint.RGBn
 default_dark_color = c.orange_shade.RGBn
 
-def annotate_line(text, x, xs, ys, dy=0.2, dy_text=0.22, position='under', 
-                  color=None): # pragma: no coverage
+def annotate_point(
+        text, x, y, dx=0, dy=0.2, dx_text=0, dy_text=0.22,
+        textcolor=None, linecolor=None, fontsize=12, 
+        horizontalalignment='center', 
+        verticalalignment='bottom',
+        arrowkwargs=None, 
+        textkwargs=None,
+        xlinestyle='-', 
+        ylinestyle='-',
+    ): # pragma: no coverage
+    """
+    Annotate point with text and arrow pointing to text.
+    
+    Parameters
+    ----------
+    text : str
+    x : float
+        Arrow position
+    dx : float
+        Length of arrow to x-position.
+    dy : float
+        Length of arrow to y-position.
+    dy_text : float
+        Distance of text to arrow.
+    color : numpy.ndarray
+        RGB normalized to 1. Defaults to brown.
+    
+    """
+    xtext = x + dx + dx_text
+    ytext = y + dy + dy_text
+    if textcolor is None: textcolor = 0.45 * default_dark_color
+    if linecolor is None: linecolor = 0.60 * default_dark_color
+    if arrowkwargs is None: arrowkwargs = {}
+    if textkwargs is None: textkwargs = {}
+    plt.arrow(x, y, dx, dy, linestyle=xlinestyle, alpha=0.8, color=linecolor, 
+              linewidth=1, **arrowkwargs)
+    plt.text(xtext, ytext, text, color=textcolor, 
+             horizontalalignment=horizontalalignment,
+             verticalalignment=verticalalignment,
+             fontsize=fontsize, **textkwargs)
+
+def annotate_line(text, x, xs, ys, *args, **kwargs): # pragma: no coverage
     """
     Annotate line with text and arrow pointing to text.
     
@@ -66,12 +107,12 @@ def annotate_line(text, x, xs, ys, dy=0.2, dy_text=0.22, position='under',
         Arrow position
     xs : numpy.ndarray(dim=1)
     ys : numpy.ndarray(dim=1)
+    dx : float
+        Length of arrow to x-position.
     dy : float
         Length of arrow to y-position.
     dy_text : float
         Distance of text to arrow.
-    position : {'under', 'over'}
-        Relative position of text to line.
     color : numpy.ndarray
         RGB normalized to 1. Defaults to brown.
     
@@ -79,19 +120,7 @@ def annotate_line(text, x, xs, ys, dy=0.2, dy_text=0.22, position='under',
     index = closest_index(x, xs)
     x = xs[index]
     y = ys[index]
-    if position == 'under':
-        y *= 0.998
-        y_text = y - dy - dy_text
-    elif position == 'over':
-        y *= 1.002
-        y_text = y + dy + dy_text
-    else:
-        raise ValueError(f"position must be either 'over' or 'under', not '{position}'")
-    dx = 0
-    if color is None: color = default_dark_color
-    color = 0.60 * color
-    plt.arrow(x, y, dx, dy, linestyle='-', alpha=0.8, color=color, linewidth=1)
-    plt.text(x, y_text, text, color=0.75*color, horizontalalignment='center', fontsize=12)
+    annotate_point(text, x, y, **kwargs)
     
 
 def plot_horizontal_line(y, color='grey', **kwargs): # pragma: no coverage
@@ -992,7 +1021,7 @@ def plot_contour_2d(X, Y, Z,
         cbs = np.zeros([nrows, ncols], dtype=object)
     if styleaxiskw is None: styleaxiskw = {}
     cps = np.zeros([nrows, ncols], dtype=object)
-    linecolor = c.neutral_shade.RGBn
+    linecolor = np.array([*c.neutral_shade.RGBn, 0.1])
     other_axes = [[] for i in range(nrows)]
     for row in range(nrows):
         metric_row = metric_bars[row]
@@ -1012,11 +1041,14 @@ def plot_contour_2d(X, Y, Z,
                               levels=metric_bar.levels,
                               cmap=metric_bar.cmap)
             if label:
-                cs = plt.contour(cp, zorder=1,
-                                 linestyles='dashed', linewidths=0.5,
+                cs = plt.contour(cp, zorder=1, linewidths=0.8,
                                  levels=cp.levels, colors=[linecolor])
-                clabels = ax.clabel(cs, levels=[i for i in cs.levels[::2] if i!=metric_bar.levels[-1]], inline=True, fmt=metric_bar.fmt,
-                          colors=['k'], zorder=1)
+                levels = levels=[i for i in cp.levels[:-1][::2]]
+                clabels = ax.clabel(
+                    cs, levels=levels,
+                    inline=True, fmt=metric_bar.fmt,
+                    colors=['k'], zorder=1
+                )
                 for i in clabels: i.set_rotation(0)
             cps[row, col] = cp
             if not row_bars:
