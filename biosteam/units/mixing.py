@@ -208,11 +208,20 @@ class SteamMixer(Unit):
                 F_mass_solids = F_mass_feed - available_water
             required_water = F_mass_solids * (1. - solids_loading) / solids_loading
             process_water.imol['7732-18-5'] = max(required_water - available_water, 0.) / 18.01528
-        mixed.mix_from(self.ins)
+        
+        mixed.mix_from(self.ins, energy_balance=False)
+        H = sum([i.H for i in self.ins])
+        Tmax = mixed.chemicals.Water.Tc - 1
+        mixed.T = Tmax
+        Hmax = mixed.H
+        if H > Hmax:
+            mixed.T = Tmax + (H - Hmax) / mixed.chemicals.Water.Cn('l', Tmax)
+        else:
+            mixed.H = H
         if self.T:
             return self.T - mixed.T
         else: # If no pressure, assume it is at the boiling point
-            P_new = mixed.chemicals.Water.Psat(min(mixed.T, mixed.chemicals.Water.Tc - 1))
+            P_new = mixed.chemicals.Water.Psat(min(mixed.T, Tmax))
             return self.P - P_new
     
     def _setup(self):
