@@ -488,7 +488,8 @@ class AeratedBioreactor(StirredTankReactor):
         self._run_reactions(effluent)
         effluent_no_air_data = effluent.get_data()
         OUR = -effluent.get_flow('mol/s', 'O2') # Oxygen uptake rate
-        if OUR < 0.: 
+        if OUR <= 1e-2:
+            if OUR > 0: effluent.imol['O2'] = 0.
             self._run_vent(vent, effluent)
             return
         air_cc = self.cooled_compressed_air
