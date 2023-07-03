@@ -1008,7 +1008,7 @@ class Unit:
         if discard: bst.main_flowsheet.discard(self)
 
     @ignore_docking_warnings
-    def insert(self, stream, inlet=None, outlet=None):
+    def insert(self, stream: Stream, inlet: int|Stream=None, outlet: int|Stream=None):
         """
         Insert unit between two units at a given stream connection.
         
@@ -1050,8 +1050,9 @@ class Unit:
                 self.outs.append(stream)
                 added_stream = True
         else:
-            if isinstance(outlet, Stream) and outlet.source is not self:
-                raise ValueError("source of given outlet must be this unit")
+            if isinstance(outlet, piping.stream_types):
+                if outlet.source is not self:
+                    raise ValueError("source of given outlet must be this unit")
             else:
                 outlet = self.outs[outlet]
             sink.ins.replace(stream, outlet)
@@ -1064,10 +1065,11 @@ class Unit:
             else:
                 self.ins.append(stream)
         else:
-            if isinstance(inlet, Stream) and inlet.sink is not self:
-                raise ValueError("sink of given inlet must be this unit")
+            if isinstance(inlet, piping.stream_types):
+                if inlet.sink is not self:
+                    raise ValueError("sink of given inlet must be this unit")
             else:
-                outlet = self.outs[outlet]
+                inlet = self.outs[inlet]
             source.outs.replace(stream, inlet)
 
     def _get_tooltip_string(self, format=None, full=None):
