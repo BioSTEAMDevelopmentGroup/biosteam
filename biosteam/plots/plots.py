@@ -771,7 +771,8 @@ def plot_montecarlo(data,
 def plot_montecarlo_across_coordinate(xs, ys, 
                                       p5_color=None,
                                       fill_color=None,
-                                      median_color=None): # pragma: no coverage
+                                      median_color=None,
+                                      smooth=0): # pragma: no coverage
     """
     Plot Monte Carlo evaluation across a coordinate.
     
@@ -799,6 +800,11 @@ def plot_montecarlo_across_coordinate(xs, ys,
     if median_color is None: median_color = default_dark_color
     if p5_color is None: p5_color = 0.5 * (default_light_color + default_dark_color)
     q05, q25, q50, q75, q95 = percentiles = np.percentile(ys, [5,25,50,75,95], axis=0)
+
+    if smooth:
+        from scipy.ndimage.filters import gaussian_filter
+        for i, p in enumerate(percentiles):
+            percentiles[i] = gaussian_filter(p, smooth)
 
     plt.plot(xs, q50, '-',
              color=median_color,
@@ -1097,7 +1103,7 @@ def plot_contour_single_metric(
     fig, axes, ax_colorbar = contour_subplots(nrows, ncols, single_colorbar=True)
     if styleaxiskw is None: styleaxiskw = {}
     cps = np.zeros([nrows, ncols], dtype=object)
-    linecolor = c.neutral_shade.RGBn
+    linecolor = np.array([*c.neutral_shade.RGBn, 0.1])
     other_axes = []
     for row in range(nrows):
         for col in range(ncols):
@@ -1115,12 +1121,12 @@ def plot_contour_single_metric(
             for i in cp.collections:
                 i.set_edgecolor('face') # For svg background
             if label:
-                cs = plt.contour(cp, zorder=1,
-                                 linestyles='dashed', linewidths=1.,
-                                 norm=metric_bar.norm,
-                                 levels=metric_bar.levels, colors=[linecolor])
+                cs = plt.contour(cp, zorder=1, linewidths=0.8,
+                                 levels=cp.levels, colors=[linecolor])
+                levels = levels=[i for i in cp.levels[:-1][::2]]
                 clabels = ax.clabel(
-                    cs, levels=[i for i in cs.levels if i!=metric_bar.levels[-1]], inline=True, fmt=metric_bar.fmt,
+                    cs, levels=levels,
+                    inline=True, fmt=metric_bar.fmt,
                     colors=['k'], zorder=1
                 )
                 for i in clabels: i.set_rotation(0)
