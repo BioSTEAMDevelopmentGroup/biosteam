@@ -109,7 +109,7 @@ class InternalCirculationRx(bst.MixTank):
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
                  method='lumped', OLRall=1.25, Y_biogas=0.86, Y_biomass=0.05, biodegradability={},
                  vessel_type='IC', vessel_material='Stainless steel',
-                 V_wf=0.8, kW_per_m3=0., T=35+273.15, **kwargs):
+                 V_wf=0.8, kW_per_m3=0., T=35+273.15, hxn_ok=False, **kwargs):
         bst.Unit.__init__(self, ID, ins, outs, thermo)
         self.method = method
         self.OLRall = OLRall
@@ -134,7 +134,7 @@ class InternalCirculationRx(bst.MixTank):
         self._decay_rxn = self.chemicals.WWTsludge.get_combustion_reaction(conversion=0.)
         self.effluent_pump = bst.Pump(f'.{ID}_eff', ins=self.outs[1].proxy(f'{ID}_eff'))
         self.sludge_pump = bst.Pump(f'.{ID}_sludge', ins=self.outs[2].proxy(f'{ID}_sludge'))
-
+        self.hxn_ok = hxn_ok
         for k, v in kwargs.items(): setattr(self, k, v)
 
 
@@ -305,8 +305,10 @@ class InternalCirculationRx(bst.MixTank):
         hx.ins[0].T = ins0.T
         hx.outs[0].T = self.T
         hx.ins[0].P = hx.outs[0].P = ins0.P
-        hx.simulate_as_auxiliary_exchanger(ins=hx.ins, outs=hx.outs)
-
+        hx.simulate_as_auxiliary_exchanger(ins=hx.ins, outs=hx.outs, 
+                                           scale=1. / self.parallel.get('self', 1.),
+                                           hxn_ok=self.hxn_ok)
+        
         for p in (self.effluent_pump, self.sludge_pump): p.simulate()
 
 

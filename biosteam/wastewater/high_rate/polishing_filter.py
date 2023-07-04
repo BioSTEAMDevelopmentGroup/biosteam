@@ -103,7 +103,8 @@ class PolishingFilter(bst.Unit):
                  split={}, T=30+273.15,
                  include_degassing_membrane=False,
                  include_pump_building_cost=False,
-                 include_excavation_cost=False):
+                 include_excavation_cost=False,
+                 hxn_ok=False):
         bst.Unit.__init__(self, ID, ins, outs, thermo)
         self.filter_type = filter_type
         self.OLR = OLR
@@ -123,6 +124,7 @@ class PolishingFilter(bst.Unit):
         hx_out = bst.Stream(f'{ID}_hx_out')
         # Add '.' in ID for auxiliary units
         self.heat_exchanger = bst.HXutility(ID=f'.{ID}_hx', ins=hx_in, outs=hx_out)
+        self.hxn_ok = hxn_ok
         self._refresh_rxns()
 
 
@@ -425,7 +427,7 @@ class PolishingFilter(bst.Unit):
         hx_ins0.T = inf.T
         hx_outs0.T = T
         hx.H = hx_outs0.H + loss # stream heating and heat loss
-        hx.simulate_as_auxiliary_exchanger(ins=hx.ins, outs=hx.outs)
+        hx.simulate_as_auxiliary_exchanger(ins=hx.ins, outs=hx.outs, hxn_ok=self.hxn_ok)
 
         # Pumping
         pumping = 0.
