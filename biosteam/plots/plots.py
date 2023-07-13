@@ -596,7 +596,7 @@ def plot_single_point_sensitivity(baseline, lb, ub,
 def plot_spearman_1d(rhos, top=None, name=None, color=None, 
                      w=1., s=1., offset=0., style=True, 
                      fig=None, ax=None, sort=True, index=None,
-                     cutoff=None, xlabel=None): # pragma: no coverage
+                     cutoff=None, xlabel=None, edgecolors=None): # pragma: no coverage
     """
     Display Spearman's rank correlation plot.
     
@@ -639,7 +639,7 @@ def plot_spearman_1d(rhos, top=None, name=None, color=None,
     if color is None: color = c.blue_tint.RGBn
     for x, y in zip(xranges, yranges):
         ax.broken_barh([x], y, facecolors=color,
-                       edgecolors=c.blue_dark.RGBn)
+                       edgecolors=edgecolors)
     
     if style:
         if index is None:
@@ -664,9 +664,9 @@ def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
     fig : matplotlib Figure
     ax : matplotlib AxesSubplot
     """
+    rhos = list(reversed(rhos))
     if name is None: name = rhos[0].name
     if index is None: index = rhos[0].index
-    rhos = list(reversed(rhos))
     values = np.array([i.values for i in rhos])
     indices = list(range(values.shape[1]))
     if cutoff:
@@ -1182,16 +1182,18 @@ def color_quadrants(color=None, x=None, y=None, xlim=None, ylim=None,
     plot_horizontal_line(y, line_color, zorder=0)
 
 def label_quadrants(
-        x=None, y=None, text=None, color=None,
+        x=None, y=None, xr=None, yr=None, text=None, color=None,
     ):
+    if xr is None: xr = 0
+    if yr is None: yr = 0
     xlb, xub = plt.xlim()
     ylb, yub = plt.ylim()
     data_given = not (x is None or y is None)
     if data_given:
-        y_mt_0 = y > 0
-        y_lt_0 = y < 0
-        x_mt_0 = x > 0
-        x_lt_0 = x < 0
+        y_mt_0 = y > yr
+        y_lt_0 = y < yr
+        x_mt_0 = x > xr
+        x_lt_0 = x < xr
     xpos = lambda x: xlb + (xub - xlb) * x
     ypos = lambda y: ylb + (yub - ylb) * y
     xleft = 0.02
@@ -1201,7 +1203,7 @@ def label_quadrants(
     labeled = 4 * [False]
     top_left, top_right, bottom_left, bottom_right = text
     top_left_color, top_right_color, bottom_left_color, bottom_right_color = color
-    if yub > 0. and xlb < 0. and top_left:
+    if yub > yr and xlb < xr and top_left:
         if data_given and top_left.endswith('()'):
             p = (y_mt_0 & x_lt_0).sum() / y.size
             top_left = f"{p:.0%} {top_left.strip('()')}"
@@ -1209,7 +1211,7 @@ def label_quadrants(
                  horizontalalignment='left', verticalalignment='top',
                  fontsize=10, fontweight='bold', zorder=10)
         labeled[0] = True
-    if yub > 0. and xub > 0. and top_right:
+    if yub > yr and xub > xr and top_right:
         if data_given and top_right.endswith('()'):
             p = (y_mt_0 & x_mt_0).sum() / y.size
             top_right = f"{p:.0%} {top_right.strip('()')}"
@@ -1217,7 +1219,7 @@ def label_quadrants(
                  horizontalalignment='right', verticalalignment='top',
                  fontsize=10, fontweight='bold', zorder=10)
         labeled[1] = True
-    if ylb < 0. and xlb < 0. and bottom_left:
+    if ylb < yr and xlb < xr and bottom_left:
         if data_given and bottom_left.endswith('()'):
             p = (y_lt_0 & x_lt_0).sum() / y.size
             bottom_left = f"{p:.0%} {bottom_left.strip('()')}"
@@ -1225,7 +1227,7 @@ def label_quadrants(
                  horizontalalignment='left', verticalalignment='bottom',
                  fontsize=10, fontweight='bold', zorder=10)
         labeled[2] = True
-    if ylb < 0. and xub > 0. and bottom_right:
+    if ylb < yr and xub > xr and bottom_right:
         if data_given and bottom_right.endswith('()'):
             p = (y_lt_0 & x_mt_0).sum() / y.size
             bottom_right = f"{p:.0%} {bottom_right.strip('()')}"
@@ -1267,7 +1269,7 @@ def format_quadrants(
     if data is None: data = (None, None) 
     color_quadrants(quadrant_color, x, y, xlim, ylim)
     return label_quadrants(
-        *data, text, text_color,
+        *data, x, y, text, text_color,
     )
     
 def add_titles(axes, titles, color):
