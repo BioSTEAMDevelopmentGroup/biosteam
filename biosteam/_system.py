@@ -727,6 +727,14 @@ class System:
         self._set_path(path)
         self._set_facilities(facilities)
         self._set_facility_recycle(facility_recycle or find_blowdown_recycle(facilities))
+        self.set_tolerance(
+            mol=self.molar_tolerance,
+            rmol=self.relative_molar_tolerance,
+            T=self.temperature_tolerance,
+            rT=self.relative_temperature_tolerance,
+            maxiter=self.maxiter,
+            subsystems=True,
+        )
 
     def __enter__(self):
         if self._path or self._recycle or self._facilities:
@@ -1926,6 +1934,9 @@ class System:
                     for j, ID in enumerate(s.chemicals.IDs):
                         mol[j] = material_flows[i, index[ID]]
         if self._recycle:
+            for i in self.path:
+                if isinstance(i, Unit) and hasattr(i, 'recycle_system_hook'):
+                    i.recycle_system_hook(self)
             method = self._solve
         else:
             method = self.run
