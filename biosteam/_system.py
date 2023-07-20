@@ -2853,7 +2853,7 @@ class System:
         reactions = report.unit_reaction_tables(units)
         report.tables_to_excel(reactions, writer, 'Reactions')
         
-        writer.save()
+        writer.close()
         if diagram_completed: os.remove("flowsheet.png")
 
     # Debugging
