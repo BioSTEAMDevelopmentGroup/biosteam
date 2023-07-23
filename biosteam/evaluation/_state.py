@@ -100,6 +100,10 @@ class State:
     def system(self):
         return self._system
     
+    @property
+    def features(self):
+        return self.get_parameters()
+    
     def __len__(self):
         return len(self._parameters)
     
@@ -132,12 +136,11 @@ class State:
     
     def set_parameters(self, parameters):
         """Set parameters."""
-        parameters = list(parameters)
+        self._parameters = parameters = list(parameters)
         isa = isinstance
         for i in parameters:
             assert isa(i, Parameter), 'all elements must be Parameter objects'
-        Parameter.check_indices_unique(parameters)
-        self._parameters = parameters
+        Parameter.check_indices_unique(self.features)
     
     def get_parameters(self):
         """Return parameters."""
@@ -245,7 +248,7 @@ class State:
         p = Parameter(name, setter, element,
                       self.system, distribution, units, 
                       baseline, bounds, kind, hook, description, scale)
-        Parameter.check_index_unique(p, self._parameters)
+        Parameter.check_index_unique(p, self.features)
         self._parameters.append(p)
         return p
     

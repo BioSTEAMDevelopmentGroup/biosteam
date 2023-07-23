@@ -120,14 +120,17 @@ class Model(State):
         return tuple(self._metrics)
     @metrics.setter
     def metrics(self, metrics):
-        metrics = list(metrics)
+        self._metrics = metrics = list(metrics)
         isa = isinstance
         for i in metrics:
             if not isa(i, Metric):
                 raise ValueError(f"metrics must be '{Metric.__name__}' "
                                  f"objects, not '{type(i).__name__}'")
-        Metric.check_indices_unique(metrics)
-        self._metrics = metrics
+        Metric.check_indices_unique(self.features)
+    
+    @property
+    def features(self):
+        return (*self._parameters, *self._metrics)
     
     def metric(self, getter=None, name=None, units=None, element=None):
         """
@@ -150,7 +153,6 @@ class Model(State):
         This method works as a decorator.
         
         """
-        
         if isinstance(getter, Metric):
             if name is None: name = getter.name
             if units is None: units = getter.units
@@ -163,7 +165,7 @@ class Model(State):
         elif not getter: 
             return lambda getter: self.metric(getter, name, units, element)
         metric = Metric(name, getter, units, element)
-        Metric.check_index_unique(metric, self._metrics)
+        Metric.check_index_unique(metric, self.features)
         self._metrics.append(metric)
         return metric 
     
@@ -290,7 +292,6 @@ class Model(State):
         
         """
         parameters = self._parameters
-        Parameter.check_indices_unique(parameters)
         if autoload:
             try:
                 with open(file, "rb") as f: (self._samples, self._index) = pickle.load(f)
