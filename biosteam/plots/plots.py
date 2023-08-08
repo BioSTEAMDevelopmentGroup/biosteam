@@ -715,7 +715,10 @@ def plot_montecarlo(data,
                     xmarks=None,
                     transpose=None,
                     vertical=True,
-                    outliers=True): # pragma: no coverage
+                    outliers=False,
+                    bounds=True,
+                    width=None,
+                    hatch=None): # pragma: no coverage
     """
     Return box plot of Monte Carlo evaluation.
     
@@ -749,6 +752,7 @@ def plot_montecarlo(data,
             positions = (0,)
         else:
             positions = list(range(data.shape[1]))
+    if width is None: width = 0.8
     if light_color is None: light_color = default_light_color
     if dark_color is None: dark_color = default_dark_color
     if outliers: 
@@ -759,13 +763,21 @@ def plot_montecarlo(data,
     else:
         flierprops = {'marker': ''}
     bx = plt.boxplot(x=data, positions=positions, patch_artist=True,
-                     widths=0.8, whis=[5, 95], vert=vertical,
+                     widths=width, whis=[5, 95], vert=vertical,
                      boxprops={'facecolor':light_color,
                                'edgecolor':dark_color},
                      medianprops={'color':dark_color,
                                   'linewidth':1.5},
+                     capprops=dict(color=dark_color),
+                     whiskerprops=dict(color=dark_color),
                      flierprops=flierprops)
+    if bounds:
+        plt.scatter(x=positions, y=data.min(axis=0), marker='1', c=[dark_color])
+        plt.scatter(x=positions, y=data.max(axis=0), marker='2', c=[dark_color])
     if xmarks: plt.xticks(positions, xmarks)
+    if hatch:
+        for box in bx['boxes']:
+            box.set(hatch = hatch)
     return bx
 
 def plot_montecarlo_across_coordinate(xs, ys, 
