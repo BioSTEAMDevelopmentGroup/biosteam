@@ -179,13 +179,11 @@ class Model(State):
         else:
             return samples
     
-    def _load_sample_order(self, samples, parameters, distance):
+    def _load_sample_order(self, samples, parameters, distance,
+                           algorithm=None):
         """
         Sort simulation order to optimize convergence speed
         by minimizing perturbations to the system between simulations.
-        This function may take long depending on the number of parameters 
-        because it uses single-point sensitivity to inform the sorting 
-        algorithm.
         
         """
         N_samples = samples.shape[0]
@@ -195,72 +193,38 @@ class Model(State):
         if distance is None: distance = 'cityblock'
         length = samples.shape[0]
         columns = [i for i, parameter in enumerate(self._parameters) if parameter.kind == 'coupled']
-        parameters = [parameters[i] for i in columns]
         samples = samples.copy()
         samples = samples[:, columns]
         samples_min = samples.min(axis=0)
         samples_max = samples.max(axis=0)
         samples_diff = samples_max - samples_min
         normalized_samples = (samples - samples_min) / samples_diff
-        # Note: Not sure if to deprecate or fix.
-        # original_parameters = self._parameters
-        # if ss: 
-        #     def evaluate(sample, material_data, **kwargs):
-        #         try:
-        #             self._parameters = parameters
-        #             for f, s in zip(self._parameters, sample): 
-        #                 f.setter(s if f.scale is None else f.scale * s)
-        #             diff = self._system.converge(material_data=material_data, **kwargs)
-        #         finally:
-        #             self._parameters = original_parameters
-        #         return diff
-        #     sample = [i.baseline for i in parameters]
-        #     N_parameters = len(parameters)
-        #     index = range(N_parameters)
-        #     material_data = self._system.get_material_data()
-        #     evaluate(sample, material_data, update_material_data=True)
-        #     N_elements = material_data.material_flows.size
-        #     diffs = np.zeros([N_parameters, N_elements])
-        #     for i in index:
-        #         sample_lb = sample.copy()
-        #         sample_ub = sample.copy()
-        #         lb = samples_min[i]
-        #         ub = samples_max[i]
-        #         hook = parameters[i].hook
-        #         if hook:
-        #             sample_lb[i] = hook(lb)
-        #             sample_ub[i] = hook(ub)
-        #         else:
-        #             sample_lb[i] = lb
-        #             sample_ub[i] = ub
-        #         lb = evaluate(sample_lb, material_data).flatten()
-        #         ub = evaluate(sample_ub, material_data).flatten()
-        #         diffs[i] = ub - lb
-        #     div = np.abs(diffs).max(axis=0)
-        #     div[div == 0.] = 1
-        #     diffs /= div
-        #     normalized_samples = normalized_samples @ diffs
         nearest_arr = cdist(normalized_samples, normalized_samples, metric=distance)
-        nearest_arr = np.argsort(nearest_arr, axis=1)
-        remaining = set(range(length))
-        self._index = index = [0]
-        nearest = nearest_arr[0, 1]
-        index.append(nearest)
-        remaining.remove(0)
-        remaining.remove(nearest)
-        N_remaining = length - 2
-        N_remaining_last = N_remaining + 1
-        while N_remaining:
-            assert N_remaining_last != N_remaining, "issue in sorting algorithm"
-            N_remaining_last = N_remaining
-            for i in range(1, length):
-                next_nearest = nearest_arr[nearest, i]
-                if next_nearest in remaining:
-                    nearest = next_nearest
-                    remaining.remove(nearest)
-                    index.append(nearest)
-                    N_remaining -= 1
-                    break
+        if algorithm is None: algorithm = 'nearest neighbor'
+        if algorithm == 'nearest neighbor':
+            nearest_arr = np.argsort(nearest_arr, axis=1)
+            remaining = set(range(length))
+            self._index = index = [0]
+            nearest = nearest_arr[0, 1]
+            index.append(nearest)
+            remaining.remove(0)
+            remaining.remove(nearest)
+            N_remaining = length - 2
+            N_remaining_last = N_remaining + 1
+            while N_remaining:
+                assert N_remaining_last != N_remaining, "issue in sorting algorithm"
+                N_remaining_last = N_remaining
+                for i in range(1, length):
+                    next_nearest = nearest_arr[nearest, i]
+                    if next_nearest in remaining:
+                        nearest = next_nearest
+                        remaining.remove(nearest)
+                        index.append(nearest)
+                        N_remaining -= 1
+                        break
+        else:
+            raise ValueError(f"algorithm {algorithm!r} is not available (yet); "
+                              "only 'nearest neighbor' is available")
         
     def load_samples(self, samples=None, optimize=None, file=None, 
                      autoload=None, autosave=None, distance=None):
@@ -273,7 +237,9 @@ class Model(State):
             All parameter samples to evaluate.
         optimize : bool, optional
             Whether to internally sort the samples to optimize convergence speed
-            by minimizing perturbations to the system between simulations.
+            by minimizing perturbations to the system between simulations. The
+            optimization problem is equivalent to the travelling salesman problem;
+            each scenario of (normalized) parameters represent a point in the path.
             Defaults to False.
         file : str, optional
             File to load/save samples and simulation order to/from.
@@ -284,11 +250,10 @@ class Model(State):
         distance : str, optional
             Distance metric used for sorting. Defaults to 'cityblock'.
             See scipy.spatial.distance.cdist for options.
-        
-        Warning
-        -------
-        Depending on the number of parameters, optimizing sample simulation order 
-        using single-point sensitivity may take long.
+        algorithm : str, optional
+            Algorithm used for sorting. Defaults to 'nearest neighbor'.
+            Note that neirest neighbor is a greedy algorithm that is known to result, 
+            on average, in paths 25% longer than the shortest path.
         
         """
         parameters = self._parameters
