@@ -1939,8 +1939,7 @@ class System:
         To run full simulation algorithm, see :func:`~biosteam.System.simulate`.
         
         """
-        if recycle_data is not None: 
-            for rd in recycle_data: rd.reset()
+        if recycle_data is not None: recycle_data.reset()
         if self._recycle:
             for i in self.path:
                 if isinstance(i, Unit) and hasattr(i, 'recycle_system_hook'):
@@ -1953,8 +1952,8 @@ class System:
         else:
             method()
         if update_recycle_data:
-            if recycle_data is None: raise ValueError('no recycle data to update')
-            for rd in recycle_data: rd.update()
+            try: recycle_data.update()
+            except AttributeError: raise ValueError('no recycle data to update')
 
     def _summary(self):
         simulated_units = set()

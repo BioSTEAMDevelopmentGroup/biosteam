@@ -7,79 +7,104 @@
 # for license details.
 """
 """
+from numba import njit
 import numpy as np
 from thermosteam import Stream
 from warnings import warn
-from ._feature import Feature
 from ._parameter import Parameter
 from .._system import System, JointRecycleData
 
-class RecycleResponse(Feature):
+@njit(cache=True)
+def R2(y_true, y_pred):
+    dy = y_true - y_pred
+    dy_m = y_true - np.mean(y_true)
+    return np.dot(dy, dy) / np.dot(dy_m, dy_m)
+
+@njit(cache=True)
+def fit_and_predict_linear_model(X, y, x):
+    Xt = X.transpose()
+    betas = np.linalg.inv(Xt @ X) @ Xt @ y
+    return np.dot(betas, x)
+
+def recycle_response(recycle, name):
+    if name == 'T':
+        response = RecycleTemperature(recycle)
+    elif name == 'P':
+        response = RecyclePressure(recycle)
+    else:
+        response = RecycleFlow(recycle, name)
+    return response
+    
+class RecycleResponse:
     __slots__ = (
-        'predictors',
+        'recycle', 'predictors',
     )
-    T_max = 1.0
-    T_min = 0.5
-    P_max = 1.0
-    P_min = 0.5
-    flow_max = 10.0
-    flow_min = 0.1
-    def __init__(self, element, name):
-        self.element = element
-        self.name = name
-        match name:
-            case 'T':
-                units = 'K'
-            case 'P':
-                units = 'Pa'
-            case _:
-                units = 'kmol/hr'
-        self.units = units
+    def __init__(self, recycle):
+        self.recycle = recycle
         self.predictors = [] # Indices of predictors
     
-    def get_predictors(self, samples):
-        return samples[..., self.predictors]
-    
-    def set(self, value):
+    def filter_value(self, value):
         old_value = self.get()
-        name = self.name
-        recycle = self.element
-        match name:
-            case 'T':
-                min_value = self.T_min * old_value
-                max_value = self.T_max * old_value
-                if value < min_value:
-                    value = min_value
-                elif value > max_value:
-                    value = max_value
-                recycle.T = value
-            case 'P':
-                min_value = self.P_min * old_value
-                max_value = self.P_max * old_value
-                if value < min_value:
-                    value = min_value
-                elif value > max_value:
-                    value = max_value
-                recycle.P = value
-            case _:
-                min_value = self.flow_min * old_value
-                max_value = self.flow_max * old_value
-                if value < min_value:
-                    value = min_value
-                elif value > max_value:
-                    value = max_value
-                recycle.imol[name] = value
+        min_value = self.min * old_value
+        max_value = self.max * old_value
+        if value < min_value:
+            value = min_value
+        elif value > max_value:
+            value = max_value
+        return value
+    
+    def __repr__(self):
+        return f"{type(self).__name__}({self.recycle})"
+
+
+class RecycleTemperature(RecycleResponse):
+    __slots__ = ()
+    units = 'K'
+    max = 1.5
+    min = 0.5
     
     def get(self):
-        name = self.name
-        recycle = self.element
-        match name:
-            case 'T':
-                return recycle.T
-            case 'P':
-                return recycle.P
-            case _:
-                return recycle.imol[name]
+        return self.recycle.T
+    
+    def set(self, value):
+        self.recycle.T = self.filter_value(value)
+    
+
+class RecyclePressure(RecycleResponse):
+    __slots__ = ()
+    units = 'Pa'
+    max = 1.5
+    min = 0.5
+    
+    def set(self, value):
+        self.recycle.P = self.filter_value(value)
+        
+    def get(self):
+        return self.recycle.P
+
+
+class RecycleFlow(RecycleResponse):
+    __slots__ = (
+        'name',
+    )
+    units = 'kmol/hr'
+    max = 10.0
+    min = 0.1
+    
+    def __init__(self, recycle, name):
+        self.recycle = recycle
+        self.name = name
+        self.predictors = [] # Indices of predictors
+        
+    def set(self, value):
+        self.recycle.imol[self.name] = self.filter_value(value)
+    
+    def get(self):
+        return self.recycle.imol[self.name]
+
+    def __repr__(self):
+        return f"{type(self).__name__}({self.recycle}, {self.name!r})"
+
 
 class RecycleModel:
     __slots__ = (
@@ -91,7 +116,78 @@ class RecycleModel:
     def __init__(self, system: System, predictors: tuple[Parameter]):
         self.system = system
         self.predictors = predictors
+        self.responses: dict[tuple[Stream, str], RecycleResponse] = {}
         self.load_responses()
+        
+    def R2(self):
+        return {
+            'null': self.R2_null(),
+            'predicted': self.R2_predicted(),
+            'data': self.R2_data(),
+        }
+        
+    def R2_null(self):
+        pass
+    
+    def R2_predicted(self):
+        pass
+    
+    def R2_data(self):
+        pass
+    
+    def practice(self, sample):
+        """
+        Predict and set recycle responses given the sample, then append actual
+        simulation result to data.
+        
+        Must be used in a with-statement as follows:
+            
+        ```python
+        with recycle_model.practice(sample):
+            recycle_model.system.simulate() # Or other simulation code.
+            
+        ```
+        
+        This method effectively does the same as running:
+            
+        ```python
+        recycle_model.predict(sample)
+        recycle_model.system.simulate() # Or other simulation code.
+        recycle_model.append_data(sample)
+        ```
+        
+        Warning
+        -------
+        Does nothing if not used in with statement containing simulation.
+        
+        """
+        return self
+        
+    def __enter__(self, sample):
+        data = self.data
+        null_responses = data['null']
+        predicted_responses = data['predicted']
+        samples = np.array(data['samples'])
+        for key, response in self.responses.items():
+            null_responses[key].append(response.get())
+            index = response.predictors
+            prediction = fit_and_predict_linear_model(
+                X=samples[:, index],
+                y=data[key], 
+                x=sample[index],
+            )
+            response.set(prediction)
+            predicted_responses[key].append(prediction)
+        data['samples'].append(sample)
+    
+    def __exit__(self, type, exception, traceback):
+        data = self.data
+        if exception: 
+            samples = data['samples']
+            del samples[-1]
+            raise exception
+        for key, response in self.responses.items():
+            data[key].append(response.get())
         
     def evaluate_parameters(self, sample, default=None, **kwargs):
         for p, value in zip(self.predictors, sample):
@@ -166,18 +262,20 @@ class RecycleModel:
                f"sensitivity analysis ({100 * relative_error[bad_index]} % error)",
                RuntimeWarning
             )
-        self.responses: dict[tuple[Stream, str], RecycleResponse] = self.create_sensitive_reponses(
+        responses = self.add_sensitive_reponses(
             baseline_1, values_at_bounds, tol
         )
-        self.data = {i: [] for i in ['samples', *self.responses]}
+        self.data = data = {i: [] for i in ['samples', *responses]}
+        data['null'] = {i: [] for i in responses}
+        data['predicted'] = {i: [] for i in responses}
         self.extend_data(samples, values)
         
-    def create_sensitive_reponses(self, 
+    def add_sensitive_reponses(self, 
             baseline: JointRecycleData,
             bounds: tuple[JointRecycleData], 
             tol: float
         ):
-        responses = {}
+        responses = self.responses
         baseline_dct = baseline.to_dict()
         for p, (lb, ub) in enumerate(bounds):
             if lb is baseline is ub: continue
@@ -191,16 +289,19 @@ class RecycleModel:
                     if key in responses:
                         response = responses[key]
                     else:
-                        responses[key] = response = RecycleResponse(*key)
+                        responses[key] = response = recycle_response(*key)
                     response.predictors.append(p)
         return responses
         
     def append_data(self, sample, recycle_data=None):
         data = self.data
         data['samples'].append(sample)
-        if recycle_data is None: recycle_data = self.system.get_recycle_data()
-        for key, value in recycle_data.to_tuples(): 
-            if key in data: data[key].append(value)
+        if recycle_data is None: 
+            for key, response in self.responses.items():
+                data[key].append(response.get())
+        else:
+            for key, value in recycle_data.to_tuples(): 
+                if key in data: data[key].append(value)
             
     def extend_data(self, samples, recycle_data):
         for args in zip(samples, recycle_data): self.append_data(*args)
@@ -208,11 +309,11 @@ class RecycleModel:
     def predict(self, sample):
         data = self.data
         samples = np.array(data['samples'])
-        inverse = np.linalg.inv
         for key, response in self.responses.items():
-            y = data[key]
-            X = response.get_predictors(samples)
-            Xt = X.transpose()
-            betas = inverse(Xt @ X) @ Xt @ y
-            x = response.get_predictors(sample)
-            response.set(np.dot(betas, x))
+            index = response.predictors
+            prediction = fit_and_predict_linear_model(
+                X=samples[:, index],
+                y=data[key], 
+                x=sample[index],
+            )
+            response.set(prediction)
