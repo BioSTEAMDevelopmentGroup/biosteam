@@ -13,6 +13,8 @@ from ._feature import MockFeature
 from .. import System
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+from thermosteam.utils import colors
 from .evaluation_tools import load_default_parameters
 
 __all__ = ('State',)
@@ -352,10 +354,43 @@ class State:
             samples = sampler.sample(problem, N=N, **kwargs)
         return samples
     
-    def _update_state(self, sample, **kwargs):
+    def _update_state(self, sample, recycle_model=None, 
+                      # errors=[], net_errors=[], total_errors=[0, 0], 
+                      **kwargs):
         for f, s in zip(self._parameters, sample): 
             f.setter(s if f.scale is None else f.scale * s)
-        return self._specification() if self._specification else self._system.simulate(**kwargs)
+        if recycle_model:
+            # null_predicted = self.system.get_recycle_data().to_series()
+            recycle_model.predict(sample)
+            # predicted = self.system.get_recycle_data().to_series()
+        output = self._specification() if self._specification else self._system.simulate(**kwargs)
+        if recycle_model: 
+            recycle_model.append_data(sample)
+            # actual = self.system.get_recycle_data().to_series()
+            # index = actual > 1e-6
+            # actual = actual[index]
+            # predicted = predicted[index]
+            # null_predicted = null_predicted[index]
+            # model_error = np.abs((actual - predicted) / actual).sum() 
+            # null_error = np.abs((actual - null_predicted) / actual).sum() 
+            # total_errors[0] += model_error
+            # total_errors[1] += null_error
+            # error = 100 * model_error / null_error
+            # errors.append(error)
+            # net_error = 100 * total_errors[0] / total_errors[1]
+            # net_errors.append(net_error)
+            # # print('Error (model / null):', error)
+            # # print('Net error (model / null):', net_errors)
+            # if len(errors) == 500:
+            #     scenario = [*range(1, len(errors) + 1)]
+            #     plt.figure()
+            #     plt.plot(scenario, errors, label='actual', color=colors.red.RGBn)
+            #     plt.plot(scenario, net_errors, label='moving average', color=colors.blue.RGBn)
+            #     plt.xlabel('Scenario #')
+            #     plt.ylabel('% Error (model / null)')
+            #     plt.legend()
+            #     breakpoint()
+        return output
     
     def __call__(self, sample, **kwargs):
         """Update state given sample of parameters."""

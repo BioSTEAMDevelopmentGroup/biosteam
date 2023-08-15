@@ -17,6 +17,7 @@ from ._state import State
 from ._metric import Metric
 from ._feature import MockFeature
 from ._parameter import Parameter
+from ._recycle_model import RecycleModel
 from ._utils import var_indices, var_columns, indices_to_multiindex
 from biosteam.exceptions import FailedEvaluation
 from warnings import warn
@@ -56,6 +57,7 @@ class Model(State):
     __slots__ = (
         'table',            # [DataFrame] All arguments and results.
         'retry_evaluation', # [bool] Whether to retry evaluation if it fails
+        'recycle_model',    # [RecycleModel] Prediction model for recycle convergence.
         '_metrics',         # tuple[Metric] Metrics to be evaluated by model.
         '_index',           # list[int] Order of sample evaluation for performance.
         '_samples',         # [array] Argument sample space.
@@ -303,6 +305,7 @@ class Model(State):
             etol=0.01, array=False, parameters=None, metrics=None, evaluate=None, 
             **kwargs
         ):
+        self.recycle_model = None
         if parameters is None: parameters = self.parameters
         bounds = [i.bounds for i in parameters]
         sample = [i.baseline for i in parameters]
@@ -315,18 +318,18 @@ class Model(State):
         if evaluate is None: evaluate = self._evaluate_sample
         baseline_1 = np.array(evaluate(sample, **kwargs))
         sys = self.system
-        if not sys.isdynamic: kwargs['material_data'] = sys.get_material_data()
+        if not sys.isdynamic: kwargs['recycle_data'] = sys.get_recycle_data()
         for i in index:
             sample_lb = sample.copy()
             sample_ub = sample.copy()
             lb, ub = bounds[i]
-            hook = parameters[i].hook
-            if hook:
-                sample_lb[i] = hook(lb)
-                sample_ub[i] = hook(ub)
-            else:
-                sample_lb[i] = lb
-                sample_ub[i] = ub
+            p = parameters[i]
+            hook = p.hook
+            if hook is not None:
+                lb = hook(lb)
+                ub = hook(ub)
+            sample_lb[i] = lb
+            sample_ub[i] = ub
             values_lb[i, :] = evaluate(sample_lb, **kwargs)
             values_ub[i, :] = evaluate(sample_ub, **kwargs)
         baseline_2 = np.array(evaluate(sample, **kwargs))
@@ -365,7 +368,7 @@ class Model(State):
         table[var_indices(metrics)] = replace_nones(values, [np.nan] * len(metrics))
     
     def evaluate(self, notify=0, file=None, autosave=0, autoload=False,
-                 **kwargs):
+                 predict_convergence=None, **kwargs):
         """
         Evaluate metrics over the loaded samples and save values to `table`.
         
@@ -379,6 +382,8 @@ class Model(State):
             If 1 or greater, save pickled evaluation results after the given number of sample evaluations.
         autoload : bool, optional
             Whether to load pickled evaluation results from file.
+        predict_convergence : bool, optional
+            Whether to create a prediction model for accelerated system convergence.
         kwargs : dict
             Any keyword arguments passed to :func:`biosteam.System.simulate`.
         
@@ -404,6 +409,7 @@ class Model(State):
                 return values
         else:
             evaluate = evaluate_sample
+        N_samples, _ = samples.shape
         if autoload: 
             try:
                 with open(file, "rb") as f:
@@ -415,16 +421,22 @@ class Model(State):
             except:
                 number = 0
                 index = self._index
-                values = [None] * len(index)   
+                values = [None] * N_samples 
             else:
                 if notify: count[0] = number
         else:
             number = 0
             index = self._index
-            values = [None] * len(index)
+            values = [None] * N_samples
         
         export = 'export_state_to' in kwargs
         layout = table.index, table.columns
+        parameters = self.parameters
+        N_coupled = sum([i.kind == 'coupled' for i in parameters])
+        if predict_convergence and (N_samples - number > N_coupled * N_coupled):
+            self.recycle_model = RecycleModel(self.system, parameters)
+        else:
+            self.recycle_model = None
         try:
             for number, i in enumerate(index, number + 1): 
                 if export: kwargs['sample_id'] = i
@@ -444,25 +456,17 @@ class Model(State):
     def _evaluate_sample(self, sample, **kwargs):
         state_updated = False
         try:
-            self._update_state(sample, **kwargs)
+            self._update_state(sample, self.recycle_model, **kwargs)
             state_updated = True
             return [i() for i in self.metrics]
         except Exception as exception:
-            if self.retry_evaluation and state_updated:
+            if self.retry_evaluation and not state_updated:
                 self._reset_system()
                 try:
-                    self._update_state(sample, **kwargs)
-                    self._specification() if self._specification else self._system.simulate(**kwargs)
+                    self._update_state(sample, self.recycle_model, **kwargs)
                     return [i() for i in self.metrics]
                 except Exception as new_exception: 
-                    if self._exception_hook: 
-                        values = self._exception_hook(new_exception, sample)
-                        self._reset_system()
-                        if isinstance(values, Sized) and len(values) == len(self.metrics):
-                            return values
-                        elif values is not None:
-                            raise RuntimeError('exception hook must return either None or '
-                                               'an array of metric values for the given sample')
+                    exception = new_exception
             if self._exception_hook: 
                 values = self._exception_hook(exception, sample)
                 self._reset_system()
@@ -488,7 +492,7 @@ class Model(State):
     
     def evaluate_across_coordinate(self, name, f_coordinate, coordinate,
                                    *, xlfile=None, notify=0, notify_coordinate=True,
-                                   multi_coordinate=False, 
+                                   multi_coordinate=False, predict_convergence=None,
                                    f_evaluate=None):
         """
         Evaluate across coordinate and save sample metrics.
@@ -519,8 +523,8 @@ class Model(State):
             from biosteam.utils import TicToc
             timer = TicToc()
             timer.tic()
-            def evaluate():
-                f_evaluate(notify=notify)
+            def evaluate(**kwargs):
+                f_evaluate(**kwargs)
                 print(f"[Coordinate {n}] Elapsed time: {timer.elapsed_time:.0f} sec")
         else:
             evaluate = f_evaluate
@@ -528,7 +532,7 @@ class Model(State):
         metric_data = None
         for n, x in enumerate(coordinate):
             f_coordinate(*x) if multi_coordinate else f_coordinate(x)
-            evaluate()
+            evaluate(notify=notify, predict_convergence=predict_convergence)
             # Initialize data containers dynamically in case samples are loaded during evaluation
             if metric_data is None:
                 N_samples, _ = self.table.shape

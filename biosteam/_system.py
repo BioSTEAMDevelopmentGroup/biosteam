@@ -75,20 +75,131 @@ class Methods(dict):
         return f"{type(self).__name__}({', '.join(self)})"
 
 
-class MaterialData:
+class RecycleData:
     __slots__ = (
-        'material_flows',
-        'recycles',
-        'index',
-        'IDs',
+        'recycle',
+        'mol',
+        'T',
+        'P',
     )
-    def __init__(self, material_flows, recycles, index, IDs):
-        self.material_flows = material_flows
-        self.recycles = recycles
-        self.index = index
-        self.IDs = IDs
+    def __init__(self, recycle):
+        self.recycle = recycle
+        self.mol = recycle.mol.copy()
+        self.T, self.P = recycle.thermal_condition
         
-   
+    def to_dict(self, dct=None):
+        recycle = self.recycle
+        IDs = recycle.chemicals.IDs
+        if dct is None: dct = {}
+        for i, j in self.mol.nonzero_items(): dct[recycle, IDs[i]] = j
+        dct[recycle, 'T'] = self.T
+        dct[recycle, 'P'] = self.P
+        return dct
+        
+    def to_series(self):
+        return pd.Series(self.to_list(), self.get_names())
+    
+    def get_names(self, lst=None):
+        recycle = self.recycle
+        ID = recycle.ID
+        IDs = recycle.chemicals.IDs
+        if lst is None: lst = []
+        for i, j in self.mol.nonzero_items(): 
+            lst.append(
+                f"{ID}.{IDs[i]}"
+            )
+        lst.append(
+            f"{ID}.T"
+        )
+        lst.append(
+            f"{ID}.P"
+        )
+        return lst
+        
+    def to_tuples(self, lst=None):
+        recycle = self.recycle
+        IDs = recycle.chemicals.IDs
+        if lst is None: lst = []
+        for i, j in self.mol.nonzero_items(): 
+            lst.append(
+                ((recycle, IDs[i]), j)
+            )
+        lst.append(
+            ((recycle, 'T'), self.T)
+        )
+        lst.append(
+            ((recycle, 'P'), self.P)
+        )
+        return lst
+    
+    def to_list(self, lst=None):
+        if lst is None:
+            lst = [*self.mol.nonzero_values(), self.T, self.P]
+        else:
+            lst.extend(self.mol.nonzero_values())
+            lst.append(self.T)
+            lst.append(self.P)
+        return lst
+    
+    def to_array(self):
+        return np.array(self.to_list())
+    
+    def reset(self):
+        recycle = self.recycle
+        recycle.mol.copy_like(self.mol)
+        recycle.T = self.T
+        recycle.P = self.P
+        
+    def update(self):
+        recycle = self.recycle
+        self.mol = recycle.mol.copy()
+        self.T, self.P = recycle.thermal_condition
+        
+    def __repr__(self):
+        return f"{type(self).__name__}({self.recycle})"
+        
+    
+class JointRecycleData(tuple):
+    
+    def __new__(cls, recycles):
+        return super().__new__(cls, [RecycleData(i) for i in recycles])
+    
+    def get_names(self):
+        lst = []
+        for i in self: i.get_names(lst)
+        return lst
+    
+    def to_dict(self):
+        dct = {}
+        for i in self: i.to_dict(dct)
+        return dct
+    
+    def to_series(self):
+        return pd.Series(self.to_list(), self.get_names())
+    
+    def to_tuples(self):
+        lst = []
+        for i in self: i.to_tuples(lst)
+        return lst
+    
+    def to_list(self):
+        lst = []
+        for i in self: i.to_list(lst)
+        return lst
+    
+    def to_array(self):
+        return np.array(self.to_list())
+    
+    def reset(self):
+        for i in self: i.reset()
+        
+    def update(self):
+        for i in self: i.update()
+
+    def __repr__(self):
+        return f"{type(self).__name__}([{', '.join([str(i.recycle) for i in self])}])"
+
+
 def get_recycle_data(stream):
     """
     Return stream temperature, pressure, and molar flow rates as a
@@ -409,6 +520,8 @@ class System:
         'simulate_after_specifications',
         '_specifications',
         '_running_specifications',
+        '_simulation_default_arguments',
+        '_simulation_outputs',
         # Dynamic simulation
         '_isdynamic',
         '_state',
@@ -763,7 +876,9 @@ class System:
         for i in self.units: i._system = self
 
     @ignore_docking_warnings
-    def _interface_property_packages(self):
+    def interface_property_packages(self):
+        """Add junctions in between streams which have incompatible
+        property packages."""
         path = self._path
         Stream = bst.Stream
         Interface = (bst.Junction, bst.Mixer, bst.MixTank)
@@ -797,54 +912,9 @@ class System:
                     source._outs[source_index] = s_source
                     sink._ins[sink_index] = s_sink
         for obj in path:
-            if isa(obj, System): obj._interface_property_packages()
+            if isa(obj, System): obj.interface_property_packages()
         self._path = tuple(new_path)
         self._save_configuration()
-
-    def _reduced_thermo_data(self, required_chemicals, unit_thermo, mixer_thermo, thermo_cache):
-        isa = isinstance
-        mixers = [i for i in self.units if isa(i, (bst.Mixer, bst.MixTank))]
-        past_upstream_units = set()
-        for mixer in mixers:
-            if mixer in past_upstream_units: continue
-            upstream_units = mixer.get_upstream_units()
-            upstream_units.difference_update(past_upstream_units)
-            available_chemicals = set(required_chemicals)
-            for unit in upstream_units:
-                if isa(unit, bst.Junction): continue
-                available_chemicals.update(unit.get_available_chemicals())
-            for unit in upstream_units:
-                if isa(unit, bst.Junction): continue
-                chemicals = [i for i in unit.chemicals if i in available_chemicals]
-                if unit in unit_thermo:
-                    other_thermo = unit_thermo[unit]
-                    for i in other_thermo.chemicals:
-                        if i not in chemicals: chemicals.append(i)
-                IDs = tuple([i.ID for i in chemicals])
-                if IDs in thermo_cache:
-                    unit_thermo[unit] = thermo_cache[IDs]
-                else:
-                    unit_thermo[unit] = thermo_cache[IDs] = unit.thermo.subset(chemicals)
-            past_upstream_units.update(upstream_units)
-        for mixer in mixers:
-            outlet = mixer.outs[0]
-            sink = outlet.sink
-            if sink:
-                chemicals = sink.thermo.chemicals
-            else:
-                chemicals = outlet.available_chemicals
-            if mixer in mixer_thermo:
-                other_thermo = mixer_thermo[mixer]
-                new_chemicals = []
-                for i in other_thermo.chemicals:
-                    if i not in chemicals: new_chemicals.append(i)
-                if new_chemicals:
-                    chemicals = list(chemicals) + new_chemicals
-            IDs = tuple([i.ID for i in chemicals])
-            if IDs in thermo_cache:
-                mixer_thermo[mixer] = thermo_cache[IDs]
-            else:
-                mixer_thermo[mixer] = thermo_cache[IDs] = unit.thermo.subset(chemicals)
 
     def _delete_path_cache(self):
         for i in ('_subsystems', '_units', '_unit_path', '_cost_units',
@@ -853,20 +923,6 @@ class System:
         self._path_cache.clear()
         self._temporary_connections_log.clear()
         self._prioritized_units.clear()
-
-    def reduce_chemicals(self, required_chemicals: Collection[Chemical]=()):
-        unit_thermo = {}
-        mixer_thermo = {}
-        thermo_cache = {}
-        self._reduced_thermo_data(required_chemicals, unit_thermo, mixer_thermo, thermo_cache)
-        for unit, thermo in unit_thermo.items(): unit._reset_thermo(thermo)
-        for mixer, thermo in mixer_thermo.items():
-            for i in mixer._ins:
-                if i._source: i._reset_thermo(unit_thermo[i._source])
-            thermo = mixer_thermo[mixer]
-            mixer._load_thermo(thermo)
-            mixer._outs[0]._reset_thermo(thermo)
-        self._interface_property_packages()
 
     def copy(self, ID=None):
         """Copy system."""
@@ -1855,42 +1911,14 @@ class System:
             except: raise error
         except Converged: pass
 
-    def get_material_data(self):
+    def get_recycle_data(self):
         """
-        Return a MaterialData object defining material flows of recycle streams.
+        Return recycle data defining material flows and conditions of recycle streams.
         
         """
-        recycles = self.get_all_recycles()
-        all_IDs = set([s.chemicals.IDs for s in recycles])
-        same_chemicals = len(all_IDs) == 1
-        if same_chemicals:
-            chemicals = recycles[0].chemicals
-            IDs = chemicals.IDs
-            index = chemicals._index
-            M = len(recycles)
-            N = len(IDs)
-            material_flows = np.zeros([M, N])
-            for i, s in enumerate(recycles): 
-                mol = s.mol
-                for j, v in mol.nonzero_items(): material_flows[i, j] = v
-        else:
-            IDs = sorted(set(sum(all_IDs, ())))
-            index = {j: i for i, j in enumerate(IDs)}
-            M = len(recycles)
-            N = len(IDs)
-            material_flows = np.zeros([M, N])
-            IDs_old = s.chemicals.IDs
-            for i, s in enumerate(recycles):
-                for j, v in mol.nonzero_items(): material_flows[i, index[IDs_old[j]]] = v
-            IDs = None
-        return MaterialData(
-            material_flows=material_flows,
-            recycles=recycles,
-            index=index,
-            IDs=IDs,
-        )
+        return JointRecycleData(self.get_all_recycles())
 
-    def converge(self, material_data: MaterialData=None, update_material_data: bool=False):
+    def converge(self, recycle_data: list[RecycleData]=None, update_recycle_data: bool=False):
         """
         Converge mass and energy balances. If material data was given, 
         return converged material flows at steady state. Shape will be M by N,
@@ -1898,12 +1926,12 @@ class System:
         
         Parameters
         ----------
-        material_data : 
+        recycle_data : 
             Material data to set recycle streams.
             
         See Also
         --------
-        :meth:`System~.get_material_data`
+        :meth:`System~.get_recycle_data`
         
         Warning
         -------
@@ -1911,28 +1939,8 @@ class System:
         To run full simulation algorithm, see :func:`~biosteam.System.simulate`.
         
         """
-        if material_data is not None: 
-            material_flows = material_data.material_flows
-            recycles = material_data.recycles
-            index = material_data.index
-            all_IDs = set([s.chemicals.IDs for s in recycles])
-            all_IDs.add(material_data.IDs)
-            same_chemicals = len(all_IDs) == 1
-            if same_chemicals:
-                try:
-                    for i, s in enumerate(recycles):
-                        s.mol[:] = material_flows[i]
-                except:
-                    reset_material_data = True
-                    same_chemicals = False
-                else:
-                    reset_material_data = False
-            else:
-                reset_material_data = False
-                for i, s in enumerate(material_data.recycles):
-                    mol = s.mol
-                    for j, ID in enumerate(s.chemicals.IDs):
-                        mol[j] = material_flows[i, index[ID]]
+        if recycle_data is not None: 
+            for rd in recycle_data: rd.reset()
         if self._recycle:
             for i in self.path:
                 if isinstance(i, Unit) and hasattr(i, 'recycle_system_hook'):
@@ -1944,19 +1952,9 @@ class System:
             for i in range(self._N_runs): method()
         else:
             method()
-        if update_material_data:
-            if reset_material_data:
-                new_data =  self.get_material_data()
-                material_data.material_flows = material_flows = new_data.material_flows
-                material_data.recycles = recycles = new_data.recycles
-                material_data.index = index = new_data.index
-                material_data.IDs = new_data.IDs
-            if same_chemicals:
-                for i, s in enumerate(recycles): material_flows[i] = s.mol
-            else:
-                for i, s in enumerate(recycles):
-                    for ID, value in zip(s.chemicals.IDs, s.mol):
-                        material_flows[i, index[ID]] = value
+        if update_recycle_data:
+            if recycle_data is None: raise ValueError('no recycle data to update')
+            for rd in recycle_data: rd.update()
 
     def _summary(self):
         simulated_units = set()
@@ -2191,7 +2189,8 @@ class System:
             ws.state = y*0.0
             ws.dstate = y*0.0
 
-    def simulate(self, update_configuration: Optional[bool]=False, units=None, **kwargs):
+    def simulate(self, update_configuration: Optional[bool]=None, units=None, 
+                 design_and_cost=None, **kwargs):
         """
         If system is dynamic, run the system dynamically. Otherwise, converge 
         the path of unit operations to steady state. After running/converging 
@@ -2215,35 +2214,70 @@ class System:
             if specifications and not self._running_specifications:
                 self._running_specifications = True
                 try:
-                    for ss in specifications: ss()
-                    if self.simulate_after_specifications: self.simulate()
+                    if self.simulate_after_specifications: 
+                        for ss in specifications: ss()
+                        outputs = self.simulate(
+                            update_configuration, units, design_and_cost, **kwargs
+                        )
+                    else:
+                        # Save simulation arguments and outputs when running specifications that simulate
+                        self._simulation_default_arguments = dict(
+                            update_configuration=update_configuration, 
+                            units=units,
+                            kwargs=kwargs,
+                        )
+                        for ss in specifications: ss()
+                        outputs = self._simulation_outputs
+                        del self._simulation_default_arguments
+                        del self._simulation_outputs
                 finally:
                     self._running_specifications = False
             else:
+                if hasattr(self, '_simulation_default_arguments'):
+                    sda = self._simulation_default_arguments
+                    if update_configuration is None and 'update_configuration' in sda:
+                        update_configuration = sda['update_configuration']
+                    if units is None and 'units' in sda:
+                        units = sda['units']
+                    if design_and_cost is None and 'design_and_cost' in sda:
+                        design_and_cost = sda['design_and_cost']
+                    if kwargs is None and 'kwargs' in sda:
+                        kwargs = sda['kwargs']
+                if design_and_cost is None: design_and_cost = True
+                if update_configuration is None: update_configuration = False
                 self._setup(update_configuration, units)
                 if self.isdynamic: 
                     self.dynamic_run(**kwargs)
-                    self._summary()
+                    if design_and_cost: self._summary()
                 else:
                     try:
                         outputs = self.converge(**kwargs)
-                        self._summary()
+                        if design_and_cost: self._summary()
                     except Exception as error:
                         if update_configuration: raise error # Avoid infinite loop
                         new_connections = [i.get_connection() for i in self.streams]
                         if self._connections != new_connections:
                             # Connections has been updated within simulation.
-                            outputs = self.simulate(update_configuration=True, **kwargs)
+                            outputs = self.simulate(
+                                update_configuration=True, 
+                                design_and_cost=design_and_cost,
+                                **kwargs
+                            )
                         else:
                             raise error
                     else:
                         if (not update_configuration # Avoid infinite loop
                             and self._connections != [i.get_connection() for i in self.streams]):
                             # Connections has been updated within simulation.
-                            outputs = self.simulate(update_configuration=True, **kwargs)
+                            outputs = self.simulate(
+                                update_configuration=True,
+                                design_and_cost=design_and_cost,
+                                **kwargs
+                            )
                         elif self._facility_loop: 
                             self._facility_loop.converge()
-                    return outputs
+                self._simulation_outputs = outputs
+            return outputs
 
     def dynamic_run(self, **dynsim_kwargs):
         """
@@ -3365,25 +3399,6 @@ class AgileSystem:
     def operating_hours(self, operating_hours):
         factor = operating_hours / self.operating_hours
         for i in self.operation_modes: i.operating_hours *= factor
-
-    def reduce_chemicals(self, required_chemicals=()):
-        for i in self.streams: i.unlink()
-        unit_thermo = {}
-        mixer_thermo = {}
-        thermo_cache = {}
-        for mode in self.operation_modes:
-            mode.system._load_configuration()
-            mode.system._reduced_thermo_data(required_chemicals, unit_thermo, mixer_thermo, thermo_cache)
-        for mode in self.operation_modes:
-            mode.system._load_configuration()
-            for unit, thermo in unit_thermo.items(): unit._reset_thermo(thermo)
-            for mixer, thermo in mixer_thermo.items():
-                for i in mixer._ins:
-                    if i._source: i._reset_thermo(unit_thermo[i._source])
-                thermo = mixer_thermo[mixer]
-                mixer._load_thermo(thermo)
-                mixer._outs[0]._reset_thermo(thermo)
-            mode.system._interface_property_packages()
 
     def simulate(self):
         operation_modes = self.operation_modes
