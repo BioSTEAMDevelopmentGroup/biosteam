@@ -121,10 +121,15 @@ class RecycleModel:
         values_at_bounds = []
         samples = [sample]
         for i in index:
+            p = predictors[i]
+            if p.kind != 'coupled': 
+                values_at_bounds.append(
+                    (baseline_1, baseline_1)
+                )
+                continue
             sample_lb = sample.copy()
             sample_ub = sample.copy()
             lb, ub = bounds[i]
-            p = predictors[i]
             hook = p.hook
             if hook is not None:
                 lb = hook(lb)
@@ -173,9 +178,10 @@ class RecycleModel:
             tol: float
         ):
         responses = {}
-        baseline = baseline.to_dict()
+        baseline_dct = baseline.to_dict()
         for p, (lb, ub) in enumerate(bounds):
-            recycle_data = (lb.to_dict(), baseline, ub.to_dict())
+            if lb is baseline is ub: continue
+            recycle_data = (lb.to_dict(), baseline_dct, ub.to_dict())
             keys = set()
             for i in recycle_data: keys.update(i)
             for key in keys:

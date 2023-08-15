@@ -368,7 +368,7 @@ class Model(State):
         table[var_indices(metrics)] = replace_nones(values, [np.nan] * len(metrics))
     
     def evaluate(self, notify=0, file=None, autosave=0, autoload=False,
-                 predict_convergence=None, **kwargs):
+                 predict_convergence=True, **kwargs):
         """
         Evaluate metrics over the loaded samples and save values to `table`.
         

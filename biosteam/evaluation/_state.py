@@ -379,8 +379,8 @@ class State:
             # errors.append(error)
             # net_error = 100 * total_errors[0] / total_errors[1]
             # net_errors.append(net_error)
-            # # print('Error (model / null):', error)
-            # # print('Net error (model / null):', net_errors)
+            # print('Error (model / null):', error)
+            # print('Net error (model / null):', net_error)
             # if len(errors) == 500:
             #     scenario = [*range(1, len(errors) + 1)]
             #     plt.figure()
