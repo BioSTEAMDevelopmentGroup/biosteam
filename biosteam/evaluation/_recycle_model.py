@@ -15,10 +15,18 @@ from ._parameter import Parameter
 from .._system import System, JointRecycleData
 
 @njit(cache=True)
-def R2(y_true, y_pred):
-    dy = y_true - y_pred
-    dy_m = y_true - np.mean(y_true)
-    return np.dot(dy, dy) / np.dot(dy_m, dy_m)
+def R2(y_actual, y_predicted):
+    dy = y_actual - y_predicted
+    dy_m = y_actual - np.mean(y_actual)
+    SSR = np.dot(dy, dy)
+    SST = np.dot(dy_m, dy_m)
+    if SST == 0.:
+        if SSR == 0: 
+            return 1.
+        else:
+            return -np.inf
+    else:
+        return 1 - SSR / SST
 
 @njit(cache=True)
 def fit_and_predict_linear_model(X, y, x):
@@ -112,6 +120,7 @@ class RecycleModel:
         'predictors', 
         'responses', 
         'data',
+        'case_study',
     )
     def __init__(self, system: System, predictors: tuple[Parameter]):
         self.system = system
@@ -119,23 +128,66 @@ class RecycleModel:
         self.responses: dict[tuple[Stream, str], RecycleResponse] = {}
         self.load_responses()
         
+    def fitted_responses(self):
+        data = self.data
+        responses = self.responses
+        actual = data['actual']
+        samples = np.array(data['samples'])
+        fitted = {i: [] for i in responses}
+        for i, sample in enumerate(samples):
+            for key, response in responses.items():
+                index = response.predictors
+                fitted[key].append(
+                    fit_and_predict_linear_model(
+                        X=samples[:, index],
+                        y=np.array(actual[key]), 
+                        x=sample[index],
+                    )
+                )
+        return fitted
+    
     def R2(self):
-        return {
-            'null': self.R2_null(),
-            'predicted': self.R2_predicted(),
-            'data': self.R2_data(),
-        }
-        
+        null, null_dct = self.R2_null()
+        predicted, predicted_dct = self.R2_predicted()
+        fitted, fitted_dct = self.R2_fitted()
+        return (
+            {'null': null,
+             'predicted': predicted,
+             'fitted': fitted},
+            {'null': null_dct,
+             'predicted': predicted_dct,
+             'fitted': fitted_dct},   
+        )
+            
+    
+    def _R2(self, dataset):
+        results = {}
+        data = self.data
+        actual = data['actual']
+        fitted = dataset == 'fitted'
+        predicted = self.fitted_responses() if fitted else data[dataset]
+        for key, response in self.responses.items():
+            (recycle, name) = key
+            name = f"{recycle}.{name}"
+            y_actual = np.array(actual[key])
+            y_predicted = np.array(predicted[key])
+            results[name] = R2(
+                y_actual if fitted else y_actual[data['case studies']],
+                y_predicted,
+            )
+        mean = sum(results.values()) / len(results)
+        return mean, results
+    
     def R2_null(self):
-        pass
-    
+        return self._R2('null')
+        
     def R2_predicted(self):
-        pass
+        return self._R2('predicted')
     
-    def R2_data(self):
-        pass
+    def R2_fitted(self):
+        return self._R2('fitted')
     
-    def practice(self, sample):
+    def practice(self, case_study):
         """
         Predict and set recycle responses given the sample, then append actual
         simulation result to data.
@@ -143,7 +195,7 @@ class RecycleModel:
         Must be used in a with-statement as follows:
             
         ```python
-        with recycle_model.practice(sample):
+        with recycle_model.practice(case_study): # the case study is an unsimulated sample
             recycle_model.system.simulate() # Or other simulation code.
             
         ```
@@ -161,24 +213,29 @@ class RecycleModel:
         Does nothing if not used in with statement containing simulation.
         
         """
+        self.case_study = case_study
         return self
         
-    def __enter__(self, sample):
+    def __enter__(self):
         data = self.data
         null_responses = data['null']
         predicted_responses = data['predicted']
-        samples = np.array(data['samples'])
+        actual_responses = data['actual']
+        sample_list = data['samples']
+        samples = np.array(sample_list)
+        case_study = self.case_study
         for key, response in self.responses.items():
             null_responses[key].append(response.get())
             index = response.predictors
             prediction = fit_and_predict_linear_model(
                 X=samples[:, index],
-                y=data[key], 
-                x=sample[index],
+                y=np.array(actual_responses[key]), 
+                x=case_study[index],
             )
             response.set(prediction)
             predicted_responses[key].append(prediction)
-        data['samples'].append(sample)
+        data['case studies'].append(len(sample_list))
+        sample_list.append(case_study)
     
     def __exit__(self, type, exception, traceback):
         data = self.data
@@ -186,8 +243,10 @@ class RecycleModel:
             samples = data['samples']
             del samples[-1]
             raise exception
+        actual = data['actual']
         for key, response in self.responses.items():
-            data[key].append(response.get())
+            actual[key].append(response.get())
+        del self.case_study
         
     def evaluate_parameters(self, sample, default=None, **kwargs):
         for p, value in zip(self.predictors, sample):
@@ -265,9 +324,9 @@ class RecycleModel:
         responses = self.add_sensitive_reponses(
             baseline_1, values_at_bounds, tol
         )
-        self.data = data = {i: [] for i in ['samples', *responses]}
-        data['null'] = {i: [] for i in responses}
-        data['predicted'] = {i: [] for i in responses}
+        self.data = data = {'samples': [], 'case studies': []}
+        for name in ('actual', 'predicted', 'null'): 
+            data[name] = {key: [] for key in responses}
         self.extend_data(samples, values)
         
     def add_sensitive_reponses(self, 
@@ -295,25 +354,27 @@ class RecycleModel:
         
     def append_data(self, sample, recycle_data=None):
         data = self.data
+        actual = data['actual']
         data['samples'].append(sample)
         if recycle_data is None: 
             for key, response in self.responses.items():
-                data[key].append(response.get())
+                actual[key].append(response.get())
         else:
             for key, value in recycle_data.to_tuples(): 
-                if key in data: data[key].append(value)
+                if key in actual: actual[key].append(value)
             
     def extend_data(self, samples, recycle_data):
         for args in zip(samples, recycle_data): self.append_data(*args)
         
     def predict(self, sample):
         data = self.data
+        actual = data['actual']
         samples = np.array(data['samples'])
         for key, response in self.responses.items():
             index = response.predictors
             prediction = fit_and_predict_linear_model(
                 X=samples[:, index],
-                y=data[key], 
+                y=np.array(actual[key]), 
                 x=sample[index],
             )
             response.set(prediction)
