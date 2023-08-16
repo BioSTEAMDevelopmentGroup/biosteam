@@ -368,7 +368,8 @@ class Model(State):
         table[var_indices(metrics)] = replace_nones(values, [np.nan] * len(metrics))
     
     def evaluate(self, notify=0, file=None, autosave=0, autoload=False,
-                 predict_convergence=True, **kwargs):
+                 predict_convergence=True, model_type=None, recess=None,
+                 **kwargs):
         """
         Evaluate metrics over the loaded samples and save values to `table`.
         
@@ -384,6 +385,11 @@ class Model(State):
             Whether to load pickled evaluation results from file.
         predict_convergence : bool, optional
             Whether to create a prediction model for accelerated system convergence.
+        model_type : Callable, optional
+            Prediction model class for accelerated system convergence. Any statistical
+            or machine learning model from sklearn should work.
+        recess : int, optional
+            Number of simulations before refitting the model.
         kwargs : dict
             Any keyword arguments passed to :func:`biosteam.System.simulate`.
         

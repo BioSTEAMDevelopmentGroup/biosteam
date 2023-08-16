@@ -11,6 +11,7 @@ from numba import njit
 import numpy as np
 from thermosteam import Stream
 from warnings import warn
+from typing import Optional
 from ._parameter import Parameter
 from .._system import System, JointRecycleData
 
@@ -29,27 +30,55 @@ def R2(y_actual, y_predicted):
         return 1 - SSR / SST
 
 @njit(cache=True)
-def fit_and_predict_linear_model(X, y, x):
+def fit_linear_model(X, y):
     Xt = X.transpose()
-    betas = np.linalg.inv(Xt @ X) @ Xt @ y
-    return np.dot(betas, x)
+    return np.linalg.inv(Xt @ X) @ Xt @ y
 
-def recycle_response(recycle, name):
+class LinearRegressor:
+    __slots__ = (
+        'coefficients',
+    )
+    def __init__(self):
+        self.coefficients = None
+        
+    def fit(self, X, y):
+        self.coefficients = fit_linear_model(X, y)
+    
+    def predict(self, x):
+        return np.dot(self.coefficients, x[0])
+
+    def __repr__(self):
+        return f"{type(self).__name__}()"
+    
+    
+def recycle_response(recycle, name, model):
     if name == 'T':
-        response = RecycleTemperature(recycle)
+        response = RecycleTemperature(recycle, model)
     elif name == 'P':
-        response = RecyclePressure(recycle)
+        response = RecyclePressure(recycle, model)
     else:
-        response = RecycleFlow(recycle, name)
+        response = RecycleFlow(recycle, name, model)
     return response
     
+
 class RecycleResponse:
     __slots__ = (
-        'recycle', 'predictors',
+        'recycle', 'model', 'predictors', 'fitted',
     )
-    def __init__(self, recycle):
+    def __init__(self, recycle, model):
         self.recycle = recycle
+        self.model = model
         self.predictors = [] # Indices of predictors
+        self.fitted = False
+    
+    def fit(self, X, y):
+        self.model.fit(X[..., self.predictors], y)
+        self.fitted = True
+
+    def predict(self, x):
+        return float(
+            self.model.predict(x[None, self.predictors])
+        )
     
     def filter_value(self, value):
         old_value = self.get()
@@ -62,7 +91,7 @@ class RecycleResponse:
         return value
     
     def __repr__(self):
-        return f"{type(self).__name__}({self.recycle})"
+        return f"{type(self).__name__}({self.recycle}, {self.model})"
 
 
 class RecycleTemperature(RecycleResponse):
@@ -99,10 +128,12 @@ class RecycleFlow(RecycleResponse):
     max = 10.0
     min = 0.1
     
-    def __init__(self, recycle, name):
+    def __init__(self, recycle, name, model):
         self.recycle = recycle
         self.name = name
+        self.model = model
         self.predictors = [] # Indices of predictors
+        self.fitted = False
         
     def set(self, value):
         self.recycle.imol[self.name] = self.filter_value(value)
@@ -121,28 +152,48 @@ class RecycleModel:
         'responses', 
         'data',
         'case_study',
+        'model_type',
+        'recess',
     )
-    def __init__(self, system: System, predictors: tuple[Parameter]):
+    def __init__(self, system: System, predictors: tuple[Parameter],
+                 model_type=None, recess: Optional[int]=None):
         self.system = system
         self.predictors = predictors
         self.responses: dict[tuple[Stream, str], RecycleResponse] = {}
-        self.load_responses()
+        if model_type is None: model_type = LinearRegressor
+        if isinstance(model_type, str):
+            model_type = model_type.lower()
+            if model_type == 'linear regressor':
+                model_type = LinearRegressor
+            elif model_type == 'linear svr': # linear support vector machine regression
+                from sklearn.svm import LinearSVR
+                from sklearn.pipeline import make_pipeline
+                from sklearn.preprocessing import StandardScaler
+                model_type = lambda: make_pipeline(
+                    StandardScaler(),
+                    LinearSVR()
+                )
+            else:
+                raise ValueError('unknown model type {model_type!r}')
+        if recess is None: 
+            if model_type is LinearRegressor:
+                recess = 0
+            else:
+                recess = sum([i.kind == 'coupled' for i in predictors]) ** 2
+        self.model_type = model_type
+        self.recess = recess
+        self.load_responses(model_type)
         
     def fitted_responses(self):
         data = self.data
         responses = self.responses
-        actual = data['actual']
         samples = np.array(data['samples'])
-        fitted = {i: [] for i in responses}
+        fitted_responses = [(i, j) for i, j in responses.items() if j.fitted]
+        fitted = {i: [] for i, j in fitted_responses}
         for i, sample in enumerate(samples):
-            for key, response in responses.items():
-                index = response.predictors
+            for key, response in fitted_responses:
                 fitted[key].append(
-                    fit_and_predict_linear_model(
-                        X=samples[:, index],
-                        y=np.array(actual[key]), 
-                        x=sample[index],
-                    )
+                    response.predict(sample)
                 )
         return fitted
     
@@ -159,23 +210,25 @@ class RecycleModel:
              'fitted': fitted_dct},   
         )
             
-    
     def _R2(self, dataset):
         results = {}
         data = self.data
         actual = data['actual']
         fitted = dataset == 'fitted'
+        case_studies = data['case studies']
         predicted = self.fitted_responses() if fitted else data[dataset]
         for key, response in self.responses.items():
+            if not response.fitted: continue
             (recycle, name) = key
             name = f"{recycle}.{name}"
             y_actual = np.array(actual[key])
             y_predicted = np.array(predicted[key])
             results[name] = R2(
-                y_actual if fitted else y_actual[data['case studies']],
+                y_actual if fitted else y_actual[case_studies],
                 y_predicted,
             )
-        mean = sum(results.values()) / len(results)
+        n = len(results)
+        mean = np.nan if n == 0 else sum(results.values()) / len(results)
         return mean, results
     
     def R2_null(self):
@@ -219,33 +272,39 @@ class RecycleModel:
     def __enter__(self):
         data = self.data
         null_responses = data['null']
-        predicted_responses = data['predicted']
-        actual_responses = data['actual']
+        predicted = data['predicted']
+        actual = data['actual']
         sample_list = data['samples']
         samples = np.array(sample_list)
         case_study = self.case_study
+        n_samples = len(sample_list)
+        recess_over = not (n_samples % (self.recess + 1))
         for key, response in self.responses.items():
-            null_responses[key].append(response.get())
-            index = response.predictors
-            prediction = fit_and_predict_linear_model(
-                X=samples[:, index],
-                y=np.array(actual_responses[key]), 
-                x=case_study[index],
-            )
-            response.set(prediction)
-            predicted_responses[key].append(prediction)
-        data['case studies'].append(len(sample_list))
+            null = response.get()
+            null_responses[key].append(null)
+            if recess_over: response.fit(samples, np.array(actual[key]))
+            if response.fitted :
+                prediction = response.predict(case_study) 
+                response.set(prediction)
+            else:
+                prediction = null
+            predicted[key].append(prediction)
+        data['case studies'].append(n_samples)
         sample_list.append(case_study)
     
     def __exit__(self, type, exception, traceback):
         data = self.data
+        samples = data['samples']
         if exception: 
-            samples = data['samples']
             del samples[-1]
             raise exception
         actual = data['actual']
         for key, response in self.responses.items():
             actual[key].append(response.get())
+        try:
+            if len(samples) > 2 * self.recess: print(self.R2()[0])
+        except:
+            breakpoint()
         del self.case_study
         
     def evaluate_parameters(self, sample, default=None, **kwargs):
@@ -259,7 +318,7 @@ class RecycleModel:
             self.system.empty_recycles()
             return default
         
-    def load_responses(self): 
+    def load_responses(self, model_type): 
         """
         Select responses and their respective predictors through single point 
         sensitivity. Also store the simulation data for fitting later.
@@ -322,7 +381,7 @@ class RecycleModel:
                RuntimeWarning
             )
         responses = self.add_sensitive_reponses(
-            baseline_1, values_at_bounds, tol
+            baseline_1, values_at_bounds, tol, model_type
         )
         self.data = data = {'samples': [], 'case studies': []}
         for name in ('actual', 'predicted', 'null'): 
@@ -332,7 +391,8 @@ class RecycleModel:
     def add_sensitive_reponses(self, 
             baseline: JointRecycleData,
             bounds: tuple[JointRecycleData], 
-            tol: float
+            tol: float,
+            model_type: object,
         ):
         responses = self.responses
         baseline_dct = baseline.to_dict()
@@ -348,7 +408,7 @@ class RecycleModel:
                     if key in responses:
                         response = responses[key]
                     else:
-                        responses[key] = response = recycle_response(*key)
+                        responses[key] = response = recycle_response(*key, model_type())
                     response.predictors.append(p)
         return responses
         
@@ -365,16 +425,15 @@ class RecycleModel:
             
     def extend_data(self, samples, recycle_data):
         for args in zip(samples, recycle_data): self.append_data(*args)
-        
-    def predict(self, sample):
+    
+    def fit(self):
         data = self.data
         actual = data['actual']
         samples = np.array(data['samples'])
         for key, response in self.responses.items():
-            index = response.predictors
-            prediction = fit_and_predict_linear_model(
-                X=samples[:, index],
-                y=np.array(actual[key]), 
-                x=sample[index],
-            )
+            response.fit(samples, np.array(actual[key]))    
+    
+    def predict(self, sample):
+        for key, response in self.responses.items():
+            prediction = response.predict(sample)
             response.set(prediction)
