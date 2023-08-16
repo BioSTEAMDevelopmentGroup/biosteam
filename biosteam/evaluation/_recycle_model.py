@@ -11,7 +11,7 @@ from numba import njit
 import numpy as np
 from thermosteam import Stream
 from warnings import warn
-from typing import Optional
+from typing import Optional, Callable
 from scipy.spatial.distance import cdist
 from ._parameter import Parameter
 from .._system import System, JointRecycleData
@@ -190,14 +190,22 @@ class RecycleModel:
         'predictors_lb',
         'predictors_range',
         'weight',
+        'nfits',
     )
-    def __init__(self, system: System, predictors: tuple[Parameter],
-                 model_type=None, recess: Optional[int]=None, 
-                 distance=None, weight=None):
+    default_model_type = LinearRegressor
+    def __init__(self, 
+            system: System,
+            predictors: tuple[Parameter],
+            model_type: Optional[str|Callable]=None,
+            recess: Optional[int]=None, 
+            distance: Optional[str]=None,
+            weight:  Optional[Callable]=None,
+            nfits: Optional[int]=None,
+        ):
         self.system = system
         self.predictors = predictors
         self.responses: dict[tuple[Stream, str], RecycleResponse] = {}
-        if model_type is None: model_type = LinearRegressor
+        if model_type is None: model_type = self.default_model_type
         if isinstance(model_type, str):
             model_type = model_type.lower()
             if model_type == 'linear regressor':
@@ -210,13 +218,23 @@ class RecycleModel:
                     StandardScaler(),
                     LinearSVR()
                 )
+                if nfits is None: nfits = 4
+            elif model_type == 'svr':
+                from sklearn.svm import SVR
+                from sklearn.pipeline import make_pipeline
+                from sklearn.preprocessing import StandardScaler
+                model_type = lambda: make_pipeline(
+                    StandardScaler(),
+                    SVR()
+                )
+                if nfits is None: nfits = 2
             else:
                 raise ValueError('unknown model type {model_type!r}')
         if recess is None: 
             if model_type is LinearRegressor:
                 recess = 0
             else:
-                recess = sum([i.kind == 'coupled' for i in predictors]) ** 2
+                recess = 2 * sum([i.kind == 'coupled' for i in predictors]) ** 2
         self.model_type = model_type
         self.recess = recess
         if distance is None: distance = 'cityblock'
@@ -224,6 +242,7 @@ class RecycleModel:
         self.fitted = False
         self.load_responses(model_type)
         self.weight = lambda x: 1. / x if weight is None else weight
+        self.nfits = nfits
         
     def fitted_responses(self):
         data = self.data
@@ -238,9 +257,9 @@ class RecycleModel:
                 )
         return fitted
     
-    def R2(self):
-        null, null_dct = self.R2_null()
-        predicted, predicted_dct = self.R2_predicted()
+    def R2(self, last=None):
+        null, null_dct = self.R2_null(last)
+        predicted, predicted_dct = self.R2_predicted(last)
         fitted, fitted_dct = self.R2_fitted()
         return (
             {'null': null,
@@ -251,7 +270,7 @@ class RecycleModel:
              'fitted': fitted_dct},   
         )
             
-    def _R2(self, dataset):
+    def _R2(self, dataset, last=None):
         results = {}
         data = self.data
         actual = data['actual']
@@ -262,20 +281,24 @@ class RecycleModel:
         for key, response in self.responses.items():
             (recycle, name) = key
             name = f"{recycle}.{name}"
-            y_actual = np.array(actual[key])
+            y_actual = np.array(actual[key]) 
+            if not fitted: y_actual = y_actual[case_studies]
             y_predicted = np.array(predicted[key])
+            if last is not None:
+                y_actual = y_actual[-last:]
+                y_predicted = y_predicted[-last:]
             results[name] = R2(
-                y_actual if fitted else y_actual[case_studies],
+                y_actual,
                 y_predicted,
             )
         mean = sum(results.values()) / len(results)
         return mean, results
     
-    def R2_null(self):
-        return self._R2('null')
+    def R2_null(self, last=None):
+        return self._R2('null', last)
         
-    def R2_predicted(self):
-        return self._R2('predicted')
+    def R2_predicted(self, last=None):
+        return self._R2('predicted', last)
     
     def R2_fitted(self):
         return self._R2('fitted')
@@ -320,7 +343,6 @@ class RecycleModel:
         n_samples = len(sample_list)
         no_recess = not self.recess
         recess_over = not (n_samples % (self.recess + 1))
-        if recess_over: self.fitted = True
         for key, response in self.responses.items():
             null = response.get()
             null_responses[key].append(null)
@@ -331,7 +353,10 @@ class RecycleModel:
                     self.weight,
                 )
             else:
-                if recess_over: 
+                if (recess_over
+                    and self.nfits is not None
+                    and self.fitted < self.nfits):
+                    self.fitted += 1
                     response.fit(samples, np.array(actual[key]))
                 if self.fitted:
                     prediction = response.predict(case_study) 
@@ -352,7 +377,7 @@ class RecycleModel:
         for key, response in self.responses.items():
             actual[key].append(response.get())
         try:
-            print(self.R2()[0])
+            print(self.R2(last=50)[0])
         except:
             breakpoint()
         del self.case_study
