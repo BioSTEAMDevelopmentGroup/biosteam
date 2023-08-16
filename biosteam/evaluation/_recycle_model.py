@@ -12,8 +12,25 @@ import numpy as np
 from thermosteam import Stream
 from warnings import warn
 from typing import Optional
+from scipy.spatial.distance import cdist
 from ._parameter import Parameter
 from .._system import System, JointRecycleData
+
+@njit(cache=True)
+def pearson_correlation_coefficient(X, y):
+    n_predictors = X.shape[1]
+    result = np.zeros(n_predictors)
+    my = y.mean()
+    ym = y - my
+    ssym = np.dot(ym, ym)
+    for i in range(n_predictors):
+        x = X[:, i]
+        mx = x.mean()
+        xm = x - mx
+        r_num = np.dot(xm, ym)
+        r_den = np.sqrt(np.dot(xm, xm) * ssym)
+        result[i] = r_num / r_den
+    return result
 
 @njit(cache=True)
 def R2(y_actual, y_predicted):
@@ -63,21 +80,36 @@ def recycle_response(recycle, name, model):
 
 class RecycleResponse:
     __slots__ = (
-        'recycle', 'model', 'predictors', 'fitted',
+        'recycle', 'model', 'predictors',
     )
     def __init__(self, recycle, model):
         self.recycle = recycle
         self.model = model
         self.predictors = [] # Indices of predictors
-        self.fitted = False
     
     def fit(self, X, y):
-        self.model.fit(X[..., self.predictors], y)
-        self.fitted = True
+        self.model.fit(X[:, self.predictors], y)
 
     def predict(self, x):
         return float(
             self.model.predict(x[None, self.predictors])
+        )
+    
+    def fit_and_predict(self, X, y, x, x_min, x_range, distance, weight):
+        index = self.predictors
+        x = x[None, index]
+        X = X[:, index]
+        x_min = x_min[index]
+        x_range = x_range[index]
+        X_norm = (X - x_min) / x_range
+        x_norm = (x - x_min) / x_range
+        distances = cdist(x_norm, X_norm, metric=distance)
+        w = np.sqrt(weight(distances))
+        X = X * w.transpose()
+        y = y * w[0]
+        self.model.fit(X, y)
+        return float(
+            self.model.predict(x)
         )
     
     def filter_value(self, value):
@@ -133,7 +165,6 @@ class RecycleFlow(RecycleResponse):
         self.name = name
         self.model = model
         self.predictors = [] # Indices of predictors
-        self.fitted = False
         
     def set(self, value):
         self.recycle.imol[self.name] = self.filter_value(value)
@@ -154,9 +185,15 @@ class RecycleModel:
         'case_study',
         'model_type',
         'recess',
+        'distance',
+        'fitted',
+        'predictors_lb',
+        'predictors_range',
+        'weight',
     )
     def __init__(self, system: System, predictors: tuple[Parameter],
-                 model_type=None, recess: Optional[int]=None):
+                 model_type=None, recess: Optional[int]=None, 
+                 distance=None, weight=None):
         self.system = system
         self.predictors = predictors
         self.responses: dict[tuple[Stream, str], RecycleResponse] = {}
@@ -182,16 +219,20 @@ class RecycleModel:
                 recess = sum([i.kind == 'coupled' for i in predictors]) ** 2
         self.model_type = model_type
         self.recess = recess
+        if distance is None: distance = 'cityblock'
+        self.distance = distance
+        self.fitted = False
         self.load_responses(model_type)
+        self.weight = lambda x: 1. / x if weight is None else weight
         
     def fitted_responses(self):
         data = self.data
         responses = self.responses
+        fitted = {i: [] for i, j in responses.items()}
         samples = np.array(data['samples'])
-        fitted_responses = [(i, j) for i, j in responses.items() if j.fitted]
-        fitted = {i: [] for i, j in fitted_responses}
+        if not self.fitted: return fitted
         for i, sample in enumerate(samples):
-            for key, response in fitted_responses:
+            for key, response in responses.items():
                 fitted[key].append(
                     response.predict(sample)
                 )
@@ -215,10 +256,10 @@ class RecycleModel:
         data = self.data
         actual = data['actual']
         fitted = dataset == 'fitted'
+        if fitted and not self.fitted: return np.nan, {}
         case_studies = data['case studies']
         predicted = self.fitted_responses() if fitted else data[dataset]
         for key, response in self.responses.items():
-            if not response.fitted: continue
             (recycle, name) = key
             name = f"{recycle}.{name}"
             y_actual = np.array(actual[key])
@@ -227,8 +268,7 @@ class RecycleModel:
                 y_actual if fitted else y_actual[case_studies],
                 y_predicted,
             )
-        n = len(results)
-        mean = np.nan if n == 0 else sum(results.values()) / len(results)
+        mean = sum(results.values()) / len(results)
         return mean, results
     
     def R2_null(self):
@@ -278,16 +318,26 @@ class RecycleModel:
         samples = np.array(sample_list)
         case_study = self.case_study
         n_samples = len(sample_list)
+        no_recess = not self.recess
         recess_over = not (n_samples % (self.recess + 1))
+        if recess_over: self.fitted = True
         for key, response in self.responses.items():
             null = response.get()
             null_responses[key].append(null)
-            if recess_over: response.fit(samples, np.array(actual[key]))
-            if response.fitted :
-                prediction = response.predict(case_study) 
-                response.set(prediction)
+            if no_recess:
+                prediction = response.fit_and_predict(
+                    samples, np.array(actual[key]), case_study, 
+                    self.predictors_lb, self.predictors_range, self.distance,
+                    self.weight,
+                )
             else:
-                prediction = null
+                if recess_over: 
+                    response.fit(samples, np.array(actual[key]))
+                if self.fitted:
+                    prediction = response.predict(case_study) 
+                    response.set(prediction)
+                else:
+                    prediction = null
             predicted[key].append(prediction)
         data['case studies'].append(n_samples)
         sample_list.append(case_study)
@@ -302,7 +352,7 @@ class RecycleModel:
         for key, response in self.responses.items():
             actual[key].append(response.get())
         try:
-            if len(samples) > 2 * self.recess: print(self.R2()[0])
+            print(self.R2()[0])
         except:
             breakpoint()
         del self.case_study
@@ -328,14 +378,18 @@ class RecycleModel:
         bounds = [i.bounds for i in predictors]
         sample = [i.baseline for i in predictors]
         N_predictors = len(predictors)
-        index = range(N_predictors)
+        self.predictors_lb = predictors_lb = np.zeros(N_predictors)
+        self.predictors_range = predictors_range = np.zeros(N_predictors)
+        for i, (lb, ub) in enumerate(bounds):
+            predictors_lb[i] = lb
+            predictors_range[i] = ub - lb
+        index = range(len(predictors))
         evaluate = self.evaluate_parameters
         baseline_1 = evaluate(sample)
         values = []
         values_at_bounds = []
         samples = [sample]
-        for i in index:
-            p = predictors[i]
+        for i, p in enumerate(predictors):
             if p.kind != 'coupled': 
                 values_at_bounds.append(
                     (baseline_1, baseline_1)
