@@ -99,6 +99,22 @@ class RecycleData:
     def to_series(self):
         return pd.Series(self.to_list(), self.get_names())
     
+    def get_keys(self, lst=None):
+        recycle = self.recycle
+        IDs = recycle.chemicals.IDs
+        if lst is None: lst = []
+        for i, j in self.mol.nonzero_items(): 
+            lst.append(
+                (recycle, IDs[i])
+            )
+        lst.append(
+            (recycle, 'T')
+        )
+        lst.append(
+            (recycle, 'P')
+        )
+        return lst
+    
     def get_names(self, lst=None):
         recycle = self.recycle
         ID = recycle.ID
@@ -163,6 +179,11 @@ class JointRecycleData(tuple):
     
     def __new__(cls, recycles):
         return super().__new__(cls, [RecycleData(i) for i in recycles])
+    
+    def get_keys(self):
+        lst = []
+        for i in self: i.get_keys(lst)
+        return lst
     
     def get_names(self):
         lst = []

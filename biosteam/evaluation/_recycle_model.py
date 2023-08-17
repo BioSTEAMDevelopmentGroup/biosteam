@@ -104,6 +104,8 @@ class RecycleResponse:
         X_norm = (X - x_min) / x_range
         x_norm = (x - x_min) / x_range
         distances = cdist(x_norm, X_norm, metric=distance)
+        exact_match = distances == 0
+        if exact_match.any(): return y[exact_match[0]].mean()
         w = np.sqrt(weight(distances))
         X = X * w.transpose()
         y = y * w[0]
@@ -390,7 +392,7 @@ class RecycleModel:
         data['case studies'].append(n_samples)
         sample_list.append(case_study)
     
-    def __exit__(self, type, exception, traceback):
+    def __exit__(self, type, exception, traceback, total=[]):
         data = self.data
         samples = data['samples']
         if exception: 
@@ -399,6 +401,13 @@ class RecycleModel:
         actual = data['actual']
         for key, response in self.responses.items():
             actual[key].append(response.get())
+        # systems = self.system.subsystems
+        # n = len(systems)
+        # total.append(sum([i._iter for i in systems]))
+        # print(
+        #     sum(total) / len(total) / n
+        # )
+        # print(self.R2(10)[0])
         del self.case_study
         
     def evaluate_parameters(self, sample, default=None, **kwargs):
@@ -458,18 +467,20 @@ class RecycleModel:
                 (values_lb, values_ub)
             )
         baseline_2 = evaluate(sample, recycle_data=baseline_1)
-        names = baseline_1.get_names()
-        assert names == baseline_2.get_names()
         arr1 = baseline_1.to_array()
         arr2 = baseline_2.to_array()
         error = np.abs(arr1 - arr2)
         index, = np.where(error > system.molar_tolerance)
         error = error[index]
-        names = [names[i] for i in index]
         relative_error = error / np.maximum.reduce([np.abs(arr1[index]), np.abs(arr2[index])])
         tol = 0.01 + system.relative_molar_tolerance
         bad_index = [i for i, bad in enumerate(relative_error > tol) if bad]
         if bad_index:
+            keys = baseline_1.get_keys()
+            names = baseline_1.get_names()
+            names = [names[i] for i in index]
+            keys = [keys[i] for i in index]
+            bad_keys = set([keys[i] for i in bad_index])
             bad_names = [names[i] for i in bad_index]
             bad_names = ', '.join(bad_names)
             warn(
@@ -478,8 +489,10 @@ class RecycleModel:
                f"sensitivity analysis ({100 * relative_error[bad_index]} % error)",
                RuntimeWarning
             )
+        else:
+            bad_keys = set()
         responses = self.add_sensitive_reponses(
-            baseline_1, values_at_bounds, tol, model_type
+            baseline_1, values_at_bounds, tol, model_type, bad_keys
         )
         self.data = data = {'samples': [], 'case studies': []}
         for name in ('actual', 'predicted', 'null'): 
@@ -491,6 +504,7 @@ class RecycleModel:
             bounds: tuple[JointRecycleData], 
             tol: float,
             model_type: object,
+            exclude_responses: set[tuple[Stream, str]],
         ):
         responses = self.responses
         baseline_dct = baseline.to_dict()
@@ -500,6 +514,7 @@ class RecycleModel:
             keys = set()
             for i in recycle_data: keys.update(i)
             for key in keys:
+                if key in exclude_responses: continue
                 values = [dct[key] for dct in recycle_data if key in dct]
                 mean = np.mean(values)
                 if any([(i - mean) / mean > tol for i in values]):
