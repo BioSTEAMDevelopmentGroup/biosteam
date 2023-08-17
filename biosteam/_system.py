@@ -2222,6 +2222,7 @@ class System:
                         # Save simulation arguments and outputs when running specifications that simulate
                         self._simulation_default_arguments = dict(
                             update_configuration=update_configuration, 
+                            design_and_cost=design_and_cost,
                             units=units,
                             kwargs=kwargs,
                         )
