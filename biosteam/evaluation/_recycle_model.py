@@ -291,7 +291,9 @@ class RecycleModel:
         data = self.data
         actual = data['actual']
         fitted = dataset == 'fitted'
-        if fitted and not self.fitted: return np.nan, {}
+        if fitted and not self.fitted:
+            if self.local_weighted: self.fit()
+            else: return np.nan, {}
         case_studies = data['case studies']
         predicted = self.fitted_responses() if fitted else data[dataset]
         for key, response in self.responses.items():
