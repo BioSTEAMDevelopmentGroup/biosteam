@@ -476,17 +476,19 @@ class RecycleModel:
         error = error[index]
         relative_error = error / np.maximum.reduce([np.abs(arr1[index]), np.abs(arr2[index])])
         tol = 0.01 + system.relative_molar_tolerance
-        bad_index = [index[i] for i, bad in enumerate(relative_error > tol) if bad]
+        bad_index = [i for i, bad in enumerate(relative_error > tol) if bad]
         if bad_index:
             keys = baseline_1.get_keys()
             names = baseline_1.get_names()
+            relative_error = relative_error[bad_index]
+            bad_index = [index[i] for i in bad_index]
             bad_keys = set([keys[i] for i in bad_index])
             bad_names = [names[i] for i in bad_index]
             bad_names = ', '.join(bad_names)
             warn(
                f"inconsistent model; recycle loops on [{bad_names}] do not "
                 "match at baseline before and after single point "
-               f"sensitivity analysis ({100 * relative_error[bad_index]} % error)",
+               f"sensitivity analysis ({100 * relative_error} % error)",
                RuntimeWarning
             )
         else:
