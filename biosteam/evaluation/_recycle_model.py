@@ -403,13 +403,13 @@ class RecycleModel:
         actual = data['actual']
         for key, response in self.responses.items():
             actual[key].append(response.get())
-        # systems = self.system.subsystems
-        # n = len(systems)
-        # total.append(sum([i._iter for i in systems]))
-        # print(
-        #     sum(total) / len(total) / n
-        # )
-        # print(self.R2(10)[0])
+        systems = self.system.subsystems
+        n = len(systems)
+        total.append(sum([i._iter for i in systems]))
+        print(
+            sum(total) / len(total) / n
+        )
+        print(self.R2(10)[0])
         del self.case_study
         
     def evaluate_parameters(self, sample, default=None, **kwargs):
@@ -476,12 +476,10 @@ class RecycleModel:
         error = error[index]
         relative_error = error / np.maximum.reduce([np.abs(arr1[index]), np.abs(arr2[index])])
         tol = 0.01 + system.relative_molar_tolerance
-        bad_index = [i for i, bad in enumerate(relative_error > tol) if bad]
+        bad_index = [index[i] for i, bad in enumerate(relative_error > tol) if bad]
         if bad_index:
             keys = baseline_1.get_keys()
             names = baseline_1.get_names()
-            names = [names[i] for i in index]
-            keys = [keys[i] for i in index]
             bad_keys = set([keys[i] for i in bad_index])
             bad_names = [names[i] for i in bad_index]
             bad_names = ', '.join(bad_names)
