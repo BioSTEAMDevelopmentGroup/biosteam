@@ -95,7 +95,7 @@ class RecycleResponse:
             self.model.predict(x[None, self.predictors])
         )
     
-    def fit_and_predict(self, X, y, x, x_min, x_range, distance, weight):
+    def predict_locally(self, X, y, x, x_min, x_range, distance, weight):
         index = self.predictors
         x = x[None, index]
         X = X[:, index]
@@ -191,6 +191,7 @@ class RecycleModel:
         'predictors_range',
         'weight',
         'nfits',
+        'local_weighted',
     )
     default_model_type = LinearRegressor
     def __init__(self, 
@@ -201,6 +202,7 @@ class RecycleModel:
             distance: Optional[str]=None,
             weight:  Optional[Callable]=None,
             nfits: Optional[int]=None,
+            local_weighted: Optional[int]=None,
         ):
         self.system = system
         self.predictors = predictors
@@ -235,21 +237,33 @@ class RecycleModel:
                 recess = 0
             else:
                 recess = 2 * sum([i.kind == 'coupled' for i in predictors]) ** 2
+        if local_weighted is None:
+            if model_type is LinearRegressor:
+                local_weighted = True
+            else:
+                local_weighted = False
+        if local_weighted:
+            if distance is None: distance = 'cityblock'
+            if recess: raise ValueError('local weighted recycle model cannot recess')
+            if nfits: raise ValueError('local weighted recycle model must fit every time; cannot pass nfits argument')
+            if weight is None: weight = lambda x: 1. / x
         self.model_type = model_type
         self.recess = recess
-        if distance is None: distance = 'cityblock'
         self.distance = distance
         self.fitted = False
         self.load_responses(model_type)
-        self.weight = lambda x: 1. / x if weight is None else weight
+        self.weight = weight
         self.nfits = nfits
+        self.local_weighted = local_weighted
         
     def fitted_responses(self):
         data = self.data
         responses = self.responses
         fitted = {i: [] for i, j in responses.items()}
         samples = np.array(data['samples'])
-        if not self.fitted: return fitted
+        if not self.fitted:
+            if self.local_weighted: self.fit()
+            else: return fitted
         for i, sample in enumerate(samples):
             for key, response in responses.items():
                 fitted[key].append(
@@ -292,7 +306,9 @@ class RecycleModel:
                 y_predicted,
             )
         mean = sum(results.values()) / len(results)
-        return mean, results
+        lb = min(results.values())
+        ub = max(results.values())
+        return (lb, mean, ub), results
     
     def R2_null(self, last=None):
         return self._R2('null', last)
@@ -341,29 +357,35 @@ class RecycleModel:
         samples = np.array(sample_list)
         case_study = self.case_study
         n_samples = len(sample_list)
-        no_recess = not self.recess
-        recess_over = not (n_samples % (self.recess + 1))
-        for key, response in self.responses.items():
-            null = response.get()
-            null_responses[key].append(null)
-            if no_recess:
-                prediction = response.fit_and_predict(
+        if self.local_weighted:
+            for key, response in self.responses.items():
+                null_responses[key].append(response.get())
+                prediction = response.predict_locally(
                     samples, np.array(actual[key]), case_study, 
                     self.predictors_lb, self.predictors_range, self.distance,
                     self.weight,
                 )
-            else:
-                if (recess_over
-                    and self.nfits is not None
-                    and self.fitted < self.nfits):
-                    self.fitted += 1
-                    response.fit(samples, np.array(actual[key]))
+                predicted[key].append(prediction)
+        elif (not n_samples % (self.recess + 1)  # Recess is over
+              and self.nfits is not None
+              and self.fitted < self.nfits):
+            self.fitted += 1
+            for key, response in self.responses.items():
+                null_responses[key].append(response.get())
+                response.fit(samples, np.array(actual[key]))
+                prediction = response.predict(case_study) 
+                response.set(prediction)
+                predicted[key].append(prediction)
+        else:
+            for key, response in self.responses.items():
+                null = response.get()
+                null_responses[key].append(null)
                 if self.fitted:
                     prediction = response.predict(case_study) 
                     response.set(prediction)
                 else:
                     prediction = null
-            predicted[key].append(prediction)
+                predicted[key].append(prediction)
         data['case studies'].append(n_samples)
         sample_list.append(case_study)
     
@@ -376,10 +398,6 @@ class RecycleModel:
         actual = data['actual']
         for key, response in self.responses.items():
             actual[key].append(response.get())
-        try:
-            print(self.R2(last=50)[0])
-        except:
-            breakpoint()
         del self.case_study
         
     def evaluate_parameters(self, sample, default=None, **kwargs):
