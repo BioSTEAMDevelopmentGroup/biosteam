@@ -365,6 +365,7 @@ class RecycleModel:
                     self.predictors_lb, self.predictors_range, self.distance,
                     self.weight,
                 )
+                response.set(prediction)
                 predicted[key].append(prediction)
         elif (not n_samples % (self.recess + 1)  # Recess is over
               and self.nfits is not None
@@ -398,6 +399,7 @@ class RecycleModel:
         actual = data['actual']
         for key, response in self.responses.items():
             actual[key].append(response.get())
+        systems = self.system.subsystems
         del self.case_study
         
     def evaluate_parameters(self, sample, default=None, **kwargs):
