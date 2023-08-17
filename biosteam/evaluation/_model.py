@@ -369,6 +369,7 @@ class Model(State):
     
     def evaluate(self, notify=0, file=None, autosave=0, autoload=False,
                  predict_convergence=True, model_type=None, recess=None,
+                 distance=None, weight=None, nfits=True, local_weighted=None,
                  **kwargs):
         """
         Evaluate metrics over the loaded samples and save values to `table`.
@@ -440,7 +441,8 @@ class Model(State):
         parameters = self.parameters
         N_coupled = sum([i.kind == 'coupled' for i in parameters])
         if predict_convergence and (N_samples - number > N_coupled * N_coupled):
-            self.recycle_model = RecycleModel(self.system, parameters)
+            self.recycle_model = RecycleModel(self.system, parameters, model_type, recess,
+                                              weight, nfits, local_weighted)
         else:
             self.recycle_model = None
         try:
