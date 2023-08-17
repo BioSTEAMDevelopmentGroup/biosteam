@@ -399,7 +399,6 @@ class RecycleModel:
         actual = data['actual']
         for key, response in self.responses.items():
             actual[key].append(response.get())
-        systems = self.system.subsystems
         del self.case_study
         
     def evaluate_parameters(self, sample, default=None, **kwargs):
