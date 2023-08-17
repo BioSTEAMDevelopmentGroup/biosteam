@@ -403,13 +403,13 @@ class RecycleModel:
         actual = data['actual']
         for key, response in self.responses.items():
             actual[key].append(response.get())
-        systems = self.system.subsystems
-        n = len(systems)
-        total.append(sum([i._iter for i in systems]))
-        print(
-            sum(total) / len(total) / n
-        )
-        print(self.R2(10)[0])
+        # systems = self.system.subsystems
+        # n = len(systems)
+        # total.append(sum([i._iter for i in systems]))
+        # print(
+        #     sum(total) / len(total) / n
+        # )
+        # print(self.R2(10)[0])
         del self.case_study
         
     def evaluate_parameters(self, sample, default=None, **kwargs):
