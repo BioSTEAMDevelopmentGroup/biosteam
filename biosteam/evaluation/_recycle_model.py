@@ -365,7 +365,6 @@ class RecycleModel:
                     self.predictors_lb, self.predictors_range, self.distance,
                     self.weight,
                 )
-                response.set(prediction)
                 predicted[key].append(prediction)
         elif (not n_samples % (self.recess + 1)  # Recess is over
               and self.nfits is not None
