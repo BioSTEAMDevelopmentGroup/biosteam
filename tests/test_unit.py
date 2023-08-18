@@ -10,6 +10,7 @@
 import pytest
 import biosteam as bst
 import numpy as np
+from biosteam._network import Network
 from numpy.testing import assert_allclose
 
 def test_auxiliary_unit_owners():
@@ -48,14 +49,26 @@ def test_process_specifications_linear():
         H4 = bst.HXutility('H4', ins=M1-0, T=350)
     
     # Specification impacting upstream units
-    @M1.add_specification(run=True, impacted_units=[T1, T2])
+    @M1.add_specification(run=True, impacted_units=[T1])
     def adjust_flow_rate():
         water = T1.ins[0]
         ethanol = T2.ins[0]
         water.F_mass = ethanol.F_mass
     sys.simulate()
-    assert set(M1.specifications[0].path) == set([T1, T2, H1, H2])
-    assert (H4.outs[0].mol == sum([i.ins[0].mol for i in (T1, T2, T3)])).all()
+    assert M1.specifications[0].path == ()
+    assert sys._to_network() == Network(
+        [T2,
+         H2,
+         T3,
+         H3,
+         Network(
+            [M1,
+             T1,
+             H1],
+            recycle=H1-0),
+         H4]
+    )
+    assert_allclose(H4.outs[0].mol, sum([i.ins[0].mol for i in (T1, T2, T3)]))
     
     # Specification impacting units in parallel (neither upstream nor downstream units).
     # System simulation order must switch
@@ -101,9 +114,9 @@ def test_process_specifications_linear():
     H1.add_specification(lambda: None, run=True, impacted_units=[T2])
     H2.add_specification(lambda: None, run=True, impacted_units=[T1])
     sys.simulate()
-    assert sys.path.index(H1) < sys.path.index(T2)
-    assert H1.specifications[0].path == []
-    assert H2.specifications[0].path == [T1, H1, T2]
+    assert sys.unit_path.index(H1) < sys.unit_path.index(T2)
+    assert H1.specifications[0].path == ()
+    assert H2.specifications[0].path == ()
     # Net simulation order is ..., T2, H2, T1, H1, T2, H2, ...
     
 def test_process_specifications_with_recycles():
@@ -151,7 +164,28 @@ def test_process_specifications_with_recycles():
     M1_b.add_specification(lambda: None, run=True, impacted_units=[S2_a, S3_a])
     recycle_loop_sys.simulate()
     # Make sure path includes upstream subsystem and other units in recycle loop
-    assert M1_b.specifications[0].path == [recycle_loop_sys.subsystems[0], P2_b, S1_b, P1_b, M2_b, S3_b] 
+    assert recycle_loop_sys._to_network() == Network(
+        [P1_a,
+         P2_a,
+         S1_a,
+         Network(
+            [Network(
+                [P1_b,
+                 Network(
+                    [M1_b,
+                     S2_a,
+                     M2_a,
+                     S2_b,
+                     S3_a,
+                     M2_b,
+                     S3_b,
+                     M1_a],
+                    recycle=M1_a-0),
+                 P2_b,
+                 S1_b],
+                recycle=P1_b-0)],
+            recycle=[S3_b-1, S1_b-1])])
+    assert M1_b.specifications[0].path == ()
     
 def test_unit_connections():
     from biorefineries import sugarcane as sc

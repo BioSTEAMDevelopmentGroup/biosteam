@@ -179,13 +179,9 @@ class RecycleData:
     
 class JointRecycleData:
     __slots__ = ('recycle_data', 'responses')
-    def __init__(self, recycles, responses=None):
+    def __init__(self, recycles, responses):
         self.reycle_data = [RecycleData(i) for i in recycles]
-        if responses is None:
-            responses = {}
-        elif not isinstance(responses, dict):
-            responses = {(i.element, i.name): i for i in responses}
-        self.responses = {}
+        self.responses = {i: i.get() for i in responses}
     
     def get_keys(self):
         lst = []

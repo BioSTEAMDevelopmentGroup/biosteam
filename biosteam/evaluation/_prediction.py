@@ -11,7 +11,7 @@ from numba import njit
 import numpy as np
 from thermosteam import Stream
 from warnings import warn
-from typing import Optional, Callable, Hashable
+from typing import Optional, Callable
 from scipy.spatial.distance import cdist
 from ._parameter import Parameter
 from .._system import System, JointRecycleData
@@ -86,6 +86,12 @@ class Response:
         self.element = element
         self.model = model
         self.predictors = [] # Indices of predictors
+    
+    def __hash__(self):
+        return hash((self.element, self.name))
+    
+    def __eq__(self, other):
+        return (self.element, self.name) == other
     
     def fit(self, X, y):
         self.model.fit(X[:, self.predictors], y)
@@ -242,7 +248,7 @@ class ConvergencePredictionModel:
             nfits: Optional[int]=None,
             local_weighted: Optional[int]=None,
             system: Optional[System] = None,
-            responses: Optional[dict[Hashable, Response]]=None,
+            responses: Optional[list[Response]]=None,
             load_responses: Optional[bool] = None,
         ):
         if system is None:
@@ -256,7 +262,7 @@ class ConvergencePredictionModel:
                     raise ValueError('no system available')
         self.system = system
         self.predictors = predictors
-        self.responses = {} if responses is None else responses
+        self.responses = [] if responses is None else responses
         if model_type is None: model_type = self.default_model_type
         if isinstance(model_type, str):
             model_type = model_type.lower()
@@ -309,14 +315,14 @@ class ConvergencePredictionModel:
     def fitted_responses(self):
         data = self.data
         responses = self.responses
-        fitted = {i: [] for i, j in responses.items()}
+        fitted = {i: [] for i in responses}
         samples = np.array(data['samples'])
         if not self.fitted:
             if self.local_weighted: self.fit()
             else: return fitted
         for i, sample in enumerate(samples):
-            for key, response in responses.items():
-                fitted[key].append(
+            for response in responses:
+                fitted[response].append(
                     response.predict(sample)
                 )
         return fitted
@@ -344,12 +350,11 @@ class ConvergencePredictionModel:
             else: return np.nan, {}
         case_studies = data['case studies']
         predicted = self.fitted_responses() if fitted else data[dataset]
-        for key, response in self.responses.items():
-            (recycle, name) = key
-            name = f"{recycle}.{name}"
-            y_actual = np.array(actual[key]) 
+        for response in self.responses:
+            name = str(response)
+            y_actual = np.array(actual[response]) 
             if not fitted: y_actual = y_actual[case_studies]
-            y_predicted = np.array(predicted[key])
+            y_predicted = np.array(predicted[response])
             if last is not None:
                 y_actual = y_actual[-last:]
                 y_predicted = y_predicted[-last:]
@@ -410,35 +415,35 @@ class ConvergencePredictionModel:
         case_study = self.case_study
         n_samples = len(sample_list)
         if self.local_weighted:
-            for key, response in self.responses.items():
-                null_responses[key].append(response.get())
+            for response in self.responses:
+                null_responses[response].append(response.get())
                 prediction = response.predict_locally(
-                    samples, np.array(actual[key]), case_study, 
+                    samples, np.array(actual[response]), case_study, 
                     self.predictors_lb, self.predictors_range, self.distance,
                     self.weight,
                 )
                 response.set(prediction)
-                predicted[key].append(prediction)
+                predicted[response].append(prediction)
         elif (not n_samples % (self.recess + 1)  # Recess is over
               and self.nfits is not None
               and self.fitted < self.nfits):
             self.fitted += 1
-            for key, response in self.responses.items():
-                null_responses[key].append(response.get())
-                response.fit(samples, np.array(actual[key]))
+            for response in self.responses:
+                null_responses[response].append(response.get())
+                response.fit(samples, np.array(actual[response]))
                 prediction = response.predict(case_study) 
                 response.set(prediction)
-                predicted[key].append(prediction)
+                predicted[response].append(prediction)
         else:
-            for key, response in self.responses.items():
+            for response in self.responses:
                 null = response.get()
-                null_responses[key].append(null)
+                null_responses[response].append(null)
                 if self.fitted:
                     prediction = response.predict(case_study) 
                     response.set(prediction)
                 else:
                     prediction = null
-                predicted[key].append(prediction)
+                predicted[response].append(prediction)
         data['case studies'].append(n_samples)
         sample_list.append(case_study)
     
@@ -449,8 +454,8 @@ class ConvergencePredictionModel:
             del samples[-1]
             raise exception
         actual = data['actual']
-        for key, response in self.responses.items():
-            actual[key].append(response.get())
+        for response in self.responses:
+            actual[response].append(response.get())
         # systems = self.system.subsystems
         # n = len(systems)
         # total.append(sum([i._iter for i in systems]))
@@ -546,7 +551,7 @@ class ConvergencePredictionModel:
         else:
             bad_keys = set()
         self.add_sensitive_reponses(
-            baseline_1, values_at_bounds, tol, bad_keys
+            baseline_1, values_at_bounds, bad_keys
         )
         self.data = data = {'samples': [], 'case studies': []}
         for name in ('actual', 'predicted', 'null'): 
@@ -561,6 +566,7 @@ class ConvergencePredictionModel:
         model_type = self.model_type
         responses = self.responses
         baseline = baseline.to_dict()
+        responses_dct = {}
         for p, (lb, ub) in enumerate(bounds):
             if lb is baseline is ub: continue
             recycle_data = (lb.to_dict(), baseline, ub.to_dict())
@@ -568,15 +574,16 @@ class ConvergencePredictionModel:
             for i in recycle_data: keys.update(i)
             for key in keys:
                 if key in exclude_responses: continue
-                values = [dct[key] for dct in recycle_data if key in dct]
+                values = [dct.get(key, 0.) for dct in recycle_data]
                 mean = np.mean(values)
                 if any([(i - mean) / mean > self.response_tolerance for i in values]):
-                    if key in responses:
-                        response = responses[key]
+                    if key in responses_dct:
+                        response = responses_dct[key]
                     else:
-                        responses[key] = response = recycle_response(*key, model_type())
+                        responses_dct[key] = response = recycle_response(*key, model_type())
+                        responses.append(response)
                     response.predictors.append(p)
-        for response in responses.values():
+        for response in responses:
             if response.model is None: response.model = model_type()
         
     def append_data(self, sample, recycle_data=None):
@@ -584,8 +591,8 @@ class ConvergencePredictionModel:
         actual = data['actual']
         data['samples'].append(sample)
         if recycle_data is None: 
-            for key, response in self.responses.items():
-                actual[key].append(response.get())
+            for response in self.responses:
+                actual[response].append(response.get())
         else:
             for key, value in recycle_data.to_dict().items(): 
                 if key in actual: actual[key].append(value)
@@ -597,10 +604,10 @@ class ConvergencePredictionModel:
         data = self.data
         actual = data['actual']
         samples = np.array(data['samples'])
-        for key, response in self.responses.items():
-            response.fit(samples, np.array(actual[key]))    
+        for response in self.responses:
+            response.fit(samples, np.array(actual[response]))    
     
     def predict(self, sample):
-        for key, response in self.responses.items():
+        for response in self.responses:
             prediction = response.predict(sample)
             response.set(prediction)
