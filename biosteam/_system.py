@@ -44,7 +44,9 @@ from . import report
 from ._temporary_connection import temporary_units_dump, TemporaryUnit
 import os
 import openpyxl
-if TYPE_CHECKING: from ._tea import TEA
+if TYPE_CHECKING: 
+    from ._tea import TEA
+    from .evaluation import Response
 
 __all__ = ('System', 'AgileSystem', 'MockSystem',
            'AgileSystem', 'OperationModeResults',
@@ -175,24 +177,32 @@ class RecycleData:
         return f"{type(self).__name__}({self.recycle})"
         
     
-class JointRecycleData(tuple):
-    
-    def __new__(cls, recycles):
-        return super().__new__(cls, [RecycleData(i) for i in recycles])
+class JointRecycleData:
+    __slots__ = ('recycle_data', 'responses')
+    def __init__(self, recycles, responses=None):
+        self.reycle_data = [RecycleData(i) for i in recycles]
+        if responses is None:
+            responses = {}
+        elif not isinstance(responses, dict):
+            responses = {(i.element, i.name): i for i in responses}
+        self.responses = {}
     
     def get_keys(self):
         lst = []
-        for i in self: i.get_keys(lst)
+        for i in self.reycle_data: i.get_keys(lst)
+        lst.extend(self.responses)
         return lst
     
     def get_names(self):
         lst = []
-        for i in self: i.get_names(lst)
+        for i in self.reycle_data: i.get_names(lst)
+        lst.extend([str(i) for i in self.responses])
         return lst
     
     def to_dict(self):
         dct = {}
-        for i in self: i.to_dict(dct)
+        for i in self.reycle_data: i.to_dict(dct)
+        for i, j in self.responses.items(): dct[i] = j
         return dct
     
     def to_series(self):
@@ -200,25 +210,29 @@ class JointRecycleData(tuple):
     
     def to_tuples(self):
         lst = []
-        for i in self: i.to_tuples(lst)
+        for i in self.reycle_data: i.to_tuples(lst)
+        for i, j in self.responses.items(): lst.append((i, j))
         return lst
     
     def to_list(self):
         lst = []
-        for i in self: i.to_list(lst)
+        for i in self.reycle_data: i.to_list(lst)
+        for i in self.responses.values(): lst.append(i)
         return lst
     
     def to_array(self):
         return np.array(self.to_list())
     
     def reset(self):
-        for i in self: i.reset()
+        for i in self.reycle_data: i.reset()
         
     def update(self):
-        for i in self: i.update()
+        for i in self.reycle_data: i.update()
 
     def __repr__(self):
-        return f"{type(self).__name__}([{', '.join([str(i.recycle) for i in self])}])"
+        recycles = ', '.join([str(i.recycle) for i in self.recycles])
+        responses =  ', '.join([str(i) for i in self.responses])
+        return f"{type(self).__name__}(recycles=[{recycles}], responses=[{responses}])"
 
 
 def get_recycle_data(stream):
@@ -528,7 +542,7 @@ class System:
         '_LCA',
         '_subsystems',
         '_units',
-        '_units_set',
+        '_unit_set',
         '_unit_path',
         '_cost_units',
         '_streams',
@@ -770,10 +784,10 @@ class System:
             facility_recycle: Optional[Stream]=None, 
             N_runs: Optional[int]=None,
             operating_hours: Optional[float]=None,
-            lang_factor: Optional[float]=None
+            lang_factor: Optional[float]=None,
+            responses: Optional[list[Response]]=None,
         ):
         self.N_runs = N_runs
-        self.recycle = recycle
         self.method = self.default_method   
         
         #: Maximum number of iterations.
@@ -809,12 +823,16 @@ class System:
         #: Whether to simulate system after running all specifications.
         self.simulate_after_specifications = False
 
+        #: Responses that need to converge.
+        self.responses = responses
+        
         self._set_path(path)
         self._specifications = []
         self._running_specifications = False
         self._load_flowsheet()
         self._reset_errors()
         self._set_facilities(facilities)
+        self.recycle = recycle
         self._set_facility_recycle(facility_recycle)
         self._register(ID)
         self._save_configuration()
@@ -825,6 +843,11 @@ class System:
         self._DAE = None
         self.dynsim_kwargs = {}
         self.tracked_recycles = {}
+
+    def response(self, element, name, model=None):
+        self.responses.append(
+            bst.GenericResponse(element, name, model)
+        )
 
     def track_recycle(self, recycle: Stream, collector: list[Stream]=None):
         if not isinstance(recycle, Stream):
@@ -856,9 +879,9 @@ class System:
         network = Network.from_units(units)
         path = [(type(self)._from_network(ID_subsys, i) if isa(i, Network) else i)
                 for i in network.path]
-        self.recycle = network.recycle
         self._reset_errors()
         self._set_path(path)
+        self.recycle = network.recycle
         self._set_facilities(facilities)
         self._set_facility_recycle(facility_recycle or find_blowdown_recycle(facilities))
         self.set_tolerance(
@@ -1158,7 +1181,9 @@ class System:
         path = self._path
         for index, other in enumerate(path):
             if unit is other:
-                if (self._recycle or self.N_runs): self._path = path[index:] + path[:index]
+                if (self._recycle or self.N_runs): 
+                    self._path = path[index:] + path[:index]
+                    self.method = 'fixed-point'
                 del self._unit_path
                 return
             elif isa(other, System) and unit in other.unit_path:
@@ -1223,16 +1248,16 @@ class System:
                 for obj in leftover_path:
                     if obj in critical_units:
                         critical_units.discard(obj)
-                    elif isa(obj, System) and critical_units.intersection(obj.units_set):
-                        critical_units.difference_update(obj.units_set)
+                    elif isa(obj, System) and critical_units.intersection(obj.unit_set):
+                        critical_units.difference_update(obj.unit_set)
                     else:
                         continue
                     segment.append(obj)
             else:
                 for i, obj in enumerate(path):
                     if isa(obj, System):
-                        if start in obj.units_set:
-                            if end in obj.units_set:
+                        if start in obj.unit_set:
+                            if end in obj.unit_set:
                                 return obj.path_segment(start, end, False, relevant_units, critical_units)
                             else:
                                 path = path[i:]
@@ -1247,7 +1272,7 @@ class System:
                     raise ValueError(f"start unit {repr(start)} not in system")
             for i in path:
                 if isa(i, System):
-                    if end in i.units_set:
+                    if end in i.unit_set:
                         segment.extend(i.path_segment(None, end, False, relevant_units, critical_units))
                         break
                 elif i is end:
@@ -1255,8 +1280,8 @@ class System:
                 if isa(i, Unit) and i in relevant_units:
                     critical_units.discard(i)
                     segment.append(i)
-                elif isa(i, System) and relevant_units.intersection(i.units_set):
-                    critical_units.difference_update(i.units_set)
+                elif isa(i, System) and relevant_units.intersection(i.unit_set):
+                    critical_units.difference_update(i.unit_set)
                     segment.append(i)
             else:
                 raise ValueError(f"end unit {repr(end)} not in system")
@@ -1286,7 +1311,7 @@ class System:
     #         unit = obj
     #         for i, other in enumerate(self.path):
     #             if isa(other, System):
-    #                 if unit in other.units_set: 
+    #                 if unit in other.unit_set: 
     #                     numbers.append(i)
     #                     numbers.append(other.simulation_number(unit))
     #                     break
@@ -1420,7 +1445,7 @@ class System:
             return self._units
         except:
             self._units = units = []
-            self._units_set = past_units = set()
+            self._unit_set = past_units = set()
             isa = isinstance
             for i in self._path + self._facilities:
                 if isa(i, Unit):
@@ -1434,10 +1459,10 @@ class System:
             return units
 
     @property
-    def units_set(self) -> set[Unit]:
+    def unit_set(self) -> set[Unit]:
         """Set of all unit operations."""
         try:
-            return self._units_set
+            return self._unit_set
         except:
             units = []
             isa = isinstance
@@ -1446,8 +1471,8 @@ class System:
                     units.append(i)
                 elif isa(i, System):
                     units.extend(i.units)
-            self._units_set = units_set = set(units)
-            return units_set
+            self._unit_set = unit_set = set(units)
+            return unit_set
 
     @property
     def unit_path(self) -> list[Unit]:
@@ -1539,6 +1564,14 @@ class System:
                     raise AttributeError("recycle streams must be Stream objects; "
                                         f"not {type(i).__name__}")
             self._recycle = recycle
+        elif isa(recycle, piping.TemporaryStream):
+            permanent = self.unit_set
+            for stream in recycle.sink.outs[0].sink.outs:
+                if stream.sink in permanent:
+                    self._recycle = stream
+                    self.method = 'fixed-point'
+                    return
+            raise RuntimeError('unable to find replacement for temporary stream')
         else:
             raise_recycle_type_error(recycle)
 
@@ -1562,9 +1595,9 @@ class System:
     @method.setter
     def method(self, method):
         method = method.lower().replace('-', '').replace('_', '').replace(' ', '')
-        try:
+        if method in self.available_methods:
             self._method = method
-        except:
+        else:
             raise AttributeError(
                 f"method '{method}' not available; only "
                 f"{list_available_names(self.available_methods)} are available"
@@ -1937,7 +1970,7 @@ class System:
         Return recycle data defining material flows and conditions of recycle streams.
         
         """
-        return JointRecycleData(self.get_all_recycles())
+        return JointRecycleData(self.get_all_recycles(), self.responses)
 
     def converge(self, recycle_data: list[RecycleData]=None, update_recycle_data: bool=False):
         """

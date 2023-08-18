@@ -17,7 +17,7 @@ from ._state import State
 from ._metric import Metric
 from ._feature import MockFeature
 from ._parameter import Parameter
-from ._recycle_model import RecycleModel
+from ._convergence_prediction_model import RecycleModel
 from ._utils import var_indices, var_columns, indices_to_multiindex
 from biosteam.exceptions import FailedEvaluation
 from warnings import warn
@@ -57,7 +57,7 @@ class Model(State):
     __slots__ = (
         'table',            # [DataFrame] All arguments and results.
         'retry_evaluation', # [bool] Whether to retry evaluation if it fails
-        'recycle_model',    # [RecycleModel] Prediction model for recycle convergence.
+        'convergence_prediction_model',    # [RecycleModel] Prediction model for recycle convergence.
         '_metrics',         # tuple[Metric] Metrics to be evaluated by model.
         '_index',           # list[int] Order of sample evaluation for performance.
         '_samples',         # [array] Argument sample space.
@@ -305,7 +305,6 @@ class Model(State):
             etol=0.01, array=False, parameters=None, metrics=None, evaluate=None, 
             **kwargs
         ):
-        self.recycle_model = None
         if parameters is None: parameters = self.parameters
         bounds = [i.bounds for i in parameters]
         sample = [i.baseline for i in parameters]
@@ -368,9 +367,7 @@ class Model(State):
         table[var_indices(metrics)] = replace_nones(values, [np.nan] * len(metrics))
     
     def evaluate(self, notify=0, file=None, autosave=0, autoload=False,
-                 predict_convergence=True, model_type=None, recess=None,
-                 distance=None, weight=None, nfits=None, local_weighted=None,
-                 **kwargs):
+                 convergence_prediction_model=None, **kwargs):
         """
         Evaluate metrics over the loaded samples and save values to `table`.
         
@@ -384,13 +381,8 @@ class Model(State):
             If 1 or greater, save pickled evaluation results after the given number of sample evaluations.
         autoload : bool, optional
             Whether to load pickled evaluation results from file.
-        predict_convergence : bool, optional
-            Whether to create a prediction model for accelerated system convergence.
-        model_type : Callable, optional
-            Prediction model class for accelerated system convergence. Any statistical
-            or machine learning model from sklearn should work.
-        recess : int, optional
-            Number of simulations before refitting the model.
+        convergence_prediction_model : ConvergencePredictionModel, optional
+            A prediction model for accelerated system convergence.
         kwargs : dict
             Any keyword arguments passed to :func:`biosteam.System.simulate`.
         
@@ -408,9 +400,9 @@ class Model(State):
             timer = TicToc()
             timer.tic()
             count = [0]
-            def evaluate(sample, count=count, **kwargs):
+            def evaluate(sample, convergence_prediction_model, count=count, **kwargs):
                 count[0] += 1
-                values = evaluate_sample(sample, **kwargs)
+                values = evaluate_sample(sample, convergence_prediction_model, **kwargs)
                 if not count[0] % notify:
                     print(f"{count} Elapsed time: {timer.elapsed_time:.0f} sec")
                 return values
@@ -438,17 +430,10 @@ class Model(State):
         
         export = 'export_state_to' in kwargs
         layout = table.index, table.columns
-        parameters = self.parameters
-        N_coupled = sum([i.kind == 'coupled' for i in parameters])
-        if predict_convergence and (N_samples - number > N_coupled * N_coupled):
-            self.recycle_model = RecycleModel(self.system, parameters, model_type, recess,
-                                              distance, weight, nfits, local_weighted)
-        else:
-            self.recycle_model = None
         try:
             for number, i in enumerate(index, number + 1): 
                 if export: kwargs['sample_id'] = i
-                values[i] = evaluate(samples[i], **kwargs)
+                values[i] = evaluate(samples[i], convergence_prediction_model, **kwargs)
                 if autosave and not number % autosave: 
                     obj = (number, values, *layout)
                     try:
@@ -461,17 +446,17 @@ class Model(State):
         finally:
             table[var_indices(self._metrics)] = replace_nones(values, [np.nan] * len(self.metrics))
     
-    def _evaluate_sample(self, sample, **kwargs):
+    def _evaluate_sample(self, sample, convergence_prediction_model=None, **kwargs):
         state_updated = False
         try:
-            self._update_state(sample, self.recycle_model, **kwargs)
+            self._update_state(sample, convergence_prediction_model, **kwargs)
             state_updated = True
             return [i() for i in self.metrics]
         except Exception as exception:
             if self.retry_evaluation and not state_updated:
                 self._reset_system()
                 try:
-                    self._update_state(sample, self.recycle_model, **kwargs)
+                    self._update_state(sample, convergence_prediction_model, **kwargs)
                     return [i() for i in self.metrics]
                 except Exception as new_exception: 
                     exception = new_exception
@@ -500,7 +485,7 @@ class Model(State):
     
     def evaluate_across_coordinate(self, name, f_coordinate, coordinate,
                                    *, xlfile=None, notify=0, notify_coordinate=True,
-                                   multi_coordinate=False, predict_convergence=None,
+                                   multi_coordinate=False, convergence_prediction_model=None,
                                    f_evaluate=None):
         """
         Evaluate across coordinate and save sample metrics.
@@ -540,7 +525,7 @@ class Model(State):
         metric_data = None
         for n, x in enumerate(coordinate):
             f_coordinate(*x) if multi_coordinate else f_coordinate(x)
-            evaluate(notify=notify, predict_convergence=predict_convergence)
+            evaluate(notify=notify, convergence_prediction_model=convergence_prediction_model)
             # Initialize data containers dynamically in case samples are loaded during evaluation
             if metric_data is None:
                 N_samples, _ = self.table.shape

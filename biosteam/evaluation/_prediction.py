@@ -11,7 +11,7 @@ from numba import njit
 import numpy as np
 from thermosteam import Stream
 from warnings import warn
-from typing import Optional, Callable
+from typing import Optional, Callable, Hashable
 from scipy.spatial.distance import cdist
 from ._parameter import Parameter
 from .._system import System, JointRecycleData
@@ -78,12 +78,12 @@ def recycle_response(recycle, name, model):
     return response
     
 
-class RecycleResponse:
+class Response:
     __slots__ = (
-        'recycle', 'model', 'predictors',
+        'element', 'model', 'predictors',
     )
-    def __init__(self, recycle, model):
-        self.recycle = recycle
+    def __init__(self, element, model):
+        self.element = element
         self.model = model
         self.predictors = [] # Indices of predictors
     
@@ -116,71 +116,107 @@ class RecycleResponse:
     
     def filter_value(self, value):
         old_value = self.get()
-        min_value = self.min * old_value
-        max_value = self.max * old_value
-        if value < min_value:
-            value = min_value
-        elif value > max_value:
-            value = max_value
+        if (min:=self.min) is not None:
+            min_value = min * old_value
+            if value < min_value:
+                return min_value
+        if (max:=self.max) is not None:
+            max_value = max * old_value
+            if value > max_value: return max_value
         return value
     
+    def __str__(self):
+        return f"{self.element}.{self.name}"
+    
     def __repr__(self):
-        return f"{type(self).__name__}({self.recycle}, {self.model})"
+        return f"{type(self).__name__}({self.element!r})"
 
 
-class RecycleTemperature(RecycleResponse):
-    __slots__ = ()
+class GenericResponse(Response):
+    __slots__ = (
+        'name',
+        'units',
+        'max',
+        'min',
+    )
+    
+    def __init__(self, 
+            element, name, model=None, units=None, max=None, min=None
+        ):
+        self.name = name
+        self.units = units
+        self.max = max
+        self.min = min
+        super().__init__(element, model)
+        
+    def get(self):
+        return getattr(self.element, self.name)
+    
+    def set(self, value):
+        setattr(self.element, self.name, self.filter_value(value))
+    
+    def __repr__(self):
+        return f"{type(self).__name__}({self.element!r}, {self.name!r})"
+        
+
+class RecycleTemperature(Response):
+    __slots__ = (
+        'element',
+    )
+    name = 'T'
     units = 'K'
     max = 1.5
     min = 0.5
     
     def get(self):
-        return self.recycle.T
+        return self.element.T
     
     def set(self, value):
-        self.recycle.T = self.filter_value(value)
+        self.element.T = self.filter_value(value)
     
 
-class RecyclePressure(RecycleResponse):
-    __slots__ = ()
+class RecyclePressure(Response):
+    __slots__ = (
+        'element',
+    )
+    name = 'P'
     units = 'Pa'
     max = 1.5
     min = 0.5
     
     def set(self, value):
-        self.recycle.P = self.filter_value(value)
+        self.element.P = self.filter_value(value)
         
     def get(self):
-        return self.recycle.P
+        return self.element.P
 
 
-class RecycleFlow(RecycleResponse):
+class RecycleFlow(Response):
     __slots__ = (
+        'element',
         'name',
     )
     units = 'kmol/hr'
     max = 10.0
     min = 0.1
     
-    def __init__(self, recycle, name, model):
-        self.recycle = recycle
+    def __init__(self, element, name, model):
         self.name = name
-        self.model = model
-        self.predictors = [] # Indices of predictors
+        super().__init__(element, model)
         
     def set(self, value):
-        self.recycle.imol[self.name] = self.filter_value(value)
+        self.element.imol[self.name] = self.filter_value(value)
     
     def get(self):
-        return self.recycle.imol[self.name]
+        return self.element.imol[self.name]
 
     def __repr__(self):
-        return f"{type(self).__name__}({self.recycle}, {self.name!r})"
+        return f"{type(self).__name__}({self.element!r}, {self.name!r})"
 
 
-class RecycleModel:
+class ConvergencePredictionModel:
     __slots__ = (
-        'system', 
+        'system',
         'predictors', 
         'responses', 
         'data',
@@ -196,8 +232,8 @@ class RecycleModel:
         'local_weighted',
     )
     default_model_type = LinearRegressor
+    response_tolerance = 0.01
     def __init__(self, 
-            system: System,
             predictors: tuple[Parameter],
             model_type: Optional[str|Callable]=None,
             recess: Optional[int]=None, 
@@ -205,10 +241,22 @@ class RecycleModel:
             weight:  Optional[Callable]=None,
             nfits: Optional[int]=None,
             local_weighted: Optional[int]=None,
+            system: Optional[System] = None,
+            responses: Optional[dict[Hashable, Response]]=None,
+            load_responses: Optional[bool] = None,
         ):
+        if system is None:
+            systems = set([i.system for i in predictors])
+            try:
+                system, = systems
+            except:
+                if systems:
+                    raise ValueError('predictors do not share the same system')
+                else:
+                    raise ValueError('no system available')
         self.system = system
         self.predictors = predictors
-        self.responses: dict[tuple[Stream, str], RecycleResponse] = {}
+        self.responses = {} if responses is None else responses
         if model_type is None: model_type = self.default_model_type
         if isinstance(model_type, str):
             model_type = model_type.lower()
@@ -253,10 +301,10 @@ class RecycleModel:
         self.recess = recess
         self.distance = distance
         self.fitted = False
-        self.load_responses(model_type)
         self.weight = weight
         self.nfits = nfits
         self.local_weighted = local_weighted
+        if load_responses: self.load_responses()
         
     def fitted_responses(self):
         data = self.data
@@ -412,26 +460,30 @@ class RecycleModel:
         # print(self.R2(10)[0])
         del self.case_study
         
-    def evaluate_parameters(self, sample, default=None, **kwargs):
+    def evaluate_system_convergence(self, sample, default=None, **kwargs):
+        system = self.system
         for p, value in zip(self.predictors, sample):
             if p.scale is not None: value *= p.scale
             p.setter(value)
         try:
-            self.system.simulate(design_and_cost=False, **kwargs)
-            return self.system.get_recycle_data()
+            system.simulate(design_and_cost=False, **kwargs)
         except:
-            self.system.empty_recycles()
-            return default
+            system.empty_recycles()
+            recycles_data = default
+        else:
+            recycles_data = system.get_recycle_data()
+        return recycles_data
         
-    def load_responses(self, model_type): 
+    def load_responses(self): 
         """
-        Select responses and their respective predictors through single point 
+        Select material responses and their respective predictors through single point 
         sensitivity. Also store the simulation data for fitting later.
-        """        
+        """
         predictors = self.predictors
-        system = self.system
+        responses = self.responses
         bounds = [i.bounds for i in predictors]
         sample = [i.baseline for i in predictors]
+        system = self.system
         N_predictors = len(predictors)
         self.predictors_lb = predictors_lb = np.zeros(N_predictors)
         self.predictors_range = predictors_range = np.zeros(N_predictors)
@@ -439,7 +491,7 @@ class RecycleModel:
             predictors_lb[i] = lb
             predictors_range[i] = ub - lb
         index = range(len(predictors))
-        evaluate = self.evaluate_parameters
+        evaluate = self.evaluate_system_convergence        
         baseline_1 = evaluate(sample)
         values = []
         values_at_bounds = []
@@ -475,7 +527,7 @@ class RecycleModel:
         index, = np.where(error > system.molar_tolerance)
         error = error[index]
         relative_error = error / np.maximum.reduce([np.abs(arr1[index]), np.abs(arr2[index])])
-        tol = 0.01 + system.relative_molar_tolerance
+        tol = self.response_tolerance
         bad_index = [i for i, bad in enumerate(relative_error > tol) if bad]
         if bad_index:
             keys = baseline_1.get_keys()
@@ -493,8 +545,8 @@ class RecycleModel:
             )
         else:
             bad_keys = set()
-        responses = self.add_sensitive_reponses(
-            baseline_1, values_at_bounds, tol, model_type, bad_keys
+        self.add_sensitive_reponses(
+            baseline_1, values_at_bounds, tol, bad_keys
         )
         self.data = data = {'samples': [], 'case studies': []}
         for name in ('actual', 'predicted', 'null'): 
@@ -503,29 +555,29 @@ class RecycleModel:
         
     def add_sensitive_reponses(self, 
             baseline: JointRecycleData,
-            bounds: tuple[JointRecycleData], 
-            tol: float,
-            model_type: object,
+            bounds: tuple[JointRecycleData],
             exclude_responses: set[tuple[Stream, str]],
         ):
+        model_type = self.model_type
         responses = self.responses
-        baseline_dct = baseline.to_dict()
+        baseline = baseline.to_dict()
         for p, (lb, ub) in enumerate(bounds):
             if lb is baseline is ub: continue
-            recycle_data = (lb.to_dict(), baseline_dct, ub.to_dict())
+            recycle_data = (lb.to_dict(), baseline, ub.to_dict())
             keys = set()
             for i in recycle_data: keys.update(i)
             for key in keys:
                 if key in exclude_responses: continue
                 values = [dct[key] for dct in recycle_data if key in dct]
                 mean = np.mean(values)
-                if any([(i - mean) / mean > tol for i in values]):
+                if any([(i - mean) / mean > self.response_tolerance for i in values]):
                     if key in responses:
                         response = responses[key]
                     else:
                         responses[key] = response = recycle_response(*key, model_type())
                     response.predictors.append(p)
-        return responses
+        for response in responses.values():
+            if response.model is None: response.model = model_type()
         
     def append_data(self, sample, recycle_data=None):
         data = self.data
@@ -535,7 +587,7 @@ class RecycleModel:
             for key, response in self.responses.items():
                 actual[key].append(response.get())
         else:
-            for key, value in recycle_data.to_tuples(): 
+            for key, value in recycle_data.to_dict().items(): 
                 if key in actual: actual[key].append(value)
             
     def extend_data(self, samples, recycle_data):

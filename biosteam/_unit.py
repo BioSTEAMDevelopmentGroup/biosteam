@@ -62,7 +62,9 @@ class ProcessSpecification:
             else: i.converge() # Must be a system
             
     def compile_path(self, unit):
-        impacted_units = self.impacted_units
+        upstream_units = unit.get_upstream_units()
+        # For upstream units, recycle loops will take care of it.
+        impacted_units = [i for i in self.impacted_units if i not in upstream_units]
         self.path = unit.path_from(impacted_units, system=unit._system) if impacted_units else ()
         
     def create_temporary_connections(self, unit):
@@ -73,13 +75,13 @@ class ProcessSpecification:
         if impacted_units:
             downstream_units = unit.get_downstream_units()
             upstream_units = unit.get_upstream_units()
-            connected_units = upstream_units | downstream_units
             for other in impacted_units:
-                if other not in connected_units:
+                if other in upstream_units or other not in downstream_units:
                     bst.temporary_connection(unit, other)
             
     def __repr__(self):
         return f"{type(self).__name__}(f={display_asfunctor(self.f)}, args={self.args}, impacted_units={self.impacted_units})"
+
 
 # %% Typing
 
