@@ -16,8 +16,7 @@ import pandas as pd
 from ._state import State
 from ._metric import Metric
 from ._feature import MockFeature
-from ._parameter import Parameter
-from ._convergence_prediction_model import RecycleModel
+from ._prediction import ConvergencePredictionModel
 from ._utils import var_indices, var_columns, indices_to_multiindex
 from biosteam.exceptions import FailedEvaluation
 from warnings import warn
@@ -382,7 +381,9 @@ class Model(State):
         autoload : bool, optional
             Whether to load pickled evaluation results from file.
         convergence_prediction_model : ConvergencePredictionModel, optional
-            A prediction model for accelerated system convergence.
+            A prediction model for accelerated system convergence. Defaults
+            to linear regression if the number of samples is greater than the
+            squared of the number of parameters.
         kwargs : dict
             Any keyword arguments passed to :func:`biosteam.System.simulate`.
         
@@ -427,7 +428,8 @@ class Model(State):
             number = 0
             index = self._index
             values = [None] * N_samples
-        
+        if convergence_prediction_model is None and N_samples - number > len([i for i in self.parameters if i.kind == 'coupled']) ** 2:
+            convergence_prediction_model = ConvergencePredictionModel(self.parameters)
         export = 'export_state_to' in kwargs
         layout = table.index, table.columns
         try:

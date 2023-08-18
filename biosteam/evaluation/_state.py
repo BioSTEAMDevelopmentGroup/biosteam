@@ -354,12 +354,11 @@ class State:
             samples = sampler.sample(problem, N=N, **kwargs)
         return samples
     
-    def _update_state(self, sample, recycle_model=None, 
-                      **kwargs):
+    def _update_state(self, sample, convergence_prediction_model=None, **kwargs):
         for f, s in zip(self._parameters, sample): 
             f.setter(s if f.scale is None else f.scale * s)
-        if recycle_model:
-            with recycle_model.practice(sample):
+        if convergence_prediction_model:
+            with convergence_prediction_model.practice(sample):
                 return self._specification() if self._specification else self._system.simulate(**kwargs)
         else:
             return self._specification() if self._specification else self._system.simulate(**kwargs)

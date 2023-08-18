@@ -16,6 +16,11 @@ from scipy.spatial.distance import cdist
 from ._parameter import Parameter
 from .._system import System, JointRecycleData
 
+__all__ = (
+    'GenericResponse',
+    'ConvergencePredictionModel',
+)
+
 @njit(cache=True)
 def pearson_correlation_coefficient(X, y):
     n_predictors = X.shape[1]
@@ -310,7 +315,7 @@ class ConvergencePredictionModel:
         self.weight = weight
         self.nfits = nfits
         self.local_weighted = local_weighted
-        if load_responses: self.load_responses()
+        if load_responses is None or load_responses: self.load_responses()
         
     def fitted_responses(self):
         data = self.data
@@ -365,7 +370,7 @@ class ConvergencePredictionModel:
         mean = sum(results.values()) / len(results)
         lb = min(results.values())
         ub = max(results.values())
-        return (lb, mean, ub), results
+        return {'min': lb, 'mean': mean, 'max': ub}, results
     
     def R2_null(self, last=None):
         return self._R2('null', last)
@@ -463,6 +468,7 @@ class ConvergencePredictionModel:
         #     sum(total) / len(total) / n
         # )
         # print(self.R2(10)[0])
+        # breakpoint()
         del self.case_study
         
     def evaluate_system_convergence(self, sample, default=None, **kwargs):

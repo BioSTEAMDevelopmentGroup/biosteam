@@ -180,24 +180,24 @@ class RecycleData:
 class JointRecycleData:
     __slots__ = ('recycle_data', 'responses')
     def __init__(self, recycles, responses):
-        self.reycle_data = [RecycleData(i) for i in recycles]
+        self.recycle_data = [RecycleData(i) for i in recycles]
         self.responses = {i: i.get() for i in responses}
     
     def get_keys(self):
         lst = []
-        for i in self.reycle_data: i.get_keys(lst)
+        for i in self.recycle_data: i.get_keys(lst)
         lst.extend(self.responses)
         return lst
     
     def get_names(self):
         lst = []
-        for i in self.reycle_data: i.get_names(lst)
+        for i in self.recycle_data: i.get_names(lst)
         lst.extend([str(i) for i in self.responses])
         return lst
     
     def to_dict(self):
         dct = {}
-        for i in self.reycle_data: i.to_dict(dct)
+        for i in self.recycle_data: i.to_dict(dct)
         for i, j in self.responses.items(): dct[i] = j
         return dct
     
@@ -206,13 +206,13 @@ class JointRecycleData:
     
     def to_tuples(self):
         lst = []
-        for i in self.reycle_data: i.to_tuples(lst)
+        for i in self.recycle_data: i.to_tuples(lst)
         for i, j in self.responses.items(): lst.append((i, j))
         return lst
     
     def to_list(self):
         lst = []
-        for i in self.reycle_data: i.to_list(lst)
+        for i in self.recycle_data: i.to_list(lst)
         for i in self.responses.values(): lst.append(i)
         return lst
     
@@ -220,10 +220,10 @@ class JointRecycleData:
         return np.array(self.to_list())
     
     def reset(self):
-        for i in self.reycle_data: i.reset()
+        for i in self.recycle_data: i.reset()
         
     def update(self):
-        for i in self.reycle_data: i.update()
+        for i in self.recycle_data: i.update()
 
     def __repr__(self):
         recycles = ', '.join([str(i.recycle) for i in self.recycles])
@@ -553,6 +553,8 @@ class System:
         '_running_specifications',
         '_simulation_default_arguments',
         '_simulation_outputs',
+        # Convergence prediction
+        'responses',
         # Dynamic simulation
         '_isdynamic',
         '_state',
@@ -820,7 +822,7 @@ class System:
         self.simulate_after_specifications = False
 
         #: Responses that need to converge.
-        self.responses = responses
+        self.responses = [] if responses is None else responses
         
         self._set_path(path)
         self._specifications = []
