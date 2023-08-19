@@ -459,7 +459,7 @@ class ConvergenceModel:
         # print(
         #     sum(total) / len(total) / n
         # )
-        print(self.R2(10)[0])
+        # print(self.R2()[0])
         # breakpoint()
         
     def evaluate_system_convergence(self, sample, default=None, **kwargs):
