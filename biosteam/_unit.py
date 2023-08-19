@@ -487,7 +487,7 @@ class Unit:
         #: value.
         self.parallel: dict[str, int] = {}
         
-        #: Unit design decision that must be solved to satisfy specifications.
+        #: Unit design decisions that must be solved to satisfy specifications.
         #: While adding responses is optional, simulations benefit from responses
         #: by being able to predict better guesses.
         self.responses: set[bst.GenericResponse] = set()
