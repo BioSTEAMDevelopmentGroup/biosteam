@@ -18,7 +18,8 @@ from .._system import System, JointRecycleData
 
 __all__ = (
     'GenericResponse',
-    'ConvergencePredictionModel',
+    'ConvergenceModel',
+    'NullConvergenceModel',
 )
 
 @njit(cache=True)
@@ -223,9 +224,9 @@ class RecycleFlow(Response):
 
     def __repr__(self):
         return f"{type(self).__name__}({self.element!r}, {self.name!r})"
+    
 
-
-class ConvergencePredictionModel:
+class ConvergenceModel:
     __slots__ = (
         'system',
         'predictors', 
@@ -253,7 +254,7 @@ class ConvergencePredictionModel:
             nfits: Optional[int]=None,
             local_weighted: Optional[int]=None,
             system: Optional[System] = None,
-            responses: Optional[list[Response]]=None,
+            responses: Optional[set[Response]]=None,
             load_responses: Optional[bool] = None,
         ):
         if system is None:
@@ -267,7 +268,7 @@ class ConvergencePredictionModel:
                     raise ValueError('no system available')
         self.system = system
         self.predictors = predictors
-        self.responses = [] if responses is None else responses
+        self.responses = set() if responses is None else responses
         if model_type is None: model_type = self.default_model_type
         if isinstance(model_type, str):
             model_type = model_type.lower()
@@ -333,15 +334,12 @@ class ConvergencePredictionModel:
         return fitted
     
     def R2(self, last=None):
-        null, null_dct = self.R2_null(last)
         predicted, predicted_dct = self.R2_predicted(last)
         fitted, fitted_dct = self.R2_fitted()
         return (
-            {'null': null,
-             'predicted': predicted,
+            {'predicted': predicted,
              'fitted': fitted},
-            {'null': null_dct,
-             'predicted': predicted_dct,
+            {'predicted': predicted_dct,
              'fitted': fitted_dct},   
         )
             
@@ -357,9 +355,9 @@ class ConvergencePredictionModel:
         predicted = self.fitted_responses() if fitted else data[dataset]
         for response in self.responses:
             name = str(response)
-            y_actual = np.array(actual[response]) 
-            if not fitted: y_actual = y_actual[case_studies]
+            y_actual = np.array(actual[response])[case_studies]
             y_predicted = np.array(predicted[response])
+            if fitted: y_predicted = y_predicted[case_studies]
             if last is not None:
                 y_actual = y_actual[-last:]
                 y_predicted = y_predicted[-last:]
@@ -371,9 +369,6 @@ class ConvergencePredictionModel:
         lb = min(results.values())
         ub = max(results.values())
         return {'min': lb, 'mean': mean, 'max': ub}, results
-    
-    def R2_null(self, last=None):
-        return self._R2('null', last)
         
     def R2_predicted(self, last=None):
         return self._R2('predicted', last)
@@ -412,16 +407,15 @@ class ConvergencePredictionModel:
         
     def __enter__(self):
         data = self.data
-        null_responses = data['null']
         predicted = data['predicted']
         actual = data['actual']
         sample_list = data['samples']
         samples = np.array(sample_list)
         case_study = self.case_study
         n_samples = len(sample_list)
+        sample_list.append(case_study)
         if self.local_weighted:
             for response in self.responses:
-                null_responses[response].append(response.get())
                 prediction = response.predict_locally(
                     samples, np.array(actual[response]), case_study, 
                     self.predictors_lb, self.predictors_range, self.distance,
@@ -430,33 +424,31 @@ class ConvergencePredictionModel:
                 response.set(prediction)
                 predicted[response].append(prediction)
         elif (not n_samples % (self.recess + 1)  # Recess is over
-              and self.nfits is not None
-              and self.fitted < self.nfits):
+              and (self.nfits is None or self.fitted < self.nfits)):
             self.fitted += 1
             for response in self.responses:
-                null_responses[response].append(response.get())
                 response.fit(samples, np.array(actual[response]))
                 prediction = response.predict(case_study) 
                 response.set(prediction)
                 predicted[response].append(prediction)
-        else:
+        elif self.fitted:
             for response in self.responses:
-                null = response.get()
-                null_responses[response].append(null)
-                if self.fitted:
-                    prediction = response.predict(case_study) 
-                    response.set(prediction)
-                else:
-                    prediction = null
+                prediction = response.predict(case_study) 
+                response.set(prediction)
                 predicted[response].append(prediction)
+        else:
+            return
         data['case studies'].append(n_samples)
-        sample_list.append(case_study)
     
     def __exit__(self, type, exception, traceback, total=[]):
+        del self.case_study
         data = self.data
-        samples = data['samples']
-        if exception: 
-            del samples[-1]
+        if exception and self.fitted:
+            del data['samples'][-1]
+            del data['case studies'][-1]
+            predicted = data['predicted']
+            for response in self.responses:
+                del predicted[response][-1]
             raise exception
         actual = data['actual']
         for response in self.responses:
@@ -467,9 +459,8 @@ class ConvergencePredictionModel:
         # print(
         #     sum(total) / len(total) / n
         # )
-        # print(self.R2(10)[0])
+        print(self.R2(10)[0])
         # breakpoint()
-        del self.case_study
         
     def evaluate_system_convergence(self, sample, default=None, **kwargs):
         system = self.system
@@ -560,7 +551,7 @@ class ConvergencePredictionModel:
             baseline_1, values_at_bounds, bad_keys
         )
         self.data = data = {'samples': [], 'case studies': []}
-        for name in ('actual', 'predicted', 'null'): 
+        for name in ('actual', 'predicted'): 
             data[name] = {key: [] for key in responses}
         self.extend_data(samples, values)
         
@@ -582,12 +573,12 @@ class ConvergencePredictionModel:
                 if key in exclude_responses: continue
                 values = [dct.get(key, 0.) for dct in recycle_data]
                 mean = np.mean(values)
-                if any([(i - mean) / mean > self.response_tolerance for i in values]):
+                if any([(i - mean) > mean * self.response_tolerance for i in values]):
                     if key in responses_dct:
                         response = responses_dct[key]
                     else:
                         responses_dct[key] = response = recycle_response(*key, model_type())
-                        responses.append(response)
+                        responses.add(response)
                     response.predictors.append(p)
         for response in responses:
             if response.model is None: response.model = model_type()
@@ -617,3 +608,100 @@ class ConvergencePredictionModel:
         for response in self.responses:
             prediction = response.predict(sample)
             response.set(prediction)
+            
+
+class NullConvergenceModel:
+    __slots__ = (
+        'system',
+        'predictors', 
+        'responses', 
+        'data',
+        'case_study',
+    )
+    response_tolerance = 0.01
+    practice = ConvergenceModel.practice
+    evaluate_system_convergence = ConvergenceModel.evaluate_system_convergence
+    load_responses = ConvergenceModel.load_responses
+    add_sensitive_reponses = ConvergenceModel.add_sensitive_reponses
+    append_data = ConvergenceModel.append_data
+    extend_data = ConvergenceModel.extend_data
+    
+    def __init__(self, 
+            predictors: tuple[Parameter],
+            system: Optional[System] = None,
+            responses: Optional[set[Response]]=None,
+            load_responses: Optional[bool] = None,
+        ):
+        if system is None:
+            systems = set([i.system for i in predictors])
+            try:
+                system, = systems
+            except:
+                if systems:
+                    raise ValueError('predictors do not share the same system')
+                else:
+                    raise ValueError('no system available')
+        self.system = system
+        self.predictors = predictors
+        self.responses = set() if responses is None else responses
+        if load_responses is None or load_responses: self.load_responses()
+    
+    def model_type(self): return None
+    
+    def R2(self, last=None):
+        results = {}
+        data = self.data
+        actual = data['actual']
+        case_studies = data['case studies']
+        null_responses = data['null']
+        for response in self.responses:
+            name = str(response)
+            y_actual = np.array(actual[response]) 
+            y_actual = y_actual[case_studies]
+            y_predicted = np.array(null_responses[response])
+            if last is not None:
+                y_actual = y_actual[-last:]
+                y_predicted = y_predicted[-last:]
+            results[name] = R2(
+                y_actual,
+                y_predicted,
+            )
+        mean = sum(results.values()) / len(results)
+        lb = min(results.values())
+        ub = max(results.values())
+        return {'min': lb, 'mean': mean, 'max': ub}, results
+        
+    def __enter__(self):
+        data = self.data
+        null_responses = data['null']
+        sample_list = data['samples']
+        n_samples = len(sample_list)
+        sample_list.append(self.case_study)
+        for response in self.responses:
+            null_responses[response].append(response.get())
+        data['case studies'].append(n_samples)
+    
+    def __exit__(self, type, exception, traceback, total=[]):
+        del self.case_study
+        data = self.data
+        if exception: 
+            data = self.data
+            if exception and self.fitted:
+                del data['samples'][-1]
+                del data['case studies'][-1]
+                null_responses = data['null']
+                for response in self.responses:
+                    del null_responses[response][-1]
+                raise exception
+        actual = data['actual']
+        for response in self.responses:
+            actual[response].append(response.get())
+        # systems = self.system.subsystems
+        # n = len(systems)
+        # total.append(sum([i._iter for i in systems]))
+        # print(
+        #     sum(total) / len(total) / n
+        # )
+        # print(self.R2(10)[0])
+        # breakpoint()
+    

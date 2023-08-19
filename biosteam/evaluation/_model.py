@@ -16,7 +16,7 @@ import pandas as pd
 from ._state import State
 from ._metric import Metric
 from ._feature import MockFeature
-from ._prediction import ConvergencePredictionModel
+from ._prediction import ConvergenceModel
 from ._utils import var_indices, var_columns, indices_to_multiindex
 from biosteam.exceptions import FailedEvaluation
 from warnings import warn
@@ -56,7 +56,7 @@ class Model(State):
     __slots__ = (
         'table',            # [DataFrame] All arguments and results.
         'retry_evaluation', # [bool] Whether to retry evaluation if it fails
-        'convergence_prediction_model',    # [RecycleModel] Prediction model for recycle convergence.
+        'convergence_model',# [ConvergenceModel] Prediction model for recycle convergence.
         '_metrics',         # tuple[Metric] Metrics to be evaluated by model.
         '_index',           # list[int] Order of sample evaluation for performance.
         '_samples',         # [array] Argument sample space.
@@ -366,7 +366,7 @@ class Model(State):
         table[var_indices(metrics)] = replace_nones(values, [np.nan] * len(metrics))
     
     def evaluate(self, notify=0, file=None, autosave=0, autoload=False,
-                 convergence_prediction_model=None, **kwargs):
+                 convergence_model=None, **kwargs):
         """
         Evaluate metrics over the loaded samples and save values to `table`.
         
@@ -380,10 +380,12 @@ class Model(State):
             If 1 or greater, save pickled evaluation results after the given number of sample evaluations.
         autoload : bool, optional
             Whether to load pickled evaluation results from file.
-        convergence_prediction_model : ConvergencePredictionModel, optional
+        convergence_model : ConvergencePredictionModel, optional
             A prediction model for accelerated system convergence. Defaults
             to linear regression if the number of samples is greater than the
-            squared of the number of parameters.
+            squared of the number of parameters. To use the last solution
+            as the initial guess for the next scenario, pass either False or an 
+            instance of NullConvergenceModel.
         kwargs : dict
             Any keyword arguments passed to :func:`biosteam.System.simulate`.
         
@@ -401,9 +403,9 @@ class Model(State):
             timer = TicToc()
             timer.tic()
             count = [0]
-            def evaluate(sample, convergence_prediction_model, count=count, **kwargs):
+            def evaluate(sample, convergence_model, count=count, **kwargs):
                 count[0] += 1
-                values = evaluate_sample(sample, convergence_prediction_model, **kwargs)
+                values = evaluate_sample(sample, convergence_model, **kwargs)
                 if not count[0] % notify:
                     print(f"{count} Elapsed time: {timer.elapsed_time:.0f} sec")
                 return values
@@ -428,14 +430,14 @@ class Model(State):
             number = 0
             index = self._index
             values = [None] * N_samples
-        if convergence_prediction_model is None and N_samples - number > len([i for i in self.parameters if i.kind == 'coupled']) ** 2:
-            convergence_prediction_model = ConvergencePredictionModel(self.parameters)
+        if convergence_model is None and N_samples - number > len([i for i in self.parameters if i.kind == 'coupled']) ** 2:
+            convergence_model = ConvergenceModel(self.parameters)
         export = 'export_state_to' in kwargs
         layout = table.index, table.columns
         try:
             for number, i in enumerate(index, number + 1): 
                 if export: kwargs['sample_id'] = i
-                values[i] = evaluate(samples[i], convergence_prediction_model, **kwargs)
+                values[i] = evaluate(samples[i], convergence_model, **kwargs)
                 if autosave and not number % autosave: 
                     obj = (number, values, *layout)
                     try:
@@ -448,17 +450,17 @@ class Model(State):
         finally:
             table[var_indices(self._metrics)] = replace_nones(values, [np.nan] * len(self.metrics))
     
-    def _evaluate_sample(self, sample, convergence_prediction_model=None, **kwargs):
+    def _evaluate_sample(self, sample, convergence_model=None, **kwargs):
         state_updated = False
         try:
-            self._update_state(sample, convergence_prediction_model, **kwargs)
+            self._update_state(sample, convergence_model, **kwargs)
             state_updated = True
             return [i() for i in self.metrics]
         except Exception as exception:
             if self.retry_evaluation and not state_updated:
                 self._reset_system()
                 try:
-                    self._update_state(sample, convergence_prediction_model, **kwargs)
+                    self._update_state(sample, convergence_model, **kwargs)
                     return [i() for i in self.metrics]
                 except Exception as new_exception: 
                     exception = new_exception
@@ -487,7 +489,7 @@ class Model(State):
     
     def evaluate_across_coordinate(self, name, f_coordinate, coordinate,
                                    *, xlfile=None, notify=0, notify_coordinate=True,
-                                   multi_coordinate=False, convergence_prediction_model=None,
+                                   multi_coordinate=False, convergence_model=None,
                                    f_evaluate=None):
         """
         Evaluate across coordinate and save sample metrics.
@@ -527,7 +529,7 @@ class Model(State):
         metric_data = None
         for n, x in enumerate(coordinate):
             f_coordinate(*x) if multi_coordinate else f_coordinate(x)
-            evaluate(notify=notify, convergence_prediction_model=convergence_prediction_model)
+            evaluate(notify=notify, convergence_model=convergence_model)
             # Initialize data containers dynamically in case samples are loaded during evaluation
             if metric_data is None:
                 N_samples, _ = self.table.shape

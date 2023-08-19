@@ -487,6 +487,11 @@ class Unit:
         #: value.
         self.parallel: dict[str, int] = {}
         
+        #: Unit design decision that must be solved to satisfy specifications.
+        #: While adding responses is optional, simulations benefit from responses
+        #: by being able to predict better guesses.
+        self.responses: set[bst.GenericResponse] = set()
+        
         self._assert_compatible_property_package()
         
         self._utility_cost = None
@@ -555,7 +560,11 @@ class Unit:
                 
         for obj in self.__dict__.values(): reset_thermo(obj)
             
-                        
+    def response(self, name):
+        self.responses.add(
+            bst.GenericResponse(self, name)
+        )
+            
     @property
     def net_power(self) -> float:
         """Net power consumption [kW]."""

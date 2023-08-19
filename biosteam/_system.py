@@ -257,8 +257,8 @@ def set_recycle_data(stream, arr):
     TP = stream._thermal_condition
     T = float(arr[0]) # ndfloat objects are slow and parasitic (don't go away)
     P = float(arr[1])
-    TP._T = (T + TP._T) * 0.5 if T == 0 else T
-    TP._P = (P + TP._P) * 0.5 if P == 0. else P
+    TP._T =  TP._T * 0.5 if T == 0 else T
+    TP._P = TP._P * 0.5 if P == 0. else P
     
    
 # %% System creation tools
@@ -554,7 +554,7 @@ class System:
         '_simulation_default_arguments',
         '_simulation_outputs',
         # Convergence prediction
-        'responses',
+        '_responses',
         # Dynamic simulation
         '_isdynamic',
         '_state',
@@ -821,9 +821,6 @@ class System:
         #: Whether to simulate system after running all specifications.
         self.simulate_after_specifications = False
 
-        #: Responses that need to converge.
-        self.responses = [] if responses is None else responses
-        
         self._set_path(path)
         self._specifications = []
         self._running_specifications = False
@@ -842,10 +839,16 @@ class System:
         self.dynsim_kwargs = {}
         self.tracked_recycles = {}
 
-    def response(self, element, name, model=None):
-        self.responses.append(
-            bst.GenericResponse(element, name, model)
-        )
+    @property
+    def responses(self):
+        """Unit design decisions that need to converge to satisfy
+        process specifications."""
+        try:
+            return self._responses
+        except:
+            self._responses = responses = []
+            for unit in self.units: responses.extend(unit.responses)
+            return responses
 
     def track_recycle(self, recycle: Stream, collector: list[Stream]=None):
         if not isinstance(recycle, Stream):
