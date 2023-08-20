@@ -13,6 +13,7 @@ from thermosteam import Stream
 from warnings import warn
 from typing import Optional, Callable
 from scipy.spatial.distance import cdist
+from itertools import combinations
 from ._parameter import Parameter
 from .._system import System, JointRecycleData
 
@@ -120,6 +121,10 @@ fast_fit_model_types = set([
     InterceptLinearRegressor, 
     Average
 ])
+linear_model_types = set([
+    LinearRegressor, 
+    InterceptLinearRegressor, 
+])
     
 def recycle_response(recycle, name, model):
     if name == 'T':
@@ -155,17 +160,13 @@ class Response:
         )
     
     def predict_locally(
-            self, x, X, y, distance, weight, x_min, x_range,
+            self, x, X, y, distance, weight
         ):
         index = self.predictors
         x = x[None, index]
         X = X[:, index]
         model = self.model
-        x_min = x_min[index]
-        x_range = x_range[index]
-        X_norm = (X - x_min) / x_range
-        x_norm = (x - x_min) / x_range
-        distances = cdist(x_norm, X_norm, metric=distance)
+        distances = cdist(x, X, metric=distance)
         exact_match = distances == 0
         if exact_match.any(): return y[exact_match[0]].mean()
         w = np.sqrt(weight(distances))
@@ -287,11 +288,15 @@ class ConvergenceModel:
         'recess',
         'distance',
         'fitted',
-        'predictors_lb',
-        'predictors_range',
+        'sample_length',
+        'sample_min',
+        'sample_range',
         'weight',
         'nfits',
         'local_weighted',
+        'normalization',
+        'interaction_pairs',
+        'predictor_index',
     )
     default_model_type = LinearRegressor
     response_tolerance = 0.01
@@ -305,6 +310,8 @@ class ConvergenceModel:
             local_weighted: Optional[int]=None,
             system: Optional[System] = None,
             responses: Optional[set[Response]]=None,
+            interaction_pairs: Optional[bool] = None,
+            normalization: Optional[bool] = None,
             load_responses: Optional[bool] = None,
         ):
         if system is None:
@@ -317,7 +324,6 @@ class ConvergenceModel:
                 else:
                     raise ValueError('no system available')
         self.system = system
-        self.predictors = predictors
         self.responses = set() if responses is None else responses
         if model_type is None: model_type = self.default_model_type
         if isinstance(model_type, str):
@@ -351,12 +357,15 @@ class ConvergenceModel:
                 recess = 0
             else:
                 recess = 5 * sum([i.kind == 'coupled' for i in predictors])
+        if interaction_pairs is None:
+            interaction_pairs = False
         if local_weighted is None:
             if model_type in fast_fit_model_types:
                 local_weighted = True
             else:
                 local_weighted = False
         if local_weighted:
+            if normalization is None: normalization = model_type in linear_model_types
             if distance is None: distance = 'cityblock'
             if recess: raise ValueError('local weighted recycle model cannot recess')
             if nfits: raise ValueError('local weighted recycle model must fit every time; cannot pass nfits argument')
@@ -368,7 +377,30 @@ class ConvergenceModel:
         self.weight = weight
         self.nfits = nfits
         self.local_weighted = local_weighted
+        self.interaction_pairs = interaction_pairs
+        self.normalization = normalization
+        self.load_predictors(predictors)
         if load_responses is None or load_responses: self.load_responses()
+        
+    def add_interactions(self, sample):
+        n = len(sample)
+        new_sample = np.zeros(self.sample_length)
+        new_sample[:n] = sample
+        for i, (a, b) in self.interaction_pairs:
+            new_sample[i] = sample[a] * sample[b]
+        return new_sample
+    
+    def normalize_sample(self, sample):
+        return (sample - self.sample_min) / self.sample_range
+    
+    def reframe_sample(self, sample):
+        if self.predictor_index is not None:
+            sample = np.asarray(sample)[self.predictor_index]
+        if self.interaction_pairs:
+            sample = self.add_interactions(sample)
+        if self.normalization:
+            sample = self.normalize_sample(sample)
+        return sample
         
     def fitted_responses(self):
         data = self.data
@@ -455,7 +487,7 @@ class ConvergenceModel:
         Does nothing if not used in with statement containing simulation.
         
         """
-        self.case_study = case_study
+        self.case_study = self.reframe_sample(case_study)
         return self
         
     def __enter__(self):
@@ -471,7 +503,6 @@ class ConvergenceModel:
                 prediction = response.predict_locally(
                     case_study, samples, np.array(actual[response]),
                     self.distance, self.weight,
-                    self.predictors_lb, self.predictors_range, 
                 )
                 response.set(prediction)
                 predicted[response].append(prediction)
@@ -512,6 +543,7 @@ class ConvergenceModel:
         # print(
         #     sum(total) / len(total) / n
         # )
+        print(self.R2()[0])
         # if self.fitted: 
         #     print(self.R2()[0])
         # else:
@@ -531,7 +563,36 @@ class ConvergenceModel:
         else:
             recycles_data = system.get_recycle_data()
         return recycles_data
-        
+       
+    def load_predictors(self, predictors):
+        predictor_index = np.array([i.kind == 'coupled' for i in predictors])
+        self.predictor_index = None if predictor_index.all() else np.where(predictor_index)[0]
+        self.predictors = predictors = [i for i in predictors if i.kind == 'coupled']
+        bounds = [i.bounds for i in predictors]
+        n = len(predictors)
+        if self.interaction_pairs:
+            self.interaction_pairs = interaction_pairs = [*enumerate(combinations(range(n), 2), n)]
+            self.sample_length = sample_length = int(n * (n - 1) / 2) + n
+        else:
+            self.interaction_pairs = ()
+        if self.normalization:
+            if self.interaction_pairs:
+                self.sample_min = sample_min = np.zeros(sample_length)
+                self.sample_range = sample_range = np.zeros(sample_length)
+                for i, (lb, ub) in enumerate(bounds):
+                    sample_min[i] = lb
+                    sample_range[i] = ub - lb
+                for i, (a, b) in interaction_pairs:
+                    sample_min[i] = lb = sample_min[a] * sample_min[b]
+                    ub = bounds[a][1] * bounds[b][1]
+                    sample_range[i] = ub - lb
+            else:
+                self.sample_min = sample_min = np.zeros(n)
+                self.sample_range = sample_range = np.zeros(n)
+                for i, (lb, ub) in enumerate(bounds):
+                    sample_min[i] = lb
+                    sample_range[i] = ub - lb
+    
     def load_responses(self): 
         """
         Select material responses and their respective predictors through single point 
@@ -542,24 +603,12 @@ class ConvergenceModel:
         bounds = [i.bounds for i in predictors]
         sample = [i.baseline for i in predictors]
         system = self.system
-        N_predictors = len(predictors)
-        self.predictors_lb = predictors_lb = np.zeros(N_predictors)
-        self.predictors_range = predictors_range = np.zeros(N_predictors)
-        for i, (lb, ub) in enumerate(bounds):
-            predictors_lb[i] = lb
-            predictors_range[i] = ub - lb
-        index = range(len(predictors))
         evaluate = self.evaluate_system_convergence        
         baseline_1 = evaluate(sample)
         values = []
         values_at_bounds = []
         samples = [sample]
         for i, p in enumerate(predictors):
-            if p.kind != 'coupled': 
-                values_at_bounds.append(
-                    (baseline_1, baseline_1)
-                )
-                continue
             sample_lb = sample.copy()
             sample_ub = sample.copy()
             lb, ub = bounds[i]
@@ -609,7 +658,10 @@ class ConvergenceModel:
         self.data = data = {'samples': [], 'case studies': []}
         for name in ('actual', 'predicted'): 
             data[name] = {key: [] for key in responses}
+        predictor_index  = self.predictor_index 
+        self.predictor_index = None
         self.extend_data(samples, values)
+        self.predictor_index = predictor_index
         
     def add_sensitive_reponses(self, 
             baseline: JointRecycleData,
@@ -636,13 +688,19 @@ class ConvergenceModel:
                         responses_dct[key] = response = recycle_response(*key, model_type())
                         responses.add(response)
                     response.predictors.append(p)
+        interaction_pairs = self.interaction_pairs
         for response in responses:
+            predictors_set = set(response.predictors)
+            response.predictors.extend(
+                [i for i, (a, b) in interaction_pairs
+                 if a in predictors_set and b in predictors_set]
+            )
             if response.model is None: response.model = model_type()
         
     def append_data(self, sample, recycle_data=None):
         data = self.data
         actual = data['actual']
-        data['samples'].append(sample)
+        data['samples'].append(self.reframe_sample(sample))
         if recycle_data is None: 
             for response in self.responses:
                 actual[response].append(response.get())
@@ -732,7 +790,7 @@ class NullConvergenceModel:
         null_responses = data['null']
         sample_list = data['samples']
         n_samples = len(sample_list)
-        sample_list.append(self.case_study)
+        sample_list.append(self.reframe_sample(self.case_study))
         for response in self.responses:
             null_responses[response].append(response.get())
         data['case studies'].append(n_samples)
@@ -758,6 +816,6 @@ class NullConvergenceModel:
         # print(
         #     sum(total) / len(total) / n
         # )
-        # print(self.R2(10)[0])
+        print(self.R2(10)[0])
         # breakpoint()
     
