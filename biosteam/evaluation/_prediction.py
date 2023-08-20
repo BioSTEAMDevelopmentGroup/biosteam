@@ -376,7 +376,7 @@ class ConvergenceModel:
         self.fitted = 0
         self.weight = weight
         self.nfits = nfits
-        self.local_weighted = local_weighted
+        self.local_weighted = False
         self.interaction_pairs = interaction_pairs
         self.normalization = normalization
         self.load_predictors(predictors)
@@ -543,7 +543,7 @@ class ConvergenceModel:
         # print(
         #     sum(total) / len(total) / n
         # )
-        print(self.R2()[0])
+        # print(self.R2()[0])
         # if self.fitted: 
         #     print(self.R2()[0])
         # else:
