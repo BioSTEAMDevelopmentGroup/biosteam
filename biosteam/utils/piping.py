@@ -185,6 +185,7 @@ class TemporaryStream:
     __init__ = MissingStream.__init__
     source = Stream.source
     sink = Stream.sink
+    H = Hf = Hnet = LHV = HHV = Hvap = C = F_mol = F_mass = F_vol = cost = price = 0.
     
     def __repr__(self):
         return f"<{type(self).__name__}>"

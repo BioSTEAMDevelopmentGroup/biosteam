@@ -281,10 +281,10 @@ class Model(State):
             raise ValueError(f'number of parameters in samples ({samples.shape[1]}) must be equal to the number of parameters ({N_parameters})')
         metrics = self._metrics
         samples = self._sample_hook(samples, parameters)
-        if optimize: 
-            self._load_sample_order(samples, parameters, distance)
-        else:
-            self._index = list(range(samples.shape[0]))
+        # if optimize: 
+        #     self._load_sample_order(samples, parameters, distance)
+        # else:
+        self._index = list(range(samples.shape[0]))
         empty_metric_data = np.zeros((len(samples), len(metrics)))
         self.table = pd.DataFrame(np.hstack((samples, empty_metric_data)),
                                   columns=var_columns(parameters + metrics),

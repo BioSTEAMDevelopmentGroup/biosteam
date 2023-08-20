@@ -332,7 +332,7 @@ class ConvergenceModel:
                     StandardScaler(),
                     LinearSVR()
                 )
-                if nfits is None: nfits = 4
+                if nfits is None: nfits = 100
             elif model_type == 'svr':
                 from sklearn.svm import SVR
                 from sklearn.pipeline import make_pipeline
@@ -341,7 +341,7 @@ class ConvergenceModel:
                     StandardScaler(),
                     SVR()
                 )
-                if nfits is None: nfits = 2
+                if nfits is None: nfits = 10
             elif model_type == 'average':
                 model_type = Average
             else:
@@ -350,7 +350,7 @@ class ConvergenceModel:
             if model_type in fast_fit_model_types:
                 recess = 0
             else:
-                recess = 2 * sum([i.kind == 'coupled' for i in predictors]) ** 2
+                recess = 5 * sum([i.kind == 'coupled' for i in predictors])
         if local_weighted is None:
             if model_type in fast_fit_model_types:
                 local_weighted = True
@@ -364,7 +364,7 @@ class ConvergenceModel:
         self.model_type = model_type
         self.recess = recess
         self.distance = distance
-        self.fitted = False
+        self.fitted = 0
         self.weight = weight
         self.nfits = nfits
         self.local_weighted = local_weighted
@@ -402,8 +402,9 @@ class ConvergenceModel:
         fitted = dataset == 'fitted'
         if fitted and not self.fitted:
             if self.local_weighted: self.fit()
-            else: return np.nan, {}
+            else: return {}, {}
         case_studies = data['case studies']
+        if not case_studies: return {}, {}
         predicted = self.fitted_responses() if fitted else data[dataset]
         for response in self.responses:
             name = str(response)
@@ -474,6 +475,7 @@ class ConvergenceModel:
                 )
                 response.set(prediction)
                 predicted[response].append(prediction)
+            data['case studies'].append(n_samples)
         elif (not n_samples % (self.recess + 1)  # Recess is over
               and (self.nfits is None or self.fitted < self.nfits)):
             self.fitted += 1
@@ -482,15 +484,14 @@ class ConvergenceModel:
                 prediction = response.predict(case_study) 
                 response.set(prediction)
                 predicted[response].append(prediction)
+            data['case studies'].append(n_samples)
         elif self.fitted:
             for response in self.responses:
                 prediction = response.predict(case_study) 
                 response.set(prediction)
                 predicted[response].append(prediction)
-        else:
-            return
+            data['case studies'].append(n_samples)
         sample_list.append(case_study)
-        data['case studies'].append(n_samples)
     
     def __exit__(self, type, exception, traceback, total=[]):
         del self.case_study
@@ -511,7 +512,10 @@ class ConvergenceModel:
         # print(
         #     sum(total) / len(total) / n
         # )
-        print(self.R2(last=20)[0])
+        # if self.fitted: 
+        #     print(self.R2()[0])
+        # else:
+        #     print(len(data['samples']), self.recess)
         # breakpoint()
         
     def evaluate_system_convergence(self, sample, default=None, **kwargs):
