@@ -303,7 +303,7 @@ class ConvergenceModel:
     relative_response_tolerance = 0.01
     def __init__(self, 
             predictors: tuple[Parameter],
-            model_type: Optional[str|Callable]=None,
+            model_type: Optional[Callable]=None,
             recess: Optional[int]=None, 
             distance: Optional[str]=None,
             weight:  Optional[Callable]=None,
