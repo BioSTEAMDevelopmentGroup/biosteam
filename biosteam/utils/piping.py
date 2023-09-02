@@ -115,10 +115,10 @@ class MissingStream:
         self._source = source
         self._sink = sink
     
-    def get_connection(self, junction=None):
-        self = self.materialize_connection()
-        return self.get_connection(junction)
-    
+    def _get_tooltip_string(self, format, full):
+        if format not in ('html', 'svg'): return ''
+        return '(empty)'
+            
     def materialize_connection(self, ID=""):
         """
         Disconnect this missing stream from any unit operations and 
@@ -1010,8 +1010,8 @@ def get_connection(self, junction=None):
             sink_index = -1
     return Connection(source, source_index, self, sink_index, sink)
 
-Stream.get_connection = get_connection
-TemporaryStream.get_connection = get_connection
+TemporaryStream.get_connection = Stream.get_connection = \
+MissingStream.get_connection = get_connection
 basic_stream_info = lambda self: (f"{type(self).__name__}: {self.ID or ''}"
                                   f"{pipe_info(self._source, self._sink)}\n")
 source_info = lambda self: f"{source}-{source.outs.index(self)}" if (source:=self.source) else self.ID

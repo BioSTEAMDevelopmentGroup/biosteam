@@ -26,22 +26,6 @@ __all__ = (
 )
 
 @njit(cache=True)
-def pearson_correlation_coefficient(X, y):
-    n_predictors = X.shape[1]
-    result = np.zeros(n_predictors)
-    my = y.mean()
-    ym = y - my
-    ssym = np.dot(ym, ym)
-    for i in range(n_predictors):
-        x = X[:, i]
-        mx = x.mean()
-        xm = x - mx
-        r_num = np.dot(xm, ym)
-        r_den = np.sqrt(np.dot(xm, xm) * ssym)
-        result[i] = r_num / r_den
-    return result
-
-@njit(cache=True)
 def R2(y_actual, y_predicted):
     dy = y_actual - y_predicted
     dy_m = y_actual - np.mean(y_actual)
@@ -321,7 +305,7 @@ class ConvergenceModel:
                 system, = systems
             except:
                 if systems:
-                    raise ValueError('predictors do not share the same system')
+                    raise ValueError('predictors must share the same system')
                 else:
                     raise ValueError('no system available')
         self.system = system
@@ -534,18 +518,6 @@ class ConvergenceModel:
         actual = data['actual']
         for response in self.responses:
             actual[response].append(response.get())
-        # systems = self.system.subsystems
-        # n = len(systems)
-        # total.append(sum([i._iter for i in systems]))
-        # print(
-        #     sum(total) / len(total) / n
-        # )
-        # print(self.R2()[0])
-        # if self.fitted: 
-        #     print(self.R2()[0])
-        # else:
-        #     print(len(data['samples']), self.recess)
-        # breakpoint()
         
     def evaluate_system_convergence(self, sample, default=None, **kwargs):
         system = self.system
@@ -606,23 +578,24 @@ class ConvergenceModel:
                     evaluate(new_sample, default=baseline_1, recycle_data=baseline_1)
                 )
             values_at_bounds.append(values[-2:])
-        # [(lb, lb), (lb, ub), (ub, lb), (ub, ub)]
-        pairwise_bounds_index = [*enumerate(product(range(2), range(2)))]
-        for _, pair in self.interaction_pairs:
-            new_samples = [sample.copy() for i in range(4)]
-            for i, bounds_index in pairwise_bounds_index:
-                for b, p in zip(bounds_index, pair):
-                    hook = hooks[p]
-                    bounds = all_bounds[p]
-                    limit = bounds[b]
-                    new_sample = new_samples[i]
-                    if hook is not None: limit = hook(limit)
-                    new_sample[p] = limit
-            for new_sample in new_samples:
-                values.append(
-                    evaluate(new_sample, default=baseline_1, recycle_data=baseline_1)
-                ) 
-                samples.append(new_sample)
+        if self.interaction_pairs:
+            # [(lb, lb), (lb, ub), (ub, lb), (ub, ub)]
+            pairwise_bounds_index = [*enumerate(product(range(2), range(2)))]
+            for _, pair in self.interaction_pairs:
+                new_samples = [sample.copy() for i in range(4)]
+                for i, bounds_index in pairwise_bounds_index:
+                    for b, p in zip(bounds_index, pair):
+                        hook = hooks[p]
+                        bounds = all_bounds[p]
+                        limit = bounds[b]
+                        new_sample = new_samples[i]
+                        if hook is not None: limit = hook(limit)
+                        new_sample[p] = limit
+                for new_sample in new_samples:
+                    values.append(
+                        evaluate(new_sample, default=baseline_1, recycle_data=baseline_1)
+                    ) 
+                    samples.append(new_sample)
         baseline_2 = evaluate(sample, recycle_data=baseline_1)
         arr1 = baseline_1.to_array()
         arr2 = baseline_2.to_array()
@@ -809,12 +782,4 @@ class NullConvergenceModel:
         actual = data['actual']
         for response in self.responses:
             actual[response].append(response.get())
-        # systems = self.system.subsystems
-        # n = len(systems)
-        # total.append(sum([i._iter for i in systems]))
-        # print(
-        #     sum(total) / len(total) / n
-        # )
-        # print(self.R2(10)[0])
-        # breakpoint()
     

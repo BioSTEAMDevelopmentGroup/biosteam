@@ -192,8 +192,7 @@ def digraph_from_units(units, streams=None, auxiliaries=False, **graph_attrs):
         for unit in tuple(units):
             all_units.append(unit)
             for s in unit.ins + unit.outs:
-                if not s: s = s.materialize_connection()
-                elif s in stream_set: continue
+                if s in stream_set: continue
                 streams.append(s)
                 stream_set.add(s)
             for name, auxunit in unit.get_auxiliary_units_with_names():
@@ -202,8 +201,7 @@ def digraph_from_units(units, streams=None, auxiliaries=False, **graph_attrs):
                 if isinstance(auxunit, bst.Unit): 
                     all_units.append(auxunit)
                     for s in auxunit.ins + auxunit.outs:
-                        if not s: s = s.materialize_connection()
-                        elif s in stream_set: continue
+                        if s in stream_set: continue
                         streams.append(s)
                         stream_set.add(s)
         units = all_units

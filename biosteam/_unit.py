@@ -1573,6 +1573,49 @@ class Unit:
                 )
         return auxiliary_units
 
+    def _unit_auxlets(self, N_streams, streams):
+        if streams is None:
+            return [self.auxlet(piping.MissingStream()) for i in range(N_streams)]
+        elif streams == ():
+            return [self.auxlet(piping.Stream(None)) for i in range(N_streams)]
+        elif isinstance(streams, piping.stream_types):
+            return self.auxlet(streams)
+        else:
+            return [self.auxlet(i) for i in streams]
+
+    def auxiliary(
+            self, name, cls, ins=None, outs=(), thermo=None,
+            stack=False, **kwargs
+        ):
+        """
+        Create and register an auxiliary unit operation. Inlet and outlet
+        streams automatically become auxlets so that parent unit streams will
+        not disconnect.
+        
+        """
+        if thermo is None: thermo = self.thermo
+        if name not in self.auxiliary_unit_names:
+            raise RuntimeError(f'{name!r} not in auxiliary unit names')
+        if stack:
+            if hasattr(self, name):
+                lst = getattr(self, name)
+            else:
+                lst = []
+                setattr(self, name, lst)
+            name = f"{name}[{len(lst)}]"
+        auxunit = cls(
+            '.' + name, 
+            self._unit_auxlets(cls._N_ins, ins), 
+            self._unit_auxlets(cls._N_outs, outs),
+            thermo, 
+            **kwargs
+        )
+        if stack:
+            lst.append(auxunit)
+        else:
+            setattr(self, name, auxunit)
+        return auxunit
+
     def auxlet(self, stream: Stream):
         """
         Define auxiliary unit inlet or outlet. This method has two
@@ -1589,13 +1632,13 @@ class Unit:
         """
         if stream is None: return None
         if isinstance(stream, str): stream = Stream(stream, thermo=self.thermo)
-        if self is stream._source:
+        if self is stream._source and stream in self._outs:
             if isinstance(stream, tmo.MultiStream):
                 SuperpositionStream = piping.SuperpositionMultiOutlet
             else:
                 SuperpositionStream = piping.SuperpositionOutlet
             stream = SuperpositionStream(piping.OutletPort.from_outlet(stream))
-        elif self is stream._sink:
+        elif self is stream._sink and stream in self._ins:
             if isinstance(stream, tmo.MultiStream):
                 SuperpositionStream = piping.SuperpositionMultiInlet
             else:

@@ -45,6 +45,7 @@ import biosteam as bst
 from .splitting import Splitter
 from .design_tools import CEPCI_by_year, geometry, PressureVessel
 from .decorators import cost, copy_algorithm
+from .phase_equilibrium import MultiStageEquilibrium
 from .._graphics import mixer_settler_graphics
 from .. import Unit
 from ._flash import RatioFlash
@@ -976,7 +977,7 @@ class MixerSettler(bst.Unit):
         self.mixer._cost()
         self.settler._cost()
         
-class MultiStageMixerSettlers(bst.Unit):
+class MultiStageMixerSettlers(MultiStageEquilibrium):
     """
     Create a MultiStageMixerSettlers object that models a counter-current system
     of mixer-settlers for liquid-liquid extraction.
@@ -1144,33 +1145,18 @@ class MultiStageMixerSettlers(bst.Unit):
 
     """
     _units = MixerSettler._units
-    _N_ins = 2
-    _N_outs = 2
-    _ins_size_is_fixed = False
-    _outs_size_is_fixed = False
     
     def __init__(self, ID="", ins=None, outs=(), thermo=None, *, N_stages,
                  partition_data=None, solvent_ID=None, feed_stages=None, 
                  raffinate_side_draws=None, extract_side_draws=None,
                  mixer_data={}, settler_data={}, use_cache=None):
-        bst.Unit.__init__(self, ID, ins, outs, thermo)
-        self.feed_stages = feed_stages
-        self.raffinate_side_draws = raffinate_side_draws
-        self.extract_side_draws = extract_side_draws
-        
-        #: [str] Name of main chemical in the feed (which is not extracted by 
-        #: the solvent).
-        self.solvent_ID = solvent_ID
-        
-        #: [int] Number of stages.
-        self.N_stages = N_stages
-        
-        # {'IDs': tuple[str], 'K': 1d array}
-        # IDs of chemicals in equilibrium and partition coefficients. If given,
-        # The mixer-settlers will be modeled with these constants. Otherwise,
-        # partition coefficients are computed based on temperature and composition.
-        self.partition_data = partition_data
-        
+        bst.MultiStageEquilibrium.__init__(
+            self, ID, ins, outs, thermo,
+            N_stages=N_stages, feed_stages=feed_stages, phases=('l', 'L'), P=101325,
+            top_side_draws=extract_side_draws, bottom_side_draws=raffinate_side_draws,
+            specifications=None, partition_data=partition_data, 
+            solvent=solvent_ID, use_cache=use_cache,
+        )
         #: [LiquidsMixingTank] Used to design all mixing tanks. 
         #: All data and settings for the design of mixing tanks are stored here.
         self.mixer = mixer = LiquidsMixingTank(None, None, (None,),
@@ -1180,9 +1166,12 @@ class MultiStageMixerSettlers(bst.Unit):
         #: [LiquidsSettler] Used to design all settlers.
         #: All data and settings for the design of settlers are stored here.
         self.settler = LiquidsSettler(None, mixer-0, None, self.thermo, **settler_data)
-        
         self.settler._outs = self._outs
         self.use_cache = use_cache
+        self._last_args = (
+            self.N_stages, self.feed_stages, self.extract_side_draws, self.use_cache,
+            *self._ins, self.raffinate_side_draws, self.solvent_ID, self.partition_data
+        )
         self.reset_cache()
     
     feed = MixerSettler.feed
@@ -1203,34 +1192,20 @@ class MultiStageMixerSettlers(bst.Unit):
         args = (self.N_stages, self.feed_stages, self.extract_side_draws, self.use_cache,
                 *self._ins, self.raffinate_side_draws, self.solvent_ID, self.partition_data)
         if args != self._last_args:
-            self.stages = sep.MultiStageEquilibrium(
-                self.N_stages, self.ins, self.feed_stages, solvent=self.solvent_ID, use_cache=self.use_cache,
-                top_side_draws=self.extract_side_draws, bottom_side_draws=self.raffinate_side_draws, 
-                thermo=self.thermo, partition_data=self.partition_data, phases=('L', 'l'),
+            del self.stages
+            MultiStageEquilibrium.__init__(
+                self, self.ID, self.ins, self.outs, self.thermo,
+                N_stages=self.N_stages, feed_stages=self.feed_stages, phases=('l', 'L'), P=self.P,
+                top_side_draws=self.extract_side_draws, bottom_side_draws=self.raffinate_side_draws,
+                specifications=None, partition_data=self.partition_data, 
+                solvent=self.solvent_ID, use_cache=self.use_cache,
             )
+            self.mixer._ins = self._ins
+            self.settler._outs = self._outs
             self._last_args = args
     
     def reset_cache(self, isdynamic=None):
-        self.stages = None
         self._last_args = None
-        
-    def _run(self):
-        stages = self.stages
-        stages.simulate()
-        extract = self.extract
-        extract.copy_like(stages[0].extract)
-        raffinate = self.raffinate
-        raffinate.copy_like(stages[-1].raffinate)
-        extract.phase = self.raffinate.phase = 'l'
-        if self.extract_side_draws or self.raffinate_side_draws:
-            raffinate, extract, *others = self._outs
-            try:
-                N_extract = len(self.extract_side_draws)
-            except:
-                N_extract = 0
-            extract_side_draws = others[:N_extract]
-            raffinate_side_draws = others[N_extract:]
-            self.stages.get_side_draws(extract_side_draws, raffinate_side_draws)
         
     def _design(self):
         mixer = self.mixer
