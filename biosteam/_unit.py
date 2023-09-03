@@ -334,6 +334,9 @@ class Unit:
     #: **class-attribute** Index for auxiliary outlets to parent unit for graphviz diagram settings.
     _auxout_index = {}
     
+    #: **class-attribute** Whether to include this unit in auxiliary diagrams.
+    _assembled_from_auxiliary_units = False
+    
     #: **class-attribute** Expected number of inlet streams. Defaults to 1.
     _N_ins: int = 1  
     
@@ -1545,13 +1548,13 @@ class Unit:
                     if not isinstance(u, Unit): continue
                     for auxunit in u.auxiliary_units:
                         auxiliary_units.append(auxunit)
-                        auxiliary_units.extend(auxunit.auxiliary_units)
+                        auxiliary_units.extend(auxunit.nested_auxiliary_units)
             else:
                 auxiliary_units.append(unit)
                 if not isinstance(unit, Unit): continue
                 for auxunit in unit.auxiliary_units:
                     auxiliary_units.append(auxunit)
-                    auxiliary_units.extend(auxunit.auxiliary_units)
+                    auxiliary_units.extend(auxunit.nested_auxiliary_units)
         return auxiliary_units
 
     def get_auxiliary_units_with_names(self) -> list[tuple[str, Unit]]:
@@ -1571,6 +1574,19 @@ class Unit:
                 auxiliary_units.append(
                     (name, unit)
                 )
+        return auxiliary_units
+
+    def get_nested_auxiliary_units_with_names(self) -> list[Unit]:
+        """Return list of all auxiliary units, including nested ones."""
+        auxiliary_units = []
+        for name, auxunit in self.get_auxiliary_units_with_names():
+            if auxunit is None: continue 
+            auxiliary_units.append((name, auxunit))
+            if not isinstance(auxunit, Unit): continue
+            auxiliary_units.extend(
+                [('.'.join([name, i]), j)
+                 for i, j in auxunit.get_nested_auxiliary_units_with_names()]
+            )
         return auxiliary_units
 
     def _unit_auxlets(self, N_streams, streams):

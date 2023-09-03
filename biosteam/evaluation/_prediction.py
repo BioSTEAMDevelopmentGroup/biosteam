@@ -526,7 +526,13 @@ class ConvergenceModel:
             p.setter(value)
         try:
             system.simulate(design_and_cost=False, **kwargs)
-        except:
+        except Exception as error:
+            if default is None: raise error
+            # TODO: py3.11, add eror context
+            #     raise RuntimeError(
+            #         'baseline simulation failed; '
+            #         'could not load responses for convergence prediction model'
+            #     )
             system.empty_recycles()
             recycles_data = default
         else:
@@ -536,7 +542,8 @@ class ConvergenceModel:
     def load_predictors(self, predictors):
         predictor_index = np.array([i.kind == 'coupled' for i in predictors])
         self.predictor_index = predictor_index = None if predictor_index.all() else np.where(predictor_index)[0]
-        self.predictors = predictors = [predictors[i] for i in predictor_index]
+        if predictor_index is not None: predictors = [predictors[i] for i in predictor_index]
+        self.predictors = predictors
         bounds = [i.bounds for i in predictors]
         n = len(predictors)
         if self.interaction_pairs:

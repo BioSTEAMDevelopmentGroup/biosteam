@@ -9,7 +9,11 @@
 """
 """
 import numpy as np
-from biosteam.utils.piping import ignore_docking_warnings
+from biosteam.utils.piping import (
+    ignore_docking_warnings, Connection,
+    SuperpositionInlet, SuperpositionMultiInlet,
+    SuperpositionOutlet, SuperpositionMultiOutlet
+)
 from warnings import warn
 import biosteam as bst
 from graphviz import Digraph
@@ -19,6 +23,8 @@ from xml.etree import ElementTree
 from typing import Optional
 import urllib
 import re
+supinlet_type = (SuperpositionInlet, SuperpositionMultiInlet)
+supoutlet_type = (SuperpositionOutlet, SuperpositionMultiOutlet)
 
 __all__ = ('digraph_from_system',
            'digraph_from_units',
@@ -190,20 +196,22 @@ def digraph_from_units(units, streams=None, auxiliaries=False, **graph_attrs):
         streams = []
         stream_set = set()
         for unit in tuple(units):
-            all_units.append(unit)
-            for s in unit.ins + unit.outs:
-                if s in stream_set: continue
-                streams.append(s)
-                stream_set.add(s)
-            for name, auxunit in unit.get_auxiliary_units_with_names():
+            if not unit._assembled_from_auxiliary_units: 
+                all_units.append(unit)
+                for s in unit.ins + unit.outs:
+                    if s in stream_set: continue
+                    streams.append(s)
+                    stream_set.add(s)
+            for name, auxunit in unit.get_nested_auxiliary_units_with_names():
                 auxunit.owner = unit # In case units have not been simulated
                 auxunit.auxname = name
                 if isinstance(auxunit, bst.Unit): 
-                    all_units.append(auxunit)
-                    for s in auxunit.ins + auxunit.outs:
-                        if s in stream_set: continue
-                        streams.append(s)
-                        stream_set.add(s)
+                    if not auxunit._assembled_from_auxiliary_units: 
+                        all_units.append(auxunit)
+                        for s in auxunit.ins + auxunit.outs:
+                            if s in stream_set: continue
+                            streams.append(s)
+                            stream_set.add(s)
         units = all_units
     else:
         if streams is None:
@@ -223,7 +231,10 @@ def digraph_from_units(units, streams=None, auxiliaries=False, **graph_attrs):
                 if other in stream_set:
                     streams.remove(other)
                     stream_set.remove(other)
-    return digraph_from_units_and_connections(units, get_all_connections(streams), **graph_attrs)
+    digraph = digraph_from_units_and_connections(units, get_all_connections(streams), **graph_attrs)
+    if auxiliaries:
+        pass
+    return digraph
 
 def digraph_from_system(system, **graph_attrs):
     f = blank_digraph(**graph_attrs) 
@@ -335,9 +346,26 @@ def update_digraph_from_units_and_connections(f: Digraph, units, connections):
 def get_all_connections(streams, added_connections=None):
     if added_connections is None: added_connections = set()
     connections = []
+    IDs = {}
+    isa = isinstance
     for s in streams:
         if (s._source or s._sink): 
             connection = s.get_connection(junction=False)
+            ID = s.ID
+            if ID in IDs:
+                source0, source_index0, stream0, sink_index0, sink0 = old_connection = IDs[s.ID]
+                source1, source_index1, stream1, sink_index1, sink1 = connection
+                if isa(stream1, supoutlet_type) and isa(stream0, supinlet_type):
+                    connections.remove(old_connection)
+                    added_connections.remove(old_connection)
+                    stream = stream1.copy(ID='.' + ID)
+                    connection = Connection(source1, source_index1, stream, sink_index0, sink0)
+                elif isa(stream0, supoutlet_type) and isa(stream1, supinlet_type):
+                    connections.remove(old_connection)
+                    added_connections.remove(old_connection)
+                    stream = stream1.copy(ID='.' + ID)
+                    connection = Connection(source0, source_index0, stream, sink_index1, sink1)
+            IDs[ID] = connection
             if connection and connection not in added_connections:
                 connections.append(connection)
                 added_connections.add(connection)
