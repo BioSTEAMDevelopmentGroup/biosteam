@@ -950,10 +950,17 @@ class Connection(NamedTuple):
         # Does not attempt to connect auxiliaries with owners (which should not be possible)
         source = self.source
         sink = self.sink
-        if source and not (sink and getattr(sink, '_owner', None) is source):
-            source.outs[self.source_index] = self.stream
-        if sink and not (source and getattr(source, '_owner', None) is sink):
-            sink.ins[self.sink_index] = self.stream
+        if source:
+            if (sink and getattr(sink, '_owner', None) is source):
+                source.outs[self.source_index] = self.stream
+        else:
+            self.stream.disconnect_source()
+        if sink:
+            if not (source and getattr(source, '_owner', None) is sink):
+                sink.ins[self.sink_index] = self.stream
+        else:
+            self.stream.disconnect_sink()
+
 
 # %% General
 

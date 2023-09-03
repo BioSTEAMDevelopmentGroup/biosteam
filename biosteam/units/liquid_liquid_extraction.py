@@ -791,8 +791,8 @@ class MixerSettler(bst.Unit):
         * [0] feed.
         * [1] solvent.
     outs : 
-        * [0] raffinate
-        * [1] extract
+        * [0] extract.
+        * [1] raffinate.
     solvent_ID : str, optional
         Name of main chemical in the solvent.
         Defaults to chemical with highest molar fraction in the solvent.
@@ -809,7 +809,7 @@ class MixerSettler(bst.Unit):
     >>> bst.settings.set_thermo(['Water', 'Methanol', 'Octanol'], cache=True)
     >>> feed = bst.Stream('feed', Water=500, Methanol=50)
     >>> solvent = bst.Stream('solvent', Octanol=500)
-    >>> MS1 = bst.MixerSettler('MS1', ins=(feed, solvent), outs=('raffinate', 'extract'))
+    >>> MS1 = bst.MixerSettler('MS1', ins=(feed, solvent), outs=('extract', 'raffinate'))
     >>> MS1.simulate()
     >>> MS1.extract.imol['Methanol'] / MS1.feed.imol['Methanol']
     0.66
@@ -849,7 +849,7 @@ class MixerSettler(bst.Unit):
     >>> feed = bst.Stream('feed', Water=500, Methanol=50)
     >>> solvent = bst.Stream('solvent', Octanol=500)
     >>> MS1 = bst.MixerSettler('MS1', 
-    ...    ins=(feed, solvent), outs=('raffinate', 'extract'),
+    ...    ins=(feed, solvent), outs=('extract', 'raffinate'),
     ...    model='partition coefficients',
     ...    settler_data={
     ...        'partition_coefficients': np.array([1.451e-01, 1.380e+00, 2.958e+03]),
@@ -943,18 +943,18 @@ class MixerSettler(bst.Unit):
     @property
     def raffinate(self):
         """[Stream] Raffinate after extraction."""
-        return self._outs[0]
+        return self._outs[1]
     @raffinate.setter
     def raffinate(self, stream):
-        self._outs[0] = stream
+        self._outs[1] = stream
         
     @property
     def extract(self):
         """[Stream] Extract with solvent."""
-        return self._outs[1]
+        return self._outs[0]
     @extract.setter
     def extract(self, stream):
-        self._outs[1] = stream
+        self._outs[0] = stream
 
     def _run(self):
         self.mixer._run()
@@ -1140,7 +1140,7 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
     ... )
     >>> MSMS1.simulate()
     >>> (MSMS1.extract.imol['Methanol'] + MSMS1.outs[2].imol['Methanol']) / feed.imol['Methanol'] # Recovery
-    0.99
+    1.0
     
 
     """

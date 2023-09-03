@@ -141,6 +141,7 @@ class PhasePartition(Unit):
         Unit.__init__(self, ID, ins, outs, thermo)
         self.partition_data = partition_data
         self.phases = phases
+        self.solvent = None
         self.phi = None
         self.IDs = None
         self.K = None
@@ -162,6 +163,8 @@ class PhasePartition(Unit):
         return self.outs[1]
     
     def _run(self, stacklevel=1, P=None, solvent=None, update=True):
+        if solvent is None: solvent = self.solvent
+        else: self.solvent = solvent
         for i, j in zip(self.outs, self.phases): i.phase = j
         if update:
             ms = tmo.MultiStream.from_streams(self.outs)
@@ -394,8 +397,8 @@ class MultiStageEquilibrium(Unit):
         tsd_iter = iter(self.outs[2:top_mark])
         bsd_iter = iter(self.outs[top_mark:])
         last_stage = None
-        self._asplits = asplits = -np.ones(N_stages)
-        self._bsplits = bsplits = asplits.copy()
+        self._asplit = asplits = -np.ones(N_stages)
+        self._bsplit = bsplits = asplits.copy()
         for i in range(N_stages):
             if last_stage is None:
                 feed = ()
@@ -510,25 +513,40 @@ class MultiStageEquilibrium(Unit):
     
     def update(self, top_flow_rates):
         top, bottom = self.multi_stream.phases
+        flow_tol = -1e-6 * self.multi_stream.mol
         stages = self.stages
         N_stages = self.N_stages
         range_stages = range(N_stages)
         index = self._update_index
         top_flow_rates[top_flow_rates < 0.] = 0.
-        for i in range_stages:
-            stage = stages[i]
-            partition = stage.partition
-            s_top, _ = partition.outs
-            s_top.mol[index] = top_flow_rates[i]
-            if stage.top_split: stage.splitters[0]._run()
-        for i in range_stages:
-            stage = stages[i]
-            partition = stage.partition
-            s_top, s_bottom = partition.outs
-            bottom_flow = sum([i.mol for i in stage.ins]) - s_top.mol
-            bottom_flow[bottom_flow < 0] = 0. # TODO: This does not maintain mass balance; find formula to get maximum flow
-            s_bottom.mol[:] = bottom_flow
-            if stage.bottom_split: stage.splitters[-1]._run()
+        has_infeasible_flow = True
+        while has_infeasible_flow:
+            has_infeasible_flow = False
+            for i in range_stages:
+                stage = stages[i]
+                partition = stage.partition
+                s_top, _ = partition.outs
+                s_top.mol[index] = top_flow_rates[i]
+                if stage.top_split: stage.splitters[0]._run()
+            for i in range_stages:
+                stage = stages[i]
+                partition = stage.partition
+                s_top, s_bottom = partition.outs
+                bottom_flow = sum([i.mol for i in stage.ins]) - s_top.mol
+                mask = bottom_flow < 0.
+                if mask.any():
+                    has_infeasible_flow = (bottom_flow[mask] < -flow_tol[mask])
+                    if has_infeasible_flow:
+                        infeasible_index, = np.where(mask[index])
+                        # TODO: Find algebraic solution to keeping top flow rates within feasible region.
+                        # This is only a temporary solution.
+                        infeasible_flow = bottom_flow[mask]
+                        top_flow_rates[i, infeasible_index] += infeasible_flow
+                        break
+                    else:
+                        bottom_flow[mask] = 0.
+                s_bottom.mol[:] = bottom_flow
+                if stage.bottom_split: stage.splitters[-1]._run()
         self.correct_overall_mass_balance()
             
     def _run(self):
@@ -656,9 +674,9 @@ class MultiStageEquilibrium(Unit):
         for feed, stage in zip(feeds, feed_stages):
             feed_flows[stage, :] += feed.mol[index]
         top_flow_rates = flow_rates_for_multi_stage_equilibrium(
-            phase_ratios, partition_coefficients, feed_flows, self._asplits, self._bsplits,
+            phase_ratios, partition_coefficients, feed_flows, self._asplit, self._bsplit,
         )
-        self._iter_args = (feed_flows, self._asplits, self._bsplits)
+        self._iter_args = (feed_flows, self._asplit, self._bsplit)
         self._update_index = index
         self._N_chemicals = N_chemicals
         return top_flow_rates
