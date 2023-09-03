@@ -325,6 +325,7 @@ def get_unit_names(f: Digraph, path, with_auxiliaries):
     info_by_unit = {}
     fill_info_from_path(path, [0], info_by_unit)
     for u, (index, time) in info_by_unit.items():
+        if with_auxiliaries and not u._assembled_from_auxiliary_units: continue
         node = u.get_node()
         name = node['name']
         info = ', '.join(index) 
@@ -335,7 +336,7 @@ def get_unit_names(f: Digraph, path, with_auxiliaries):
                 info = time
         if info: name = f"[{info}] {name}"
         unit_names[u] = node['name'] = name
-        if not with_auxiliaries or not u._assembled_from_auxiliary_units: f.node(**node)
+        f.node(**node)
     return unit_names
 
 def update_digraph_from_units_and_connections(f: Digraph, units, connections, with_auxiliaries):
