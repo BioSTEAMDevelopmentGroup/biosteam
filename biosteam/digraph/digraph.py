@@ -229,7 +229,7 @@ def digraph_from_units(units, streams=None, auxiliaries=None, **graph_attrs):
                 if other in stream_set:
                     streams.remove(other)
                     stream_set.remove(other)
-    digraph = digraph_from_units_and_connections(units, get_all_connections(streams), **graph_attrs)
+    digraph = digraph_from_units_and_connections(units, get_all_connections(streams), auxiliaries, **graph_attrs)
     if auxiliaries:
         pass
     return digraph
@@ -287,9 +287,9 @@ def update_digraph_from_path(f, path, recycle, depth, unit_names,
                    labeljust='l', fontcolor=preferences.label_color, **kwargs)
             update_digraph_from_path(c, i.path, i.recycle, depth, unit_names, excluded_connections, other_streams)
 
-def digraph_from_units_and_connections(units, connections, **graph_attrs):
+def digraph_from_units_and_connections(units, connections, with_auxiliaries, **graph_attrs):
     f = blank_digraph(**graph_attrs)
-    update_digraph_from_units_and_connections(f, units, connections)
+    update_digraph_from_units_and_connections(f, units, connections, with_auxiliaries)
     return f
 
 def fill_info_from_path(path, indices, info_by_unit):
@@ -320,7 +320,7 @@ def fill_info_from_path(path, indices, info_by_unit):
                 time = None
             info_by_unit[u] = [[index] if number else [], time] 
 
-def get_unit_names(f: Digraph, path):
+def get_unit_names(f: Digraph, path, with_auxiliaries):
     unit_names = {}  # Contains full description (ID and line) by unit
     info_by_unit = {}
     fill_info_from_path(path, [0], info_by_unit)
@@ -335,11 +335,11 @@ def get_unit_names(f: Digraph, path):
                 info = time
         if info: name = f"[{info}] {name}"
         unit_names[u] = node['name'] = name
-        if not u._assembled_from_auxiliary_units: f.node(**node)
+        if not with_auxiliaries or not u._assembled_from_auxiliary_units: f.node(**node)
     return unit_names
 
-def update_digraph_from_units_and_connections(f: Digraph, units, connections):
-    add_connections(f, connections, get_unit_names(f, units))    
+def update_digraph_from_units_and_connections(f: Digraph, units, connections, with_auxiliaries):
+    add_connections(f, connections, get_unit_names(f, units, with_auxiliaries))    
 
 def get_all_connections(streams, added_connections=None):
     if added_connections is None: added_connections = set()
