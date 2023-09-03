@@ -1576,16 +1576,20 @@ class Unit:
                 )
         return auxiliary_units
 
-    def get_nested_auxiliary_units_with_names(self) -> list[Unit]:
+    def get_nested_auxiliary_units_with_names(self, depth=-1) -> list[Unit]:
         """Return list of all auxiliary units, including nested ones."""
         auxiliary_units = []
+        if depth: 
+            depth -= 1
+        else:
+            return auxiliary_units
         for name, auxunit in self.get_auxiliary_units_with_names():
             if auxunit is None: continue 
             auxiliary_units.append((name, auxunit))
             if not isinstance(auxunit, Unit): continue
             auxiliary_units.extend(
                 [('.'.join([name, i]), j)
-                 for i, j in auxunit.get_nested_auxiliary_units_with_names()]
+                 for i, j in auxunit.get_nested_auxiliary_units_with_names(depth)]
             )
         return auxiliary_units
 
@@ -1983,7 +1987,7 @@ class Unit:
     def diagram(self, radius: Optional[int]=0, upstream: Optional[bool]=True,
                 downstream: Optional[bool]=True, file: Optional[str]=None, 
                 format: Optional[str]=None, display: Optional[bool]=True,
-                auxiliaries: Optional[bool]=True,
+                auxiliaries: Optional[bool]=1,
                 **graph_attrs):
         """
         Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram
@@ -2009,7 +2013,7 @@ class Unit:
             Whether to display diagram in console or to return the graphviz 
             object.
         auxiliaries:
-            Whether to include auxiliary units.
+            Depth of auxiliary units to display.
         
         """
         if radius > 0:

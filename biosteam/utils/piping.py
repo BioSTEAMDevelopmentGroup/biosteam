@@ -443,6 +443,9 @@ class StreamSequence:
             for i in self._streams: self._undock(i)
             self._streams.clear()
     
+    def reverse(self):
+        self.streams.reverse()
+    
     def __iter__(self):
         return iter(self._streams)
     

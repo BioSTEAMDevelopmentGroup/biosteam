@@ -147,6 +147,7 @@ class Flash(design.PressureVessel, Unit):
     
     """
     auxiliary_unit_names = ('heat_exchanger', 'vacuum_system')
+    _assembled_from_auxiliary_units = False
     _auxin_index = {
         'heat_exchanger': 0
     }
@@ -223,7 +224,7 @@ class Flash(design.PressureVessel, Unit):
         
     def _load_components(self):
         self._multi_stream = ms = MultiStream(None, thermo=self.thermo)
-        self.heat_exchanger = HXutility(None, None, self.auxlet(ms), thermo=self.thermo) 
+        self.heat_exchanger = HXutility(None, self.auxlet(self.feed), self.auxlet(ms), thermo=self.thermo) 
         
     def reset_cache(self, isdynamic=None):
         self._multi_stream.reset_cache()
@@ -286,7 +287,6 @@ class Flash(design.PressureVessel, Unit):
         if self.Q == 0.:
             self.heat_exchanger._setup() # Removes results
         else:
-            self.heat_exchanger.ins[0] = self.auxlet(self.feed)
             self.heat_exchanger.simulate_as_auxiliary_exchanger(self.ins, self.outs, P=self.ins[0].P)
 
     def _cost(self):

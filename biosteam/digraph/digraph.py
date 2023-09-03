@@ -190,28 +190,26 @@ def extend_surface_units(ID, streams, units, surface_units, old_unit_connections
     for i in (feed_box, subsystem_unit, product_box):
         if i: surface_units.append(i)
 
-def digraph_from_units(units, streams=None, auxiliaries=False, **graph_attrs):
+def digraph_from_units(units, streams=None, auxiliaries=None, **graph_attrs):
     if auxiliaries:
         all_units = []
         streams = []
         stream_set = set()
         for unit in tuple(units):
-            if not unit._assembled_from_auxiliary_units: 
-                all_units.append(unit)
-                for s in unit.ins + unit.outs:
-                    if s in stream_set: continue
-                    streams.append(s)
-                    stream_set.add(s)
-            for name, auxunit in unit.get_nested_auxiliary_units_with_names():
+            all_units.append(unit)
+            for s in unit.ins + unit.outs:
+                if s in stream_set: continue
+                streams.append(s)
+                stream_set.add(s)
+            for name, auxunit in unit.get_nested_auxiliary_units_with_names(depth=auxiliaries):
                 auxunit.owner = unit # In case units have not been simulated
                 auxunit.auxname = name
                 if isinstance(auxunit, bst.Unit): 
-                    if not auxunit._assembled_from_auxiliary_units: 
-                        all_units.append(auxunit)
-                        for s in auxunit.ins + auxunit.outs:
-                            if s in stream_set: continue
-                            streams.append(s)
-                            stream_set.add(s)
+                    all_units.append(auxunit)
+                    for s in auxunit.ins + auxunit.outs:
+                        if s in stream_set: continue
+                        streams.append(s)
+                        stream_set.add(s)
         units = all_units
     else:
         if streams is None:
@@ -337,7 +335,7 @@ def get_unit_names(f: Digraph, path):
                 info = time
         if info: name = f"[{info}] {name}"
         unit_names[u] = node['name'] = name
-        f.node(**node)
+        if not u._assembled_from_auxiliary_units: f.node(**node)
     return unit_names
 
 def update_digraph_from_units_and_connections(f: Digraph, units, connections):

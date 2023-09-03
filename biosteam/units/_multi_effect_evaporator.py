@@ -246,6 +246,7 @@ class MultiEffectEvaporator(Unit):
     
     """
     line = 'Multi-effect evaporator'
+    _assembled_from_auxiliary_units = True
     auxiliary_unit_names = ('condenser', 'mixer', 'vacuum_system', 'evaporators')
     _units = {'Area': 'm^2',
               'Volume': 'm^3'}
@@ -311,10 +312,16 @@ class MultiEffectEvaporator(Unit):
         self._N_evap = n = len(P) # Number of evaporators
         
         if self.flash:
-            first_evaporator = Flash(None, outs=(None, None), P=P[0], thermo=thermo)
+            first_evaporator = Flash(
+                None, ins=[self.auxlet(i) for i in self.ins], 
+                outs=(None, None), P=P[0], thermo=thermo
+            )
         else:
-            first_evaporator = Evaporator(None, outs=(None, None, None), P=P[0],
-                                          thermo=thermo, chemical=self.chemical)
+            first_evaporator = Evaporator(
+                None, ins=[self.auxlet(i) for i in self.ins],
+                outs=(None, None, None), P=P[0],
+                thermo=thermo, chemical=self.chemical
+            )
         # Put liquid first, then vapor side stream
         self.evaporators = evaporators = [first_evaporator]
         for i in range(1, n):
@@ -329,7 +336,6 @@ class MultiEffectEvaporator(Unit):
         
         # Set-up components
         other_evaporators = evaporators[1:]
-        first_evaporator.ins[:] = [self.auxlet(i) for i in self.ins]
         # Put liquid first, then vapor side stream
         ins = [first_evaporator.outs[1], first_evaporator.outs[0]]
         for evap in other_evaporators:
@@ -379,7 +385,6 @@ class MultiEffectEvaporator(Unit):
             self._load_components()
             self._reload_components = False
         else:
-            self.evaporators[0].ins[:] = [self.auxlet(i) for i in ins]
             self.mixer.outs[0] = self.auxlet(liq)
             self.evaporators[-1].outs[1] = self.auxlet(out_wt_solids)
         

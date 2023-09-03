@@ -107,7 +107,7 @@ class UnitGraphics:
                 N = owner.parallel['self']
             else:
                 N = None
-            name = bst.utils.format_title(auxname)
+            name = '\n'.join([bst.utils.format_title(i) for i in auxname.split('.')])
             name = f"{owner.ID}\n{name}\nAuxiliary"
             if N is not None and N > 1: name = f"{name}\n1 of {N}"
             node['name'] = name
