@@ -56,7 +56,6 @@ class StageEquilibrium(Unit):
     _ins_size_is_fixed = False
     _outs_size_is_fixed = False
     auxiliary_unit_names = ('partition', 'mixer', 'splitters')
-    _assembled_from_auxiliary_units = True
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
                  phases=None, partition_data=None,
@@ -369,7 +368,6 @@ class MultiStageEquilibrium(Unit):
     default_maxiter = 20
     default_molar_tolerance = 0.1
     default_relative_molar_tolerance = 0.001
-    _assembled_from_auxiliary_units = True
     auxiliary_unit_names = (
         'stages',
     )

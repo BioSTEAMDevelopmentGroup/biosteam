@@ -334,9 +334,6 @@ class Unit:
     #: **class-attribute** Index for auxiliary outlets to parent unit for graphviz diagram settings.
     _auxout_index = {}
     
-    #: **class-attribute** Whether to include this unit in auxiliary diagrams.
-    _assembled_from_auxiliary_units = False
-    
     #: **class-attribute** Expected number of inlet streams. Defaults to 1.
     _N_ins: int = 1  
     
@@ -1651,7 +1648,8 @@ class Unit:
         
         """
         if stream is None: return None
-        if isinstance(stream, str): stream = Stream(stream, thermo=self.thermo)
+        if isinstance(stream, str): 
+            stream = Stream('.' + stream, thermo=self.thermo)
         if self is stream._source and stream in self._outs:
             if isinstance(stream, tmo.MultiStream):
                 SuperpositionStream = piping.SuperpositionMultiOutlet
@@ -1668,6 +1666,13 @@ class Unit:
             if stream._source is None: stream._source = self
             if stream._sink is None: stream._sink = self
         return stream
+
+    def _assembled_from_auxiliary_units(self):
+        #: Serves for checking whether to include this unit in auxiliary diagrams.
+        #: If all streams are in common, it must be assembled by auxiliary units.
+        return not set([i.ID for i in self.ins + self.outs]).difference(
+            sum([[i.ID for i in (i.ins + i.outs)] for i in self.auxiliary_units], [])
+        )
 
     def mass_balance_error(self):
         """Return error in stoichiometric mass balance. If positive,
@@ -1987,7 +1992,7 @@ class Unit:
     def diagram(self, radius: Optional[int]=0, upstream: Optional[bool]=True,
                 downstream: Optional[bool]=True, file: Optional[str]=None, 
                 format: Optional[str]=None, display: Optional[bool]=True,
-                auxiliaries: Optional[bool]=1,
+                auxiliaries: Optional[bool]=-1,
                 **graph_attrs):
         """
         Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram

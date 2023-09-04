@@ -224,7 +224,9 @@ class Flash(design.PressureVessel, Unit):
         
     def _load_components(self):
         self._multi_stream = ms = MultiStream(None, thermo=self.thermo)
-        self.heat_exchanger = HXutility(None, self.auxlet(self.feed), self.auxlet(ms), thermo=self.thermo) 
+        self.auxiliary(
+            'heat_exchanger', HXutility, ins=self.feed, outs=ms
+        )
         
     def reset_cache(self, isdynamic=None):
         self._multi_stream.reset_cache()

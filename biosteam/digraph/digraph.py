@@ -335,7 +335,8 @@ def get_unit_names(f: Digraph, path, with_auxiliaries):
                 info = time
         if info: name = f"[{info}] {name}"
         unit_names[u] = node['name'] = name
-        if with_auxiliaries and u._assembled_from_auxiliary_units and u.auxiliary_units: continue
+        if (with_auxiliaries and all([i in info_by_unit for i in u.auxiliary_units])
+            and u._assembled_from_auxiliary_units()): continue
         f.node(**node)
     return unit_names
 
