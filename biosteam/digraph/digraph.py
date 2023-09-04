@@ -106,7 +106,7 @@ def get_section_inlets_and_outlets(units, streams):
     return ins, outs
 
 @ignore_docking_warnings
-def minimal_digraph(ID, units, streams, **graph_attrs):
+def minimal_digraph(ID, units, streams, auxiliaries=None, **graph_attrs):
     ins, outs = get_section_inlets_and_outlets(units, streams)
     product = Stream(None)
     product._ID = ''
@@ -119,11 +119,11 @@ def minimal_digraph(ID, units, streams, **graph_attrs):
     product_box = bst.units.DiagramOnlyStreamUnit('\n'.join([i.ID for i in outs]) or '-',
                                                   product, None)
     system_box = bst.units.DiagramOnlySystemUnit(ID, feed, product)
-    return digraph_from_units([feed_box, system_box, product_box],
+    return digraph_from_units([feed_box, system_box, product_box], auxiliaries=False,
                               **graph_attrs)
 
 @ignore_docking_warnings
-def surface_digraph(path, **graph_attrs):
+def surface_digraph(path, auxiliaries=None, **graph_attrs):
     surface_units = []
     old_unit_connections = set()
     isa = isinstance
@@ -137,7 +137,7 @@ def surface_digraph(path, **graph_attrs):
         elif has_path(i):
             extend_surface_units(i.ID, i.streams, i.units, 
                                  surface_units, old_unit_connections)
-    f = digraph_from_units(surface_units, **graph_attrs)
+    f = digraph_from_units(surface_units, auxiliaries=False, **graph_attrs)
     for u, ins, outs in old_unit_connections:
         u._ins[:] = ins
         u._outs[:] = outs    
@@ -234,11 +234,11 @@ def digraph_from_units(units, streams=None, auxiliaries=None, **graph_attrs):
         pass
     return digraph
 
-def digraph_from_system(system, **graph_attrs):
+def digraph_from_system(system, auxiliaries=None, **graph_attrs):
     f = blank_digraph(**graph_attrs) 
     other_streams = set()
     excluded_connections = set()
-    unit_names = get_unit_names(f, (*system.path, *system.facilities))
+    unit_names = get_unit_names(f, (*system.path, *system.facilities), with_auxiliaries=False)
     update_digraph_from_path(f, (*system.path, *system.facilities), 
                              system.recycle, 0, unit_names, excluded_connections,
                              other_streams)
