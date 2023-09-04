@@ -226,7 +226,7 @@ class JointRecycleData:
         for i in self.recycle_data: i.update()
 
     def __repr__(self):
-        recycles = ', '.join([str(i.recycle) for i in self.recycles])
+        recycles = ', '.join([str(i.recycle) for i in self.recycle_data])
         responses =  ', '.join([str(i) for i in self.responses])
         return f"{type(self).__name__}(recycles=[{recycles}], responses=[{responses}])"
 
@@ -849,6 +849,68 @@ class System:
             self._responses = responses = []
             for unit in self.units: responses.extend(unit.responses)
             return responses
+
+    def parameter(self, setter=None, element=None, kind=None, name=None, 
+                  distribution=None, units=None, baseline=None, bounds=None, 
+                  hook=None, description=None, scale=None):
+        """
+        Define parameter.
+        
+        Parameters
+        ----------    
+        setter : function
+                 Should set parameter in the element.
+        element : Unit or :class:`~thermosteam.Stream`
+                  Element in the system being altered.
+        kind : {'coupled', 'isolated', 'design', 'cost'}, optional
+            * 'coupled': parameter is coupled to the system.
+            * 'isolated': parameter does not affect the system but does affect the element (if any).
+            * 'design': parameter only affects design and/or cost of the element.
+        name : str, optional
+               Name of parameter. If None, default to argument name of setter.
+        distribution : chaospy.Dist
+                       Parameter distribution.
+        units : str, optional
+                Parameter units of measure
+        baseline : float, optional
+            Baseline value of parameter.
+        bounds : tuple[float, float], optional
+            Lower and upper bounds of parameter.
+        hook : Callable, optional
+            Should return the new parameter value given the sample.
+        scale : float, optional
+            The sample is multiplied by the scale before setting.
+        
+        Notes
+        -----
+        If kind is 'coupled', account for downstream operations. Otherwise,
+        only account for given element. If kind is 'design' or 'cost', 
+        element must be a Unit object.
+        
+        """
+        if isinstance(setter, bst.Parameter):
+            if element is None: element = setter.element
+            if kind is None: kind = setter.kind
+            if name is None: name = setter.name
+            if distribution is None: distribution = setter.distribution
+            if units is None: units = setter.units
+            if baseline is None: baseline = setter.baseline
+            if bounds is None: bounds = setter.bounds
+            if hook is None: hook = setter.hook
+            if description is None: description = setter.description
+            if scale is None: scale = setter.scale
+            setter = setter.setter
+        elif isinstance(setter, bst.MockFeature):
+            if element is None: element = setter.element
+            if name is None: name = setter.name
+            if units is None: units = setter.units
+        elif not setter:
+            return lambda setter: self.parameter(setter, element, kind, name,
+                                                 distribution, units, baseline,
+                                                 bounds, hook, description, scale)
+        return bst.Parameter(name, setter, element,
+                      self, distribution, units, 
+                      baseline, bounds, kind, hook, description, scale)
 
     def track_recycle(self, recycle: Stream, collector: list[Stream]=None):
         if not isinstance(recycle, Stream):

@@ -23,6 +23,7 @@ __all__ = (
     'NullConvergenceModel',
     'Average',
     'LinearRegressor',
+    'InterceptLinearRegressor',
 )
 
 @njit(cache=True)
@@ -282,7 +283,6 @@ class ConvergenceModel:
         'interaction_pairs',
         'predictor_index',
     )
-    default_model_type = LinearRegressor
     absolute_response_tolerance = 0.001
     relative_response_tolerance = 0.01
     def __init__(self, 
@@ -310,7 +310,11 @@ class ConvergenceModel:
                     raise ValueError('no system available')
         self.system = system
         self.responses = set() if responses is None else responses
-        if model_type is None: model_type = self.default_model_type
+        if model_type is None: 
+            if len(predictors) > 10:
+                model_type = LinearRegressor
+            else:
+                model_type = InterceptLinearRegressor
         if isinstance(model_type, str):
             model_type = model_type.lower()
             if model_type == 'linear regressor':
@@ -354,14 +358,14 @@ class ConvergenceModel:
             if distance is None: distance = 'cityblock'
             if recess: raise ValueError('local weighted recycle model cannot recess')
             if nfits: raise ValueError('local weighted recycle model must fit every time; cannot pass nfits argument')
-            if weight is None: weight = lambda x: 1. / (x + 1e-3)
+            if weight is None: weight = lambda x: np.exp(-x / 2)
         self.model_type = model_type
         self.recess = recess
         self.distance = distance
         self.fitted = 0
         self.weight = weight
         self.nfits = nfits
-        self.local_weighted = False
+        self.local_weighted = local_weighted
         self.interaction_pairs = interaction_pairs
         self.normalization = normalization
         self.load_predictors(predictors)
@@ -707,17 +711,23 @@ class NullConvergenceModel:
     __slots__ = (
         'system',
         'predictors', 
+        'predictor_index',
         'responses', 
         'data',
         'case_study',
+        'interaction_pairs',
+        'normalization',
     )
-    response_tolerance = 0.01
+    absolute_response_tolerance = ConvergenceModel.absolute_response_tolerance
+    relative_response_tolerance = ConvergenceModel.relative_response_tolerance
     practice = ConvergenceModel.practice
     evaluate_system_convergence = ConvergenceModel.evaluate_system_convergence
     load_responses = ConvergenceModel.load_responses
+    load_predictors = ConvergenceModel.load_predictors
     add_sensitive_reponses = ConvergenceModel.add_sensitive_reponses
     append_data = ConvergenceModel.append_data
     extend_data = ConvergenceModel.extend_data
+    reframe_sample = ConvergenceModel.reframe_sample
     
     def __init__(self, 
             predictors: tuple[Parameter],
@@ -735,7 +745,9 @@ class NullConvergenceModel:
                 else:
                     raise ValueError('no system available')
         self.system = system
-        self.predictors = predictors
+        self.interaction_pairs = None
+        self.normalization = None
+        self.load_predictors(predictors)
         self.responses = set() if responses is None else responses
         if load_responses is None or load_responses: self.load_responses()
     
@@ -746,7 +758,7 @@ class NullConvergenceModel:
         data = self.data
         actual = data['actual']
         case_studies = data['case studies']
-        null_responses = data['null']
+        null_responses = data['predicted']
         for response in self.responses:
             name = str(response)
             y_actual = np.array(actual[response]) 
@@ -766,10 +778,10 @@ class NullConvergenceModel:
         
     def __enter__(self):
         data = self.data
-        null_responses = data['null']
+        null_responses = data['predicted']
         sample_list = data['samples']
         n_samples = len(sample_list)
-        sample_list.append(self.reframe_sample(self.case_study))
+        sample_list.append(self.case_study)
         for response in self.responses:
             null_responses[response].append(response.get())
         data['case studies'].append(n_samples)
@@ -779,10 +791,10 @@ class NullConvergenceModel:
         data = self.data
         if exception: 
             data = self.data
-            if exception and self.fitted:
+            if exception:
                 del data['samples'][-1]
                 del data['case studies'][-1]
-                null_responses = data['null']
+                null_responses = data['predicted']
                 for response in self.responses:
                     del null_responses[response][-1]
                 raise exception

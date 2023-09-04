@@ -382,10 +382,8 @@ class Model(State):
             Whether to load pickled evaluation results from file.
         convergence_model : ConvergencePredictionModel, optional
             A prediction model for accelerated system convergence. Defaults
-            to linear regression if the number of samples is greater than the
-            squared of the number of parameters. To use the last solution
-            as the initial guess for the next scenario, pass either False or an 
-            instance of NullConvergenceModel.
+            to no convergence model and the last solution
+            as the initial guess for the next scenario.
         kwargs : dict
             Any keyword arguments passed to :func:`biosteam.System.simulate`.
         
@@ -430,8 +428,6 @@ class Model(State):
             number = 0
             index = self._index
             values = [None] * N_samples
-        if convergence_model is None and N_samples - number > len([i for i in self.parameters if i.kind == 'coupled']) ** 2:
-            convergence_model = ConvergenceModel(self.parameters)
         export = 'export_state_to' in kwargs
         layout = table.index, table.columns
         try:

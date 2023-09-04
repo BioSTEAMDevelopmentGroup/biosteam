@@ -561,6 +561,7 @@ class Unit:
         for obj in self.__dict__.values(): reset_thermo(obj)
             
     def response(self, name):
+        """Register response for convergence model prediction."""
         self.responses.add(
             bst.GenericResponse(self, name)
         )

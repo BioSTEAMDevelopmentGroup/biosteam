@@ -147,7 +147,6 @@ class Flash(design.PressureVessel, Unit):
     
     """
     auxiliary_unit_names = ('heat_exchanger', 'vacuum_system')
-    _assembled_from_auxiliary_units = False
     _auxin_index = {
         'heat_exchanger': 0
     }
