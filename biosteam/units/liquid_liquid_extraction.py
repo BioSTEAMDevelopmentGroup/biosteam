@@ -45,6 +45,7 @@ import biosteam as bst
 from .splitting import Splitter
 from .design_tools import CEPCI_by_year, geometry, PressureVessel
 from .decorators import cost, copy_algorithm
+from .phase_equilibrium import MultiStageEquilibrium
 from .._graphics import mixer_settler_graphics
 from .. import Unit
 from ._flash import RatioFlash
@@ -790,8 +791,8 @@ class MixerSettler(bst.Unit):
         * [0] feed.
         * [1] solvent.
     outs : 
-        * [0] raffinate
-        * [1] extract
+        * [0] extract.
+        * [1] raffinate.
     solvent_ID : str, optional
         Name of main chemical in the solvent.
         Defaults to chemical with highest molar fraction in the solvent.
@@ -808,7 +809,7 @@ class MixerSettler(bst.Unit):
     >>> bst.settings.set_thermo(['Water', 'Methanol', 'Octanol'], cache=True)
     >>> feed = bst.Stream('feed', Water=500, Methanol=50)
     >>> solvent = bst.Stream('solvent', Octanol=500)
-    >>> MS1 = bst.MixerSettler('MS1', ins=(feed, solvent), outs=('raffinate', 'extract'))
+    >>> MS1 = bst.MixerSettler('MS1', ins=(feed, solvent), outs=('extract', 'raffinate'))
     >>> MS1.simulate()
     >>> MS1.extract.imol['Methanol'] / MS1.feed.imol['Methanol']
     0.66
@@ -848,7 +849,7 @@ class MixerSettler(bst.Unit):
     >>> feed = bst.Stream('feed', Water=500, Methanol=50)
     >>> solvent = bst.Stream('solvent', Octanol=500)
     >>> MS1 = bst.MixerSettler('MS1', 
-    ...    ins=(feed, solvent), outs=('raffinate', 'extract'),
+    ...    ins=(feed, solvent), outs=('extract', 'raffinate'),
     ...    model='partition coefficients',
     ...    settler_data={
     ...        'partition_coefficients': np.array([1.451e-01, 1.380e+00, 2.958e+03]),
@@ -942,18 +943,18 @@ class MixerSettler(bst.Unit):
     @property
     def raffinate(self):
         """[Stream] Raffinate after extraction."""
-        return self._outs[0]
+        return self._outs[1]
     @raffinate.setter
     def raffinate(self, stream):
-        self._outs[0] = stream
+        self._outs[1] = stream
         
     @property
     def extract(self):
         """[Stream] Extract with solvent."""
-        return self._outs[1]
+        return self._outs[0]
     @extract.setter
     def extract(self, stream):
-        self._outs[1] = stream
+        self._outs[0] = stream
 
     def _run(self):
         self.mixer._run()
@@ -976,7 +977,7 @@ class MixerSettler(bst.Unit):
         self.mixer._cost()
         self.settler._cost()
         
-class MultiStageMixerSettlers(bst.Unit):
+class MultiStageMixerSettlers(MultiStageEquilibrium):
     """
     Create a MultiStageMixerSettlers object that models a counter-current system
     of mixer-settlers for liquid-liquid extraction.
@@ -987,8 +988,8 @@ class MultiStageMixerSettlers(bst.Unit):
         * [0] feed.
         * [1] solvent.
     outs : 
-        * [0] raffinate
-        * [1] extract
+        * [0] extract
+        * [1] raffinate
     N_stages : int
         Number of stages.
     partition_data : {'IDs': tuple[str], 'K': 1d array}, optional
@@ -1017,7 +1018,7 @@ class MultiStageMixerSettlers(bst.Unit):
     >>> bst.settings.set_thermo(['Water', 'Methanol', 'Octanol'])
     >>> feed = bst.Stream('feed', Water=500, Methanol=50)
     >>> solvent = bst.Stream('solvent', Octanol=500)
-    >>> MSMS1 = bst.MultiStageMixerSettlers('MSMS1', ins=(feed, solvent), outs=('raffinate', 'extract'), N_stages=2)
+    >>> MSMS1 = bst.MultiStageMixerSettlers('MSMS1', ins=(feed, solvent), outs=('extract', 'raffinate'), N_stages=2)
     >>> MSMS1.simulate()
     >>> MSMS1.extract.imol['Methanol'] / MSMS1.feed.imol['Methanol']
     0.83
@@ -1027,7 +1028,7 @@ class MultiStageMixerSettlers(bst.Unit):
     0.99
     >>> MSMS1.results() # doctest: +SKIP
     Multi stage mixer settlers                     Units       MSMS1
-    Power               Rate                          kW        3.96
+    Electricity         Power                         kW        3.96
                         Cost                      USD/hr       0.309
     Design              Mixer - Volume               m^3        1.98
                         Mixer - Power                 hp        2.65
@@ -1037,13 +1038,13 @@ class MultiStageMixerSettlers(bst.Unit):
                         Mixer - Weight                lb        91.2
                         Mixer - Wall thickness        in        0.25
                         Settler - Vessel type             Horizontal
-                        Settler - Length              ft        12.6
-                        Settler - Diameter            ft        3.15
-                        Settler - Weight              lb    1.44e+03
-                        Settler - Wall thickness      in        0.25
-    Purchase cost       Mixers and agitators         USD    1.05e+04
-                        Settlers                     USD    2.53e+04
-    Total purchase cost                              USD    3.58e+04
+                        Settler - Length                        12.6
+                        Settler - Diameter                      3.15
+                        Settler - Weight                    1.44e+03
+                        Settler - Wall thickness                0.25
+    Purchase cost       Mixers and agitators         USD    1.12e+04
+                        Settlers                     USD    2.93e+04
+    Total purchase cost                              USD    4.05e+04
     Utility cost                                  USD/hr       0.309
     
     Simulate with user defined partition coefficients:
@@ -1053,7 +1054,7 @@ class MultiStageMixerSettlers(bst.Unit):
     >>> bst.settings.set_thermo(['Water', 'Methanol', 'Octanol'])
     >>> feed = bst.Stream('feed', Water=5000, Methanol=500)
     >>> solvent = bst.Stream('solvent', Octanol=5000)
-    >>> MSMS1 = bst.MultiStageMixerSettlers('MSMS1', ins=(feed, solvent), outs=('raffinate', 'extract'), N_stages=10,
+    >>> MSMS1 = bst.MultiStageMixerSettlers('MSMS1', ins=(feed, solvent), outs=('extract', 'raffinate'), N_stages=10,
     ...     partition_data={
     ...         'K': np.array([0.1450, 1.380, 2957.]),
     ...         'IDs': ('Water', 'Methanol', 'Octanol'),
@@ -1069,7 +1070,7 @@ class MultiStageMixerSettlers(bst.Unit):
     0.99
     >>> MSMS1.results() # doctest: +SKIP
     Multi stage mixer settlers                     Units       MSMS1
-    Power               Rate                          kW         198
+    Electricity         Power                         kW         198
                         Cost                      USD/hr        15.5
     Design              Mixer - Volume               m^3        19.8
                         Mixer - Power                 hp        26.5
@@ -1079,19 +1080,19 @@ class MultiStageMixerSettlers(bst.Unit):
                         Mixer - Weight                lb         423
                         Mixer - Wall thickness        in        0.25
                         Settler - Vessel type             Horizontal
-                        Settler - Length              ft        39.8
-                        Settler - Diameter            ft        9.95
-                        Settler - Weight              lb    2.52e+04
-                        Settler - Wall thickness      in       0.438
-    Purchase cost       Mixers and agitators         USD    1.08e+05
-                        Settlers                     USD    5.32e+05
-    Total purchase cost                              USD    6.39e+05
+                        Settler - Length                        39.8
+                        Settler - Diameter                      9.95
+                        Settler - Weight                    2.52e+04
+                        Settler - Wall thickness               0.438
+    Purchase cost       Mixers and agitators         USD    1.15e+05
+                        Settlers                     USD    6.15e+05
+    Total purchase cost                              USD     7.3e+05
     Utility cost                                  USD/hr        15.5
 
     Because octanol and water do not mix well, it may be a good idea to assume
     that these solvents do not mix at all:
         
-    >>> MSMS1 = bst.MultiStageMixerSettlers('MSMS1', ins=(feed, solvent), outs=('raffinate', 'extract'), N_stages=20,
+    >>> MSMS1 = bst.MultiStageMixerSettlers('MSMS1', ins=(feed, solvent), outs=('extract', 'raffinate'), N_stages=20,
     ...     partition_data={
     ...         'K': np.array([1.38]),
     ...         'IDs': ('Methanol',),
@@ -1110,7 +1111,7 @@ class MultiStageMixerSettlers(bst.Unit):
     Simulate with a feed at the 4th stage:
     
     >>> dilute_feed = bst.Stream('dilute_feed', Water=100, Methanol=2)
-    >>> MSMS1 = bst.MultiStageMixerSettlers('MSMS1', ins=(feed, dilute_feed, solvent), outs=('raffinate', 'extract'), N_stages=5,
+    >>> MSMS1 = bst.MultiStageMixerSettlers('MSMS1', ins=(feed, dilute_feed, solvent), outs=('extract', 'raffinate'), N_stages=5,
     ...     feed_stages=[0, 3, -1], # Stage at which each inlet enters, respectively
     ...     partition_data={
     ...         'K': np.array([1.38]),
@@ -1126,8 +1127,8 @@ class MultiStageMixerSettlers(bst.Unit):
     Simulate with a 60% extract side draw at the 2nd stage and 10% raffinate side draw at the 3rd stage:
     
     >>> MSMS1 = bst.MultiStageMixerSettlers('MSMS1', ins=(feed, solvent), N_stages=4,  
-    ...     # Extract side draws always first than raffinate side draws
-    ...     outs=('raffinate', 'extract', 'extract_side_draw', 'raffinate_side_draw'),  
+    ...     # Extract side draws always come first, then raffinate side draws
+    ...     outs=('extract', 'raffinate', 'extract_side_draw', 'raffinate_side_draw'),  
     ...     extract_side_draws=[(1, 0.6)], # Stage number and split fraction pairs
     ...     raffinate_side_draws=[(2, 0.10)], 
     ...     partition_data={
@@ -1139,38 +1140,23 @@ class MultiStageMixerSettlers(bst.Unit):
     ... )
     >>> MSMS1.simulate()
     >>> (MSMS1.extract.imol['Methanol'] + MSMS1.outs[2].imol['Methanol']) / feed.imol['Methanol'] # Recovery
-    0.99
+    1.0
     
 
     """
     _units = MixerSettler._units
-    _N_ins = 2
-    _N_outs = 2
-    _ins_size_is_fixed = False
-    _outs_size_is_fixed = False
     
     def __init__(self, ID="", ins=None, outs=(), thermo=None, *, N_stages,
                  partition_data=None, solvent_ID=None, feed_stages=None, 
                  raffinate_side_draws=None, extract_side_draws=None,
                  mixer_data={}, settler_data={}, use_cache=None):
-        bst.Unit.__init__(self, ID, ins, outs, thermo)
-        self.feed_stages = feed_stages
-        self.raffinate_side_draws = raffinate_side_draws
-        self.extract_side_draws = extract_side_draws
-        
-        #: [str] Name of main chemical in the feed (which is not extracted by 
-        #: the solvent).
-        self.solvent_ID = solvent_ID
-        
-        #: [int] Number of stages.
-        self.N_stages = N_stages
-        
-        # {'IDs': tuple[str], 'K': 1d array}
-        # IDs of chemicals in equilibrium and partition coefficients. If given,
-        # The mixer-settlers will be modeled with these constants. Otherwise,
-        # partition coefficients are computed based on temperature and composition.
-        self.partition_data = partition_data
-        
+        bst.MultiStageEquilibrium.__init__(
+            self, ID, ins, outs, thermo,
+            N_stages=N_stages, feed_stages=feed_stages, phases=('l', 'L'), P=101325,
+            top_side_draws=extract_side_draws, bottom_side_draws=raffinate_side_draws,
+            stage_specifications=None, partition_data=partition_data, 
+            solvent=solvent_ID, use_cache=use_cache,
+        )
         #: [LiquidsMixingTank] Used to design all mixing tanks. 
         #: All data and settings for the design of mixing tanks are stored here.
         self.mixer = mixer = LiquidsMixingTank(None, None, (None,),
@@ -1180,15 +1166,16 @@ class MultiStageMixerSettlers(bst.Unit):
         #: [LiquidsSettler] Used to design all settlers.
         #: All data and settings for the design of settlers are stored here.
         self.settler = LiquidsSettler(None, mixer-0, None, self.thermo, **settler_data)
-        
         self.settler._outs = self._outs
         self.use_cache = use_cache
+        self._last_args = (
+            self.N_stages, self.feed_stages, self.extract_side_draws, self.use_cache,
+            *self._ins, self.raffinate_side_draws, self.solvent_ID, self.partition_data
+        )
         self.reset_cache()
     
     feed = MixerSettler.feed
     solvent = MixerSettler.solvent
-    raffinate = MixerSettler.raffinate
-    extract = MixerSettler.extract
     
     @property
     def partition_data(self):
@@ -1203,34 +1190,20 @@ class MultiStageMixerSettlers(bst.Unit):
         args = (self.N_stages, self.feed_stages, self.extract_side_draws, self.use_cache,
                 *self._ins, self.raffinate_side_draws, self.solvent_ID, self.partition_data)
         if args != self._last_args:
-            self.stages = sep.MultiStageEquilibrium(
-                self.N_stages, self.ins, self.feed_stages, solvent=self.solvent_ID, use_cache=self.use_cache,
-                top_side_draws=self.extract_side_draws, bottom_side_draws=self.raffinate_side_draws, 
-                thermo=self.thermo, partition_data=self.partition_data, phases=('L', 'l'),
+            del self.stages
+            MultiStageEquilibrium.__init__(
+                self, self.ID, self.ins, self.outs, self.thermo,
+                N_stages=self.N_stages, feed_stages=self.feed_stages, phases=('l', 'L'), P=self.P,
+                top_side_draws=self.extract_side_draws, bottom_side_draws=self.raffinate_side_draws,
+                stage_specifications=None, partition_data=self.partition_data, 
+                solvent=self.solvent_ID, use_cache=self.use_cache,
             )
+            self.mixer._ins = self._ins
+            self.settler._outs = self._outs
             self._last_args = args
     
     def reset_cache(self, isdynamic=None):
-        self.stages = None
         self._last_args = None
-        
-    def _run(self):
-        stages = self.stages
-        stages.simulate()
-        extract = self.extract
-        extract.copy_like(stages[0].extract)
-        raffinate = self.raffinate
-        raffinate.copy_like(stages[-1].raffinate)
-        extract.phase = self.raffinate.phase = 'l'
-        if self.extract_side_draws or self.raffinate_side_draws:
-            raffinate, extract, *others = self._outs
-            try:
-                N_extract = len(self.extract_side_draws)
-            except:
-                N_extract = 0
-            extract_side_draws = others[:N_extract]
-            raffinate_side_draws = others[N_extract:]
-            self.stages.get_side_draws(extract_side_draws, raffinate_side_draws)
         
     def _design(self):
         mixer = self.mixer

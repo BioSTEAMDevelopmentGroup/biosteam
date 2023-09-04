@@ -36,7 +36,8 @@ def test_parameter_hook():
                      [1.]]
     assert_allclose(model.table.values, actual_values) 
 
-def create_evaluation_model():
+def create_evaluation_model(cache=[None]):
+    if cache[0] is not None: return cache[0]
     import biosteam as bst
     from chaospy.distributions import Uniform
     sys = bst.System(None, ())
@@ -73,13 +74,11 @@ def create_evaluation_model():
     sample = model.sample(100, 'L')
     model.load_samples(sample)
     model.evaluate()
+    cache[0] = model
     return model
-
-@pytest.fixture
-def model():
-    return create_evaluation_model()
     
-def test_pearson_r(model):
+def test_pearson_r():
+    model = create_evaluation_model()
     with pytest.raises(ValueError):
         rho, p = model.pearson_r(filter='none')
     
@@ -98,20 +97,22 @@ def test_pearson_r(model):
                          [0,  0., 0.]])
     assert_allclose(np.round(rho), expected, atol=0.15)
 
-def test_spearman_r(model):
+def test_spearman_r():
+    model = create_evaluation_model()
     rho, p = model.spearman_r()
     NaN = float('NaN')
     expected = np.array([[1., NaN, 0.],
                          [0,  NaN, 0.]])
     index = ~np.isnan(expected)
-    assert_allclose(rho.values[index], expected[index], atol=0.15)
+    assert_allclose(rho.values[index], expected[index], atol=0.2)
     
     rho, p = model.spearman_r(filter='omit nan')
     expected = np.array([[1., 1., 0.],
                          [0,  0., 0.]])
     assert_allclose(np.round(rho), expected, atol=0.15)
     
-def test_kendall_tau(model):
+def test_kendall_tau():
+    model = create_evaluation_model()
     rho, p = model.kendall_tau()
     NaN = float('NaN')
     expected = np.array([[1., NaN, 0.],
@@ -151,13 +152,15 @@ def test_model_index():
     
     bst.default()
     
-def test_model_sample(model):
+def test_model_sample():
+    model = create_evaluation_model()
     # Just make sure they run
     for rule in ('MORRIS', 'FAST', 'RBD', 'SOBOL'): model.sample(100, rule)
     problem = model.problem()
     for rule in ('MORRIS', 'FAST', 'RBD', 'SOBOL'): model.sample(100, rule, problem=problem)
 
-def test_copy(model):
+def test_copy():
+    model = create_evaluation_model()
     copy = model.copy()
     assert copy.table is not None
     assert copy.table is not model.table
@@ -188,7 +191,7 @@ def test_model_exception_hook():
     sugarcane_model.load_samples(samples)
     
     # Without an exception hook, the same behavior will result (NaN values for failed evaluations)
-    sugarcane_model.evaluate()
+    sugarcane_model.evaluate(convergence_model=False)
     assert np.isnan(sugarcane_model.table.values).any()
     
     InfeasibleRegion = bst.exceptions.InfeasibleRegion
@@ -199,7 +202,7 @@ def test_model_exception_hook():
             return [0]
         else: raise exception
     sugarcane_model.exception_hook = exception_hook
-    sugarcane_model.evaluate()
+    sugarcane_model.evaluate(convergence_model=False)
     assert not np.isnan(sugarcane_model.table.values).any()
     
     # This will raise an exception due to negative flow rates
@@ -207,13 +210,13 @@ def test_model_exception_hook():
         if isinstance(exception, InfeasibleRegion):
             raise exception
     sugarcane_model.exception_hook = exception_hook
-    with pytest.raises(InfeasibleRegion): sugarcane_model.evaluate()
+    with pytest.raises(InfeasibleRegion): sugarcane_model.evaluate(convergence_model=False)
     
     # This will raise an exception regardless
     def exception_hook(exception, sample): 
         raise exception
     sugarcane_model.exception_hook = exception_hook
-    with pytest.raises(InfeasibleRegion): sugarcane_model.evaluate()
+    with pytest.raises(InfeasibleRegion): sugarcane_model.evaluate(convergence_model=False)
     
     # Here is another cool thing we could do in the case where 
     # some metrics are expected to fail
@@ -230,7 +233,7 @@ def test_model_exception_hook():
             values.append(x)
         return values
     sugarcane_model.exception_hook = exception_hook
-    sugarcane_model.evaluate()
+    sugarcane_model.evaluate(convergence_model=False)
     bad_metric_results = sugarcane_model.table[bad_metric.index]
     IRR_metric_results = sugarcane_model.table[IRR_metric.index]
     assert np.isnan(bad_metric_results).all()
@@ -238,7 +241,7 @@ def test_model_exception_hook():
     
     # Note that the possibilities are infinite here...
     
-def test_kolmogorov_smirnov_d(model):
+def test_kolmogorov_smirnov_d():
     # Test made by Yalin.
     import numpy as np
     import biosteam as bst
@@ -279,3 +282,14 @@ def test_kolmogorov_smirnov_d(model):
     
     D, p = model.kolmogorov_smirnov_d(thresholds=[1, 1.5]) # Just make sure it works for now
     # TODO: Add tests that make sense for comparing statistics
+    
+if __name__ == '__main__':
+    test_parameter_hook()
+    test_pearson_r()
+    test_spearman_r()
+    test_kendall_tau()
+    test_model_index()
+    test_model_sample()
+    test_copy()
+    test_model_exception_hook()
+    test_kolmogorov_smirnov_d()

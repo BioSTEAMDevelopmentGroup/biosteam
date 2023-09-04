@@ -115,10 +115,10 @@ class MissingStream:
         self._source = source
         self._sink = sink
     
-    def get_connection(self, junction=None):
-        self = self.materialize_connection()
-        return self.get_connection(junction)
-    
+    def _get_tooltip_string(self, format, full):
+        if format not in ('html', 'svg'): return ''
+        return '(empty)'
+            
     def materialize_connection(self, ID=""):
         """
         Disconnect this missing stream from any unit operations and 
@@ -130,8 +130,16 @@ class MissingStream:
             raise RuntimeError("either a source or a sink is required to "
                                "materialize connection")
         material_stream = Stream(ID, thermo=(source or sink).thermo)
-        if source: source._outs.replace(self, material_stream)
-        if sink: sink._ins.replace(self, material_stream)
+        if source: 
+            try: 
+                source._outs.replace(self, material_stream)
+            except: # Must be an auxlet
+                material_stream._source = source
+        if sink: 
+            try:
+                sink._ins.replace(self, material_stream)
+            except: # Must be an auxlet
+                material_stream._sink = sink
         return material_stream
     
     def get_impact(self, key):
@@ -185,6 +193,7 @@ class TemporaryStream:
     __init__ = MissingStream.__init__
     source = Stream.source
     sink = Stream.sink
+    H = Hf = Hnet = LHV = HHV = Hvap = C = F_mol = F_mass = F_vol = cost = price = 0.
     
     def __repr__(self):
         return f"<{type(self).__name__}>"
@@ -441,6 +450,9 @@ class StreamSequence:
         else:
             for i in self._streams: self._undock(i)
             self._streams.clear()
+    
+    def reverse(self):
+        self.streams.reverse()
     
     def __iter__(self):
         return iter(self._streams)
@@ -949,10 +961,17 @@ class Connection(NamedTuple):
         # Does not attempt to connect auxiliaries with owners (which should not be possible)
         source = self.source
         sink = self.sink
-        if source and not (sink and getattr(sink, '_owner', None) is source):
-            source.outs[self.source_index] = self.stream
-        if sink and not (source and getattr(source, '_owner', None) is sink):
-            sink.ins[self.sink_index] = self.stream
+        if source:
+            if (sink and getattr(sink, '_owner', None) is source):
+                source.outs[self.source_index] = self.stream
+        else:
+            self.stream.disconnect_source()
+        if sink:
+            if not (source and getattr(source, '_owner', None) is sink):
+                sink.ins[self.sink_index] = self.stream
+        else:
+            self.stream.disconnect_sink()
+
 
 # %% General
 
@@ -1009,8 +1028,8 @@ def get_connection(self, junction=None):
             sink_index = -1
     return Connection(source, source_index, self, sink_index, sink)
 
-Stream.get_connection = get_connection
-TemporaryStream.get_connection = get_connection
+TemporaryStream.get_connection = Stream.get_connection = \
+MissingStream.get_connection = get_connection
 basic_stream_info = lambda self: (f"{type(self).__name__}: {self.ID or ''}"
                                   f"{pipe_info(self._source, self._sink)}\n")
 source_info = lambda self: f"{source}-{source.outs.index(self)}" if (source:=self.source) else self.ID

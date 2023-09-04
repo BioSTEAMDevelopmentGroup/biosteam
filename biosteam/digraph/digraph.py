@@ -9,7 +9,11 @@
 """
 """
 import numpy as np
-from biosteam.utils.piping import ignore_docking_warnings
+from biosteam.utils.piping import (
+    ignore_docking_warnings, Connection,
+    SuperpositionInlet, SuperpositionMultiInlet,
+    SuperpositionOutlet, SuperpositionMultiOutlet
+)
 from warnings import warn
 import biosteam as bst
 from graphviz import Digraph
@@ -19,6 +23,8 @@ from xml.etree import ElementTree
 from typing import Optional
 import urllib
 import re
+supinlet_type = (SuperpositionInlet, SuperpositionMultiInlet)
+supoutlet_type = (SuperpositionOutlet, SuperpositionMultiOutlet)
 
 __all__ = ('digraph_from_system',
            'digraph_from_units',
@@ -184,7 +190,7 @@ def extend_surface_units(ID, streams, units, surface_units, old_unit_connections
     for i in (feed_box, subsystem_unit, product_box):
         if i: surface_units.append(i)
 
-def digraph_from_units(units, streams=None, auxiliaries=False, **graph_attrs):
+def digraph_from_units(units, streams=None, auxiliaries=None, **graph_attrs):
     if auxiliaries:
         all_units = []
         streams = []
@@ -192,18 +198,16 @@ def digraph_from_units(units, streams=None, auxiliaries=False, **graph_attrs):
         for unit in tuple(units):
             all_units.append(unit)
             for s in unit.ins + unit.outs:
-                if not s: s = s.materialize_connection()
-                elif s in stream_set: continue
+                if s in stream_set: continue
                 streams.append(s)
                 stream_set.add(s)
-            for name, auxunit in unit.get_auxiliary_units_with_names():
-                auxunit.owner = unit # In case units have not been simulated
-                auxunit.auxname = name
+            for name, auxunit in unit.get_nested_auxiliary_units_with_names(depth=auxiliaries):
+                auxunit.owner = unit # In case units not created correctly through Unit.auxiliary method
                 if isinstance(auxunit, bst.Unit): 
+                    auxunit._ID = name
                     all_units.append(auxunit)
                     for s in auxunit.ins + auxunit.outs:
-                        if not s: s = s.materialize_connection()
-                        elif s in stream_set: continue
+                        if s in stream_set: continue
                         streams.append(s)
                         stream_set.add(s)
         units = all_units
@@ -225,7 +229,10 @@ def digraph_from_units(units, streams=None, auxiliaries=False, **graph_attrs):
                 if other in stream_set:
                     streams.remove(other)
                     stream_set.remove(other)
-    return digraph_from_units_and_connections(units, get_all_connections(streams), **graph_attrs)
+    digraph = digraph_from_units_and_connections(units, get_all_connections(streams), auxiliaries, **graph_attrs)
+    if auxiliaries:
+        pass
+    return digraph
 
 def digraph_from_system(system, **graph_attrs):
     f = blank_digraph(**graph_attrs) 
@@ -280,9 +287,9 @@ def update_digraph_from_path(f, path, recycle, depth, unit_names,
                    labeljust='l', fontcolor=preferences.label_color, **kwargs)
             update_digraph_from_path(c, i.path, i.recycle, depth, unit_names, excluded_connections, other_streams)
 
-def digraph_from_units_and_connections(units, connections, **graph_attrs):
+def digraph_from_units_and_connections(units, connections, with_auxiliaries, **graph_attrs):
     f = blank_digraph(**graph_attrs)
-    update_digraph_from_units_and_connections(f, units, connections)
+    update_digraph_from_units_and_connections(f, units, connections, with_auxiliaries)
     return f
 
 def fill_info_from_path(path, indices, info_by_unit):
@@ -313,7 +320,7 @@ def fill_info_from_path(path, indices, info_by_unit):
                 time = None
             info_by_unit[u] = [[index] if number else [], time] 
 
-def get_unit_names(f: Digraph, path):
+def get_unit_names(f: Digraph, path, with_auxiliaries):
     unit_names = {}  # Contains full description (ID and line) by unit
     info_by_unit = {}
     fill_info_from_path(path, [0], info_by_unit)
@@ -328,18 +335,37 @@ def get_unit_names(f: Digraph, path):
                 info = time
         if info: name = f"[{info}] {name}"
         unit_names[u] = node['name'] = name
+        if (with_auxiliaries and all([i in info_by_unit for i in u.auxiliary_units])
+            and u._assembled_from_auxiliary_units()): continue
         f.node(**node)
     return unit_names
 
-def update_digraph_from_units_and_connections(f: Digraph, units, connections):
-    add_connections(f, connections, get_unit_names(f, units))    
+def update_digraph_from_units_and_connections(f: Digraph, units, connections, with_auxiliaries):
+    add_connections(f, connections, get_unit_names(f, units, with_auxiliaries))    
 
 def get_all_connections(streams, added_connections=None):
     if added_connections is None: added_connections = set()
     connections = []
+    IDs = {}
+    isa = isinstance
     for s in streams:
         if (s._source or s._sink): 
             connection = s.get_connection(junction=False)
+            ID = s.ID
+            if ID in IDs:
+                source0, source_index0, stream0, sink_index0, sink0 = old_connection = IDs[s.ID]
+                source1, source_index1, stream1, sink_index1, sink1 = connection
+                if isa(stream1, supoutlet_type) and isa(stream0, supinlet_type):
+                    connections.remove(old_connection)
+                    added_connections.remove(old_connection)
+                    stream = stream1.copy(ID='.' + ID)
+                    connection = Connection(source1, source_index1, stream, sink_index0, sink0)
+                elif isa(stream0, supoutlet_type) and isa(stream1, supinlet_type):
+                    connections.remove(old_connection)
+                    added_connections.remove(old_connection)
+                    stream = stream1.copy(ID='.' + ID)
+                    connection = Connection(source0, source_index0, stream, sink_index1, sink1)
+            IDs[ID] = connection
             if connection and connection not in added_connections:
                 connections.append(connection)
                 added_connections.add(connection)

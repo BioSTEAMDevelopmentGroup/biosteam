@@ -572,7 +572,7 @@ class Network:
                 recycle = recycle._source_info()
             else:
                 recycle = ", ".join([i._source_info() for i in recycle])
-                recycle = '{' + recycle + '}'
+                recycle = '[' + recycle + ']'
             info += end + f"recycle={recycle})"
         else:
             info += ')'

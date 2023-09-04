@@ -100,14 +100,14 @@ class UnitGraphics:
         node = self.node.copy()
         if getattr(unit, '_owner', None):
             owner = unit._owner
-            auxname = unit.auxname
-            if auxname in owner.parallel:
-                N = owner.parallel[auxname]
+            ID = unit.ID
+            if ID in owner.parallel:
+                N = owner.parallel[ID]
             elif 'self' in owner.parallel:
                 N = owner.parallel['self']
             else:
                 N = None
-            name = bst.utils.format_title(auxname)
+            name = '\n'.join([bst.utils.format_title(i) for i in ID.split('.')])
             name = f"{owner.ID}\n{name}\nAuxiliary"
             if N is not None and N > 1: name = f"{name}\n1 of {N}"
             node['name'] = name

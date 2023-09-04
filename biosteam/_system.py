@@ -44,7 +44,9 @@ from . import report
 from ._temporary_connection import temporary_units_dump, TemporaryUnit
 import os
 import openpyxl
-if TYPE_CHECKING: from ._tea import TEA
+if TYPE_CHECKING: 
+    from ._tea import TEA
+    from .evaluation import Response
 
 __all__ = ('System', 'AgileSystem', 'MockSystem',
            'AgileSystem', 'OperationModeResults',
@@ -75,20 +77,160 @@ class Methods(dict):
         return f"{type(self).__name__}({', '.join(self)})"
 
 
-class MaterialData:
+class RecycleData:
     __slots__ = (
-        'material_flows',
-        'recycles',
-        'index',
-        'IDs',
+        'recycle',
+        'mol',
+        'T',
+        'P',
     )
-    def __init__(self, material_flows, recycles, index, IDs):
-        self.material_flows = material_flows
-        self.recycles = recycles
-        self.index = index
-        self.IDs = IDs
+    def __init__(self, recycle):
+        self.recycle = recycle
+        self.mol = recycle.mol.copy()
+        self.T, self.P = recycle.thermal_condition
         
-   
+    def to_dict(self, dct=None):
+        recycle = self.recycle
+        IDs = recycle.chemicals.IDs
+        if dct is None: dct = {}
+        for i, j in self.mol.nonzero_items(): dct[recycle, IDs[i]] = j
+        dct[recycle, 'T'] = self.T
+        dct[recycle, 'P'] = self.P
+        return dct
+        
+    def to_series(self):
+        return pd.Series(self.to_list(), self.get_names())
+    
+    def get_keys(self, lst=None):
+        recycle = self.recycle
+        IDs = recycle.chemicals.IDs
+        if lst is None: lst = []
+        for i, j in self.mol.nonzero_items(): 
+            lst.append(
+                (recycle, IDs[i])
+            )
+        lst.append(
+            (recycle, 'T')
+        )
+        lst.append(
+            (recycle, 'P')
+        )
+        return lst
+    
+    def get_names(self, lst=None):
+        recycle = self.recycle
+        ID = recycle.ID
+        IDs = recycle.chemicals.IDs
+        if lst is None: lst = []
+        for i, j in self.mol.nonzero_items(): 
+            lst.append(
+                f"{ID}.{IDs[i]}"
+            )
+        lst.append(
+            f"{ID}.T"
+        )
+        lst.append(
+            f"{ID}.P"
+        )
+        return lst
+        
+    def to_tuples(self, lst=None):
+        recycle = self.recycle
+        IDs = recycle.chemicals.IDs
+        if lst is None: lst = []
+        for i, j in self.mol.nonzero_items(): 
+            lst.append(
+                ((recycle, IDs[i]), j)
+            )
+        lst.append(
+            ((recycle, 'T'), self.T)
+        )
+        lst.append(
+            ((recycle, 'P'), self.P)
+        )
+        return lst
+    
+    def to_list(self, lst=None):
+        if lst is None:
+            lst = [*self.mol.nonzero_values(), self.T, self.P]
+        else:
+            lst.extend(self.mol.nonzero_values())
+            lst.append(self.T)
+            lst.append(self.P)
+        return lst
+    
+    def to_array(self):
+        return np.array(self.to_list())
+    
+    def reset(self):
+        recycle = self.recycle
+        recycle.mol.copy_like(self.mol)
+        recycle.T = self.T
+        recycle.P = self.P
+        
+    def update(self):
+        recycle = self.recycle
+        self.mol = recycle.mol.copy()
+        self.T, self.P = recycle.thermal_condition
+        
+    def __repr__(self):
+        return f"{type(self).__name__}({self.recycle})"
+        
+    
+class JointRecycleData:
+    __slots__ = ('recycle_data', 'responses')
+    def __init__(self, recycles, responses):
+        self.recycle_data = [RecycleData(i) for i in recycles]
+        self.responses = {i: i.get() for i in responses}
+    
+    def get_keys(self):
+        lst = []
+        for i in self.recycle_data: i.get_keys(lst)
+        lst.extend(self.responses)
+        return lst
+    
+    def get_names(self):
+        lst = []
+        for i in self.recycle_data: i.get_names(lst)
+        lst.extend([str(i) for i in self.responses])
+        return lst
+    
+    def to_dict(self):
+        dct = {}
+        for i in self.recycle_data: i.to_dict(dct)
+        for i, j in self.responses.items(): dct[i] = j
+        return dct
+    
+    def to_series(self):
+        return pd.Series(self.to_list(), self.get_names())
+    
+    def to_tuples(self):
+        lst = []
+        for i in self.recycle_data: i.to_tuples(lst)
+        for i, j in self.responses.items(): lst.append((i, j))
+        return lst
+    
+    def to_list(self):
+        lst = []
+        for i in self.recycle_data: i.to_list(lst)
+        for i in self.responses.values(): lst.append(i)
+        return lst
+    
+    def to_array(self):
+        return np.array(self.to_list())
+    
+    def reset(self):
+        for i in self.recycle_data: i.reset()
+        
+    def update(self):
+        for i in self.recycle_data: i.update()
+
+    def __repr__(self):
+        recycles = ', '.join([str(i.recycle) for i in self.recycle_data])
+        responses =  ', '.join([str(i) for i in self.responses])
+        return f"{type(self).__name__}(recycles=[{recycles}], responses=[{responses}])"
+
+
 def get_recycle_data(stream):
     """
     Return stream temperature, pressure, and molar flow rates as a
@@ -115,8 +257,8 @@ def set_recycle_data(stream, arr):
     TP = stream._thermal_condition
     T = float(arr[0]) # ndfloat objects are slow and parasitic (don't go away)
     P = float(arr[1])
-    TP._T = (T + TP._T) * 0.5 if T == 0 else T
-    TP._P = (P + TP._P) * 0.5 if P == 0. else P
+    TP._T =  TP._T * 0.5 if T == 0 else T
+    TP._P = TP._P * 0.5 if P == 0. else P
     
    
 # %% System creation tools
@@ -396,7 +538,7 @@ class System:
         '_LCA',
         '_subsystems',
         '_units',
-        '_units_set',
+        '_unit_set',
         '_unit_path',
         '_cost_units',
         '_streams',
@@ -409,6 +551,10 @@ class System:
         'simulate_after_specifications',
         '_specifications',
         '_running_specifications',
+        '_simulation_default_arguments',
+        '_simulation_outputs',
+        # Convergence prediction
+        '_responses',
         # Dynamic simulation
         '_isdynamic',
         '_state',
@@ -636,10 +782,10 @@ class System:
             facility_recycle: Optional[Stream]=None, 
             N_runs: Optional[int]=None,
             operating_hours: Optional[float]=None,
-            lang_factor: Optional[float]=None
+            lang_factor: Optional[float]=None,
+            responses: Optional[list[Response]]=None,
         ):
         self.N_runs = N_runs
-        self.recycle = recycle
         self.method = self.default_method   
         
         #: Maximum number of iterations.
@@ -681,6 +827,7 @@ class System:
         self._load_flowsheet()
         self._reset_errors()
         self._set_facilities(facilities)
+        self.recycle = recycle
         self._set_facility_recycle(facility_recycle)
         self._register(ID)
         self._save_configuration()
@@ -691,6 +838,79 @@ class System:
         self._DAE = None
         self.dynsim_kwargs = {}
         self.tracked_recycles = {}
+
+    @property
+    def responses(self):
+        """Unit design decisions that need to converge to satisfy
+        process specifications."""
+        try:
+            return self._responses
+        except:
+            self._responses = responses = []
+            for unit in self.units: responses.extend(unit.responses)
+            return responses
+
+    def parameter(self, setter=None, element=None, kind=None, name=None, 
+                  distribution=None, units=None, baseline=None, bounds=None, 
+                  hook=None, description=None, scale=None):
+        """
+        Define parameter.
+        
+        Parameters
+        ----------    
+        setter : function
+                 Should set parameter in the element.
+        element : Unit or :class:`~thermosteam.Stream`
+                  Element in the system being altered.
+        kind : {'coupled', 'isolated', 'design', 'cost'}, optional
+            * 'coupled': parameter is coupled to the system.
+            * 'isolated': parameter does not affect the system but does affect the element (if any).
+            * 'design': parameter only affects design and/or cost of the element.
+        name : str, optional
+               Name of parameter. If None, default to argument name of setter.
+        distribution : chaospy.Dist
+                       Parameter distribution.
+        units : str, optional
+                Parameter units of measure
+        baseline : float, optional
+            Baseline value of parameter.
+        bounds : tuple[float, float], optional
+            Lower and upper bounds of parameter.
+        hook : Callable, optional
+            Should return the new parameter value given the sample.
+        scale : float, optional
+            The sample is multiplied by the scale before setting.
+        
+        Notes
+        -----
+        If kind is 'coupled', account for downstream operations. Otherwise,
+        only account for given element. If kind is 'design' or 'cost', 
+        element must be a Unit object.
+        
+        """
+        if isinstance(setter, bst.Parameter):
+            if element is None: element = setter.element
+            if kind is None: kind = setter.kind
+            if name is None: name = setter.name
+            if distribution is None: distribution = setter.distribution
+            if units is None: units = setter.units
+            if baseline is None: baseline = setter.baseline
+            if bounds is None: bounds = setter.bounds
+            if hook is None: hook = setter.hook
+            if description is None: description = setter.description
+            if scale is None: scale = setter.scale
+            setter = setter.setter
+        elif isinstance(setter, bst.MockFeature):
+            if element is None: element = setter.element
+            if name is None: name = setter.name
+            if units is None: units = setter.units
+        elif not setter:
+            return lambda setter: self.parameter(setter, element, kind, name,
+                                                 distribution, units, baseline,
+                                                 bounds, hook, description, scale)
+        return bst.Parameter(name, setter, element,
+                      self, distribution, units, 
+                      baseline, bounds, kind, hook, description, scale)
 
     def track_recycle(self, recycle: Stream, collector: list[Stream]=None):
         if not isinstance(recycle, Stream):
@@ -722,9 +942,9 @@ class System:
         network = Network.from_units(units)
         path = [(type(self)._from_network(ID_subsys, i) if isa(i, Network) else i)
                 for i in network.path]
-        self.recycle = network.recycle
         self._reset_errors()
         self._set_path(path)
+        self.recycle = network.recycle
         self._set_facilities(facilities)
         self._set_facility_recycle(facility_recycle or find_blowdown_recycle(facilities))
         self.set_tolerance(
@@ -763,7 +983,9 @@ class System:
         for i in self.units: i._system = self
 
     @ignore_docking_warnings
-    def _interface_property_packages(self):
+    def interface_property_packages(self):
+        """Add junctions in between streams which have incompatible
+        property packages."""
         path = self._path
         Stream = bst.Stream
         Interface = (bst.Junction, bst.Mixer, bst.MixTank)
@@ -797,54 +1019,9 @@ class System:
                     source._outs[source_index] = s_source
                     sink._ins[sink_index] = s_sink
         for obj in path:
-            if isa(obj, System): obj._interface_property_packages()
+            if isa(obj, System): obj.interface_property_packages()
         self._path = tuple(new_path)
         self._save_configuration()
-
-    def _reduced_thermo_data(self, required_chemicals, unit_thermo, mixer_thermo, thermo_cache):
-        isa = isinstance
-        mixers = [i for i in self.units if isa(i, (bst.Mixer, bst.MixTank))]
-        past_upstream_units = set()
-        for mixer in mixers:
-            if mixer in past_upstream_units: continue
-            upstream_units = mixer.get_upstream_units()
-            upstream_units.difference_update(past_upstream_units)
-            available_chemicals = set(required_chemicals)
-            for unit in upstream_units:
-                if isa(unit, bst.Junction): continue
-                available_chemicals.update(unit.get_available_chemicals())
-            for unit in upstream_units:
-                if isa(unit, bst.Junction): continue
-                chemicals = [i for i in unit.chemicals if i in available_chemicals]
-                if unit in unit_thermo:
-                    other_thermo = unit_thermo[unit]
-                    for i in other_thermo.chemicals:
-                        if i not in chemicals: chemicals.append(i)
-                IDs = tuple([i.ID for i in chemicals])
-                if IDs in thermo_cache:
-                    unit_thermo[unit] = thermo_cache[IDs]
-                else:
-                    unit_thermo[unit] = thermo_cache[IDs] = unit.thermo.subset(chemicals)
-            past_upstream_units.update(upstream_units)
-        for mixer in mixers:
-            outlet = mixer.outs[0]
-            sink = outlet.sink
-            if sink:
-                chemicals = sink.thermo.chemicals
-            else:
-                chemicals = outlet.available_chemicals
-            if mixer in mixer_thermo:
-                other_thermo = mixer_thermo[mixer]
-                new_chemicals = []
-                for i in other_thermo.chemicals:
-                    if i not in chemicals: new_chemicals.append(i)
-                if new_chemicals:
-                    chemicals = list(chemicals) + new_chemicals
-            IDs = tuple([i.ID for i in chemicals])
-            if IDs in thermo_cache:
-                mixer_thermo[mixer] = thermo_cache[IDs]
-            else:
-                mixer_thermo[mixer] = thermo_cache[IDs] = unit.thermo.subset(chemicals)
 
     def _delete_path_cache(self):
         for i in ('_subsystems', '_units', '_unit_path', '_cost_units',
@@ -853,20 +1030,6 @@ class System:
         self._path_cache.clear()
         self._temporary_connections_log.clear()
         self._prioritized_units.clear()
-
-    def reduce_chemicals(self, required_chemicals: Collection[Chemical]=()):
-        unit_thermo = {}
-        mixer_thermo = {}
-        thermo_cache = {}
-        self._reduced_thermo_data(required_chemicals, unit_thermo, mixer_thermo, thermo_cache)
-        for unit, thermo in unit_thermo.items(): unit._reset_thermo(thermo)
-        for mixer, thermo in mixer_thermo.items():
-            for i in mixer._ins:
-                if i._source: i._reset_thermo(unit_thermo[i._source])
-            thermo = mixer_thermo[mixer]
-            mixer._load_thermo(thermo)
-            mixer._outs[0]._reset_thermo(thermo)
-        self._interface_property_packages()
 
     def copy(self, ID=None):
         """Copy system."""
@@ -1081,7 +1244,9 @@ class System:
         path = self._path
         for index, other in enumerate(path):
             if unit is other:
-                if (self._recycle or self.N_runs): self._path = path[index:] + path[:index]
+                if (self._recycle or self.N_runs): 
+                    self._path = path[index:] + path[:index]
+                    self.method = 'fixed-point'
                 del self._unit_path
                 return
             elif isa(other, System) and unit in other.unit_path:
@@ -1146,16 +1311,16 @@ class System:
                 for obj in leftover_path:
                     if obj in critical_units:
                         critical_units.discard(obj)
-                    elif isa(obj, System) and critical_units.intersection(obj.units_set):
-                        critical_units.difference_update(obj.units_set)
+                    elif isa(obj, System) and critical_units.intersection(obj.unit_set):
+                        critical_units.difference_update(obj.unit_set)
                     else:
                         continue
                     segment.append(obj)
             else:
                 for i, obj in enumerate(path):
                     if isa(obj, System):
-                        if start in obj.units_set:
-                            if end in obj.units_set:
+                        if start in obj.unit_set:
+                            if end in obj.unit_set:
                                 return obj.path_segment(start, end, False, relevant_units, critical_units)
                             else:
                                 path = path[i:]
@@ -1170,7 +1335,7 @@ class System:
                     raise ValueError(f"start unit {repr(start)} not in system")
             for i in path:
                 if isa(i, System):
-                    if end in i.units_set:
+                    if end in i.unit_set:
                         segment.extend(i.path_segment(None, end, False, relevant_units, critical_units))
                         break
                 elif i is end:
@@ -1178,8 +1343,8 @@ class System:
                 if isa(i, Unit) and i in relevant_units:
                     critical_units.discard(i)
                     segment.append(i)
-                elif isa(i, System) and relevant_units.intersection(i.units_set):
-                    critical_units.difference_update(i.units_set)
+                elif isa(i, System) and relevant_units.intersection(i.unit_set):
+                    critical_units.difference_update(i.unit_set)
                     segment.append(i)
             else:
                 raise ValueError(f"end unit {repr(end)} not in system")
@@ -1209,7 +1374,7 @@ class System:
     #         unit = obj
     #         for i, other in enumerate(self.path):
     #             if isa(other, System):
-    #                 if unit in other.units_set: 
+    #                 if unit in other.unit_set: 
     #                     numbers.append(i)
     #                     numbers.append(other.simulation_number(unit))
     #                     break
@@ -1343,7 +1508,7 @@ class System:
             return self._units
         except:
             self._units = units = []
-            self._units_set = past_units = set()
+            self._unit_set = past_units = set()
             isa = isinstance
             for i in self._path + self._facilities:
                 if isa(i, Unit):
@@ -1357,10 +1522,10 @@ class System:
             return units
 
     @property
-    def units_set(self) -> set[Unit]:
+    def unit_set(self) -> set[Unit]:
         """Set of all unit operations."""
         try:
-            return self._units_set
+            return self._unit_set
         except:
             units = []
             isa = isinstance
@@ -1369,8 +1534,8 @@ class System:
                     units.append(i)
                 elif isa(i, System):
                     units.extend(i.units)
-            self._units_set = units_set = set(units)
-            return units_set
+            self._unit_set = unit_set = set(units)
+            return unit_set
 
     @property
     def unit_path(self) -> list[Unit]:
@@ -1462,6 +1627,17 @@ class System:
                     raise AttributeError("recycle streams must be Stream objects; "
                                         f"not {type(i).__name__}")
             self._recycle = recycle
+        elif isa(recycle, piping.TemporaryStream):
+            self.method = 'fixed-point'
+            permanent = self.unit_set
+            for unit in permanent:
+                if len(unit.outs) != 1: continue
+                stream = unit.outs[0]
+                if stream.sink in permanent:
+                    self._recycle = stream
+                    return
+            for unit in permanent:
+                self._recycle = unit.outs[0]
         else:
             raise_recycle_type_error(recycle)
 
@@ -1485,9 +1661,9 @@ class System:
     @method.setter
     def method(self, method):
         method = method.lower().replace('-', '').replace('_', '').replace(' ', '')
-        try:
+        if method in self.available_methods:
             self._method = method
-        except:
+        else:
             raise AttributeError(
                 f"method '{method}' not available; only "
                 f"{list_available_names(self.available_methods)} are available"
@@ -1855,42 +2031,14 @@ class System:
             except: raise error
         except Converged: pass
 
-    def get_material_data(self):
+    def get_recycle_data(self):
         """
-        Return a MaterialData object defining material flows of recycle streams.
+        Return recycle data defining material flows and conditions of recycle streams.
         
         """
-        recycles = self.get_all_recycles()
-        all_IDs = set([s.chemicals.IDs for s in recycles])
-        same_chemicals = len(all_IDs) == 1
-        if same_chemicals:
-            chemicals = recycles[0].chemicals
-            IDs = chemicals.IDs
-            index = chemicals._index
-            M = len(recycles)
-            N = len(IDs)
-            material_flows = np.zeros([M, N])
-            for i, s in enumerate(recycles): 
-                mol = s.mol
-                for j, v in mol.nonzero_items(): material_flows[i, j] = v
-        else:
-            IDs = sorted(set(sum(all_IDs, ())))
-            index = {j: i for i, j in enumerate(IDs)}
-            M = len(recycles)
-            N = len(IDs)
-            material_flows = np.zeros([M, N])
-            IDs_old = s.chemicals.IDs
-            for i, s in enumerate(recycles):
-                for j, v in mol.nonzero_items(): material_flows[i, index[IDs_old[j]]] = v
-            IDs = None
-        return MaterialData(
-            material_flows=material_flows,
-            recycles=recycles,
-            index=index,
-            IDs=IDs,
-        )
+        return JointRecycleData(self.get_all_recycles(), self.responses)
 
-    def converge(self, material_data: MaterialData=None, update_material_data: bool=False):
+    def converge(self, recycle_data: list[RecycleData]=None, update_recycle_data: bool=False):
         """
         Converge mass and energy balances. If material data was given, 
         return converged material flows at steady state. Shape will be M by N,
@@ -1898,12 +2046,12 @@ class System:
         
         Parameters
         ----------
-        material_data : 
+        recycle_data : 
             Material data to set recycle streams.
             
         See Also
         --------
-        :meth:`System~.get_material_data`
+        :meth:`System~.get_recycle_data`
         
         Warning
         -------
@@ -1911,28 +2059,7 @@ class System:
         To run full simulation algorithm, see :func:`~biosteam.System.simulate`.
         
         """
-        if material_data is not None: 
-            material_flows = material_data.material_flows
-            recycles = material_data.recycles
-            index = material_data.index
-            all_IDs = set([s.chemicals.IDs for s in recycles])
-            all_IDs.add(material_data.IDs)
-            same_chemicals = len(all_IDs) == 1
-            if same_chemicals:
-                try:
-                    for i, s in enumerate(recycles):
-                        s.mol[:] = material_flows[i]
-                except:
-                    reset_material_data = True
-                    same_chemicals = False
-                else:
-                    reset_material_data = False
-            else:
-                reset_material_data = False
-                for i, s in enumerate(material_data.recycles):
-                    mol = s.mol
-                    for j, ID in enumerate(s.chemicals.IDs):
-                        mol[j] = material_flows[i, index[ID]]
+        if recycle_data is not None: recycle_data.reset()
         if self._recycle:
             for i in self.path:
                 if isinstance(i, Unit) and hasattr(i, 'recycle_system_hook'):
@@ -1944,19 +2071,9 @@ class System:
             for i in range(self._N_runs): method()
         else:
             method()
-        if update_material_data:
-            if reset_material_data:
-                new_data =  self.get_material_data()
-                material_data.material_flows = material_flows = new_data.material_flows
-                material_data.recycles = recycles = new_data.recycles
-                material_data.index = index = new_data.index
-                material_data.IDs = new_data.IDs
-            if same_chemicals:
-                for i, s in enumerate(recycles): material_flows[i] = s.mol
-            else:
-                for i, s in enumerate(recycles):
-                    for ID, value in zip(s.chemicals.IDs, s.mol):
-                        material_flows[i, index[ID]] = value
+        if update_recycle_data:
+            try: recycle_data.update()
+            except AttributeError: raise ValueError('no recycle data to update')
 
     def _summary(self):
         simulated_units = set()
@@ -2191,7 +2308,8 @@ class System:
             ws.state = y*0.0
             ws.dstate = y*0.0
 
-    def simulate(self, update_configuration: Optional[bool]=False, units=None, **kwargs):
+    def simulate(self, update_configuration: Optional[bool]=None, units=None, 
+                 design_and_cost=None, **kwargs):
         """
         If system is dynamic, run the system dynamically. Otherwise, converge 
         the path of unit operations to steady state. After running/converging 
@@ -2215,35 +2333,71 @@ class System:
             if specifications and not self._running_specifications:
                 self._running_specifications = True
                 try:
-                    for ss in specifications: ss()
-                    if self.simulate_after_specifications: self.simulate()
+                    if self.simulate_after_specifications: 
+                        for ss in specifications: ss()
+                        outputs = self.simulate(
+                            update_configuration, units, design_and_cost, **kwargs
+                        )
+                    else:
+                        # Save simulation arguments and outputs when running specifications that simulate
+                        self._simulation_default_arguments = dict(
+                            update_configuration=update_configuration, 
+                            design_and_cost=design_and_cost,
+                            units=units,
+                            kwargs=kwargs,
+                        )
+                        for ss in specifications: ss()
+                        outputs = self._simulation_outputs
+                        del self._simulation_default_arguments
+                        del self._simulation_outputs
                 finally:
                     self._running_specifications = False
             else:
+                if hasattr(self, '_simulation_default_arguments'):
+                    sda = self._simulation_default_arguments
+                    if update_configuration is None and 'update_configuration' in sda:
+                        update_configuration = sda['update_configuration']
+                    if units is None and 'units' in sda:
+                        units = sda['units']
+                    if design_and_cost is None and 'design_and_cost' in sda:
+                        design_and_cost = sda['design_and_cost']
+                    if kwargs is None and 'kwargs' in sda:
+                        kwargs = sda['kwargs']
+                if design_and_cost is None: design_and_cost = True
+                if update_configuration is None: update_configuration = False
                 self._setup(update_configuration, units)
                 if self.isdynamic: 
                     self.dynamic_run(**kwargs)
-                    self._summary()
+                    if design_and_cost: self._summary()
                 else:
                     try:
                         outputs = self.converge(**kwargs)
-                        self._summary()
+                        if design_and_cost: self._summary()
                     except Exception as error:
                         if update_configuration: raise error # Avoid infinite loop
                         new_connections = [i.get_connection() for i in self.streams]
                         if self._connections != new_connections:
                             # Connections has been updated within simulation.
-                            outputs = self.simulate(update_configuration=True, **kwargs)
+                            outputs = self.simulate(
+                                update_configuration=True, 
+                                design_and_cost=design_and_cost,
+                                **kwargs
+                            )
                         else:
                             raise error
                     else:
                         if (not update_configuration # Avoid infinite loop
                             and self._connections != [i.get_connection() for i in self.streams]):
                             # Connections has been updated within simulation.
-                            outputs = self.simulate(update_configuration=True, **kwargs)
+                            outputs = self.simulate(
+                                update_configuration=True,
+                                design_and_cost=design_and_cost,
+                                **kwargs
+                            )
                         elif self._facility_loop: 
                             self._facility_loop.converge()
-                    return outputs
+                self._simulation_outputs = outputs
+            return outputs
 
     def dynamic_run(self, **dynsim_kwargs):
         """
@@ -3365,25 +3519,6 @@ class AgileSystem:
     def operating_hours(self, operating_hours):
         factor = operating_hours / self.operating_hours
         for i in self.operation_modes: i.operating_hours *= factor
-
-    def reduce_chemicals(self, required_chemicals=()):
-        for i in self.streams: i.unlink()
-        unit_thermo = {}
-        mixer_thermo = {}
-        thermo_cache = {}
-        for mode in self.operation_modes:
-            mode.system._load_configuration()
-            mode.system._reduced_thermo_data(required_chemicals, unit_thermo, mixer_thermo, thermo_cache)
-        for mode in self.operation_modes:
-            mode.system._load_configuration()
-            for unit, thermo in unit_thermo.items(): unit._reset_thermo(thermo)
-            for mixer, thermo in mixer_thermo.items():
-                for i in mixer._ins:
-                    if i._source: i._reset_thermo(unit_thermo[i._source])
-                thermo = mixer_thermo[mixer]
-                mixer._load_thermo(thermo)
-                mixer._outs[0]._reset_thermo(thermo)
-            mode.system._interface_property_packages()
 
     def simulate(self):
         operation_modes = self.operation_modes

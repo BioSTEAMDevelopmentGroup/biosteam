@@ -305,7 +305,7 @@ class UnitGroup:
         >>> areas = UnitGroup.group_by_area(cornstover_sys.units)
         >>> areas[-1].show()
         UnitGroup: 700
-         units: T701, P701, T702, P702, M701,
+         units: T701, P701, M701, T702, P702,
                 T703
         
         >>> default() # Bring biosteam settings back to default

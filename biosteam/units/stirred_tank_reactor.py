@@ -220,11 +220,9 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
     tau_0_default: Optional[float]  = 3
     
     @property
-    def liquid_product(self):
-        for i in self.outs:
-            if i.phase == 'l': 
-                return i
-        raise AttributeError('no liquid product available')
+    def effluent(self):
+        return self.outs[-1]
+    product = effluent
     
     def __init__(
             self, ID='', ins=None, outs=(), thermo=None, *, 
@@ -258,19 +256,14 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
         self.load_auxiliaries()
 
     def load_auxiliaries(self):
-        self.recirculation_pump = pump = bst.Pump(None, (None,), (None,), thermo=self.thermo)
-        self.auxlet(0**pump)
+        pump = self.auxiliary('recirculation_pump', bst.Pump)
         if self.batch:
-            self.heat_exchanger = bst.HXutility(None, pump-0, (None,), thermo=self.thermo) 
+            self.auxiliary('heat_exchanger', bst.HXutility, pump-0) 
         else:
-            self.splitter = splitter = bst.Splitter(
-                None, pump-0, 
-                [None, None],
-                split=0.5
-            ) # Split is updated later
-            self.heat_exchanger = bst.HXutility(None, splitter-0, (None,), thermo=self.thermo) 
-            self.scaler = bst.Scaler(None, splitter-1, None)
-        self.auxlet(self.heat_exchanger-0)
+            # Split is updated later
+            splitter = self.auxiliary('splitter', bst.Splitter, pump-0, split=0.5)
+            self.auxiliary('heat_exchanger', bst.HXutility, splitter-0) 
+            self.auxiliary('scaler', bst.Scaler, splitter-1, self.outs[-1])
 
     def _get_duty(self):
         return self.Hnet
@@ -320,7 +313,7 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
             # through the `parallel` attribute.
             reactor_duty = duty / N
             dT_hx_loop = self.dT_hx_loop
-            reactor_product = self.liquid_product.copy()
+            reactor_product = self.effluent.copy()
             reactor_product.scale(1 / N)
             hx_inlet = reactor_product.copy()
             hx_outlet = hx_inlet.copy()
@@ -338,7 +331,6 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
                 self.splitter.split = recirculation_ratio / (1 + recirculation_ratio)
                 self.splitter.simulate()
                 self.scaler.scale = N
-                self.scaler.outs[0] = self.auxlet(self.liquid_product)
                 self.scaler.simulate()
             self.heat_exchanger.T = hx_outlet.T
             self.heat_exchanger.simulate()
@@ -456,15 +448,14 @@ class AeratedBioreactor(StirredTankReactor):
     def vent(self):
         return self._outs[0]
     
-    @property
-    def effluent(self):
-        return self._outs[1]
-    
     def load_auxiliaries(self):
         super().load_auxiliaries()
-        self.compressor = compressor = bst.IsentropicCompressor(None, self.auxlet(self.air), (None,), thermo=self.thermo, eta=0.85, P=2 * 101325) 
-        self.air_cooler = air_cooler = bst.HXutility(None, compressor-0, (None,), thermo=self.thermo, T=self.T)
-        self.auxlet(air_cooler-0)
+        compressor = self.auxiliary(
+            'compressor', bst.IsentropicCompressor, self.air, eta=0.85, P=2 * 101325
+        ) 
+        self.auxiliary(
+            'air_cooler', bst.HXutility, compressor-0, T=self.T
+        )
         
     def _run_vent(self, vent, effluent):
         vent.receive_vent(effluent, energy_balance=False, ideal=True)

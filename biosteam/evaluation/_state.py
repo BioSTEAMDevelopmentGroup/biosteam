@@ -13,6 +13,8 @@ from ._feature import MockFeature
 from .. import System
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+from thermosteam.utils import colors
 from .evaluation_tools import load_default_parameters
 
 __all__ = ('State',)
@@ -352,10 +354,14 @@ class State:
             samples = sampler.sample(problem, N=N, **kwargs)
         return samples
     
-    def _update_state(self, sample, **kwargs):
+    def _update_state(self, sample, convergence_model=None, **kwargs):
         for f, s in zip(self._parameters, sample): 
             f.setter(s if f.scale is None else f.scale * s)
-        return self._specification() if self._specification else self._system.simulate(**kwargs)
+        if convergence_model:
+            with convergence_model.practice(sample):
+                return self._specification() if self._specification else self._system.simulate(**kwargs)
+        else:
+            return self._specification() if self._specification else self._system.simulate(**kwargs)
     
     def __call__(self, sample, **kwargs):
         """Update state given sample of parameters."""
