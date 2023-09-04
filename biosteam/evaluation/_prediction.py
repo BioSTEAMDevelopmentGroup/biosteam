@@ -124,11 +124,13 @@ def recycle_response(recycle, name, model):
 class Response:
     __slots__ = (
         'element', 'model', 'predictors',
+        'max', 'min',
     )
     def __init__(self, element, model):
         self.element = element
         self.model = model
         self.predictors = [] # Indices of predictors
+        self.max = self.min = None
     
     def __hash__(self):
         return hash((self.element, self.name))
@@ -140,8 +142,8 @@ class Response:
         self.model.fit(X[:, self.predictors], y)
 
     def predict(self, x):
-        return float(
-            self.model.predict(x[None, self.predictors])
+        return self.filter_value(
+            float(self.model.predict(x[None, self.predictors]))
         )
     
     def predict_locally(
@@ -158,20 +160,25 @@ class Response:
         X = X * w.transpose()
         y = y * w[0]
         self.model.fit(X, y)
-        return float(
-            model.predict(x)
-        )
+        yi = model.predict(x)
+        return self.filter_value(float(yi))
+    
+    def update_limits(self, value):
+        if self.max is None:
+            self.max = value
+            self.min = value
+        elif value > self.max:
+            self.max = value
+        elif value < self.min:
+            self.min = value
     
     def filter_value(self, value):
-        old_value = self.get()
-        if (min:=self.min) is not None:
-            min_value = min * old_value
-            if value < min_value:
-                return min_value
-        if (max:=self.max) is not None:
-            max_value = max * old_value
-            if value > max_value: return max_value
-        return value
+        if value < self.min:
+            return self.min
+        elif value > self.max:
+            return self.max
+        else:
+            return value
     
     def __str__(self):
         return f"{self.element}.{self.name}"
@@ -184,17 +191,13 @@ class GenericResponse(Response):
     __slots__ = (
         'name',
         'units',
-        'max',
-        'min',
     )
     
     def __init__(self, 
-            element, name, model=None, units=None, max=None, min=None
+            element, name, model=None, units=None, 
         ):
         self.name = name
         self.units = units
-        self.max = max
-        self.min = min
         super().__init__(element, model)
         
     def get(self):
@@ -213,14 +216,12 @@ class RecycleTemperature(Response):
     )
     name = 'T'
     units = 'K'
-    max = 1.5
-    min = 0.5
     
     def get(self):
         return self.element.T
     
     def set(self, value):
-        self.element.T = self.filter_value(value)
+        self.element.T = value
     
 
 class RecyclePressure(Response):
@@ -229,11 +230,9 @@ class RecyclePressure(Response):
     )
     name = 'P'
     units = 'Pa'
-    max = 1.5
-    min = 0.5
     
     def set(self, value):
-        self.element.P = self.filter_value(value)
+        self.element.P = value
         
     def get(self):
         return self.element.P
@@ -245,8 +244,6 @@ class RecycleFlow(Response):
         'name',
     )
     units = 'kmol/hr'
-    max = 10.0
-    min = 0.1
     
     def __init__(self, element, name, model):
         self.name = name
@@ -420,17 +417,14 @@ class ConvergenceModel:
         data = self.data
         actual = data['actual']
         fitted = dataset == 'fitted'
-        case_studies = data['case studies']
-        if not case_studies: return {}, {}
         predicted = self.fitted_responses() if fitted else data[dataset]
         for response in self.responses:
             name = str(response)
-            y_actual = np.array(actual[response])[case_studies]
+            y_actual = np.array(actual[response])
             y_predicted = np.array(predicted[response])
-            if fitted: y_predicted = y_predicted[case_studies]
-            if last is not None:
-                y_actual = y_actual[-last:]
-                y_predicted = y_predicted[-last:]
+            if last is None: last = len(y_predicted)
+            y_actual = y_actual[-last:]
+            y_predicted = y_predicted[-last:]
             results[name] = R2(
                 y_actual,
                 y_predicted,
@@ -463,8 +457,8 @@ class ConvergenceModel:
             
         ```python
         recycle_model.predict(sample)
-        recycle_model.system.simulate() # Or other simulation code.
-        recycle_model.append_data(sample)
+        recycle_data = recycle_model.evaluate_system_convergence() # Or other simulation code.
+        recycle_model.append_data(sample, recycle_data)
         ```
         
         Warning
@@ -480,9 +474,9 @@ class ConvergenceModel:
         predicted = data['predicted']
         actual = data['actual']
         sample_list = data['samples']
+        n_samples = len(sample_list)
         samples = np.array(sample_list)
         case_study = self.case_study
-        n_samples = len(sample_list)
         if self.local_weighted:
             for response in self.responses:
                 prediction = response.predict_locally(
@@ -491,7 +485,6 @@ class ConvergenceModel:
                 )
                 response.set(prediction)
                 predicted[response].append(prediction)
-            data['case studies'].append(n_samples)
         elif (not n_samples % (self.recess + 1)  # Recess is over
               and (self.nfits is None or self.fitted < self.nfits)):
             self.fitted += 1
@@ -500,13 +493,11 @@ class ConvergenceModel:
                 prediction = response.predict(case_study) 
                 response.set(prediction)
                 predicted[response].append(prediction)
-            data['case studies'].append(n_samples)
         elif self.fitted:
             for response in self.responses:
                 prediction = response.predict(case_study) 
                 response.set(prediction)
                 predicted[response].append(prediction)
-            data['case studies'].append(n_samples)
         sample_list.append(case_study)
     
     def __exit__(self, type, exception, traceback, total=[]):
@@ -514,14 +505,15 @@ class ConvergenceModel:
         data = self.data
         if exception and self.fitted:
             del data['samples'][-1]
-            del data['case studies'][-1]
             predicted = data['predicted']
             for response in self.responses:
                 del predicted[response][-1]
             raise exception
         actual = data['actual']
         for response in self.responses:
-            actual[response].append(response.get())
+            value = response.get()
+            response.update_limits(value)
+            actual[response].append(value)
         
     def evaluate_system_convergence(self, sample, default=None, **kwargs):
         system = self.system
@@ -635,12 +627,12 @@ class ConvergenceModel:
         self.add_sensitive_reponses(
             baseline_1, values_at_bounds, bad_keys
         )
-        self.data = data = {'samples': [], 'case studies': []}
+        self.data = data = {'samples': []}
         for name in ('actual', 'predicted'): 
             data[name] = {key: [] for key in responses}
         predictor_index = self.predictor_index
         self.predictor_index = None
-        self.extend_data(samples, len(samples)*[None])
+        self.extend_data(samples, values)
         self.predictor_index = predictor_index
         
     def add_sensitive_reponses(self, 
@@ -684,12 +676,11 @@ class ConvergenceModel:
         data = self.data
         actual = data['actual']
         data['samples'].append(self.reframe_sample(sample))
-        if recycle_data is None: 
-            for response in self.responses:
-                actual[response].append(response.get())
-        else:
-            for key, value in recycle_data.to_dict().items(): 
-                if key in actual: actual[key].append(value)
+        dct = recycle_data.to_dict()
+        for response in self.responses:
+            value = dct.get(response, 0.)
+            response.update_limits(value)
+            actual[response].append(value)
             
     def extend_data(self, samples, recycle_data):
         for args in zip(samples, recycle_data): self.append_data(*args)
@@ -757,16 +748,14 @@ class NullConvergenceModel:
         results = {}
         data = self.data
         actual = data['actual']
-        case_studies = data['case studies']
         null_responses = data['predicted']
         for response in self.responses:
             name = str(response)
             y_actual = np.array(actual[response]) 
-            y_actual = y_actual[case_studies]
             y_predicted = np.array(null_responses[response])
-            if last is not None:
-                y_actual = y_actual[-last:]
-                y_predicted = y_predicted[-last:]
+            if last is None: last = len(y_predicted)
+            y_actual = y_actual[-last:]
+            y_predicted = y_predicted[-last:]
             results[name] = R2(
                 y_actual,
                 y_predicted,
@@ -780,11 +769,9 @@ class NullConvergenceModel:
         data = self.data
         null_responses = data['predicted']
         sample_list = data['samples']
-        n_samples = len(sample_list)
         sample_list.append(self.case_study)
         for response in self.responses:
             null_responses[response].append(response.get())
-        data['case studies'].append(n_samples)
     
     def __exit__(self, type, exception, traceback, total=[]):
         del self.case_study
@@ -793,7 +780,6 @@ class NullConvergenceModel:
             data = self.data
             if exception:
                 del data['samples'][-1]
-                del data['case studies'][-1]
                 null_responses = data['predicted']
                 for response in self.responses:
                     del null_responses[response][-1]
