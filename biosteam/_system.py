@@ -2367,7 +2367,7 @@ class System:
                 if update_configuration is None: update_configuration = False
                 self._setup(update_configuration, units)
                 if self.isdynamic: 
-                    self.dynamic_run(**kwargs)
+                    outputs = self.dynamic_run(**kwargs)
                     if design_and_cost: self._summary()
                 else:
                     try:
