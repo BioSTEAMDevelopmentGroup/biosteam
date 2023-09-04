@@ -1628,13 +1628,16 @@ class System:
                                         f"not {type(i).__name__}")
             self._recycle = recycle
         elif isa(recycle, piping.TemporaryStream):
+            self.method = 'fixed-point'
             permanent = self.unit_set
-            for stream in recycle.sink.outs[0].sink.outs:
+            for unit in permanent:
+                if len(unit.outs) != 1: continue
+                stream = unit.outs[0]
                 if stream.sink in permanent:
                     self._recycle = stream
-                    self.method = 'fixed-point'
                     return
-            raise RuntimeError('unable to find replacement for temporary stream')
+            for unit in permanent:
+                self._recycle = unit.outs[0]
         else:
             raise_recycle_type_error(recycle)
 

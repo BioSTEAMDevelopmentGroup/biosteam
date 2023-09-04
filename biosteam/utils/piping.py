@@ -130,8 +130,16 @@ class MissingStream:
             raise RuntimeError("either a source or a sink is required to "
                                "materialize connection")
         material_stream = Stream(ID, thermo=(source or sink).thermo)
-        if source: source._outs.replace(self, material_stream)
-        if sink: sink._ins.replace(self, material_stream)
+        if source: 
+            try: 
+                source._outs.replace(self, material_stream)
+            except: # Must be an auxlet
+                material_stream._source = source
+        if sink: 
+            try:
+                sink._ins.replace(self, material_stream)
+            except: # Must be an auxlet
+                material_stream._sink = sink
         return material_stream
     
     def get_impact(self, key):

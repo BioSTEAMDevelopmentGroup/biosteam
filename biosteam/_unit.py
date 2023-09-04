@@ -785,6 +785,7 @@ class Unit:
                     purchase_costs[name] = purchase_cost
     
     def _assert_compatible_property_package(self):
+        if self.owner is not self: return
         CASs = self.chemicals.CASs
         streams = self._ins + self._outs
         assert all([s.chemicals.CASs == CASs for s in streams if s]), (
@@ -892,8 +893,6 @@ class Unit:
         # Load auxiliary costs
         isa = isinstance
         for name, unit in self.get_auxiliary_units_with_names():
-            unit.owner = self # In case units are created dynamically
-            unit.auxname = name
             if isa(unit, Unit):
                 if not (unit._design or unit._cost): continue
             unit._load_costs() # Just in case user did not simulate or run summary.
@@ -948,7 +947,7 @@ class Unit:
         and update system configuration based on units impacted by process 
         specifications. This method is run at the start of unit simulation, 
         before running mass and energy balances."""
-        for i in self.auxiliary_units: i._setup()
+        self.materialize_connections()
         self.power_utility.empty()
         for i in self.heat_utilities: i.empty()
         if not hasattr(self, '_N_heat_utilities'): self.heat_utilities.clear()
@@ -957,6 +956,7 @@ class Unit:
         self.purchase_costs.clear()
         self.installed_costs.clear()
         self._costs_loaded = False
+        for i in self.auxiliary_units: i._setup()
     
     def _check_setup(self):
         if any([self.power_utility, 
@@ -996,7 +996,7 @@ class Unit:
         return self if owner is None else owner.owner
     @owner.setter
     def owner(self, owner):
-        self._owner = None if owner is self else owner
+        if owner is not self: self._owner = owner
     
     @ignore_docking_warnings
     def disconnect(self, discard=False, inlets=None, outlets=None, join_ends=False):
@@ -1621,7 +1621,9 @@ class Unit:
                 lst = []
                 setattr(self, name, lst)
             name = f"{name}[{len(lst)}]"
-        auxunit = cls(
+        auxunit = cls.__new__(cls)
+        auxunit.owner = self # Avoids property package checks
+        auxunit.__init__(
             '.' + name, 
             self._unit_auxlets(cls._N_ins, ins), 
             self._unit_auxlets(cls._N_outs, outs),
@@ -1648,7 +1650,7 @@ class Unit:
           from this unit. 
         
         """
-        if stream is None: return None
+        if stream is None: stream = Stream(None)
         if isinstance(stream, str): 
             stream = Stream('.' + stream, thermo=self.thermo)
         if self is stream._source and stream in self._outs:

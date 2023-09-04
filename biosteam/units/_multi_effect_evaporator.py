@@ -307,6 +307,7 @@ class MultiEffectEvaporator(Unit):
     def _load_components(self):
         P = self.P
         self._N_evap = n = len(P) # Number of evaporators
+        self.evaporators = []
         if self.flash:
             evaporator = self.auxiliary(
                 'evaporators', Flash,

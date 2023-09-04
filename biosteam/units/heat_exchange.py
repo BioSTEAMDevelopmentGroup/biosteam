@@ -115,6 +115,7 @@ class HX(Unit, isabstract=True):
         self._heat_exchanger_type = heat_exchanger_type     
 
     def _assert_compatible_property_package(self):
+        if self.owner is not self: return
         assert all([i.chemicals is j.chemicals for i, j in zip(self._ins, self._outs) if (i and j)]), (
             "inlet and outlet stream chemicals are incompatible; "
             "try using the `thermo` keyword argument to initialize the unit operation "
