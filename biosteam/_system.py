@@ -1630,13 +1630,14 @@ class System:
         elif isa(recycle, piping.TemporaryStream):
             self.method = 'fixed-point'
             permanent = self.unit_set
-            for unit in permanent:
+            unit_path = self.unit_path
+            for unit in unit_path:
                 if len(unit.outs) != 1: continue
                 stream = unit.outs[0]
                 if stream.sink in permanent:
                     self._recycle = stream
                     return
-            for unit in permanent:
+            for unit in unit_path:
                 self._recycle = unit.outs[0]
         else:
             raise_recycle_type_error(recycle)
