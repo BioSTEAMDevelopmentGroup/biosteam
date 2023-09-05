@@ -1639,6 +1639,7 @@ class System:
                     return
             for unit in unit_path:
                 self._recycle = unit.outs[0]
+                return
         else:
             raise_recycle_type_error(recycle)
 
