@@ -1190,7 +1190,6 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
         args = (self.N_stages, self.feed_stages, self.extract_side_draws, self.use_cache,
                 *self._ins, self.raffinate_side_draws, self.solvent_ID, self.partition_data)
         if args != self._last_args:
-            del self.stages
             MultiStageEquilibrium.__init__(
                 self, self.ID, self.ins, self.outs, self.thermo,
                 N_stages=self.N_stages, feed_stages=self.feed_stages, phases=('l', 'L'), P=self.P,

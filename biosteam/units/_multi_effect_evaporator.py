@@ -313,7 +313,6 @@ class MultiEffectEvaporator(Unit):
                 'evaporators', Flash,
                 ins=self.ins, 
                 outs=(None, None), P=P[0],
-                stack=True,
             )
         else:
             evaporator = self.auxiliary(
@@ -321,7 +320,6 @@ class MultiEffectEvaporator(Unit):
                 ins=self.ins,
                 outs=(None, None, None), P=P[0],
                 chemical=self.chemical,
-                stack=True,
             )
         for i in range(1, n):
             evaporator = self.auxiliary(
@@ -330,7 +328,6 @@ class MultiEffectEvaporator(Unit):
                 ins=(evaporator.outs[1], evaporator.outs[0]), 
                 outs=(None, self.outs[0] if i == n-1 else None, None), 
                 P=P[i], chemical=self.chemical,
-                stack=True,
             )
         condenser = self.auxiliary(
             'condenser', HXutility, ins=evaporator.outs[0], outs=[None], V=0

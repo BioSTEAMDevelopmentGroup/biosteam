@@ -453,13 +453,9 @@ class HXutility(HX):
         outlet = self.outs[0]
         if not inlet: inlet = inlet.materialize_connection(None)
         if not outlet: outlet = outlet.materialize_connection(None)
-        if P is None:
-            inlet.mix_from(ins, vle=vle)
-            P = inlet.P
-        else:
-            inlet.mix_from(ins, energy_balance=False)
-            inlet.vle(H=sum([i.H for i in ins]), P=P)
-            inlet.reduce_phases()
+        idata = inlet.get_data()
+        inlet.mix_from(ins, energy_balance=False)
+        if vle: inlet.vle(H=sum([i.H for i in ins]), P=P)
         if outs is None:
             if duty is None: raise ValueError('must pass duty when no outlets are given')
             outlet.copy_like(inlet)
@@ -485,6 +481,7 @@ class HXutility(HX):
             design_kwargs=dict(duty=duty),
         )
         for i in self.heat_utilities: i.hxn_ok = hxn_ok
+        inlet.set_data(idata)
         
     def _run(self):
         feed = self.ins[0]

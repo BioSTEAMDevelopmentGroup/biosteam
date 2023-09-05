@@ -78,13 +78,15 @@ class StageEquilibrium(Unit):
         self.splitters = []
         if top_split:
             self.auxiliary(
-                'splitters', bst.Splitter, ins=partition-0, outs=[self.outs[2], self.outs[0]],
-                split=top_split, stack=True
+                'splitters', bst.Splitter, 
+                partition-0, [self.outs[2], self.outs[0]],
+                split=top_split,
             )
         if bottom_split:
             self.auxiliary(
-                'splitters', bst.Splitter, ins=partition-1, outs=[self.outs[-1], self.outs[1]],
-                split=bottom_split, stack=True
+                'splitters', bst.Splitter, 
+                partition-1, [self.outs[-1], self.outs[1]],
+                split=bottom_split, 
             )
     
     def add_feed(self, stream):
@@ -397,6 +399,7 @@ class MultiStageEquilibrium(Unit):
         last_stage = None
         self._asplit = asplits = -np.ones(N_stages)
         self._bsplit = bsplits = asplits.copy()
+        self.stages = stages = []
         for i in range(N_stages):
             if last_stage is None:
                 feed = ()
@@ -437,12 +440,10 @@ class MultiStageEquilibrium(Unit):
                 partition_data=partition_data,
                 top_split=top_split,
                 bottom_split=bottom_split,
-                stack=True
             )
             if last_stage:
                 last_stage.add_feed(new_stage-0)
             last_stage = new_stage
-        stages = self.stages
         for feed, stage in zip(self.ins, feed_stages):
             stages[stage].add_feed(self.auxlet(feed))
         self.solvent_ID = solvent

@@ -1591,19 +1591,19 @@ class Unit:
             )
         return auxiliary_units
 
-    def _unit_auxlets(self, N_streams, streams):
+    def _unit_auxlets(self, N_streams, streams, thermo):
         if streams is None:
             return [self.auxlet(piping.MissingStream()) for i in range(N_streams)]
         elif streams == ():
-            return [self.auxlet(piping.Stream(None)) for i in range(N_streams)]
-        elif isinstance(streams, piping.stream_types):
-            return self.auxlet(streams)
+            return [self.auxlet(piping.Stream(None, thermo=thermo)) for i in range(N_streams)]
+        elif isinstance(streams, (str, *piping.stream_types)):
+            return self.auxlet(streams, thermo=thermo)
         else:
-            return [self.auxlet(i) for i in streams]
+            return [self.auxlet(i, thermo=thermo) for i in streams]
 
     def auxiliary(
             self, name, cls, ins=None, outs=(), thermo=None,
-            stack=False, **kwargs
+            **kwargs
         ):
         """
         Create and register an auxiliary unit operation. Inlet and outlet
@@ -1614,29 +1614,24 @@ class Unit:
         if thermo is None: thermo = self.thermo
         if name not in self.auxiliary_unit_names:
             raise RuntimeError(f'{name!r} not in auxiliary unit names')
-        if stack:
-            if hasattr(self, name):
-                lst = getattr(self, name)
-            else:
-                lst = []
-                setattr(self, name, lst)
-            name = f"{name}[{len(lst)}]"
         auxunit = cls.__new__(cls)
+        stack = getattr(self, name, None)
+        if isinstance(stack, list): 
+            name = f"{name}[{len(stack)}]"
+            stack.append(auxunit)
+        else:
+            setattr(self, name, auxunit)
         auxunit.owner = self # Avoids property package checks
         auxunit.__init__(
             '.' + name, 
-            self._unit_auxlets(cls._N_ins, ins), 
-            self._unit_auxlets(cls._N_outs, outs),
+            self._unit_auxlets(cls._N_ins, ins, thermo), 
+            self._unit_auxlets(cls._N_outs, outs, thermo),
             thermo, 
             **kwargs
         )
-        if stack:
-            lst.append(auxunit)
-        else:
-            setattr(self, name, auxunit)
         return auxunit
 
-    def auxlet(self, stream: Stream):
+    def auxlet(self, stream: Stream, thermo=None):
         """
         Define auxiliary unit inlet or outlet. This method has two
         behaviors:
@@ -1652,7 +1647,9 @@ class Unit:
         """
         if stream is None: stream = Stream(None)
         if isinstance(stream, str): 
-            stream = Stream('.' + stream, thermo=self.thermo)
+            if thermo is None: thermo = self.thermo
+            stream = Stream('.' + stream, thermo=thermo)
+            stream._source = stream._sink = self
         if self is stream._source and stream in self._outs:
             if isinstance(stream, tmo.MultiStream):
                 SuperpositionStream = piping.SuperpositionMultiOutlet
