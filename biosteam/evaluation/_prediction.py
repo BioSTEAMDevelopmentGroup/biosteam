@@ -280,6 +280,7 @@ class ConvergenceModel:
         'normalization',
         'interaction_pairs',
         'predictor_index',
+        'save_prediction',
     )
     absolute_response_tolerance = 0.001
     relative_response_tolerance = 0.01
@@ -296,6 +297,7 @@ class ConvergenceModel:
             interaction_pairs: Optional[bool] = None,
             normalization: Optional[bool] = None,
             load_responses: Optional[bool] = None,
+            save_prediction: Optional[bool] = False,
         ):
         if system is None:
             systems = set([i.system for i in predictors])
@@ -367,6 +369,7 @@ class ConvergenceModel:
         self.interaction_pairs = interaction_pairs
         self.normalization = normalization
         self.load_predictors(predictors)
+        self.save_prediction = save_prediction
         if load_responses is None or load_responses: self.load_responses()
         
     def with_interactions(self, sample):
@@ -395,7 +398,7 @@ class ConvergenceModel:
         fitted = {i: [] for i in responses}
         samples = np.array(data['samples'])
         try: self.fit()
-        except: return {}, {}
+        except: return {}
         for i, sample in enumerate(samples):
             for response in responses:
                 fitted[response].append(
@@ -472,33 +475,51 @@ class ConvergenceModel:
         
     def __enter__(self):
         data = self.data
-        predicted = data['predicted']
+        if self.save_prediction: predicted = data['predicted']
         actual = data['actual']
         sample_list = data['samples']
         n_samples = len(sample_list)
         samples = np.array(sample_list)
         case_study = self.case_study
-        if self.local_weighted:
+        if self.save_prediction: 
+            if self.local_weighted:
+                for response in self.responses:
+                    prediction = response.predict_locally(
+                        case_study, samples, np.array(actual[response]),
+                        self.distance, self.weight,
+                    )
+                    response.set(prediction)
+                    predicted[response].append(prediction)
+            elif (not n_samples % (self.recess + 1)  # Recess is over
+                  and (self.nfits is None or self.fitted < self.nfits)):
+                self.fitted += 1
+                for response in self.responses:
+                    response.fit(samples, np.array(actual[response]))
+                    prediction = response.predict(case_study) 
+                    response.set(prediction)
+                    predicted[response].append(prediction)
+            elif self.fitted:
+                for response in self.responses:
+                    prediction = response.predict(case_study) 
+                    response.set(prediction)
+                    predicted[response].append(prediction)
+        elif self.local_weighted:
             for response in self.responses:
-                prediction = response.predict_locally(
-                    case_study, samples, np.array(actual[response]),
-                    self.distance, self.weight,
+                response.set(
+                    response.predict_locally(
+                        case_study, samples, np.array(actual[response]),
+                        self.distance, self.weight,
+                    )
                 )
-                response.set(prediction)
-                predicted[response].append(prediction)
         elif (not n_samples % (self.recess + 1)  # Recess is over
               and (self.nfits is None or self.fitted < self.nfits)):
             self.fitted += 1
             for response in self.responses:
                 response.fit(samples, np.array(actual[response]))
-                prediction = response.predict(case_study) 
-                response.set(prediction)
-                predicted[response].append(prediction)
+                response.set(response.predict(case_study))
         elif self.fitted:
             for response in self.responses:
-                prediction = response.predict(case_study) 
-                response.set(prediction)
-                predicted[response].append(prediction)
+                response.set(response.predict(case_study))
         sample_list.append(case_study)
     
     def __exit__(self, type, exception, traceback, total=[]):
@@ -506,9 +527,10 @@ class ConvergenceModel:
         data = self.data
         if exception and self.fitted:
             del data['samples'][-1]
-            predicted = data['predicted']
-            for response in self.responses:
-                del predicted[response][-1]
+            if self.save_predicition: 
+                predicted = data['predicted']
+                for response in self.responses:
+                    del predicted[response][-1]
             raise exception
         actual = data['actual']
         for response in self.responses:
@@ -659,7 +681,9 @@ class ConvergenceModel:
                     if key in responses_dct:
                         response = responses_dct[key]
                     else:
-                        if not isinstance(key, Response):
+                        if isinstance(key, Response):
+                            response = key
+                        else:
                             response = recycle_response(*key, model_type())
                         responses_dct[key] = response
                         responses.add(response)

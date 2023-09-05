@@ -36,7 +36,7 @@ def test_convergence_model():
         
     convergence_model = bst.ConvergenceModel(
         predictors=[set_ethanol_fraction], local_weighted=False,
-        model_type=bst.InterceptLinearRegressor
+        model_type=bst.InterceptLinearRegressor, save_prediction=True,
     )
     model.evaluate(design_and_cost=False, convergence_model=convergence_model)
     summary, _ = convergence_model.R2()
