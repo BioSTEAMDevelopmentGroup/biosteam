@@ -455,7 +455,7 @@ class HXutility(HX):
         if not outlet: outlet = outlet.materialize_connection(None)
         idata = inlet.get_data()
         inlet.mix_from(ins, energy_balance=False)
-        if vle: inlet.vle(H=sum([i.H for i in ins]), P=P)
+        if vle: inlet.vle(H=sum([i.H for i in ins]), P=inlet.P)
         if outs is None:
             if duty is None: raise ValueError('must pass duty when no outlets are given')
             outlet.copy_like(inlet)
