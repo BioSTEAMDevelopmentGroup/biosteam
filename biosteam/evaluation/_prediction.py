@@ -103,7 +103,6 @@ class Average:
     
 fast_fit_model_types = set([
     LinearRegressor, 
-    InterceptLinearRegressor, 
     Average
 ])
 linear_model_types = set([
@@ -194,10 +193,12 @@ class GenericResponse(Response):
     )
     
     def __init__(self, 
-            element, name, model=None, units=None, 
+            element, name, model=None, units=None, max=None, min=None,
         ):
         self.name = name
         self.units = units
+        self.max = max
+        self.min = min
         super().__init__(element, model)
         
     def get(self):
@@ -658,7 +659,9 @@ class ConvergenceModel:
                     if key in responses_dct:
                         response = responses_dct[key]
                     else:
-                        responses_dct[key] = response = recycle_response(*key, model_type())
+                        if not isinstance(key, Response):
+                            response = recycle_response(*key, model_type())
+                        responses_dct[key] = response
                         responses.add(response)
                     response.predictors.append(p)
         interaction_pairs = self.interaction_pairs

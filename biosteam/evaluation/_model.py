@@ -16,7 +16,6 @@ import pandas as pd
 from ._state import State
 from ._metric import Metric
 from ._feature import MockFeature
-from ._prediction import ConvergenceModel
 from ._utils import var_indices, var_columns, indices_to_multiindex
 from biosteam.exceptions import FailedEvaluation
 from warnings import warn
