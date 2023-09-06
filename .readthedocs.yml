@@ -14,10 +14,14 @@ python:
     - requirements: requirements.txt
     - method: pip
       path: ./thermosteam
+    - method: pip
+      path: ./Bioindustrial-Park
     
 submodules:
   include:
     - thermosteam
+    - Bioindustrial-Park
+    - How2STEAM
     
 sphinx:
    configuration: docs/conf.py
