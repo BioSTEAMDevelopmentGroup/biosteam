@@ -1,7 +1,7 @@
 User guide
 ----------
 
-.. grid:: 1 1 2 2
+.. grid:: 1 2 2 3
    
     .. grid-item::
     
@@ -58,3 +58,12 @@ User guide
           Operational_flexibility
           Uncertainty_and_sensitivity
 
+    .. grid-item::
+    
+       .. toctree::
+          :maxdepth: 1
+          :numbered:
+          :caption: Case studies
+          
+          Aerated_bioreactor_design
+          

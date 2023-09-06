@@ -246,7 +246,6 @@ class MultiEffectEvaporator(Unit):
     
     """
     line = 'Multi-effect evaporator'
-    _assembled_from_auxiliary_units = True
     auxiliary_unit_names = ('condenser', 'mixer', 'vacuum_system', 'evaporators')
     _units = {'Area': 'm^2',
               'Volume': 'm^3'}

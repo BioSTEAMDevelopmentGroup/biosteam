@@ -80,7 +80,8 @@ extensions = [
     'sphinx_multitoc_numbering',
     'sphinx_autodoc_typehints',
     'myst_parser',
-    'nbsphinx'
+    'nbsphinx',
+    'nbsphinx_link',
 ]
 
 try:
