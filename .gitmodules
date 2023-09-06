@@ -4,3 +4,6 @@
 [submodule "Bioindustrial-Park"]
 	path = Bioindustrial-Park
 	url = https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park.git
+[submodule "How2STEAM"]
+	path = How2STEAM
+	url = https://github.com/BioSTEAMDevelopmentGroup/How2STEAM.git
