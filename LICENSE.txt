@@ -2,7 +2,7 @@
 The BioSTEAM project is under the University of Illinois/NCSA Open Source License
 ===================================================================================================
 
-Copyright (c) 2019-2022 BioSTEAM Development Group. All rights reserved.
+Copyright (c) 2019-2023 BioSTEAM Development Group. All rights reserved.
 
 Developed by: BioSTEAM Development Group
               University of Illinois at Urbana-Champaign
