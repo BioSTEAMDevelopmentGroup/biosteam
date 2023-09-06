@@ -15,7 +15,7 @@
 import os
 import sys
 
-new_path = ['..\\', '..\\thermosteam\\', '..\\Bioindustrial-Park\\']
+new_path = ['..\\', '..\\thermosteam\\', '..\\Bioindustrial-Park\\', '..\\How2STEAM\\']
 for p in new_path:
      sys.path.insert(0, os.path.abspath(p))
 
