@@ -21,6 +21,10 @@ from ._temporary_connection import TemporaryUnit
 disjunctions = []
 
 def mark_disjunction(stream):
+    """Mark stream as deterministic after a linear flowsheet simulation.
+    In other words, the stream flow rates and thermal condition will not change
+    when solving recycle loops. This will prevent the system from
+    forming recycle loops about this stream."""
     port = piping.OutletPort.from_outlet(stream)
     if port not in disjunctions:
         disjunctions.append(port)
@@ -54,10 +58,6 @@ class PathSource:
             for i in source.units: units.update(i.get_downstream_units(ends=ends, facilities=False))
         else:
             self.units = units = source.get_downstream_units(ends=ends, facilities=False)
-        assert not self.downstream_from(self), (
-            'recycle system encountered in network sorting algorithm; '
-            'please report problem to the biosteam bugtracker'
-        )
             
     def downstream_from(self, other):
         source = self.source
@@ -267,7 +267,7 @@ class Network:
                 upstream_source = path_sources[i]
                 for j in range(i + 1, N):
                     downstream_source = path_sources[j]
-                    if upstream_source.downstream_from(downstream_source): 
+                    if upstream_source.downstream_from(downstream_source):
                         path_sources.remove(downstream_source)
                         path_sources.insert(i, downstream_source)
                         upstream_source = downstream_source
@@ -466,8 +466,13 @@ class Network:
         raise ValueError('networks must have units in common to join') # pragma: no cover
     
     def add_recycle(self, stream):
+        if stream is None: return 
         recycle = self.recycle
-        if recycle is stream: return 
+        if recycle is None: 
+            self.recycle = stream
+            return
+        if recycle is stream:
+            return 
         isa = isinstance
         if isa(recycle, piping.stream_types):
             if isa(stream, piping.stream_types):
