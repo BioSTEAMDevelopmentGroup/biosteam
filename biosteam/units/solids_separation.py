@@ -75,11 +75,7 @@ class SolidsSeparator(Splitter):
         if moisture_content is not None:
             self.moisture_ID = moisture_ID
             if moisture_ID is None: moisture_ID = '7732-18-5'
-            split = self.isplit[moisture_ID]
-            if split.all() if hasattr(split, 'all') else split: 
-                warn(RuntimeWarning('cannot define both moisture split and moisture content'), 
-                     stacklevel=self._stacklevel - 6)
-                self.isplit[moisture_ID] = 0.
+            self.isplit[moisture_ID] = 0.
     
     def _run(self):
         if self.moisture_content is None:
@@ -393,10 +389,10 @@ class ScrewPress(SolidsSeparator):
     Parameters
     ----------
     ins : 
-        * [0] Solids
+        * [0] Solids + liquid
     outs :  
-        * [0] Liquids
-        * [1] Solids
+        * [1] Solids (retentate)
+        * [0] Liquids (permeate)
     split : array_like or dict[str, float]
            Component splits.
     moisture_content : float

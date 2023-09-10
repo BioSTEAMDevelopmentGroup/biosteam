@@ -287,13 +287,21 @@ class ThermalOxidizer(Unit):
     def _run(self):
         feed, air, ng = self.ins
         ng.imol['CH4'] = self.duty_per_kg * feed.F_mass / self.chemicals.CH4.LHV
+        ng.phase = 'g'
         emissions, = self.outs
-        emissions.mix_from([feed, ng])
+        ng_burned = ng.copy()
         combustion_rxns = self.chemicals.get_combustion_reactions()
-        combustion_rxns.force_reaction(emissions)
-        O2 = max(-emissions.imol['O2'], 0.)
+        # Enough oxygen must be present in air to burn natural gas
+        combustion_rxns.force_reaction(ng_burned)
+        O2 = max(-ng_burned.imol['O2'], 0.)
         air.imol['N2', 'O2'] = [0.79/0.21 * O2, O2]
+        # Enough oxygen must be present in air to burn feed as well
         emissions.mix_from(self.ins)
+        dummy_emissions = emissions.copy()
+        combustion_rxns.force_reaction(dummy_emissions)
+        O2 = max(-dummy_emissions.imol['O2'], 0.) # Missing oxygen
+        air.imol['N2', 'O2'] += [0.79/0.21 * O2, O2]
+        # Account for temperature raise
         combustion_rxns.adiabatic_reaction(emissions)
         
     def _design(self):

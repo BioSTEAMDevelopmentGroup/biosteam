@@ -452,7 +452,7 @@ class AeratedBioreactor(StirredTankReactor):
         super().load_auxiliaries()
         compressor = self.auxiliary(
             'compressor', bst.IsentropicCompressor, self.air, eta=0.85, P=2 * 101325
-        ) 
+        )
         self.auxiliary(
             'air_cooler', bst.HXutility, compressor-0, T=self.T
         )

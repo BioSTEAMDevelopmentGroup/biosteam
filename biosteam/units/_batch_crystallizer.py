@@ -99,7 +99,7 @@ class BatchCrystallizer(Unit):
         #: [int] Number of vessels
         if N: self.N = N
         
-        #: [float] Target volume of a vessels
+        #: [float] Target volume of a vessel
         if V: self.V = V
         
         #: [float] Operating temperature of reactor [K].
