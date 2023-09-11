@@ -983,17 +983,17 @@ def __sub__(self, index):
     if isinstance(index, int):
         return Sink(self, index)
     elif isinstance(index, Stream):
-        raise TypeError("unsupported operand type(s) for -: "
-                        f"'{type(self).__name__}' and '{type(index).__name__}'")
-    return index.__rsub__(self)
+        new = self.copy()
+        new.separate_out(index)   
+        return new
+    else:
+        return index.__rsub__(self)
 
 def __rsub__(self, index):
     if isinstance(index, int):
         return Source(self, index)
-    elif isinstance(index, Stream):
-        raise TypeError("unsupported operand type(s) for -: "
-                       f"'{type(index).__name__}' and '{type(self).__name__}'")
-    return index.__sub__(self)
+    else:
+        return index.__sub__(self)
 
 def get_connection(self, junction=None):
     if junction is None: junction = True
