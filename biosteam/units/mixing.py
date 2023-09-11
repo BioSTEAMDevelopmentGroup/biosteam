@@ -114,7 +114,7 @@ class SteamMixer(Unit):
     >>> M1 = bst.SteamMixer(None, ins=[feed, 'steam', 'process_water'], outs='outlet', T=431.15, P=557287.5, solids_loading=0.3)
     >>> M1.simulate()
     >>> M1.show('cwt100') # Note that outlet solids loading is not exactly 0.3 because of the steam requirement.
-    SteamMixer: M.1
+    SteamMixer
     ins...
     [0] feed
         phase: 'l', T: 298.15 K, P: 101325 Pa
@@ -139,7 +139,7 @@ class SteamMixer(Unit):
     >>> M1.solids_loading_includes_steam = True
     >>> M1.simulate()
     >>> M1.show('cwt100') # Now the outlet solids content is exactly 0.3
-    SteamMixer: M.1
+    SteamMixer
     ins...
     [0] feed
         phase: 'l', T: 298.15 K, P: 101325 Pa

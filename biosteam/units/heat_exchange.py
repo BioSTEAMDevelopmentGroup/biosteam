@@ -500,8 +500,6 @@ class HXutility(HX):
         if N_given == 0:
             raise RuntimeError("no specification available; must define at either "
                                "temperature 'T', vapor fraction, 'V', or enthalpy 'H'")
-        if outlet.has_user_equilibrium:
-            outlet.user_equilibrium(T=T, H=H, P=outlet.P, V=V)
         elif self.rigorous:
             if N_given > 1:
                 raise RuntimeError("may only specify either temperature, 'T', "

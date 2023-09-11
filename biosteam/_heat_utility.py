@@ -95,7 +95,6 @@ class UtilityAgent(Stream):
         self.mol[:] /= self.mol.sum() # Total flow must be 1 kmol / hr
         self.mol.read_only = True # Flow rate cannot change anymore
         self._sink = self._source = None
-        self._user_equilibrium = None
         self.reset_cache()
         self._register(ID)
         self.T_limit = T_limit
@@ -181,7 +180,6 @@ class UtilityAgent(Stream):
         new._thermal_condition = self._thermal_condition.copy()
         new.reset_cache()
         new._price = 0.
-        new._user_equilibrium = self._user_equilibrium
         new.characterization_factors = {}
         new._register(ID)
         return new
