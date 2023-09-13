@@ -262,6 +262,7 @@ html_theme_options = {
         'image_light': 'logo.png',
         'image_dark': 'logo_dark.png'
     },
+    "show_toc_level": 2,
     # "announcement": (
     #     "<p>Join us on Feb 17, 9:15-10:15am CST, for a BioSTEAM workshop! "
     #     "<a href='mailto: biosteamdevelopmentgroup@gmail.com'>Email us for details</a></p>"
