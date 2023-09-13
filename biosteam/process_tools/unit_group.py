@@ -75,12 +75,12 @@ class UnitGroup:
     Get all metric results:
         
     >>> ugroup.to_dict()
-    {'Installed equipment cost [MM$]': 0.05564718426354741, 'Cooling duty [GJ/hr]': 0.37394038815616815, 'Heating duty [GJ/hr]': 0.0, 'Electricity consumption [MW]': 0.0003757386075141393, 'Electricity production [MW]': 0.0, 'Material cost [USD/hr]': 0.0}
+    {'Installed equipment cost [MM$]': 0.05, 'Cooling duty [GJ/hr]': 0.37, 'Heating duty [GJ/hr]': 0.0, 'Electricity consumption [MW]': 0.0, 'Electricity production [MW]': 0.0, 'Material cost [USD/hr]': 0.0}
     
     Each result can be retrieved separately:
     
     >>> ugroup.get_installed_cost()
-    0.056
+    0.05
     
     >>> ugroup.get_cooling_duty()
     0.37
@@ -110,7 +110,7 @@ class UnitGroup:
               Sucrose flow rate [kg/hr]
     
     >>> ugroup.to_dict()
-    {'Installed equipment cost [MM$]': 0.05564718426354741, 'Cooling duty [GJ/hr]': 0.37394038815616815, 'Heating duty [GJ/hr]': 0.0, 'Electricity consumption [MW]': 0.0003757386075141393, 'Electricity production [MW]': 0.0, 'Material cost [USD/hr]': 0.0, 'Moisture content': 0.6369385135738662, 'Sucrose flow rate [kg/hr]': 1026.88944}
+    {'Installed equipment cost [MM$]': 0.05, 'Cooling duty [GJ/hr]': 0.37, 'Heating duty [GJ/hr]': 0.0, 'Electricity consumption [MW]': 0.0, 'Electricity production [MW]': 0.0, 'Material cost [USD/hr]': 0.0, 'Moisture content': 0.63, 'Sucrose flow rate [kg/hr]': 1026.8}
     
     """
     __slots__ = ('name', 'units', 'metrics', 'filter_savings', 'extend_feed_ends')
