@@ -912,7 +912,7 @@ def get_connection(self, junction=None):
         source_index = source._outs.index(stream) if source else None
     except ValueError: # Auxiliary streams are not in inlets nor outlets  
         try:
-            auxname = sink.auxname
+            auxname = sink.ID
             source_index = source._auxout_index[auxname]
         except:
             source_index = -1
@@ -925,7 +925,7 @@ def get_connection(self, junction=None):
         sink_index = sink._ins.index(stream) if sink else None
     except ValueError: # Auxiliary streams are not in inlets nor outlets
         try:
-            auxname = source.auxname
+            auxname = source.ID
             sink_index = sink._auxin_index[auxname]
         except:
             sink_index = -1

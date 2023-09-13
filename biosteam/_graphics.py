@@ -136,7 +136,7 @@ multi_edge_in = 20 * single_edge_in
 multi_edge_out = 20 * single_edge_out
 right_edge_out = ({'tailport': 'e'},)
 left_edge_in = ({'headport': 'w'},)
-top_bottom_edge_out = ({'tailport': 'n'}, {'tailport': 's'})
+top_bottom_edge_out = ({'tailport': 'n'}, {'tailport': 's'}, {'tailport': 'c'})
 
 box_node = {'shape': 'box',
             'style': 'filled',

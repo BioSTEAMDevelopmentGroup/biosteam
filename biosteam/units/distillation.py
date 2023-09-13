@@ -284,7 +284,7 @@ class Distillation(Unit, isabstract=True):
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None,
                 P=101325, *, LHK, k,
-                Rmin=0.3,
+                Rmin=0.01,
                 Lr=None,
                 Hr=None,
                 y_top=None,
@@ -353,7 +353,7 @@ class Distillation(Unit, isabstract=True):
             self.auxiliary(
                 'reflux_drum', RefluxDrum,
                 ins=self.condenser-0,
-                outs=('distillate', 'condensate')
+                outs=(self-0, 'condensate')
             )
             self.condensate =  self.reflux_drum-1
         else:
@@ -379,7 +379,7 @@ class Distillation(Unit, isabstract=True):
         )
         self.reboiler.outs[0].phases = ('g', 'l')
         self.auxiliary('bottoms_split', bst.PhaseSplitter,
-            self.reboiler-0, 'boilup', thermo=reboiler_thermo,
+            self.reboiler-0, ('boilup', self-1), thermo=reboiler_thermo,
         )
         self.LHK = LHK
         self.reset_cache() # Abstract method
