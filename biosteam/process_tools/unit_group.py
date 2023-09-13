@@ -75,7 +75,7 @@ class UnitGroup:
     Get all metric results:
         
     >>> ugroup.to_dict()
-    {'Installed equipment cost [MM$]': 0.056, 'Cooling duty [GJ/hr]': 0.37, 'Heating duty [GJ/hr]': 0.0, 'Electricity consumption [MW]': 0.00082, 'Electricity production [MW]': 0.0, 'Material cost [USD/hr]': 0.0}
+    {'Installed equipment cost [MM$]': 0.05564718426354741, 'Cooling duty [GJ/hr]': 0.37394038815616815, 'Heating duty [GJ/hr]': 0.0, 'Electricity consumption [MW]': 0.0003757386075141393, 'Electricity production [MW]': 0.0, 'Material cost [USD/hr]': 0.0}
     
     Each result can be retrieved separately:
     
@@ -110,7 +110,7 @@ class UnitGroup:
               Sucrose flow rate [kg/hr]
     
     >>> ugroup.to_dict()
-    {'Installed equipment cost [MM$]': 0.056, 'Cooling duty [GJ/hr]': 0.37, 'Heating duty [GJ/hr]': 0.0, 'Electricity consumption [MW]': 0.00082, 'Electricity production [MW]': 0.0, 'Material cost [USD/hr]': 0.0, 'Moisture content': 0.63, 'Sucrose flow rate [kg/hr]': 1026.88}
+    {'Installed equipment cost [MM$]': 0.05564718426354741, 'Cooling duty [GJ/hr]': 0.37394038815616815, 'Heating duty [GJ/hr]': 0.0, 'Electricity consumption [MW]': 0.0003757386075141393, 'Electricity production [MW]': 0.0, 'Material cost [USD/hr]': 0.0, 'Moisture content': 0.6369385135738662, 'Sucrose flow rate [kg/hr]': 1026.88944}
     
     """
     __slots__ = ('name', 'units', 'metrics', 'filter_savings', 'extend_feed_ends')
@@ -473,8 +473,8 @@ class UnitGroup:
              Net electricity production
         0                           100
         100                       -2.97
-        200                       -3.62
-        300                      -0.985
+        200                        -3.5
+        300                      -0.895
         400                           0
         
         >>> bst.UnitGroup.df_from_groups(
@@ -484,8 +484,8 @@ class UnitGroup:
              Net electricity production
         0                           108
         100                       -3.21
-        200                       -3.91
-        300                       -1.07
+        200                       -3.78
+        300                      -0.966
         400                           0
         
         >>> bst.default() # Reset to biosteam defaults

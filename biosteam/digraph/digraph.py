@@ -11,8 +11,8 @@
 import numpy as np
 from biosteam.utils.piping import (
     ignore_docking_warnings, Connection,
-    SuperpositionInlet, SuperpositionMultiInlet,
-    SuperpositionOutlet, SuperpositionMultiOutlet
+    SuperpositionInlet, 
+    SuperpositionOutlet, 
 )
 from warnings import warn
 import biosteam as bst
@@ -23,8 +23,6 @@ from xml.etree import ElementTree
 from typing import Optional
 import urllib
 import re
-supinlet_type = (SuperpositionInlet, SuperpositionMultiInlet)
-supoutlet_type = (SuperpositionOutlet, SuperpositionMultiOutlet)
 
 __all__ = ('digraph_from_system',
            'digraph_from_units',
@@ -355,12 +353,12 @@ def get_all_connections(streams, added_connections=None):
             if ID in IDs:
                 source0, source_index0, stream0, sink_index0, sink0 = old_connection = IDs[s.ID]
                 source1, source_index1, stream1, sink_index1, sink1 = connection
-                if isa(stream1, supoutlet_type) and isa(stream0, supinlet_type):
+                if isa(stream1, SuperpositionOutlet) and isa(stream0, SuperpositionInlet):
                     connections.remove(old_connection)
                     added_connections.remove(old_connection)
                     stream = stream1.copy(ID='.' + ID)
                     connection = Connection(source1, source_index1, stream, sink_index0, sink0)
-                elif isa(stream0, supoutlet_type) and isa(stream1, supinlet_type):
+                elif isa(stream0, SuperpositionOutlet) and isa(stream1, SuperpositionInlet):
                     connections.remove(old_connection)
                     added_connections.remove(old_connection)
                     stream = stream1.copy(ID='.' + ID)

@@ -1170,8 +1170,8 @@ class BinaryDistillation(Distillation, new_graphics=False):
                          --------  105 kmol/hr
     >>> D1.results()
     Divided Distillation Column                                Units        D1
-    Electricity         Power                                     kW      2.48
-                        Cost                                  USD/hr     0.194
+    Electricity         Power                                     kW     0.644
+                        Cost                                  USD/hr    0.0504
     Cooling water       Duty                                   kJ/hr -4.88e+06
                         Flow                                 kmol/hr  3.33e+03
                         Cost                                  USD/hr      1.63
@@ -1186,26 +1186,26 @@ class BinaryDistillation(Distillation, new_graphics=False):
                         Stripper stages                                     13
                         Rectifier height                          ft      34.7
                         Stripper height                           ft      31.7
-                        Rectifier diameter                        ft      3.95
-                        Stripper diameter                         ft       3.2
+                        Rectifier diameter                        ft      3.93
+                        Stripper diameter                         ft      3.19
                         Rectifier wall thickness                  in     0.312
                         Stripper wall thickness                   in     0.312
-                        Rectifier weight                          lb  6.03e+03
-                        Stripper weight                           lb  4.44e+03
+                        Rectifier weight                          lb     6e+03
+                        Stripper weight                           lb  4.43e+03
     Purchase cost       Rectifier trays                          USD   1.5e+04
                         Stripper trays                           USD  1.25e+04
-                        Rectifier tower                          USD  4.58e+04
-                        Stripper platform and ladders            USD   1.4e+04
-                        Stripper tower                           USD  3.84e+04
+                        Rectifier tower                          USD  4.56e+04
+                        Stripper platform and ladders            USD  1.39e+04
+                        Stripper tower                           USD  3.83e+04
                         Rectifier platform and ladders           USD  1.14e+04
                         Condenser - Floating head                USD  3.33e+04
                         Reflux drum - Horizontal pressur...      USD  1.02e+04
                         Reflux drum - Platform and ladders       USD  3.02e+03
-                        Pump - Pump                              USD  4.32e+03
-                        Pump - Motor                             USD       441
+                        Pump - Pump                              USD  4.37e+03
+                        Pump - Motor                             USD       368
                         Reboiler - Floating head                 USD  2.71e+04
     Total purchase cost                                          USD  2.15e+05
-    Utility cost                                              USD/hr      64.4
+    Utility cost                                              USD/hr      64.3
     
     Binary distillation with full-condenser
     
@@ -1627,8 +1627,8 @@ class ShortcutColumn(Distillation, new_graphics=False):
                          --------  105 kmol/hr
     >>> D1.results()
     Divided Distillation Column                                Units        D1
-    Electricity         Power                                     kW      2.92
-                        Cost                                  USD/hr     0.228
+    Electricity         Power                                     kW     0.761
+                        Cost                                  USD/hr    0.0595
     Cooling water       Duty                                   kJ/hr -7.54e+06
                         Flow                                 kmol/hr  5.15e+03
                         Cost                                  USD/hr      2.51
@@ -1643,26 +1643,26 @@ class ShortcutColumn(Distillation, new_graphics=False):
                         Stripper stages                                     26
                         Rectifier height                          ft      31.7
                         Stripper height                           ft      50.9
-                        Rectifier diameter                        ft      4.54
-                        Stripper diameter                         ft      3.65
+                        Rectifier diameter                        ft      4.52
+                        Stripper diameter                         ft      3.64
                         Rectifier wall thickness                  in     0.312
                         Stripper wall thickness                   in     0.312
-                        Rectifier weight                          lb  6.48e+03
-                        Stripper weight                           lb  7.95e+03
+                        Rectifier weight                          lb  6.45e+03
+                        Stripper weight                           lb  7.93e+03
     Purchase cost       Rectifier trays                          USD  1.52e+04
                         Stripper trays                           USD  2.01e+04
-                        Rectifier tower                          USD  4.78e+04
+                        Rectifier tower                          USD  4.76e+04
                         Stripper platform and ladders            USD  1.42e+04
-                        Stripper tower                           USD  5.39e+04
+                        Stripper tower                           USD  5.38e+04
                         Rectifier platform and ladders           USD  1.81e+04
                         Condenser - Floating head                USD  4.07e+04
                         Reflux drum - Horizontal pressur...      USD  1.03e+04
                         Reflux drum - Platform and ladders       USD  3.02e+03
-                        Pump - Pump                              USD  4.32e+03
-                        Pump - Motor                             USD       454
+                        Pump - Pump                              USD  4.37e+03
+                        Pump - Motor                             USD       379
                         Reboiler - Floating head                 USD  2.98e+04
-    Total purchase cost                                          USD  2.58e+05
-    Utility cost                                              USD/hr      85.1
+    Total purchase cost                                          USD  2.57e+05
+    Utility cost                                              USD/hr      84.9
     
     """
     line = 'Distillation'

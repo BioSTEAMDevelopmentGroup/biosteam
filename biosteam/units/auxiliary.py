@@ -20,6 +20,8 @@ class Auxiliary:
         'purchase_costs',
         'installed_costs',
         'F_M', 'F_D', 'F_P', 'F_BM',
+        'auxiliary_unit_names',
+        'parallel',
     )
     
     add_power_utility = bst.Unit.add_power_utility
@@ -36,6 +38,8 @@ class Auxiliary:
         self.F_D = {} 
         self.F_P = {}
         self.F_BM = {}
+        self.parallel = {}
+        self.auxiliary_unit_names = ()
         
     def _setup(self):
         results = (self.baseline_purchase_costs, self.purchase_costs, 

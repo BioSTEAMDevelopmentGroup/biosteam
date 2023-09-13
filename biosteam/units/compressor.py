@@ -617,20 +617,20 @@ class PolytropicCompressor(Compressor, new_graphics=False):
         flow (kmol/hr): H2  1
     outs...
     [0] outlet
-        phase: 'g', T: 689 degC, P: 3.5e+07 Pa
+        phase: 'g', T: 713 degC, P: 3.5e+07 Pa
         flow (kmol/hr): H2  1
     >>> K.results()
     Polytropic compressor                         Units              K1
-    Electricity         Power                        kW            6.52
-                        Cost                     USD/hr            0.51
-    Design              Polytropic work                           2e+04
+    Electricity         Power                        kW            6.76
+                        Cost                     USD/hr           0.529
+    Design              Polytropic work                        2.07e+04
                         Type                              Reciprocating
                         Compressors in parallel                       1
                         Driver                           Electric motor
                         Driver efficiency                          0.85
-    Purchase cost       Compressor(s)               USD        1.55e+03
-    Total purchase cost                             USD        1.55e+03
-    Utility cost                                 USD/hr            0.51
+    Purchase cost       Compressor(s)               USD        1.62e+03
+    Total purchase cost                             USD        1.62e+03
+    Utility cost                                 USD/hr           0.529
 
 
     Repeat using Hundseid method [4]_:
@@ -920,15 +920,15 @@ class MultistageCompressor(Unit):
     Multistage compressor                           Units                     K2
     Electricity         Power                          kW                      0
                         Cost                       USD/hr                      0
-    High pressure steam Duty                        kJ/hr                   6.47
-                        Flow                      kmol/hr               0.000201
-                        Cost                       USD/hr               6.38e-05
+    High pressure steam Duty                        kJ/hr                   6.48
+                        Flow                      kmol/hr               0.000202
+                        Cost                       USD/hr               6.39e-05
     Chilled water       Duty                        kJ/hr              -5.63e+03
                         Flow                      kmol/hr                   3.73
                         Cost                       USD/hr                 0.0282
-    Cooling water       Duty                        kJ/hr              -7.12e+03
-                        Flow                      kmol/hr                   4.86
-                        Cost                       USD/hr                0.00237
+    Cooling water       Duty                        kJ/hr              -7.15e+03
+                        Flow                      kmol/hr                   4.88
+                        Cost                       USD/hr                0.00238
     Design              Type                               Multistage compressor
                         Area                         ft^2                   1.14
                         Tube side pressure drop       psi                     15
@@ -936,14 +936,14 @@ class MultistageCompressor(Unit):
     Purchase cost       K2 k1 - Compressor(s)         USD               1.11e+04
                         K2 h1 - Double pipe           USD                    297
                         K2 k2 - Compressor(s)         USD                1.3e+04
-                        K2 h2 - Double pipe           USD                    198
+                        K2 h2 - Double pipe           USD                    199
                         K2 k3 - Compressor(s)         USD               1.44e+04
                         K2 h3 - Double pipe           USD                    129
-                        K2 k4 - Compressor(s)         USD               1.63e+04
-                        K2 h4 - Double pipe           USD                    751
+                        K2 k4 - Compressor(s)         USD               1.64e+04
+                        K2 h4 - Double pipe           USD                    753
                         K2 k5 - Compressor(s)         USD               1.45e+04
                         K2 h5 - Double pipe           USD               2.03e+03
-    Total purchase cost                               USD               7.26e+04
+    Total purchase cost                               USD               7.27e+04
     Utility cost                                   USD/hr                 0.0306
 
     Show the fluid state at the outlet of each heat exchanger:
@@ -1014,15 +1014,15 @@ class MultistageCompressor(Unit):
     Multistage compressor                           Units                     K2
     Electricity         Power                          kW                      0
                         Cost                       USD/hr                      0
-    High pressure steam Duty                        kJ/hr                   6.47
-                        Flow                      kmol/hr               0.000201
-                        Cost                       USD/hr               6.38e-05
+    High pressure steam Duty                        kJ/hr                   6.48
+                        Flow                      kmol/hr               0.000202
+                        Cost                       USD/hr               6.39e-05
     Chilled water       Duty                        kJ/hr              -5.63e+03
                         Flow                      kmol/hr                   3.73
                         Cost                       USD/hr                 0.0282
-    Cooling water       Duty                        kJ/hr              -7.12e+03
-                        Flow                      kmol/hr                   4.86
-                        Cost                       USD/hr                0.00237
+    Cooling water       Duty                        kJ/hr              -7.15e+03
+                        Flow                      kmol/hr                   4.88
+                        Cost                       USD/hr                0.00238
     Design              Type                               Multistage compressor
                         Area                         ft^2                   1.14
                         Tube side pressure drop       psi                     15
@@ -1030,14 +1030,14 @@ class MultistageCompressor(Unit):
     Purchase cost       K2 k1 - Compressor(s)         USD               1.11e+04
                         K2 h1 - Double pipe           USD                    297
                         K2 k2 - Compressor(s)         USD                1.3e+04
-                        K2 h2 - Double pipe           USD                    198
+                        K2 h2 - Double pipe           USD                    199
                         K2 k3 - Compressor(s)         USD               1.44e+04
                         K2 h3 - Double pipe           USD                    129
-                        K2 k4 - Compressor(s)         USD               1.63e+04
-                        K2 h4 - Double pipe           USD                    751
+                        K2 k4 - Compressor(s)         USD               1.64e+04
+                        K2 h4 - Double pipe           USD                    753
                         K2 k5 - Compressor(s)         USD               1.45e+04
                         K2 h5 - Double pipe           USD               2.03e+03
-    Total purchase cost                               USD               7.26e+04
+    Total purchase cost                               USD               7.27e+04
     Utility cost                                   USD/hr                 0.0306
 
     """

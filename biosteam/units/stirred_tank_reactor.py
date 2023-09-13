@@ -149,8 +149,8 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
     
     >>> R1.results()
     Continuous fermentation                                    Units                   R1
-    Electricity         Power                                     kW             1.15e+03
-                        Cost                                  USD/hr                 89.8
+    Electricity         Power                                     kW             1.04e+03
+                        Cost                                  USD/hr                 81.5
     Chilled water       Duty                                   kJ/hr            -1.41e+07
                         Flow                                 kmol/hr             9.42e+03
                         Cost                                  USD/hr                 70.3
@@ -165,11 +165,11 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
     Purchase cost       Vertical pressure vessel (x4)            USD             1.18e+06
                         Platform and ladders (x4)                USD             2.12e+05
                         Heat exchanger - Floating head (x4)      USD             1.61e+05
-                        Recirculation pump - Pump (x4)           USD             5.23e+04
-                        Recirculation pump - Motor (x4)          USD             8.37e+03
+                        Recirculation pump - Pump (x4)           USD              3.9e+04
+                        Recirculation pump - Motor (x4)          USD             2.78e+03
                         Agitator - Agitator (x4)                 USD             4.53e+05
-    Total purchase cost                                          USD             2.07e+06
-    Utility cost                                              USD/hr                  160
+    Total purchase cost                                          USD             2.05e+06
+    Utility cost                                              USD/hr                  152
     
     References
     ----------
@@ -188,6 +188,8 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
     )
     
     _units = {**PressureVessel._units,
+              'Batch time': 'hr',
+              'Loading time': 'hr',
               'Residence time': 'hr',
               'Total volume': 'm3',
               'Reactor volume': 'm3'}

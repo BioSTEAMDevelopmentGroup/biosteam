@@ -1651,17 +1651,9 @@ class Unit:
             stream = Stream('.' + stream, thermo=thermo)
             stream._source = stream._sink = self
         if self is stream._source and stream in self._outs:
-            if isinstance(stream, tmo.MultiStream):
-                SuperpositionStream = piping.SuperpositionMultiOutlet
-            else:
-                SuperpositionStream = piping.SuperpositionOutlet
-            stream = SuperpositionStream(piping.OutletPort.from_outlet(stream))
+            stream = piping.SuperpositionOutlet(piping.OutletPort.from_outlet(stream))
         elif self is stream._sink and stream in self._ins:
-            if isinstance(stream, tmo.MultiStream):
-                SuperpositionStream = piping.SuperpositionMultiInlet
-            else:
-                SuperpositionStream = piping.SuperpositionInlet
-            stream = SuperpositionStream(piping.InletPort.from_inlet(stream))
+            stream = piping.SuperpositionInlet(piping.InletPort.from_inlet(stream))
         else:
             if stream._source is None: stream._source = self
             if stream._sink is None: stream._sink = self
@@ -1742,21 +1734,27 @@ class Unit:
         def addcapex(key):
             if key_hook: key = key_hook(key)
             *others, name = key
-            if ' - ' in name:
-                auxname, _ = name.split(' - ')
-                auxname = auxname.replace(' ', '_').lower()
-                for i in self.auxiliary_unit_names:
-                    if auxname == i.lower():
-                        N = int(parallel.get(i, N_default))
+            names = name.split(' - ')
+            parent = self
+            parallel = parent.parallel
+            N = N_default = parallel.get('self', 1)
+            for auxname in names:
+                auxsearch = auxname.replace(' ', '_').lower()
+                for i in parent.auxiliary_unit_names:
+                    if auxsearch == i.lower():
+                        parent = getattr(parent, i)
+                        if isinstance(parent, list):
+                            N *= len(parent)
+                        else:
+                            parallel = parent.parallel
+                            N_default = parallel.get('self', 1)
+                            N *= int(parallel.get(i, N_default))
                         break
                 else:
-                    N = int(parallel.get(name, N_default))
-            else:
-                N = int(parallel.get(name, N_default))
+                    N *= int(parallel.get(auxname, 1.))
+                    break
             if N != 1: key = (*others, name + f' (x{N})')
             keys.append(key)
-        parallel = self.parallel
-        N_default = parallel.get('self', 1)
         keys = []; 
         vals = []; addval = vals.append
         stream_utility_prices = bst.stream_utility_prices

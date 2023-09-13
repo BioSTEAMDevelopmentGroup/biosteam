@@ -14,7 +14,8 @@ from thermo import SRK, PR
 
 
 def test_isentropic_hydrogen_compressor():
-    bst.settings.set_thermo(["H2"], cache=True)
+    bst.settings.set_thermo(["H2"])
+    bst.settings.chemicals.H2.V.g.method_P = 'IDEAL'
     eta = 0.7
     feed = bst.Stream(H2=1, T=25 + 273.15, P=101325, phase='g')
     K = bst.units.IsentropicCompressor(ins=feed, P=50e5, eta=eta)
@@ -43,7 +44,8 @@ def test_isentropic_hydrogen_compressor():
 
 
 def test_isentropic_two_phase_steam_compressor():
-    bst.settings.set_thermo(["H2O"], cache=True)
+    bst.settings.set_thermo(["H2O"])
+    bst.settings.chemicals.H2O.V.g.method_P = 'IDEAL'
     # feed is steam-water-mixture
     feed = bst.MultiStream(T=372.75, P=1e5, l=[('H2O', 0.1)], g=[('H2O', 0.9)])
     # from compress until superheated steam (test case for vle parameter)
@@ -75,6 +77,7 @@ def test_isentropic_two_phase_steam_compressor():
 
 def test_isothermal_hydrogen_compressor():
     thermo = bst.Thermo([bst.Chemical('H2', eos=SRK)])
+    thermo.chemicals.H2.V.g.method_P = 'IDEAL'
     thermo.mixture.include_excess_energies = True
     bst.settings.set_thermo(thermo)
     feed = bst.Stream(H2=1, T=298.15, P=20e5, phase='g')
@@ -148,6 +151,7 @@ def test_isothermal_hydrogen_compressor():
 
 def test_polytropic_hydrogen_compressor():
     thermo = bst.Thermo([bst.Chemical('H2', eos=PR)])
+    thermo.chemicals.H2.V.g.method_P = 'IDEAL'
     thermo.mixture.include_excess_energies = True
     bst.settings.set_thermo(thermo)
     feed = bst.Stream(H2=1, T=25 + 273.15, P=20e5, phase='g')
@@ -205,6 +209,7 @@ def test_polytropic_hydrogen_compressor():
 
 def test_multistage_hydrogen_compressor_simple():
     thermo = bst.Thermo([bst.Chemical('H2', eos=PR)])
+    thermo.chemicals.H2.V.g.method_P = 'IDEAL'
     thermo.mixture.include_excess_energies = True
     bst.settings.set_thermo(thermo)
     feed = bst.Stream("feed", H2=1, T=25 + 273.15, P=20e5, phase='g')
@@ -255,6 +260,7 @@ def test_multistage_hydrogen_compressor_simple():
 
 def test_multistage_hydrogen_compressor_advanced():
     thermo = bst.Thermo([bst.Chemical('H2', eos=PR)])
+    thermo.chemicals.H2.V.g.method_P = 'IDEAL'
     thermo.mixture.include_excess_energies = True
     bst.settings.set_thermo(thermo)
     feed = bst.Stream("feed", H2=1, T=25 + 273.15, P=20e5, phase='g')
@@ -320,6 +326,7 @@ def test_multistage_hydrogen_compressor_advanced():
 
 def test_compressor_design():
     bst.settings.set_thermo(["H2"], cache=True)
+    bst.settings.chemicals.H2.V.g.method_P = 'IDEAL'
     feed = bst.Stream(H2=1, T=298.15, P=1e5, phase='g')
     K = bst.units.IsothermalCompressor(ins=feed, P=350e5)
     
@@ -374,6 +381,7 @@ def test_compressor_design():
 
 def test_multistage_setup_does_not_recreate_subcomponents():
     bst.settings.set_thermo(["H2"])
+    bst.settings.chemicals.H2.V.g.method_P = 'IDEAL'
     feed = bst.Stream("feed", H2=1, T=25 + 273.15, P=20e5, phase='g')
     P = 350e5
     n_stages = 5
@@ -387,6 +395,7 @@ def test_multistage_setup_does_not_recreate_subcomponents():
     
 def test_multistage_setup_updates_after_changing_specifications():
     bst.settings.set_thermo(["H2"])
+    bst.settings.chemicals.H2.V.g.method_P = 'IDEAL'
     feed = bst.Stream("feed", H2=1, T=25 + 273.15, P=20e5, phase='g')
     P = 350e5
     n_stages = 5

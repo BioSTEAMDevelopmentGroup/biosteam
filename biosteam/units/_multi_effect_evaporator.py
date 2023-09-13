@@ -130,7 +130,7 @@ class MultiEffectEvaporator(Unit):
                         Cost                                  USD/hr    0.117
     Design              Area                                     m^2       11
                         Volume                                   m^3     3.51
-    Purchase cost       Evaporators                              USD 9.56e+03
+    Purchase cost       Evaporators (x5)                         USD 9.56e+03
                         Condenser - Double pipe                  USD 5.36e+03
                         Vacuum system - Liquid-ring pump...      USD 1.24e+04
     Total purchase cost                                          USD 2.73e+04
@@ -184,7 +184,7 @@ class MultiEffectEvaporator(Unit):
                         Cost                                  USD/hr    0.0384
     Design              Area                                     m^2      1.62
                         Volume                                   m^3      3.07
-    Purchase cost       Evaporators                              USD  2.74e+03
+    Purchase cost       Evaporators (x3)                         USD  2.74e+03
                         Condenser - Double pipe                  USD   3.9e+03
                         Vacuum system - Liquid-ring pump...      USD  1.24e+04
     Total purchase cost                                          USD  1.91e+04
@@ -238,7 +238,7 @@ class MultiEffectEvaporator(Unit):
                         Cost                                  USD/hr    0.0384
     Design              Area                                     m^2      1.62
                         Volume                                   m^3      3.07
-    Purchase cost       Evaporators                              USD  2.74e+03
+    Purchase cost       Evaporators (x3)                         USD  2.74e+03
                         Condenser - Double pipe                  USD   3.9e+03
                         Vacuum system - Liquid-ring pump...      USD  1.24e+04
     Total purchase cost                                          USD  1.91e+04

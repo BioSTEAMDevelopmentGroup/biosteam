@@ -57,7 +57,7 @@ class Pump(Unit):
         If 'Default', a pump type is selected based on heuristics.
     material : str, optional
         Contruction material of pump. Defaults to 'Cast iron'.
-    dP_design=405300 : float
+    dP_design=101325 : float
         Design pressure change for pump.
     ignore_NPSH=True : bool
         Whether to take into consideration NPSH in the selection of a
@@ -146,7 +146,7 @@ class Pump(Unit):
                  P=None,
                  pump_type='Default',
                  material='Cast iron',
-                 dP_design=405300,
+                 dP_design=101325,
                  ignore_NPSH=True):
         Unit.__init__(self, ID, ins, outs, thermo)
         self.P = P
@@ -177,32 +177,21 @@ class Pump(Unit):
         if dP < 1: dP = self.dP_design
         power_ideal = Qi*dP*3.725e-7 # hp
         q = Qi*4.403 # gpm
+        N = 1
         
         # Note:
         # A pump motor can have maximally `max_hp` power, so need to first solve
         # for how many pumps with maximally `max_hp` are needed. 
         # Assume 100% efficiency to estimate the number of pumps.
-        N_min = 1
-        N_guess = -1
-        N = max(ceil(power_ideal / max_hp), N_min)
-        while N != N_guess: 
-            # i subscript refers to an individual pump
-            N_guess = N
-            power_ideal_i = power_ideal / N_guess
-            q_i = q / N_guess
-            # Recalculate number of pumps given true efficiency
-            efficiency = pump_efficiency(q_i, power_ideal_i)
-            power = power_ideal / efficiency
-            N = max(ceil(power / max_hp), N_min)
-        
-        # Pump types have their own maximum size, so we'll need to iterate again.
+        # Additionally, pump types have their own maximum size.
         N_guess = -1
         while N != N_guess:
             N_guess = N
             power_ideal_i = power_ideal / N_guess
+            q_i = q / N_guess
             efficiency = pump_efficiency(q_i, power_ideal_i) 
             power_i = power_ideal_i / efficiency
-            head = N * power_i / mass * 897806 # ft
+            head_i = N * power_i / mass * 897806 # ft
             # Note that:
             # head = power / (mass * gravity)
             # head [ft] = power[hp]/mass[kg/hr]/9.81[m/s^2] * conversion_factor
@@ -214,41 +203,39 @@ class Pump(Unit):
                 Design['NPSH'] = NPSH = calculate_NPSH(Pi, si.P_vapor, si.rho)
                 NPSH_satisfied = NPSH > 1.52
             
-            # Get type
             pump_type = self.pump_type
             if pump_type == 'Default':
-                if (15.24 <= head <= 3200
+                if (15.24 <= head_i <= 3200
                     and nu <= 0.00002
                     and NPSH_satisfied):
-                    N = max(ceil(q_i / 5000), N)
                     pump_type = 'Centrifugal'
-                elif (head <= 914.4
+                elif (head_i <= 914.4
                       and 0.00001 <= nu <= 0.252):
                     N = max(ceil(q_i / 1500), N)
                     pump_type = 'Gear'
-                elif (head <= 20000
-                      and power <= 200
+                elif (head_i <= 20000
+                      and power_i <= 200
                       and nu <= 0.01):
                     N = max(ceil(q_i / 500), N)
                     pump_type = 'MeteringPlunger'
                 else:
                     NPSH = calculate_NPSH(Pi, si.P_vapor, si.rho)
                     warn(f'{repr(self)} no pump type available at current power '
-                         f'({power:.3g} hp), head ({head:.3g} ft), kinematic '
+                         f'({power_i:.3g} hp), head ({head_i:.3g} ft), kinematic '
                          f'viscosity ({nu:.3g} m2/s), and NPSH ({NPSH:.3g} ft); '
                           'assuming centrigugal pump',
                          RuntimeWarning)
                     pump_type = 'Centrifugal'
-                
         Design['Type'] = pump_type
-        Design['Ideal power'] = power_ideal_i
-        Design['Flow rate'] = q_i
+        Design['Ideal power'] = power_ideal_i = power_ideal / N
+        Design['Flow rate'] = q_i = q / N_guess
         Design['Efficiency'] = pump_efficiency(q_i, power_ideal_i) 
-        Design['Power'] = power_ideal_i / efficiency
+        Design['Power'] = power_i = power_ideal_i / efficiency
         Design['Head'] = N * power_i / mass * 897806 # ft
-        Design['Motor size'] = nearest_NEMA_motor_size(power_i)
+        Design['Motor size'] = motor_rating = nearest_NEMA_motor_size(power_i)
         self.add_power_utility(power_i / 1.341) # Add power for individual pump in kW
         self.parallel['self'] = N # BioSTEAM will multiply all costs (both capital and utility) by this number
+        self.parallel['Motor'] = N * ceil(power_i / motor_rating) # Multiple motors per pump is posible
     
     def _cost(self):
         Design = self.design_results

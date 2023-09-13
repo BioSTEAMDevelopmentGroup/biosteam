@@ -105,7 +105,7 @@ def pump_efficiency(q, p):
 def nearest_NEMA_motor_size(power):
     for nearest_power in nema_sizes_hp:
         if nearest_power >= power: return nearest_power
-    raise ValueError(f'no NEMA motor size bigger than {power} hp')
+    return nearest_power
 
 @njit(cache=True)    
 def calculate_NPSH(P_suction, P_vapor, rho_liq):
