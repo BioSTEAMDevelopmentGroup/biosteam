@@ -269,6 +269,7 @@ html_theme_options = {
     # ),
     "external_links": [
       {"name": "Bioindustrial-Park", "url": "https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park"},
+      {"name": "How2STEAM", "url": "https://mybinder.org/v2/gh/BioSTEAMDevelopmentGroup/How2STEAM/HEAD"},
       {"name": "QSDsan", "url": "https://qsdsan.readthedocs.io/en/latest/"},
   ]
 }
