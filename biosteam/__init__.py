@@ -25,6 +25,9 @@ impact_indicators: dict[str, str] = {}
 #: inlets and outlets to unit operations.
 stream_utility_prices: dict[str, float] = {}
 
+#: Defined allocation property and basis pairs for LCA.
+allocation_properties: dict[str, str] = {}
+
 # %% Workaround for readthedocs, which fails to cache numba
 
 import numba

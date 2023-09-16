@@ -10,7 +10,9 @@ This module extends thermosteam's ProcessSettings object.
 """
 from thermosteam import settings
 from thermosteam.units_of_measure import AbsoluteUnitsOfMeasure
+from typing import Callable
 import biosteam as bst
+import numpy as np
 
 # %% Excecutables for dynamic programing of new stream utilities
 
@@ -123,7 +125,12 @@ def skip_simulation_of_units_with_empty_inlets(self):
 def skip_simulation_of_units_with_empty_inlets(self, skip):
     bst.Unit._skip_simulation_when_inlets_are_empty = skip
 
-def register_utility(self, name, price):
+@property
+def allocation_properties(self):
+    """Defined allocation property and basis pairs for LCA."""
+    return bst.allocation_properties
+
+def register_utility(self, name: str, price: float):
     """Register new stream utility in BioSTEAM given the name and the price 
     [USD/kg]."""
     if name not in bst.stream_utility_prices:
@@ -154,6 +161,29 @@ def register_utility(self, name, price):
         exec(get_system_utility_cost_executable.format(**cost_kwargs), globs)
     bst.stream_utility_prices[name] = price
 
+def define_allocation_property(
+        self, name: str, basis: float, 
+        stream: Callable=None, 
+        power_utility: Callable=None,
+        heat_utility: Callable=None
+    ):
+    """Define a new allocation property by property getters."""
+    allocation_name = name + '-allocation'
+    units = basis + '/hr'
+    if stream is not None:
+        bst.Stream.define_property(
+            allocation_name, units, stream,
+        )
+    if power_utility is not None:
+        bst.PowerUtility.define_property(
+            allocation_name, units, power_utility,
+        )
+    if heat_utility is not None:
+        bst.HeatUtility.define_property(
+            allocation_name, units, heat_utility,
+        )
+    bst.allocation_properties[name] = basis
+
 Settings = settings.__class__
 Settings.CEPCI = CEPCI
 Settings.utility_characterization_factors = utility_characterization_factors
@@ -164,6 +194,8 @@ Settings.stream_utility_prices = stream_utility_prices
 Settings.electricity_price = electricity_price
 Settings.skip_simulation_of_units_with_empty_inlets = skip_simulation_of_units_with_empty_inlets
 Settings.register_utility = register_utility
+Settings.allocation_properties = allocation_properties
+Settings.define_allocation_property = define_allocation_property
 
 # %% Register stream utilities
 
@@ -171,3 +203,21 @@ settings.register_utility('Natural gas', 0.218)
 settings.register_utility('Ash disposal', -0.0318)
 settings.register_utility('Reverse osmosis water', 5.6e-4)
 settings.register_utility('Process water', 2.7e-4)
+
+# %% Register predefined allocation methods
+
+settings.define_allocation_property(
+    'energy', 'kJ', 
+    stream=lambda self: max(self.LHV, 0),
+    power_utility=lambda self: max(-self.rate * 3600, 0.),
+    heat_utility=lambda self: max(self.duty, 0),
+)
+settings.define_allocation_property(
+    'revenue', 'USD', 
+    stream=lambda self: self.cost if self.price > 0. else 0.,
+    power_utility=lambda self: max(-self.cost, 0.),
+    heat_utility=lambda self: max(self.cost, 0),
+)
+settings.define_allocation_property(
+    'mass', 'kg', stream=lambda self: np.dot(self.chemicals.MW, self.mol)
+)

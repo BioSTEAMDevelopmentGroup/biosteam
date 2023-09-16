@@ -228,8 +228,6 @@ def digraph_from_units(units, streams=None, auxiliaries=None, **graph_attrs):
                     streams.remove(other)
                     stream_set.remove(other)
     digraph = digraph_from_units_and_connections(units, get_all_connections(streams), auxiliaries, **graph_attrs)
-    if auxiliaries:
-        pass
     return digraph
 
 def digraph_from_system(system, auxiliaries=None, **graph_attrs):
@@ -380,18 +378,21 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
     if stream:
         lines = []
         line = ''
-        for word in stream.ID.split('_'):
-            line += ' ' + word
-            if len(line) > 10: 
-                lines.append(line)
-                line = ''
-        if line: lines.append(line)
-        ID = '\n'.join(lines)
+        ID = stream.ID
+        if ID:
+            for word in ID.split('_'):
+                line += ' ' + word
+                if len(line) > 10: 
+                    lines.append(line)
+                    line = ''
+            if line: lines.append(line)
+            ID = '\n'.join(lines)
+        ref = str(hash(stream))
         penwidth = pen_width(stream) if pen_width else '1.0'
         # Make stream nodes / unit-stream edges / unit-unit edges
         if has_sink and not has_source:
             # Feed stream case
-            f.node(ID,
+            f.node(ref,
                    width='0.15', 
                    height='0.15',
                    shape='diamond',
@@ -401,10 +402,10 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
             inlet_options = sink._graphics.get_inlet_options(sink, sink_index)
             f.attr('edge', arrowtail='none', arrowhead='none', label=ID,
                    tailport='e', style=style, penwidth=penwidth, **inlet_options)
-            f.edge(ID, unit_names[sink], labeltooltip=tooltip)
+            f.edge(ref, unit_names[sink], labeltooltip=tooltip)
         elif has_source and not has_sink:
             # Product stream case
-            f.node(ID, 
+            f.node(ref, 
                    width='0.15', 
                    height='0.2',
                    shape='triangle',
@@ -415,7 +416,7 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
             outlet_options = source._graphics.get_outlet_options(source, source_index)
             f.attr('edge', arrowtail='none', arrowhead='none', label=ID,
                    headport='w', style=style, penwidth=penwidth, **outlet_options)
-            f.edge(unit_names[source], ID, labeltooltip=tooltip)
+            f.edge(unit_names[source], ref, labeltooltip=tooltip)
         elif has_sink and has_source:
             # Process stream case
             inlet_options = sink._graphics.get_inlet_options(sink, sink_index)

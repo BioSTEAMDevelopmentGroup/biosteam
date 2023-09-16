@@ -2764,11 +2764,14 @@ class System:
             - self.get_total_products_impact(key)
         )
     
-    def get_property_allocated_impact(self, key, name, units):
+    def get_property_allocated_impact(self, key, name, basis, ignored=None):
+        if ignored is None: ignored = frozenset()
         total_property = 0.
         heat_utilities = self.heat_utilities
         power_utility = self.power_utility
         operating_hours = self.operating_hours
+        units = None if basis is None else basis + '/hr'
+        if name in bst.allocation_properties: name += '-allocation'
         if hasattr(bst.PowerUtility, name):
             if power_utility.rate < 0.:
                 total_property += power_utility.get_property(name, units) * operating_hours
@@ -2777,6 +2780,7 @@ class System:
                 if hu.flow < 0.: total_property += hu.get_property(name, units) * operating_hours
         if hasattr(bst.Stream, name):
             for stream in self.products:
+                if stream in ignored: continue
                 total_property += self.get_property(stream, name, units)
         impact = self.get_total_feeds_impact(key)
         for hu in heat_utilities:
@@ -2786,11 +2790,14 @@ class System:
         impact += self.get_process_impact(key)
         return impact / total_property
     
-    def get_property_allocation_factors(self, name, units=None, groups=()):
+    def get_property_allocation_factors(self, name, basis=None, groups=(), ignored=None):
+        if ignored is None: ignored = frozenset()
         heat_utilities = self.heat_utilities
         power_utility = self.power_utility
         operating_hours = self.operating_hours
+        units = None if basis is None else basis + '/hr'
         properties = {}
+        if name in bst.allocation_properties: name += '-allocation'
         if isinstance(groups, str): groups = [groups]
         if hasattr(bst.PowerUtility, name):
             if power_utility.rate < 0.:
@@ -2803,6 +2810,7 @@ class System:
                     set_impact_value(properties, hu.agent.ID, value * operating_hours, groups)
         if hasattr(bst.Stream, name):
             for stream in self.products:
+                if stream in ignored: continue
                 value = self.get_property(stream, name, units)
                 set_impact_value(properties, stream.ID, value, groups)
         total_property = sum(properties.values())

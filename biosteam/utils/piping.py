@@ -865,7 +865,7 @@ class Connection(NamedTuple):
         source = self.source
         sink = self.sink
         if source:
-            if (sink and getattr(sink, '_owner', None) is source):
+            if not (sink and getattr(sink, '_owner', None) is source):
                 source.outs[self.source_index] = self.stream
         else:
             self.stream.disconnect_source()
