@@ -101,8 +101,9 @@ class UnitGraphics:
         if getattr(unit, '_owner', None):
             owner = unit._owner
             ID = unit.ID
-            if ID in owner.parallel:
-                N = owner.parallel[ID]
+            sID, *_ = ID.split('[')
+            if sID in owner.parallel:
+                N = owner.parallel[sID]
             elif 'self' in owner.parallel:
                 N = owner.parallel['self']
             else:

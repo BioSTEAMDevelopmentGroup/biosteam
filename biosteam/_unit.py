@@ -906,7 +906,8 @@ class Unit:
             if isa(unit, Unit):
                 if not (unit._design or unit._cost): continue
             unit._load_costs() # Just in case user did not simulate or run summary.
-            N = integer(parallel.get(name, N_default))
+            pname, *_ = name.split('[')
+            N = integer(parallel.get(pname, N_default))
             if N == 1:
                 heat_utilities.extend(unit.heat_utilities)
                 power_utility.consumption += unit.power_utility.consumption
@@ -1754,11 +1755,10 @@ class Unit:
                     if auxsearch == i.lower():
                         parent = getattr(parent, i)
                         if isinstance(parent, list):
-                            N *= len(parent)
-                        else:
-                            parallel = parent.parallel
-                            N_default = parallel.get('self', 1)
-                            N *= int(parallel.get(i, N_default))
+                            i, *_ = i.split('[')
+                        parallel = parent.parallel
+                        N_default = parallel.get('self', 1)
+                        N *= int(parallel.get(i, N_default))
                         break
                 else:
                     N *= int(parallel.get(auxname, 1.))
