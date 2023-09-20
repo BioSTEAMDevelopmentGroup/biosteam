@@ -14,7 +14,7 @@
 from .. import Unit
 from typing import Optional
 from math import ceil
-from scipy.optimize import minimize_scalar, minimize, least_squares
+from scipy.optimize import minimize_scalar, minimize, least_squares, fsolve, shgo, differential_evolution
 from biosteam.units.design_tools import aeration
 from biosteam.units.design_tools import (
     PressureVessel, compute_closed_vessel_turbine_purchase_cost, size_batch
@@ -811,7 +811,6 @@ class GasFedBioreactor(StirredTankReactor):
             gas.reset_flow(**dct)
             x_substrates.append(gas.get_molar_fraction(ID))
         index = range(len(self.gas_substrates))
-        cooled_compressed = [i.outs[0] for i in self.gas_coolers]
         
         def run_auxiliaries():
             for i in self.mixers: i.simulate()
@@ -821,10 +820,11 @@ class GasFedBioreactor(StirredTankReactor):
         
         def load_flow_rates(F_substrates):
             for i in index:
+                gas = variable_gas_feeds[i]
                 gas.set_total_flow(F_substrates[i] / x_substrates[i], 'mol/s')
             run_auxiliaries()
             effluent.set_data(effluent_liquid_data)
-            effluent.mix_from([effluent, *cooled_compressed], energy_balance=False)
+            effluent.mix_from([self.sparged_gas, -s_consumed, s_produced, *liquid_feeds], energy_balance=False)
             vent.empty()
             self._run_vent(vent, effluent)
         
@@ -835,17 +835,17 @@ class GasFedBioreactor(StirredTankReactor):
                 return total_power
             
             f = total_power_at_substrate_flow
-            minimize(f, 1.2 * SURs, bounds=[(i, 10 * i) for i in SURs], tol=SURs.max() * 1e-6)
+            results = minimize(f, 1.2 * SURs, bounds=np.array([[i, 10 * i] for i in SURs]), tol=SURs.max() * 1e-6)
+            load_flow_rates(results.x)
         else:
             def gas_flow_rate_objective(F_substrates):
                 load_flow_rates(F_substrates)
                 return SURs - self.get_STRs() # Must meet all substrate demands
             
             f = gas_flow_rate_objective
-            least_squares(f, 1.2 * SURs, bounds=np.array([[i, 10 * i] for i in SURs]).T, ftol=SURs.max() * 1e-6)
-        effluent.mix_from([self.sparged_gas, -s_consumed, s_produced, *liquid_feeds], energy_balance=False)
-        vent.empty()
-        self._run_vent(vent, effluent)
+            results = least_squares(f, 1.2 * SURs, bounds=np.array([[i, 10 * i] for i in SURs]).T, ftol=SURs.min() * 1e-6)
+            load_flow_rates(results.x)
+        
     
     def _solve_total_power(self, SURs): # For STR = SUR [mol / s]
         gas_in = self.sparged_gas

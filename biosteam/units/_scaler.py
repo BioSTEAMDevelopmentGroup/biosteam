@@ -41,7 +41,7 @@ class Scaler(Unit):
     >>> s1 = Stream('s1', Water=20)
     >>> settings.set_thermo(['Ethanol', 'Water'], cache=True)
     >>> s2 = Stream('s2') # Note that s2 and s1 have different chemicals defined
-    >>> S1 = units.Scaler('S1', s1, s2, 2)
+    >>> S1 = units.Scaler('S1', s1, s2, scale=2)
     >>> S1.simulate()
     >>> S1.show()
     Scaler: S1
@@ -67,7 +67,7 @@ class Scaler(Unit):
     installed_costs = {}
     utility_cost = 0.
     
-    def __init__(self, ID="", upstream=None, downstream=None, scale=None, thermo=None):
+    def __init__(self, ID="", upstream=None, downstream=None, thermo=None, scale=1):
         self._register(ID)
         thermo = self._load_thermo(thermo)
         self._init_specifications()
