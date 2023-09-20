@@ -365,7 +365,7 @@ class Distillation(Unit, isabstract=True):
             self.auxiliary(
                 'top_split', FakeSplitter,
                 ins = self.condenser-0,
-                outs=('distillate', 'condensate'),
+                outs=(self-0, 'condensate'),
                 thermo=condenser_thermo
             )
             self.condensate = self.top_split-1

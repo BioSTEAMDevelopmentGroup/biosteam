@@ -696,7 +696,7 @@ class Evaporator(Flash):
                 elif V > 1:
                     vapor.imol[chemical_ID] = f
                     liquid.imol[chemical_ID] = 0
-                    utility_liquid.vle(H=utility_vapor.H - Hvap, P=utility_vapor.P)
+                    vapor.H = H
                 else:
                     vapor.imol[chemical_ID] = f * V
                     liquid.imol[chemical_ID] = (1 - V) * f

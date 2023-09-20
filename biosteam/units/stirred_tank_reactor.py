@@ -14,6 +14,7 @@
 from .. import Unit
 from typing import Optional
 from math import ceil
+from warnings import catch_warnings
 from scipy.optimize import minimize_scalar, minimize, least_squares, fsolve, shgo, differential_evolution
 from biosteam.units.design_tools import aeration
 from biosteam.units.design_tools import (
@@ -818,16 +819,19 @@ class GasFedBioreactor(StirredTankReactor):
             for i in self.gas_coolers: i.simulate()
             self.sparger.simulate()
         
-        def load_flow_rates(F_substrates):
+        def load_flow_rates(F_feeds):
             for i in index:
                 gas = variable_gas_feeds[i]
-                gas.set_total_flow(F_substrates[i] / x_substrates[i], 'mol/s')
+                gas.set_total_flow(F_feeds[i], 'mol/s')
             run_auxiliaries()
             effluent.set_data(effluent_liquid_data)
             effluent.mix_from([self.sparged_gas, -s_consumed, s_produced, *liquid_feeds], energy_balance=False)
             vent.empty()
             self._run_vent(vent, effluent)
         
+        baseline_feed = bst.Stream.sum(self.normal_gas_feeds, energy_balance=False)
+        baseline_flows = baseline_feed.get_flow('mol/s', self.gas_substrates)
+        bounds = np.array([[max(SURs[i] - baseline_flows[i], 0), 5 * SURs[i]] for i in index])
         if self.optimize_power:
             def total_power_at_substrate_flow(F_substrates):
                 load_flow_rates(F_substrates)
@@ -835,18 +839,29 @@ class GasFedBioreactor(StirredTankReactor):
                 return total_power
             
             f = total_power_at_substrate_flow
-            results = minimize(f, 1.2 * SURs, bounds=np.array([[i, 10 * i] for i in SURs]), tol=SURs.max() * 1e-6)
-            load_flow_rates(results.x)
+            with catch_warnings(action='ignore'):
+                results = minimize(f, 1.2 * SURs, bounds=bounds, tol=SURs.max() * 1e-6)
+                load_flow_rates(results.x / x_substrates)
         else:
             def gas_flow_rate_objective(F_substrates):
-                load_flow_rates(F_substrates)
-                return SURs - self.get_STRs() # Must meet all substrate demands
+                F_feeds = F_substrates / x_substrates
+                load_flow_rates(F_feeds)
+                STRs = self.get_STRs() # Must meet all substrate demands
+                F_ins = F_substrates + baseline_flows
+                mask = STRs - F_ins > 0
+                STRs[mask] = F_ins[mask]
+                diff = SURs - STRs
+                return (diff * diff).sum()
             
             f = gas_flow_rate_objective
-            results = least_squares(f, 1.2 * SURs, bounds=np.array([[i, 10 * i] for i in SURs]).T, ftol=SURs.min() * 1e-6)
-            load_flow_rates(results.x)
+            bounds = bounds.T
+            with catch_warnings(action='ignore'):
+                results = least_squares(f, 1.2 * SURs, bounds=bounds, ftol=SURs.min() * 1e-6)
+                load_flow_rates(results.x / x_substrates)
         
-    
+        # self.show()
+        # breakpoint()
+        
     def _solve_total_power(self, SURs): # For STR = SUR [mol / s]
         gas_in = self.sparged_gas
         N_reactors = self.parallel['self']
