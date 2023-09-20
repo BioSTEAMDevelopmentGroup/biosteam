@@ -311,13 +311,13 @@ class MultiEffectEvaporator(Unit):
             evaporator = self.auxiliary(
                 'evaporators', Flash,
                 ins=self.ins, 
-                outs=(None, self.outs[0] if n == 1 else None, None), P=P[0],
+                outs=(None, self.outs[0] if n == 1 else None), P=P[0],
             )
         else:
             evaporator = self.auxiliary(
                 'evaporators', Evaporator,
                 ins=self.ins,
-                outs=(None, self.outs[0] if n == 1 else None, None), P=P[0],
+                outs=(None, self.outs[0] if n == 1 else None), P=P[0],
                 chemical=self.chemical,
             )
         for i in range(1, n):

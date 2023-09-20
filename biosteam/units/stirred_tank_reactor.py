@@ -621,65 +621,65 @@ class GasFedBioreactor(StirredTankReactor):
     vary to minimize the total power requirement of both the compressor and agitator
     yet achieve the required oxygen transfer rate.
     
-    Examples
-    --------
-    >>> import biosteam as bst
-    >>> bst.settings.set_thermo(['H2', 'CO2', 'N2', 'O2', 'H2O', 'AceticAcid'])
-    >>> media = bst.Stream(ID='media', H2O=10000, units='kg/hr')
-    >>> H2 = bst.Stream(ID='H2', phase='g')
-    >>> fluegas = bst.Stream(ID='fluegas', phase='g')
-    >>> recycle = bst.Stream(ID='recycle', phase='g', N2=70, CO2=23, H2O=3, O2=4, total_flow=10, units='kg/hr')
-    >>> # Model acetic acid production from H2 and CO2
-    >>> rxn = bst.Rxn('H2 + CO2 -> AceticAcid + H2O', reactant='H2', correct_atomic_balance=True) 
-    >>> brxn = rxn.backwards(reactant='AceticAcid')
-    >>> R1 = bst.GasFedBioreactor(
-    ...     'R1', ins=[media, H2, fluegas, recycle], outs=('vent', 'product'), tau=68, V_max=500,
-    ...     reactions=rxn, backward_reactions=brxn,
-    ...     feed_gas_compositions={
-    ...         1: dict(H2=100, units='kg/hr'),
-    ...         2: dict(N2=70, CO2=25, H2O=3, O2=2, units='kg/hr'),
-    ...     },
-    ...     gas_substrates=('H2', 'CO2'),
-    ...     titer={'AceticAcid': 5},
-    ...     mixins={2: [3]}, # Recycle gets mixed with fluegas
-    ...     optimize_power=False,
-    ...     kW_per_m3=0.,
-    ... )
-    >>> R1.simulate()
-    >>> R1.show()
-    GasFedBioreactor: R1
-    ins...
-    [0] media  
-        phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): H2O  555
-    [1] H2  
-        phase: 'g', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): H2  49.6
-    [2] fluegas  
-        phase: 'g', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): CO2  2.01
-                        N2   8.83
-                        O2   0.221
-                        H2O  0.589
-    [3] recycle  
-        phase: 'g', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): CO2  0.0523
-                        N2   0.25
-                        O2   0.0125
-                        H2O  0.0167
-    outs...
-    [0] vent  
-        phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): H2          46.3
-                        CO2         0.387
-                        N2          9.08
-                        O2          0.233
-                        H2O         2.39
-                        AceticAcid  0.00231
-    [1] product  
-        phase: 'l', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): H2O         555
-                        AceticAcid  0.834
+    # Examples
+    # --------
+    # >>> import biosteam as bst
+    # >>> bst.settings.set_thermo(['H2', 'CO2', 'N2', 'O2', 'H2O', 'AceticAcid'])
+    # >>> media = bst.Stream(ID='media', H2O=10000, units='kg/hr')
+    # >>> H2 = bst.Stream(ID='H2', phase='g')
+    # >>> fluegas = bst.Stream(ID='fluegas', phase='g')
+    # >>> recycle = bst.Stream(ID='recycle', phase='g', N2=70, CO2=23, H2O=3, O2=4, total_flow=10, units='kg/hr')
+    # >>> # Model acetic acid production from H2 and CO2
+    # >>> rxn = bst.Rxn('H2 + CO2 -> AceticAcid + H2O', reactant='H2', correct_atomic_balance=True) 
+    # >>> brxn = rxn.backwards(reactant='AceticAcid')
+    # >>> R1 = bst.GasFedBioreactor(
+    # ...     'R1', ins=[media, H2, fluegas, recycle], outs=('vent', 'product'), tau=68, V_max=500,
+    # ...     reactions=rxn, backward_reactions=brxn,
+    # ...     feed_gas_compositions={
+    # ...         1: dict(H2=100, units='kg/hr'),
+    # ...         2: dict(N2=70, CO2=25, H2O=3, O2=2, units='kg/hr'),
+    # ...     },
+    # ...     gas_substrates=('H2', 'CO2'),
+    # ...     titer={'AceticAcid': 5},
+    # ...     mixins={2: [3]}, # Recycle gets mixed with fluegas
+    # ...     optimize_power=False,
+    # ...     kW_per_m3=0.,
+    # ... )
+    # >>> R1.simulate()
+    # >>> R1.show()
+    # GasFedBioreactor: R1
+    # ins...
+    # [0] media  
+    #     phase: 'l', T: 298.15 K, P: 101325 Pa
+    #     flow (kmol/hr): H2O  555
+    # [1] H2  
+    #     phase: 'g', T: 298.15 K, P: 101325 Pa
+    #     flow (kmol/hr): H2  49.6
+    # [2] fluegas  
+    #     phase: 'g', T: 298.15 K, P: 101325 Pa
+    #     flow (kmol/hr): CO2  2.01
+    #                     N2   8.83
+    #                     O2   0.221
+    #                     H2O  0.589
+    # [3] recycle  
+    #     phase: 'g', T: 298.15 K, P: 101325 Pa
+    #     flow (kmol/hr): CO2  0.0523
+    #                     N2   0.25
+    #                     O2   0.0125
+    #                     H2O  0.0167
+    # outs...
+    # [0] vent  
+    #     phase: 'g', T: 305.15 K, P: 101325 Pa
+    #     flow (kmol/hr): H2          46.3
+    #                     CO2         0.387
+    #                     N2          9.08
+    #                     O2          0.233
+    #                     H2O         2.39
+    #                     AceticAcid  0.00231
+    # [1] product  
+    #     phase: 'l', T: 305.15 K, P: 101325 Pa
+    #     flow (kmol/hr): H2O         555
+    #                     AceticAcid  0.834
     
     """
     _N_ins = 2

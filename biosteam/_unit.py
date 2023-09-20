@@ -1751,17 +1751,18 @@ class Unit:
             N = N_default = parallel.get('self', 1)
             for auxname in names:
                 auxsearch = auxname.replace(' ', '_').lower()
+                N *= int(parallel.get(auxname, 1.))
                 for i in parent.auxiliary_unit_names:
                     if auxsearch == i.lower():
                         parent = getattr(parent, i)
                         if isinstance(parent, list):
-                            i, *_ = i.split('[')
-                        parallel = parent.parallel
-                        N_default = parallel.get('self', 1)
-                        N *= int(parallel.get(i, N_default))
+                            N *= len(parent)
+                        else:
+                            parallel = parent.parallel
+                            N_default = parallel.get('self', 1)
+                            N *= int(parallel.get(i, N_default))
                         break
                 else:
-                    N *= int(parallel.get(auxname, 1.))
                     break
             if N != 1: key = (*others, name + f' (x{N})')
             keys.append(key)
