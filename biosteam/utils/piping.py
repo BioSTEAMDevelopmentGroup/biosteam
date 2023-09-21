@@ -119,7 +119,7 @@ class MissingStream:
         if format not in ('html', 'svg'): return ''
         return '(empty)'
             
-    def materialize_connection(self, ID=""):
+    def materialize_connection(self, ID=None):
         """
         Disconnect this missing stream from any unit operations and 
         replace it with a material stream. 
