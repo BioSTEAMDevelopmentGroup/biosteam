@@ -2284,7 +2284,6 @@ class System:
                 return _dstate_attr2arr(y)
         self._DAE = dydt            
 
-
     @property
     def DAE(self):
         """System-wide differential algebraic equations."""
@@ -2889,7 +2888,7 @@ class System:
             return sum([u.purchase_cost for u in self.cost_units]) * lang_factor
         else:
             return sum([u.installed_cost for u in self.cost_units])
-
+    installed_cost = installed_equipment_cost
     def get_electricity_consumption(self):
         """Return the total electricity consumption [kWhr/yr]."""
         return self.operating_hours * self.power_utility.consumption
@@ -2926,6 +2925,101 @@ class System:
         network.recycle = self._recycle
         network.units = set(self.unit_path)
         return network
+
+    def results(self, with_units=True):
+        """
+        Return a DataFrame of key results from simulation.
+        """
+        keys = []; addkey = keys.append
+        vals = []; addval = vals.append
+        stream_utility_prices = bst.stream_utility_prices
+        all_utilities = self.heat_utilities
+        power_utility = self.power_utility
+        if with_units:
+            if power_utility:
+                addkey(('Electricity', 'Power'))
+                addval(('kW', power_utility.power))
+                addkey(('Electricity', 'Cost'))
+                addval(('USD/hr', power_utility.cost))
+            for heat_utility in HeatUtility.sum_by_agent(all_utilities):
+                if heat_utility:
+                    ID = heat_utility.ID.replace('_', ' ').capitalize()
+                    addkey((ID, 'Duty'))
+                    addval(('kJ/hr', heat_utility.duty))
+                    addkey((ID, 'Flow'))
+                    addval(('kmol/hr', heat_utility.flow))
+                    addkey((ID, 'Cost'))
+                    addval(('USD/hr', heat_utility.cost))
+            for name, flow in self.get_inlet_utility_flows().items():
+                ID = name + ' (inlet)'
+                addkey((ID, 'Flow'))
+                addval(('kg/hr', flow))
+                addkey((ID, 'Cost'))
+                addval(('USD/hr', flow * stream_utility_prices[name]))
+            for name, flow in self.get_outlet_utility_flows().items():
+                ID = name + ' (outlet)'
+                addkey((ID, 'Flow'))
+                addval(('kg/hr', flow))
+                addkey((ID, 'Cost'))
+                addval(('USD/hr', - flow * stream_utility_prices[name]))
+            addkey(('Total purchase cost', ''))
+            addval(('USD', self.purchase_cost))
+            addkey(('Installed equipment cost', ''))
+            addval(('USD', self.installed_cost))
+            addkey(('Utility cost', ''))
+            addval(('USD/hr', sum([u.utility_cost for u in self.cost_units])))
+            addkey(('Material cost', ''))
+            addval(('USD/hr', sum([s.cost for s in self.feeds if s.price])))
+            addkey(('Sales', ''))
+            addval(('USD/hr', sum([s.cost for s in self.products if s.price])))
+            if not keys: return None
+            df = pd.DataFrame(vals,
+                              pd.MultiIndex.from_tuples(keys),
+                              ('Units', self.ID))
+            df.columns.name = 'System'
+            return df
+        else:
+            power_utility = self.power_utility
+            if power_utility:
+                addkey(('Electricity', 'Power'))
+                addval(power_utility.power)
+                addkey(('Electricity', 'Cost'))
+                addval(power_utility.cost)
+            for heat_utility in HeatUtility.sum_by_agent(all_utilities):
+                if heat_utility:
+                    ID = heat_utility.ID.replace('_', ' ').capitalize()
+                    addkey((ID, 'Duty'))
+                    addval(heat_utility.duty)
+                    addkey((ID, 'Flow'))
+                    addval(heat_utility.flow)
+                    addkey((ID, 'Cost'))
+                    addval(heat_utility.cost)
+            for name, flow in self.get_inlet_utility_flows().items():
+                ID = name + ' (inlet)'
+                addkey((ID, 'Flow'))
+                addval(flow)
+                addkey((ID, 'Cost'))
+                addval(flow * stream_utility_prices[name])
+            for name, flow in self.get_outlet_utility_flows().items():
+                ID = name + ' (outlet)'
+                addkey((ID, 'Flow'))
+                addval(flow)
+                addkey((ID, 'Cost'))
+                addval(-flow * stream_utility_prices[name])
+            addkey(('Total purchase cost', ''))
+            addval(self.purchase_cost)
+            addkey(('Installed equipment cost', ''))
+            addval(self.installed_cost)
+            addkey(('Utility cost', ''))
+            addval(sum([u.utility_cost for u in self.cost_units]))
+            addkey(('Material cost', ''))
+            addval(sum([s.cost for s in self.feeds if s.price]))
+            addkey(('Sales', ''))
+            addval(sum([s.cost for s in self.products if s.price]))
+            if not keys: return None
+            series = pd.Series(vals, pd.MultiIndex.from_tuples(keys))
+            series.name = self.ID
+            return series
 
     # Report summary
     def save_report(self, file: Optional[str]='report.xlsx', dpi: Optional[str]='300', **stream_properties): 
