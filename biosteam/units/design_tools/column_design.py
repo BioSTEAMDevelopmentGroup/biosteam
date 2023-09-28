@@ -22,7 +22,7 @@ References
 """
 import numpy as np
 from . import utils
-from numba import njit
+from numba import njit, objmode
 import biosteam as bst
 from warnings import warn
 
@@ -46,6 +46,12 @@ def minimum_thickness_from_diameter(D):
     return 0.03125 * D + 0.125
 
 @njit(cache=True)
+def _compute_purchase_cost_of_trays(N_T, Di, CE):
+    F_CE = CE/500.
+    C_BT = compute_tray_base_purchase_cost(Di)
+    F_NT = compute_n_trays_factor(N_T)
+    return N_T * F_CE * F_NT * C_BT
+
 def compute_purchase_cost_of_trays(N_T, Di):
     """
     Return total cost of all trays at BioSTEAM's CEPCI.
@@ -64,12 +70,13 @@ def compute_purchase_cost_of_trays(N_T, Di):
     Plant Cost Index, `biosteam.CE`.
     
     """
-    F_CE = bst.CE/500.
-    C_BT = compute_tray_base_purchase_cost(Di)
-    F_NT = compute_n_trays_factor(N_T)
-    return N_T * F_CE * F_NT * C_BT
+    return _compute_purchase_cost_of_trays(N_T, Di, bst.CE)
 
 @njit(cache=True)
+def _compute_empty_tower_cost(W, CE):
+    logW = np.log(W)
+    return CE/500. * np.exp(7.2756 + 0.18255*logW + 0.02297*logW*logW)
+
 def compute_empty_tower_cost(W):
     """
     Return the cost [C_V; in USD] of an empty tower vessel at BioSTEAM's CEPCI.
@@ -85,10 +92,12 @@ def compute_empty_tower_cost(W):
     The purchase cost is given by [1]_. See source code for details.
     
     """
-    logW = np.log(W)
-    return bst.CE/500. * np.exp(7.2756 + 0.18255*logW + 0.02297*logW*logW)
+    return _compute_empty_tower_cost(W, bst.CE)
 
 @njit(cache=True)
+def _compute_plaform_ladder_cost(Di, L, CE):
+    return CE/500. * 300.9*Di**0.63316*L**0.80161
+
 def compute_plaform_ladder_cost(Di, L):
     """
     Return the cost [C_PL; in USD] of platforms and ladders at BioSTEAM's CEPCI.
@@ -105,7 +114,7 @@ def compute_plaform_ladder_cost(Di, L):
     The purchase cost is given by [1]_. See source code for details.
     
     """
-    return bst.CE/500. * 300.9*Di**0.63316*L**0.80161
+    return _compute_plaform_ladder_cost(Di, L, bst.CE)
 
 @njit(cache=True)
 def compute_tower_weight(Di, L, tv, rho_M):

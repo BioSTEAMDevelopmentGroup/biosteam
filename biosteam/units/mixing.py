@@ -114,7 +114,7 @@ class SteamMixer(Unit):
     >>> M1 = bst.SteamMixer(None, ins=[feed, 'steam', 'process_water'], outs='outlet', T=431.15, P=557287.5, solids_loading=0.3)
     >>> M1.simulate()
     >>> M1.show('cwt100') # Note that outlet solids loading is not exactly 0.3 because of the steam requirement.
-    SteamMixer: M.1
+    SteamMixer
     ins...
     [0] feed
         phase: 'l', T: 298.15 K, P: 101325 Pa
@@ -139,7 +139,7 @@ class SteamMixer(Unit):
     >>> M1.solids_loading_includes_steam = True
     >>> M1.simulate()
     >>> M1.show('cwt100') # Now the outlet solids content is exactly 0.3
-    SteamMixer: M.1
+    SteamMixer
     ins...
     [0] feed
         phase: 'l', T: 298.15 K, P: 101325 Pa
@@ -208,11 +208,20 @@ class SteamMixer(Unit):
                 F_mass_solids = F_mass_feed - available_water
             required_water = F_mass_solids * (1. - solids_loading) / solids_loading
             process_water.imol['7732-18-5'] = max(required_water - available_water, 0.) / 18.01528
-        mixed.mix_from(self.ins)
+        
+        mixed.mix_from(self.ins, energy_balance=False)
+        H = sum([i.H for i in self.ins])
+        Tmax = mixed.chemicals.Water.Tc - 1
+        mixed.T = Tmax
+        Hmax = mixed.H
+        if H > Hmax:
+            mixed.T = Tmax + (H - Hmax) / mixed.chemicals.Water.Cn('l', Tmax)
+        else:
+            mixed.H = H
         if self.T:
             return self.T - mixed.T
         else: # If no pressure, assume it is at the boiling point
-            P_new = mixed.chemicals.Water.Psat(min(mixed.T, mixed.chemicals.Water.Tc - 1))
+            P_new = mixed.chemicals.Water.Psat(min(mixed.T, Tmax))
             return self.P - P_new
     
     def _setup(self):

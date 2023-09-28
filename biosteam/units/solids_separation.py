@@ -75,11 +75,7 @@ class SolidsSeparator(Splitter):
         if moisture_content is not None:
             self.moisture_ID = moisture_ID
             if moisture_ID is None: moisture_ID = '7732-18-5'
-            split = self.isplit[moisture_ID]
-            if split.all() if hasattr(split, 'all') else split: 
-                warn(RuntimeWarning('cannot define both moisture split and moisture content'), 
-                     stacklevel=self._stacklevel - 6)
-                self.isplit[moisture_ID] = 0.
+            self.isplit[moisture_ID] = 0.
     
     def _run(self):
         if self.moisture_content is None:
@@ -383,7 +379,6 @@ class PressureFilter(SolidsSeparator):
 PressureFilter._stacklevel += 1
 
 #: TODO: Check BM assumption. Use 1.39 for crushing unit operations for now.
-# Energy consumption - 5 bdmt (tonne dry biomass) https://www.andritz.com/products-en/group/pulp-and-paper/service-solutions/screw-press-service/screw-press-upgrade-case-study-1-less
 @cost('Flow rate', units='lb/hr', CE=567, lb=150, ub=12000, BM=1.39, 
       f=lambda S: exp((11.0991 - 0.3580*log(S) + 0.05853*log(S)**2)))
 class ScrewPress(SolidsSeparator):
@@ -394,10 +389,10 @@ class ScrewPress(SolidsSeparator):
     Parameters
     ----------
     ins : 
-        * [0] Solids
+        * [0] Solids + liquid
     outs :  
-        * [0] Liquids
-        * [1] Solids
+        * [1] Solids (retentate)
+        * [0] Liquids (permeate)
     split : array_like or dict[str, float]
            Component splits.
     moisture_content : float
@@ -405,10 +400,12 @@ class ScrewPress(SolidsSeparator):
                   
     
     """ 
-    kW_per_bdmt = 5 # Maximally 12
+    kWh_per_bmt = 37.2 # From Perry's Handbook, 18-126
+    # Energy consumption may be drastically different depending on the application
+    # - 5 to 12 bdmt (tonne dry biomass) https://www.andritz.com/products-en/group/pulp-and-paper/service-solutions/screw-press-service/screw-press-upgrade-case-study-1-less
     
     def _cost(self):
         self._decorated_cost()
-        feed = self.ins[0]
-        bdmt = (feed.F_mass - feed.imass['Water']) * 0.001
-        self.add_power_utility(bdmt * self.kW_per_bdmt)
+        biomass = self.ins[0]
+        bmt = biomass.F_mass * 0.001
+        self.add_power_utility(bmt * self.kWh_per_bmt)

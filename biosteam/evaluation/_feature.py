@@ -38,13 +38,12 @@ class Feature:
     
     @classmethod
     def check_index_unique(cls, feature, features):
-        key = (feature.element, feature.name)
-        keys = {(i.element, i.name) for i in features}
+        key = (feature.element_name, feature.name)
+        keys = {(i.element_name, i.name) for i in features}
         if key in keys:
-            kind = cls.__name__.lower()
             raise ValueError(
-                    f"each {kind} must have a unique element and name; "
-                    f"{kind} with element {repr(feature.element)} "
+                     "each feature must have a unique element and name; "
+                    f"feature with element {repr(feature.element)} "
                     f"and name {repr(feature.name)} already present"
                 )
     

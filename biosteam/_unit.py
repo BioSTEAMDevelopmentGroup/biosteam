@@ -62,7 +62,9 @@ class ProcessSpecification:
             else: i.converge() # Must be a system
             
     def compile_path(self, unit):
-        impacted_units = self.impacted_units
+        upstream_units = unit.get_upstream_units()
+        # For upstream units, recycle loops will take care of it.
+        impacted_units = [i for i in self.impacted_units if i not in upstream_units]
         self.path = unit.path_from(impacted_units, system=unit._system) if impacted_units else ()
         
     def create_temporary_connections(self, unit):
@@ -73,13 +75,13 @@ class ProcessSpecification:
         if impacted_units:
             downstream_units = unit.get_downstream_units()
             upstream_units = unit.get_upstream_units()
-            connected_units = upstream_units | downstream_units
             for other in impacted_units:
-                if other not in connected_units:
+                if other in upstream_units or other not in downstream_units:
                     bst.temporary_connection(unit, other)
             
     def __repr__(self):
         return f"{type(self).__name__}(f={display_asfunctor(self.f)}, args={self.args}, impacted_units={self.impacted_units})"
+
 
 # %% Typing
 
@@ -97,30 +99,40 @@ def repr_ins_and_outs(layout, ins, outs, T, P, flow, composition, N, IDs, sort, 
         i = 0
         for stream in ins:
             unit = stream._source
-            source_info = f'  from  {type(unit).__name__}-{unit}' if unit else ''
+            source_info = f'from  {type(unit).__name__}-{unit}' if unit else ''
+            name = str(stream)
+            if name == '-' and source_info: 
+                name = ''
+            else:
+                name += '  '
             if stream and data:
                 stream_info = stream._info(layout, T, P, flow, composition, N, IDs, sort)
                 index = stream_info.index('\n')
                 number = f'[{i}] '
                 spaces = len(number) * ' '
-                info += number + str(stream) + source_info + stream_info[index:].replace('\n', '\n' + spaces) + '\n'
+                info += number + name + source_info + stream_info[index:].replace('\n', '\n' + spaces) + '\n'
             else:
-                info += f'[{i}] {stream}' + source_info + '\n'
+                info += f'[{i}] {name}' + source_info + '\n'
             i += 1
     if outs:
         info += 'outs...\n'
         i = 0
         for stream in outs:
             unit = stream._sink
-            sink_info = f'  to  {type(unit).__name__}-{unit}' if unit else ''
+            sink_info = f'to  {type(unit).__name__}-{unit}' if unit else ''
+            name = str(stream)
+            if name == '-' and sink_info: 
+                name = ''
+            else:
+                name += '  '
             if stream and data:
                 stream_info = stream._info(layout, T, P, flow, composition, N, IDs, sort)
                 index = stream_info.index('\n')
                 number = f'[{i}] '
                 spaces = len(number) * ' '
-                info += number + str(stream) + sink_info + stream_info[index:].replace('\n', '\n' + spaces) + '\n'
+                info += number + name + sink_info + stream_info[index:].replace('\n', '\n' + spaces) + '\n'
             else:
-                info += f'[{i}] {stream}' + sink_info + '\n'
+                info += f'[{i}] {name}' + sink_info + '\n'
             i += 1
     return info[:-1]
 
@@ -485,6 +497,11 @@ class Unit:
         #: value.
         self.parallel: dict[str, int] = {}
         
+        #: Unit design decisions that must be solved to satisfy specifications.
+        #: While adding responses is optional, simulations benefit from responses
+        #: by being able to predict better guesses.
+        self.responses: set[bst.GenericResponse] = set()
+        
         self._assert_compatible_property_package()
         
         self._utility_cost = None
@@ -553,7 +570,12 @@ class Unit:
                 
         for obj in self.__dict__.values(): reset_thermo(obj)
             
-                        
+    def response(self, name):
+        """Register response for convergence model prediction."""
+        self.responses.add(
+            bst.GenericResponse(self, name)
+        )
+            
     @property
     def net_power(self) -> float:
         """Net power consumption [kW]."""
@@ -773,6 +795,7 @@ class Unit:
                     purchase_costs[name] = purchase_cost
     
     def _assert_compatible_property_package(self):
+        if self.owner is not self: return
         CASs = self.chemicals.CASs
         streams = self._ins + self._outs
         assert all([s.chemicals.CASs == CASs for s in streams if s]), (
@@ -880,12 +903,11 @@ class Unit:
         # Load auxiliary costs
         isa = isinstance
         for name, unit in self.get_auxiliary_units_with_names():
-            unit.owner = self # In case units are created dynamically
-            unit.auxname = name
             if isa(unit, Unit):
                 if not (unit._design or unit._cost): continue
             unit._load_costs() # Just in case user did not simulate or run summary.
-            N = integer(parallel.get(name, N_default))
+            pname, *_ = name.split('[')
+            N = integer(parallel.get(pname, N_default))
             if N == 1:
                 heat_utilities.extend(unit.heat_utilities)
                 power_utility.consumption += unit.power_utility.consumption
@@ -936,7 +958,7 @@ class Unit:
         and update system configuration based on units impacted by process 
         specifications. This method is run at the start of unit simulation, 
         before running mass and energy balances."""
-        for i in self.auxiliary_units: i._setup()
+        self.materialize_connections()
         self.power_utility.empty()
         for i in self.heat_utilities: i.empty()
         if not hasattr(self, '_N_heat_utilities'): self.heat_utilities.clear()
@@ -945,6 +967,7 @@ class Unit:
         self.purchase_costs.clear()
         self.installed_costs.clear()
         self._costs_loaded = False
+        for i in self.auxiliary_units: i._setup()
     
     def _check_setup(self):
         if any([self.power_utility, 
@@ -984,7 +1007,7 @@ class Unit:
         return self if owner is None else owner.owner
     @owner.setter
     def owner(self, owner):
-        self._owner = None if owner is self else owner
+        if owner is not self: self._owner = owner
     
     @ignore_docking_warnings
     def disconnect(self, discard=False, inlets=None, outlets=None, join_ends=False):
@@ -1008,7 +1031,7 @@ class Unit:
         if discard: bst.main_flowsheet.discard(self)
 
     @ignore_docking_warnings
-    def insert(self, stream, inlet=None, outlet=None):
+    def insert(self, stream: Stream, inlet: int|Stream=None, outlet: int|Stream=None):
         """
         Insert unit between two units at a given stream connection.
         
@@ -1050,8 +1073,9 @@ class Unit:
                 self.outs.append(stream)
                 added_stream = True
         else:
-            if isinstance(outlet, Stream) and outlet.source is not self:
-                raise ValueError("source of given outlet must be this unit")
+            if isinstance(outlet, piping.stream_types):
+                if outlet.source is not self:
+                    raise ValueError("source of given outlet must be this unit")
             else:
                 outlet = self.outs[outlet]
             sink.ins.replace(stream, outlet)
@@ -1064,10 +1088,11 @@ class Unit:
             else:
                 self.ins.append(stream)
         else:
-            if isinstance(inlet, Stream) and inlet.sink is not self:
-                raise ValueError("sink of given inlet must be this unit")
+            if isinstance(inlet, piping.stream_types):
+                if inlet.sink is not self:
+                    raise ValueError("sink of given inlet must be this unit")
             else:
-                outlet = self.outs[outlet]
+                inlet = self.outs[inlet]
             source.outs.replace(stream, inlet)
 
     def _get_tooltip_string(self, format=None, full=None):
@@ -1532,13 +1557,13 @@ class Unit:
                     if not isinstance(u, Unit): continue
                     for auxunit in u.auxiliary_units:
                         auxiliary_units.append(auxunit)
-                        auxiliary_units.extend(auxunit.auxiliary_units)
+                        auxiliary_units.extend(auxunit.nested_auxiliary_units)
             else:
                 auxiliary_units.append(unit)
                 if not isinstance(unit, Unit): continue
                 for auxunit in unit.auxiliary_units:
                     auxiliary_units.append(auxunit)
-                    auxiliary_units.extend(auxunit.auxiliary_units)
+                    auxiliary_units.extend(auxunit.nested_auxiliary_units)
         return auxiliary_units
 
     def get_auxiliary_units_with_names(self) -> list[tuple[str, Unit]]:
@@ -1560,7 +1585,64 @@ class Unit:
                 )
         return auxiliary_units
 
-    def auxlet(self, stream: Stream):
+    def get_nested_auxiliary_units_with_names(self, depth=-1) -> list[Unit]:
+        """Return list of all auxiliary units, including nested ones."""
+        auxiliary_units = []
+        if depth: 
+            depth -= 1
+        else:
+            return auxiliary_units
+        for name, auxunit in self.get_auxiliary_units_with_names():
+            if auxunit is None: continue 
+            auxiliary_units.append((name, auxunit))
+            if not isinstance(auxunit, Unit): continue
+            auxiliary_units.extend(
+                [('.'.join([name, i]), j)
+                 for i, j in auxunit.get_nested_auxiliary_units_with_names(depth)]
+            )
+        return auxiliary_units
+
+    def _unit_auxlets(self, N_streams, streams, thermo):
+        if streams is None:
+            return [self.auxlet(piping.MissingStream()) for i in range(N_streams)]
+        elif streams == ():
+            return [self.auxlet(piping.Stream(None, thermo=thermo)) for i in range(N_streams)]
+        elif isinstance(streams, (str, *piping.stream_types)):
+            return self.auxlet(streams, thermo=thermo)
+        else:
+            return [self.auxlet(i, thermo=thermo) for i in streams]
+
+    def auxiliary(
+            self, name, cls, ins=None, outs=(), thermo=None,
+            **kwargs
+        ):
+        """
+        Create and register an auxiliary unit operation. Inlet and outlet
+        streams automatically become auxlets so that parent unit streams will
+        not disconnect.
+        
+        """
+        if thermo is None: thermo = self.thermo
+        if name not in self.auxiliary_unit_names:
+            raise RuntimeError(f'{name!r} not in auxiliary unit names')
+        auxunit = cls.__new__(cls)
+        stack = getattr(self, name, None)
+        if isinstance(stack, list): 
+            name = f"{name}[{len(stack)}]"
+            stack.append(auxunit)
+        else:
+            setattr(self, name, auxunit)
+        auxunit.owner = self # Avoids property package checks
+        auxunit.__init__(
+            '.' + name, 
+            self._unit_auxlets(cls._N_ins, ins, thermo), 
+            self._unit_auxlets(cls._N_outs, outs, thermo),
+            thermo, 
+            **kwargs
+        )
+        return auxunit
+
+    def auxlet(self, stream: Stream, thermo=None):
         """
         Define auxiliary unit inlet or outlet. This method has two
         behaviors:
@@ -1574,24 +1656,26 @@ class Unit:
           from this unit. 
         
         """
-        if stream is None: return None
-        if isinstance(stream, str): stream = Stream(stream, thermo=self.thermo)
-        if self is stream._source:
-            if isinstance(stream, tmo.MultiStream):
-                SuperpositionStream = piping.SuperpositionMultiOutlet
-            else:
-                SuperpositionStream = piping.SuperpositionOutlet
-            stream = SuperpositionStream(piping.OutletPort.from_outlet(stream))
-        elif self is stream._sink:
-            if isinstance(stream, tmo.MultiStream):
-                SuperpositionStream = piping.SuperpositionMultiInlet
-            else:
-                SuperpositionStream = piping.SuperpositionInlet
-            stream = SuperpositionStream(piping.InletPort.from_inlet(stream))
+        if stream is None: stream = Stream(None)
+        if isinstance(stream, str): 
+            if thermo is None: thermo = self.thermo
+            stream = Stream('.' + stream, thermo=thermo)
+            stream._source = stream._sink = self
+        if self is stream._source and stream in self._outs:
+            stream = piping.SuperpositionOutlet(piping.OutletPort.from_outlet(stream))
+        elif self is stream._sink and stream in self._ins:
+            stream = piping.SuperpositionInlet(piping.InletPort.from_inlet(stream))
         else:
             if stream._source is None: stream._source = self
             if stream._sink is None: stream._sink = self
         return stream
+
+    def _assembled_from_auxiliary_units(self):
+        #: Serves for checking whether to include this unit in auxiliary diagrams.
+        #: If all streams are in common, it must be assembled by auxiliary units.
+        return not set([i.ID for i in self.ins + self.outs]).difference(
+            sum([[i.ID for i in (i.ins + i.outs)] for i in self.auxiliary_units], [])
+        )
 
     def mass_balance_error(self):
         """Return error in stoichiometric mass balance. If positive,
@@ -1661,21 +1745,27 @@ class Unit:
         def addcapex(key):
             if key_hook: key = key_hook(key)
             *others, name = key
-            if ' - ' in name:
-                auxname, _ = name.split(' - ')
-                auxname = auxname.replace(' ', '_').lower()
-                for i in self.auxiliary_unit_names:
-                    if auxname == i.lower():
-                        N = int(parallel.get(i, N_default))
+            names = name.split(' - ')
+            parent = self
+            parallel = parent.parallel
+            N = N_default = parallel.get('self', 1)
+            for auxname in names:
+                auxsearch = auxname.replace(' ', '_').lower()
+                N *= int(parallel.get(auxname, 1.))
+                for i in parent.auxiliary_unit_names:
+                    if auxsearch == i.lower():
+                        parent = getattr(parent, i)
+                        if isinstance(parent, list):
+                            N *= len(parent)
+                        else:
+                            parallel = parent.parallel
+                            N_default = parallel.get('self', 1)
+                            N *= int(parallel.get(i, N_default))
                         break
                 else:
-                    N = int(parallel.get(name, N_default))
-            else:
-                N = int(parallel.get(name, N_default))
+                    break
             if N != 1: key = (*others, name + f' (x{N})')
             keys.append(key)
-        parallel = self.parallel
-        N_default = parallel.get('self', 1)
         keys = []; 
         vals = []; addval = vals.append
         stream_utility_prices = bst.stream_utility_prices
@@ -1911,7 +2001,7 @@ class Unit:
     def diagram(self, radius: Optional[int]=0, upstream: Optional[bool]=True,
                 downstream: Optional[bool]=True, file: Optional[str]=None, 
                 format: Optional[str]=None, display: Optional[bool]=True,
-                auxiliaries: Optional[bool]=True,
+                auxiliaries: Optional[bool]=-1,
                 **graph_attrs):
         """
         Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram
@@ -1937,7 +2027,7 @@ class Unit:
             Whether to display diagram in console or to return the graphviz 
             object.
         auxiliaries:
-            Whether to include auxiliary units.
+            Depth of auxiliary units to display.
         
         """
         if radius > 0:

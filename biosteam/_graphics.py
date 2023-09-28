@@ -100,14 +100,15 @@ class UnitGraphics:
         node = self.node.copy()
         if getattr(unit, '_owner', None):
             owner = unit._owner
-            auxname = unit.auxname
-            if auxname in owner.parallel:
-                N = owner.parallel[auxname]
+            ID = unit.ID
+            sID, *_ = ID.split('[')
+            if sID in owner.parallel:
+                N = owner.parallel[sID]
             elif 'self' in owner.parallel:
                 N = owner.parallel['self']
             else:
                 N = None
-            name = bst.utils.format_title(auxname)
+            name = '\n'.join([bst.utils.format_title(i) for i in ID.split('.')])
             name = f"{owner.ID}\n{name}\nAuxiliary"
             if N is not None and N > 1: name = f"{name}\n1 of {N}"
             node['name'] = name
@@ -136,7 +137,7 @@ multi_edge_in = 20 * single_edge_in
 multi_edge_out = 20 * single_edge_out
 right_edge_out = ({'tailport': 'e'},)
 left_edge_in = ({'headport': 'w'},)
-top_bottom_edge_out = ({'tailport': 'n'}, {'tailport': 's'})
+top_bottom_edge_out = ({'tailport': 'n'}, {'tailport': 's'}, {'tailport': 'c'})
 
 box_node = {'shape': 'box',
             'style': 'filled',

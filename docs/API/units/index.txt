@@ -8,6 +8,7 @@ units
    design_tools/design_tools
    compressor
    distillation
+   drying
    heat_exchange
    liquid_liquid_extraction
    mixing

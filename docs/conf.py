@@ -15,7 +15,7 @@
 import os
 import sys
 
-new_path = ['..\\', '..\\thermosteam\\', '..\\Bioindustrial-Park\\']
+new_path = ['..\\', '..\\thermosteam\\', '..\\Bioindustrial-Park\\', '..\\How2STEAM\\']
 for p in new_path:
      sys.path.insert(0, os.path.abspath(p))
 
@@ -80,7 +80,8 @@ extensions = [
     'sphinx_multitoc_numbering',
     'sphinx_autodoc_typehints',
     'myst_parser',
-    'nbsphinx'
+    'nbsphinx',
+    'nbsphinx_link',
 ]
 
 try:
@@ -261,12 +262,14 @@ html_theme_options = {
         'image_light': 'logo.png',
         'image_dark': 'logo_dark.png'
     },
+    "show_toc_level": 2,
     # "announcement": (
     #     "<p>Join us on Feb 17, 9:15-10:15am CST, for a BioSTEAM workshop! "
     #     "<a href='mailto: biosteamdevelopmentgroup@gmail.com'>Email us for details</a></p>"
     # ),
     "external_links": [
       {"name": "Bioindustrial-Park", "url": "https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park"},
+      {"name": "How2STEAM", "url": "https://mybinder.org/v2/gh/BioSTEAMDevelopmentGroup/How2STEAM/HEAD"},
       {"name": "QSDsan", "url": "https://qsdsan.readthedocs.io/en/latest/"},
   ]
 }

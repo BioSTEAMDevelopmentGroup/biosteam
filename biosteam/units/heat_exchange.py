@@ -115,6 +115,7 @@ class HX(Unit, isabstract=True):
         self._heat_exchanger_type = heat_exchanger_type     
 
     def _assert_compatible_property_package(self):
+        if self.owner is not self: return
         assert all([i.chemicals is j.chemicals for i, j in zip(self._ins, self._outs) if (i and j)]), (
             "inlet and outlet stream chemicals are incompatible; "
             "try using the `thermo` keyword argument to initialize the unit operation "
@@ -452,13 +453,10 @@ class HXutility(HX):
         outlet = self.outs[0]
         if not inlet: inlet = inlet.materialize_connection(None)
         if not outlet: outlet = outlet.materialize_connection(None)
-        if P is None:
-            inlet.mix_from(ins, vle=vle)
-            P = inlet.P
-        else:
-            inlet.mix_from(ins, energy_balance=False)
-            inlet.vle(H=sum([i.H for i in ins]), P=P)
-            inlet.reduce_phases()
+        idata = inlet.get_data()
+        inlet.mix_from(ins, energy_balance=False)
+        if P is None: P = inlet.P
+        if vle: inlet.vle(H=sum([i.H for i in ins]), P=P)
         if outs is None:
             if duty is None: raise ValueError('must pass duty when no outlets are given')
             outlet.copy_like(inlet)
@@ -484,6 +482,7 @@ class HXutility(HX):
             design_kwargs=dict(duty=duty),
         )
         for i in self.heat_utilities: i.hxn_ok = hxn_ok
+        inlet.set_data(idata)
         
     def _run(self):
         feed = self.ins[0]
@@ -501,8 +500,6 @@ class HXutility(HX):
         if N_given == 0:
             raise RuntimeError("no specification available; must define at either "
                                "temperature 'T', vapor fraction, 'V', or enthalpy 'H'")
-        if outlet.has_user_equilibrium:
-            outlet.user_equilibrium(T=T, H=H, P=outlet.P, V=V)
         elif self.rigorous:
             if N_given > 1:
                 raise RuntimeError("may only specify either temperature, 'T', "

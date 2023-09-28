@@ -8,4 +8,5 @@ sphinx_design
 pyyaml
 ipykernel
 nbsphinx
+nbsphinx-link
 myst_parser

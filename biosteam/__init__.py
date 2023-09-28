@@ -13,7 +13,7 @@
 
 """
 from __future__ import annotations
-__version__ = '2.37.4'
+__version__ = '2.38.3'
 
 #: Chemical engineering plant cost index (defaults to 567.5 at 2017).
 CE: float = 567.5 
@@ -24,6 +24,9 @@ impact_indicators: dict[str, str] = {}
 #: Price of stream utilities [USD/kg] which are defined as 
 #: inlets and outlets to unit operations.
 stream_utility_prices: dict[str, float] = {}
+
+#: Defined allocation property and basis pairs for LCA.
+allocation_properties: dict[str, str] = {}
 
 # %% Workaround for readthedocs, which fails to cache numba
 

@@ -3,7 +3,7 @@
 """
 
 __all__ = (
-    'H_O2',
+    'C_L',
     'C_O2_L',
     'kLa',
     'P_at_kLa',
@@ -21,23 +21,32 @@ kLa_coefficients = {
     "Van't Riet": (0.026, 0.4, 0.5),
 }
 
-def H_O2(T): 
+#: Henry's law coefficients. Data from NIST Standard Reference Database 69: NIST Chemistry WebBook:
+#: https://webbook.nist.gov/cgi/cbook.cgi?ID=C7782447&Mask=10#Notes
+H_coefficients = { # k_H, A
+    'O2': (0.0013, 1500),
+    'CO2': (0.035, 2400),
+    'H2': (0.00078, 500), 
+}
+
+def Henrys_law_constant(T, k_H, A):
     """
-    Return Henry's law constant [mol O2 / kg / bar] for O2 given the temperature [K].
-    
-    Data from NIST Standard Reference Database 69: NIST Chemistry WebBook:
-    https://webbook.nist.gov/cgi/cbook.cgi?ID=C7782447&Mask=10#Notes
+    Return Henry's law constant [mol / kg / bar] for a chemical given the temperature 
+    [K] and the coefficients.
     
     """
-    k_H = 0.0013
-    A = 1500
     dTinv = (1. / T - 1. / 298.15)
     return k_H * exp(A * dTinv)
+    
+def C_L(T, Py, chemical):
+    """Chemical concentration [mol / kg] in the liquid given the temperature [K] and its
+    partial pressure in the gas [bar]."""
+    return Py * Henrys_law_constant(T, *H_coefficients[chemical])
 
-def C_O2_L(T, P_O2): 
+def C_O2_L(T, P_O2): # Commonly used, so here for convinience
     """O2 concentration [mol / kg] in the liquid given the temperature [K] and oxygen
     partial pressure of O2 in the gas [bar]."""
-    return P_O2 * H_O2(T)
+    return P_O2 * Henrys_law_constant(T, *H_coefficients['O2'])
 
 def kLa(P, V, U, coefficients=None):
     """
@@ -89,8 +98,6 @@ def P_at_kLa(kLa, V, U, coefficients=None):
     Van’t Riet, K. Review of Measuring Methods and Results in Nonviscous 
     Gas-Liquid Mass Transfer in Stirred Vessels. Ind. Eng. Chem. Proc. Des. 
     Dev. 1979, 18 (3), 357–364. https://doi.org/10.1021/i260071a001.
-
-
 
     """
     if coefficients is None:

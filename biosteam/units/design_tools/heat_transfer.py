@@ -44,13 +44,6 @@ def heat_exchange_to_condition(s_in, s_out, T=None, phase=None,
                 if s_out.H > H_lim: s_out.H = H_lim
             else:
                 if s_out.H < H_lim: s_out.H = H_lim
-    elif s_out.has_user_equilibrium:
-        s_out.user_equilibrium(T=T, P=s_out.P)
-        if H_lim_given:
-            if heating:
-                if s_out.H > H_lim: s_out.user_equilibrium(H=H_lim , P=s_out.P)
-            else:
-                if s_out.H < H_lim: s_out.user_equilibrium(H=H_lim , P=s_out.P)
     elif len(s_out.vle_chemicals) == 1 and heating is not None:
         bp = s_in.bubble_point_at_P()
         tol = 1e-3
@@ -178,8 +171,6 @@ def counter_current_heat_exchange(s0_in, s1_in, s0_out, s1_out,
         Q = Q_cold_stream
         if phase_coldside:
             s_hot_out.H = s_hot_in.H - Q
-        elif s_hot_out.has_user_equilibrium:
-            s_hot_out.user_equilibrium(H=s_hot_in.H - Q, P=s_hot_out.P)
         else:
             s_hot_out.vle(H=s_hot_in.H - Q, P=s_hot_out.P)
     else:
@@ -187,8 +178,6 @@ def counter_current_heat_exchange(s0_in, s1_in, s0_out, s1_out,
         Q = Q_hot_stream
         if phase_hotside:
             s_cold_out.H = s_cold_in.H - Q
-        elif s_cold_out.has_user_equilibrium:
-            s_cold_out.user_equilibrium(H=s_cold_in.H - Q, P=s_cold_out.P)
         else:
             s_cold_out.vle(H=s_cold_in.H - Q, P=s_cold_out.P)
     

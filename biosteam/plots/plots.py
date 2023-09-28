@@ -25,6 +25,7 @@ __all__ = (
     'rounded_linspace',
     'rounted_tickmarks_from_range',
     'rounded_tickmarks_from_data',
+    'annotate_point',
     'annotate_line',
     'plot_unit_groups',
     'plot_unit_groups_across_coordinate',
@@ -47,15 +48,57 @@ __all__ = (
     'plot_quadrants',
     'plot_stacked_bar',
     'generate_contour_data',
+    'title_color',
 )
 
 # %% Utilities
 
 default_light_color = c.orange_tint.RGBn
 default_dark_color = c.orange_shade.RGBn
+title_color = c.neutral.shade(25).RGBn
 
-def annotate_line(text, x, xs, ys, dy=0.2, dy_text=0.22, position='under', 
-                  color=None): # pragma: no coverage
+def annotate_point(
+        text, x, y, dx=0, dy=0.2, dx_text=0, dy_text=0.22,
+        textcolor=None, linecolor=None, fontsize=12, 
+        horizontalalignment='center', 
+        verticalalignment='bottom',
+        arrowkwargs=None, 
+        textkwargs=None,
+        xlinestyle='-', 
+        ylinestyle='-',
+    ): # pragma: no coverage
+    """
+    Annotate point with text and arrow pointing to text.
+    
+    Parameters
+    ----------
+    text : str
+    x : float
+        Arrow position
+    dx : float
+        Length of arrow to x-position.
+    dy : float
+        Length of arrow to y-position.
+    dy_text : float
+        Distance of text to arrow.
+    color : numpy.ndarray
+        RGB normalized to 1. Defaults to brown.
+    
+    """
+    xtext = x + dx + dx_text
+    ytext = y + dy + dy_text
+    if textcolor is None: textcolor = 0.45 * default_dark_color
+    if linecolor is None: linecolor = 0.60 * default_dark_color
+    if arrowkwargs is None: arrowkwargs = {}
+    if textkwargs is None: textkwargs = {}
+    plt.arrow(x, y, dx, dy, linestyle=xlinestyle, alpha=0.8, color=linecolor, 
+              **arrowkwargs)
+    plt.text(xtext, ytext, text, color=textcolor, 
+             horizontalalignment=horizontalalignment,
+             verticalalignment=verticalalignment,
+             fontsize=fontsize, **textkwargs)
+
+def annotate_line(text, x, xs, ys, *args, **kwargs): # pragma: no coverage
     """
     Annotate line with text and arrow pointing to text.
     
@@ -66,12 +109,12 @@ def annotate_line(text, x, xs, ys, dy=0.2, dy_text=0.22, position='under',
         Arrow position
     xs : numpy.ndarray(dim=1)
     ys : numpy.ndarray(dim=1)
+    dx : float
+        Length of arrow to x-position.
     dy : float
         Length of arrow to y-position.
     dy_text : float
         Distance of text to arrow.
-    position : {'under', 'over'}
-        Relative position of text to line.
     color : numpy.ndarray
         RGB normalized to 1. Defaults to brown.
     
@@ -79,20 +122,7 @@ def annotate_line(text, x, xs, ys, dy=0.2, dy_text=0.22, position='under',
     index = closest_index(x, xs)
     x = xs[index]
     y = ys[index]
-    if position == 'under':
-        y *= 0.998
-        y_text = y - dy - dy_text
-    elif position == 'over':
-        y *= 1.002
-        y_text = y + dy + dy_text
-    else:
-        raise ValueError(f"position must be either 'over' or 'under', not '{position}'")
-    dx = 0
-    if color is None: color = default_dark_color
-    color = 0.60 * color
-    plt.arrow(x, y, dx, dy, linestyle='-', alpha=0.8, color=color, linewidth=1)
-    plt.text(x, y_text, text, color=0.75*color, horizontalalignment='center', fontsize=12)
-    
+    annotate_point(text, x, y, **kwargs)
 
 def plot_horizontal_line(y, color='grey', **kwargs): # pragma: no coverage
     """Plot horizontal line."""
@@ -566,7 +596,7 @@ def plot_single_point_sensitivity(baseline, lb, ub,
 def plot_spearman_1d(rhos, top=None, name=None, color=None, 
                      w=1., s=1., offset=0., style=True, 
                      fig=None, ax=None, sort=True, index=None,
-                     cutoff=None, xlabel=None): # pragma: no coverage
+                     cutoff=None, xlabel=None, edgecolors=None): # pragma: no coverage
     """
     Display Spearman's rank correlation plot.
     
@@ -609,7 +639,7 @@ def plot_spearman_1d(rhos, top=None, name=None, color=None,
     if color is None: color = c.blue_tint.RGBn
     for x, y in zip(xranges, yranges):
         ax.broken_barh([x], y, facecolors=color,
-                       edgecolors=c.blue_dark.RGBn)
+                       edgecolors=edgecolors)
     
     if style:
         if index is None:
@@ -634,9 +664,9 @@ def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
     fig : matplotlib Figure
     ax : matplotlib AxesSubplot
     """
+    rhos = list(reversed(rhos))
     if name is None: name = rhos[0].name
     if index is None: index = rhos[0].index
-    rhos = list(reversed(rhos))
     values = np.array([i.values for i in rhos])
     indices = list(range(values.shape[1]))
     if cutoff:
@@ -685,7 +715,10 @@ def plot_montecarlo(data,
                     xmarks=None,
                     transpose=None,
                     vertical=True,
-                    outliers=True): # pragma: no coverage
+                    outliers=False,
+                    bounds=True,
+                    width=None,
+                    hatch=None): # pragma: no coverage
     """
     Return box plot of Monte Carlo evaluation.
     
@@ -719,6 +752,7 @@ def plot_montecarlo(data,
             positions = (0,)
         else:
             positions = list(range(data.shape[1]))
+    if width is None: width = 0.8
     if light_color is None: light_color = default_light_color
     if dark_color is None: dark_color = default_dark_color
     if outliers: 
@@ -729,18 +763,28 @@ def plot_montecarlo(data,
     else:
         flierprops = {'marker': ''}
     bx = plt.boxplot(x=data, positions=positions, patch_artist=True,
-                     widths=0.8, whis=[5, 95], vert=vertical,
+                     widths=width, whis=[5, 95], vert=vertical,
                      boxprops={'facecolor':light_color,
                                'edgecolor':dark_color},
                      medianprops={'color':dark_color,
                                   'linewidth':1.5},
+                     capprops=dict(color=dark_color),
+                     whiskerprops=dict(color=dark_color),
                      flierprops=flierprops)
+    if bounds:
+        plt.scatter(x=positions, y=data.min(axis=0), marker='1', c=[dark_color])
+        plt.scatter(x=positions, y=data.max(axis=0), marker='2', c=[dark_color])
     if xmarks: plt.xticks(positions, xmarks)
+    if hatch:
+        for box in bx['boxes']:
+            box.set(hatch = hatch)
     return bx
 
 def plot_montecarlo_across_coordinate(xs, ys, 
-                                      light_color=None,
-                                      dark_color=None): # pragma: no coverage
+                                      p5_color=None,
+                                      fill_color=None,
+                                      median_color=None,
+                                      smooth=0): # pragma: no coverage
     """
     Plot Monte Carlo evaluation across a coordinate.
     
@@ -751,9 +795,11 @@ def plot_montecarlo_across_coordinate(xs, ys,
     ys : numpy.ndarray(ndim=2)
         Metric values with uncertainty. Each row represents a sample and each 
         column represent a metric along the x-coordinate.
-    light_color : numpy.ndarray
+    p5_color : numpy.ndarray
         RGB normalized to 1. Defaults to brown.
-    dark_color : numpy.ndarray
+    fill_color : numpy.ndarray
+        RGB normalized to 1. Defaults to brown.
+    median_color : numpy.ndarray
         RGB normalized to 1. Defaults to brown.
     
     Returns
@@ -762,21 +808,27 @@ def plot_montecarlo_across_coordinate(xs, ys,
         5, 25, 50, 75 and 95th percentiles by row (5 rows total).
     
     """
-    if light_color is None: light_color = default_light_color
-    if dark_color is None: dark_color = default_dark_color
+    if fill_color is None: fill_color = default_light_color
+    if median_color is None: median_color = default_dark_color
+    if p5_color is None: p5_color = 0.5 * (default_light_color + default_dark_color)
     q05, q25, q50, q75, q95 = percentiles = np.percentile(ys, [5,25,50,75,95], axis=0)
 
+    if smooth:
+        from scipy.ndimage.filters import gaussian_filter
+        for i, p in enumerate(percentiles):
+            percentiles[i] = gaussian_filter(p, smooth)
+
     plt.plot(xs, q50, '-',
-             color=dark_color,
+             color=median_color,
              linewidth=1.5) # Median
     plt.fill_between(xs, q25, q75,
-                     color=light_color,
+                     color=fill_color,
                      linewidth=1.0)
     plt.plot(xs, q05, '-.',
-             color=dark_color,
+             color=p5_color,
              linewidth=1.0) # Lower whisker
     plt.plot(xs, q95, '-.',
-             color=dark_color,
+             color=p5_color,
              linewidth=1.0) # Upper whisker
     
     return percentiles
@@ -992,7 +1044,7 @@ def plot_contour_2d(X, Y, Z,
         cbs = np.zeros([nrows, ncols], dtype=object)
     if styleaxiskw is None: styleaxiskw = {}
     cps = np.zeros([nrows, ncols], dtype=object)
-    linecolor = c.neutral_shade.RGBn
+    linecolor = np.array([*c.neutral_shade.RGBn, 0.1])
     other_axes = [[] for i in range(nrows)]
     for row in range(nrows):
         metric_row = metric_bars[row]
@@ -1012,11 +1064,14 @@ def plot_contour_2d(X, Y, Z,
                               levels=metric_bar.levels,
                               cmap=metric_bar.cmap)
             if label:
-                cs = plt.contour(cp, zorder=1,
-                                 linestyles='dashed', linewidths=0.5,
+                cs = plt.contour(cp, zorder=1, linewidths=0.8,
                                  levels=cp.levels, colors=[linecolor])
-                clabels = ax.clabel(cs, levels=[i for i in cs.levels[::2] if i!=metric_bar.levels[-1]], inline=True, fmt=metric_bar.fmt,
-                          colors=['k'], zorder=1)
+                levels = levels=[i for i in cp.levels[:-1][::2]]
+                clabels = ax.clabel(
+                    cs, levels=levels,
+                    inline=True, fmt=metric_bar.fmt,
+                    colors=['k'], zorder=1
+                )
                 for i in clabels: i.set_rotation(0)
             cps[row, col] = cp
             if not row_bars:
@@ -1037,7 +1092,7 @@ def plot_contour_2d(X, Y, Z,
     for col in range(ncols):
         title = titles[col]
         ax = axes[0, col]
-        ax.set_title(title)
+        ax.set_title(title, color=title_color, fontsize=10, fontweight='bold')
     if row_bars:
         for ax in axes[:, -1]:
             plt.sca(ax)
@@ -1060,7 +1115,7 @@ def plot_contour_single_metric(
     fig, axes, ax_colorbar = contour_subplots(nrows, ncols, single_colorbar=True)
     if styleaxiskw is None: styleaxiskw = {}
     cps = np.zeros([nrows, ncols], dtype=object)
-    linecolor = c.neutral_shade.RGBn
+    linecolor = np.array([*c.neutral_shade.RGBn, 0.1])
     other_axes = []
     for row in range(nrows):
         for col in range(ncols):
@@ -1078,12 +1133,12 @@ def plot_contour_single_metric(
             for i in cp.collections:
                 i.set_edgecolor('face') # For svg background
             if label:
-                cs = plt.contour(cp, zorder=1,
-                                 linestyles='dashed', linewidths=1.,
-                                 norm=metric_bar.norm,
-                                 levels=metric_bar.levels, colors=[linecolor])
+                cs = plt.contour(cp, zorder=1, linewidths=0.8,
+                                 levels=cp.levels, colors=[linecolor])
+                levels = levels=[i for i in cp.levels[:-1][::2]]
                 clabels = ax.clabel(
-                    cs, levels=[i for i in cs.levels if i!=metric_bar.levels[-1]], inline=True, fmt=metric_bar.fmt,
+                    cs, levels=levels,
+                    inline=True, fmt=metric_bar.fmt,
                     colors=['k'], zorder=1
                 )
                 for i in clabels: i.set_rotation(0)
@@ -1096,7 +1151,7 @@ def plot_contour_single_metric(
     if titles:
         for col, title in enumerate(titles):
             ax = axes[0, col]
-            ax.set_title(title)
+            ax.set_title(title, color=title_color, fontsize=10, fontweight='bold')
     set_axes_labels(axes[:, :-1], xlabel, ylabel)
     plt.subplots_adjust(hspace=0.1, wspace=0.1)
     return fig, axes, cps, cb, other_axes
@@ -1139,16 +1194,18 @@ def color_quadrants(color=None, x=None, y=None, xlim=None, ylim=None,
     plot_horizontal_line(y, line_color, zorder=0)
 
 def label_quadrants(
-        x=None, y=None, text=None, color=None,
+        x=None, y=None, xr=None, yr=None, text=None, color=None,
     ):
+    if xr is None: xr = 0
+    if yr is None: yr = 0
     xlb, xub = plt.xlim()
     ylb, yub = plt.ylim()
     data_given = not (x is None or y is None)
     if data_given:
-        y_mt_0 = y > 0
-        y_lt_0 = y < 0
-        x_mt_0 = x > 0
-        x_lt_0 = x < 0
+        y_mt_0 = y > yr
+        y_lt_0 = y < yr
+        x_mt_0 = x > xr
+        x_lt_0 = x < xr
     xpos = lambda x: xlb + (xub - xlb) * x
     ypos = lambda y: ylb + (yub - ylb) * y
     xleft = 0.02
@@ -1158,7 +1215,7 @@ def label_quadrants(
     labeled = 4 * [False]
     top_left, top_right, bottom_left, bottom_right = text
     top_left_color, top_right_color, bottom_left_color, bottom_right_color = color
-    if yub > 0. and xlb < 0. and top_left:
+    if yub > yr and xlb < xr and top_left:
         if data_given and top_left.endswith('()'):
             p = (y_mt_0 & x_lt_0).sum() / y.size
             top_left = f"{p:.0%} {top_left.strip('()')}"
@@ -1166,7 +1223,7 @@ def label_quadrants(
                  horizontalalignment='left', verticalalignment='top',
                  fontsize=10, fontweight='bold', zorder=10)
         labeled[0] = True
-    if yub > 0. and xub > 0. and top_right:
+    if yub > yr and xub > xr and top_right:
         if data_given and top_right.endswith('()'):
             p = (y_mt_0 & x_mt_0).sum() / y.size
             top_right = f"{p:.0%} {top_right.strip('()')}"
@@ -1174,7 +1231,7 @@ def label_quadrants(
                  horizontalalignment='right', verticalalignment='top',
                  fontsize=10, fontweight='bold', zorder=10)
         labeled[1] = True
-    if ylb < 0. and xlb < 0. and bottom_left:
+    if ylb < yr and xlb < xr and bottom_left:
         if data_given and bottom_left.endswith('()'):
             p = (y_lt_0 & x_lt_0).sum() / y.size
             bottom_left = f"{p:.0%} {bottom_left.strip('()')}"
@@ -1182,7 +1239,7 @@ def label_quadrants(
                  horizontalalignment='left', verticalalignment='bottom',
                  fontsize=10, fontweight='bold', zorder=10)
         labeled[2] = True
-    if ylb < 0. and xub > 0. and bottom_right:
+    if ylb < yr and xub > xr and bottom_right:
         if data_given and bottom_right.endswith('()'):
             p = (y_lt_0 & x_mt_0).sum() / y.size
             bottom_right = f"{p:.0%} {bottom_right.strip('()')}"
@@ -1224,7 +1281,7 @@ def format_quadrants(
     if data is None: data = (None, None) 
     color_quadrants(quadrant_color, x, y, xlim, ylim)
     return label_quadrants(
-        *data, text, text_color,
+        *data, x, y, text, text_color,
     )
     
 def add_titles(axes, titles, color):

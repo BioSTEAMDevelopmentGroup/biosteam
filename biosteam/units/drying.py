@@ -12,9 +12,14 @@ This module contains unit operations for drying solids.
     
 .. autoclass:: biosteam.units.drying.DrumDryer
 
+References
+----------
+.. [1] Kwiatkowski, J. R.; McAloon, A. J.; Taylor, F.; Johnston, D. B. 
+    Modeling the Process and Costs of Fuel Ethanol Production by the Corn 
+    Dry-Grind Process. Industrial Crops and Products 2006, 23 (3), 288–296.
+    https://doi.org/10.1016/j.indcrop.2005.08.004.
 
 """
-import biosteam as bst
 import flexsolve as flx
 import numpy as np
 from thermosteam import separations as sep
@@ -67,6 +72,89 @@ class DrumDryer(Unit):
     
     The default parameter values are based on heuristics for drying 
     dried distillers grains with solubles (DDGS).
+    
+    Examples
+    --------
+    >>> import biosteam as bst
+    >>> from biorefineries import corn as c
+    >>> bst.settings.set_thermo(c.create_chemicals())
+    >>> feed = bst.Stream('feed', phase='l', T=352.33, P=101325,
+    ...     Water=0.6749, Ethanol=5.041e-06, Ash=0.01978, Yeast=0.008452, 
+    ...     CaO=0.0001446, TriOlein=0.02702, H2SO4=0.001205, Fiber=0.1508, 
+    ...     SolubleProtein=0.04805, InsolubleProtein=0.06967, 
+    ...     total_flow=32720, units='kg/hr',
+    ... )
+    >>> dryer = bst.DrumDryer('D610', 
+    ...     (feed, 'dryer_air', 'natural_gas'), 
+    ...     ('dryed_solids', 'hot_air', 'emissions'),
+    ...     moisture_content=0.10, split=dict(Ethanol=1.0)
+    ... )
+    >>> dryer.simulate()
+    >>> dryer.show('cwt100')
+    DrumDryer: D610
+    ins...
+    [0] feed
+        phase: 'l', T: 352.33 K, P: 101325 Pa
+        composition (%): Water             67.5
+                         Ethanol           0.000504
+                         Ash               1.98
+                         Yeast             0.845
+                         CaO               0.0145
+                         TriOlein          2.7
+                         H2SO4             0.12
+                         Fiber             15.1
+                         SolubleProtein    4.8
+                         InsolubleProtein  6.97
+                         ----------------  3.27e+04 kg/hr
+    [1] dryer_air
+        phase: 'g', T: 298.15 K, P: 1.01325e+06 Pa
+        composition (%): O2  29.1
+                         N2  70.9
+                         --  3.22e+04 kg/hr
+    [2] natural_gas
+        phase: 'g', T: 298.15 K, P: 101325 Pa
+        composition (%): CH4  100
+                         ---  1.11e+03 kg/hr
+    outs...
+    [0] dryed_solids
+        phase: 'l', T: 343.15 K, P: 101325 Pa
+        composition (%): Water             10
+                         Ash               5.48
+                         Yeast             2.34
+                         CaO               0.04
+                         TriOlein          7.48
+                         H2SO4             0.334
+                         Fiber             41.7
+                         SolubleProtein    13.3
+                         InsolubleProtein  19.3
+                         ----------------  1.18e+04 kg/hr
+    [1] hot_air
+        phase: 'g', T: 343.15 K, P: 1.01325e+06 Pa
+        composition (%): Water    39.4
+                         Ethanol  0.000311
+                         O2       17.6
+                         N2       43
+                         -------  5.31e+04 kg/hr
+    [2] emissions
+        phase: 'g', T: 373.15 K, P: 101325 Pa
+        composition (%): Water  45
+                         CO2    55
+                         -----  5.56e+03 kg/hr
+                        
+    >>> dryer.results()
+    Drum dryer                                 Units     D610
+    Electricity         Power                     kW      845
+                        Cost                  USD/hr       66
+    Natural gas (inlet) Flow                   kg/hr 1.11e+03
+                        Cost                  USD/hr      243
+    Design              Evaporation            kg/hr 2.09e+04
+                        Volume                       1.05e+03
+                        Diameter                   m     3.76
+                        Length                             94
+                        Peripheral drum area      m2 1.11e+03
+    Purchase cost       Drum dryer               USD  1.2e+06
+    Total purchase cost                          USD  1.2e+06
+    Utility cost                              USD/hr      309
     
     """
     # auxiliary_unit_names = ('heat_exchanger',)
@@ -176,13 +264,6 @@ class ThermalOxidizer(Unit):
     Notes
     -----
     Adiabatic operation is assumed. Simulation and cost is based on [1]_.
-    
-    References
-    ----------
-    .. [1] Kwiatkowski, J. R.; McAloon, A. J.; Taylor, F.; Johnston, D. B. 
-        Modeling the Process and Costs of Fuel Ethanol Production by the Corn 
-        Dry-Grind Process. Industrial Crops and Products 2006, 23 (3), 288–296.
-        https://doi.org/10.1016/j.indcrop.2005.08.004.
 
     """
     _N_ins = 3
@@ -206,13 +287,21 @@ class ThermalOxidizer(Unit):
     def _run(self):
         feed, air, ng = self.ins
         ng.imol['CH4'] = self.duty_per_kg * feed.F_mass / self.chemicals.CH4.LHV
+        ng.phase = 'g'
         emissions, = self.outs
-        emissions.mix_from([feed, ng])
+        ng_burned = ng.copy()
         combustion_rxns = self.chemicals.get_combustion_reactions()
-        combustion_rxns.force_reaction(emissions)
-        O2 = max(-emissions.imol['O2'], 0.)
+        # Enough oxygen must be present in air to burn natural gas
+        combustion_rxns.force_reaction(ng_burned)
+        O2 = max(-ng_burned.imol['O2'], 0.)
         air.imol['N2', 'O2'] = [0.79/0.21 * O2, O2]
+        # Enough oxygen must be present in air to burn feed as well
         emissions.mix_from(self.ins)
+        dummy_emissions = emissions.copy()
+        combustion_rxns.force_reaction(dummy_emissions)
+        O2 = max(-dummy_emissions.imol['O2'], 0.) # Missing oxygen
+        air.imol['N2', 'O2'] += [0.79/0.21 * O2, O2]
+        # Account for temperature raise
         combustion_rxns.adiabatic_reaction(emissions)
         
     def _design(self):
@@ -225,7 +314,6 @@ class ThermalOxidizer(Unit):
         
     def _cost(self):
         design_results = self.design_results
-        total_volume = design_results['Total volume']
         N = design_results['Number of vessels']
         vessel_volume = design_results['Vessel volume']
         C = self.baseline_purchase_costs

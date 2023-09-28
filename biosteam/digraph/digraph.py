@@ -9,7 +9,11 @@
 """
 """
 import numpy as np
-from biosteam.utils.piping import ignore_docking_warnings
+from biosteam.utils.piping import (
+    ignore_docking_warnings, Connection,
+    SuperpositionInlet, 
+    SuperpositionOutlet, 
+)
 from warnings import warn
 import biosteam as bst
 from graphviz import Digraph
@@ -100,7 +104,7 @@ def get_section_inlets_and_outlets(units, streams):
     return ins, outs
 
 @ignore_docking_warnings
-def minimal_digraph(ID, units, streams, **graph_attrs):
+def minimal_digraph(ID, units, streams, auxiliaries=None, **graph_attrs):
     ins, outs = get_section_inlets_and_outlets(units, streams)
     product = Stream(None)
     product._ID = ''
@@ -113,11 +117,11 @@ def minimal_digraph(ID, units, streams, **graph_attrs):
     product_box = bst.units.DiagramOnlyStreamUnit('\n'.join([i.ID for i in outs]) or '-',
                                                   product, None)
     system_box = bst.units.DiagramOnlySystemUnit(ID, feed, product)
-    return digraph_from_units([feed_box, system_box, product_box],
+    return digraph_from_units([feed_box, system_box, product_box], auxiliaries=False,
                               **graph_attrs)
 
 @ignore_docking_warnings
-def surface_digraph(path, **graph_attrs):
+def surface_digraph(path, auxiliaries=None, **graph_attrs):
     surface_units = []
     old_unit_connections = set()
     isa = isinstance
@@ -131,7 +135,7 @@ def surface_digraph(path, **graph_attrs):
         elif has_path(i):
             extend_surface_units(i.ID, i.streams, i.units, 
                                  surface_units, old_unit_connections)
-    f = digraph_from_units(surface_units, **graph_attrs)
+    f = digraph_from_units(surface_units, auxiliaries=False, **graph_attrs)
     for u, ins, outs in old_unit_connections:
         u._ins[:] = ins
         u._outs[:] = outs    
@@ -184,7 +188,7 @@ def extend_surface_units(ID, streams, units, surface_units, old_unit_connections
     for i in (feed_box, subsystem_unit, product_box):
         if i: surface_units.append(i)
 
-def digraph_from_units(units, streams=None, auxiliaries=False, **graph_attrs):
+def digraph_from_units(units, streams=None, auxiliaries=None, **graph_attrs):
     if auxiliaries:
         all_units = []
         streams = []
@@ -192,18 +196,16 @@ def digraph_from_units(units, streams=None, auxiliaries=False, **graph_attrs):
         for unit in tuple(units):
             all_units.append(unit)
             for s in unit.ins + unit.outs:
-                if not s: s = s.materialize_connection()
-                elif s in stream_set: continue
+                if s in stream_set: continue
                 streams.append(s)
                 stream_set.add(s)
-            for name, auxunit in unit.get_auxiliary_units_with_names():
-                auxunit.owner = unit # In case units have not been simulated
-                auxunit.auxname = name
+            for name, auxunit in unit.get_nested_auxiliary_units_with_names(depth=auxiliaries):
+                auxunit.owner = unit # In case units not created correctly through Unit.auxiliary method
                 if isinstance(auxunit, bst.Unit): 
+                    auxunit._ID = name
                     all_units.append(auxunit)
                     for s in auxunit.ins + auxunit.outs:
-                        if not s: s = s.materialize_connection()
-                        elif s in stream_set: continue
+                        if s in stream_set: continue
                         streams.append(s)
                         stream_set.add(s)
         units = all_units
@@ -225,13 +227,14 @@ def digraph_from_units(units, streams=None, auxiliaries=False, **graph_attrs):
                 if other in stream_set:
                     streams.remove(other)
                     stream_set.remove(other)
-    return digraph_from_units_and_connections(units, get_all_connections(streams), **graph_attrs)
+    digraph = digraph_from_units_and_connections(units, get_all_connections(streams), auxiliaries, **graph_attrs)
+    return digraph
 
-def digraph_from_system(system, **graph_attrs):
+def digraph_from_system(system, auxiliaries=None, **graph_attrs):
     f = blank_digraph(**graph_attrs) 
     other_streams = set()
     excluded_connections = set()
-    unit_names = get_unit_names(f, (*system.path, *system.facilities))
+    unit_names = get_unit_names(f, (*system.path, *system.facilities), with_auxiliaries=False)
     update_digraph_from_path(f, (*system.path, *system.facilities), 
                              system.recycle, 0, unit_names, excluded_connections,
                              other_streams)
@@ -280,9 +283,9 @@ def update_digraph_from_path(f, path, recycle, depth, unit_names,
                    labeljust='l', fontcolor=preferences.label_color, **kwargs)
             update_digraph_from_path(c, i.path, i.recycle, depth, unit_names, excluded_connections, other_streams)
 
-def digraph_from_units_and_connections(units, connections, **graph_attrs):
+def digraph_from_units_and_connections(units, connections, with_auxiliaries, **graph_attrs):
     f = blank_digraph(**graph_attrs)
-    update_digraph_from_units_and_connections(f, units, connections)
+    update_digraph_from_units_and_connections(f, units, connections, with_auxiliaries)
     return f
 
 def fill_info_from_path(path, indices, info_by_unit):
@@ -313,7 +316,7 @@ def fill_info_from_path(path, indices, info_by_unit):
                 time = None
             info_by_unit[u] = [[index] if number else [], time] 
 
-def get_unit_names(f: Digraph, path):
+def get_unit_names(f: Digraph, path, with_auxiliaries):
     unit_names = {}  # Contains full description (ID and line) by unit
     info_by_unit = {}
     fill_info_from_path(path, [0], info_by_unit)
@@ -328,18 +331,37 @@ def get_unit_names(f: Digraph, path):
                 info = time
         if info: name = f"[{info}] {name}"
         unit_names[u] = node['name'] = name
+        if (with_auxiliaries and all([i in info_by_unit for i in u.auxiliary_units])
+            and u._assembled_from_auxiliary_units()): continue
         f.node(**node)
     return unit_names
 
-def update_digraph_from_units_and_connections(f: Digraph, units, connections):
-    add_connections(f, connections, get_unit_names(f, units))    
+def update_digraph_from_units_and_connections(f: Digraph, units, connections, with_auxiliaries):
+    add_connections(f, connections, get_unit_names(f, units, with_auxiliaries))    
 
 def get_all_connections(streams, added_connections=None):
     if added_connections is None: added_connections = set()
     connections = []
+    IDs = {}
+    isa = isinstance
     for s in streams:
         if (s._source or s._sink): 
             connection = s.get_connection(junction=False)
+            ID = s.ID
+            if ID in IDs:
+                source0, source_index0, stream0, sink_index0, sink0 = old_connection = IDs[s.ID]
+                source1, source_index1, stream1, sink_index1, sink1 = connection
+                if isa(stream1, SuperpositionOutlet) and isa(stream0, SuperpositionInlet):
+                    connections.remove(old_connection)
+                    added_connections.remove(old_connection)
+                    stream = stream1.copy(ID='.' + ID)
+                    connection = Connection(source1, source_index1, stream, sink_index0, sink0)
+                elif isa(stream0, SuperpositionOutlet) and isa(stream1, SuperpositionInlet):
+                    connections.remove(old_connection)
+                    added_connections.remove(old_connection)
+                    stream = stream1.copy(ID='.' + ID)
+                    connection = Connection(source0, source_index0, stream, sink_index1, sink1)
+            IDs[ID] = connection
             if connection and connection not in added_connections:
                 connections.append(connection)
                 added_connections.add(connection)
@@ -356,18 +378,21 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
     if stream:
         lines = []
         line = ''
-        for word in stream.ID.split('_'):
-            line += ' ' + word
-            if len(line) > 10: 
-                lines.append(line)
-                line = ''
-        if line: lines.append(line)
-        ID = '\n'.join(lines)
+        ID = stream.ID
+        if ID:
+            for word in ID.split('_'):
+                line += ' ' + word
+                if len(line) > 10: 
+                    lines.append(line)
+                    line = ''
+            if line: lines.append(line)
+            ID = '\n'.join(lines)
+        ref = str(hash(stream))
         penwidth = pen_width(stream) if pen_width else '1.0'
         # Make stream nodes / unit-stream edges / unit-unit edges
         if has_sink and not has_source:
             # Feed stream case
-            f.node(ID,
+            f.node(ref,
                    width='0.15', 
                    height='0.15',
                    shape='diamond',
@@ -377,10 +402,10 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
             inlet_options = sink._graphics.get_inlet_options(sink, sink_index)
             f.attr('edge', arrowtail='none', arrowhead='none', label=ID,
                    tailport='e', style=style, penwidth=penwidth, **inlet_options)
-            f.edge(ID, unit_names[sink], labeltooltip=tooltip)
+            f.edge(ref, unit_names[sink], labeltooltip=tooltip)
         elif has_source and not has_sink:
             # Product stream case
-            f.node(ID, 
+            f.node(ref, 
                    width='0.15', 
                    height='0.2',
                    shape='triangle',
@@ -391,7 +416,7 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
             outlet_options = source._graphics.get_outlet_options(source, source_index)
             f.attr('edge', arrowtail='none', arrowhead='none', label=ID,
                    headport='w', style=style, penwidth=penwidth, **outlet_options)
-            f.edge(unit_names[source], ID, labeltooltip=tooltip)
+            f.edge(unit_names[source], ref, labeltooltip=tooltip)
         elif has_sink and has_source:
             # Process stream case
             inlet_options = sink._graphics.get_inlet_options(sink, sink_index)

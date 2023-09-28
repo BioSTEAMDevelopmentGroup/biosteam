@@ -10,6 +10,7 @@
 from .._unit import Unit
 from .mixing import *
 from .splitting import *
+from .phase_equilibrium import *
 from .molecular_sieve import *
 from .vacuum_system import *
 from ._pump import *
@@ -74,6 +75,7 @@ from . import (
     liquid_liquid_extraction, 
     mixing, 
     splitting, 
+    phase_equilibrium,
     heat_exchange, 
     solids_separation,
     decorators, 
@@ -98,6 +100,7 @@ __all__ = ('Unit',
            *_flash.__all__,
            *mixing.__all__,
            *splitting.__all__,
+           *phase_equilibrium.__all__,
            *_pump.__all__,
            *heat_exchange.__all__,
            *_multi_effect_evaporator.__all__,
@@ -135,6 +138,7 @@ __all__ = ('Unit',
            'tank',
            'mixing',
            'splitting',
+           'phase_equilibrium',
            'distillation',
            'decorators',
            'design_tools',

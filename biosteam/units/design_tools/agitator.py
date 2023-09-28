@@ -23,6 +23,10 @@ __all__ = (
 )
 
 @njit(cache=True)
+def _compute_closed_vessel_turbine_purchase_cost(power, CE):
+    C_p = 4105 * power ** 0.57
+    return CE / 567 * C_p
+
 def compute_closed_vessel_turbine_purchase_cost(power):
     """
     Return the purchase cost [Cp; in USD] of a turbine for closed vessels.
@@ -44,5 +48,4 @@ def compute_closed_vessel_turbine_purchase_cost(power):
     Plant Cost Index, `biosteam.CE`.
     
     """
-    C_p = 4105 * power ** 0.57
-    return bst.CE / 567 * C_p
+    return _compute_closed_vessel_turbine_purchase_cost(power, bst.CE)

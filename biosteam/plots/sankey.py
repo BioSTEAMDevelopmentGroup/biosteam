@@ -416,7 +416,7 @@ class Link: # pragma: no coverage
         return self.handle.stream_width(self.stream)
     
     def color(self):
-        return self.handle.link_color(self.stream)
+        return self.handle.stream_color(self.stream)
         
     def __repr__(self):
         return f"<{type(self).__name__}: {self.source.name} - {self.sink.name}>"

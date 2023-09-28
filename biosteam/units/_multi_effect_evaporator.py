@@ -130,7 +130,7 @@ class MultiEffectEvaporator(Unit):
                         Cost                                  USD/hr    0.117
     Design              Area                                     m^2       11
                         Volume                                   m^3     3.51
-    Purchase cost       Evaporators                              USD 9.56e+03
+    Purchase cost       Evaporators (x5)                         USD 9.56e+03
                         Condenser - Double pipe                  USD 5.36e+03
                         Vacuum system - Liquid-ring pump...      USD 1.24e+04
     Total purchase cost                                          USD 2.73e+04
@@ -184,7 +184,7 @@ class MultiEffectEvaporator(Unit):
                         Cost                                  USD/hr    0.0384
     Design              Area                                     m^2      1.62
                         Volume                                   m^3      3.07
-    Purchase cost       Evaporators                              USD  2.74e+03
+    Purchase cost       Evaporators (x3)                         USD  2.74e+03
                         Condenser - Double pipe                  USD   3.9e+03
                         Vacuum system - Liquid-ring pump...      USD  1.24e+04
     Total purchase cost                                          USD  1.91e+04
@@ -238,7 +238,7 @@ class MultiEffectEvaporator(Unit):
                         Cost                                  USD/hr    0.0384
     Design              Area                                     m^2      1.62
                         Volume                                   m^3      3.07
-    Purchase cost       Evaporators                              USD  2.74e+03
+    Purchase cost       Evaporators (x3)                         USD  2.74e+03
                         Condenser - Double pipe                  USD   3.9e+03
                         Vacuum system - Liquid-ring pump...      USD  1.24e+04
     Total purchase cost                                          USD  1.91e+04
@@ -305,39 +305,37 @@ class MultiEffectEvaporator(Unit):
         
     def _load_components(self):
         P = self.P
-        thermo = self.thermo
-        
-        # Create components
         self._N_evap = n = len(P) # Number of evaporators
-        
+        self.evaporators = []
         if self.flash:
-            first_evaporator = Flash(None, outs=(None, None), P=P[0], thermo=thermo)
-        else:
-            first_evaporator = Evaporator(None, outs=(None, None, None), P=P[0],
-                                          thermo=thermo, chemical=self.chemical)
-        # Put liquid first, then vapor side stream
-        self.evaporators = evaporators = [first_evaporator]
-        for i in range(1, n):
-            evap = Evaporator(None, 
-                ins=(None, None), outs=(None, None, None), 
-                P=P[i], thermo=thermo, chemical=self.chemical
+            evaporator = self.auxiliary(
+                'evaporators', Flash,
+                ins=self.ins, 
+                outs=(None, self.outs[0] if n == 1 else None), P=P[0],
             )
-            evaporators.append(evap)
-        
-        self.condenser = HXutility(None, outs=[None], thermo=thermo, V=0)
-        self.mixer = Mixer(None, outs=self.auxlet(self.outs[1]), thermo=thermo)
-        
-        # Set-up components
-        other_evaporators = evaporators[1:]
-        first_evaporator.ins[:] = [self.auxlet(i) for i in self.ins]
-        # Put liquid first, then vapor side stream
-        ins = [first_evaporator.outs[1], first_evaporator.outs[0]]
-        for evap in other_evaporators:
-            evap.ins[:] = ins
-            ins = [evap.outs[1], evap.outs[0]]
-        if not other_evaporators:
-            evap = first_evaporator
-        evap.outs[1] = self.auxlet(self.outs[0])
+        else:
+            evaporator = self.auxiliary(
+                'evaporators', Evaporator,
+                ins=self.ins,
+                outs=(None, self.outs[0] if n == 1 else None), P=P[0],
+                chemical=self.chemical,
+            )
+        for i in range(1, n):
+            evaporator = self.auxiliary(
+                'evaporators', Evaporator, 
+                # Put liquid first, then vapor side stream
+                ins=(evaporator.outs[1], evaporator.outs[0]), 
+                outs=(None, self.outs[0] if i == n-1 else None, None), 
+                P=P[i], chemical=self.chemical,
+            )
+        condenser = self.auxiliary(
+            'condenser', HXutility, ins=evaporator.outs[0], outs=[None], V=0
+        )
+        self.auxiliary(
+            'mixer', Mixer, 
+            ins=[condenser.outs[0], *[i.outs[2] for i in self.evaporators[1:]]], 
+            outs=self.outs[1]
+        )
         
     def _V_overall(self, V_first_effect):
         first_evaporator, *other_evaporators = self.evaporators
@@ -378,10 +376,6 @@ class MultiEffectEvaporator(Unit):
         if self._reload_components:
             self._load_components()
             self._reload_components = False
-        else:
-            self.evaporators[0].ins[:] = [self.auxlet(i) for i in ins]
-            self.mixer.outs[0] = self.auxlet(liq)
-            self.evaporators[-1].outs[1] = self.auxlet(out_wt_solids)
         
         if self.V_definition == 'Overall':
             P = tuple(self.P)
@@ -402,29 +396,19 @@ class MultiEffectEvaporator(Unit):
             V_overall = self.V
         else: 
             V_overall = self._V_overall(self.V)
-    
-        n = self._N_evap  # Number of evaporators
+            
         evaporators = self.evaporators
         condenser = self.condenser
         mixer = self.mixer
         last_evaporator = evaporators[-1]
     
-        # Condensing vapor from last effector
-        outs_vap = last_evaporator.outs[0]
-        condenser.ins[:] = [outs_vap]
+        # Condense vapor from last effector
         condenser._run()
-        outs_liq = [condenser.outs[0]]  # list containing all output liquids
-
-        # Unpack other output streams
-        for i in range(1, n):
-            evap = evaporators[i]
-            outs_liq.append(evap.outs[2])
-
+        
         # Mix liquid streams
-        mixer.ins[:] = outs_liq
         liq = mixer.outs[0]
         liq.P = self.ins[0].P
-        liq.mix_from(outs_liq, conserve_phases=True)
+        liq.mix_from(mixer.ins, conserve_phases=True)
         if self.flash:
             mixed_stream = MultiStream(None, thermo=self.thermo)
             mixed_stream.copy_flow(self.ins[0])

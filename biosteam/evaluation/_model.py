@@ -16,7 +16,6 @@ import pandas as pd
 from ._state import State
 from ._metric import Metric
 from ._feature import MockFeature
-from ._parameter import Parameter
 from ._utils import var_indices, var_columns, indices_to_multiindex
 from biosteam.exceptions import FailedEvaluation
 from warnings import warn
@@ -56,6 +55,7 @@ class Model(State):
     __slots__ = (
         'table',            # [DataFrame] All arguments and results.
         'retry_evaluation', # [bool] Whether to retry evaluation if it fails
+        'convergence_model',# [ConvergenceModel] Prediction model for recycle convergence.
         '_metrics',         # tuple[Metric] Metrics to be evaluated by model.
         '_index',           # list[int] Order of sample evaluation for performance.
         '_samples',         # [array] Argument sample space.
@@ -120,14 +120,17 @@ class Model(State):
         return tuple(self._metrics)
     @metrics.setter
     def metrics(self, metrics):
-        metrics = list(metrics)
+        self._metrics = metrics = list(metrics)
         isa = isinstance
         for i in metrics:
             if not isa(i, Metric):
                 raise ValueError(f"metrics must be '{Metric.__name__}' "
                                  f"objects, not '{type(i).__name__}'")
-        Metric.check_indices_unique(metrics)
-        self._metrics = metrics
+        Metric.check_indices_unique(self.features)
+    
+    @property
+    def features(self):
+        return (*self._parameters, *self._metrics)
     
     def metric(self, getter=None, name=None, units=None, element=None):
         """
@@ -150,7 +153,6 @@ class Model(State):
         This method works as a decorator.
         
         """
-        
         if isinstance(getter, Metric):
             if name is None: name = getter.name
             if units is None: units = getter.units
@@ -163,7 +165,7 @@ class Model(State):
         elif not getter: 
             return lambda getter: self.metric(getter, name, units, element)
         metric = Metric(name, getter, units, element)
-        Metric.check_index_unique(metric, self._metrics)
+        Metric.check_index_unique(metric, self.features)
         self._metrics.append(metric)
         return metric 
     
@@ -177,13 +179,11 @@ class Model(State):
         else:
             return samples
     
-    def _load_sample_order(self, samples, parameters, distance):
+    def _load_sample_order(self, samples, parameters, distance,
+                           algorithm=None):
         """
         Sort simulation order to optimize convergence speed
         by minimizing perturbations to the system between simulations.
-        This function may take long depending on the number of parameters 
-        because it uses single-point sensitivity to inform the sorting 
-        algorithm.
         
         """
         N_samples = samples.shape[0]
@@ -193,72 +193,38 @@ class Model(State):
         if distance is None: distance = 'cityblock'
         length = samples.shape[0]
         columns = [i for i, parameter in enumerate(self._parameters) if parameter.kind == 'coupled']
-        parameters = [parameters[i] for i in columns]
         samples = samples.copy()
         samples = samples[:, columns]
         samples_min = samples.min(axis=0)
         samples_max = samples.max(axis=0)
         samples_diff = samples_max - samples_min
         normalized_samples = (samples - samples_min) / samples_diff
-        # Note: Not sure if to deprecate or fix.
-        # original_parameters = self._parameters
-        # if ss: 
-        #     def evaluate(sample, material_data, **kwargs):
-        #         try:
-        #             self._parameters = parameters
-        #             for f, s in zip(self._parameters, sample): 
-        #                 f.setter(s if f.scale is None else f.scale * s)
-        #             diff = self._system.converge(material_data=material_data, **kwargs)
-        #         finally:
-        #             self._parameters = original_parameters
-        #         return diff
-        #     sample = [i.baseline for i in parameters]
-        #     N_parameters = len(parameters)
-        #     index = range(N_parameters)
-        #     material_data = self._system.get_material_data()
-        #     evaluate(sample, material_data, update_material_data=True)
-        #     N_elements = material_data.material_flows.size
-        #     diffs = np.zeros([N_parameters, N_elements])
-        #     for i in index:
-        #         sample_lb = sample.copy()
-        #         sample_ub = sample.copy()
-        #         lb = samples_min[i]
-        #         ub = samples_max[i]
-        #         hook = parameters[i].hook
-        #         if hook:
-        #             sample_lb[i] = hook(lb)
-        #             sample_ub[i] = hook(ub)
-        #         else:
-        #             sample_lb[i] = lb
-        #             sample_ub[i] = ub
-        #         lb = evaluate(sample_lb, material_data).flatten()
-        #         ub = evaluate(sample_ub, material_data).flatten()
-        #         diffs[i] = ub - lb
-        #     div = np.abs(diffs).max(axis=0)
-        #     div[div == 0.] = 1
-        #     diffs /= div
-        #     normalized_samples = normalized_samples @ diffs
         nearest_arr = cdist(normalized_samples, normalized_samples, metric=distance)
-        nearest_arr = np.argsort(nearest_arr, axis=1)
-        remaining = set(range(length))
-        self._index = index = [0]
-        nearest = nearest_arr[0, 1]
-        index.append(nearest)
-        remaining.remove(0)
-        remaining.remove(nearest)
-        N_remaining = length - 2
-        N_remaining_last = N_remaining + 1
-        while N_remaining:
-            assert N_remaining_last != N_remaining, "issue in sorting algorithm"
-            N_remaining_last = N_remaining
-            for i in range(1, length):
-                next_nearest = nearest_arr[nearest, i]
-                if next_nearest in remaining:
-                    nearest = next_nearest
-                    remaining.remove(nearest)
-                    index.append(nearest)
-                    N_remaining -= 1
-                    break
+        if algorithm is None: algorithm = 'nearest neighbor'
+        if algorithm == 'nearest neighbor':
+            nearest_arr = np.argsort(nearest_arr, axis=1)
+            remaining = set(range(length))
+            self._index = index = [0]
+            nearest = nearest_arr[0, 1]
+            index.append(nearest)
+            remaining.remove(0)
+            remaining.remove(nearest)
+            N_remaining = length - 2
+            N_remaining_last = N_remaining + 1
+            while N_remaining:
+                assert N_remaining_last != N_remaining, "issue in sorting algorithm"
+                N_remaining_last = N_remaining
+                for i in range(1, length):
+                    next_nearest = nearest_arr[nearest, i]
+                    if next_nearest in remaining:
+                        nearest = next_nearest
+                        remaining.remove(nearest)
+                        index.append(nearest)
+                        N_remaining -= 1
+                        break
+        else:
+            raise ValueError(f"algorithm {algorithm!r} is not available (yet); "
+                              "only 'nearest neighbor' is available")
         
     def load_samples(self, samples=None, optimize=None, file=None, 
                      autoload=None, autosave=None, distance=None):
@@ -271,7 +237,9 @@ class Model(State):
             All parameter samples to evaluate.
         optimize : bool, optional
             Whether to internally sort the samples to optimize convergence speed
-            by minimizing perturbations to the system between simulations.
+            by minimizing perturbations to the system between simulations. The
+            optimization problem is equivalent to the travelling salesman problem;
+            each scenario of (normalized) parameters represent a point in the path.
             Defaults to False.
         file : str, optional
             File to load/save samples and simulation order to/from.
@@ -282,15 +250,13 @@ class Model(State):
         distance : str, optional
             Distance metric used for sorting. Defaults to 'cityblock'.
             See scipy.spatial.distance.cdist for options.
-        
-        Warning
-        -------
-        Depending on the number of parameters, optimizing sample simulation order 
-        using single-point sensitivity may take long.
+        algorithm : str, optional
+            Algorithm used for sorting. Defaults to 'nearest neighbor'.
+            Note that neirest neighbor is a greedy algorithm that is known to result, 
+            on average, in paths 25% longer than the shortest path.
         
         """
         parameters = self._parameters
-        Parameter.check_indices_unique(parameters)
         if autoload:
             try:
                 with open(file, "rb") as f: (self._samples, self._index) = pickle.load(f)
@@ -314,10 +280,10 @@ class Model(State):
             raise ValueError(f'number of parameters in samples ({samples.shape[1]}) must be equal to the number of parameters ({N_parameters})')
         metrics = self._metrics
         samples = self._sample_hook(samples, parameters)
-        if optimize: 
-            self._load_sample_order(samples, parameters, distance)
-        else:
-            self._index = list(range(samples.shape[0]))
+        # if optimize: 
+        #     self._load_sample_order(samples, parameters, distance)
+        # else:
+        self._index = list(range(samples.shape[0]))
         empty_metric_data = np.zeros((len(samples), len(metrics)))
         self.table = pd.DataFrame(np.hstack((samples, empty_metric_data)),
                                   columns=var_columns(parameters + metrics),
@@ -349,18 +315,18 @@ class Model(State):
         if evaluate is None: evaluate = self._evaluate_sample
         baseline_1 = np.array(evaluate(sample, **kwargs))
         sys = self.system
-        if not sys.isdynamic: kwargs['material_data'] = sys.get_material_data()
+        if not sys.isdynamic: kwargs['recycle_data'] = sys.get_recycle_data()
         for i in index:
             sample_lb = sample.copy()
             sample_ub = sample.copy()
             lb, ub = bounds[i]
-            hook = parameters[i].hook
-            if hook:
-                sample_lb[i] = hook(lb)
-                sample_ub[i] = hook(ub)
-            else:
-                sample_lb[i] = lb
-                sample_ub[i] = ub
+            p = parameters[i]
+            hook = p.hook
+            if hook is not None:
+                lb = hook(lb)
+                ub = hook(ub)
+            sample_lb[i] = lb
+            sample_ub[i] = ub
             values_lb[i, :] = evaluate(sample_lb, **kwargs)
             values_ub[i, :] = evaluate(sample_ub, **kwargs)
         baseline_2 = np.array(evaluate(sample, **kwargs))
@@ -399,7 +365,7 @@ class Model(State):
         table[var_indices(metrics)] = replace_nones(values, [np.nan] * len(metrics))
     
     def evaluate(self, notify=0, file=None, autosave=0, autoload=False,
-                 **kwargs):
+                 convergence_model=None, **kwargs):
         """
         Evaluate metrics over the loaded samples and save values to `table`.
         
@@ -413,6 +379,10 @@ class Model(State):
             If 1 or greater, save pickled evaluation results after the given number of sample evaluations.
         autoload : bool, optional
             Whether to load pickled evaluation results from file.
+        convergence_model : ConvergencePredictionModel, optional
+            A prediction model for accelerated system convergence. Defaults
+            to no convergence model and the last solution
+            as the initial guess for the next scenario.
         kwargs : dict
             Any keyword arguments passed to :func:`biosteam.System.simulate`.
         
@@ -430,14 +400,15 @@ class Model(State):
             timer = TicToc()
             timer.tic()
             count = [0]
-            def evaluate(sample, count=count, **kwargs):
+            def evaluate(sample, convergence_model, count=count, **kwargs):
                 count[0] += 1
-                values = evaluate_sample(sample, **kwargs)
+                values = evaluate_sample(sample, convergence_model, **kwargs)
                 if not count[0] % notify:
                     print(f"{count} Elapsed time: {timer.elapsed_time:.0f} sec")
                 return values
         else:
             evaluate = evaluate_sample
+        N_samples, _ = samples.shape
         if autoload: 
             try:
                 with open(file, "rb") as f:
@@ -449,20 +420,19 @@ class Model(State):
             except:
                 number = 0
                 index = self._index
-                values = [None] * len(index)   
+                values = [None] * N_samples 
             else:
                 if notify: count[0] = number
         else:
             number = 0
             index = self._index
-            values = [None] * len(index)
-        
+            values = [None] * N_samples
         export = 'export_state_to' in kwargs
         layout = table.index, table.columns
         try:
             for number, i in enumerate(index, number + 1): 
                 if export: kwargs['sample_id'] = i
-                values[i] = evaluate(samples[i], **kwargs)
+                values[i] = evaluate(samples[i], convergence_model, **kwargs)
                 if autosave and not number % autosave: 
                     obj = (number, values, *layout)
                     try:
@@ -475,28 +445,20 @@ class Model(State):
         finally:
             table[var_indices(self._metrics)] = replace_nones(values, [np.nan] * len(self.metrics))
     
-    def _evaluate_sample(self, sample, **kwargs):
+    def _evaluate_sample(self, sample, convergence_model=None, **kwargs):
         state_updated = False
         try:
-            self._update_state(sample, **kwargs)
+            self._update_state(sample, convergence_model, **kwargs)
             state_updated = True
             return [i() for i in self.metrics]
         except Exception as exception:
-            if self.retry_evaluation and state_updated:
+            if self.retry_evaluation and not state_updated:
                 self._reset_system()
                 try:
-                    self._update_state(sample, **kwargs)
-                    self._specification() if self._specification else self._system.simulate(**kwargs)
+                    self._update_state(sample, convergence_model, **kwargs)
                     return [i() for i in self.metrics]
                 except Exception as new_exception: 
-                    if self._exception_hook: 
-                        values = self._exception_hook(new_exception, sample)
-                        self._reset_system()
-                        if isinstance(values, Sized) and len(values) == len(self.metrics):
-                            return values
-                        elif values is not None:
-                            raise RuntimeError('exception hook must return either None or '
-                                               'an array of metric values for the given sample')
+                    exception = new_exception
             if self._exception_hook: 
                 values = self._exception_hook(exception, sample)
                 self._reset_system()
@@ -522,7 +484,7 @@ class Model(State):
     
     def evaluate_across_coordinate(self, name, f_coordinate, coordinate,
                                    *, xlfile=None, notify=0, notify_coordinate=True,
-                                   multi_coordinate=False, 
+                                   multi_coordinate=False, convergence_model=None,
                                    f_evaluate=None):
         """
         Evaluate across coordinate and save sample metrics.
@@ -553,8 +515,8 @@ class Model(State):
             from biosteam.utils import TicToc
             timer = TicToc()
             timer.tic()
-            def evaluate():
-                f_evaluate(notify=notify)
+            def evaluate(**kwargs):
+                f_evaluate(**kwargs)
                 print(f"[Coordinate {n}] Elapsed time: {timer.elapsed_time:.0f} sec")
         else:
             evaluate = f_evaluate
@@ -562,7 +524,7 @@ class Model(State):
         metric_data = None
         for n, x in enumerate(coordinate):
             f_coordinate(*x) if multi_coordinate else f_coordinate(x)
-            evaluate()
+            evaluate(notify=notify, convergence_model=convergence_model)
             # Initialize data containers dynamically in case samples are loaded during evaluation
             if metric_data is None:
                 N_samples, _ = self.table.shape
