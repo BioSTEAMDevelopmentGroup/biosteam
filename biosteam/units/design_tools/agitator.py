@@ -16,13 +16,17 @@ References
     Cost Accounting and Capital Cost Estimation (Chapter 16)
 
 """
-from numba import njit, objmode
+from numba import njit
 import biosteam as bst
 __all__ = (
     'compute_closed_vessel_turbine_purchase_cost',
 )
 
 @njit(cache=True)
+def _compute_closed_vessel_turbine_purchase_cost(power, CE):
+    C_p = 4105 * power ** 0.57
+    return CE / 567 * C_p
+
 def compute_closed_vessel_turbine_purchase_cost(power):
     """
     Return the purchase cost [Cp; in USD] of a turbine for closed vessels.
@@ -44,6 +48,4 @@ def compute_closed_vessel_turbine_purchase_cost(power):
     Plant Cost Index, `biosteam.CE`.
     
     """
-    C_p = 4105 * power ** 0.57
-    with objmode(CE='float64'): CE = bst.CE
-    return CE / 567 * C_p
+    return _compute_closed_vessel_turbine_purchase_cost(power, bst.CE)

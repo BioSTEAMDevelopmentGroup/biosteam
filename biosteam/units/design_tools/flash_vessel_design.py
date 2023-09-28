@@ -19,7 +19,7 @@ References
 
 """
 from numpy import log as ln, pi, exp, round
-from numba import njit, objmode
+from numba import njit
 import biosteam as bst
 __all__ = ('compute_horizontal_vessel_purchase_cost',
            'compute_vertical_vessel_purchase_cost',
@@ -30,6 +30,11 @@ __all__ = ('compute_horizontal_vessel_purchase_cost',
            'compute_Stokes_law_York_Demister_K_value')
 
 @njit(cache=True)
+def _compute_horizontal_vessel_purchase_cost(W, CE):
+    lnW = ln(W)
+    C_v = exp(5.6336 + 0.4599 * lnW + 0.00582 * lnW * lnW)
+    return CE/567 * C_v
+
 def compute_horizontal_vessel_purchase_cost(W):
     """
     Return the purchase cost [Cp; in USD] of a horizontal vessel,
@@ -52,12 +57,13 @@ def compute_horizontal_vessel_purchase_cost(W):
     Plant Cost Index, `biosteam.CE`.
     
     """
-    lnW = ln(W)
-    C_v = exp(5.6336 + 0.4599 * lnW + 0.00582 * lnW * lnW)
-    with objmode(CE='float64'): CE = bst.CE
-    return CE/567 * C_v
+    return _compute_horizontal_vessel_purchase_cost(W, bst.CE)
 
 @njit(cache=True)
+def _compute_horizontal_vessel_platform_and_ladders_purchase_cost(D, CE):
+    C_pl = 2275.*D**0.20294
+    return CE/567. * C_pl
+
 def compute_horizontal_vessel_platform_and_ladders_purchase_cost(D):
     """
     Return the purchase cost [Cp; in USD] of the platform and ladders for a 
@@ -80,11 +86,14 @@ def compute_horizontal_vessel_platform_and_ladders_purchase_cost(D):
     Plant Cost Index, `biosteam.CE`.
     
     """
-    C_pl = 2275.*D**0.20294
-    with objmode(CE='float64'): CE = bst.CE
-    return CE/567. * C_pl
+    return _compute_horizontal_vessel_platform_and_ladders_purchase_cost(D, bst.CE)
 
 @njit(cache=True)
+def _compute_vertical_vessel_purchase_cost(W, CE):
+    lnW = ln(W)
+    C_v = exp(7.1390 + 0.18255 * lnW + 0.02297 * lnW * lnW)
+    return CE/567. * C_v
+
 def compute_vertical_vessel_purchase_cost(W):
     """
     Return the purchase cost [Cp; in USD] of a vertical vessel,
@@ -107,12 +116,13 @@ def compute_vertical_vessel_purchase_cost(W):
     Plant Cost Index, `biosteam.CE`.
     
     """
-    lnW = ln(W)
-    C_v = exp(7.1390 + 0.18255 * lnW + 0.02297 * lnW * lnW)
-    with objmode(CE='float64'): CE = bst.CE
-    return CE/567. * C_v
+    return _compute_vertical_vessel_purchase_cost(W, bst.CE)
 
 @njit(cache=True)
+def _compute_vertical_vessel_platform_and_ladders_purchase_cost(D, L, CE):
+    C_pl = 410*D**0.7396*L**0.70684
+    return CE/567 * C_pl
+
 def compute_vertical_vessel_platform_and_ladders_purchase_cost(D, L):
     """
     Return the purchase cost [Cp; in USD] of the platform and ladders for a 
@@ -137,9 +147,7 @@ def compute_vertical_vessel_platform_and_ladders_purchase_cost(D, L):
     Plant Cost Index, `biosteam.CE`.
     
     """
-    C_pl = 410*D**0.7396*L**0.70684
-    with objmode(CE='float64'): CE = bst.CE
-    return CE/567 * C_pl
+    return _compute_vertical_vessel_platform_and_ladders_purchase_cost(D, L, bst.CE)
 
 def GTable(DRho, Hlr):
     """

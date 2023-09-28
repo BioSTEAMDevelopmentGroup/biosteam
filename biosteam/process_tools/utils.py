@@ -43,6 +43,7 @@ __all__ = (
     'heat_exchanger_operation',
     'connect_by_ID',
     'default_utilities',
+    'default_CEPCI',
     'default',
 )
 
@@ -483,7 +484,10 @@ def default_utilities():
     """Reset utilities back to BioSTEAM's defaults."""
     bst.HeatUtility.default_agents()
     bst.PowerUtility.default_price()
-    
+
+def default_CEPCI():
+    bst.CE = 567.5
+
 def default(utilities=True, CEPCI=True, flowsheet=False):
     """
     Reset utilities, flowsheets, and chemical plant cost index (CEPCI) back to 
@@ -491,7 +495,7 @@ def default(utilities=True, CEPCI=True, flowsheet=False):
     
     """
     if utilities: default_utilities()
-    if CEPCI: bst.CE = 567.5
+    if CEPCI: default_CEPCI()
     for i in (bst.Stream, bst.Unit, bst.System): i.ticket_numbers.clear()
     if flowsheet: 
         for i in bst.main_flowsheet.flowsheet: i.clear(False)

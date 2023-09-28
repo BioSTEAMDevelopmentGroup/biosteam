@@ -41,17 +41,19 @@ def motor_efficiency(Pb):
     logPb = np.log(Pb)
     return 0.8 + 0.0319*logPb - 0.00182*logPb*logPb
 
-@njit(cache=True)
 def electric_motor_cost(Pc):
     """
     Return the baseline purchase cost of an electric motor given
     the shaft power in hp.
     """
+    return _electric_motor_cost(Pc, bst.CE) 
+
+@njit(cache=True)
+def _electric_motor_cost(Pc, CE):
     lnp = log(Pc)
     lnp2 = lnp*lnp
     lnp3 = lnp2*lnp
     lnp4 = lnp3*lnp
-    with objmode(CE='float64'): CE = bst.CE
     return exp(5.9332 + 0.16829*lnp
                - 0.110056*lnp2 + 0.071413*lnp3
                - 0.0063788*lnp4) * CE / 567
