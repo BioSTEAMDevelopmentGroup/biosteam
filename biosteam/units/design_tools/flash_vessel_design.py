@@ -19,7 +19,7 @@ References
 
 """
 from numpy import log as ln, pi, exp, round
-from numba import njit
+from numba import njit, objmode
 import biosteam as bst
 __all__ = ('compute_horizontal_vessel_purchase_cost',
            'compute_vertical_vessel_purchase_cost',
@@ -54,7 +54,8 @@ def compute_horizontal_vessel_purchase_cost(W):
     """
     lnW = ln(W)
     C_v = exp(5.6336 + 0.4599 * lnW + 0.00582 * lnW * lnW)
-    return bst.CE/567 * C_v
+    with objmode(CE='float64'): CE = bst.CE
+    return CE/567 * C_v
 
 @njit(cache=True)
 def compute_horizontal_vessel_platform_and_ladders_purchase_cost(D):
@@ -80,7 +81,8 @@ def compute_horizontal_vessel_platform_and_ladders_purchase_cost(D):
     
     """
     C_pl = 2275.*D**0.20294
-    return bst.CE/567. * C_pl
+    with objmode(CE='float64'): CE = bst.CE
+    return CE/567. * C_pl
 
 @njit(cache=True)
 def compute_vertical_vessel_purchase_cost(W):
@@ -107,7 +109,8 @@ def compute_vertical_vessel_purchase_cost(W):
     """
     lnW = ln(W)
     C_v = exp(7.1390 + 0.18255 * lnW + 0.02297 * lnW * lnW)
-    return bst.CE/567. * C_v
+    with objmode(CE='float64'): CE = bst.CE
+    return CE/567. * C_v
 
 @njit(cache=True)
 def compute_vertical_vessel_platform_and_ladders_purchase_cost(D, L):
@@ -135,7 +138,8 @@ def compute_vertical_vessel_platform_and_ladders_purchase_cost(D, L):
     
     """
     C_pl = 410*D**0.7396*L**0.70684
-    return bst.CE/567 * C_pl
+    with objmode(CE='float64'): CE = bst.CE
+    return CE/567 * C_pl
 
 def GTable(DRho, Hlr):
     """

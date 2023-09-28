@@ -16,7 +16,7 @@ References
     Cost Accounting and Capital Cost Estimation (Chapter 16)
 
 """
-from numba import njit
+from numba import njit, objmode
 import biosteam as bst
 __all__ = (
     'compute_closed_vessel_turbine_purchase_cost',
@@ -45,4 +45,5 @@ def compute_closed_vessel_turbine_purchase_cost(power):
     
     """
     C_p = 4105 * power ** 0.57
-    return bst.CE / 567 * C_p
+    with objmode(CE='float64'): CE = bst.CE
+    return CE / 567 * C_p

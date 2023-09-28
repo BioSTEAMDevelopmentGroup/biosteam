@@ -22,7 +22,7 @@ References
 """
 import numpy as np
 from . import utils
-from numba import njit
+from numba import njit, objmode
 import biosteam as bst
 from warnings import warn
 
@@ -64,7 +64,8 @@ def compute_purchase_cost_of_trays(N_T, Di):
     Plant Cost Index, `biosteam.CE`.
     
     """
-    F_CE = bst.CE/500.
+    with objmode(CE='float64'): CE = bst.CE
+    F_CE = CE/500.
     C_BT = compute_tray_base_purchase_cost(Di)
     F_NT = compute_n_trays_factor(N_T)
     return N_T * F_CE * F_NT * C_BT
@@ -86,7 +87,8 @@ def compute_empty_tower_cost(W):
     
     """
     logW = np.log(W)
-    return bst.CE/500. * np.exp(7.2756 + 0.18255*logW + 0.02297*logW*logW)
+    with objmode(CE='float64'): CE = bst.CE
+    return CE/500. * np.exp(7.2756 + 0.18255*logW + 0.02297*logW*logW)
 
 @njit(cache=True)
 def compute_plaform_ladder_cost(Di, L):
@@ -105,7 +107,8 @@ def compute_plaform_ladder_cost(Di, L):
     The purchase cost is given by [1]_. See source code for details.
     
     """
-    return bst.CE/500. * 300.9*Di**0.63316*L**0.80161
+    with objmode(CE='float64'): CE = bst.CE
+    return CE/500. * 300.9*Di**0.63316*L**0.80161
 
 @njit(cache=True)
 def compute_tower_weight(Di, L, tv, rho_M):

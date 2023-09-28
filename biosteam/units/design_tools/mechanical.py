@@ -12,7 +12,7 @@ General functional algorithms for the design of pumps and motors.
 import biosteam as bst
 import numpy as np
 from math import log, exp
-from numba import njit
+from numba import njit, objmode
 
 __all__ = ('brake_efficiency', 'motor_efficiency', 'pump_efficiency',
            'nearest_NEMA_motor_size', 'electric_motor_cost',
@@ -51,9 +51,10 @@ def electric_motor_cost(Pc):
     lnp2 = lnp*lnp
     lnp3 = lnp2*lnp
     lnp4 = lnp3*lnp
+    with objmode(CE='float64'): CE = bst.CE
     return exp(5.9332 + 0.16829*lnp
                - 0.110056*lnp2 + 0.071413*lnp3
-               - 0.0063788*lnp4) * bst.CE / 567
+               - 0.0063788*lnp4) * CE / 567
 
 @njit(cache=True)
 def noncondensing_steam_turbine_cost(Pc):
