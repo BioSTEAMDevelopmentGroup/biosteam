@@ -10,6 +10,17 @@
 
 .. autoclass:: biosteam.units.stirred_tank_reactor.StirredTankReactor
 
+References
+----------
+.. [1] Seider, W. D.; Lewin, D. R.; Seader, J. D.; Widagdo, S.; Gani, R.; 
+    Ng, M. K. Product and Process Design Principles. Wiley 2017.
+
+.. [2] Benz, G. T. Optimize Power Consumption in Aerobic Fermenters. 
+    Chem. Eng. Progress 2003, 99 (5), 100–103.
+
+.. [3] Benz, G. T. Bioreactor Design for Chemical Engineers. Chem. Eng.\
+    Progress 2011, 21–26.
+
 """
 from .. import Unit
 from typing import Optional
@@ -173,12 +184,6 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
                         Agitator - Agitator (x4)                 USD             4.53e+05
     Total purchase cost                                          USD             2.05e+06
     Utility cost                                              USD/hr                  152
-    
-    References
-    ----------
-    .. [1] Seider, W. D.; Lewin, D. R.; Seader, J. D.; Widagdo, S.; Gani, R.; 
-        Ng, M. K. Cost Accounting and Capital Cost Estimation. In Product 
-        and Process Design Principles; Wiley, 2017; pp 470.
     
     '''
     auxiliary_unit_names = (
@@ -413,7 +418,7 @@ class AeratedBioreactor(StirredTankReactor):
     )
     T_default = 273.15 + 32 
     P_default = 101325
-    kW_per_m3_default = 0.2955 # Reaction in homogeneous liquid
+    kW_per_m3_default = 0.2955 # Reaction in homogeneous liquid; reference [1]
     
     def __init__(
             self, ID='', ins=None, outs=(), thermo=None,  
