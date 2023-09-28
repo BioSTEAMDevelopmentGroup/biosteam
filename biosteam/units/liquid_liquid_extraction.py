@@ -750,24 +750,32 @@ class LiquidsPartitionSettler(LiquidsSettler):
     partition_coefficients : 1d array, optional
         Partition coefficients of chemicals in equilibrium (molar 
         composition ratio of the top fluid over the bottom fluid). 
-    partition_IDs: tuple[str], optional
+    partition_IDs : tuple[str], optional
         IDs of chemicals in equilibrium.
-    
+    top_chemicals : tuple[str], optional
+        Chemicals that remain in the top fluid.
+    bottom_chemicals : tuple[str], optional
+        Chemicals that remain in the bottom fluid.
     """
     line = 'Settler'
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 partition_coefficients, partion_IDs, 
+                 partition_coefficients, partition_IDs,
                  area_to_feed=0.1, 
                  length_to_diameter=4,
                  vessel_material='Carbon steel',
-                 vessel_type='Horizontal'):
+                 vessel_type='Horizontal',
+                 top_chemicals=None,
+                 bottom_chemicals=None,
+                 ):
         bst.Unit.__init__(self, ID, ins, outs, thermo)
         self.vessel_material = vessel_material
         self.vessel_type = vessel_type
         self.length_to_diameter = length_to_diameter
         self.area_to_feed = area_to_feed
         self.partition_coefficients = partition_coefficients
-        self.partion_IDs = partion_IDs
+        self.partition_IDs = partition_IDs
+        self.top_chemicals = top_chemicals
+        self.bottom_chemicals = bottom_chemicals
         self.reset_cache()
     
     def reset_cache(self, isdynamic=None):
@@ -775,8 +783,8 @@ class LiquidsPartitionSettler(LiquidsSettler):
     
     def _run(self):
         self._phi = sep.partition(*self.ins, *self.outs, 
-                                  self.partion_IDs, self.partition_coefficients,
-                                  self._phi)
+                                  self.partition_IDs, self.partition_coefficients,
+                                  self._phi, self.top_chemicals, self.bottom_chemicals)
 
 # %% Mixer-settlers
 
