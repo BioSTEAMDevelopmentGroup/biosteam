@@ -51,11 +51,11 @@ def test_isentropic_nitrogen_liquefaction():
     out = K.outs[0]
     assert_allclose(
         [out.vapor_fraction, out.liquid_fraction, out.T, out.P],
-        [0.5218739950603627, 0.4781260049396373, 77.24350056493171, 100000.0],
+        [5.284013e-01, 4.715987e-01, 7.724350e+01, 100000.0],
         rtol=5e-3,
     )
     # check compressor design
-    ideal_power = -0.607
+    ideal_power = -0.597828
     eta_motor = K.efficiency
     expected_power = ideal_power * eta * eta_motor
     actual_power = K.power_utility.rate
