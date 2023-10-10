@@ -24,8 +24,11 @@ import biosteam as bst
 from thermosteam import Stream
 from thermosteam.base import display_asfunctor
 from numpy.typing import NDArray
+from types import FunctionType
 from typing import Callable, Optional, TYPE_CHECKING, Sequence, Iterable
 import thermosteam as tmo
+from inspect import signature
+from copy import deepcopy
 if TYPE_CHECKING: 
     System = bst.System
     HXutility = bst.HXutility
@@ -40,6 +43,14 @@ _count = [0]
 def count():
     _count[0] += 1
     print(_count)
+
+def updated_signature(f, signature, annotations):
+    g = FunctionType(f.__code__, f.__globals__, name=f.__name__,
+                     argdefs=f.__defaults__, closure=f.__closure__)
+    g.__kwdefaults__ = f.__kwdefaults__
+    g.__signature__ = signature
+    g.__annotations__ = annotations
+    return g
 
 # %% Process specification
 
@@ -235,6 +246,22 @@ class Unit:
                           does_nothing=None):
         if does_nothing: return 
         dct = cls.__dict__
+        if '__init__' in dct and '_init' not in dct :
+            init = dct['__init__']
+            if hasattr(init, 'extension'): cls._init = init.extension
+        if '_init' in dct and cls.__init__ is Unit.__init__:
+            init = cls.__init__
+            usig = signature(init)
+            uparams = [*usig.parameters.values()][1:-1]
+            _init = dct['_init']
+            sig = signature(_init)
+            params = [*sig.parameters.values()][1:]
+            cls.__init__ = updated_signature(
+                init,
+                sig.replace(parameters=[*uparams, *[i.replace(kind=3) for i in params]]),
+                init.__annotations__ | _init.__annotations__
+            )
+            cls.__init__.extension = _init
         if '_N_heat_utilities' in dct:
             warn("'_N_heat_utilities' class attribute is scheduled for deprecation; "
                  "use the `add_heat_utility` method instead",
@@ -385,6 +412,9 @@ class Unit:
 
     ### Abstract methods ###
     
+    #: Initialize unit operation with key-word arguments.
+    _init = AbstractMethod
+    
     #: Create auxiliary components.
     _load_components = AbstractMethod
     
@@ -400,7 +430,13 @@ class Unit:
     #: For embodied emissions (e.g., unit construction) in LCA
     _lca = AbstractMethod
     
-    def __init__(self, ID: Optional[str]='', ins=None, outs=(), thermo: tmo.Thermo=None):
+    def __init__(self,
+            ID: Optional[str]='',
+            ins: streams=None,
+            outs: streams=(),
+            thermo: Optional[tmo.Thermo]=None,
+            **kwargs
+        ):
         self._system = None
         self._isdynamic = False
         self._register(ID)
@@ -505,6 +541,8 @@ class Unit:
         self._assert_compatible_property_package()
         
         self._utility_cost = None
+        
+        self._init(**kwargs)
     
     def _init_ins(self, ins):
         self._ins = piping.Inlets(

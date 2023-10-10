@@ -166,17 +166,17 @@ class Flash(design.PressureVessel, Unit):
     _graphics = vertical_vessel_graphics 
     _N_outs = 2
 
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 V=None, T=None, Q=None, P=None, y=None, x=None,
-                 vessel_material='Carbon steel',
-                 vacuum_system_preference='Liquid-ring pump',
-                 has_glycol_groups=False,
-                 has_amine_groups=False,
-                 vessel_type=None,
-                 holdup_time=15,
-                 surge_time=7.5,
-                 has_mist_eliminator=False):
-        Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, 
+            V=None, T=None, Q=None, P=None, y=None, x=None,
+            vessel_material='Carbon steel',
+            vacuum_system_preference='Liquid-ring pump',
+            has_glycol_groups=False,
+            has_amine_groups=False,
+            vessel_type=None,
+            holdup_time=15,
+            surge_time=7.5,
+            has_mist_eliminator=False
+        ):
         self._load_components()
         
         #: Enforced molar vapor fraction
@@ -494,17 +494,18 @@ class Flash(design.PressureVessel, Unit):
 class SplitFlash(Flash):
     line = 'Flash' 
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, split,
-                 order=None, T=None, P=None, Q=None,
-                 vessel_material='Carbon steel',
-                 vacuum_system_preference='Liquid-ring pump',
-                 has_glycol_groups=False,
-                 has_amine_groups=False,
-                 vessel_type=None,
-                 holdup_time=15,
-                 surge_time=7.5,
-                 has_mist_eliminator=False):
-        Splitter.__init__(self, ID, ins, outs, thermo, split=split, order=order)
+    def _init(self, split,
+            order=None, T=None, P=None, Q=None,
+            vessel_material='Carbon steel',
+            vacuum_system_preference='Liquid-ring pump',
+            has_glycol_groups=False,
+            has_amine_groups=False,
+            vessel_type=None,
+            holdup_time=15,
+            surge_time=7.5,
+            has_mist_eliminator=False
+        ):
+        Splitter._init(self, split=split, order=order)
         self._load_components()
         
         self.T = T #: Operating temperature (K)
@@ -556,10 +557,10 @@ class SplitFlash(Flash):
 # TODO: Remove this in favor of partition coefficients
 class RatioFlash(Flash):
 
-    def __init__(self, ID='', ins=None, outs=(), *,
-                 K_chemicals, Ks, top_solvents=(), top_split=(),
-                 bot_solvents=(), bot_split=()):
-        Unit.__init__(self, ID, ins, outs)
+    def _init(self, 
+            K_chemicals, Ks, top_solvents=(), top_split=(),
+            bot_solvents=(), bot_split=()
+        ):
         self._load_components()
         self.K_chemicals = K_chemicals
         self.Ks = Ks
@@ -636,9 +637,8 @@ class Evaporator(Flash):
             self._P = chemical.Psat(T)
             self._T = T
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
-                 Q=None, V=None, P=101325, chemical='7732-18-5'):
-        super().__init__(ID, ins, outs, thermo, vessel_type='Vertical')
+    def _init(self, Q=None, V=None, P=101325, chemical='7732-18-5'):
+        super()._init(vessel_type='Vertical')
         self.chemical = self.chemicals[chemical]
         self.P = P
         self.Q = Q

@@ -16,6 +16,5 @@ class BlowdownMixer(bst.Facility, bst.Mixer):
     network_priority = 2
     _graphics = mixer_graphics
     ticket_name = 'BDM'
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, rigorous=False):
-        bst.Facility.__init__(self, ID, ins, outs, thermo)
+    def _init(self, rigorous=False):
         self.rigorous = rigorous

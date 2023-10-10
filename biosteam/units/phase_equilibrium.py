@@ -58,8 +58,8 @@ class StageEquilibrium(Unit):
     auxiliary_unit_names = ('partition', 'mixer', 'splitters')
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
-                 phases=None, partition_data=None,
-                 top_split, bottom_split):
+                     phases=None, partition_data=None,
+                     top_split, bottom_split):
         self._N_outs = 2 + int(top_split) + int(bottom_split)
         Unit.__init__(self, ID, ins, outs, thermo)
         mixer = self.auxiliary(
@@ -137,9 +137,7 @@ class PhasePartition(Unit):
     _N_outs = 2
     strict_infeasibility_check = False
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 phases, partition_data):
-        Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, phases, partition_data):
         self.partition_data = partition_data
         self.phases = phases
         self.solvent = None
@@ -389,7 +387,7 @@ class MultiStageEquilibrium(Unit):
         self._N_ins = len(feed_stages)
         self._N_outs = 2 + len(top_side_draws) + len(bottom_side_draws)
         Unit.__init__(self, ID, ins, outs, thermo)
-        self.multi_stream = tmo.MultiStream(None, P=P, phases=phases, thermo=thermo)
+        self.multi_stream = tmo.MultiStream(None, P=P, phases=phases, thermo=self.thermo)
         self.N_stages = N_stages
         self.P = P
         phases = self.multi_stream.phases # Corrected order
@@ -550,11 +548,11 @@ class MultiStageEquilibrium(Unit):
             
     def _run(self):
         f = self.multi_stage_equilibrium_iter
-        top_flow_rates = self.initialize()
+        top_flow_rates = self.hot_start()
         top_flow_rates = flx.conditional_wegstein(f, top_flow_rates)
         self.update(top_flow_rates)
     
-    def initialize(self):
+    def hot_start(self):
         self.iter = 1
         ms = self.multi_stream
         feeds = self.ins

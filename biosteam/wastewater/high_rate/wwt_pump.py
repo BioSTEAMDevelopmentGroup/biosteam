@@ -70,13 +70,10 @@ class WWTpump(bst.Unit):
         )
 
 
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 pump_type, Q_mgd=None, add_inputs):
-        bst.Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, pump_type, add_inputs, Q_mgd=None):
         self.pump_type = pump_type
         self.Q_mgd = Q_mgd
         self.add_inputs = add_inputs
-
 
     def _run(self):
         self.outs[0].copy_like(self.ins[0])

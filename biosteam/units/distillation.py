@@ -96,16 +96,15 @@ class RefluxDrum(design.PressureVessel, Unit):
     vapor  = Flash.vapor
     liquid  = Flash.liquid
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 vessel_material='Carbon steel',
-                 has_glycol_groups=False,
-                 has_amine_groups=False,
-                 vessel_type=None,
-                 holdup_time=3,
-                 surge_time=2,
-                 has_mist_eliminator=False):
-        Unit.__init__(self, ID, ins, outs, thermo)
-        
+    def _init(self, 
+             vessel_material='Carbon steel',
+             has_glycol_groups=False,
+             has_amine_groups=False,
+             vessel_type=None,
+             holdup_time=3,
+             surge_time=2,
+             has_mist_eliminator=False
+        ):
         #: [str] Vessel construction material
         self.vessel_material = vessel_material
         
@@ -282,30 +281,30 @@ class Distillation(Unit, isabstract=True):
                'Height': (27., 170.),
                'Weight': (9000., 2.5e6)}
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None,
-                P=101325, *, LHK, k,
-                Rmin=0.01,
-                Lr=None,
-                Hr=None,
-                y_top=None,
-                x_bot=None, 
-                product_specification_format=None,
-                vessel_material='Carbon steel',
-                tray_material='Carbon steel',
-                tray_type='Sieve',
-                tray_spacing=450,
-                stage_efficiency=None,
-                velocity_fraction=0.8,
-                foaming_factor=1.0,
-                open_tray_area_fraction=0.1,
-                downcomer_area_fraction=None,
-                is_divided=False,
-                vacuum_system_preference='Liquid-ring pump',
-                condenser_thermo=None,
-                reboiler_thermo=None,
-                partial_condenser=True,
+    def _init(self, 
+            LHK, k,
+            P=101325, 
+            Rmin=0.01,
+            Lr=None,
+            Hr=None,
+            y_top=None,
+            x_bot=None, 
+            product_specification_format=None,
+            vessel_material='Carbon steel',
+            tray_material='Carbon steel',
+            tray_type='Sieve',
+            tray_spacing=450,
+            stage_efficiency=None,
+            velocity_fraction=0.8,
+            foaming_factor=1.0,
+            open_tray_area_fraction=0.1,
+            downcomer_area_fraction=None,
+            is_divided=False,
+            vacuum_system_preference='Liquid-ring pump',
+            condenser_thermo=None,
+            reboiler_thermo=None,
+            partial_condenser=True,
         ):
-        Unit.__init__(self, ID, ins, outs, thermo)
         self.check_LHK = True
         
         # Operation specifications
@@ -1952,32 +1951,30 @@ class MESHDistillation(Distillation, new_graphics=False):
         convergenceiter=3,
     )
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None,
-                P=101325, *, LHK, N_stages, feed_stages, 
-                vapor_side_draws=None, liquid_side_draws=None,
-                specifications=None,
-                Lr=None,
-                Hr=None,
-                y_top=None,
-                x_bot=None, 
-                product_specification_format=None,
-                vessel_material='Carbon steel',
-                tray_material='Carbon steel',
-                tray_type='Sieve',
-                tray_spacing=450,
-                stage_efficiency=None,
-                velocity_fraction=0.8,
-                foaming_factor=1.0,
-                open_tray_area_fraction=0.1,
-                downcomer_area_fraction=None,
-                is_divided=False,
-                vacuum_system_preference='Liquid-ring pump',
-                condenser_thermo=None,
-                boiler_thermo=None,
-                partial_condenser=True,
+    def _init(self, 
+            LHK, N_stages, feed_stages, P=101325, 
+            vapor_side_draws=None, liquid_side_draws=None,
+            specifications=None,
+            Lr=None,
+            Hr=None,
+            y_top=None,
+            x_bot=None, 
+            product_specification_format=None,
+            vessel_material='Carbon steel',
+            tray_material='Carbon steel',
+            tray_type='Sieve',
+            tray_spacing=450,
+            stage_efficiency=None,
+            velocity_fraction=0.8,
+            foaming_factor=1.0,
+            open_tray_area_fraction=0.1,
+            downcomer_area_fraction=None,
+            is_divided=False,
+            vacuum_system_preference='Liquid-ring pump',
+            condenser_thermo=None,
+            boiler_thermo=None,
+            partial_condenser=True,
         ):
-        Unit.__init__(self, ID, ins, outs, thermo)
-        
         # Operation specifications
         self.P = P
         self.N_stages = N_stages

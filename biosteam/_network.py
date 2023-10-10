@@ -340,6 +340,7 @@ class Network:
         recycle_ends.update(bst.utils.products_from_units(network.units))
         network.sort(recycle_ends)
         network.add_process_heat_exchangers()
+        network.reduce_recycles()
         return network
     
     @classmethod
@@ -376,6 +377,18 @@ class Network:
         else:
             system = cls(())
         return system
+    
+    def reduce_recycles(self):
+        recycle = self.recycle
+        if recycle and not isinstance(recycle, piping.stream_types):
+            sinks = set([i.sink for i in recycle])
+            if len(sinks) == 1:
+                sink = sinks.pop()
+                if len(sink.outs) == 1:
+                    self.recycle = sink.outs[0]
+        for i in self.path:
+            if isinstance(i, Network):
+                i.reduce_recycles()
     
     def add_process_heat_exchangers(self, excluded=None):
         isa = isinstance

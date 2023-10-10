@@ -188,25 +188,25 @@ class AnMBR(bst.Unit):
                'AF', 'AeF')
 
 
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 reactor_type='CSTR',
-                 membrane_configuration='cross-flow',
-                 membrane_type='multi-tube',
-                 membrane_material='ceramic',
-                 membrane_unit_cost=8,
-                 include_aerobic_filter=False,
-                 add_GAC=False,
-                 include_degassing_membrane=True,
-                 Y_biogas=0.86,
-                 Y_biomass=0.05, # from the 0.02-0.08 uniform range in ref [1]
-                 biodegradability={},
-                 split={},
-                 sludge_conc=10.5,
-                 T=35+273.15,
-                 include_pump_building_cost=False,
-                 include_excavation_cost=False,
-                 **kwargs):
-        bst.Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, 
+            reactor_type='CSTR',
+            membrane_configuration='cross-flow',
+            membrane_type='multi-tube',
+            membrane_material='ceramic',
+            membrane_unit_cost=8,
+            include_aerobic_filter=False,
+            add_GAC=False,
+            include_degassing_membrane=True,
+            Y_biogas=0.86,
+            Y_biomass=0.05, # from the 0.02-0.08 uniform range in ref [1]
+            biodegradability={},
+            split={},
+            sludge_conc=10.5,
+            T=35+273.15,
+            include_pump_building_cost=False,
+            include_excavation_cost=False,
+            **kwargs
+        ):
         self.reactor_type = reactor_type
         self.include_aerobic_filter = include_aerobic_filter
         self.membrane_configuration = membrane_configuration

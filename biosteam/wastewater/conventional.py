@@ -176,9 +176,7 @@ class AnaerobicDigestion(bst.Unit):
     purchase_cost = installation_cost = 0
     _N_ins = 1
     _N_outs = 3
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 reactions=None, sludge_split=None):
-        bst.Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, reactions=None, sludge_split=None):
         chemicals = self.chemicals
         if not reactions:
             digestables = get_digestable_organic_chemicals(chemicals)
@@ -286,8 +284,7 @@ class AerobicDigestion(bst.Unit):
     _N_outs = 2
     purchase_cost = installation_cost = 0
     
-    def __init__(self, ID='', ins=None, outs=(), *, reactions=None, evaporation=0.0113):
-        bst.Unit.__init__(self, ID, ins, outs)
+    def _init(self, reactions=None, evaporation=0.0113):
         if not reactions:
             chemicals = self.chemicals
             digestables = get_digestable_organic_chemicals(self.chemicals)
@@ -338,9 +335,7 @@ class SludgeCentrifuge(bst.SolidsSeparator):
     
     """
     purchase_cost = installation_cost = 0
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
-                 split=None, order=None, moisture_content=None, strict_moisture_content=None):
-        self._load_thermo(thermo)
+    def _init(self, split=None, order=None, moisture_content=None, strict_moisture_content=None):
         chemicals = self.chemicals
         ID_water = chemicals['7732-18-5'].ID # Water must be defined
         if split is None:
@@ -400,8 +395,8 @@ class SludgeCentrifuge(bst.SolidsSeparator):
         if ID_water not in split and moisture_content is None:
             # Only set moisture content if water split is not given
             moisture_content = 0.79
-        bst.SolidsSeparator.__init__(
-            self, ID, ins, outs, thermo, split=split, order=order,
+        bst.SolidsSeparator._init(
+            self, split=split, order=order,
             moisture_content=moisture_content, strict_moisture_content=strict_moisture_content
         )
         
@@ -433,9 +428,7 @@ class MembraneBioreactor(bst.Splitter):
     
     """
     purchase_cost = installation_cost = 0
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
-                 split=None, order=None):
-        self._load_thermo(thermo)
+    def _init(self, split=None, order=None):
         if split is None:
             chemicals = self.chemicals
             split = dict(
@@ -474,7 +467,7 @@ class MembraneBioreactor(bst.Splitter):
             )
             remove_undefined_chemicals(split, chemicals)
             default_chemical_dict(split, chemicals, 0.15, 0.125, 0.145)
-        bst.Splitter.__init__(self, ID, ins, outs, thermo, split=split, order=order)
+        bst.Splitter._init(self, split=split, order=order)
         
 class ReverseOsmosis(bst.Unit):
     """
@@ -494,9 +487,7 @@ class ReverseOsmosis(bst.Unit):
     """
     _N_ins = 1
     _N_outs = 2
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 water_recovery=0.987):
-        bst.Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, water_recovery=0.987):
         self.water_recovery = water_recovery
     
     @property

@@ -38,8 +38,8 @@ class Facility(Unit, isabstract=True,
                 'other facilities'
             )
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None):
-        Unit.__init__(self, ID, ins, outs, thermo)
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, **kwargs):
+        Unit.__init__(self, ID, ins, outs, thermo, **kwargs)
         self._system = None
         self._other_units = None
     

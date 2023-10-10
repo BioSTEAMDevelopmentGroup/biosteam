@@ -126,10 +126,10 @@ class Compressor(Unit, isabstract=True):
             ),
     }
 
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
-                 P, eta=0.7, vle=False, compressor_type=None, 
-                 driver=None, material=None, driver_efficiency=None):
-        Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, 
+            P, eta=0.7, vle=False, compressor_type=None, 
+            driver=None, material=None, driver_efficiency=None
+        ):
         self.P = P  #: Outlet pressure [Pa].
         self.eta = eta  #: Isentropic efficiency.
 
@@ -704,9 +704,9 @@ class PolytropicCompressor(Compressor, new_graphics=False):
 
     """
     available_methods = {'schultz', 'hundseid'}
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, eta=0.7, 
+    def _init(self, P, eta=0.7, 
                  vle=False, compressor_type=None, method=None, n_steps=None):
-        Compressor.__init__(self, ID=ID, ins=ins, outs=outs, thermo=thermo, P=P, eta=eta, vle=vle, compressor_type=compressor_type)
+        Compressor._init(self, P=P, eta=eta, vle=vle, compressor_type=compressor_type)
         self.method = "schultz" if method is None else method
         self.n_steps = 100 if n_steps is None else n_steps
         
@@ -1049,13 +1049,10 @@ class MultistageCompressor(Unit):
         **HX._units,
     }
 
-    def __init__(
-            self, ID='', ins=None, outs=(), thermo=None, *,
-            pr=None, n_stages=None, eta=0.7, vle=False, compressor_type=None,
+    def _init(
+            self, pr=None, n_stages=None, eta=0.7, vle=False, compressor_type=None,
             compressors=None, hxs=None,
-    ):
-        super().__init__(ID=ID, ins=ins, outs=outs, thermo=thermo)
-
+        ):
         # setup option 1: list of compressors and list of heat exchangers
         if compressors is not None and hxs is not None:
             if not isinstance(compressors[0], Compressor):

@@ -153,8 +153,7 @@ class Splitter(Unit):
         if split is not values:
             split[:] = values
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, split, order=None):
-        Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, split, order=None):
         self._isplit = self.thermo.chemicals.isplit(split, order)
         
     def _run(self):

@@ -474,7 +474,7 @@ def test_feed_forward_recycle_loop():
                  S1,
                  M2,
                  S2],
-                recycle=[S2-0, S1-1]),
+                recycle=M1-0),
              P3])
     )
     assert network == actual_network 

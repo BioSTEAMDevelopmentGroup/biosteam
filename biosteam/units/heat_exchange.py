@@ -398,7 +398,7 @@ class HXutility(HX):
     line = 'Heat exchanger'
     _graphics = utility_heat_exchanger_graphics
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
+    def _init(self, 
             T=None, V=None, rigorous=False, U=None, H=None,
             heat_exchanger_type="Floating head",
             material="Carbon steel/carbon steel",
@@ -408,7 +408,6 @@ class HXutility(HX):
             cool_only=None,
             heat_transfer_efficiency=None,
         ):
-        super().__init__(ID, ins, outs, thermo)
         self.T = T #: [float] Temperature of outlet stream (K).
         self.V = V #: [float] Vapor fraction of outlet stream.
         self.H = H #: [float] Enthalpy of outlet stream.
@@ -752,18 +751,16 @@ class HXprocess(HX):
     _N_ins = 2
     _N_outs = 2
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 U=None, dT=5., T_lim0=None, T_lim1=None,
-                 material="Carbon steel/carbon steel",
-                 heat_exchanger_type="Floating head",
-                 N_shells=2, ft=None, 
-                 phase0=None,
-                 phase1=None,
-                 H_lim0=None,
-                 H_lim1=None,
+    def _init(self, 
+            U=None, dT=5., T_lim0=None, T_lim1=None,
+            material="Carbon steel/carbon steel",
+            heat_exchanger_type="Floating head",
+            N_shells=2, ft=None, 
+            phase0=None,
+            phase1=None,
+            H_lim0=None,
+            H_lim1=None,
         ):
-        super().__init__(ID, ins, outs, thermo)
-        
         #: [float] Enforced overall heat transfer coefficent (kW/m^2/K)
         self.U = U
         

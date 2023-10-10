@@ -184,7 +184,7 @@ def test_process_specifications_with_recycles():
                  P2_b,
                  S1_b],
                 recycle=P1_b-0)],
-            recycle=[S3_b-1, S1_b-1])])
+            recycle=M1_b-0)])
     assert M1_b.specifications[0].path == ()
     
 def test_unit_connections():
