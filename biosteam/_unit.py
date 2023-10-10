@@ -44,16 +44,26 @@ def count():
     _count[0] += 1
     print(_count)
 
-def updated_signature(f):
-    sig = signature(f)
-    params = [*sig.parameters.values()][1:]
-    g = FunctionType(f.__code__, f.__globals__, name=f.__name__,
+def updated_signature(f, g):
+    if hasattr(f, '__wrapped__'): f = f.__wrapped__
+    sigf = signature(f)
+    paramsf = [*sigf.parameters.values()][1:-1]
+    sigg = signature(g)
+    paramsg = [*sigg.parameters.values()][1:]
+    h = FunctionType(f.__code__, f.__globals__, name=f.__name__,
                      argdefs=f.__defaults__, closure=f.__closure__)
-    g.__kwdefaults__ = f.__kwdefaults__
-    g.__signature__ = _usig.replace(parameters=[*_uparams, *[i.replace(kind=3) for i in params]])
-    g.__annotations__ = _init.__annotations__ | f.__annotations__
-    g.__wrapped__ = f
-    return g
+    h.__kwdefaults__ = f.__kwdefaults__
+    all_params = [*paramsf, *[i.replace(kind=3) for i in paramsg]]
+    params = []
+    names = set()
+    for i in tuple(all_params):
+        if i.name in names: continue
+        names.add(i.name)
+        params.append(i)
+    h.__signature__ = sigf.replace(parameters=params)
+    h.__annotations__ = f.__annotations__ | g.__annotations__
+    h.__wrapped__ = f
+    return h
 
 # %% Process specification
 
@@ -254,7 +264,7 @@ class Unit:
             if hasattr(init, 'extension'): cls._init = init.extension
         elif '_init' in dct:
             _init = dct['_init']
-            cls.__init__ = updated_signature(_init)
+            cls.__init__ = updated_signature(cls.__init__, _init)
             cls.__init__.extension = _init
         if '_N_heat_utilities' in dct:
             warn("'_N_heat_utilities' class attribute is scheduled for deprecation; "
@@ -2241,8 +2251,4 @@ class UnitDesignAndCapital:
     def equipment_lifetime(self):
         return self.unit.equipment_lifetime
 
-_init = Unit.__init__
-_qualname =_init.__qualname__
-_usig = signature(_init)
-_uparams = [*_usig.parameters.values()][1:-1]
 del thermo_user, registered
