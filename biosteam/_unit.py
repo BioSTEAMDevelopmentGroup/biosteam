@@ -44,12 +44,15 @@ def count():
     _count[0] += 1
     print(_count)
 
-def updated_signature(f, signature, annotations):
+def updated_signature(f):
+    sig = signature(f)
+    params = [*sig.parameters.values()][1:]
     g = FunctionType(f.__code__, f.__globals__, name=f.__name__,
                      argdefs=f.__defaults__, closure=f.__closure__)
     g.__kwdefaults__ = f.__kwdefaults__
-    g.__signature__ = signature
-    g.__annotations__ = annotations
+    g.__signature__ = _usig.replace(parameters=[*_uparams, *[i.replace(kind=3) for i in params]])
+    g.__annotations__ = _init.__annotations__ | f.__annotations__
+    g.__wrapped__ = f
     return g
 
 # %% Process specification
@@ -249,18 +252,9 @@ class Unit:
         if '__init__' in dct and '_init' not in dct :
             init = dct['__init__']
             if hasattr(init, 'extension'): cls._init = init.extension
-        if '_init' in dct and cls.__init__ is Unit.__init__:
-            init = cls.__init__
-            usig = signature(init)
-            uparams = [*usig.parameters.values()][1:-1]
+        elif '_init' in dct:
             _init = dct['_init']
-            sig = signature(_init)
-            params = [*sig.parameters.values()][1:]
-            cls.__init__ = updated_signature(
-                init,
-                sig.replace(parameters=[*uparams, *[i.replace(kind=3) for i in params]]),
-                init.__annotations__ | _init.__annotations__
-            )
+            cls.__init__ = updated_signature(_init)
             cls.__init__.extension = _init
         if '_N_heat_utilities' in dct:
             warn("'_N_heat_utilities' class attribute is scheduled for deprecation; "
@@ -2247,4 +2241,8 @@ class UnitDesignAndCapital:
     def equipment_lifetime(self):
         return self.unit.equipment_lifetime
 
+_init = Unit.__init__
+_qualname =_init.__qualname__
+_usig = signature(_init)
+_uparams = [*_usig.parameters.values()][1:-1]
 del thermo_user, registered
