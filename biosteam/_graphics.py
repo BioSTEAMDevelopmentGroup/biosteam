@@ -86,7 +86,8 @@ class UnitGraphics:
     def get_minimal_node(self, unit):
         """Return minmal node (a single dot)."""
         minode = dict(
-            name = unit.ID,
+            name = str(hash(unit.ID)),
+            label = unit.ID,
             width = '0.1',
             shape = 'oval',
             style = 'filled',
@@ -108,12 +109,12 @@ class UnitGraphics:
                 N = owner.parallel['self']
             else:
                 N = None
-            name = '\n'.join([bst.utils.format_title(i) for i in ID.split('.')])
-            name = f"{owner.ID}\n{name}\nAuxiliary"
-            if N is not None and N > 1: name = f"{name}\n1 of {N}"
-            node['name'] = name
+            label = '\n'.join([bst.utils.format_title(i) for i in ID.split('.')])
+            label = f"{owner.ID}\n{label}\nAuxiliary"
+            if N is not None and N > 1: label = f"{label}\n1 of {N}"
+            node['label'] = label
         else:
-            node['name'] = '\n'.join([unit.ID, unit.line]) if unit.line else unit.ID
+            node['label'] = '\n'.join([unit.ID, unit.line]) if unit.line else unit.ID
         tailor_node_to_unit = self.tailor_node_to_unit
         if 'fillcolor' not in node:
             node['fillcolor'] = bst.preferences.unit_color
@@ -123,6 +124,7 @@ class UnitGraphics:
             node['color'] = bst.preferences.unit_periphery_color
         if tailor_node_to_unit:
             tailor_node_to_unit(node, unit)
+        node['name'] = str(hash(unit))
         return node
         
     def __repr__(self): # pragma: no coverage
@@ -210,7 +212,7 @@ def tailor_utility_heat_exchanger_node(node, unit): # pragma: no coverage
     except:
         line = 'Heat exchanger'
     if unit.owner is unit:
-        node['name'] = '\n'.join([unit.ID, line])
+        node['label'] = '\n'.join([unit.ID, line])
 
 utility_heat_exchanger_graphics = UnitGraphics(single_edge_in, single_edge_out, node,
                                                tailor_utility_heat_exchanger_node)
@@ -235,9 +237,9 @@ node['color'] = '#de7e55'
 node['fontcolor'] = 'white'
 node['shape'] = 'note'
 node['margin'] = '0.2'
-def tailor_process_specification_node(node, unit): # pragma: no coverage
-    node['name'] = (f"{unit.ID} - {unit.description}\n"
-                    f"{unit.line}")
+def tailor_process_specification_node(node, unit): # pragma: no coverage    
+    node['label'] = (f"{unit.ID} - {unit.description}\n"
+                     f"{unit.line}")
 
 process_specification_graphics = UnitGraphics(single_edge_in, single_edge_out, node,
                                               tailor_process_specification_node)
@@ -273,7 +275,7 @@ junction_graphics = UnitGraphics(single_edge_in, single_edge_out, node,
 
 node = box_node.copy()
 def tailor_scalar_node(node, unit): # pragma: no coverage
-    node['name'] = f"x{unit.scale}"
+    node['label'] = f"x{unit.scale}"
     node['width'] = '0.1'
     node['shape'] = 'oval'
     node['style'] = 'filled'
@@ -311,7 +313,7 @@ def tailor_valve_node(node, unit): # pragma: no coverage
         node['fontcolor'] = bst.preferences.unit_label_color
         node['color'] = bst.preferences.unit_periphery_color
     else:
-        node['name'] = ''
+        node['label'] = ''
         if bst.preferences.unit_color == "#555f69":
             filename = "graphics/valve_dark.png"
         elif bst.preferences.unit_color == "white:#CDCDCD":

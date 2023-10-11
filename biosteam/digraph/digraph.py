@@ -322,15 +322,16 @@ def get_unit_names(f: Digraph, path, with_auxiliaries):
     fill_info_from_path(path, [0], info_by_unit)
     for u, (index, time) in info_by_unit.items():
         node = u.get_node()
-        name = node['name']
+        label = node['label']
         info = ', '.join(index) 
         if time is not None:
             if info:
                 info = f"{info}; {time}"
             else:
                 info = time
-        if info: name = f"[{info}] {name}"
-        unit_names[u] = node['name'] = name
+        if info: label = f"[{info}] {label}"
+        node['label'] = label
+        unit_names[u] = node['name']
         if (with_auxiliaries and all([i in info_by_unit for i in u.auxiliary_units])
             and u._assembled_from_auxiliary_units()): continue
         f.node(**node)
@@ -342,26 +343,28 @@ def update_digraph_from_units_and_connections(f: Digraph, units, connections, wi
 def get_all_connections(streams, added_connections=None):
     if added_connections is None: added_connections = set()
     connections = []
-    IDs = {}
+    originals = {}
     isa = isinstance
     for s in streams:
+        original = s
+        while hasattr(original, 'port'):
+            original = original.port.get_stream()
         if (s._source or s._sink): 
             connection = s.get_connection(junction=False)
-            ID = s.ID
-            if ID in IDs:
-                source0, source_index0, stream0, sink_index0, sink0 = old_connection = IDs[s.ID]
+            if original in originals:
+                source0, source_index0, stream0, sink_index0, sink0 = old_connection = originals[original]
                 source1, source_index1, stream1, sink_index1, sink1 = connection
                 if isa(stream1, SuperpositionOutlet) and isa(stream0, SuperpositionInlet):
                     connections.remove(old_connection)
                     added_connections.remove(old_connection)
-                    stream = stream1.copy(ID='.' + ID)
+                    stream = stream1.copy(ID='.' + s.ID)
                     connection = Connection(source1, source_index1, stream, sink_index0, sink0)
                 elif isa(stream0, SuperpositionOutlet) and isa(stream1, SuperpositionInlet):
                     connections.remove(old_connection)
                     added_connections.remove(old_connection)
-                    stream = stream1.copy(ID='.' + ID)
+                    stream = stream1.copy(ID='.' + s.ID)
                     connection = Connection(source0, source_index0, stream, sink_index1, sink1)
-            IDs[ID] = connection
+            originals[original] = connection
             if connection and connection not in added_connections:
                 connections.append(connection)
                 added_connections.add(connection)
