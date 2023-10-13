@@ -1130,13 +1130,11 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
     """
     _units = MixerSettler._units
     
-    def __init__(self, ID="", ins=None, outs=(), thermo=None, *, N_stages,
-                 partition_data=None, solvent_ID=None, feed_stages=None, 
-                 raffinate_side_draws=None, extract_side_draws=None,
-                 mixer_data={}, settler_data={}, use_cache=None):
-        bst.MultiStageEquilibrium.__init__(
-            self, ID, ins, outs, thermo,
-            N_stages=N_stages, feed_stages=feed_stages, phases=('l', 'L'), P=101325,
+    def _init(self, N_stages, feed_stages, raffinate_side_draws, 
+              extract_side_draws, partition_data=None, solvent_ID=None,  
+              mixer_data={}, settler_data={}, use_cache=None):
+        bst.MultiStageEquilibrium._init(
+            self, N_stages=N_stages, feed_stages=feed_stages, phases=('l', 'L'), P=101325,
             top_side_draws=extract_side_draws, bottom_side_draws=raffinate_side_draws,
             stage_specifications=None, partition_data=partition_data, 
             solvent=solvent_ID, use_cache=use_cache,
