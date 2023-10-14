@@ -386,11 +386,11 @@ class MultiStageEquilibrium(Unit):
     ... )
     >>> MSE.simulate()
     >>> MSE.vapor.imol['MTBE'] / feed.imol['MTBE']
-    1.0
-    >>> MSE.vapor.imol['Water'] / feed.imol['Water']
-    0.579
+    0.999
+    >>> MSE.vapor.imol['Water'] / (feed.imol['Water'] + steam.imol['Water'])
+    0.530
     >>> MSE.vapor.imol['AceticAcid'] / feed.imol['AceticAcid']
-    0.343
+    1.0
     
     # This feature is not yet ready for users
     # Simulate distillation column with 9 stages, a 0.673 reflux ratio, 
@@ -813,6 +813,7 @@ class MultiStageEquilibrium(Unit):
                 i.mixer._run()
                 i.partition._run(P=self.P, update=False, 
                                  couple_energy_balance=False)
+                for j in i.partition.outs: j.T = i.partition.T
             for i, j in enumerate(self.get_vle_phase_ratios()):
                 stages[i].partition.phi = 1 / (1 + j)
         else:

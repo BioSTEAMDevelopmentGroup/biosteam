@@ -1130,8 +1130,24 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
     """
     _units = MixerSettler._units
     
-    def _init(self, N_stages, feed_stages, raffinate_side_draws, 
-              extract_side_draws, partition_data=None, solvent_ID=None,  
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, 
+                 feed_stages=None, extract_side_draws=None, raffinate_side_draws=None, 
+                 **kwargs):
+        if extract_side_draws is None: extract_side_draws = {}
+        elif not isinstance(extract_side_draws, dict): extract_side_draws = dict(extract_side_draws)
+        if raffinate_side_draws is None: raffinate_side_draws = {}
+        elif not isinstance(raffinate_side_draws, dict): raffinate_side_draws = dict(raffinate_side_draws)
+        if feed_stages is None: feed_stages = (0, -1)
+        self._N_ins = len(feed_stages)
+        self._N_outs = 2 + len(extract_side_draws) + len(raffinate_side_draws)
+        Unit.__init__(self, ID, ins, outs, thermo, 
+                      feed_stages=feed_stages,
+                      extract_side_draws=extract_side_draws, 
+                      raffinate_side_draws=raffinate_side_draws,
+                      **kwargs)
+    
+    def _init(self, N_stages, feed_stages, extract_side_draws, 
+              raffinate_side_draws, partition_data=None, solvent_ID=None,  
               mixer_data={}, settler_data={}, use_cache=None):
         bst.MultiStageEquilibrium._init(
             self, N_stages=N_stages, feed_stages=feed_stages, phases=('l', 'L'), P=101325,
@@ -1172,12 +1188,13 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
         args = (self.N_stages, self.feed_stages, self.extract_side_draws, self.use_cache,
                 *self._ins, self.raffinate_side_draws, self.solvent_ID, self.partition_data)
         if args != self._last_args:
-            MultiStageEquilibrium.__init__(
-                self, self.ID, self.ins, self.outs, self.thermo,
-                N_stages=self.N_stages, feed_stages=self.feed_stages, phases=('l', 'L'), P=self.P,
-                top_side_draws=self.extract_side_draws, bottom_side_draws=self.raffinate_side_draws,
+            MultiStageEquilibrium._init(
+                self, N_stages=self.N_stages, feed_stages=self.feed_stages,
+                phases=('l', 'L'), P=self.P,
+                top_side_draws=self.extract_side_draws, 
+                bottom_side_draws=self.raffinate_side_draws,
                 stage_specifications=None, partition_data=self.partition_data, 
-                solvent=self.solvent_ID, use_cache=self.use_cache,
+                solvent=self.solvent_ID, use_cache=self.use_cache, 
             )
             self.mixer._ins = self._ins
             self.settler._outs = self._outs
