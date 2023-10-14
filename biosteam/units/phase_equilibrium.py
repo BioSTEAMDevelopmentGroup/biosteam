@@ -374,7 +374,7 @@ class MultiStageEquilibrium(Unit):
     >>> (extract.imol['Methanol'] + extract_side_draw.imol['Methanol']) / feed.imol['Methanol'] # Recovery
     1.0
     
-    >>> Simulate stripping column with 2 stages
+    Simulate stripping column with 2 stages
     
     >>> import biosteam as bst
     >>> bst.settings.set_thermo(['AceticAcid', 'EthylAcetate', 'Water', 'MTBE'], cache=True)
