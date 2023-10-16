@@ -223,9 +223,9 @@ class PhasePartition(Unit):
                 else:
                     top, bottom = self.outs
                     if bottom.isempty():
-                        p = top.dew_point_at_P(P, IDs=self.IDs)
+                        p = top.dew_point_at_P(P)
                     else:
-                        p = bottom.bubble_point_at_P(P, IDs=self.IDs)
+                        p = bottom.bubble_point_at_P(P)
                     # TODO: Note that solution decomposition method is bubble point
                     x = p.x
                     x[x == 0] = 1.
@@ -388,9 +388,9 @@ class MultiStageEquilibrium(Unit):
     >>> MSE.vapor.imol['MTBE'] / feed.imol['MTBE']
     0.999
     >>> MSE.vapor.imol['Water'] / (feed.imol['Water'] + steam.imol['Water'])
-    0.530
+    0.425
     >>> MSE.vapor.imol['AceticAcid'] / feed.imol['AceticAcid']
-    1.0
+    0.747
     
     # This feature is not yet ready for users
     # Simulate distillation column with 9 stages, a 0.673 reflux ratio, 
@@ -402,14 +402,13 @@ class MultiStageEquilibrium(Unit):
     # ...     outs=['vapor', 'liquid'],
     # ...     stage_specifications={0: ('Reflux', 0.673), -1: ('Boilup', 2.58)},
     # ...     phases=('g', 'l'),
-    # ...     couple_energy_balance=False,
     # ... )
     # >>> MSE.simulate()
     
     """
     _N_ins = 2
     _N_outs = 2
-    default_maxiter = 20
+    default_maxiter = 100
     default_molar_tolerance = 0.1
     default_relative_molar_tolerance = 0.001
     auxiliary_unit_names = (
@@ -602,7 +601,7 @@ class MultiStageEquilibrium(Unit):
     def _run(self):
         f = self.multi_stage_equilibrium_iter
         top_flow_rates = self.hot_start()
-        top_flow_rates = flx.conditional_wegstein(f, top_flow_rates)
+        top_flow_rates = flx.conditional_fixed_point(f, top_flow_rates)
         self.update(top_flow_rates)
     
     def hot_start(self):
@@ -631,6 +630,7 @@ class MultiStageEquilibrium(Unit):
                         i.IDs = IDs
                         i._run(P=self.P, solvent=solvent_ID, update=False,
                                couple_energy_balance=False)
+                        for j in i.outs: j.T = i.T
                 phase_ratios = np.array(
                     [i.phi / (1 - i.phi) for i in partitions],
                     dtype=float
@@ -809,13 +809,12 @@ class MultiStageEquilibrium(Unit):
         P = self.P
         eq = 'vle' if self.multi_stream.phases[0] == 'g' else 'lle'
         if eq == 'vle': 
+            for i, j in enumerate(self.get_vle_phase_ratios()):
+                stages[i].partition.phi = j / (1 + j)
             for n, i in enumerate(stages): 
                 i.mixer._run()
                 i.partition._run(P=self.P, update=False, 
                                  couple_energy_balance=False)
-                for j in i.partition.outs: j.T = i.partition.T
-            for i, j in enumerate(self.get_vle_phase_ratios()):
-                stages[i].partition.phi = 1 / (1 + j)
         else:
             for i in stages: 
                 i.mixer._run()
