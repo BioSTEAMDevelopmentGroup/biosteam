@@ -522,7 +522,6 @@ class MultiStageEquilibrium(Unit):
         
         self.use_cache = True if use_cache else False
                 
-    
     @property
     def extract(self):
         return self.outs[0]
@@ -970,7 +969,7 @@ def solve_TDMA(a, b, c, d): # Tridiagonal matrix solver
     return b
 
 # @njit(cache=True)
-def solve_LBDMA(a, b, d): #Right bidiagonal matrix solver
+def solve_LBDMA(a, b, d): # Left bidiagonal matrix solver
     """
     Reformulation of Thomas' algorithm.
     """
@@ -987,7 +986,7 @@ def solve_LBDMA(a, b, d): #Right bidiagonal matrix solver
     return b
 
 # @njit(cache=True)
-def solve_RBDMA(b, c, d): #Right bidiagonal matrix solver
+def solve_RBDMA(b, c, d): # Right bidiagonal matrix solver
     """
     Reformulation of Thomas' algorithm.
     """
