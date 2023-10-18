@@ -708,13 +708,19 @@ class MultiStageEquilibrium(Unit):
                 phi = data.get('phi') or top.imol[IDs].sum() / ms.imol[IDs].sum()
                 data['phi'] = phi = sep.partition(ms, top, bottom, IDs, K, phi,
                                                   top_chemicals, bottom_chemicals)
-                for i in partitions: i.phi = phi
+                T = ms.T
+                for i in partitions: 
+                    i.T = T
+                    i.phi = phi
             elif eq == 'lle':
                 lle = ms.lle
-                lle(ms.T, top_chemical=solvent_ID)
+                T = ms.T
+                lle(T, top_chemical=solvent_ID)
                 K = lle._K
                 phi = lle._phi
-                for i in partitions: i.phi = phi
+                for i in partitions: 
+                    i.T = T
+                    i.phi = phi
             else:
                 P = self.P
                 # TODO: Set up much better initial conditions
