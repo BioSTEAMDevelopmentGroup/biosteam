@@ -883,15 +883,16 @@ class MultiStageEquilibrium(Unit):
             Ts = np.array(Ts)
         elif N_ok > 1:
             all_index = np.arange(N_stages)
-            spline = UnivariateSpline(index, phase_ratios, k=1, ext='const')
-            phase_ratios = spline(all_index)
-            spline = UnivariateSpline(index, Ts, k=1, ext='const')
-            Ts = spline(all_index)
+            neighbors = get_neighbors(index, all_index)
+            phase_ratios = fillmissing(neighbors, index, all_index, phase_ratios)
+            Ts = fillmissing(neighbors, index, all_index, Ts)
             N_chemicals = self._N_chemicals
             all_partition_coefficients = np.zeros([N_stages, N_chemicals])
             for i in range(N_chemicals):
-                spline = UnivariateSpline(index, [stage[i] for stage in partition_coefficients], k=1, ext='const')
-                all_partition_coefficients[:, i] = spline(all_index)
+                all_partition_coefficients[:, i] = fillmissing(
+                    neighbors, index, all_index, 
+                    [stage[i] for stage in partition_coefficients]
+                )
             partition_coefficients = all_partition_coefficients
         elif N_ok == 1:
             phase_ratios = np.array(N_stages * phase_ratios)
@@ -1154,3 +1155,48 @@ def flow_rates_for_multistage_equilibrium(
         c[i] = bsplit[i + 1]
         a[i] = asplit[i] *  component_ratios[i] 
     return solve_TDMA(a, b, c, d)
+
+def get_neighbors(index, all_index):
+    size = all_index.size
+    index_set = set(index)
+    missing = set(all_index).difference(index)
+    neighbors = []
+    for i in missing:
+        lb = i
+        while lb > -1:
+            lb -= 1
+            if lb in index_set: break
+        ub = i
+        while ub < size:
+            ub += 1
+            if ub in index_set: break
+        if ub == size:
+            neighbors.append(
+                (i, (lb,))
+            )
+        elif lb == -1:
+            neighbors.append(
+                (i, (ub,))
+            )
+        else:
+            neighbors.append(
+                (i, (lb, ub))
+            )
+    return neighbors
+
+def fillmissing(all_neighbors, index, all_index, values):
+    new_values = np.zeros_like(all_index, dtype=float)
+    new_values[index] = values
+    for i, neighbors in all_neighbors:
+        if len(neighbors) == 2:
+            lb, ub = neighbors
+            lb_distance = i - lb
+            ub_distance = ub - i
+            sum_distance = lb_distance + ub_distance
+            wlb = ub_distance / sum_distance
+            wub = lb_distance / sum_distance
+            x = wlb * new_values[lb] + wub * new_values[ub]
+            new_values[i] = x
+        else:
+            new_values[i] = neighbors
+    return new_values
