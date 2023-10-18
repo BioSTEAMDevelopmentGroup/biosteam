@@ -951,6 +951,8 @@ class MultiStageEquilibrium(Unit):
 @njit(cache=True)
 def solve_TDMA(a, b, c, d): # Tridiagonal matrix solver
     """
+    Solve a tridiagonal matrix using Thomas' algorithm.
+    
     http://en.wikipedia.org/wiki/Tridiagonal_matrix_algorithm
     http://www.cfd-online.com/Wiki/Tridiagonal_matrix_algorithm_-_TDMA_(Thomas_algorithm)
     """
@@ -968,10 +970,10 @@ def solve_TDMA(a, b, c, d): # Tridiagonal matrix solver
     
     return b
 
-# @njit(cache=True)
+@njit(cache=True)
 def solve_LBDMA(a, b, d): # Left bidiagonal matrix solver
     """
-    Reformulation of Thomas' algorithm.
+    Solve a left bidiagonal matrix using a reformulation of Thomas' algorithm.
     """
     n = d.shape[0] - 1 # number of equations minus 1
     for i in range(n):
@@ -985,10 +987,10 @@ def solve_LBDMA(a, b, d): # Left bidiagonal matrix solver
         b[i] = d[i] / b[i]
     return b
 
-# @njit(cache=True)
+@njit(cache=True)
 def solve_RBDMA(b, c, d): # Right bidiagonal matrix solver
     """
-    Reformulation of Thomas' algorithm.
+    Solve a right bidiagonal matrix using a reformulation of Thomas' algorithm.
     """
     n = d.shape[0] - 1 # number of equations minus 1
     b[n] = d[n] / b[n]
@@ -997,7 +999,7 @@ def solve_RBDMA(b, c, d): # Right bidiagonal matrix solver
         b[i] = (d[i] - c[i] * b[i+1]) / b[i]
     return b
 
-# @njit(cache=True)
+@njit(cache=True)
 def hot_start_top_flow_rates(
         bottom_flows, phase_ratios, stage_index, top_feed_flows,
         bottom_feed_flows, asplit, bsplit, N_stages,
@@ -1047,7 +1049,8 @@ def hot_start_top_flow_rates(
         else:
             d[i] += bottom_feed_flows[i] - bottom_flows[i - 1] * bsplit[i - 1]
     return solve_RBDMA(b, c, d)
-    
+
+@njit(cache=True)
 def hot_start_bottom_flow_rates(
         top_flows, phase_ratios, stage_index, top_feed_flows,
         bottom_feed_flows, asplit, bsplit, N_stages
