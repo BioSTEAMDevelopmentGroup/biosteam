@@ -572,6 +572,7 @@ class MultiStageEquilibrium(Unit):
         index = self._update_index
         top_flow_rates[top_flow_rates < 0.] = 0.
         has_infeasible_flow = True
+        infeasible_checks = set()
         while has_infeasible_flow:
             has_infeasible_flow = False
             for i in range_stages:
@@ -587,8 +588,9 @@ class MultiStageEquilibrium(Unit):
                 bottom_flow = sum([i.mol for i in stage.ins]) - s_top.mol
                 mask = bottom_flow < 0.
                 if mask.any():
-                    has_infeasible_flow = (bottom_flow[mask] < flow_tol[mask]).any()
+                    has_infeasible_flow = (bottom_flow[mask] < flow_tol[mask]).any() and i not in infeasible_checks
                     if has_infeasible_flow:
+                        infeasible_checks.add(i)
                         infeasible_index, = np.where(mask[index])
                         # TODO: Find algebraic solution to keeping top flow rates within feasible region.
                         # This is only a temporary solution.
@@ -644,7 +646,7 @@ class MultiStageEquilibrium(Unit):
                 bottom_feed_flows[stage, :] += feed.mol[index]
         feed_flows, asplit, bsplit, N_stages = self._iter_args
         args = (
-            phase_ratios, stage_index, top_feed_flows,
+            phase_ratios, np.array(stage_index), top_feed_flows,
             bottom_feed_flows, asplit, bsplit, N_stages
         )
         top_flow_rates = flx.wegstein(
@@ -850,7 +852,7 @@ class MultiStageEquilibrium(Unit):
         stages = self.stages
         partitions = [i.partition for i in stages]
         if inner_vle_loop:
-            phase_ratios = flx.fixed_point(
+            phase_ratios = flx.wegstein(
                 self.multistage_phase_ratio_inner_loop, 
                 np.array([partition.phi / (1 - partition.phi) for partition in partitions]), 
                 args=(np.array([partition.K for partition in partitions]),),
