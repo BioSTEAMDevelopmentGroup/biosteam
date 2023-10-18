@@ -852,7 +852,7 @@ class MultiStageEquilibrium(Unit):
         stages = self.stages
         partitions = [i.partition for i in stages]
         if inner_vle_loop:
-            phase_ratios = flx.wegstein(
+            phase_ratios = flx.fixed_point(
                 self.multistage_phase_ratio_inner_loop, 
                 np.array([partition.phi / (1 - partition.phi) for partition in partitions]), 
                 args=(np.array([partition.K for partition in partitions]),),
@@ -1198,5 +1198,5 @@ def fillmissing(all_neighbors, index, all_index, values):
             x = wlb * new_values[lb] + wub * new_values[ub]
             new_values[i] = x
         else:
-            new_values[i] = neighbors
+            new_values[i] = neighbors[0]
     return new_values
