@@ -47,6 +47,7 @@ from .liquid_liquid_extraction import *
 from .adsorption import *
 from .auxiliary import *
 from .agitator import *
+from .stripping import * 
 
 from . import (
     _flash, 
@@ -90,6 +91,7 @@ from . import (
     valve,
     auxiliary,
     agitator,
+    stripping,
 )
 
 
@@ -133,6 +135,7 @@ __all__ = ('Unit',
            *vacuum_system.__all__,
            *auxiliary.__all__,
            *agitator.__all__,
+           *stripping.__all__,
            'adsorption',
            'drying',
            'tank',
@@ -147,6 +150,7 @@ __all__ = ('Unit',
            'liquid_liquid_extraction',
            'size_reduction',
            'size_enlargement',
+           'stripping',
 )
 
 
