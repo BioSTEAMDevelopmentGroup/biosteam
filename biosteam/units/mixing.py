@@ -77,12 +77,15 @@ class Mixer(Unit):
     def _assert_compatible_property_package(self): 
         pass # Not necessary for mixing streams
     
-    def _init(self, rigorous: Optional[bool]=False):
+    def _init(self, rigorous: Optional[bool]=False,
+              conserve_phases: Optional[bool]=False):
         self.rigorous = rigorous
+        self.conserve_phases = conserve_phases
     
     def _run(self):
         s_out, = self.outs
-        s_out.mix_from(self.ins, vle=self.rigorous)
+        s_out.mix_from(self.ins, vle=self.rigorous,
+                       conserve_phases=self.conserve_phases)
         
 
 class SteamMixer(Unit):

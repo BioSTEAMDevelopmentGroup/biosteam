@@ -384,6 +384,7 @@ class MixTank(Tank):
     
     """
     rigorous = False
+    conserve_phases = False
     _N_ins = 2
     _ins_size_is_fixed = False
     _run = Mixer._run
