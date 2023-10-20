@@ -126,8 +126,13 @@ class SolidsCentrifuge(SolidsSeparator):
 
 
     def _init(self, split, order=None, solids=(), moisture_content=0.40,
-              centrifuge_type='scroll_solid_bowl', moisture_ID=None):
-        SolidsSeparator._init(self, moisture_content=moisture_content, split=split, order=order, moisture_ID=moisture_ID)
+              centrifuge_type='scroll_solid_bowl', moisture_ID=None,
+              strict_moisture_content=None):
+        SolidsSeparator._init(
+            self, moisture_content=moisture_content,
+            split=split, order=order, moisture_ID=moisture_ID,
+            strict_moisture_content=strict_moisture_content
+        )
         self.solids = solids
         self.centrifuge_type = centrifuge_type
     
