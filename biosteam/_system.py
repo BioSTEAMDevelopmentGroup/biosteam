@@ -2697,7 +2697,7 @@ class System:
         agents = (*bst.HeatUtility.cooling_agents,
                   *bst.HeatUtility.heating_agents)
         heat_utilities = self.heat_utilities
-        return sum([self.get_net_heat_utility_impact(i, key, heat_utilities) for i in agents]) * self.operating_hours + self.get_net_electricity_impact(key)
+        return sum([self.get_net_heat_utility_impact(i, key, heat_utilities) for i in agents]) + self.get_net_electricity_impact(key)
     
     def get_total_feeds_impact(self, key):
         """
