@@ -297,6 +297,7 @@ class ThermalOxidizer(Unit):
         combustion_rxns.force_reaction(dummy_emissions)
         O2 = max(-dummy_emissions.imol['O2'], 0.) # Missing oxygen
         air.imol['N2', 'O2'] += [0.79/0.21 * O2, O2]
+        emissions.mix_from(self.ins)
         # Account for temperature raise
         combustion_rxns.adiabatic_reaction(emissions)
         
