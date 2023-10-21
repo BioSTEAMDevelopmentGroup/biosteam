@@ -61,7 +61,7 @@ class Parameter(Feature):
         self.distribution = distribution
         if not bounds:
             if distribution: bounds = (distribution.lower[0], distribution.upper[0])
-        if bounds and not baseline:
+        if bounds and baseline is None:
             baseline = 0.5 * (bounds[0] + bounds[1])
         self.baseline = baseline
         self.bounds = bounds
