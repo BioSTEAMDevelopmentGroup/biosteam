@@ -248,8 +248,11 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
             vessel_type: Optional[str]=None,
             batch: Optional[bool]=None,
             tau_0: Optional[float]=None,
+            adiabatic: Optional[bool]=None,
         ):
-        self.T = self.T_default if T is None else T
+        if adiabatic is None: adiabatic = False
+        self.T = self.T_default if (T is None and not adiabatic) else T
+        self.adiabatic = adiabatic
         self.P = self.P_default if P is None else P
         self.dT_hx_loop = self.dT_hx_loop_default if dT_hx_loop is None else abs(dT_hx_loop)
         self.tau = self.tau_default if tau is None else tau
@@ -264,6 +267,7 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
         self.load_auxiliaries()
 
     def load_auxiliaries(self):
+        if self.adiabatic: return
         pump = self.auxiliary('recirculation_pump', bst.Pump)
         if self.batch:
             self.auxiliary('heat_exchanger', bst.HXutility, pump-0) 
@@ -312,9 +316,10 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
         Design['Residence time'] = self.tau
         Design.update(self._vessel_design(float(P_psi), float(D), float(L)))
         self.vacuum_system = bst.VacuumSystem(self) if P_pascal < 1e5 else None
-        duty = self._get_duty()
         self.parallel['self'] = N
         self.parallel['vacuum_system'] = 1 # Not in parallel
+        if self.adiabatic: return
+        duty = self._get_duty()
         if duty:
             # Note: Flow and duty are rescaled to simulate an individual
             # heat exchanger, then BioSTEAM accounts for number of units in parallel
