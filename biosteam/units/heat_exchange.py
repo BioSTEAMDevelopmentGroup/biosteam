@@ -793,10 +793,10 @@ class HXprocess(HX):
         #: [float] Temperature limit of outlet stream at index 1.
         self.T_lim1 = T_lim1
         
-        #: [float] Temperature limit of outlet stream at index 0.
+        #: [float] Enthalpy limit of outlet stream at index 0.
         self.H_lim0 = H_lim0
         
-        #: [float] Temperature limit of outlet stream at index 1.
+        #: [float] Enthalpy limit of outlet stream at index 1.
         self.H_lim1 = H_lim1
         
         #: [str] Enforced phase of outlet at index 0
