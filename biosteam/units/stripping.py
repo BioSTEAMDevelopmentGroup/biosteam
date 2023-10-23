@@ -7,7 +7,8 @@
 # for license details.
 """
 """
-
+import numpy as np
+from scipy.stats import gmean
 import biosteam as bst
 import thermosteam as tmo
 from .design_tools.specification_factors import  (
@@ -22,9 +23,9 @@ from .phase_equilibrium import MultiStageEquilibrium
 
 
 
-__all__ = ('Stripping',)
+__all__ = ('AdiabaticMultiStageVLEColumn', 'Stripper', 'Absorber',)
 
-class Stripping (MultiStageEquilibrium):
+class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
     r"""
     Stripping column class.  
     The diameter is based on tray separation
@@ -34,23 +35,13 @@ class Stripping (MultiStageEquilibrium):
     Parameters
     ----------
     ins :
-        Inlet fluids
-        * [0] Molar flow rate of solute-free gas (gas carrier)
-        * [1]  Molar flow rate of solute-free absorbent (liquid)      
+        * [0] Molar flow rate of solute-free absorbent (liquid) 
+        * [1] Molar flow rate of solute-free gas (gas carrier)
     outs :
-        * [0] Molar flow rate of gas stream
-        * [1] Molar flow rate of liquid stream
-
-    y : float
-        Mole ratio of solute to solute-free gas in the vapor.
-    x : float
-        Mole ratio of solute to solute-ree absorbent in the liquid.
-
+        * [0] Molar flow rate of liquid stream
+        * [1] Molar flow rate of gas stream
     P : float
         Operating pressure [Pa].
-    T : float
-        Operating Temperature.
-       
     vessel_material : str, optional
         Vessel construction material. Defaults to 'Carbon steel'.
     tray_material : str, optional
@@ -73,40 +64,74 @@ class Stripping (MultiStageEquilibrium):
         Enforced fraction of downcomer area to net (total) area of a tray.
         If None, estimate ratio based on Oliver's estimation [1]_.
 
-
+    Examples
+    --------
+    >>> import biosteam as bst
+    >>> bst.settings.set_thermo(['AceticAcid', 'EthylAcetate', 'Water', 'MTBE'], cache=True)
+    >>> feed = bst.Stream('feed', Water=75, AceticAcid=5, MTBE=20, T=320)
+    >>> steam = bst.Stream('steam', Water=100, phase='g', T=390)
+    >>> stripper = bst.Stripper("U1",
+    ...     N_stages=2, ins=[feed, steam], 
+    ...     solute="AceticAcid", outs=['vapor', 'liquid']
+    ... )
+    >>> stripper.simulate()
+    >>> stripper.show()
+    AdiabaticMultiStageVLEColumn: U1
+    ins...
+    [0] feed  
+        phase: 'l', T: 320 K, P: 101325 Pa
+        flow (kmol/hr): AceticAcid  5
+                        Water       75
+                        MTBE        20
+    [1] steam  
+        phase: 'g', T: 390 K, P: 101325 Pa
+        flow (kmol/hr): Water  100
+    outs...
+    [0] vapor  
+        phase: 'g', T: 366.33 K, P: 101325 Pa
+        flow (kmol/hr): AceticAcid  3.72
+                        Water       73.8
+                        MTBE        20
+    [1] liquid  
+        phase: 'l', T: 372.87 K, P: 101325 Pa
+        flow (kmol/hr): AceticAcid  1.28
+                        Water       101
+                        MTBE        0.000309
+    
+    >>> stripper.results()
+    Absorption                                 Units       U1
+    Design              Actual stages                       4
+                        Height                    ft       14
+                        Diameter                  ft        3
+                        Wall thickness            in    0.312
+                        Weight                    lb 1.99e+03
+    Purchase cost       Trays                    USD 4.37e+03
+                        Tower                    USD 2.47e+04
+                        Platform and ladders     USD 5.68e+03
+    Total purchase cost                          USD 3.47e+04
+    Utility cost                              USD/hr        0
+    
     """
-    line = 'Stripping'
-   
     _graphics = vertical_column_graphics
     _ins_size_is_fixed = False
     _N_ins = 2
     _N_outs = 2
-    _units = {
-              'Stripper height': 'ft',
-              'Stripper diameter': 'ft',
-              'Stripper wall thickness': 'in',
-              'Stripper weight': 'lb',
-              'Height': 'ft',
+    _units = {'Height': 'ft',
               'Diameter': 'ft',
               'Wall thickness': 'in',
               'Weight': 'lb'}
     _max_agile_design = (
-        'Actual stages',      
-        'Stripper height',
-        'Stripper diameter',
-        'Stripper wall thickness',
-        'Stripper weight',      
+        'Actual stages',       
         'Height',
         'Diameter',
         'Wall thickness',
         'Weight',
     )
-    _F_BM_default = { 'Stripper trays': 4.3,
-                      'Platform and ladders': 1.,                    
-                      'Stripper platform and ladders': 1.,
-                      'Tower': 4.3,
-                      'Trays': 4.3,
-                      }
+    _F_BM_default = {
+        'Platform and ladders': 1,
+        'Tower': 4.3,
+        'Trays': 4.3,
+    }
    
     # [dict] Bounds for results
     _bounds = {'Diameter': (3., 24.),
@@ -114,13 +139,11 @@ class Stripping (MultiStageEquilibrium):
                'Weight': (9000., 2.5e6)}
    
     def _init(self,
-            ins,
-            x ,
-            y ,        
-            P = None,
-            T = None,
-           
-            product_specification_format=None,
+            N_stages, feed_stages, 
+            top_side_draws, bottom_side_draws,
+            solute, # Needed to compute the Murphree stage efficiency 
+            P=101325,  
+            partition_data=None, 
             vessel_material='Carbon steel',
             tray_material='Carbon steel',
             tray_type='Sieve',
@@ -130,19 +153,16 @@ class Stripping (MultiStageEquilibrium):
             foaming_factor=1.0,
             open_tray_area_fraction=0.1,
             downcomer_area_fraction=None,  
+            use_cache=None,
         ):
-
-       
-        # Operation specifications
-        self.x = x
-        self.y = y
-        self.L_feed = ins[1]
-        self.P = P
-        self.T = T
-
-
+        super()._init(N_stages=N_stages, feed_stages=feed_stages,
+                      top_side_draws=top_side_draws, 
+                      bottom_side_draws=bottom_side_draws,
+                      phases=("g", "l"),
+                      P=P, use_cache=use_cache)
        
         # Construction specifications
+        self.solute = solute
         self.vessel_material = vessel_material
         self.tray_type = tray_type
         self.tray_material = tray_material
@@ -153,17 +173,6 @@ class Stripping (MultiStageEquilibrium):
         self.open_tray_area_fraction = open_tray_area_fraction
         self.downcomer_area_fraction = downcomer_area_fraction
        
-       
-
-   
-    @property
-    def vapor_out(self):
-        return self.outs[0]
-    @property
-    def liquid_out(self):
-        return self.outs[1]
-       
-
     @property
     def tray_spacing(self):
         return self._TS
@@ -259,39 +268,60 @@ class Stripping (MultiStageEquilibrium):
             raise ValueError("vessel material must be one of the following: "
                             f"{', '.join(distillation_column_material_factors)}")
    
-   
-    @property
-    def V_feed(self):
-        return self.ins[0]
-
+    def _actual_stages(self):
+        """Return a tuple with the actual number of stages for the rectifier and the stripper."""
+        eff = self.stage_efficiency
+        if eff is None:
+            # Calculate Murphree Efficiency
+            vapor, liquid = self.outs
+            mu = liquid.get_property('mu', 'mPa*s')
+            alpha = self._get_relative_volatilities()
+            L_Rmol = liquid.F_mol
+            V_Rmol = vapor.F_mol
+            eff = design.compute_murphree_stage_efficiency(
+                mu, alpha, L_Rmol, V_Rmol
+            )
+            
+        # Calculate actual number of stages
+        return np.ceil(self.N_stages / eff)
        
-    def _stripping_column_design(self):
+    def _get_relative_volatilities(self):
+        stages = self.stages
+        IDs = stages[0].partition.IDs
+        solute = self.solute
+        index = IDs.index(solute)
+        K = gmean([i.partition.K[index] for i in stages])
+        if self.vapor.imol[solute] > self.vapor.imol[solute]:
+            self.line = "Stripping"
+            alpha = 1 / K
+        else:
+            self.line = "Absorption"
+            alpha = K
+        return alpha
+       
+    def _design(self):
         vapor_out, liquid_out = self.outs
         Design = self.design_results
-        Sstages = self._compute_N_stages()
+        N_stages = self.N_stages
         TS = self._TS
         A_ha = self._A_ha
         F_F = self._F_F
         f = self._f
-        V_feed = self._V_feed
        
-        ### Get diameter of stripping column based on feed plate ###
+        ### Get diameter of stripping column based on outlets ###
         rho_L = liquid_out.rho
-   
-        V = V_feed.F_mass
-        V_vol = V_feed.get_total_flow('m^3/s')
-        rho_V = V_feed.rho
+        V = vapor_out.F_mass
+        V_vol = vapor_out.get_total_flow('m^3/s')
+        rho_V = vapor_out.rho
         L = liquid_out.F_mass # To get liquid going down
         F_LV = design.compute_flow_parameter(L, V, rho_V, rho_L)
         C_sbf = design.compute_max_capacity_parameter(TS, F_LV)
-       
-       
-        sigma = L.get_property('sigma', 'dyn/cm')
+        sigma = liquid_out.get_property('sigma', 'dyn/cm')
         U_f = design.compute_max_vapor_velocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha)
         A_dn = self._A_dn
         if A_dn is None:
             A_dn = design.compute_downcomer_area_fraction(F_LV)
-        S_diameter = design.compute_tower_diameter(V_vol, U_f, f, A_dn) * 3.28
+        diameter = design.compute_tower_diameter(V_vol, U_f, f, A_dn) * 3.28
         Po = self.P * 0.000145078 # to psi
         rho_M = material_densities_lb_per_in3[self.vessel_material]
        
@@ -301,14 +331,11 @@ class Stripping (MultiStageEquilibrium):
                  'required', category=RuntimeWarning)
 
         else:
-            Design['Actual stages'] =  Sstages
-            Design['Height'] = H = design.compute_tower_height(TS, Sstages-2) * 3.28
-            Design['Diameter'] = Di = max(( S_diameter))
+            Design['Actual stages'] =  self._actual_stages()
+            Design['Height'] = H = design.compute_tower_height(TS, N_stages-2) * 3.28
+            Design['Diameter'] = Di = diameter
             Design['Wall thickness'] = tv = design.compute_tower_wall_thickness(Po, Di, H)
             Design['Weight'] = design.compute_tower_weight(Di, H, tv, rho_M)
-        self._simulate_components()
-   
-
 
     def _cost(self):
         Design = self.design_results
@@ -328,6 +355,4 @@ class Stripping (MultiStageEquilibrium):
            
         Cost['Platform and ladders'] = design.compute_plaform_ladder_cost(Di, H)
        
-       
-    def _design(self):
-        self._stripping_column_design
+Stripper = Absorber = AdiabaticMultiStageVLEColumn
