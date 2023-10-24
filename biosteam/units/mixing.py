@@ -17,6 +17,7 @@ from .._unit import Unit
 from .._graphics import mixer_graphics
 import flexsolve as flx
 import biosteam as bst
+from typing import Optional
 
 __all__ = ('Mixer', 'SteamMixer', 'FakeMixer', 'MockMixer')
 
@@ -30,6 +31,8 @@ class Mixer(Unit):
         Inlet fluids to be mixed.
     outs : 
         Mixed outlet fluid.
+    rigorous :
+        Whether to perform vapor-liquid equilibrium.
     
     Notes
     -----
@@ -74,13 +77,15 @@ class Mixer(Unit):
     def _assert_compatible_property_package(self): 
         pass # Not necessary for mixing streams
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, rigorous=False):
-        Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, rigorous: Optional[bool]=False,
+              conserve_phases: Optional[bool]=False):
         self.rigorous = rigorous
+        self.conserve_phases = conserve_phases
     
     def _run(self):
         s_out, = self.outs
-        s_out.mix_from(self.ins, vle=self.rigorous)
+        s_out.mix_from(self.ins, vle=self.rigorous,
+                       conserve_phases=self.conserve_phases)
         
 
 class SteamMixer(Unit):
@@ -167,11 +172,9 @@ class SteamMixer(Unit):
     _ins_size_is_fixed = False
     _graphics = mixer_graphics
     installation_cost = purchase_cost = 0.
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
-                 P, T=None, solids_loading=None, 
-                 liquid_IDs=['7732-18-5'], solid_IDs=None,
-                 solids_loading_includes_steam=None):
-        Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, P, T=None, solids_loading=None, 
+             liquid_IDs=['7732-18-5'], solid_IDs=None,
+             solids_loading_includes_steam=None):
         self.P = P
         self.T = T
         self.solids_loading = solids_loading

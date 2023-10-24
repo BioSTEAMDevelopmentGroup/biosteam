@@ -95,17 +95,17 @@ class PolishingFilter(bst.Unit):
     _pumps =  ('lift', 'recir', 'eff', 'sludge')
 
 
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 filter_type='aerobic',
-                 OLR=(0.5+4)/2/24, # from the 0.5-4 kg/m3/d uniform range in ref [1]
-                 HLR=(0.11+0.44)/2, # from the 0.11-0.44  uniform range in ref [1]
-                 X_decomp=0.74, X_growth=0.22, # X_decomp & X_growth from ref[2]
-                 split={}, T=30+273.15,
-                 include_degassing_membrane=False,
-                 include_pump_building_cost=False,
-                 include_excavation_cost=False,
-                 hxn_ok=False):
-        bst.Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, 
+            filter_type='aerobic',
+            OLR=(0.5+4)/2/24, # from the 0.5-4 kg/m3/d uniform range in ref [1]
+            HLR=(0.11+0.44)/2, # from the 0.11-0.44  uniform range in ref [1]
+            X_decomp=0.74, X_growth=0.22, # X_decomp & X_growth from ref[2]
+            split={}, T=30+273.15,
+            include_degassing_membrane=False,
+            include_pump_building_cost=False,
+            include_excavation_cost=False,
+            hxn_ok=False
+        ):
         self.filter_type = filter_type
         self.OLR = OLR
         self.HLR = HLR

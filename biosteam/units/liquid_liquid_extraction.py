@@ -116,10 +116,8 @@ class LLEUnit(bst.Unit, isabstract=True):
     """
     _N_outs = 2
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None,
-                 top_chemical=None, efficiency=1.0, cache_tolerance=1e-6,
-                 forced_split_IDs=None, forced_split=None):
-        bst.Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, top_chemical=None, efficiency=1.0, cache_tolerance=1e-6,
+              forced_split_IDs=None, forced_split=None):
         #: [str] Identifier of chemical that will be favored in the low density phase.
         self.top_chemical = top_chemical
         #: [float] Fraction of feed in liquid-liquid equilibrium.
@@ -190,7 +188,7 @@ class LiquidsCentrifuge(Unit, isabstract=True):
 # TODO: Remove this in favor of partition coefficients
 class LiquidsRatioCentrifuge(LiquidsCentrifuge):
     line = 'Liquids centrifuge'
-    __init__ = RatioFlash.__init__
+    _init = RatioFlash._init
     _run = RatioFlash._run
 
 
@@ -222,7 +220,7 @@ class LiquidsSplitCentrifuge(LiquidsCentrifuge):
     
     """
     line = 'Liquids centrifuge'
-    __init__ = Splitter.__init__
+    _init = Splitter._init
     _run = Splitter._run
     split = Splitter.split
     isplit = Splitter.isplit
@@ -368,11 +366,8 @@ class SLLECentrifuge(Unit):
     def solids_isplit(self):
         return self._solids_isplit
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 solids_split, top_chemical=None, efficiency=1.0,
-                 moisture_content=0.5):
-        Unit.__init__(self, ID, ins, outs, thermo)
-        
+    def _init(self, solids_split, top_chemical=None, efficiency=1.0,
+              moisture_content=0.5):
         # [ChemicalIndexer] Splits to 0th outlet stream.
         self._solids_isplit = self.thermo.chemicals.isplit(solids_split)
         
@@ -488,10 +483,7 @@ class SolidLiquidsSplitCentrifuge(Unit):
     def aqueous_isplit(self):
         return self._aqueous_isplit
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 aqueous_split, solids_split, moisture_content=0.5):
-        Unit.__init__(self, ID, ins, outs, thermo)
-        
+    def _init(self, aqueous_split, solids_split, moisture_content=0.5):
         # [ChemicalIndexer] Splits to 1st outlet stream (aqueous/heavy phase).
         self._aqueous_isplit = self.thermo.chemicals.isplit(aqueous_split)
         
@@ -544,11 +536,8 @@ class LiquidsMixingTank(bst.Unit, PressureVessel):
     _N_ins = 3
     _N_outs = 1
     
-    def __init__(self, ID="", ins=None, outs=(), thermo=None, *,
-                 tau=0.022, agitator_kW_per_m3=1.0, length_to_diameter=1,
-                 vessel_material='Carbon steel',
-                 vessel_type='Vertical'):
-        bst.Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, tau=0.022, agitator_kW_per_m3=1.0, length_to_diameter=1,
+              vessel_material='Carbon steel', vessel_type='Vertical'):
         self.length_to_diameter = length_to_diameter
         self.vessel_material = vessel_material
         self.vessel_type = vessel_type
@@ -605,12 +594,10 @@ class LiquidsSettler(bst.Unit, PressureVessel, isabstract=True):
     _N_ins = 1
     _N_outs = 2
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 area_to_feed=0.1, 
-                 length_to_diameter=4,
-                 vessel_material='Carbon steel',
-                 vessel_type='Horizontal'):
-        bst.Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, area_to_feed=0.1, 
+              length_to_diameter=4,
+              vessel_material='Carbon steel',
+              vessel_type='Horizontal'):
         self.vessel_material = vessel_material
         self.vessel_type = vessel_type
         self.length_to_diameter = length_to_diameter #: Length to diameter ratio
@@ -665,16 +652,16 @@ class LLESettler(LLEUnit, LiquidsSettler):
     
     """
     line = 'Settler'
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 area_to_feed=0.1, 
-                 length_to_diameter=4,
-                 vessel_material='Carbon steel',
-                 vessel_type='Horizontal',
-                 top_chemical=None,
-                 efficiency=1.0,
-                 cache_tolerance=1e-6,
+    def _init(self, 
+            area_to_feed=0.1, 
+            length_to_diameter=4,
+            vessel_material='Carbon steel',
+            vessel_type='Horizontal',
+            top_chemical=None,
+            efficiency=1.0,
+            cache_tolerance=1e-6,
         ):
-        LLEUnit.__init__(self, ID, ins, outs, thermo, top_chemical, efficiency)
+        LLEUnit._init(self, top_chemical, efficiency)
         self.vessel_material = vessel_material
         self.vessel_type = vessel_type
         self.length_to_diameter = length_to_diameter
@@ -710,13 +697,13 @@ class LiquidsSplitSettler(LiquidsSettler):
     
     """
     line = 'Settler'
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 split, order=None,
-                 area_to_feed=0.1, 
-                 length_to_diameter=4,
-                 vessel_material='Carbon steel',
-                 vessel_type='Horizontal'):
-        bst.Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, 
+            split, order=None,
+            area_to_feed=0.1, 
+            length_to_diameter=4,
+            vessel_material='Carbon steel',
+            vessel_type='Horizontal'
+        ):
         self.vessel_material = vessel_material
         self.vessel_type = vessel_type
         self.length_to_diameter = length_to_diameter
@@ -755,13 +742,13 @@ class LiquidsPartitionSettler(LiquidsSettler):
     
     """
     line = 'Settler'
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 partition_coefficients, partion_IDs, 
-                 area_to_feed=0.1, 
-                 length_to_diameter=4,
-                 vessel_material='Carbon steel',
-                 vessel_type='Horizontal'):
-        bst.Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, 
+            partition_coefficients, partion_IDs, 
+            area_to_feed=0.1, 
+            length_to_diameter=4,
+            vessel_material='Carbon steel',
+            vessel_type='Horizontal'
+        ):
         self.vessel_material = vessel_material
         self.vessel_type = vessel_type
         self.length_to_diameter = length_to_diameter
@@ -899,10 +886,7 @@ class MixerSettler(bst.Unit):
     for i,j in LiquidsSettler._units.items(): 
         _units['Settler - ' + i] = j
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, 
-                 solvent_ID=None, mixer_data={}, settler_data={}, model="LLE"):
-        bst.Unit.__init__(self, ID, ins, outs, thermo)
-        
+    def _init(self, solvent_ID=None, mixer_data={}, settler_data={}, model="LLE"):
         #: [LiquidsMixingTank] Mixer portion of the mixer-settler.
         #: All data and settings for the design of the mixing tank are stored here.
         self.mixer = mixer = LiquidsMixingTank(None, None, (None,),
@@ -1146,13 +1130,27 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
     """
     _units = MixerSettler._units
     
-    def __init__(self, ID="", ins=None, outs=(), thermo=None, *, N_stages,
-                 partition_data=None, solvent_ID=None, feed_stages=None, 
-                 raffinate_side_draws=None, extract_side_draws=None,
-                 mixer_data={}, settler_data={}, use_cache=None):
-        bst.MultiStageEquilibrium.__init__(
-            self, ID, ins, outs, thermo,
-            N_stages=N_stages, feed_stages=feed_stages, phases=('l', 'L'), P=101325,
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, 
+                 feed_stages=None, extract_side_draws=None, raffinate_side_draws=None, 
+                 **kwargs):
+        if extract_side_draws is None: extract_side_draws = {}
+        elif not isinstance(extract_side_draws, dict): extract_side_draws = dict(extract_side_draws)
+        if raffinate_side_draws is None: raffinate_side_draws = {}
+        elif not isinstance(raffinate_side_draws, dict): raffinate_side_draws = dict(raffinate_side_draws)
+        if feed_stages is None: feed_stages = (0, -1)
+        self._N_ins = len(feed_stages)
+        self._N_outs = 2 + len(extract_side_draws) + len(raffinate_side_draws)
+        Unit.__init__(self, ID, ins, outs, thermo, 
+                      feed_stages=feed_stages,
+                      extract_side_draws=extract_side_draws, 
+                      raffinate_side_draws=raffinate_side_draws,
+                      **kwargs)
+    
+    def _init(self, N_stages, feed_stages, extract_side_draws, 
+              raffinate_side_draws, partition_data=None, solvent_ID=None,  
+              mixer_data={}, settler_data={}, use_cache=None):
+        bst.MultiStageEquilibrium._init(
+            self, N_stages=N_stages, feed_stages=feed_stages, phases=('l', 'L'), P=101325,
             top_side_draws=extract_side_draws, bottom_side_draws=raffinate_side_draws,
             stage_specifications=None, partition_data=partition_data, 
             solvent=solvent_ID, use_cache=use_cache,
@@ -1190,12 +1188,13 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
         args = (self.N_stages, self.feed_stages, self.extract_side_draws, self.use_cache,
                 *self._ins, self.raffinate_side_draws, self.solvent_ID, self.partition_data)
         if args != self._last_args:
-            MultiStageEquilibrium.__init__(
-                self, self.ID, self.ins, self.outs, self.thermo,
-                N_stages=self.N_stages, feed_stages=self.feed_stages, phases=('l', 'L'), P=self.P,
-                top_side_draws=self.extract_side_draws, bottom_side_draws=self.raffinate_side_draws,
+            MultiStageEquilibrium._init(
+                self, N_stages=self.N_stages, feed_stages=self.feed_stages,
+                phases=('l', 'L'), P=self.P,
+                top_side_draws=self.extract_side_draws, 
+                bottom_side_draws=self.raffinate_side_draws,
                 stage_specifications=None, partition_data=self.partition_data, 
-                solvent=self.solvent_ID, use_cache=self.use_cache,
+                solvent=self.solvent_ID, use_cache=self.use_cache, 
             )
             self.mixer._ins = self._ins
             self.settler._outs = self._outs

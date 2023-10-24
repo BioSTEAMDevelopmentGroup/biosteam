@@ -1089,10 +1089,11 @@ def plot_contour_2d(X, Y, Z,
             cbs[row] = metric_bar.colorbar(fig, cbar_ax, cp, fraction=0.5, shrink=metric_bar.shrink,)
         
         # plt.clim()
-    for col in range(ncols):
-        title = titles[col]
-        ax = axes[0, col]
-        ax.set_title(title, color=title_color, fontsize=10, fontweight='bold')
+    if titles:
+        for col in range(ncols):
+            title = titles[col]
+            ax = axes[0, col]
+            ax.set_title(title, color=title_color, fontsize=10, fontweight='bold')
     if row_bars:
         for ax in axes[:, -1]:
             plt.sca(ax)

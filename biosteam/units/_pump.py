@@ -142,13 +142,13 @@ class Pump(Unit):
                             f"{', '.join(pump_material_factors)}")
         self._material = material  
         
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 P=None,
-                 pump_type='Default',
-                 material='Cast iron',
-                 dP_design=101325,
-                 ignore_NPSH=True):
-        Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, 
+             P=None,
+             pump_type='Default',
+             material='Cast iron',
+             dP_design=101325,
+             ignore_NPSH=True
+        ):
         self.P = P
         self.pump_type = pump_type
         self.material = material

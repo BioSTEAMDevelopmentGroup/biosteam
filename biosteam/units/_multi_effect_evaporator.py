@@ -290,9 +290,8 @@ class MultiEffectEvaporator(Unit):
         else:
             raise ValueError("V_definition must be either 'Overall', 'First-effect', or 'First-effect duty'")
 
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, V, V_definition='Overall',
-                 flash=True, chemical='7732-18-5'):
-        Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, P, V, V_definition='Overall',
+              flash=True, chemical='7732-18-5'):
         self.P = P #: tuple[float] Pressures describing each evaporator (Pa).
         self.V = V #: [float] Molar fraction evaporated.
         self.V_definition = V_definition

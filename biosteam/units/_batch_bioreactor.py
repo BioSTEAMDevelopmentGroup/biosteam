@@ -98,10 +98,8 @@ class BatchBioreactor(Unit, isabstract=True):
         return (('Cleaning and unloading time', self.tau_0, 'hr'),
                 ('Working volume fraction', self.V_wf, ''))
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None,
-                 tau=None, N=None, V=None, T=305.15, P=101325,
-                 Nmin=2, Nmax=36):
-        Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, tau=None, N=None, V=None, T=305.15, P=101325,
+              Nmin=2, Nmax=36):
         self._N = N; self._V = V
         
         #: [float] Reaction time [hr].

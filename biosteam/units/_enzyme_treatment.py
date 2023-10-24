@@ -17,13 +17,12 @@ class EnzymeTreatment(MixTank):
     _N_outs = 1
     auxiliary_unit_names = ('heat_exchanger',)
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 vessel_type='Conventional', tau=1.0, V_wf=0.9,
+    def _init(self, vessel_type='Conventional', tau=1.0, V_wf=0.9,
                  vessel_material='Stainless steel', T=None):
-        MixTank.__init__(self, ID, ins, outs, thermo, vessel_type=vessel_type,
-                         tau=tau, V_wf=V_wf, vessel_material=vessel_material)
+        MixTank._init(self, vessel_type=vessel_type,
+                      tau=tau, V_wf=V_wf, vessel_material=vessel_material)
         self.T = T #: Operating temperature (if any)
-        self.heat_exchanger = HXutility(None, None, None, T=T, thermo=thermo)
+        self.heat_exchanger = HXutility(None, None, None, T=T, thermo=self.thermo)
     
     def _run(self):
         out = self.outs[0]

@@ -62,10 +62,10 @@ class Model(State):
         '_exception_hook',  # [callable(exception, sample)] Should return either None or metric value given an exception and the sample.
     )
     def __init__(self, system, metrics=None, specification=None, 
-                 parameters=None, retry_evaluation=True, exception_hook='warn'):
+                 parameters=None, retry_evaluation=True, exception_hook=None):
         super().__init__(system, specification, parameters)
         self.metrics = metrics or ()
-        self.exception_hook = exception_hook
+        self.exception_hook = 'warn' if exception_hook is None else exception_hook 
         self.retry_evaluation = retry_evaluation
         self.table = None
         self._erase()
@@ -106,7 +106,7 @@ class Model(State):
             elif exception_hook == 'warn':
                 self._exception_hook = lambda exception, sample: warn(FailedEvaluation(f"[{type(exception).__name__}] {exception}"), stacklevel=6)
             elif exception_hook == 'raise':
-                def raise_exception(exception, sample): raise exception
+                def raise_exception(exception, sample): raise exception from None
                 self._exception_hook = raise_exception
             else:
                 raise ValueError(f"invalid exception hook name '{exception_hook}'; "

@@ -63,8 +63,7 @@ class IsenthalpicValve(Valve, new_graphics=False):
 
     """
 
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, vle=False):
-        Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, P, vle=False):
         self.P: float = P  #: Outlet pressure [Pa].
 
         #: Whether to perform phase equilibrium calculations on the outflow.

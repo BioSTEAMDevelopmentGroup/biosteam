@@ -184,12 +184,10 @@ class Fermentation(BatchBioreactor):
                          0.45,  # Y_PS
                          0.18)  # a
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
-                 tau,  N=None, V=None, T=305.15, P=101325., Nmin=2, Nmax=36,
-                 efficiency=None, iskinetic=False, fermentation_reaction=None,
-                 cell_growth_reaction=None):
-        BatchBioreactor.__init__(self, ID, ins, outs, thermo,
-                                 tau=tau, N=N, V=V, T=T, P=P, Nmin=Nmin, Nmax=Nmax)
+    def _init(self, tau, N=None, V=None, T=305.15, P=101325., Nmin=2, Nmax=36,
+              efficiency=None, iskinetic=False, fermentation_reaction=None,
+              cell_growth_reaction=None):
+        BatchBioreactor._init(self, tau=tau, N=N, V=V, T=T, P=P, Nmin=Nmin, Nmax=Nmax)
         self._load_components()
         self.iskinetic = iskinetic
         chemicals = self.chemicals

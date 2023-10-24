@@ -137,9 +137,7 @@ class AmineAbsorption(Unit):
     _units = {'Total flow': 'kmol/hr',
               'CO2 flow':'kmol/hr'}
     
-    def __init__(self, ID='', ins=(), outs=(), thermo=None, *,
-                 CO2_recovery=0.9, MEA_to_CO2=1.5, heat_ratio=3611):
-        Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, CO2_recovery=0.9, MEA_to_CO2=1.5, heat_ratio=3611):
         self.CO2_recovery = CO2_recovery
         self.MEA_to_CO2 = MEA_to_CO2
         self.heat_ratio = heat_ratio

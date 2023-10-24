@@ -398,7 +398,7 @@ class HXutility(HX):
     line = 'Heat exchanger'
     _graphics = utility_heat_exchanger_graphics
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
+    def _init(self, 
             T=None, V=None, rigorous=False, U=None, H=None,
             heat_exchanger_type="Floating head",
             material="Carbon steel/carbon steel",
@@ -408,7 +408,6 @@ class HXutility(HX):
             cool_only=None,
             heat_transfer_efficiency=None,
         ):
-        super().__init__(ID, ins, outs, thermo)
         self.T = T #: [float] Temperature of outlet stream (K).
         self.V = V #: [float] Vapor fraction of outlet stream.
         self.H = H #: [float] Enthalpy of outlet stream.
@@ -447,7 +446,8 @@ class HXutility(HX):
     Q = total_heat_transfer # Alias for backward compatibility
     
     def simulate_as_auxiliary_exchanger(self, 
-            ins, outs=None, duty=None, vle=True, scale=None, hxn_ok=True, P=None,
+            ins, outs=None, duty=None, vle=True, scale=None, hxn_ok=True, 
+            P_in=None, P_out=None,
         ):
         inlet = self.ins[0]
         outlet = self.outs[0]
@@ -455,22 +455,32 @@ class HXutility(HX):
         if not outlet: outlet = outlet.materialize_connection(None)
         idata = inlet.get_data()
         inlet.mix_from(ins, energy_balance=False)
-        if P is None: P = inlet.P
-        if vle: inlet.vle(H=sum([i.H for i in ins]), P=P)
+        if P_in is None: 
+            P_in = inlet.P
+        else:
+            inlet.P = P_in
+        if vle: inlet.vle(H=sum([i.H for i in ins]), P=P_in)
         if outs is None:
             if duty is None: raise ValueError('must pass duty when no outlets are given')
             outlet.copy_like(inlet)
+            if P_out is None: 
+                P_out = outlet.P
+            else:
+                outlet.P = P_out
             if vle: 
-                outlet.vle(H=inlet.H + duty, P=P)
+                outlet.vle(H=inlet.H + duty, P=P_out)
             else:
                 outlet.Hnet = inlet.Hnet + duty
         else:
             outlet.mix_from(outs)
-            outlet.P = P
+            if P_out is None: 
+                P_out = outlet.P
+            else:
+                outlet.P = P_out
             if duty is None: 
                 duty = outlet.Hnet - inlet.Hnet
             elif vle: 
-                outlet.vle(H=inlet.H + duty, P=P)
+                outlet.vle(H=inlet.H + duty, P=P_out)
             else:
                 outlet.Hnet = inlet.Hnet + duty
         if scale is not None:
@@ -752,18 +762,16 @@ class HXprocess(HX):
     _N_ins = 2
     _N_outs = 2
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 U=None, dT=5., T_lim0=None, T_lim1=None,
-                 material="Carbon steel/carbon steel",
-                 heat_exchanger_type="Floating head",
-                 N_shells=2, ft=None, 
-                 phase0=None,
-                 phase1=None,
-                 H_lim0=None,
-                 H_lim1=None,
+    def _init(self, 
+            U=None, dT=5., T_lim0=None, T_lim1=None,
+            material="Carbon steel/carbon steel",
+            heat_exchanger_type="Floating head",
+            N_shells=2, ft=None, 
+            phase0=None,
+            phase1=None,
+            H_lim0=None,
+            H_lim1=None,
         ):
-        super().__init__(ID, ins, outs, thermo)
-        
         #: [float] Enforced overall heat transfer coefficent (kW/m^2/K)
         self.U = U
         
@@ -785,10 +793,10 @@ class HXprocess(HX):
         #: [float] Temperature limit of outlet stream at index 1.
         self.T_lim1 = T_lim1
         
-        #: [float] Temperature limit of outlet stream at index 0.
+        #: [float] Enthalpy limit of outlet stream at index 0.
         self.H_lim0 = H_lim0
         
-        #: [float] Temperature limit of outlet stream at index 1.
+        #: [float] Enthalpy limit of outlet stream at index 1.
         self.H_lim1 = H_lim1
         
         #: [str] Enforced phase of outlet at index 0

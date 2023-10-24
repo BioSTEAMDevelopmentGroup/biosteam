@@ -178,11 +178,9 @@ class DrumDryer(Unit):
         """[Stream] Natural gas to satisfy steam and electricity requirements."""
         return self.ins[2]
     
-    def __init__(self, ID="", ins=None, outs=(), thermo=None, *,
-                 split, R=1.4, H=20., length_to_diameter=25, T=343.15, P=10*101325,
-                 moisture_content=0.15, utility_agent='Natural gas',
-                 moisture_ID=None):
-        super().__init__(ID, ins, outs, thermo)
+    def _init(self, split, R=1.4, H=20., length_to_diameter=25, T=343.15, P=10*101325,
+              moisture_content=0.15, utility_agent='Natural gas',
+              moisture_ID=None):
         self._isplit = self.chemicals.isplit(split)
         self.define_utility('Natural gas', self.natural_gas)
         self.P = P
@@ -276,9 +274,7 @@ class ThermalOxidizer(Unit):
         """[Stream] Natural gas to satisfy steam and electricity requirements."""
         return self.ins[2]
     
-    def __init__(self, *args, tau=0.00014, duty_per_kg=61., V_wf=0.95, 
-                 **kwargs):
-        Unit.__init__(self, *args, **kwargs)
+    def _init(self, tau=0.00014, duty_per_kg=61., V_wf=0.95):
         self.define_utility('Natural gas', self.natural_gas)
         self.tau = tau
         self.duty_per_kg = duty_per_kg
@@ -301,6 +297,7 @@ class ThermalOxidizer(Unit):
         combustion_rxns.force_reaction(dummy_emissions)
         O2 = max(-dummy_emissions.imol['O2'], 0.) # Missing oxygen
         air.imol['N2', 'O2'] += [0.79/0.21 * O2, O2]
+        emissions.mix_from(self.ins)
         # Account for temperature raise
         combustion_rxns.adiabatic_reaction(emissions)
         

@@ -92,10 +92,8 @@ class Skipped(bst.Unit):
     _outs_size_is_fixed = False
     cache_dct = {} # to save some computation effort
 
-    def __init__(self, ID='', ins=None, outs=(), thermo=None,
-                 main_in=0, main_out=0, wwt_units=[], wwt_streams=[],
+    def _init(self, main_in=0, main_out=0, wwt_units=[], wwt_streams=[],
                  clear_wwt=False):
-        bst.Unit.__init__(self, ID, ins, outs, thermo)
         self.main_in = main_in
         self.main_out = main_out
         self.wwt_units = wwt_units
@@ -136,10 +134,9 @@ class CHP(bst.Unit):
     _ins_size_is_fixed = False
     _F_BM_default = {'CHP': 1.}
 
-    def __init__(self, ID='', ins=None, outs=(), thermo=None,
-                 eff=0.3375, # average of 40.5%, 27%, 36%, and 31.5% for the four types in ref [1]
-                 unit_CAPEX=1225):
-        bst.Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, 
+              eff=0.3375, # average of 40.5%, 27%, 36%, and 31.5% for the four types in ref [1]
+              unit_CAPEX=1225):
         self.eff = eff
         self.unit_CAPEX = unit_CAPEX
 
@@ -205,11 +202,10 @@ class BiogasUpgrading(bst.Unit):
     _N_ins = 2
     _N_outs = 2
 
-    def __init__(self, ID='', ins=None, outs=(), thermo=None,
+    def _init(self,
                  ratio=0, loss=0.05,
                  unit_upgrading_cost=4.92,
                  unit_upgrading_GWP=9.15):
-        bst.Unit.__init__(self, ID, ins, outs, thermo)
         self.ratio = ratio
         self.loss = loss
         self.unit_upgrading_cost = unit_upgrading_cost

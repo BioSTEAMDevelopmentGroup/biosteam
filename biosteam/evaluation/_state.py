@@ -347,7 +347,7 @@ class State:
             elif rule == 'RBD':
                 from SALib.sample import latin as sampler
             elif rule == 'SOBOL' or rule == 'SALTELLI':
-                from SALib.sample import saltelli as sampler
+                from SALib.sample import sobol as sampler
             else:
                 raise ValueError(f"invalid rule '{rule}'")
             problem = kwargs.pop('problem') if 'problem' in kwargs else self.problem()

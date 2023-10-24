@@ -234,8 +234,8 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
         return self.outs[-1]
     product = effluent
     
-    def __init__(
-            self, ID='', ins=None, outs=(), thermo=None, *, 
+    def _init(
+            self, 
             T: Optional[float]=None, 
             P: Optional[float]=None, 
             dT_hx_loop: Optional[float]=None,
@@ -248,10 +248,11 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
             vessel_type: Optional[str]=None,
             batch: Optional[bool]=None,
             tau_0: Optional[float]=None,
+            adiabatic: Optional[bool]=None,
         ):
-        
-        Unit.__init__(self, ID, ins, outs, thermo)
-        self.T = self.T_default if T is None else T
+        if adiabatic is None: adiabatic = False
+        self.T = self.T_default if (T is None and not adiabatic) else T
+        self.adiabatic = adiabatic
         self.P = self.P_default if P is None else P
         self.dT_hx_loop = self.dT_hx_loop_default if dT_hx_loop is None else abs(dT_hx_loop)
         self.tau = self.tau_default if tau is None else tau
@@ -266,6 +267,7 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
         self.load_auxiliaries()
 
     def load_auxiliaries(self):
+        if self.adiabatic: return
         pump = self.auxiliary('recirculation_pump', bst.Pump)
         if self.batch:
             self.auxiliary('heat_exchanger', bst.HXutility, pump-0) 
@@ -314,9 +316,10 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
         Design['Residence time'] = self.tau
         Design.update(self._vessel_design(float(P_psi), float(D), float(L)))
         self.vacuum_system = bst.VacuumSystem(self) if P_pascal < 1e5 else None
-        duty = self._get_duty()
         self.parallel['self'] = N
         self.parallel['vacuum_system'] = 1 # Not in parallel
+        if self.adiabatic: return
+        duty = self._get_duty()
         if duty:
             # Note: Flow and duty are rescaled to simulate an individual
             # heat exchanger, then BioSTEAM accounts for number of units in parallel
@@ -420,12 +423,11 @@ class AeratedBioreactor(StirredTankReactor):
     P_default = 101325
     kW_per_m3_default = 0.2955 # Reaction in homogeneous liquid; reference [1]
     
-    def __init__(
-            self, ID='', ins=None, outs=(), thermo=None,  
-            *, reactions, theta_O2=0.5, Q_O2_consumption=None,
+    def _init(
+            self, reactions, theta_O2=0.5, Q_O2_consumption=None,
             optimize_power=None, kLa_coefficients=None, **kwargs,
         ):
-        StirredTankReactor.__init__(self, ID, ins, outs, thermo, **kwargs)
+        StirredTankReactor._init(self, **kwargs)
         self.reactions = reactions
         self.theta_O2 = theta_O2 # Average concentration of O2 in the liquid as a fraction of saturation.
         self.Q_O2_consumption = Q_O2_consumption # Forced duty per O2 consummed [kJ/kmol].
@@ -701,11 +703,12 @@ class GasFedBioreactor(StirredTankReactor):
     P_default = 101325
     kW_per_m3_default = 0.2955 # Reaction in homogeneous liquid
     
-    def __init__(
-            self, ID='', ins=None, outs=(), thermo=None,  
-            *, reactions, backward_reactions, theta=0.5, Q_consumption=None,
+    def _init(self, 
+            reactions, gas_substrates, titer, backward_reactions, 
+            feed_gas_compositions, 
+            theta=0.5, Q_consumption=None,
             optimize_power=None, kLa_coefficients=None, 
-            gas_substrates, feed_gas_compositions, titer, mixins=None,
+            mixins=None,
             **kwargs,
         ):
         self.reactions = reactions
@@ -718,7 +721,7 @@ class GasFedBioreactor(StirredTankReactor):
         self.gas_substrates = gas_substrates
         self.titer = titer # dict[str, float] g / L
         self.mixins = {} if mixins is None else mixins # dict[int, tuple[int]] Pairs of variable feed gas index and inlets that will be mixed.
-        StirredTankReactor.__init__(self, ID, ins, outs, thermo, **kwargs)
+        StirredTankReactor._init(self, **kwargs)
     
     def _get_duty(self):
         if self.Q_consumption is None:

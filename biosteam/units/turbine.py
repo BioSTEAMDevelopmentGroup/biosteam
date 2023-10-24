@@ -74,10 +74,8 @@ class Turbine(Unit, isabstract=True):
             ),
     }
 
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
-                 P, eta=0.3, vle=False, turbine_type=None,
+    def _init(self, P, eta=0.3, vle=False, turbine_type=None,
                  material=None, efficiency=None):
-        Unit.__init__(self, ID, ins, outs, thermo)
         self.P = P  #: Outlet pressure [Pa].
         self.eta = eta  #: Isentropic efficiency.
 

@@ -18,7 +18,7 @@ class ProcessModel:
             break
             
     def load_model(self, model):
-        self._model = model
+        self.model = model
         for i in model.parameters:
             setattr(self, i.setter.__name__, i)
         for i in model.metrics:

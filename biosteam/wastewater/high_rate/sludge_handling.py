@@ -48,9 +48,7 @@ class SludgeHandling(bst.Unit):
     auxiliary_unit_names = ('effluent_pump', 'sludge_pump')
 
 
-    def __init__(self, ID='', ins=None, outs=(), thermo=None,
-                 sludge_moisture=0.96, solubles=()):
-        bst.Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, sludge_moisture=0.96, solubles=()):
         self.sludge_moisture = sludge_moisture
         self.solubles = tuple(solubles)
         self.solids = tuple(i.ID for i in self.chemicals
@@ -153,12 +151,10 @@ class BeltThickener(SludgeHandling):
 
     """
 
-    def __init__(self, ID='', ins=None, outs=(), thermo=None,
-                 sludge_moisture=0.96, solubles=(),
+    def _init(self, sludge_moisture=0.96, solubles=(),
                  max_capacity=100, power_demand=4.1):
-        SludgeHandling.__init__(self, ID, ins, outs, thermo,
-                                sludge_moisture=sludge_moisture,
-                                solubles=solubles)
+        SludgeHandling._init(self, sludge_moisture=sludge_moisture,
+                             solubles=solubles)
         self.max_capacity = max_capacity
         self.power_demand = power_demand
 
@@ -206,12 +202,10 @@ class SludgeCentrifuge(SludgeHandling, bst.SolidsCentrifuge):
     
     """
 
-    def __init__(self, ID='', ins=None, outs=(), thermo=None,
-                 sludge_moisture=0.8, solubles=(),
-                 centrifuge_type='scroll_solid_bowl'):
-        SludgeHandling.__init__(self, ID, ins, outs, thermo,
-                                sludge_moisture=sludge_moisture,
-                                solubles=solubles)
+    def _init(self, sludge_moisture=0.8, solubles=(),
+              centrifuge_type='scroll_solid_bowl'):
+        SludgeHandling._init(self, sludge_moisture=sludge_moisture,
+                             solubles=solubles)
         self.centrifuge_type = centrifuge_type
 
     _run = SludgeHandling._run

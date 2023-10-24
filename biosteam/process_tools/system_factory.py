@@ -342,6 +342,4 @@ def create_streams(defaults, user_streams, kind, fixed_size):
         streams += [as_stream(i) for i in user_streams[N_defaults:]]
     return streams
     
-system_factory_signature = signature(SystemFactory.__call__)
-system_factory_parameters = list(system_factory_signature.parameters.values())[1:-1]
-del system_factory_signature
+system_factory_parameters = list(signature(SystemFactory.__call__).parameters.values())[1:-1]
