@@ -199,7 +199,7 @@ def digraph_from_units(units, streams=None, auxiliaries=None, **graph_attrs):
                 if s in stream_set: continue
                 streams.append(s)
                 stream_set.add(s)
-            for name, auxunit in unit.get_nested_auxiliary_units_with_names(depth=auxiliaries):
+            for name, auxunit in unit._diagram_nested_auxiliary_units_with_names(depth=auxiliaries):
                 auxunit.owner = unit # In case units not created correctly through Unit.auxiliary method
                 if isinstance(auxunit, bst.Unit): 
                     auxunit._ID = name

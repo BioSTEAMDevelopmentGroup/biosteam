@@ -1930,7 +1930,8 @@ class System:
         elif N > 1:
             N = data.size
             M = sum([i.mol.size + 2 for i in recycles])
-            if M != N: raise IndexError(f'expected {N} elements; got {M} instead')
+            if M != N: 
+                raise IndexError(f'expected {N} elements; got {M} instead')
             index = 0
             for i in recycles:
                 end = index + i.mol.size + 2

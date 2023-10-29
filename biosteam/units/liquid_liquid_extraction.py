@@ -1128,23 +1128,8 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
     
 
     """
+    _side_draw_names = ('extract_side_draws', 'raffinate_side_draws')
     _units = MixerSettler._units
-    
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, 
-                 feed_stages=None, extract_side_draws=None, raffinate_side_draws=None, 
-                 **kwargs):
-        if extract_side_draws is None: extract_side_draws = {}
-        elif not isinstance(extract_side_draws, dict): extract_side_draws = dict(extract_side_draws)
-        if raffinate_side_draws is None: raffinate_side_draws = {}
-        elif not isinstance(raffinate_side_draws, dict): raffinate_side_draws = dict(raffinate_side_draws)
-        if feed_stages is None: feed_stages = (0, -1)
-        self._N_ins = len(feed_stages)
-        self._N_outs = 2 + len(extract_side_draws) + len(raffinate_side_draws)
-        Unit.__init__(self, ID, ins, outs, thermo, 
-                      feed_stages=feed_stages,
-                      extract_side_draws=extract_side_draws, 
-                      raffinate_side_draws=raffinate_side_draws,
-                      **kwargs)
     
     def _init(self, N_stages, feed_stages, extract_side_draws, 
               raffinate_side_draws, partition_data=None, solvent_ID=None,  
@@ -1170,10 +1155,11 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
             self.N_stages, self.feed_stages, self.extract_side_draws, self.use_cache,
             *self._ins, self.raffinate_side_draws, self.solvent_ID, self.partition_data
         )
-        self.reset_cache()
     
     feed = MixerSettler.feed
     solvent = MixerSettler.solvent
+    extract = MixerSettler.extract
+    raffinate = MixerSettler.raffinate
     
     @property
     def partition_data(self):

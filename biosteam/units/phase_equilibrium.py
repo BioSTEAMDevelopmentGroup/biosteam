@@ -149,20 +149,6 @@ class PhasePartition(Unit):
         self.B = None
         self.Q = 0.
     
-    @property
-    def extract(self):
-        return self.outs[0]
-    @property
-    def raffinate(self):
-        return self.outs[1]
-    
-    @property
-    def vapor(self):
-        return self.outs[0]
-    @property
-    def liquid(self):
-        return self.outs[1]
-    
     def _run(self, stacklevel=1, P=None, solvent=None, update=True,
              couple_energy_balance=True):
         if solvent is None: solvent = self.solvent
@@ -354,7 +340,8 @@ class MultiStageEquilibrium(Unit):
     ...     }
     ... )
     >>> MSE.simulate()
-    >>> MSE.extract.imol['Methanol'] / (feed.imol['Methanol'] + dilute_feed.imol['Methanol']) # Recovery
+    >>> extract, raffinate = MSE.outs
+    >>> extract.imol['Methanol'] / (feed.imol['Methanol'] + dilute_feed.imol['Methanol']) # Recovery
     1.0
     
     Simulate with a 60% extract side draw at the 2nd stage:
@@ -385,14 +372,14 @@ class MultiStageEquilibrium(Unit):
     ...     phases=('g', 'l'),
     ... )
     >>> MSE.simulate()
-    >>> MSE.vapor.imol['MTBE'] / feed.imol['MTBE']
+    >>> vapor, liquid = MSE.outs
+    >>> vapor.imol['MTBE'] / feed.imol['MTBE']
     0.99
-    >>> MSE.vapor.imol['Water'] / (feed.imol['Water'] + steam.imol['Water'])
+    >>> vapor.imol['Water'] / (feed.imol['Water'] + steam.imol['Water'])
     0.42
-    >>> MSE.vapor.imol['AceticAcid'] / feed.imol['AceticAcid']
+    >>> vapor.imol['AceticAcid'] / feed.imol['AceticAcid']
     0.74
     
-    # This feature is not yet ready for users
     # Simulate distillation column with 5 stages, a 0.673 reflux ratio, 
     # 2.57 boilup ratio, and feed at stage 2:
     >>> import biosteam as bst
@@ -404,9 +391,10 @@ class MultiStageEquilibrium(Unit):
     ...     phases=('g', 'l'),
     ... )
     >>> MSE.simulate()
-    >>> MSE.vapor.imol['Ethanol'] / feed.imol['Ethanol']
+    >>> vapor, liquid = MSE.outs
+    >>> vapor.imol['Ethanol'] / feed.imol['Ethanol']
     0.96
-    >>> MSE.vapor.imol['Ethanol'] / MSE.vapor.F_mol
+    >>> vapor.imol['Ethanol'] / vapor.F_mol
     0.69
     
     """
@@ -418,30 +406,57 @@ class MultiStageEquilibrium(Unit):
     auxiliary_unit_names = (
         'stages',
     )
-    def __init__(self,  ID='', ins=None, outs=(), thermo=None, 
-                 feed_stages=None, top_side_draws=None, bottom_side_draws=None,
-                 **kwargs):
+    _side_draw_names = ('top_side_draws', 'bottom_side_draws')
+    
+    def __init_subclass__(cls, *args, **kwargs):
+        super().__init_subclass__(cls, *args, **kwargs)
+        if '_side_draw_names' in cls.__dict__:
+            top, bottom = cls._side_draw_names
+            setattr(
+                cls, top, 
+                property(
+                    lambda self: self.top_side_draws,
+                    lambda self, value: setattr(self, 'top_side_draws', value)
+                )
+            )
+            setattr(
+                cls, bottom, 
+                property(
+                    lambda self: self.bottom_side_draws,
+                    lambda self, value: setattr(self, 'bottom_side_draws', value)
+                )
+            )
+    
+    def __init__(self,  ID='', ins=None, outs=(), thermo=None, **kwargs):
+        if 'feed_stages' in kwargs: self._N_ins = len(kwargs['feed_stages'])
+        top_side_draws, bottom_side_draws = self._side_draw_names
+        N_outs = 2
+        if top_side_draws in kwargs: N_outs += len(kwargs[top_side_draws]) 
+        if bottom_side_draws in kwargs: N_outs += len(kwargs[bottom_side_draws]) 
+        self._N_outs = N_outs
+        Unit.__init__(self, ID, ins, outs, thermo, **kwargs)
+    
+    def _init(self,
+            N_stages, 
+            top_side_draws=None,
+            bottom_side_draws=None, 
+            feed_stages=None, 
+            phases=None, 
+            P=101325, 
+            stage_specifications=None, 
+            partition_data=None, 
+            solvent=None, 
+            use_cache=None,
+        ):
+        # For VLE look for best published algorithm (don't try simple methods that fail often)
+        if phases is None: phases = ('g', 'l')
+        if feed_stages is None: feed_stages = (0, -1)
+        if stage_specifications is None: stage_specifications = {}
+        elif not isinstance(stage_specifications, dict): stage_specifications = dict(stage_specifications)
         if top_side_draws is None: top_side_draws = {}
         elif not isinstance(top_side_draws, dict): top_side_draws = dict(top_side_draws)
         if bottom_side_draws is None: bottom_side_draws = {}
         elif not isinstance(bottom_side_draws, dict): bottom_side_draws = dict(bottom_side_draws)
-        if feed_stages is None: feed_stages = (0, -1)
-        self._N_ins = len(feed_stages)
-        self._N_outs = 2 + len(top_side_draws) + len(bottom_side_draws)
-        Unit.__init__(self, ID, ins, outs, thermo, 
-                      feed_stages=feed_stages,
-                      top_side_draws=top_side_draws, 
-                      bottom_side_draws=bottom_side_draws,
-                      **kwargs)
-    
-    def _init(self,
-              N_stages, feed_stages, top_side_draws, bottom_side_draws,
-              phases=None, P=101325, stage_specifications=None, 
-              partition_data=None, solvent=None, use_cache=None):
-        # For VLE look for best published algorithm (don't try simple methods that fail often)
-        if phases is None: phases = ('g', 'l')
-        if stage_specifications is None: stage_specifications = {}
-        elif not isinstance(stage_specifications, dict): stage_specifications = dict(stage_specifications)
         self.multi_stream = tmo.MultiStream(None, P=P, phases=phases, thermo=self.thermo)
         self.N_stages = N_stages
         self.P = P
@@ -521,31 +536,6 @@ class MultiStageEquilibrium(Unit):
         self.relative_molar_tolerance = self.default_relative_molar_tolerance
         
         self.use_cache = True if use_cache else False
-                
-    @property
-    def extract(self):
-        return self.outs[0]
-    @property
-    def raffinate(self):
-        return self.outs[1]
-    @property
-    def extract_side_draws(self):
-        return self.top_side_draws
-    @property
-    def raffinate_side_draws(self):
-        return self.bottom_side_draws
-    @property
-    def vapor(self):
-        return self.outs[0]
-    @property
-    def liquid(self):
-        return self.outs[1]
-    @property
-    def vapor_side_draws(self):
-        return self.top_side_draws
-    @property
-    def liquid_side_draws(self):
-        return self.bottom_side_draws
     
     def correct_overall_mass_balance(self):
         outmol = sum([i.mol for i in self.outs])

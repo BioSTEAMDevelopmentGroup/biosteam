@@ -447,14 +447,13 @@ class HXutility(HX):
     
     def simulate_as_auxiliary_exchanger(self, 
             ins, outs=None, duty=None, vle=True, scale=None, hxn_ok=True, 
-            P_in=None, P_out=None,
+            P_in=None, P_out=None, update=False,
         ):
         inlet = self.ins[0]
         outlet = self.outs[0]
         if not inlet: inlet = inlet.materialize_connection(None)
         if not outlet: outlet = outlet.materialize_connection(None)
-        idata = inlet.get_data()
-        inlet.mix_from(ins, energy_balance=False)
+        inlet.mix_from(ins, conserve_phases=True)
         if P_in is None: 
             P_in = inlet.P
         else:
@@ -472,7 +471,7 @@ class HXutility(HX):
             else:
                 outlet.Hnet = inlet.Hnet + duty
         else:
-            outlet.mix_from(outs)
+            outlet.mix_from(outs, conserve_phases=True)
             if P_out is None: 
                 P_out = outlet.P
             else:
@@ -492,7 +491,6 @@ class HXutility(HX):
             design_kwargs=dict(duty=duty),
         )
         for i in self.heat_utilities: i.hxn_ok = hxn_ok
-        inlet.set_data(idata)
         
     def _run(self):
         feed = self.ins[0]

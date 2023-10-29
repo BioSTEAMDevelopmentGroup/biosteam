@@ -1608,6 +1608,30 @@ class Unit:
                     auxiliary_units.extend(auxunit.nested_auxiliary_units)
         return auxiliary_units
 
+    def _diagram_auxiliary_units_with_names(self) -> list[tuple[str, Unit]]:
+        """Return list of name - auxiliary unit pairs."""
+        getfield = getattr
+        isa = isinstance
+        auxiliary_units = []
+        names = (
+            self.diagram_auxiliary_unit_names 
+            if hasattr(self, 'diagram_auxiliary_unit_names')
+            else self.auxiliary_unit_names
+        )
+        for name in names:
+            unit = getfield(self, name, None)
+            if unit is None: continue 
+            if isa(unit, Iterable):
+                for i, u in enumerate(unit):
+                    auxiliary_units.append(
+                        (f"{name}[{i}]", u)
+                    )
+            else:
+                auxiliary_units.append(
+                    (name, unit)
+                )
+        return auxiliary_units
+    
     def get_auxiliary_units_with_names(self) -> list[tuple[str, Unit]]:
         """Return list of name - auxiliary unit pairs."""
         getfield = getattr
@@ -1625,6 +1649,23 @@ class Unit:
                 auxiliary_units.append(
                     (name, unit)
                 )
+        return auxiliary_units
+
+    def _diagram_nested_auxiliary_units_with_names(self, depth=-1) -> list[Unit]:
+        """Return list of all diagram auxiliary units, including nested ones."""
+        auxiliary_units = []
+        if depth: 
+            depth -= 1
+        else:
+            return auxiliary_units
+        for name, auxunit in self._diagram_auxiliary_units_with_names():
+            if auxunit is None: continue 
+            auxiliary_units.append((name, auxunit))
+            if not isinstance(auxunit, Unit): continue
+            auxiliary_units.extend(
+                [('.'.join([name, i]), j)
+                 for i, j in auxunit._diagram_nested_auxiliary_units_with_names(depth)]
+            )
         return auxiliary_units
 
     def get_nested_auxiliary_units_with_names(self, depth=-1) -> list[Unit]:
@@ -1665,8 +1706,6 @@ class Unit:
         
         """
         if thermo is None: thermo = self.thermo
-        if name not in self.auxiliary_unit_names:
-            raise RuntimeError(f'{name!r} not in auxiliary unit names')
         auxunit = cls.__new__(cls)
         stack = getattr(self, name, None)
         if isinstance(stack, list): 

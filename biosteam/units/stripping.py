@@ -21,25 +21,22 @@ from .._graphics import vertical_column_graphics
 from warnings import warn
 from .phase_equilibrium import MultiStageEquilibrium
 
-
-
 __all__ = ('AdiabaticMultiStageVLEColumn', 'Stripper', 'Absorber',)
 
 class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
     r"""
-    Stripping column class.  
-    The diameter is based on tray separation
-    and flooding velocity. Purchase costs are based on correlations
-    compiled by Warren et. al.
+    Create an adsorption or stripping column without a reboiler/condenser. 
+    The diameter is based on tray separation and flooding velocity. 
+    Purchase costs are based on correlations compiled by Warren et. al.
 
     Parameters
     ----------
     ins :
-        * [0] Molar flow rate of solute-free absorbent (liquid) 
-        * [1] Molar flow rate of solute-free gas (gas carrier)
+        * [0] Liquid
+        * [1] Vapor
     outs :
-        * [0] Molar flow rate of liquid stream
-        * [1] Molar flow rate of gas stream
+        * [0] Vapor
+        * [1] Liquid
     P : float
         Operating pressure [Pa].
     vessel_material : str, optional
@@ -70,12 +67,12 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
     >>> bst.settings.set_thermo(['AceticAcid', 'EthylAcetate', 'Water', 'MTBE'], cache=True)
     >>> feed = bst.Stream('feed', Water=75, AceticAcid=5, MTBE=20, T=320)
     >>> steam = bst.Stream('steam', Water=100, phase='g', T=390)
-    >>> stripper = bst.Stripper("U1",
+    >>> absorption = bst.Absorption("U1",
     ...     N_stages=2, ins=[feed, steam], 
     ...     solute="AceticAcid", outs=['vapor', 'liquid']
     ... )
-    >>> stripper.simulate()
-    >>> stripper.show()
+    >>> absorption.simulate()
+    >>> absorption.show()
     AdiabaticMultiStageVLEColumn: U1
     ins...
     [0] feed  
@@ -100,15 +97,16 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
     
     >>> stripper.results()
     Absorption                                 Units       U1
-    Design              Actual stages                       4
-                        Height                    ft       14
+    Design              Theoretical stages                  2
+                        Actual stages                       4
+                        Height                    ft     19.9
                         Diameter                  ft        3
                         Wall thickness            in    0.312
-                        Weight                    lb 1.99e+03
+                        Weight                    lb 2.71e+03
     Purchase cost       Trays                    USD 4.37e+03
-                        Tower                    USD 2.47e+04
-                        Platform and ladders     USD 5.68e+03
-    Total purchase cost                          USD 3.47e+04
+                        Tower                    USD 2.91e+04
+                        Platform and ladders     USD 7.52e+03
+    Total purchase cost                          USD  4.1e+04
     Utility cost                              USD/hr        0
     
     """
@@ -138,9 +136,11 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
                'Height': (27., 170.),
                'Weight': (9000., 2.5e6)}
    
+    _side_draw_names = ('vapor_side_draws', 'liquid_side_draws')
+    
     def _init(self,
             N_stages, feed_stages, 
-            top_side_draws, bottom_side_draws,
+            vapor_side_draws, liquid_side_draws,
             solute, # Needed to compute the Murphree stage efficiency 
             P=101325,  
             partition_data=None, 
@@ -156,8 +156,9 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
             use_cache=None,
         ):
         super()._init(N_stages=N_stages, feed_stages=feed_stages,
-                      top_side_draws=top_side_draws, 
-                      bottom_side_draws=bottom_side_draws,
+                      top_side_draws=vapor_side_draws, 
+                      bottom_side_draws=liquid_side_draws,
+                      partition_data=partition_data,
                       phases=("g", "l"),
                       P=P, use_cache=use_cache)
        
@@ -172,7 +173,39 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
         self.foaming_factor = foaming_factor
         self.open_tray_area_fraction = open_tray_area_fraction
         self.downcomer_area_fraction = downcomer_area_fraction
-       
+        self._last_args = (
+            self.N_stages, self.feed_stages, self.vapor_side_draws, 
+            self.liquid_side_draws, self.use_cache, *self._ins, 
+            self.solvent_ID, self.partition_data, self.P
+        )
+        
+    def _setup(self):
+        super()._setup()
+        args = (self.N_stages, self.feed_stages, self.vapor_side_draws, 
+                self.liquid_side_draws, self.use_cache, *self._ins, 
+                self.solvent_ID, self.partition_data, self.P)
+        if args != self._last_args:
+            MultiStageEquilibrium._init(
+                self, N_stages=self.N_stages,
+                feed_stages=self.feed_stages,
+                phases=('g', 'l'), P=self.P,
+                top_side_draws=self.vapor_side_draws, 
+                bottom_side_draws=self.liquid_side_draws,
+                partition_data=self.partition_data, 
+                use_cache=self.use_cache, 
+            )
+            self._last_args = args
+    
+    def reset_cache(self, isdynamic=None):
+        self._last_args = None
+        
+    @property
+    def vapor(self):
+        return self.outs[0]
+    @property
+    def liquid(self):
+        return self.outs[1]   
+     
     @property
     def tray_spacing(self):
         return self._TS
@@ -291,7 +324,7 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
         solute = self.solute
         index = IDs.index(solute)
         K = gmean([i.partition.K[index] for i in stages])
-        if self.vapor.imol[solute] > self.vapor.imol[solute]:
+        if self.liquid.imol[solute] > self.vapor.imol[solute]:
             self.line = "Stripping"
             alpha = 1 / K
         else:
@@ -302,13 +335,12 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
     def _design(self):
         vapor_out, liquid_out = self.outs
         Design = self.design_results
-        N_stages = self.N_stages
         TS = self._TS
         A_ha = self._A_ha
         F_F = self._F_F
         f = self._f
        
-        ### Get diameter of stripping column based on outlets ###
+        ### Get diameter of column based on outlets (assuming they are comparable to each stages) ###
         rho_L = liquid_out.rho
         V = vapor_out.F_mass
         V_vol = vapor_out.get_total_flow('m^3/s')
@@ -329,21 +361,21 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
             warn('vacuum pressure vessel ASME codes not implemented yet; '
                  'wall thickness may be inaccurate and stiffening rings may be '
                  'required', category=RuntimeWarning)
-
-        else:
-            Design['Actual stages'] =  self._actual_stages()
-            Design['Height'] = H = design.compute_tower_height(TS, N_stages-2) * 3.28
-            Design['Diameter'] = Di = diameter
-            Design['Wall thickness'] = tv = design.compute_tower_wall_thickness(Po, Di, H)
-            Design['Weight'] = design.compute_tower_weight(Di, H, tv, rho_M)
+            
+        Design['Theoretical stages'] = self.N_stages
+        Design['Actual stages'] = actual_stages = self._actual_stages()
+        Design['Height'] = H = design.compute_tower_height(TS, actual_stages) * 3.28
+        Design['Diameter'] = Di = diameter
+        Design['Wall thickness'] = tv = design.compute_tower_wall_thickness(Po, Di, H)
+        Design['Weight'] = design.compute_tower_weight(Di, H, tv, rho_M)
 
     def _cost(self):
         Design = self.design_results
         Cost = self.baseline_purchase_costs
         F_M = self.F_M
      
-        # Cost trays assuming a partial condenser
-        N_T = Design['Actual stages'] - 1.
+        # Cost trays
+        N_T = Design['Actual stages']
         Di = Design['Diameter']
         F_M['Trays'] = self._F_TM_function(Di)
         Cost['Trays'] = design.compute_purchase_cost_of_trays(N_T, Di)

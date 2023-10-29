@@ -56,7 +56,7 @@ class MetricBar(NamedTuple): # pragma: no coverage
     @property
     def title(self):
         if self.units:
-            return f'{self.name}{self.units_dlim}[{self.units}]'
+            return f'{self.name}{self.units_dlim}{self.units}'
         else:
             return self.name
     
