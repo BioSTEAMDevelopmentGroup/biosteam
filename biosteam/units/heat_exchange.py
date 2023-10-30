@@ -458,7 +458,9 @@ class HXutility(HX):
             P_in = inlet.P
         else:
             inlet.P = P_in
-        if vle: inlet.vle(H=sum([i.H for i in ins]), P=P_in)
+        if vle: 
+            inlet.vle(H=sum([i.H for i in ins]), P=P_in)
+            inlet.reduce_phases()
         if outs is None:
             if duty is None: raise ValueError('must pass duty when no outlets are given')
             outlet.copy_like(inlet)
@@ -468,6 +470,7 @@ class HXutility(HX):
                 outlet.P = P_out
             if vle: 
                 outlet.vle(H=inlet.H + duty, P=P_out)
+                inlet.reduce_phases()
             else:
                 outlet.Hnet = inlet.Hnet + duty
         else:
@@ -480,6 +483,7 @@ class HXutility(HX):
                 duty = outlet.Hnet - inlet.Hnet
             elif vle: 
                 outlet.vle(H=inlet.H + duty, P=P_out)
+                inlet.reduce_phases()
             else:
                 outlet.Hnet = inlet.Hnet + duty
         if scale is not None:

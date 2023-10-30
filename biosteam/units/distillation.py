@@ -1690,7 +1690,10 @@ class ShortcutColumn(Distillation, new_graphics=False):
         
         # Initialize objects to calculate bubble and dew points
         vle_chemicals = self.mixed_feed.vle_chemicals
-        reset_cache = self._vle_chemicals != vle_chemicals
+        try:
+            reset_cache = self._vle_chemicals != vle_chemicals
+        except:
+            reset_cache = True
         if reset_cache:
             self._dew_point = DewPoint(vle_chemicals, self.thermo)
             self._bubble_point = BubblePoint(vle_chemicals, self.thermo)
@@ -1906,12 +1909,12 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
     >>> bst.settings.set_thermo(['AceticAcid', 'EthylAcetate', 'Water', 'MTBE'], cache=True)
     >>> feed = bst.Stream('feed', Water=75, AceticAcid=5, MTBE=20, T=320)
     >>> steam = bst.Stream('steam', Water=100, phase='g', T=390)
-    >>> absorption = bst.Absorption("U1",
+    >>> absorber = bst.Absorber("U1",
     ...     N_stages=2, ins=[feed, steam], 
     ...     solute="AceticAcid", outs=['vapor', 'liquid']
     ... )
-    >>> absorption.simulate()
-    >>> absorption.show()
+    >>> absorber.simulate()
+    >>> absorber.show()
     AdiabaticMultiStageVLEColumn: U1
     ins...
     [0] feed  
@@ -1934,8 +1937,8 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
                         Water       101
                         MTBE        0.000309
     
-    >>> stripper.results()
-    Absorption                                 Units       U1
+    >>> absorber.results()
+    Absorber                                   Units       U1
     Design              Theoretical stages                  2
                         Actual stages                       4
                         Height                    ft     19.9
@@ -2080,10 +2083,10 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
         index = IDs.index(solute)
         K = gmean([i.partition.K[index] for i in stages])
         if self.liquid.imol[solute] > self.vapor.imol[solute]:
-            self.line = "Stripping"
+            self.line = "Stripper"
             alpha = 1 / K
         else:
-            self.line = "Absorption"
+            self.line = "Absorber"
             alpha = K
         return alpha
        

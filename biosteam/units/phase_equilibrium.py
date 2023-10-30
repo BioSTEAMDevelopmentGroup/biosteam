@@ -279,11 +279,12 @@ class MultiStageEquilibrium(Unit):
     >>> solvent = bst.Stream('solvent', Octanol=500)
     >>> MSE = bst.MultiStageEquilibrium(N_stages=2, ins=[feed, solvent], phases=('L', 'l'))
     >>> MSE.simulate()
-    >>> MSE.extract.imol['Methanol'] / feed.imol['Methanol'] # Recovery
+    >>> extract, raffinate = MSE.outs
+    >>> extract.imol['Methanol'] / feed.imol['Methanol'] # Recovery
     0.83
-    >>> MSE.extract.imol['Octanol'] / solvent.imol['Octanol'] # Solvent stays in extract
+    >>> extract.imol['Octanol'] / solvent.imol['Octanol'] # Solvent stays in extract
     0.99
-    >>> MSE.raffinate.imol['Water'] / feed.imol['Water'] # Carrier remains in raffinate
+    >>> raffinate.imol['Water'] / feed.imol['Water'] # Carrier remains in raffinate
     0.82
     
     Simulate 10-stage extraction with user defined partition coefficients:
@@ -299,12 +300,13 @@ class MultiStageEquilibrium(Unit):
     ...         'phi': 0.5899728891780545, # Initial phase fraction guess. This is optional.
     ...     }
     ... )
+    >>> extract, raffinate = MSE.outs
     >>> MSE.simulate()
-    >>> MSE.extract.imol['Methanol'] / feed.imol['Methanol'] # Recovery
+    >>> extract.imol['Methanol'] / feed.imol['Methanol'] # Recovery
     0.99
-    >>> MSE.extract.imol['Octanol'] / solvent.imol['Octanol'] # Solvent stays in extract
+    >>> extract.imol['Octanol'] / solvent.imol['Octanol'] # Solvent stays in extract
     0.99
-    >>> MSE.raffinate.imol['Water'] / feed.imol['Water'] # Carrier remains in raffinate
+    >>> raffinate.imol['Water'] / feed.imol['Water'] # Carrier remains in raffinate
     0.82
     
     Because octanol and water do not mix well, it may be a good idea to assume
@@ -319,11 +321,12 @@ class MultiStageEquilibrium(Unit):
     ...     }
     ... )
     >>> MSE.simulate()
-    >>> MSE.extract.imol['Methanol'] / feed.imol['Methanol'] # Recovery
+    >>> extract, raffinate = MSE.outs
+    >>> extract.imol['Methanol'] / feed.imol['Methanol'] # Recovery
     0.99
-    >>> MSE.extract.imol['Octanol'] / solvent.imol['Octanol'] # Solvent stays in extract
+    >>> extract.imol['Octanol'] / solvent.imol['Octanol'] # Solvent stays in extract
     1.0
-    >>> MSE.raffinate.imol['Water'] / feed.imol['Water'] # Carrier remains in raffinate
+    >>> raffinate.imol['Water'] / feed.imol['Water'] # Carrier remains in raffinate
     1.0
        
     Simulate with a feed at the 4th stage:
