@@ -1909,13 +1909,13 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
     >>> bst.settings.set_thermo(['AceticAcid', 'EthylAcetate', 'Water', 'MTBE'], cache=True)
     >>> feed = bst.Stream('feed', Water=75, AceticAcid=5, MTBE=20, T=320)
     >>> steam = bst.Stream('steam', Water=100, phase='g', T=390)
-    >>> absorber = bst.Absorber("U1",
+    >>> absorber = bst.Absorber(None,
     ...     N_stages=2, ins=[feed, steam], 
     ...     solute="AceticAcid", outs=['vapor', 'liquid']
     ... )
     >>> absorber.simulate()
     >>> absorber.show()
-    AdiabaticMultiStageVLEColumn: U1
+    AdiabaticMultiStageVLEColumn
     ins...
     [0] feed  
         phase: 'l', T: 320 K, P: 101325 Pa
@@ -1938,17 +1938,17 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
                         MTBE        0.000309
     
     >>> absorber.results()
-    Absorber                                   Units       U1
+    Absorber                                   Units         
     Design              Theoretical stages                  2
                         Actual stages                       4
                         Height                    ft     19.9
                         Diameter                  ft        3
                         Wall thickness            in    0.312
                         Weight                    lb 2.71e+03
-    Purchase cost       Trays                    USD 4.37e+03
+    Purchase cost       Trays                    USD 5.59e+03
                         Tower                    USD 2.91e+04
                         Platform and ladders     USD 7.52e+03
-    Total purchase cost                          USD  4.1e+04
+    Total purchase cost                          USD 4.23e+04
     Utility cost                              USD/hr        0
     
     """
@@ -1981,9 +1981,11 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
     _side_draw_names = ('vapor_side_draws', 'liquid_side_draws')
     
     def _init(self,
-            N_stages, feed_stages, 
-            vapor_side_draws, liquid_side_draws,
+            N_stages, 
             solute, # Needed to compute the Murphree stage efficiency 
+            feed_stages=None, 
+            vapor_side_draws=None,
+            liquid_side_draws=None,
             P=101325,  
             partition_data=None, 
             vessel_material='Carbon steel',
