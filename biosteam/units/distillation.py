@@ -2163,12 +2163,16 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     not yet peer reviewed. The main difference is that the tridiagonal matrix of 
     mass balances across stages is used to solve for flow rates instead of mass 
     fractions and an internal loop is added to converge phase fractions based 
-    on the energy balance. Additionally, the initialization algorithm solves 
-    for liquid and vapor flow rates assuming no phase change across adiabatic 
-    stages and unity partition coefficients at reboilers/condensers (in which 
-    case the stripping factor is equal to the boil-up ratio).
+    on the energy balance. 
     
-    The Murphree efficiency (i.e. column efficiency) is based on the 
+    The initialization algorithm first converges a "collapsed" column without 
+    adiabatic stages which have no feeds or side draws. This collapsed column 
+    is initialized by solving for liquid and vapor flow rates assuming no phase 
+    change across adiabatic stages and unity partition coefficients at 
+    reboilers/condensers (in which case the stripping factor is equal to the 
+    boil-up ratio).
+    
+    The Murphree efficiency (i.e. stage efficiency) is based on the 
     modified O'Connell correlation [2]_. The diameter is based on tray 
     separation and flooding velocity [1]_ [3]_. Purchase costs are based on 
     correlations compiled by Warren et. al. [4]_.
@@ -2180,8 +2184,11 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     outs : 
         * [0] Distillate
         * [1] Bottoms product
+        * [...] Vapor side draws
+        * [...] Liquid side draws
     LHK : tuple[str]
-        Light and heavy keys.
+        IDs of light and heavy keys. The stage efficiency is estimated based on the
+        relative volatility of the light and heavy keys.
     boilup : float
         Vapor to liquid flow rate at the reboiler.
     reflux : float
