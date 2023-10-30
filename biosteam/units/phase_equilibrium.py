@@ -692,7 +692,6 @@ class MultiStageEquilibrium(Unit):
                 partition.T = collapsed_partition.T
                 partition.phi = collapsed_partition.phi
                 for i in partition.outs: i.T = collapsed_partition.T
-                partition.IDs = collapsed_partition.IDs
                 partition.K = collapsed_partition.K
                 
     def hot_start(self):
@@ -792,9 +791,7 @@ class MultiStageEquilibrium(Unit):
                         partition.T = T
                         partition.phi = phi
                         for i in partition.outs: i.T = T
-            for i in partitions: 
-                i.IDs = IDs
-                i.K = K
+            for i in partitions: i.K = K
             N_chemicals = len(index)
         if data:
             if top_chemicals:
@@ -835,6 +832,7 @@ class MultiStageEquilibrium(Unit):
                     partition.outs[1].imol[bottom_chemicals] = b
                 for i in bottom_side_draws:
                     for s in stages[i].splitters: s._run()
+        for i in partitions: i.IDs = IDs
         top_flow_rates = self._get_top_flow_rates(False)
         return top_flow_rates
     
@@ -861,7 +859,8 @@ class MultiStageEquilibrium(Unit):
         N_stages = self.N_stages
         phase_ratios = np.zeros(N_stages)
         last_stage = vapor_last = liquid_last = B_last = None
-        B_max = 100
+        B_max = 1e3
+        B_min = 0
         for i in range(N_stages - 1, -1, -1):
             stage = stages[i]
             partition = stage.partition
@@ -884,7 +883,9 @@ class MultiStageEquilibrium(Unit):
             if liquid.isempty():
                 B = B_max
             else:
-                B = min(B_max, Q / (vapor.h * liquid.F_mol))
+                B = Q / (vapor.h * liquid.F_mol)
+                if B > B_max: B = B_max
+                elif B < B_min: B = B_min
             vapor_last = vapor
             liquid_last = liquid
             phase_ratios[i] = B_last = B

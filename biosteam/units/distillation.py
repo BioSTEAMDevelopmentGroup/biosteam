@@ -12,6 +12,7 @@
 .. autoclass:: biosteam.units.distillation.BinaryDistillation 
 .. autoclass:: biosteam.units.distillation.ShortcutColumn
 .. autoclass:: biosteam.units.distillation.MESHDistillation
+.. autocalss:: biosteam.units.distillation.AdiabaticMultiStageVLEColumn
 
 References
 ----------
@@ -2443,7 +2444,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         eff = self.stage_efficiency
         if eff is None:
             # Calculate Murphree Efficiency
-            vapor, liquid = self.outs
+            vapor, liquid, *others = self.outs
             mu = liquid.get_property('mu', 'mPa*s')
             alpha = self._get_relative_volatilities()
             L_Rmol = liquid.F_mol
@@ -2476,6 +2477,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         diameters = []
         for i in self.stages:
             vapor, liquid = i.partition.outs
+            if liquid.isempty() or vapor.isempty(): continue
             rho_L = liquid.rho
             V = vapor.F_mass
             V_vol = vapor.get_total_flow('m^3/s')
