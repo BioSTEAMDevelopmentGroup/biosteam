@@ -2312,7 +2312,9 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     
     def _init(self, 
             LHK, N_stages, feed_stages, 
-            boilup, reflux, P=101325, 
+            reflux=None, boilup=None, 
+            T_condenser=None, T_reboiler=None,
+            P=101325, 
             vapor_side_draws=None, liquid_side_draws=None,
             vessel_material='Carbon steel',
             tray_material='Carbon steel',
@@ -2328,8 +2330,15 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
             use_cache=None,
         ):
         self.LHK = LHK
-        stage_specifications = {0: ['Reflux', reflux], -1: ['Boilup', boilup]}
-        
+        stage_specifications = {}
+        if reflux is None:
+            stage_specifications[0] = ('Temperature', T_condenser)
+        else:
+            stage_specifications[0] = ('Reflux', reflux)
+        if boilup is None:
+            stage_specifications[-1] = ('Temperature', T_reboiler)
+        else:
+            stage_specifications[-1] = ('Boilup', boilup)
         super()._init(N_stages=N_stages, feed_stages=feed_stages,
                       top_side_draws=vapor_side_draws, 
                       bottom_side_draws=liquid_side_draws,              
@@ -2358,23 +2367,42 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         
     @property
     def reflux(self):
-        return self.stage_specifications[0][1]
+        name, value = self.stage_specifications[0]
+        if name == 'Reflux': return value
     @reflux.setter
     def reflux(self, reflux):
-        self.stage_specifications[0][1] = reflux
+        self.stage_specifications[0] = ('Reflux', reflux)
+    
     @property
     def boilup(self):
-        return self.stage_specifications[-1][1]
+        name, value = self.stage_specifications[-1]
+        if name == 'Boilup': return value
     @boilup.setter
     def boilup(self, boilup):
-        self.stage_specifications[-1][1] = boilup
+        self.stage_specifications[-1] = ('Boilup', boilup)
+    
+    @property
+    def T_condenser(self):
+        name, value = self.stage_specifications[0]
+        if name == 'Temperature': return value
+    @T_condenser.setter
+    def T_condenser(self, T_condenser):
+        self.stage_specifications[0] = ('Temperature', T_condenser)
+    
+    @property
+    def T_reboiler(self):
+        name, value = self.stage_specifications[-1]
+        if name == 'Temperature': return value
+    @T_reboiler.setter
+    def T_reboiler(self, T_reboiler):
+        self.stage_specifications[-1] = ('Temperature', T_reboiler)
         
     def _setup(self):
         super()._setup()
         args = (self.N_stages, self.feed_stages, self.vapor_side_draws, 
                 self.liquid_side_draws, self.use_cache, *self._ins, 
                 self.solvent_ID, self.partition_data, self.P,
-                self.reflux, self.boilup)
+                self.reflux, self.boilup, self.T_condenser, self.T_reboiler)
         if args != self._last_args:
             MultiStageEquilibrium._init(
                 self, N_stages=self.N_stages,

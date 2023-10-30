@@ -39,15 +39,22 @@ def _get_specification(name, value):
     if name == 'Duty':
         B = None
         Q = value
+        T = None
     elif name == 'Reflux':
         B = 1 / value
         Q = None
+        T = None
     elif name == 'Boilup':
         B = value
         Q = None
+        T = None
+    elif name == 'Temperature':
+        B = None
+        Q = None
+        T = value
     else:
         raise RuntimeError(f"specification '{name}' not implemented for stage")
-    return B, Q
+    return B, Q, T
 
 
 class StageEquilibrium(Unit):
@@ -97,10 +104,11 @@ class StageEquilibrium(Unit):
             )
         )
         
-    def set_specification(self, B, Q):
+    def set_specification(self, B, Q, T):
         partition = self.partition
         partition.B = B
         partition.Q = Q
+        partition.T_specification = T
     
     @property
     def extract(self):
@@ -148,6 +156,7 @@ class PhasePartition(Unit):
         self.K = None
         self.B = None
         self.Q = 0.
+        self.T_specification = None
     
     def _run(self, stacklevel=1, P=None, solvent=None, update=True,
              couple_energy_balance=True):
@@ -216,7 +225,10 @@ class PhasePartition(Unit):
                     x = p.x
                     x[x == 0] = 1.
                     K_new = p.y / p.x
-                    self.T = p.T
+                    if self.T_specification is None:
+                        self.T = p.T
+                    else:
+                        self.T = self.T_specification
                     IDs = p.IDs
                     # DO NOT DELETE: Possibly another decomposition method
                     # B = self.B
@@ -526,8 +538,8 @@ class MultiStageEquilibrium(Unit):
         #: dict[int, tuple(str, float)] Specifications for VLE by stage
         self.stage_specifications = stage_specifications
         for i, (name, value) in stage_specifications.items():
-            B, Q = _get_specification(name, value)
-            stages[i].set_specification(B=B, Q=Q)
+            B, Q, T = _get_specification(name, value)
+            stages[i].set_specification(B=B, Q=Q, T=T)
             
         #: [int] Maximum number of iterations.
         self.maxiter = self.default_maxiter
@@ -614,9 +626,16 @@ class MultiStageEquilibrium(Unit):
         return top_flow_rates
         
     def hot_start_phase_ratios(self):
-        stage_index = list(self.stage_specifications)
         stages = self.stages
-        phase_ratios = np.array([stages[i].partition.B for i in stage_index])
+        stage_index = []
+        phase_ratios = []
+        for i in list(self.stage_specifications):
+            B = stages[i].partition.B
+            if B is None: continue
+            stage_index.append(i)
+            phase_ratios.append(B)
+        stage_index = np.array(stage_index, dtype=int)
+        phase_ratios = np.array(phase_ratios, dtype=float)
         feeds = self.ins
         feed_stages = self.feed_stages
         top_feed_flows = 0 * self.feed_flows
@@ -649,7 +668,9 @@ class MultiStageEquilibrium(Unit):
         bottom_flow_rates = hot_start_bottom_flow_rates(
             top_flow_rates, *args
         )
-        return top_flow_rates.sum(axis=1) / bottom_flow_rates.sum(axis=1)
+        bf = bottom_flow_rates.sum(axis=1)
+        bf[bf == 0] = 1e-32
+        return top_flow_rates.sum(axis=1) / bf
     
     def hot_start(self):
         self.iter = 1
@@ -727,9 +748,12 @@ class MultiStageEquilibrium(Unit):
                     K = bp.y / bp.z
                     for i, j in enumerate(phase_ratios):
                         partition = stages[i].partition
-                        partition.T = T = T_top - i * dT_stage
                         partition.phi = j / (1 + j)
-                        for j in partition.outs: j.T = T
+                        if partition.T_specification:
+                            partition.T = partition.T_specification
+                        else:
+                            partition.T = T = T_top - i * dT_stage
+                            for s in partition.outs: s.T = T
                 else:
                     vle = ms.vle
                     vle(H=ms.H, P=P)
@@ -814,6 +838,7 @@ class MultiStageEquilibrium(Unit):
         N_stages = self.N_stages
         phase_ratios = np.zeros(N_stages)
         last_stage = vapor_last = liquid_last = B_last = None
+        B_max = 100
         for i in range(N_stages - 1, -1, -1):
             stage = stages[i]
             partition = stage.partition
@@ -833,7 +858,10 @@ class MultiStageEquilibrium(Unit):
             adjacent_stages = [i for i in (next_stage, last_stage) if i]
             other_feeds = [i for i in stage.ins if i.source not in adjacent_stages]
             Q += sum([i.H for i in other_feeds])
-            B = Q / (vapor.h * liquid.F_mol)
+            if liquid.isempty():
+                B = B_max
+            else:
+                B = min(B_max, Q / (vapor.h * liquid.F_mol))
             vapor_last = vapor
             liquid_last = liquid
             phase_ratios[i] = B_last = B
@@ -901,10 +929,11 @@ class MultiStageEquilibrium(Unit):
             raise RuntimeError('no phase equilibrium')
         for T, j, K, stage in zip(Ts, phase_ratios, partition_coefficients, stages): 
             partition = stage.partition
-            partition.T = T 
-            partition.phi = j / (1 + j)
+            if partition.T_specification is None: 
+                partition.T = T 
+                for i in partition.outs: i.T = T
+            if partition.B is None: partition.phi = j / (1 + j)
             partition.K = K
-            for i in partition.outs: i.T = T
         return flow_rates_for_multistage_equilibrium(
             phase_ratios, partition_coefficients, *self._iter_args,
         )
@@ -1142,8 +1171,8 @@ def flow_rates_for_multistage_equilibrium(
         Flow rates of phase a with stages by row and components by column.
 
     """
-    phase_ratios[phase_ratios < 1e-16] = 1e-16
-    phase_ratios[phase_ratios > 1e16] = 1e16
+    phase_ratios[phase_ratios < 1e-32] = 1e-32
+    phase_ratios[phase_ratios > 1e32] = 1e32
     phase_ratios = np.expand_dims(phase_ratios, -1)
     component_ratios = 1 / (phase_ratios * partition_coefficients)
     b = 1. +  component_ratios
