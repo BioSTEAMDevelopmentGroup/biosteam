@@ -2238,33 +2238,22 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     ...     LHK=('Ethanol', 'Water'),
     ... )
     >>> D1.simulate()
-    >>> D1.show()
-    MESHDistillation
-    ins...
-    [0] feed  
-        phase: 'l', T: 353.37 K, P: 101325 Pa
-        flow (kmol/hr): Water    100
-                        Ethanol  80
-    outs...
-    [0] vapor  
-        phase: 'g', T: 352.38 K, P: 101325 Pa
-        flow (kmol/hr): Water    33.1
-                        Ethanol  76.9
-    [1] liquid  
-        phase: 'l', T: 363.91 K, P: 101325 Pa
-        flow (kmol/hr): Water    66.9
-                        Ethanol  3.15
+    >>> vapor, liquid = D1.outs
+    >>> vapor.imol['Ethanol'] / feed.imol['Ethanol']
+    0.96
+    >>> vapor.imol['Ethanol'] / vapor.F_mol
+    0.69
     
     >>> D1.results()
     Distillation                                               Units          
-    Electricity         Power                                     kW     0.582
-                        Cost                                  USD/hr    0.0455
-    Cooling water       Duty                                   kJ/hr -2.99e+06
+    Electricity         Power                                     kW     0.587
+                        Cost                                  USD/hr    0.0459
+    Cooling water       Duty                                   kJ/hr -2.98e+06
                         Flow                                 kmol/hr  2.04e+03
-                        Cost                                  USD/hr     0.997
-    Low pressure steam  Duty                                   kJ/hr   7.8e+06
-                        Flow                                 kmol/hr       202
-                        Cost                                  USD/hr      47.9
+                        Cost                                  USD/hr     0.994
+    Low pressure steam  Duty                                   kJ/hr  7.65e+06
+                        Flow                                 kmol/hr       198
+                        Cost                                  USD/hr        47
     Design              Theoretical stages                                   5
                         Actual stages                                        9
                         Height                                    ft      27.3
@@ -2274,14 +2263,15 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     Purchase cost       Trays                                    USD  9.97e+03
                         Tower                                    USD  3.63e+04
                         Platform and ladders                     USD  1.03e+04
-                        Condenser - Floating head                USD  2.37e+04
+                        Condenser - Floating head                USD  2.36e+04
                         Reflux drum - Vertical pressure ...      USD  1.29e+04
                         Reflux drum - Platform and ladders       USD  3.89e+03
                         Pump - Pump                              USD  4.35e+03
-                        Pump - Motor                             USD       359
-                        Reboiler - Floating head                 USD  2.33e+04
-    Total purchase cost                                          USD  1.25e+05
-    Utility cost                                              USD/hr        49
+                        Pump - Motor                             USD       360
+                        Reboiler - Floating head                 USD  2.27e+04
+    Total purchase cost                                          USD  1.24e+05
+    Utility cost                                              USD/hr      48.1
+    
     """
     
     auxiliary_unit_names = (
@@ -2312,8 +2302,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     
     def _init(self, 
             LHK, N_stages, feed_stages, 
-            reflux=None, boilup=None, 
-            T_condenser=None, T_reboiler=None,
+            reflux, boilup, 
             P=101325, 
             vapor_side_draws=None, liquid_side_draws=None,
             vessel_material='Carbon steel',
@@ -2331,14 +2320,8 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         ):
         self.LHK = LHK
         stage_specifications = {}
-        if reflux is None:
-            stage_specifications[0] = ('Temperature', T_condenser)
-        else:
-            stage_specifications[0] = ('Reflux', reflux)
-        if boilup is None:
-            stage_specifications[-1] = ('Temperature', T_reboiler)
-        else:
-            stage_specifications[-1] = ('Boilup', boilup)
+        stage_specifications[0] = ('Reflux', reflux)
+        stage_specifications[-1] = ('Boilup', boilup)
         super()._init(N_stages=N_stages, feed_stages=feed_stages,
                       top_side_draws=vapor_side_draws, 
                       bottom_side_draws=liquid_side_draws,              
@@ -2381,28 +2364,12 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     def boilup(self, boilup):
         self.stage_specifications[-1] = ('Boilup', boilup)
     
-    @property
-    def T_condenser(self):
-        name, value = self.stage_specifications[0]
-        if name == 'Temperature': return value
-    @T_condenser.setter
-    def T_condenser(self, T_condenser):
-        self.stage_specifications[0] = ('Temperature', T_condenser)
-    
-    @property
-    def T_reboiler(self):
-        name, value = self.stage_specifications[-1]
-        if name == 'Temperature': return value
-    @T_reboiler.setter
-    def T_reboiler(self, T_reboiler):
-        self.stage_specifications[-1] = ('Temperature', T_reboiler)
-        
     def _setup(self):
         super()._setup()
         args = (self.N_stages, self.feed_stages, self.vapor_side_draws, 
                 self.liquid_side_draws, self.use_cache, *self._ins, 
                 self.solvent_ID, self.partition_data, self.P,
-                self.reflux, self.boilup, self.T_condenser, self.T_reboiler)
+                self.reflux, self.boilup)
         if args != self._last_args:
             MultiStageEquilibrium._init(
                 self, N_stages=self.N_stages,
