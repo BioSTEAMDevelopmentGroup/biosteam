@@ -175,7 +175,8 @@ class Flash(design.PressureVessel, Unit):
             vessel_type=None,
             holdup_time=15,
             surge_time=7.5,
-            has_mist_eliminator=False
+            has_mist_eliminator=False,
+            flash_inlet=True, 
         ):
         self._load_components()
         
@@ -220,6 +221,10 @@ class Flash(design.PressureVessel, Unit):
         
         #: [bool] True if using a mist eliminator pad
         self.has_mist_eliminator = has_mist_eliminator
+        
+        #: [bool] Whether to flash inlet. If inlet is already flashed, 
+        #: False can save simulation time.
+        self.flash_inlet = flash_inlet
         
     def _load_components(self):
         self._multi_stream = ms = MultiStream(None, thermo=self.thermo)
@@ -288,7 +293,7 @@ class Flash(design.PressureVessel, Unit):
         if self.Q == 0.:
             self.heat_exchanger._setup() # Removes results
         else:
-            self.heat_exchanger.simulate_as_auxiliary_exchanger(self.ins, self.outs)
+            self.heat_exchanger.simulate_as_auxiliary_exchanger(self.ins, self.outs, vle=self.flash_inlet)
 
     def _cost(self):
         D = self.design_results
