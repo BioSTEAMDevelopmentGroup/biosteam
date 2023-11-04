@@ -41,6 +41,7 @@ class DisplayPreferences:
     graphviz_format: 'svg'
     tooltips_full_results: False
     graphviz_html_height: {'big-system': ('600px', '900px'), 'system': ('400px', '600px'), 'unit': ('225px', '400px')}
+    show_all_streams: True
     flow: 'kmol/hr:.3g'
     T: 'K:.5g'
     P: 'Pa:.6g'
