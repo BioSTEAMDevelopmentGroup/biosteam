@@ -17,8 +17,7 @@ units
    splitting
    stirred_tank_reactor
    vacuum_system
-   valve   
-   wastewater
+   valve
    Pump
    BatchBioreactor
    Duplicator
