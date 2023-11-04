@@ -37,25 +37,16 @@ class BoilerTurbogenerator(bst.Facility):
     Parameters
     ----------
     ins : 
-        [0] Liquid/solid feed that will be burned.
-        
-        [1] Gas feed that will be burned.
-        
-        [2] Make-up water. 
-        
-        [3] Natural gas to satisfy steam and power requirement.
-        
-        [4] Lime for flue gas desulfurization.
-        
-        [5] Boiler chemicals.
-        
+        * [0] Liquid/solid feed that will be burned.
+        * [1] Gas feed that will be burned.
+        * [2] Make-up water. 
+        * [3] Natural gas to satisfy steam and power requirement.
+        * [4] Lime for flue gas desulfurization.
+        * [5] Boiler chemicals.
     outs : 
-        [0] Total emissions produced.
-        
-        [1] Blowdown water.
-        
-        [2] Ash disposal.
-        
+        * [0] Total emissions produced.
+        * [1] Blowdown water.
+        * [2] Ash disposal.
     boiler_efficiency : float, optional
         Fraction of heat transferred to steam. Defaults to 0.8.
     turbo_generator_efficiency : float, optional
@@ -74,13 +65,12 @@ class BoilerTurbogenerator(bst.Facility):
         Whether to purchase natural gas to satisfy system electricity demand
         if there is not enough heat from process feeds (i.e., inlets 0 and 1).
         If True, natural gas is purchased to satisfy system heat and electricity demand
-        (even if there is not enough heat from the feed wastes and gas);
-        if False, natural gas is only purchased to satisfy system heat demand
-        (i.e., electricity will be purchased from the grid if there is not
-         enough heat from the feeds).
+        when there is not enough heat from the feed and gas.
+        If False, natural gas is only purchased to satisfy system heat demand
+        and electricity will be purchased from the grid if there is not
+        enough heat from the feeds.
         In either case, if there is excess heat from the process feeds,
-        electricity will still be produced
-        (i.e., this argument only affects the calculation of natural gas flow).
+        electricity will still be produced.
     boiler_efficiency_basis : str, optional
         Basis of boiler efficiency. Defaults to 'LHV' (i.e., lower heating value).
         'HHV' (i.e., higher heating value) is also a valid basis. 

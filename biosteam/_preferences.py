@@ -54,7 +54,7 @@ class DisplayPreferences:
                  'label_color', 'label_color', 'depth_colors', 'stream_width',
                  'unit_color', 'unit_label_color', 'unit_periphery_color',
                  'fill_cluster', 'graphviz_format', 'tooltips_full_results',
-                 'graphviz_html_height')
+                 'graphviz_html_height', 'show_all_streams')
     
     def __init__(self):
         #: Whether to label the ID of streams with sources and sinks in process 
@@ -117,6 +117,9 @@ class DisplayPreferences:
             'system': ('400px', '600px'),
             'unit': ('225px', '400px'),
         }
+        
+        #: Whether to show all streams, including empty feeds and products.
+        self.show_all_streams = True
         
     def temporary(self):
         """Return a TemporaryPreferences object that will revert back to original
@@ -236,7 +239,7 @@ class DisplayPreferences:
                        unit_periphery_color, fill_cluster, save)
     
     def light_mode(self, stream='#4e4e4e', label='#4e4e4e', bg='#ffffffff',
-                   cluster=['#7ac0832f', '#ffffff9f'], unit_color='white:#CDCDCD', 
+                   cluster=['#d5edf02f', '#ffffffdf'], unit_color='white:#CDCDCD', 
                    unit_label_color='black', unit_periphery_color='#4e4e4e',
                    fill_cluster=True, save=False):
         """Set diagram display colors to light mode."""

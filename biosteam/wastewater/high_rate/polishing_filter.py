@@ -55,8 +55,8 @@ class PolishingFilter(bst.Unit):
     HLR : float
         Hydraulic loading rate of influent, [m3/m2/hr].
     X_decomp : float
-        Fraction of the influent COD converted to biogas (`filter_type`=="anaerobic")
-        or CO2 (`filter_type`=="aerobic").
+        Fraction of the influent COD converted to biogas (`filter_type` == "anaerobic")
+        or CO2 (`filter_type` == "aerobic").
     X_growth : float
         Fraction of the influent COD converted to biomass growth.
     split : dict

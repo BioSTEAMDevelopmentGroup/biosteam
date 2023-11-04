@@ -12,7 +12,7 @@
 .. autoclass:: biosteam.units.distillation.BinaryDistillation 
 .. autoclass:: biosteam.units.distillation.ShortcutColumn
 .. autoclass:: biosteam.units.distillation.MESHDistillation
-.. autocalss:: biosteam.units.distillation.AdiabaticMultiStageVLEColumn
+.. autoclass:: biosteam.units.distillation.AdiabaticMultiStageVLEColumn
 
 References
 ----------
@@ -2158,26 +2158,6 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     Create a distillation column that rigorously converges MESH 
     (Mass, Equilibrium, Summation, and Enthalpy) equations. 
     
-    The convergence algorithm decouples the equilibrium relationships, 
-    mass balances, and energy balances using a custom version of the Wang-Henke 
-    bubble point method. This algorithm is authored by Yoel Cortes-Pena, but is 
-    not yet peer reviewed. The main difference is that the tridiagonal matrix of 
-    mass balances across stages is used to solve for flow rates instead of mass 
-    fractions and an internal loop is added to converge phase fractions based 
-    on the energy balance. 
-    
-    The initialization algorithm first converges a "collapsed" column without 
-    adiabatic stages which have no feeds or side draws. This collapsed column 
-    is initialized by solving for liquid and vapor flow rates assuming no phase 
-    change across adiabatic stages and unity partition coefficients at 
-    reboilers/condensers (in which case the stripping factor is equal to the 
-    boil-up ratio).
-    
-    The Murphree efficiency (i.e. stage efficiency) is based on the 
-    modified O'Connell correlation [2]_. The diameter is based on tray 
-    separation and flooding velocity [1]_ [3]_. Purchase costs are based on 
-    correlations compiled by Warren et. al. [4]_.
-
     Parameters
     ----------
     ins : 
@@ -2235,8 +2215,9 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
 
     Examples
     --------
-    # Simulate distillation column with 5 stages, a 0.673 reflux ratio, 
-    # 2.57 boilup ratio, and feed at stage 2:
+    Simulate distillation column with 5 stages, a 0.673 reflux ratio, 
+    2.57 boilup ratio, and feed at stage 2:
+    
     >>> import biosteam as bst
     >>> bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
     >>> feed = bst.Stream('feed', Ethanol=80, Water=100, T=80.215 + 273.15)
@@ -2279,6 +2260,28 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                         Reboiler - Floating head                 USD  2.27e+04
     Total purchase cost                                          USD  1.24e+05
     Utility cost                                              USD/hr      48.1
+    
+    Notes
+    -----
+    The convergence algorithm decouples the equilibrium relationships, 
+    mass balances, and energy balances using a custom version of the Wang-Henke 
+    bubble point method. This algorithm is authored by Yoel Cortes-Pena, but is 
+    not yet peer reviewed. The main difference is that the tridiagonal matrix of 
+    mass balances across stages is used to solve for flow rates instead of mass 
+    fractions and an internal loop is added to converge phase fractions based 
+    on the energy balance. 
+    
+    The initialization algorithm first converges a "collapsed" column without 
+    adiabatic stages which have no feeds or side draws. This collapsed column 
+    is initialized by solving for liquid and vapor flow rates assuming no phase 
+    change across adiabatic stages and unity partition coefficients at 
+    reboilers/condensers (in which case the stripping factor is equal to the 
+    boil-up ratio).
+    
+    The Murphree efficiency (i.e. stage efficiency) is based on the 
+    modified O'Connell correlation [2]_. The diameter is based on tray 
+    separation and flooding velocity [1]_ [3]_. Purchase costs are based on 
+    correlations compiled by Warren et. al. [4]_.
     
     """
     

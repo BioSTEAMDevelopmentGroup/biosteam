@@ -3023,7 +3023,7 @@ class System:
             return series
 
     # Report summary
-    def save_report(self, file: Optional[str]='report.xlsx', dpi: Optional[str]='300', **stream_properties): 
+    def save_report(self, file: Optional[str]='report.xlsx', dpi: Optional[str]='900', **stream_properties): 
         """
         Save a system report as an xlsx file.
         

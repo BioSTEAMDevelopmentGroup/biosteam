@@ -834,7 +834,9 @@ def superposition(parent, port):
 
 
 @superposition(Stream, 'sink')
-class SuperpositionInlet(Stream): # Both parent and auxiliary unit inlet.
+class SuperpositionInlet(Stream): 
+    """Create a SuperpositionInlet that references an inlet from another 
+    unit operation."""
     __slots__ = ()
     
     def __init__(self, port, sink=None):
@@ -843,7 +845,9 @@ class SuperpositionInlet(Stream): # Both parent and auxiliary unit inlet.
       
 
 @superposition(Stream, 'source')
-class SuperpositionOutlet(Stream): # Both parent and auxiliary unit outlet.
+class SuperpositionOutlet(Stream):
+    """Create a SuperpositionOutlet that references an outlet from another 
+    unit operation."""
     __slots__ = ()
     
     def __init__(self, port, source=None):

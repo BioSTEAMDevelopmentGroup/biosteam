@@ -336,7 +336,7 @@ class Unit:
                         "must implement a '_run' method unless the "
                         "'isabstract' keyword argument is True"
                     )
-        if '__init__' in dct:
+        if '__init__' in dct or '_init' in dct:
             init = dct['__init__']
             annotations = init.__annotations__
             for i in ('ins', 'outs'):
