@@ -2182,11 +2182,6 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         Stage number and split fraction pairs.
     liquid_side_draws : tuple[tuple[int]]
         Stage number and split fraction pairs.
-    specifications : tuple[tuple(int, tuple(str, float))]
-        Stage number and both specification name and value pairs.
-    product_specification_format="Composition" : "Composition" or "Recovery"
-        If composition is used, `y_top` and `x_bot` must be specified.
-        If recovery is used, `Lr` and `Hr` must be specified.
     P=101325 : float
         Operating pressure [Pa].
     vessel_material : str, optional
