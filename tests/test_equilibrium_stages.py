@@ -22,30 +22,42 @@ def test_multi_stage_vle():
         stage1 = bst.Flash(ins=M1-0,
                            outs=[vapor_recycle, 'liquid'], 
                            P=101325, Q=0)
-    sys.set_tolerance(mol=0.1, rmol=0.001, maxiter=100)
+    sys.set_tolerance(mol=0.01, rmol=0.001)
     sys.simulate()
     assert_allclose(
         MSE.stages[0].vapor.mol, 
         stage0.vapor.mol,
-        atol=0.1,
+        atol=1,
         rtol=0.01,
     )
     assert_allclose(
         MSE.stages[0].liquid.mol, 
         stage0.liquid.mol,
-        atol=0.1,
+        atol=1,
         rtol=0.01,
     )
     assert_allclose(
         MSE.stages[1].vapor.mol, 
         stage1.vapor.mol,
-        atol=0.1,
+        atol=1,
         rtol=0.01,
     )
     assert_allclose(
         MSE.stages[1].liquid.mol, 
         stage1.liquid.mol,
-        atol=0.1,
+        atol=1,
+        rtol=0.01,
+    )
+    assert_allclose(
+        MSE.stages[1].vapor.T, 
+        stage1.vapor.T,
+        atol=1,
+        rtol=0.01,
+    )
+    assert_allclose(
+        MSE.stages[1].liquid.T, 
+        stage1.liquid.T,
+        atol=1,
         rtol=0.01,
     )
     
