@@ -1928,15 +1928,15 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
         flow (kmol/hr): Water  100
     outs...
     [0] vapor  
-        phase: 'g', T: 366.33 K, P: 101325 Pa
-        flow (kmol/hr): AceticAcid  3.72
+        phase: 'g', T: 366.32 K, P: 101325 Pa
+        flow (kmol/hr): AceticAcid  3.71
                         Water       73.8
                         MTBE        20
     [1] liquid  
         phase: 'l', T: 372.87 K, P: 101325 Pa
-        flow (kmol/hr): AceticAcid  1.28
+        flow (kmol/hr): AceticAcid  1.29
                         Water       101
-                        MTBE        0.000309
+                        MTBE        0.00031
     
     >>> absorber.results()
     Absorber                                   Units         
@@ -2234,32 +2234,29 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     0.69
     
     >>> D1.results()
-    Distillation                                               Units          
-    Electricity         Power                                     kW     0.587
-                        Cost                                  USD/hr    0.0459
-    Cooling water       Duty                                   kJ/hr -2.98e+06
-                        Flow                                 kmol/hr  2.04e+03
-                        Cost                                  USD/hr     0.994
-    Low pressure steam  Duty                                   kJ/hr  7.65e+06
-                        Flow                                 kmol/hr       198
-                        Cost                                  USD/hr        47
-    Design              Theoretical stages                                   5
-                        Actual stages                                        9
-                        Height                                    ft      27.3
-                        Diameter                                  ft      3.32
-                        Wall thickness                            in     0.312
-                        Weight                                    lb  4.02e+03
-    Purchase cost       Trays                                    USD  9.97e+03
-                        Tower                                    USD  3.63e+04
-                        Platform and ladders                     USD  1.03e+04
-                        Condenser - Floating head                USD  2.36e+04
-                        Reflux drum - Vertical pressure ...      USD  1.29e+04
-                        Reflux drum - Platform and ladders       USD  3.89e+03
-                        Pump - Pump                              USD  4.35e+03
-                        Pump - Motor                             USD       360
-                        Reboiler - Floating head                 USD  2.27e+04
-    Total purchase cost                                          USD  1.24e+05
-    Utility cost                                              USD/hr      48.1
+    Distillation                                               Units         
+    Electricity         Power                                     kW    0.553
+                        Cost                                  USD/hr   0.0432
+    Low pressure steam  Duty                                   kJ/hr 1.47e+07
+                        Flow                                 kmol/hr      381
+                        Cost                                  USD/hr     90.5
+    Design              Theoretical stages                                  5
+                        Actual stages                                       9
+                        Height                                    ft     27.3
+                        Diameter                                  ft     3.32
+                        Wall thickness                            in    0.312
+                        Weight                                    lb 4.02e+03
+    Purchase cost       Trays                                    USD 9.97e+03
+                        Tower                                    USD 3.63e+04
+                        Platform and ladders                     USD 1.03e+04
+                        Condenser - Floating head                USD 2.06e+04
+                        Reflux drum - Vertical pressure ...      USD 1.29e+04
+                        Reflux drum - Platform and ladders       USD 3.89e+03
+                        Pump - Pump                              USD 4.35e+03
+                        Pump - Motor                             USD      355
+                        Reboiler - Floating head                 USD 2.22e+04
+    Total purchase cost                                          USD 1.21e+05
+    Utility cost                                              USD/hr     90.6
     
     Notes
     -----

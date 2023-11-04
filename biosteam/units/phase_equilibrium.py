@@ -217,6 +217,7 @@ class PhasePartition(Unit):
                     x[x == 0] = 1.
                     K_new = p.y / p.x
                     self.T = p.T
+                    
                     IDs = p.IDs
                     # DO NOT DELETE: Possibly another decomposition method
                     # B = self.B
@@ -970,10 +971,16 @@ class MultiStageEquilibrium(Unit):
         P = self.P
         eq = 'vle' if self.multi_stream.phases[0] == 'g' else 'lle'
         if eq == 'vle': 
-            for n, i in enumerate(stages): 
-                i.mixer._run()
-                i.partition._run(P=self.P, update=False, 
+            for n, i in enumerate(stages):
+                mixer = i.mixer
+                partition = i.partition
+                mixer.outs[0].mix_from(
+                    mixer.ins, conserve_phases=True, energy_balance=False,
+                )
+                partition._run(P=self.P, update=False, 
                                  couple_energy_balance=False)
+                T = partition.T
+                for i in partition.outs: i.T = T
             new_top_flow_rates = self._get_top_flow_rates(True)
         else: # LLE
             for i in stages: 
