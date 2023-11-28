@@ -1330,14 +1330,14 @@ class BinaryDistillation(Distillation, new_graphics=False):
         self._x_stages = x_stages = [x_bot]
         self._y_stages = y_stages = [x_bot]
         self._T_stages = T_stages = []
-        error = None
+        error = [None]
         try: compute_stages_McCabeThiele(P, ss, x_stages, y_stages, T_stages, x_m, solve_Ty)
-        except RuntimeError as error: pass
+        except RuntimeError as e: error[0] = e
         yi = y_stages[-1]
         xi = rs(yi)
         x_stages[-1] = xi if xi < 1 else 0.99999
         try: compute_stages_McCabeThiele(P, rs, x_stages, y_stages, T_stages, y_top, solve_Ty)
-        except RuntimeError as error: pass
+        except RuntimeError as e: error[0] = e
         
         # Find feed stage
         N_stages = len(x_stages)
@@ -1348,13 +1348,13 @@ class BinaryDistillation(Distillation, new_graphics=False):
         
         # Results
         Design = self.design_results
-        if error is None:
+        if error[0] is None:
             Design['Theoretical feed stage'] = N_stages - feed_stage
             Design['Theoretical stages'] = N_stages
         else:
             Design['Theoretical feed stage'] = '?'
             Design['Theoretical stages'] = '100+'
-            raise error from None
+            raise error[0] from None
         Design['Minimum reflux'] = Rmin
         Design['Reflux'] = R 
         
