@@ -17,6 +17,7 @@ from ._state import State
 from ._metric import Metric
 from ._feature import MockFeature
 from ._utils import var_indices, var_columns, indices_to_multiindex
+from ._prediction import ConvergenceModel
 from biosteam.exceptions import FailedEvaluation
 from warnings import warn
 from collections.abc import Sized
@@ -61,6 +62,9 @@ class Model(State):
         '_samples',         # [array] Argument sample space.
         '_exception_hook',  # [callable(exception, sample)] Should return either None or metric value given an exception and the sample.
     )
+    
+    default_convergence_model = None # Optional[str] Default convergence model
+    
     def __init__(self, system, metrics=None, specification=None, 
                  parameters=None, retry_evaluation=True, exception_hook=None):
         super().__init__(system, specification, parameters)
@@ -382,7 +386,8 @@ class Model(State):
         convergence_model : ConvergencePredictionModel, optional
             A prediction model for accelerated system convergence. Defaults
             to no convergence model and the last solution
-            as the initial guess for the next scenario.
+            as the initial guess for the next scenario. If a string is passed, 
+            a ConvergenceModel will be created using that model type.
         kwargs : dict
             Any keyword arguments passed to :func:`biosteam.System.simulate`.
         
@@ -396,6 +401,12 @@ class Model(State):
         if samples is None: raise RuntimeError('must load samples before evaluating')
         evaluate_sample = self._evaluate_sample
         table = self.table
+        if isinstance(convergence_model, str):
+            convergence_model = ConvergenceModel(
+                system=self.system,
+                predictors=self.parameters,
+                model_type=convergence_model,
+            )
         if notify:
             timer = TicToc()
             timer.tic()
