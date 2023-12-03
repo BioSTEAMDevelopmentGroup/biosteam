@@ -84,7 +84,7 @@ def blank_digraph(format='svg', maxiter='10000000000000000000',
                   Damping='0.995', K='0.5', **graph_attrs):
     # Create a digraph and set direction left to right
     f = Digraph(format=format)
-    f.attr(rankdir='LR', maxiter=maxiter, Damping=Damping, K=K,
+    f.attr(rankdir='LR', maxiter=maxiter, Damping=Damping, K=K, 
            penwidth='0', color='none', bgcolor=preferences.background_color,
            fontcolor=preferences.label_color, fontname="Arial",
            labeljust='l', labelloc='t', fontsize='24', constraint='false',
@@ -446,8 +446,8 @@ def add_connections(f: Digraph, connections, unit_names, color=None, fontcolor=N
         pen_width = None
     
     # Set attributes for graph and streams
-    f.attr('graph', overlap='orthoyx', fontname="Arial",
-           outputorder='edgesfirst', nodesep='0.5', ranksep='0.15', maxiter='1000000')
+    f.attr('graph', overlap='orthoyx', fontname="Arial", outputorder='edgesfirst', 
+           nodesep='0.5', ranksep='0.15', maxiter='1000000')
     f.attr('edge', dir='foward', fontname='Arial')
     f.attr('node', **stream_node)
     index = {j: i for i, j in unit_names.items()}

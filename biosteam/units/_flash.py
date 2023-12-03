@@ -540,6 +540,8 @@ class SplitFlash(Flash):
         
         #: [bool] True if using a mist eliminator pad
         self.has_mist_eliminator = has_mist_eliminator
+        
+        self.flash_inlet = False
     
     split = Splitter.split
     V = None
