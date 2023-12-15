@@ -48,11 +48,12 @@ from .design_tools.specification_factors import  (
 from . import design_tools as design
 from thermosteam import separations
 from .. import Unit
-from .splitting import FakeSplitter
+from .splitting import MockSplitter
 from .._graphics import vertical_column_graphics
 from scipy.optimize import brentq
 from warnings import warn
 import biosteam as bst
+from math import inf
 from .heat_exchange import HXutility
 from ._flash import Flash
 from .phase_equilibrium import MultiStageEquilibrium
@@ -374,7 +375,7 @@ class Distillation(Unit, isabstract=True):
                 thermo=condenser_thermo
             )
             self.auxiliary(
-                'top_split', FakeSplitter,
+                'top_split', MockSplitter,
                 ins = self.condenser-0,
                 outs=(self-0, 'condensate'),
                 thermo=condenser_thermo
@@ -486,9 +487,8 @@ class Distillation(Unit, isabstract=True):
         assert self.product_specification_format == "Composition", (
             "product specification format must be 'Composition' to set bottoms "
             "product composition")
-        assert 0 < x_bot < 1, "heavy key composition in the bottoms product must be a fraction" 
+        assert 0 < x_bot < 1, "light key composition in the bottoms product must be a fraction" 
         self._x_bot = x_bot
-        self._x = np.array([x_bot, 1-x_bot])
     
     @property
     def Lr(self):
@@ -656,8 +656,8 @@ class Distillation(Unit, isabstract=True):
                 raise InfeasibleRegion(
                     region='light key molar fraction',
                     msg=('the molar fraction of the light key in the feed must be '
-                         'between the bottoms product and distillate compositions '
-                         '(i.e. z_bottoms_LK < z_feed_LK < z_distillate_LK)')
+                          'between the bottoms product and distillate compositions '
+                          '(i.e. z_bottoms_LK < z_feed_LK < z_distillate_LK)')
                 )
             if HK_distillate < 0. or HK_bottoms < 0.:
                 raise InfeasibleRegion(
@@ -706,14 +706,21 @@ class Distillation(Unit, isabstract=True):
         
         # Mass balance for keys
         spec = self.product_specification_format
-        if  spec == 'Composition':
+        if spec == 'Composition':
             # Use lever rule
             light, heavy = LHK_mol
             F_mol_LHK = light + heavy
-            zf = light/F_mol_LHK
-            distillate_fraction = (zf-self.x_bot)/(self.y_top-self.x_bot)
+            zf = light / F_mol_LHK
+            y_top, y_bot = self._y
+            x_bot = self._x_bot
+            distillate_fraction = (zf - x_bot)/(y_top - x_bot)
+            if distillate_fraction < 1e-6: distillate_fraction = 1e-6
+            if distillate_fraction > 1 - 1e-6: distillate_fraction = 1 - 1e-6   
             F_mol_LHK_distillate = F_mol_LHK * distillate_fraction
             distillate_LHK_mol = F_mol_LHK_distillate * self._y
+            max_flows = (1 - 1e-9) * LHK_mol
+            mask = distillate_LHK_mol > (1 - 1e-9) * max_flows
+            distillate_LHK_mol[mask] = max_flows[mask]
         elif spec == 'Recovery':
             distillate_LHK_mol = LHK_mol * [self.Lr, (1 - self.Hr)]
         else:
@@ -722,7 +729,8 @@ class Distillation(Unit, isabstract=True):
         bottoms_product.mol[LHK_index] = LHK_mol - distillate_LHK_mol
         distillate.mol[intemediates_index] = \
         bottoms_product.mol[intemediates_index] = mol[intemediates_index] / 2
-        self._check_mass_balance()
+        try: self._check_mass_balance()
+        except: breakpoint()
     
     def _update_distillate_and_bottoms_temperature(self):
         distillate, bottoms_product = self.outs
@@ -818,10 +826,7 @@ class Distillation(Unit, isabstract=True):
         self.pump.ins[0].copy_like(liq)
         self.pump.simulate()
         self.bottoms_split.simulate()
-        if self._partial_condenser:
-            self.reflux_drum.simulate()
-        else:
-            self.top_split.simulate()
+        if self._partial_condenser: self.reflux_drum.simulate()
     
     def _simulate_components(self): 
         reboiler = self.reboiler
@@ -1686,6 +1691,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
     )
     
     def _run(self):
+        if all([i.isempty() for i in self.ins]): return
         # Initial mass balance
         self._run_binary_distillation_mass_balance()
         
@@ -1781,7 +1787,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
     def _get_relative_volatilities_LHK(self):
         distillate, bottoms = self.outs
         LHK = self.LHK
-        condensate = self.condenser.outs[0]['l']
+        condensate = self.condensate
         K_light, K_heavy = distillate.get_molar_composition(LHK) / condensate.get_molar_composition(LHK)
         alpha_LHK_distillate = K_light/K_heavy
         
@@ -2284,6 +2290,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     )
     line = 'Distillation'
     _ins_size_is_fixed = False
+    _outs_size_is_fixed = False
     _N_ins = 1
     _N_outs = 2
     
@@ -2305,7 +2312,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     
     def _init(self, 
             LHK, N_stages, feed_stages, 
-            reflux, boilup, 
+            reflux=None, boilup=None, 
             P=101325, 
             vapor_side_draws=None, liquid_side_draws=None,
             vessel_material='Carbon steel',
@@ -2319,12 +2326,20 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
             downcomer_area_fraction=None,
             vacuum_system_preference='Liquid-ring pump',
             partition_data=None,
+            full_condenser=None,
             use_cache=None,
         ):
+        if full_condenser: 
+            if liquid_side_draws is None:
+                liquid_side_draws = {}
+            if reflux is not None and 0 not in liquid_side_draws: 
+                liquid_side_draws[0] = reflux / (1 + reflux)
+            reflux = inf # Boil-up is 0
         self.LHK = LHK
         stage_specifications = {}
         stage_specifications[0] = ('Reflux', reflux)
         stage_specifications[-1] = ('Boilup', boilup)
+        
         super()._init(N_stages=N_stages, feed_stages=feed_stages,
                       top_side_draws=vapor_side_draws, 
                       bottom_side_draws=liquid_side_draws,              
@@ -2389,11 +2404,32 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     def _load_components(self):
         # Setup components
         thermo = self.thermo
-        
-        partial_condenser = self.reflux != 0.
+        reflux = self.reflux 
         
         #: [HXutility] Condenser.
-        if partial_condenser:
+        if reflux is None: # No condenser
+            self.condenser = self.reflux_drum = None
+            self.condensate = self.stages[0].outs[1]
+        elif reflux == inf: # Full condenser
+            self.reflux_drum = None
+            self.auxiliary(
+                'condenser', HXutility,
+                ins='vapor',
+                thermo=thermo,
+            )
+            self.auxiliary(
+                'top_split', MockSplitter,
+                ins = self.condenser-0,
+                outs=(self-2, 'condensate'),
+                thermo=thermo,
+            )
+            self.condensate = self.top_split-1
+            self.condenser.inlet.phase = 'g'
+        elif reflux == 0:
+            self.condenser = self.reflux_drum = self.top_split = None
+            self.condensate = self.stages[0].outs[1]
+        else: # Partial condenser
+            self.top_split = None
             self.auxiliary(
                 'condenser', HXutility,
                 ins='vapor',
@@ -2405,21 +2441,8 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                 ins=self.condenser-0,
                 outs=(self-0, 'condensate')
             )
-            self.condensate =  self.reflux_drum-1
-        else:
-            self.auxiliary(
-                'condenser', HXutility,
-                ins='vapor',
-                thermo=thermo,
-            )
-            self.auxiliary(
-                'top_split', FakeSplitter,
-                ins = self.condenser-0,
-                outs=(self-0, 'condensate'),
-                thermo=thermo,
-            )
-            self.condensate = self.top_split-1
-        self.condenser.inlet.phase = 'g'
+            self.condensate = self.reflux_drum-1
+            self.condenser.inlet.phase = 'g'
         self.auxiliary('pump', bst.Pump,
             'liquid', thermo=thermo,
         )
@@ -2504,11 +2527,14 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     def _simulate_condenser_and_reboiler(self):
         top = self.stages[0].partition
         bottom = self.stages[-1].partition
-        condenser = self.condenser
         reboiler = self.reboiler
+        condenser = self.condenser
+        reflux_drum = self.reflux_drum
+        top_split = self.top_split
         
         # Set condenser conditions
-        condenser.simulate_as_auxiliary_exchanger(top.ins, top.outs, vle=False)
+        if condenser:
+            condenser.simulate_as_auxiliary_exchanger(top.ins, top.outs, vle=False)
         
         # Set reboiler conditions
         reboiler.simulate_as_auxiliary_exchanger(bottom.ins, bottom.outs, vle=False)
@@ -2516,10 +2542,14 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         self.pump.ins[0].copy_like(liq)
         self.pump.simulate()
         self.bottoms_split.simulate()
-        if hasattr(self, 'reflux_drum'):
-            self.reflux_drum.simulate()
-        else:
-            self.top_split.simulate()
+        
+        if reflux_drum:
+            reflux_drum.simulate()
+        elif top_split:
+            splitter = self.stages[0].splitters[-1]
+            top_split.ins[0].copy_like(splitter.ins[0])
+            for i, j in zip(top_split.ins + top_split.outs, splitter.ins + splitter.outs):
+                i.copy_like(j)
 
     def _cost(self):
         Design = self.design_results
