@@ -140,6 +140,7 @@ class LLEUnit(bst.Unit, isabstract=True):
         self.top_chemical = solvent
         
     def _run(self):
+        if all([i.isempty() for i in self.ins]): return
         sep.lle(*self.ins, *self.outs, self.top_chemical, self.efficiency, self.multi_stream)
         IDs = self.forced_split_IDs
         if IDs:
