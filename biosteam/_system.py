@@ -1621,7 +1621,22 @@ class System:
         elif isa(recycle, Stream):
             self._recycle = recycle
         elif isa(recycle, abc.Iterable):
-            recycle = sorted(set(recycle), key=lambda x: x._ID)
+            real_recycles = [i for i in recycle if isa(recycle, Stream)]
+            if len(real_recycles) == 0: 
+                self.method = 'fixed-point'
+                permanent = self.unit_set
+                unit_path = self.unit_path
+                for unit in unit_path:
+                    if len(unit.outs) != 1: continue
+                    stream = unit.outs[0]
+                    if stream.sink in permanent:
+                        self._recycle = stream
+                        return
+                for unit in unit_path:
+                    self._recycle = unit.outs[0]
+                    return
+                return
+            recycle = sorted(set(real_recycles), key=lambda x: x._ID)
             for i in recycle:
                 if not isa(i, Stream):
                     raise AttributeError("recycle streams must be Stream objects; "
