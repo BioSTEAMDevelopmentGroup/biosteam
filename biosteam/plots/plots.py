@@ -776,8 +776,12 @@ def plot_montecarlo(data,
                      whiskerprops=dict(color=dark_color),
                      flierprops=flierprops)
     if bounds:
-        plt.scatter(x=positions, y=data.min(axis=0), marker='1', c=[dark_color])
-        plt.scatter(x=positions, y=data.max(axis=0), marker='2', c=[dark_color])
+        if vertical:
+            plt.scatter(x=positions, y=data.min(axis=0), marker='1', c=[dark_color])
+            plt.scatter(x=positions, y=data.max(axis=0), marker='2', c=[dark_color])
+        else:
+            plt.scatter(x=data.min(axis=0), y=positions, marker='1', c=[dark_color])
+            plt.scatter(x=data.max(axis=0), y=positions, marker='2', c=[dark_color])
     if xmarks: plt.xticks(positions, xmarks)
     if hatch:
         for box in bx['boxes']:
@@ -878,10 +882,10 @@ def plot_kde(x, y, nbins=100, ax=None,
         plt.scatter(x, y, c=z, s=1., cmap=cmap, **kwargs)
         if xbox:
             plt.sca(xbox.axis)
-            plot_montecarlo(x, xbox.light, xbox.dark, positions=(xbox.get_position(-1),), vertical=False, outliers=False, width=xbox_width)
+            plot_montecarlo(x, xbox.light, xbox.dark, positions=(xbox.get_position(-1),), vertical=False, outliers=False, width=xbox_width, bounds=True)
         if ybox:
             plt.sca(ybox.axis)
-            plot_montecarlo(y, ybox.light, ybox.dark, positions=(ybox.get_position(),), vertical=True, outliers=False, width=ybox_width)
+            plot_montecarlo(y, ybox.light, ybox.dark, positions=(ybox.get_position(),), vertical=True, outliers=False, width=ybox_width, bounds=True)
     style_axis(ax, xticks, yticks, xticklabels, yticklabels, trim_to_limits=True,
                xtick0=xtick0, ytick0=ytick0, xtickf=xtickf, ytickf=ytickf)
     plt.sca(ax)
