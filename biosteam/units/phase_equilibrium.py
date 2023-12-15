@@ -438,7 +438,6 @@ class MultiStageEquilibrium(Unit):
             use_cache=None,
         ):
         # For VLE look for best published algorithm (don't try simple methods that fail often)
-        if partition_data is None: partition_data = {}
         if phases is None: phases = ('g', 'l')
         if feed_stages is None: feed_stages = (0, -1)
         if stage_specifications is None: stage_specifications = {}
@@ -451,7 +450,6 @@ class MultiStageEquilibrium(Unit):
         self.N_stages = N_stages
         self.P = P
         phases = self.multi_stream.phases # Corrected order
-        self.outs[0].phase, self.outs[1].phase = [i.lower() for i in phases]
         top_mark = 2 + len(top_side_draws)
         tsd_iter = iter(self.outs[2:top_mark])
         bsd_iter = iter(self.outs[top_mark:])
@@ -491,6 +489,7 @@ class MultiStageEquilibrium(Unit):
                 bsplits[i] += bottom_split
             else: 
                 bottom_split = 0
+            
             new_stage = self.auxiliary(
                 'stages', StageEquilibrium, phases=phases,
                 ins=feed,
@@ -586,8 +585,7 @@ class MultiStageEquilibrium(Unit):
     def _run(self):
         f = self.multistage_equilibrium_iter
         top_flow_rates = self.hot_start()
-        top_flow_rates, not_converged = f(top_flow_rates, inner_vle_loop=False)
-        if not_converged: top_flow_rates = flx.conditional_fixed_point(f, top_flow_rates)
+        top_flow_rates = flx.conditional_fixed_point(f, top_flow_rates)
         self.update(top_flow_rates)
     
     def _hot_start_phase_ratios_iter(self, 
@@ -690,7 +688,6 @@ class MultiStageEquilibrium(Unit):
         stages = self.stages
         partitions = [i.partition for i in stages]
         N_stages = self.N_stages
-        # ms.phases = self.phases
         top_phase, bottom_phase = ms.phases
         eq = 'vle' if top_phase == 'g' else 'lle'
         ms.mix_from(feeds)
@@ -718,7 +715,6 @@ class MultiStageEquilibrium(Unit):
                 for i in partitions: 
                     if i.IDs != IDs:
                         i.IDs = IDs
-                        if not data: i.K = np.zeros(len(IDs))
                         i._run(P=self.P, solvent=solvent_ID, update=False,
                                couple_energy_balance=False)
                         for j in i.outs: j.T = i.T
@@ -726,7 +722,6 @@ class MultiStageEquilibrium(Unit):
                 for i in partitions: 
                     if i.IDs != IDs:
                         i.IDs = IDs
-                        if not data: i.K = np.zeros(len(IDs))
                         i._run(P=self.P, update=False, 
                                couple_energy_balance=False)
         elif len(all_stages) != self.N_stages and not data:
@@ -738,7 +733,6 @@ class MultiStageEquilibrium(Unit):
                 phi = data.get('phi') or top.imol[IDs].sum() / ms.imol[IDs].sum()
                 data['phi'] = phi = sep.partition(ms, top, bottom, IDs, K, phi,
                                                   top_chemicals, bottom_chemicals)
-                if eq == 'vle': ms.vle(H=ms.H, P=ms.P)
                 T = ms.T
                 for i in partitions: 
                     i.T = T
@@ -765,7 +759,7 @@ class MultiStageEquilibrium(Unit):
                     K = bp.y / bp.z
                     for i, j in enumerate(phase_ratios):
                         partition = stages[i].partition
-                        partition.phi = j / (1 + j)
+                        partition.phi = 1 if j == inf else j / (1 + j)
                         partition.T = T = T_top - i * dT_stage
                         for s in partition.outs: s.T = T
                 else:
@@ -895,10 +889,9 @@ class MultiStageEquilibrium(Unit):
         stages = self.stages
         partitions = [i.partition for i in stages]
         if inner_vle_loop:
-            phase_ratios = np.array([partition.phi / (1 - partition.phi) for partition in partitions])
             phase_ratios = flx.fixed_point(
                 self.multistage_phase_ratio_inner_loop, 
-                phase_ratios, 
+                np.array([partition.phi / (1 - partition.phi) for partition in partitions]), 
                 args=(np.array([partition.K for partition in partitions]),),
                 xtol=self.default_relative_molar_tolerance,
                 checkiter=False,
@@ -915,7 +908,7 @@ class MultiStageEquilibrium(Unit):
         for i in range(N_stages):
             partition = stages[i].partition
             phi = partition.phi
-            if phi is not None and (partition.B is None and almost_zero < phi < almost_one):
+            if phi is not None and almost_zero < phi < almost_one:
                 index.append(i)
                 phase_ratios.append(phi / (1 - phi))
                 partition_coefficients.append(partition.K)
@@ -923,10 +916,7 @@ class MultiStageEquilibrium(Unit):
         N_ok = len(index)
         if len(index) == N_stages:
             phase_ratios = np.array(phase_ratios)
-            try: 
-                partition_coefficients = np.array(partition_coefficients)
-            except:
-                breakpoint()
+            partition_coefficients = np.array(partition_coefficients)
             Ts = np.array(Ts)
         else:
             if N_ok > 1:
@@ -950,56 +940,48 @@ class MultiStageEquilibrium(Unit):
                 raise RuntimeError('no phase equilibrium')
             for T, j, K, stage in zip(Ts, phase_ratios, partition_coefficients, stages): 
                 partition = stage.partition
-                partition.phi = j / (1 + j)
+                partition.phi = 1 if j == inf else j / (1 + j)
                 partition.T = T 
                 for i in partition.outs: i.T = T
-                if partition.B is None: partition.phi = j / (1 + j)
+                if partition.B is None: partition.phi = 1 if j == inf else j / (1 + j)
                 partition.K = K
         return flow_rates_for_multistage_equilibrium(
             phase_ratios, partition_coefficients, *self._iter_args,
         )
     
-    def multistage_equilibrium_iter(self, top_flow_rates, inner_vle_loop=True):
+    def multistage_equilibrium_iter(self, top_flow_rates):
         self.iter += 1
         self.update(top_flow_rates)
         stages = self.stages
         P = self.P
         eq = 'vle' if self.multi_stream.phases[0] == 'g' else 'lle'
         if eq == 'vle': 
-            has_data = bool(self.partition_data)
             for n, i in enumerate(stages):
                 mixer = i.mixer
                 partition = i.partition
                 mixer.outs[0].mix_from(
-                    mixer.ins, conserve_phases=True, energy_balance=has_data,
+                    mixer.ins, conserve_phases=True, energy_balance=False,
                 )
                 partition._run(P=self.P, update=False, 
-                               couple_energy_balance=False)
+                                 couple_energy_balance=False)
                 T = partition.T
                 for i in partition.outs: i.T = T
-            if has_data:
-                new_top_flow_rates = self._get_top_flow_rates(False)
-            elif inner_vle_loop:
-                new_top_flow_rates = self._get_top_flow_rates(True)
-            else:
-                for i, j in enumerate(self.get_vle_phase_ratios()):
-                    stages[i].partition.phi = 1. if j == inf else j / (1 + j)
-                new_top_flow_rates = self._get_top_flow_rates(False)
+            new_top_flow_rates = self._get_top_flow_rates(True)
         else: # LLE
             for i in stages: 
                 i.mixer._run()
                 i.partition._run(P=P, solvent=self.solvent_ID, update=False, 
                                  couple_energy_balance=False)
             new_top_flow_rates = self._get_top_flow_rates(False)
-        mol = top_flow_rates
-        mol_new = new_top_flow_rates
+        mol = top_flow_rates[0] 
+        mol_new = new_top_flow_rates[0]
         mol_errors = abs(mol - mol_new)
         if mol_errors.any():
             mol_error = mol_errors.max()
             if mol_error > 1e-12:
-                nonzero_index, = (mol_errors > 1e-12).any(axis=1).nonzero()
-                mol_errors = mol_errors[nonzero_index, :]
-                max_errors = np.maximum.reduce([abs(mol[nonzero_index, :]), abs(mol_new[nonzero_index, :])])
+                nonzero_index, = (mol_errors > 1e-12).nonzero()
+                mol_errors = mol_errors[nonzero_index]
+                max_errors = np.maximum.reduce([abs(mol[nonzero_index]), abs(mol_new[nonzero_index])])
                 rmol_error = (mol_errors / max_errors).max()
                 not_converged = (
                     self.iter < self.maxiter and (mol_error > self.molar_tolerance
