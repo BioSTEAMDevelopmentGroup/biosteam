@@ -1929,12 +1929,12 @@ class System:
             set_recycle_data(recycles[0], data)
         elif N > 1:
             N = data.size
-            M = sum([i.mol.size + 2 for i in recycles])
+            M = sum([i.imol.data.size + 2 for i in recycles])
             if M != N: 
                 raise IndexError(f'expected {N} elements; got {M} instead')
             index = 0
             for i in recycles:
-                end = index + i.mol.size + 2
+                end = index + i.imol.data.size + 2
                 set_recycle_data(i, data[index:end])
                 index = end
         else:
