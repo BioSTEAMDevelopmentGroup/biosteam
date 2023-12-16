@@ -2073,7 +2073,8 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
         eff = self.stage_efficiency
         if eff is None:
             # Calculate Murphree Efficiency
-            vapor, liquid = self.outs
+            liquid = self.condensate
+            vapor = self.bottoms_split.outs[0]
             mu = liquid.get_property('mu', 'mPa*s')
             alpha = self._get_relative_volatilities()
             L_Rmol = liquid.F_mol
@@ -2258,6 +2259,19 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                         Reboiler - Floating head                 USD 2.22e+04
     Total purchase cost                                          USD 1.21e+05
     Utility cost                                              USD/hr     90.6
+    
+    >>> import biosteam as bst
+    >>> bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
+    >>> feed = bst.Stream('feed', Ethanol=80, Water=100, T=80.215 + 273.15)
+    >>> D1 = bst.MESHDistillation(None, N_stages=5, ins=[feed], feed_stages=[2],
+    ...     outs=['vapor', 'liquid', 'distillate'],
+    ...     reflux=0.673, boilup=2.57,
+    ...     LHK=('Ethanol', 'Water'),
+    ...     full_condenser=True,
+    ... )
+    >>> D1.simulate()
+    >>> vapor, liquid, distillate = D1.outs
+    >>> distillate.imol['Ethanol'] / feed.imol['Ethanol']
     
     Notes
     -----
@@ -2462,7 +2476,8 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         eff = self.stage_efficiency
         if eff is None:
             # Calculate Murphree Efficiency
-            vapor, liquid, *others = self.outs
+            liquid = self.condensate
+            vapor = self.bottoms_split.outs[0]
             mu = liquid.get_property('mu', 'mPa*s')
             alpha = self._get_relative_volatilities()
             L_Rmol = liquid.F_mol
@@ -2485,6 +2500,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         return KL / KH
        
     def _design(self):
+        self._simulate_condenser_and_reboiler()
         Design = self.design_results
         TS = self._TS
         A_ha = self._A_ha
@@ -2566,8 +2582,6 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         W = Design['Weight'] # in lb
         H = Design['Height'] # in ft
         Cost['Tower'] = design.compute_empty_tower_cost(W)
-           
         Cost['Platform and ladders'] = design.compute_plaform_ladder_cost(Di, H)
-        self._simulate_condenser_and_reboiler()
         
 RigorousDistillation = MESHDistillation

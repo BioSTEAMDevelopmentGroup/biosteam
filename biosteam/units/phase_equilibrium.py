@@ -10,7 +10,7 @@ This module contains abstract classes for modeling separations in unit operation
 
 """
 from warnings import warn
-from numba import njit
+from numba import njit, objmode
 import thermosteam as tmo
 from thermosteam import separations as sep
 import biosteam as bst
@@ -868,6 +868,8 @@ class MultiStageEquilibrium(Unit):
             Q += sum([i.H for i in other_feeds])
             if liquid.isempty():
                 B = B_max
+            elif vapor.isempty():
+                B = B_min
             else:
                 B = Q / (vapor.h * liquid.F_mol)
                 if B > B_max: B = B_max
@@ -908,7 +910,7 @@ class MultiStageEquilibrium(Unit):
         for i in range(N_stages):
             partition = stages[i].partition
             phi = partition.phi
-            if phi is not None and almost_zero < phi < almost_one:
+            if phi is not None and (partition.B is not None or almost_zero < phi < almost_one):
                 index.append(i)
                 phase_ratios.append(phi / (1 - phi))
                 partition_coefficients.append(partition.K)
@@ -940,14 +942,15 @@ class MultiStageEquilibrium(Unit):
                 raise RuntimeError('no phase equilibrium')
             for T, j, K, stage in zip(Ts, phase_ratios, partition_coefficients, stages): 
                 partition = stage.partition
-                partition.phi = 1 if j == inf else j / (1 + j)
                 partition.T = T 
                 for i in partition.outs: i.T = T
-                if partition.B is None: partition.phi = 1 if j == inf else j / (1 + j)
+                if partition.B is not None: j = partition.B
+                partition.phi = 1 if j == inf else j / (1 + j)
                 partition.K = K
-        return flow_rates_for_multistage_equilibrium(
+        top_flow_rates = flow_rates_for_multistage_equilibrium(
             phase_ratios, partition_coefficients, *self._iter_args,
         )
+        return top_flow_rates
     
     def multistage_equilibrium_iter(self, top_flow_rates):
         self.iter += 1
@@ -973,8 +976,8 @@ class MultiStageEquilibrium(Unit):
                 i.partition._run(P=P, solvent=self.solvent_ID, update=False, 
                                  couple_energy_balance=False)
             new_top_flow_rates = self._get_top_flow_rates(False)
-        mol = top_flow_rates[0] 
-        mol_new = new_top_flow_rates[0]
+        mol = np.hstack([top_flow_rates[0], top_flow_rates[-1]])
+        mol_new = np.hstack([new_top_flow_rates[0], new_top_flow_rates[-1]])
         mol_errors = abs(mol - mol_new)
         if mol_errors.any():
             mol_error = mol_errors.max()
@@ -1093,7 +1096,10 @@ def hot_start_top_flow_rates(
     for n in range(stage_index.size):
         i = stage_index[n]
         S = phase_ratios[n]
-        b[i] += inf if S <= 1e-32 else 1 / S 
+        if S <= 1e-32:
+            b[i] = inf
+        else:
+            b[i] += 1 / S 
         if i == 0:
             d[i] += bottom_feed_flows[i]
         else:
@@ -1153,7 +1159,7 @@ def hot_start_bottom_flow_rates(
             d[i] += top_feed_flows[i] - top_flows[i + 1] * asplit[i + 1]
     return solve_LBDMA(a, b, d)
 
-@njit(cache=True)
+# @njit(cache=True)
 def flow_rates_for_multistage_equilibrium(
         phase_ratios,
         partition_coefficients, 
@@ -1191,18 +1197,58 @@ def flow_rates_for_multistage_equilibrium(
         Flow rates of phase a with stages by row and components by column.
 
     """
-    phase_ratios[phase_ratios < 1e-32] = 1e-32
-    phase_ratios[phase_ratios > 1e32] = 1e32
+    zero_mask = phase_ratios <= 0.
+    inf_mask = phase_ratios >= 1e32
+    ok_mask = ~zero_mask & ~inf_mask
     phase_ratios = np.expand_dims(phase_ratios, -1)
-    component_ratios = 1 / (phase_ratios * partition_coefficients)
-    b = 1. +  component_ratios
-    a = b.copy()
-    c = b.copy()
+    asplit = np.expand_dims(asplit, -1)
+    safe = ok_mask.all()
+    if safe:
+        component_ratios = 1. / (phase_ratios * partition_coefficients)
+    else:
+        zero_index, = np.nonzero(zero_mask)
+        inf_index, = np.nonzero(inf_mask)
+        ok_index, = np.nonzero(ok_mask)
+        component_ratios = np.zeros(partition_coefficients.shape)
+        for i in ok_index:
+            component_ratios[i] = 1. / (phase_ratios[i] * partition_coefficients[i])
+        for i in zero_index:
+            component_ratios[i] = inf
+        for i in inf_index:
+            component_ratios[i] = 0.
+    b = 1. + component_ratios
+    c = bsplit[1:]
     d = feed_flows.copy()
-    for i in range(N_stages-1):
-        c[i] = bsplit[i + 1]
-        a[i] = asplit[i] *  component_ratios[i] 
-    return solve_TDMA(a, b, c, d)
+    a = asplit * component_ratios
+    if safe:
+        return solve_TDMA(a, b, c, d)
+    else:
+        n = d.shape[0] - 1 # number of equations minus 1
+        for i in range(n):
+            inext = i + 1
+            ai = a[i]
+            bi = b[i]
+            m = bi.copy()
+            inf_mask = bi == inf
+            zero_mask = bi == 0
+            ok_mask = ~inf_mask & ~zero_mask
+            ok_index, = np.nonzero(ok_mask)
+            inf_index, = np.nonzero(inf_mask)
+            zero_index, = np.nonzero(zero_mask)
+            special_index, = np.nonzero(inf_mask & (ai == inf))
+            for j in inf_index: m[j] = 0
+            for j in special_index: m[j] = asplit[j]
+            for j in zero_index: m[j] = inf
+            for j in ok_index: m[j] = ai[j] / bi[j]
+            b[inext] = b[inext] - m * c[i] 
+            d[inext] = d[inext] - m * d[i]
+            
+        b[n] = d[n] / b[n]
+
+        for i in range(n-1, -1, -1):
+            b[i] = (d[i] - c[i] * b[i+1]) / b[i]
+        
+        return b
 
 def get_neighbors(index, all_index):
     size = all_index.size
