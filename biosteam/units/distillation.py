@@ -1934,15 +1934,15 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
         flow (kmol/hr): Water  100
     outs...
     [0] vapor  
-        phase: 'g', T: 366.32 K, P: 101325 Pa
-        flow (kmol/hr): AceticAcid  3.71
+        phase: 'g', T: 366.33 K, P: 101325 Pa
+        flow (kmol/hr): AceticAcid  3.72
                         Water       73.8
                         MTBE        20
     [1] liquid  
         phase: 'l', T: 372.87 K, P: 101325 Pa
-        flow (kmol/hr): AceticAcid  1.29
+        flow (kmol/hr): AceticAcid  1.28
                         Water       101
-                        MTBE        0.00031
+                        MTBE        0.000309
     
     >>> absorber.results()
     Absorber                                   Units         
@@ -2073,8 +2073,7 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
         eff = self.stage_efficiency
         if eff is None:
             # Calculate Murphree Efficiency
-            liquid = self.condensate
-            vapor = self.bottoms_split.outs[0]
+            vapor, liquid = self.outs
             mu = liquid.get_property('mu', 'mPa*s')
             alpha = self._get_relative_volatilities()
             L_Rmol = liquid.F_mol
@@ -2237,41 +2236,28 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     
     >>> D1.results()
     Distillation                                               Units         
-    Electricity         Power                                     kW    0.553
-                        Cost                                  USD/hr   0.0432
-    Low pressure steam  Duty                                   kJ/hr 1.47e+07
-                        Flow                                 kmol/hr      381
-                        Cost                                  USD/hr     90.5
+    Electricity         Power                                     kW    0.548
+                        Cost                                  USD/hr   0.0428
+    Low pressure steam  Duty                                   kJ/hr 1.48e+07
+                        Flow                                 kmol/hr      384
+                        Cost                                  USD/hr     91.2
     Design              Theoretical stages                                  5
-                        Actual stages                                       9
-                        Height                                    ft     27.3
+                        Actual stages                                       7
+                        Height                                    ft     24.3
                         Diameter                                  ft     3.32
                         Wall thickness                            in    0.312
-                        Weight                                    lb 4.02e+03
-    Purchase cost       Trays                                    USD 9.97e+03
-                        Tower                                    USD 3.63e+04
-                        Platform and ladders                     USD 1.03e+04
+                        Weight                                    lb 3.63e+03
+    Purchase cost       Trays                                    USD 8.11e+03
+                        Tower                                    USD 3.43e+04
+                        Platform and ladders                     USD 9.43e+03
                         Condenser - Floating head                USD 2.06e+04
                         Reflux drum - Vertical pressure ...      USD 1.29e+04
                         Reflux drum - Platform and ladders       USD 3.89e+03
                         Pump - Pump                              USD 4.35e+03
-                        Pump - Motor                             USD      355
-                        Reboiler - Floating head                 USD 2.22e+04
-    Total purchase cost                                          USD 1.21e+05
-    Utility cost                                              USD/hr     90.6
-    
-    >>> import biosteam as bst
-    >>> bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
-    >>> feed = bst.Stream('feed', Ethanol=80, Water=100, T=80.215 + 273.15)
-    >>> D1 = bst.MESHDistillation(None, N_stages=5, ins=[feed], feed_stages=[2],
-    ...     outs=['vapor', 'liquid', 'distillate'],
-    ...     reflux=0.673, boilup=2.57,
-    ...     LHK=('Ethanol', 'Water'),
-    ...     full_condenser=True,
-    ... )
-    >>> D1.simulate()
-    >>> vapor, liquid, distillate = D1.outs
-    >>> distillate.imol['Ethanol'] / feed.imol['Ethanol']
+                        Pump - Motor                             USD      354
+                        Reboiler - Floating head                 USD 2.23e+04
+    Total purchase cost                                          USD 1.16e+05
+    Utility cost                                              USD/hr     91.3
     
     Notes
     -----
@@ -2476,28 +2462,30 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         eff = self.stage_efficiency
         if eff is None:
             # Calculate Murphree Efficiency
-            liquid = self.condensate
-            vapor = self.bottoms_split.outs[0]
-            mu = liquid.get_property('mu', 'mPa*s')
-            alpha = self._get_relative_volatilities()
-            L_Rmol = liquid.F_mol
-            V_Rmol = vapor.F_mol
-            eff = design.compute_murphree_stage_efficiency(
-                mu, alpha, L_Rmol, V_Rmol
-            )
-            
-        # Calculate actual number of stages
-        return np.ceil(self.N_stages / eff)
-       
-    def _get_relative_volatilities(self):
-        stages = self.stages
-        IDs = stages[0].partition.IDs
-        LK, HK = self.LHK
-        LI = IDs.index(LK)
-        HI = IDs.index(HK)
-        KL = gmean([i.partition.K[LI] for i in stages])
-        KH = gmean([i.partition.K[HI] for i in stages])
-        return KL / KH
+            eff = 1
+            stages = self.stages
+            IDs = stages[0].partition.IDs
+            LK, HK = self.LHK
+            LI = IDs.index(LK)
+            HI = IDs.index(HK)
+            N_stages = 0
+            for i in stages:
+                try:
+                    vapor, liquid = i.partition.outs
+                    mu = liquid.get_property('mu', 'mPa*s')
+                    alpha = i.partition.K[LI] / i.partition.K[HI]
+                    L_Rmol = liquid.F_mol
+                    V_Rmol = vapor.F_mol
+                    eff *= design.compute_murphree_stage_efficiency(
+                        mu, alpha, L_Rmol, V_Rmol
+                    )
+                    N_stages += 1
+                except:
+                    N_stages += i.partition.phi in (0, 1)
+            eff = eff ** (1 / N_stages)
+            return N_stages, np.ceil(N_stages / eff)
+        else:
+            return self.N_stages, np.ceil(self.N_stages / eff)
        
     def _design(self):
         self._simulate_condenser_and_reboiler()
@@ -2533,8 +2521,9 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
             warn('vacuum pressure vessel ASME codes not implemented yet; '
                  'wall thickness may be inaccurate and stiffening rings may be '
                  'required', category=RuntimeWarning)
-        Design['Theoretical stages'] = self.N_stages
-        Design['Actual stages'] = actual_stages = self._actual_stages()
+        N_theoretical, N_actual = self._actual_stages()
+        Design['Theoretical stages'] = N_theoretical
+        Design['Actual stages'] = actual_stages = N_actual - (bool(self.condenser) + bool(self.reboiler))
         Design['Height'] = H = design.compute_tower_height(TS, actual_stages) * 3.28
         Design['Diameter'] = Di = diameter
         Design['Wall thickness'] = tv = design.compute_tower_wall_thickness(Po, Di, H)
