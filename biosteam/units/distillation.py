@@ -2310,9 +2310,11 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     mass balances across stages is used to solve for flow rates instead of mass 
     fractions. 
     
-    The initialization algorithm first solves for liquid and vapor flow rates 
-    assuming no phase change across adiabatic stages and unity partition coefficients
-    at reboilers/condensers (in which case the stripping factor is equal to the 
+    The initialization algorithm first converges a "collapsed" column without 
+    adiabatic stages which have no feeds or side draws. This collapsed column 
+    is initialized by solving for liquid and vapor flow rates assuming no phase 
+    change across adiabatic stages and unity partition coefficients at 
+    reboilers/condensers (in which case the stripping factor is equal to the 
     boil-up ratio). Then, top and bottom stage temperatures are assumed to be
     the bubble point and dew point of the fed mixture and the temperature 
     across stages are linearly interpolated. The partition coefficients in 

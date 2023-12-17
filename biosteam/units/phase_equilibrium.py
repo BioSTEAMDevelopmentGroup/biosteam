@@ -418,7 +418,7 @@ class MultiStageEquilibrium(Unit):
     _N_outs = 2
     inner_loop_iter = 1
     default_maxiter = 15
-    default_fallback_maxiter = 6
+    default_fallback_maxiter = 3
     default_molar_tolerance = 0.1
     default_relative_molar_tolerance = 0.001
     auxiliary_unit_names = (
@@ -755,19 +755,19 @@ class MultiStageEquilibrium(Unit):
         for feed, stage in zip(feeds, feed_stages):
             feed_flows[stage, :] += feed.mol[index]
         self._iter_args = (feed_flows, self._asplit, self._bsplit, self.N_stages)
-        # feed_stages = [(i if i >= 0 else N_stages + i) for i in self.feed_stages]
-        # stage_specifications = {(i if i >= 0 else N_stages + i): j for i, j in self.stage_specifications.items()}
-        # top_side_draws = {(i if i >= 0 else N_stages + i): j for i, j in self.top_side_draws.items()}
-        # bottom_side_draws = {(i if i >= 0 else N_stages + i): j for i, j in self.bottom_side_draws.items()}
-        # all_stages = set([*feed_stages, *stage_specifications, *top_side_draws, *bottom_side_draws])
+        feed_stages = [(i if i >= 0 else N_stages + i) for i in self.feed_stages]
+        stage_specifications = {(i if i >= 0 else N_stages + i): j for i, j in self.stage_specifications.items()}
+        top_side_draws = {(i if i >= 0 else N_stages + i): j for i, j in self.top_side_draws.items()}
+        bottom_side_draws = {(i if i >= 0 else N_stages + i): j for i, j in self.bottom_side_draws.items()}
+        all_stages = set([*feed_stages, *stage_specifications, *top_side_draws, *bottom_side_draws])
         if (self.use_cache 
             and all([i.IDs == IDs for i in partitions])): # Use last set of data
             pass
-        # elif len(all_stages) != self.N_stages and not data:
-        #     self.hot_start_collapsed_stages(
-        #         all_stages, feed_stages, stage_specifications,
-        #         top_side_draws, bottom_side_draws,
-        #     )
+        elif len(all_stages) != self.N_stages and not data:
+            self.hot_start_collapsed_stages(
+                all_stages, feed_stages, stage_specifications,
+                top_side_draws, bottom_side_draws,
+            )
         else:
             if data: 
                 top, bottom = ms
