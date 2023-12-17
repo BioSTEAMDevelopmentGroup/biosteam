@@ -2308,15 +2308,15 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     bubble point method. This algorithm is authored by Yoel Cortes-Pena, but is 
     not yet peer reviewed. The main difference is that the tridiagonal matrix of 
     mass balances across stages is used to solve for flow rates instead of mass 
-    fractions and an internal loop is added to converge phase fractions based 
-    on the energy balance. 
+    fractions. 
     
-    The initialization algorithm first converges a "collapsed" column without 
-    adiabatic stages which have no feeds or side draws. This collapsed column 
-    is initialized by solving for liquid and vapor flow rates assuming no phase 
-    change across adiabatic stages and unity partition coefficients at 
-    reboilers/condensers (in which case the stripping factor is equal to the 
-    boil-up ratio).
+    The initialization algorithm first solves for liquid and vapor flow rates 
+    assuming no phase change across adiabatic stages and unity partition coefficients
+    at reboilers/condensers (in which case the stripping factor is equal to the 
+    boil-up ratio). Then, top and bottom stage temperatures are assumed to be
+    the bubble point and dew point of the fed mixture and the temperature 
+    across stages are linearly interpolated. The partition coefficients in 
+    all stages are assumed to be equal to the feed bubble point.
     
     The Murphree efficiency (i.e. stage efficiency) is based on the 
     modified O'Connell correlation [2]_. The diameter is based on tray 

@@ -409,7 +409,9 @@ class MultiStageEquilibrium(Unit):
     """
     _N_ins = 2
     _N_outs = 2
-    default_maxiter = 100
+    inner_loop_iter = 1
+    default_maxiter = 15
+    default_fallback_maxiter = 6
     default_molar_tolerance = 0.1
     default_relative_molar_tolerance = 0.001
     auxiliary_unit_names = (
@@ -537,6 +539,9 @@ class MultiStageEquilibrium(Unit):
             
         #: [int] Maximum number of iterations.
         self.maxiter = self.default_maxiter
+        
+        #: [int] Maximum number of iterations for fallback algorithm.
+        self.fallback_maxiter = self.default_fallback_maxiter
 
         #: [float] Molar tolerance (kmol/hr)
         self.molar_tolerance = self.default_molar_tolerance
@@ -549,8 +554,12 @@ class MultiStageEquilibrium(Unit):
     def correct_overall_mass_balance(self):
         outmol = sum([i.mol for i in self.outs])
         inmol = sum([i.mol for i in self.ins])
-        factor = inmol / outmol
-        for i in self.outs: i.mol *= factor
+        try:
+            factor = inmol / outmol
+        except:
+            pass
+        else:
+            for i in self.outs: i.mol *= factor
     
     def material_errors(self):
         errors = []
@@ -604,9 +613,13 @@ class MultiStageEquilibrium(Unit):
         self.correct_overall_mass_balance()
             
     def _run(self):
+        if all([i.isempty() for i in self.ins]): return
         f = self.multistage_equilibrium_iter
         top_flow_rates = self.hot_start()
         top_flow_rates = flx.conditional_fixed_point(f, top_flow_rates)
+        if self.iter == self.maxiter:
+            self.fallback_iter = 0
+            top_flow_rates = flx.conditional_fixed_point(self._sequential_iter, top_flow_rates)
         self.update(top_flow_rates)
     
     def _hot_start_phase_ratios_iter(self, 
@@ -667,13 +680,16 @@ class MultiStageEquilibrium(Unit):
         bf[bf == 0] = 1e-32
         return top_flow_rates.sum(axis=1) / bf
     
-    def hot_start_collapsed_stages(self, all_stages):
+    def hot_start_collapsed_stages(self,
+            all_stages, feed_stages, stage_specifications,
+            top_side_draws, bottom_side_draws,
+        ):
         N_stages = len(all_stages)
         stage_map = {j: i for i, j in enumerate(all_stages)}
-        feed_stages = [stage_map[i] for i in self.feed_stages]
-        stage_specifications = {stage_map[i]: j for i, j in self.stage_specifications.items()}
-        top_side_draws = {stage_map[i]: j for i, j in self.top_side_draws.items()}
-        bottom_side_draws = {stage_map[i]: j for i, j in self.bottom_side_draws.items()}
+        feed_stages = [stage_map[i] for i in feed_stages]
+        stage_specifications = {stage_map[i]: j for i, j in stage_specifications.items()}
+        top_side_draws = {stage_map[i]: j for i, j in top_side_draws.items()}
+        bottom_side_draws = {stage_map[i]: j for i, j in bottom_side_draws.items()}
         collapsed = self.auxiliary(
             'collapsed', 
             MultiStageEquilibrium,
@@ -730,23 +746,19 @@ class MultiStageEquilibrium(Unit):
         for feed, stage in zip(feeds, feed_stages):
             feed_flows[stage, :] += feed.mol[index]
         self._iter_args = (feed_flows, self._asplit, self._bsplit, self.N_stages)
-        all_stages = set([*self.feed_stages, *self.stage_specifications, *self.top_side_draws, *self.bottom_side_draws])
-        if self.use_cache and all([not i.ins[0].isempty() for i in partitions]): # Use last set of data
-            if eq == 'lle':
-                for i in partitions: 
-                    if i.IDs != IDs:
-                        i.IDs = IDs
-                        i._run(P=self.P, solvent=solvent_ID, update=False,
-                               couple_energy_balance=False)
-                        for j in i.outs: j.T = i.T
-            else:
-                for i in partitions: 
-                    if i.IDs != IDs:
-                        i.IDs = IDs
-                        i._run(P=self.P, update=False, 
-                               couple_energy_balance=False)
-        elif len(all_stages) != self.N_stages and not data:
-            self.hot_start_collapsed_stages(all_stages)
+        # feed_stages = [(i if i >= 0 else N_stages + i) for i in self.feed_stages]
+        # stage_specifications = {(i if i >= 0 else N_stages + i): j for i, j in self.stage_specifications.items()}
+        # top_side_draws = {(i if i >= 0 else N_stages + i): j for i, j in self.top_side_draws.items()}
+        # bottom_side_draws = {(i if i >= 0 else N_stages + i): j for i, j in self.bottom_side_draws.items()}
+        # all_stages = set([*feed_stages, *stage_specifications, *top_side_draws, *bottom_side_draws])
+        if (self.use_cache 
+            and all([i.IDs == IDs for i in partitions])): # Use last set of data
+            pass
+        # elif len(all_stages) != self.N_stages and not data:
+        #     self.hot_start_collapsed_stages(
+        #         all_stages, feed_stages, stage_specifications,
+        #         top_side_draws, bottom_side_draws,
+        #     )
         else:
             if data: 
                 top, bottom = ms
@@ -772,9 +784,9 @@ class MultiStageEquilibrium(Unit):
                 # TODO: Set up much better initial conditions
                 if self.stage_specifications:
                     dp = ms.dew_point_at_P(P=P, IDs=IDs)
-                    T_top = dp.T
+                    T_bot = dp.T
                     bp = ms.bubble_point_at_P(P=P, IDs=IDs)
-                    T_bot = bp.T
+                    T_top = bp.T
                     dT_stage = (T_bot - T_top) / N_stages
                     phase_ratios = self.hot_start_phase_ratios()
                     K = bp.y / bp.z
@@ -900,25 +912,12 @@ class MultiStageEquilibrium(Unit):
             phase_ratios[i] = B_last = B
             last_stage = stage
         return phase_ratios
-    
-    def multistage_phase_ratio_inner_loop(self, phase_ratios, partition_coefficients):
-        new_top_flow_rates = flow_rates_for_multistage_equilibrium(
-            phase_ratios, partition_coefficients, *self._iter_args,
-        )
-        self.update(new_top_flow_rates)
-        return self.get_vle_phase_ratios()
         
     def _get_top_flow_rates(self, inner_vle_loop):
         stages = self.stages
         partitions = [i.partition for i in stages]
         if inner_vle_loop:
-            phase_ratios = flx.fixed_point(
-                self.multistage_phase_ratio_inner_loop, 
-                np.array([partition.phi / (1 - partition.phi) for partition in partitions]), 
-                args=(np.array([partition.K for partition in partitions]),),
-                xtol=self.default_relative_molar_tolerance,
-                checkiter=False,
-            )
+            phase_ratios = self.get_vle_phase_ratios()
             for i, j in enumerate(phase_ratios):
                 stages[i].partition.phi = 1 if j == inf else j / (1 + j)
         phase_ratios = []
@@ -1017,6 +1016,31 @@ class MultiStageEquilibrium(Unit):
             not_converged = False
         return new_top_flow_rates, not_converged
 
+    def _sequential_iter(self, top_flow_rates):
+        self.fallback_iter += 1
+        self.update(top_flow_rates)
+        for i in self.stages: i._run()
+        for i in reversed(self.stages): i._run()
+        mol = top_flow_rates.flatten()
+        new_top_flow_rates = np.array([i.partition.outs[0].mol[self._update_index] for i in self.stages])
+        mol_new = new_top_flow_rates.flatten()
+        mol_errors = abs(mol - mol_new)
+        if mol_errors.any():
+            mol_error = mol_errors.max()
+            if mol_error > 1e-12:
+                nonzero_index, = (mol_errors > 1e-12).nonzero()
+                mol_errors = mol_errors[nonzero_index]
+                max_errors = np.maximum.reduce([abs(mol[nonzero_index]), abs(mol_new[nonzero_index])])
+                rmol_error = (mol_errors / max_errors).max()
+                not_converged = (
+                    self.fallback_iter < self.fallback_maxiter and (mol_error > self.molar_tolerance
+                     or rmol_error > self.relative_molar_tolerance)
+                )
+            else:
+                not_converged = False
+        else:
+            not_converged = False
+        return new_top_flow_rates, not_converged
 
 # %% General functional algorithms based on MESH equations to solve multi-stage 
 
