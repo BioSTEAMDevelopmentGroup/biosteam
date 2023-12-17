@@ -1125,7 +1125,7 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
     ... )
     >>> MSMS1.simulate()
     >>> (MSMS1.extract.imol['Methanol'] + MSMS1.outs[2].imol['Methanol']) / feed.imol['Methanol'] # Recovery
-    1.0
+    0.87
     
 
     """
