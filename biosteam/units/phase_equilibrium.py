@@ -626,9 +626,9 @@ class MultiStageEquilibrium(Unit):
         top_flow_rates = flx.conditional_fixed_point(f, top_flow_rates)
         self.fallback_iter = 0
         self.update(
-            top_flow_rates
+            flx.conditional_fixed_point(self._sequential_iter, top_flow_rates)
             if self.iter == self.maxiter
-            else flx.conditional_fixed_point(self._sequential_iter, top_flow_rates)
+            else top_flow_rates
         )
     
     def _hot_start_phase_ratios_iter(self, 
