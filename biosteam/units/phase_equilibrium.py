@@ -223,9 +223,16 @@ class PhasePartition(Unit):
                     IDs = p.IDs
             else:
                 eq = ms.lle
-                lle_chemicals, K_new, phi = eq(T=ms.T, P=P, top_chemical=solvent, update=update)
+                if update:
+                    eq(T=ms.T, P=P, top_chemical=solvent, update=update)
+                    lle_chemicals, K_new, phi = eq._lle_chemicals, eq._K, eq._phi
+                else:
+                    lle_chemicals, K_new, phi = eq(T=ms.T, P=P, top_chemical=solvent, update=update)
                 self.phi = phi
                 self.T = ms.T
+                if couple_energy_balance:
+                    T = self.T
+                    for i in self.outs: i.T = T
                 IDs = tuple([i.ID for i in lle_chemicals])
             IDs_last = self.IDs
             if IDs_last and IDs_last != IDs:
@@ -617,10 +624,12 @@ class MultiStageEquilibrium(Unit):
         f = self.multistage_equilibrium_iter
         top_flow_rates = self.hot_start()
         top_flow_rates = flx.conditional_fixed_point(f, top_flow_rates)
-        if self.iter == self.maxiter:
-            self.fallback_iter = 0
-            top_flow_rates = flx.conditional_fixed_point(self._sequential_iter, top_flow_rates)
-        self.update(top_flow_rates)
+        self.fallback_iter = 0
+        self.update(
+            top_flow_rates
+            if self.iter == self.maxiter
+            else flx.conditional_fixed_point(self._sequential_iter, top_flow_rates)
+        )
     
     def _hot_start_phase_ratios_iter(self, 
             top_flow_rates, *args
@@ -993,8 +1002,9 @@ class MultiStageEquilibrium(Unit):
         else: # LLE
             for i in stages: 
                 i.mixer._run()
-                i.partition._run(P=P, solvent=self.solvent_ID, update=False, 
-                                 couple_energy_balance=False)
+                partition = i.partition
+                partition._run(P=P, solvent=self.solvent_ID, update=False, 
+                               couple_energy_balance=True)
             new_top_flow_rates = self._get_top_flow_rates(False)
         mol = top_flow_rates.flatten()
         mol_new = new_top_flow_rates.flatten()
