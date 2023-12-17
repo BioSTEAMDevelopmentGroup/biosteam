@@ -161,6 +161,7 @@ class PhasePartition(Unit):
         else:
             ms = self.feed.copy()
             ms.phases = self.phases
+        if ms.isempty(): return
         top, bottom = ms
         partition_data = self.partition_data
         if partition_data:
@@ -369,8 +370,9 @@ class MultiStageEquilibrium(Unit):
     >>> vapor.imol['AceticAcid'] / feed.imol['AceticAcid']
     0.74
     
-    # Simulate distillation column with 5 stages, a 0.673 reflux ratio, 
-    # 2.57 boilup ratio, and feed at stage 2:
+    Simulate distillation column with 5 stages, a 0.673 reflux ratio, 
+    2.57 boilup ratio, and feed at stage 2:
+    
     >>> import biosteam as bst
     >>> bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
     >>> feed = bst.Stream('feed', Ethanol=80, Water=100, T=80.215 + 273.15)
@@ -385,6 +387,24 @@ class MultiStageEquilibrium(Unit):
     0.96
     >>> vapor.imol['Ethanol'] / vapor.F_mol
     0.69
+    
+    Simulate the same distillation column with a full condenser, 5 stages, a 0.673 reflux ratio, 
+    2.57 boilup ratio, and feed at stage 2:
+    
+    >>> import biosteam as bst
+    >>> bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
+    >>> feed = bst.Stream('feed', Ethanol=80, Water=100, T=80.215 + 273.15)
+    >>> MSE = bst.MultiStageEquilibrium(N_stages=5, ins=[feed], feed_stages=[2],
+    ...     outs=['vapor', 'liquid', 'distillate'],
+    ...     stage_specifications={0: ('Reflux', float('inf')), -1: ('Boilup', 2.57)},
+    ...     bottom_side_draws={0: 0.673 / (1 + 0.673)}
+    ... )
+    >>> MSE.simulate()
+    >>> vapor, liquid, distillate = MSE.outs
+    >>> distillate.imol['Ethanol'] / feed.imol['Ethanol']
+    0.81
+    >>> distillate.imol['Ethanol'] / distillate.F_mol
+    0.70
     
     """
     _N_ins = 2
@@ -567,8 +587,8 @@ class MultiStageEquilibrium(Unit):
                 bottom_flow = sum([i.mol for i in stage.ins]) - s_top.mol
                 mask = bottom_flow < 0.
                 if mask.any():
-                    has_infeasible_flow = (bottom_flow[mask] < flow_tol[mask]).any() and i not in infeasible_checks
-                    if has_infeasible_flow:
+                    has_infeasible_flow = (bottom_flow[mask] < flow_tol[mask]).any()
+                    if i not in infeasible_checks and has_infeasible_flow:
                         infeasible_checks.add(i)
                         infeasible_index, = np.where(mask[index])
                         # TODO: Find algebraic solution to keeping top flow rates within feasible region.
@@ -577,6 +597,7 @@ class MultiStageEquilibrium(Unit):
                         top_flow_rates[i, infeasible_index] += infeasible_flow
                         break
                     else:
+                        has_infeasible_flow = False
                         bottom_flow[mask] = 0.
                 s_bottom.mol[:] = bottom_flow
                 if stage.bottom_split: stage.splitters[-1]._run()
@@ -857,7 +878,7 @@ class MultiStageEquilibrium(Unit):
             Q = partition.Q or 0
             vapor, liquid, *_ = stage.outs
             Q -= liquid.H
-            if last_stage:
+            if last_stage and B_last:
                 Q += vapor_last.h * liquid_last.F_mol * B_last
             if i != 0:
                 next_stage = stages[i - 1] # Going up
@@ -866,10 +887,10 @@ class MultiStageEquilibrium(Unit):
             adjacent_stages = [i for i in (next_stage, last_stage) if i]
             other_feeds = [i for i in stage.ins if i.source not in adjacent_stages]
             Q += sum([i.H for i in other_feeds])
-            if liquid.isempty():
-                B = B_max
-            elif vapor.isempty():
+            if vapor.isempty():
                 B = B_min
+            elif liquid.isempty():
+                B = B_max
             else:
                 B = Q / (vapor.h * liquid.F_mol)
                 if B > B_max: B = B_max
@@ -908,7 +929,7 @@ class MultiStageEquilibrium(Unit):
         almost_one = 1. - 1e-16
         almost_zero = 1e-16
         for i in range(N_stages):
-            partition = stages[i].partition
+            partition = partitions[i]
             phi = partition.phi
             if phi is not None and (partition.B is not None or almost_zero < phi < almost_one):
                 index.append(i)
@@ -966,7 +987,7 @@ class MultiStageEquilibrium(Unit):
                     mixer.ins, conserve_phases=True, energy_balance=False,
                 )
                 partition._run(P=self.P, update=False, 
-                                 couple_energy_balance=False)
+                               couple_energy_balance=False)
                 T = partition.T
                 for i in partition.outs: i.T = T
             new_top_flow_rates = self._get_top_flow_rates(True)
@@ -976,8 +997,8 @@ class MultiStageEquilibrium(Unit):
                 i.partition._run(P=P, solvent=self.solvent_ID, update=False, 
                                  couple_energy_balance=False)
             new_top_flow_rates = self._get_top_flow_rates(False)
-        mol = np.hstack([top_flow_rates[0], top_flow_rates[-1]])
-        mol_new = np.hstack([new_top_flow_rates[0], new_top_flow_rates[-1]])
+        mol = top_flow_rates.flatten()
+        mol_new = new_top_flow_rates.flatten()
         mol_errors = abs(mol - mol_new)
         if mol_errors.any():
             mol_error = mol_errors.max()
@@ -1201,7 +1222,6 @@ def flow_rates_for_multistage_equilibrium(
     inf_mask = phase_ratios >= 1e32
     ok_mask = ~zero_mask & ~inf_mask
     phase_ratios = np.expand_dims(phase_ratios, -1)
-    asplit = np.expand_dims(asplit, -1)
     safe = ok_mask.all()
     if safe:
         component_ratios = 1. / (phase_ratios * partition_coefficients)
@@ -1217,9 +1237,9 @@ def flow_rates_for_multistage_equilibrium(
         for i in inf_index:
             component_ratios[i] = 0.
     b = 1. + component_ratios
-    c = bsplit[1:]
+    c = asplit[1:]
     d = feed_flows.copy()
-    a = asplit * component_ratios
+    a = np.expand_dims(bsplit, -1) * component_ratios
     if safe:
         return solve_TDMA(a, b, c, d)
     else:
@@ -1235,9 +1255,10 @@ def flow_rates_for_multistage_equilibrium(
             ok_index, = np.nonzero(ok_mask)
             inf_index, = np.nonzero(inf_mask)
             zero_index, = np.nonzero(zero_mask)
-            special_index, = np.nonzero(inf_mask & (ai == inf))
+            special_index, = np.nonzero(inf_mask & (ai == -inf))
+            special = bsplit[i]
             for j in inf_index: m[j] = 0
-            for j in special_index: m[j] = asplit[j]
+            for j in special_index: m[j] = special
             for j in zero_index: m[j] = inf
             for j in ok_index: m[j] = ai[j] / bi[j]
             b[inext] = b[inext] - m * c[i] 
@@ -1247,7 +1268,6 @@ def flow_rates_for_multistage_equilibrium(
 
         for i in range(n-1, -1, -1):
             b[i] = (d[i] - c[i] * b[i+1]) / b[i]
-        
         return b
 
 def get_neighbors(index, all_index):

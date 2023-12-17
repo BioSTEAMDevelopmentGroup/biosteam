@@ -2259,6 +2259,48 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     Total purchase cost                                          USD 1.16e+05
     Utility cost                                              USD/hr     91.3
     
+    Simulate distillation column with a full condenser, 5 stages, a 0.673 reflux ratio, 
+    2.57 boilup ratio, and feed at stage 2:
+    
+    >>> import biosteam as bst
+    >>> bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
+    >>> feed = bst.Stream('feed', Ethanol=80, Water=100, T=80.215 + 273.15)
+    >>> D1 = bst.MESHDistillation(None, N_stages=5, ins=[feed], feed_stages=[2],
+    ...     outs=['vapor', 'liquid', 'distillate'],
+    ...     reflux=0.673, boilup=2.57,
+    ...     LHK=('Ethanol', 'Water'),
+    ...     full_condenser=True,
+    ... )
+    >>> D1.simulate()
+    >>> vapor, liquid, distillate = D1.outs
+    >>> distillate.imol['Ethanol'] / feed.imol['Ethanol']
+    0.81
+    >>> distillate.imol['Ethanol'] / distillate.F_mol
+    0.70
+    
+    >>> D1.results()
+    Distillation                                    Units         
+    Electricity         Power                          kW    0.874
+                        Cost                       USD/hr   0.0683
+    Low pressure steam  Duty                        kJ/hr 1.28e+07
+                        Flow                      kmol/hr      330
+                        Cost                       USD/hr     78.5
+    Design              Theoretical stages                       5
+                        Actual stages                            6
+                        Height                         ft     22.9
+                        Diameter                       ft     3.82
+                        Wall thickness                 in    0.312
+                        Weight                         lb    4e+03
+    Purchase cost       Trays                         USD 7.58e+03
+                        Tower                         USD 3.62e+04
+                        Platform and ladders          USD  9.8e+03
+                        Condenser - Double pipe       USD 5.19e+03
+                        Pump - Pump                   USD 4.35e+03
+                        Pump - Motor                  USD      387
+                        Reboiler - Floating head      USD  2.3e+04
+    Total purchase cost                               USD 8.65e+04
+    Utility cost                                   USD/hr     78.6
+    
     Notes
     -----
     The convergence algorithm decouples the equilibrium relationships, 
