@@ -156,7 +156,7 @@ class PhasePartition(Unit):
         else: self.solvent = solvent
         for i, j in zip(self.outs, self.phases): i.phase = j
         if update:
-            ms = tmo.MultiStream.from_streams(self.outs, thermo=self.thermo)
+            ms = tmo.MultiStream.from_streams(self.outs)
             ms.copy_like(self.feed)
         else:
             ms = self.feed.copy()
