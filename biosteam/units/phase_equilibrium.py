@@ -931,10 +931,10 @@ class MultiStageEquilibrium(Unit):
             last_stage = stage
         return phase_ratios
         
-    def _get_top_flow_rates(self, inner_vle_loop):
+    def _get_top_flow_rates(self, solve_vapor_fraction):
         stages = self.stages
         partitions = [i.partition for i in stages]
-        if inner_vle_loop:
+        if solve_vapor_fraction:
             phase_ratios = self.get_vle_phase_ratios()
             for i, j in enumerate(phase_ratios):
                 stages[i].partition.phi = 1 if j == inf else j / (1 + j)
