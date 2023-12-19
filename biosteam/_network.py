@@ -379,6 +379,11 @@ class Network:
         return system
     
     def reduce_recycles(self):
+        if len(self.path) == 1:
+            network = self.path[0]
+            if isinstance(network, Network):
+                self.path = network.path
+                self.add_recycle(network.recycle)
         recycle = self.recycle
         if recycle and not isinstance(recycle, piping.stream_types):
             sinks = set([i.sink for i in recycle])

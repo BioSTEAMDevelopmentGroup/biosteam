@@ -84,7 +84,7 @@ def blank_digraph(format='svg', maxiter='10000000000000000000',
                   Damping='0.995', K='0.5', **graph_attrs):
     # Create a digraph and set direction left to right
     f = Digraph(format=format)
-    f.attr(rankdir='LR', maxiter=maxiter, Damping=Damping, K=K,
+    f.attr(rankdir='LR', maxiter=maxiter, Damping=Damping, K=K, 
            penwidth='0', color='none', bgcolor=preferences.background_color,
            fontcolor=preferences.label_color, fontname="Arial",
            labeljust='l', labelloc='t', fontsize='24', constraint='false',
@@ -199,7 +199,7 @@ def digraph_from_units(units, streams=None, auxiliaries=None, **graph_attrs):
                 if s in stream_set: continue
                 streams.append(s)
                 stream_set.add(s)
-            for name, auxunit in unit.get_nested_auxiliary_units_with_names(depth=auxiliaries):
+            for name, auxunit in unit._diagram_nested_auxiliary_units_with_names(depth=auxiliaries):
                 auxunit.owner = unit # In case units not created correctly through Unit.auxiliary method
                 if isinstance(auxunit, bst.Unit): 
                     auxunit._ID = name
@@ -267,7 +267,7 @@ def update_digraph_from_path(f, path, recycle, depth, unit_names,
     streams = [i for i in all_streams if (not i.sink or i.sink in units) and (not i.source or i.source in units)]
     other_streams.update(all_streams.difference(streams))
     connections = get_all_connections(recycles, excluded_connections)
-    add_connections(f, connections, unit_names, color='#f98f60', fontcolor='#f98f60')
+    add_connections(f, connections, unit_names, color='#f1777f', fontcolor='#f1777f')
     connections = get_all_connections(streams, excluded_connections)
     add_connections(f, connections, unit_names)
     depth += 1
@@ -395,6 +395,7 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
         # Make stream nodes / unit-stream edges / unit-unit edges
         if has_sink and not has_source:
             # Feed stream case
+            if not preferences.show_all_streams and stream.isempty(): return
             f.node(ref,
                    width='0.15', 
                    height='0.15',
@@ -408,6 +409,7 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
             f.edge(ref, unit_names[sink], labeltooltip=tooltip)
         elif has_source and not has_sink:
             # Product stream case
+            if not preferences.show_all_streams and stream.isempty(): return
             f.node(ref, 
                    width='0.15', 
                    height='0.2',
@@ -428,8 +430,6 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
                    **inlet_options, penwidth=penwidth, **outlet_options)
             label = ID if preferences.label_streams else ''
             f.edge(unit_names[source], unit_names[sink], label=label, labeltooltip=tooltip)
-        else:
-            f.node(ID)
     elif has_sink and has_source:
         # Missing process stream case
         inlet_options = sink._graphics.get_inlet_options(sink, sink_index)
@@ -446,8 +446,8 @@ def add_connections(f: Digraph, connections, unit_names, color=None, fontcolor=N
         pen_width = None
     
     # Set attributes for graph and streams
-    f.attr('graph', overlap='orthoyx', fontname="Arial",
-           outputorder='edgesfirst', nodesep='0.5', ranksep='0.15', maxiter='1000000')
+    f.attr('graph', overlap='orthoyx', fontname="Arial", outputorder='edgesfirst', 
+           nodesep='0.5', ranksep='0.15', maxiter='1000000')
     f.attr('edge', dir='foward', fontname='Arial')
     f.attr('node', **stream_node)
     index = {j: i for i, j in unit_names.items()}

@@ -11,7 +11,6 @@ This module contains unit operations for splitting flows.
 .. contents:: :local:
     
 .. autoclass:: biosteam.units.splitting.Splitter
-.. autoclass:: biosteam.units.splitting.Splitter
 .. autoclass:: biosteam.units.splitting.PhaseSplitter 
 .. autoclass:: biosteam.units.splitting.MockSplitter
 .. autoclass:: biosteam.units.splitting.ReversedSplitter

@@ -414,7 +414,7 @@ def compute_tower_diameter(V_vol, U_f, f, A_dn):
     return Di
 
 @njit(cache=True)
-def compute_tower_height(TS, N_stages: int, top=True, bot=True):
+def compute_tower_height(TS, N_stages: int, top=True, bottom=True):
     """
     Return the height of a tower [H; in meter].
     
@@ -434,6 +434,6 @@ def compute_tower_height(TS, N_stages: int, top=True, bot=True):
     H = TS*N_stages/1000.
     if top:
         H += 1.2672
-    if bot:
+    if bottom:
         H += 3.
     return H 

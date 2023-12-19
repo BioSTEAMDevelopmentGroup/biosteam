@@ -169,22 +169,20 @@ def test_process_specifications_with_recycles():
          P2_a,
          S1_a,
          Network(
-            [Network(
-                [P1_b,
-                 Network(
-                    [M1_b,
-                     S2_a,
-                     M2_a,
-                     S2_b,
-                     S3_a,
-                     M2_b,
-                     S3_b,
-                     M1_a],
-                    recycle=M1_a-0),
-                 P2_b,
-                 S1_b],
-                recycle=P1_b-0)],
-            recycle=M1_b-0)])
+            [P1_b,
+             Network(
+                [M1_b,
+                 S2_a,
+                 M2_a,
+                 S2_b,
+                 S3_a,
+                 M2_b,
+                 S3_b,
+                 M1_a],
+                recycle=M1_a-0),
+             P2_b,
+             S1_b],
+            recycle=P1_b-0)])
     assert M1_b.specifications[0].path == ()
     
 def test_unit_connections():

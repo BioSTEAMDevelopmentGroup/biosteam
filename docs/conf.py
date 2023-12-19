@@ -63,12 +63,12 @@ autodoc_member_order = 'bysource'
 # ones.
 
 extensions = [
+    'sphinx.ext.napoleon',
     'sphinxcontrib.jquery', # Some extensions require jquery, which used to come with Sphinx before v6.
-    "matplotlib.sphinxext.plot_directive",
+    'matplotlib.sphinxext.plot_directive',
     'IPython.sphinxext.ipython_console_highlighting', # Fixes bug with pygments highlighting in nbsphinx (a workaround)
     'sphinx_design',
     'sphinx.ext.autodoc',
-    'sphinx.ext.napoleon',
     'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
     'sphinx.ext.doctest',

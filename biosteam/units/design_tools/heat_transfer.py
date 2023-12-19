@@ -237,6 +237,8 @@ def heuristic_pressure_drop(inlet_phase, outlet_phase):
         Pressure drop [psi].
     
     """
+    inlet_phase = inlet_phase.lower()
+    outlet_phase = outlet_phase.lower()
     if ('l' in inlet_phase and 'g' in outlet_phase) or ('g' in inlet_phase and 'l' in outlet_phase):
         # Latent fluid (boiling or condensing)
         dP = 1.5

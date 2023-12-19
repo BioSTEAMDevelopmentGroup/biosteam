@@ -45,16 +45,16 @@ class DrumDryer(Unit):
     ----------
     ins : 
         * [0] Wet solids.
-        * [1] Air.
+        * [1] Dry gas.
         * [2] Natural gas.
     outs : 
         * [0] Dried solids
-        * [1] Hot air
+        * [1] Hot gas
         * [2] Emissions
     split : dict[str, float]
-        Component splits to hot air (stream [1]).
+        Component splits to hot gas (stream [1]).
     R : float, optional
-        Flow of hot air over evaporation. Defaults to 1.4 wt gas / wt evap.
+        Flow of hot gas over evaporation. Defaults to 1.4 wt gas / wt evap.
     H : float, optional
         Specific evaporation rate [kg/hr/m3]. Defaults to 20. 
     length_to_diameter : float, optional
@@ -66,8 +66,8 @@ class DrumDryer(Unit):
         
     Notes
     -----
-    The flow rate for air in the inlet is varied to meet the `R` specification
-    (i.e. flow of hot air over flow rate evaporated). The flow rate of inlet natural
+    The flow rate for gas in the inlet is varied to meet the `R` specification
+    (i.e. flow of hot gas over flow rate evaporated). The flow rate of inlet natural
     gas is also altered to meet the heat demand.
     
     The default parameter values are based on heuristics for drying 
@@ -179,7 +179,7 @@ class DrumDryer(Unit):
         return self.ins[2]
     
     def _init(self, split, R=1.4, H=20., length_to_diameter=25, T=343.15, P=10*101325,
-              moisture_content=0.15, utility_agent='Natural gas',
+              moisture_content=0.15, utility_agent='Natural gas', gas_composition=None,
               moisture_ID=None):
         self._isplit = self.chemicals.isplit(split)
         self.define_utility('Natural gas', self.natural_gas)
@@ -187,6 +187,7 @@ class DrumDryer(Unit):
         self.T = T
         self.R = R
         self.H = H
+        self.gas_composition = gas_composition
         self.length_to_diameter = length_to_diameter
         self.moisture_content = moisture_content
         self.utility_agent = utility_agent
@@ -211,7 +212,12 @@ class DrumDryer(Unit):
         emissions.phase = air.phase = natural_gas.phase = hot_air.phase = 'g'
         design_results = self.design_results
         design_results['Evaporation'] = evaporation = hot_air.F_mass
-        air.imass['N2', 'O2'] = np.array([0.78, 0.32]) * self.R * evaporation
+        gas_composition = self.gas_composition
+        if gas_composition is None:
+            gas_composition = [('N2', 0.78), ('O2', 0.32)]
+        total_gas_flow = self.R * evaporation
+        for ID, x in gas_composition:
+            air.imass[ID] = x * total_gas_flow
         hot_air.mol += air.mol
         dry_solids.T = hot_air.T = self.T
         emissions.T = self.T + 30.

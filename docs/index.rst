@@ -158,6 +158,8 @@ tools for sustainability assessments. Here is a short list of related publicatio
 
 * **Bioproduct and biofuel studies**:
 
+  - `An End-to-End Pipeline for Succinic Acid Production at an Industrially Relevant Scale Using Issatchenkia Orientalis. Nat Commun. 2023. <https://doi.org/10.1038/s41467-023-41616-9>`_
+
   - `Metabolic engineering of Yarrowia lipolytica to produce 1,2-diacyl-3-acetyl triacylglycerol. Metabolic Engineering. 2023 <https://doi.org/10.1016/j.ymben.2023.01.003>`_
 
   - `Economic and Environmental Sustainability of Vegetative Oil Extraction Strategies at Integrated Oilcane and Oil-sorghum Biorefineries. ACS Sustainable Chem. Eng. 2022 <https://doi.org/10.1021/acssuschemeng.2c04204>`_
@@ -175,6 +177,8 @@ tools for sustainability assessments. Here is a short list of related publicatio
   - `Techno-Economic Evaluation of Biorefineries Based on Low-Value Feedstocks Using the BioSTEAM Software: A Case Study for Animal Bedding. Processes 2020 <https://doi.org/10.3390/pr8080904>`_
 
 * **Plastics and recycling**:
+
+  - `Comparative Techno-Economic Analysis and Life Cycle Assessment of Producing High-Value Chemicals and Fuels from Waste Plastic via Conventional Pyrolysis and Thermal Oxo-Degradation. Energy Fuels. 2023 <https://doi.org/10.1021/acs.energyfuels.3c02321>`_
 
   - `High-purity polypropylene from disposable face masks via solvent-targeted recovery and precipitation. Green Chemistry. 2023 <https://doi.org/10.1039/D3GC00205E>`_
 

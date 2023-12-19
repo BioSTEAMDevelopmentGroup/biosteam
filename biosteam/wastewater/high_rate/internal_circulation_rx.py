@@ -304,6 +304,7 @@ class InternalCirculationRx(bst.MixTank):
         hx.ins[0].P = hx.outs[0].P = ins0.P
         hx.simulate_as_auxiliary_exchanger(ins=hx.ins, outs=hx.outs, 
                                            scale=1. / self.parallel.get('self', 1.),
+                                           vle=False,
                                            hxn_ok=self.hxn_ok)
         
         for p in (self.effluent_pump, self.sludge_pump): p.simulate()

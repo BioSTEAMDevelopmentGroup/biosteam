@@ -48,6 +48,8 @@ __all__ = (
     'plot_quadrants',
     'plot_stacked_bar',
     'generate_contour_data',
+    'default_colors_and_hatches',
+    'modify_stacked_bars',
     'title_color',
 )
 
@@ -481,8 +483,10 @@ def format_spearman_plot(ax, index, name, yranges, xlabel=None):
     ax.xaxis.set_minor_locator(MultipleLocator(0.25))
     yticks = [i[0]+i[1]/2 for i in yranges]
     ax.set_xlim(-1, 1)
-    if name: 
-        ax.set_xlabel(f"Spearman's correlation with {name}" if xlabel is None else xlabel)
+    if xlabel is not None:
+        ax.set_xlabel(xlabel)
+    elif name is not None:
+        ax.set_xlabel(f"Spearman's correlation with {name}")
     ax.set_yticks(yticks)
     ax.tick_params(axis='y', right=False, direction="inout", length=4)
     ax.tick_params(which='both', axis='x', direction="inout", length=4)
@@ -648,7 +652,7 @@ def plot_spearman_1d(rhos, top=None, name=None, color=None,
     return fig, ax
 
 def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
-                     cutoff=None, sort=True): # pragma: no coverage
+                     cutoff=None, sort=True, xlabel=None): # pragma: no coverage
     """
     Display Spearman's rank correlation plot.
     
@@ -687,7 +691,7 @@ def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
                          fig=fig, ax=ax, style=False, sort=False, top=None)
     # Plot central line
     yranges = [(s/2 + s*i - 1., 1.) for i in range(len(rhos[0]))]
-    format_spearman_plot(ax, index, name, yranges)
+    format_spearman_plot(ax, index, name, yranges, xlabel)
     return fig, ax
 
 # %% Monte Carlo
@@ -772,8 +776,12 @@ def plot_montecarlo(data,
                      whiskerprops=dict(color=dark_color),
                      flierprops=flierprops)
     if bounds:
-        plt.scatter(x=positions, y=data.min(axis=0), marker='1', c=[dark_color])
-        plt.scatter(x=positions, y=data.max(axis=0), marker='2', c=[dark_color])
+        if vertical:
+            plt.scatter(x=positions, y=data.min(axis=0), marker='1', c=[dark_color])
+            plt.scatter(x=positions, y=data.max(axis=0), marker='2', c=[dark_color])
+        else:
+            plt.scatter(x=data.min(axis=0), y=positions, marker='1', c=[dark_color])
+            plt.scatter(x=data.max(axis=0), y=positions, marker='2', c=[dark_color])
     if xmarks: plt.xticks(positions, xmarks)
     if hatch:
         for box in bx['boxes']:
@@ -839,7 +847,8 @@ def plot_kde(x, y, nbins=100, ax=None,
              xticks=None, yticks=None, xticklabels=None, yticklabels=None,
              xtick0=True, ytick0=True, xtickf=True, ytickf=True,
              xbox=None, ybox=None, xbox_kwargs=None, ybox_kwargs=None, 
-             aspect_ratio=1.25, cmaps=None, **kwargs):
+             aspect_ratio=1.25, cmaps=None, xbox_width=None,
+             ybox_width=None, **kwargs):
     axis_not_given = ax is None
     if axis_not_given:
         grid_kw = dict(height_ratios=[1, 8], width_ratios=[8, aspect_ratio])
@@ -873,10 +882,10 @@ def plot_kde(x, y, nbins=100, ax=None,
         plt.scatter(x, y, c=z, s=1., cmap=cmap, **kwargs)
         if xbox:
             plt.sca(xbox.axis)
-            plot_montecarlo(x, xbox.light, xbox.dark, positions=(xbox.get_position(-1),), vertical=False, outliers=False)
+            plot_montecarlo(x, xbox.light, xbox.dark, positions=(xbox.get_position(-1),), vertical=False, outliers=False, width=xbox_width, bounds=True)
         if ybox:
             plt.sca(ybox.axis)
-            plot_montecarlo(y, ybox.light, ybox.dark, positions=(ybox.get_position(),), vertical=True, outliers=False)
+            plot_montecarlo(y, ybox.light, ybox.dark, positions=(ybox.get_position(),), vertical=True, outliers=False, width=ybox_width, bounds=True)
     style_axis(ax, xticks, yticks, xticklabels, yticklabels, trim_to_limits=True,
                xtick0=xtick0, ytick0=ytick0, xtickf=xtickf, ytickf=ytickf)
     plt.sca(ax)
