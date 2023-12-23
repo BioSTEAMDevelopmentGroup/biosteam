@@ -580,8 +580,6 @@ class System:
         '_unit_set',
         '_unit_path',
         '_cost_units',
-        '_inlets',
-        '_outlets',
         '_streams',
         '_feeds',
         '_products',
@@ -1618,51 +1616,23 @@ class System:
             return units
       
     @property
-    def inlets(self) -> list[Stream]:
-        """All inlet streams within the system."""
-        try:
-            return self._inlets
-        except:
-            self._inlets = streams = []
-            stream_set = set()
-            isa = isinstance
-            temp = piping.TemporaryStream
-            for u in self.units:
-                for s in u._ins:
-                    if not s: s = s.materialize_connection()
-                    elif s in stream_set: continue
-                    elif isa(s, temp): continue
-                    streams.append(s)
-                    stream_set.add(s)
-            return streams  
-      
-    @property
-    def outlets(self) -> list[Stream]:
-        """All outlet streams within the system."""
-        try:
-            return self._outlets
-        except:
-            self._outlets = streams = []
-            stream_set = set()
-            isa = isinstance
-            temp = piping.TemporaryStream
-            for u in self.units:
-                for s in u._outs:
-                    if not s: s = s.materialize_connection()
-                    elif s in stream_set: continue
-                    elif isa(s, temp): continue
-                    streams.append(s)
-                    stream_set.add(s)
-            return streams    
-      
-    @property
     def streams(self) -> list[Stream]:
         """All streams within the system."""
         try:
             return self._streams
         except:
-            self._streams = streams = self.inlets + self.outlets
-            return streams
+            self._streams = streams = []
+            stream_set = set()
+            isa = isinstance
+            temp = piping.TemporaryStream
+            for u in self.units:
+                for s in u._ins + u._outs:
+                    if not s: s = s.materialize_connection()
+                    elif s in stream_set: continue
+                    elif isa(s, temp): continue
+                    streams.append(s)
+                    stream_set.add(s)
+            return streams 
     
     @property
     def feeds(self) -> list[Stream]:
@@ -1670,7 +1640,7 @@ class System:
         try:
             return self._feeds
         except:
-            self._feeds = feeds = utils.feeds(self.inlets)
+            self._feeds = feeds = utils.feeds(self.streams)
             return feeds
     @property
     def products(self) -> list[Stream]:
@@ -1678,7 +1648,7 @@ class System:
         try:
             return self._products
         except:
-            self._products = products = utils.products(self.outlets)
+            self._products = products = utils.products(self.streams)
             return products
 
     @property
