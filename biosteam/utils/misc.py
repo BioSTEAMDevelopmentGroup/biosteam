@@ -12,13 +12,15 @@ This module includes arbitrary classes and functions.
 import biosteam as bst
 from thermosteam import Chemicals
 from math import ceil
+import numpy as np
 
 __all__ = ('factor', 'checkbounds', 'strtuple',
            'format_title', 'format_unit_name',
            'remove_undefined_chemicals',
            'default_chemical_dict', 'subgroup',
            'repr_subgroups', 'repr_items',
-           'list_available_names')
+           'list_available_names',
+           'dictionaries2array')
 
 # %% Number functions
 
@@ -28,6 +30,18 @@ def factor(base_units, new_units):
 
 def checkbounds(x, bounds):
     return bounds[0] < x < bounds[1]
+
+# %% Array formulation
+
+def dictionaries2array(dictionaries):
+    keys = []
+    for i in dictionaries: keys.extend(i)
+    keys = frozenset(keys)
+    array = np.zeros([len(dictionaries), len(keys)])
+    for i, dct in enumerate(dictionaries):
+        for j, key in enumerate(keys):        
+            array[i, j] = dct[j]
+    return array, keys
 
 # %% String functions
 

@@ -27,11 +27,12 @@ from .exceptions import try_method_with_object_stamp, Converged, UnitInheritance
 from ._network import Network, mark_disjunction, unmark_disjunction
 from ._facility import Facility
 from ._unit import Unit, repr_ins_and_outs
+from . import utils
 from .utils import (
-    repr_items, ignore_docking_warnings, SystemScope,
-    piping, colors, list_available_names
+    repr_items, ignore_docking_warnings,
+    piping, colors, list_available_names, dictionaries2array
 )
-from .process_tools import utils
+from .process_tools import get_power_utilities, get_heat_utilities
 from collections import abc
 from warnings import warn
 from inspect import signature
@@ -39,6 +40,7 @@ from thermosteam.utils import repr_kwargs
 import biosteam as bst
 import numpy as np
 import pandas as pd
+from numpy.linalg import solve
 from scipy.integrate import solve_ivp
 from . import report
 from ._temporary_connection import temporary_units_dump, TemporaryUnit
@@ -68,8 +70,44 @@ class SystemSpecification:
         
     def __call__(self): self.f(*self.args)
 
+# %% Phenomenological convergence tools
 
-# %% Convergence tools
+def solve_variable(units, variable):
+    leqs = LinearEquations.from_units(variable, units)
+    leqs.solve()
+
+class LinearEquations:
+    __slots__ = ('variable', 'A', 'b')
+    
+    def __init__(self, variable):
+        self.variable = variable
+        self.A = []
+        self.b = []
+        
+    def from_units(self, variable, units):
+        self.variable = variable
+        self.A = []
+        self.b = []
+        self.extend(units)
+        
+    def append(self, unit):
+        A = self.A; b = self.b
+        for coefficients, value in unit.create_linear_equations(self.variable):
+            A.append(coefficients)
+            b.append(value)
+    
+    def extend(self, units):
+        for i in units: self.append(i)
+        
+    def solve(self):
+        variable = self.variable
+        arr, objs = dictionaries2array(self.A)
+        values = solve(arr, np.array(self.b))
+        for obj, value in zip(objs, values): 
+            obj._update_decoupled_variable(variable, value)
+
+
+# %% Sequential modular convergence tools
 
 class Methods(dict):
     
@@ -335,7 +373,7 @@ def _method_debug(self, f):
 
 def _method_profile(self, f):
     self._total_excecution_time_ = 0.
-    t = bst.utils.TicToc()
+    t = utils.TicToc()
     def g():
         t.tic()
         f()
@@ -384,7 +422,7 @@ class MockSystem:
         try:
             return self._ins
         except:
-            inlets = bst.utils.feeds_from_units(self.units)
+            inlets = utils.feeds_from_units(self.units)
             self._ins = ins = piping.StreamPorts.from_inlets(inlets, sort=True)
             return ins
     @property
@@ -393,13 +431,13 @@ class MockSystem:
         try:
             return self._outs
         except:
-            outlets = bst.utils.products_from_units(self.units)
+            outlets = utils.products_from_units(self.units)
             self._outs = outs = piping.StreamPorts.from_outlets(outlets, sort=True)
             return outs
 
     def load_inlet_ports(self, inlets, names=None):
         """Load inlet ports to system."""
-        all_inlets = bst.utils.feeds_from_units(self.units)
+        all_inlets = utils.feeds_from_units(self.units)
         inlets = list(inlets)
         for i in inlets:
             if i not in all_inlets:
@@ -409,7 +447,7 @@ class MockSystem:
 
     def load_outlet_ports(self, outlets, names=None):
         """Load outlet ports to system."""
-        all_outlets = bst.utils.products_from_units(self.units)
+        all_outlets = utils.products_from_units(self.units)
         outlets = list(outlets)
         for i in outlets:
             if i not in all_outlets:
@@ -512,6 +550,8 @@ class System:
         '_facility_loop',
         '_recycle',
         '_N_runs',
+        '_method',
+        '_algorithm',
         '_mol_error',
         '_T_error',
         '_rmol_error',
@@ -533,7 +573,6 @@ class System:
         'process_impact_items',
         'tracked_recycles',
         '_connections',
-        '_method',
         '_TEA',
         '_LCA',
         '_subsystems',
@@ -541,6 +580,8 @@ class System:
         '_unit_set',
         '_unit_path',
         '_cost_units',
+        '_inlets',
+        '_outlets',
         '_streams',
         '_feeds',
         '_products',
@@ -585,9 +626,15 @@ class System:
     #: Default relative temperature tolerance
     default_relative_temperature_tolerance: float = 0.001
 
-    #: Default convergence method.
-    default_method: str = 'Aitken'
+    #: Default convergence algorithm.
+    default_algorithm: str = 'Sequential modular'
 
+    #: Default method for convergence algorithm.
+    default_methods: dict[str] = {
+        'Sequential modular': 'Aitken',
+        'Decoupled phenomena': 'fixed-point',
+    }
+    
     #: Whether to raise a RuntimeError when system doesn't converge
     strict_convergence: bool = True
 
@@ -786,7 +833,10 @@ class System:
             responses: Optional[list[Response]]=None,
         ):
         self.N_runs = N_runs
-        self.method = self.default_method   
+        
+        self.algorithm = self.default_algorithm
+        
+        self.method = self.default_methods[self.algorithm]
         
         #: Maximum number of iterations.
         self.maxiter: int = self.default_maxiter
@@ -1566,32 +1616,61 @@ class System:
                 elif isa(i, System):
                     units.update(i.cost_units)
             return units
-        
+      
+    @property
+    def inlets(self) -> list[Stream]:
+        """All inlet streams within the system."""
+        try:
+            return self._inlets
+        except:
+            self._inlets = streams = []
+            stream_set = set()
+            isa = isinstance
+            temp = piping.TemporaryStream
+            for u in self.units:
+                for s in u._ins:
+                    if not s: s = s.materialize_connection()
+                    elif s in stream_set: continue
+                    elif isa(s, temp): continue
+                    streams.append(s)
+                    stream_set.add(s)
+            return streams  
+      
+    @property
+    def outlets(self) -> list[Stream]:
+        """All outlet streams within the system."""
+        try:
+            return self._outlets
+        except:
+            self._outlets = streams = []
+            stream_set = set()
+            isa = isinstance
+            temp = piping.TemporaryStream
+            for u in self.units:
+                for s in u._outs:
+                    if not s: s = s.materialize_connection()
+                    elif s in stream_set: continue
+                    elif isa(s, temp): continue
+                    streams.append(s)
+                    stream_set.add(s)
+            return streams    
+      
     @property
     def streams(self) -> list[Stream]:
         """All streams within the system."""
         try:
             return self._streams
         except:
-            self._streams = streams = []
-            stream_set = set()
-            isa = isinstance
-            temp = piping.TemporaryStream
-            for u in self.units:
-                for s in u._ins + u._outs:
-                    if not s: s = s.materialize_connection()
-                    elif s in stream_set: continue
-                    elif isa(s, temp): continue
-                    streams.append(s)
-                    stream_set.add(s)
+            self._streams = streams = self.inlets + self.outlets
             return streams
+    
     @property
     def feeds(self) -> list[Stream]:
         """All feeds to the system."""
         try:
             return self._feeds
         except:
-            self._feeds = feeds = bst.utils.feeds(self.streams)
+            self._feeds = feeds = utils.feeds(self.inlets)
             return feeds
     @property
     def products(self) -> list[Stream]:
@@ -1599,7 +1678,7 @@ class System:
         try:
             return self._products
         except:
-            self._products = products = bst.utils.products(self.streams)
+            self._products = products = utils.products(self.outlets)
             return products
 
     @property
@@ -1673,7 +1752,7 @@ class System:
 
     @property
     def method(self) -> str:
-        """Iterative convergence method ('wegstein', 'aitken', or 'fixedpoint')."""
+        """Iterative convergence accelerator method ('wegstein', 'aitken', or 'fixedpoint')."""
         return self._method
     @method.setter
     def method(self, method):
@@ -1687,6 +1766,21 @@ class System:
             )
 
     converge_method = method # For backwards compatibility
+
+    @property
+    def algorithm(self) -> str:
+        """Iterative convergence algorithm ('Sequatial modular', or 'Decoupled phenomena')."""
+        return self._algorithm
+    @algorithm.setter
+    def algorithm(self, algorithm):
+        algorithm = algorithm.capitalize().replace('-', ' ').replace('_', '')
+        if algorithm in self.default_methods:
+            self._algorithm = algorithm
+        else:
+            raise AttributeError(
+                f"method '{algorithm}' not available; only "
+                f"{list_available_names(self.default_methods)} are available"
+            )
 
     @property
     def isdynamic(self) -> bool:
@@ -1981,8 +2075,8 @@ class System:
             u._system = self
             u._setup()
             u._check_setup()
-            for ps in u._specifications: ps.compile_path(u)
             if u not in prioritized_units:
+                for ps in u._specifications: ps.compile_path(u)
                 if u.prioritize: self.prioritize_unit(u)
                 prioritized_units.add(u)
                 
@@ -2026,6 +2120,15 @@ class System:
         self._path = tuple(new_path)
 
     def run(self):
+        algorithm = self.algorithm 
+        if algorithm == 'Sequential modular':
+            self.run_sequential_modular()
+        elif algorithm == 'Decoupled phenomena':
+            self.run_decoupled_phenomena()
+        else:
+            raise RuntimeError(f'unknown algorithm {algorithm!r}')
+
+    def run_sequential_modular(self):
         """Run mass and energy balances for each element in the path
         without costing unit operations."""
         isa = isinstance
@@ -2033,7 +2136,14 @@ class System:
         for i in self._path:
             if isa(i, Unit): f(i, i.run)
             elif isa(i, System): f(i, i.converge)
-            else: i() # Assume it's a function
+            else: raise RuntimeError('path elements must be either a unit or a system')
+
+    def run_decoupled_phenomena(self):
+        """Run and sequentially solve material, equilibrium, summation, 
+        enthalpy, and reaction phenomena."""
+        stages = self.stages
+        for i in stages: i._solve_decoupled_variables()
+        for variable in self.variable_priority: solve_variable(stages, variable)
 
     def _solve(self):
         """Solve the system recycle iteratively."""
@@ -2137,8 +2247,8 @@ class System:
         """Reset all outlet streams to zero flow."""
         self._reset_errors()
         units = self.units
-        streams = bst.utils.streams_from_units(units)
-        bst.utils.filter_out_missing_streams(streams)
+        streams = utils.streams_from_units(units)
+        utils.filter_out_missing_streams(streams)
         streams_by_data = {}
         for i in streams:
             data = i.imol.data
@@ -2201,19 +2311,19 @@ class System:
                  f'set up a dynamic tracker.')
         
     @property
-    def scope(self) -> SystemScope:
+    def scope(self) -> utils.SystemScope:
         """
         A tracker of dynamic data of the system, set up
         with :class:`System`.`set_dynamic_tracker()`
         """
-        if not hasattr(self, '_scope'): self._scope = SystemScope(self)
+        if not hasattr(self, '_scope'): self._scope = utils.SystemScope(self)
         elif isinstance(self._scope, dict): 
             # sys.converge() seems to break WasteStreamScope, so it's now 
             # set up to initiate the SystemScope object after converge() when 
             # the system is run the first time 
             subjects = self._scope['subjects']
             kwargs = self._scope['kwargs']
-            self._scope = SystemScope(self, *subjects, **kwargs)
+            self._scope = utils.SystemScope(self, *subjects, **kwargs)
         return self._scope
     
     # _hasode = lambda unit: hasattr(unit, '_compile_ODE')
@@ -2542,12 +2652,12 @@ class System:
     @property
     def heat_utilities(self) -> tuple[HeatUtility, ...]:
         """The sum of all heat utilities in the system by agent."""
-        return HeatUtility.sum_by_agent(utils.get_heat_utilities(self.cost_units))
+        return HeatUtility.sum_by_agent(get_heat_utilities(self.cost_units))
 
     @property
     def power_utility(self) -> PowerUtility:
         """Sum of all power utilities in the system."""
-        return PowerUtility.sum(utils.get_power_utilities(self.cost_units))
+        return PowerUtility.sum(get_power_utilities(self.cost_units))
 
     def get_inlet_utility_flows(self):
         """
@@ -2610,9 +2720,9 @@ class System:
         """
         units += '/hr'
         if key:
-            return self.operating_hours * sum([i.get_flow(units, key) for i in bst.utils.feeds_from_units(self.units)])
+            return self.operating_hours * sum([i.get_flow(units, key) for i in utils.feeds_from_units(self.units)])
         else:
-            return self.operating_hours * sum([i.get_total_flow(units) for i in bst.utils.feeds_from_units(self.units)])
+            return self.operating_hours * sum([i.get_total_flow(units) for i in utils.feeds_from_units(self.units)])
 
     def get_outlet_flow(self, units: str, key: Optional[Sequence[str]|str]=None):
         """
@@ -2642,9 +2752,9 @@ class System:
         """
         units += '/hr'
         if key:
-            return self.operating_hours * sum([i.get_flow(units, key) for i in bst.utils.products_from_units(self.units)])
+            return self.operating_hours * sum([i.get_flow(units, key) for i in utils.products_from_units(self.units)])
         else:
-            return self.operating_hours * sum([i.get_total_flow(units) for i in bst.utils.products_from_units(self.units)])
+            return self.operating_hours * sum([i.get_total_flow(units) for i in utils.products_from_units(self.units)])
     
     def get_mass_flow(self, stream: Stream):
         """Return the mass flow rate of a stream [kg/yr]."""

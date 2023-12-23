@@ -94,32 +94,73 @@ class StageEquilibrium(Unit):
         partition = self.partition
         phases = partition.phases 
         if phases == ('g', 'l'):
-            return {'K': partition.K, 'T': partition.T}
+            self._decoupled_variables = {'K': partition.K, 'T': partition.T}
+            if self.B_specification: self._decoupled_variables['B'] = self.B_specification
         elif phases == ('L', 'l'):
-            return {'K': partition.K, 'V': 0., 'L': partition.phi}
+            self._decoupled_variables = {'K': partition.K, 'B': partition.B}
         else:
             raise NotImplementedError(f'decoupled variables for phases {phases} is not yet implemented')
     
-    def _create_temperature_equation(self):
-        # (Cv1 + Cl1)dT1 - Cv2*dT2 - Cl0*dT0 = Q1 - Hv1 - Hl1 + Hv2 + Hl0
-        # (Cv1 + Cl1)T1 - Cv2*T2 - Cl0*T0 = (Cv1 + Cl1)T1ref - Cv2*T2ref - Cl0*T0ref + Q1 - Hv1 - Hl1 + Hv2 + Hl0
+    def _create_temperature_departure_equation(self):
+        # C1dT1 - Cv2*dT2 - Cl0*dT0 = Q1 - H_out + H_in
+        coeff = {self: sum([i.C for i in self.outs])}
+        for i in self.ins:
+            source = i.source
+            if 'T' in source._decoupled_variables: continue
+            coeff[source] = -i.C
+        return coeff, (self.Q or 0.) + self.H_in - self.H_outs
+    
+    def _create_phase_ratio_departure_equation(self):
+        # hV1*L1*dB1 - hv2*L2*dB2 = Q1 + H_in - H_out
+        vapor, liquid = self.outs
+        coeff = {self: vapor.h * liquid.F_mol}
+        for inlet in self.ins:
+            if inlet.phase != 'g': continue
+            source = inlet.source
+            if hasattr(source, 'stages'):
+                inlet = inlet.auxiliary()
+            if 'B' in source._decoupled_variables: continue
+            stream = inlet
+            done = False
+            while len(source.outs) == 1:
+                stream = source.ins[0]
+                source = stream.source
+                if source is None: 
+                    done = True
+                    break
+            if done: continue
+            if stream.phase == 'g' and len(source.outs) == 2: 
+                coeff[source] = source
+        return coeff, (self.Q or 0.) + self.H_in - self.H_outs
+    
+    def _create_mass_balance_equations(self):
+        component_ratios = 1. / (phase_ratios * partition_coefficients)
+        b = 1. + component_ratios
+        c = asplit[1:]
+        d = feed_flows.copy()
+        a = np.expand_dims(bsplit, -1) * component_ratios 
         eq = {}
         return eq
     
-    def _create_linear_equation(self, variable, decoupled_variables):
-        phases = self.phases
-        if variable in decoupled_variables: return 
-        if variable == 'T':
-            self._create_temperature_equation()
-        elif variable == 'V':
-            self._cre
+    def _create_linear_equations(self, variable):
+        # list[dict[Unit|Stream, float]]
+        if variable in self._decoupled_variables:
+            return []
+        elif variable == 'T':
+            return [self._create_temperature_departure_equation()]
+        elif variable == 'B':
+            return [self._create_phase_ratio_departure_equation()]
         elif variable == 'mol':
-            pass
+            return self._create_mass_balance_equations()
         else:
-            return None
+            return []
     
-    def _update_variables(self, variables):
-        pass
+    def _update_decoupled_variable(self, variable, value):
+        if variable == 'T':
+            self.T += value
+            for i in self.outs: i.T += value
+        elif variable == 'B':
+            self.B += value
     
     def add_feed(self, stream):
         self.ins.append(stream)
@@ -613,7 +654,8 @@ class MultiStageEquilibrium(Unit):
         IDs = self.multi_stream.chemicals.IDs
         for stage in stages:
             errors.append(
-                sum([i.imol[IDs] for i in stage.ins]) - sum([i.imol[IDs] for i in stage.outs])
+                sum([i.imol[IDs] for i in stage.ins],
+                    -sum([i.imol[IDs] for i in stage.outs]))
             )
         return pd.DataFrame(errors, columns=IDs)
     
@@ -639,7 +681,7 @@ class MultiStageEquilibrium(Unit):
                 stage = stages[i]
                 partition = stage.partition
                 s_top, s_bottom = partition.outs
-                bottom_flow = sum([i.mol for i in stage.ins]) - s_top.mol
+                bottom_flow = sum([i.mol for i in stage.ins], -s_top.mol)
                 mask = bottom_flow < 0.
                 if mask.any():
                     has_infeasible_flow = (bottom_flow[mask] < flow_tol[mask]).any()
@@ -915,6 +957,7 @@ class MultiStageEquilibrium(Unit):
         # ENERGY BALANCE
         # Hv1 + Cv1*(dT1) + Hl1 + Cl1*dT1 - Hv2 - Cv2*dT2 - Hl0 - Cl0 = Q1
         # (Cv1 + Cl1)dT1 - Cv2*dT2 - Cl0*dT0 = Q1 - Hv1 - Hl1 + Hv2 + Hl0
+        # C1dT1 - Cv2*dT2 - Cl0*dT0 = Q1 - H_out + H_in
         stages = self.stages
         N_stages = self.N_stages
         a = np.zeros(N_stages)
@@ -955,6 +998,61 @@ class MultiStageEquilibrium(Unit):
         Q = partition_mid.Q or 0.
         if partition_mid.B_specification is None: d[-1] = Q + stage_mid.H_in - partition_mid.H_out
         return solve_TDMA(a, b, c, d)
+    
+    # TODO: This method is not working well. 
+    # It should be mathematically the same as the departure method,
+    # but it gives results that are extreemly off.
+    # def get_energy_balance_temperatures(self):
+    #     # ENERGY BALANCE
+    #     # Hv1 + Cv1*dT1 + Hl1 + Cl1*dT1 - Hv2 - Cv2*dT2 - Hl0 - Cl0*T0 = Q1
+    #     # (Cv1 + Cl1)dT1 - Cv2*dT2 - Cl0*dT0 = Q1 - Hv1 - Hl1 + Hv2 + Hl0
+    #     # C1*T1 - Cv2*T2 - Cl0*T0 = Q1 - H_out + H_in + C1*T1ref - Cv2*T2ref - Cl0*T0ref
+    #     stages = self.stages
+    #     N_stages = self.N_stages
+    #     a = np.zeros(N_stages)
+    #     b = a.copy()
+    #     c = a.copy()
+    #     d = a.copy()
+    #     stage_mid = stages[0]
+    #     stage_bottom = stages[1]
+    #     partition_mid = stage_mid.partition
+    #     partition_bottom = stage_bottom.partition
+    #     C_out = sum([i.C for i in partition_mid.outs])
+    #     C_bottom = stage_bottom.outs[0].C
+    #     b[0] = C_out
+    #     c[0] = -C_bottom
+    #     Q = (partition_mid.Q or 0.) + C_out * partition_mid.T - C_bottom * partition_bottom.T
+    #     if partition_mid.B_specification is not None:
+    #         Q += stage_mid.H_in - partition_mid.H_out
+    #     d[0] = Q
+    #     for i in range(1, N_stages-1):
+    #         stage_top = stage_mid
+    #         stage_mid = stage_bottom
+    #         stage_bottom = stages[i+1]
+    #         partition_mid = partition_bottom
+    #         partition_bottom = stage_bottom.partition
+    #         C_out = sum([i.C for i in partition_mid.outs])
+    #         C_top = stage_top.outs[1].C
+    #         C_bottom = stage_bottom.outs[0].C
+    #         a[i] = -C_top
+    #         b[i] = C_out
+    #         c[i] = -C_bottom
+    #         Q = (partition_mid.Q or 0.) + C_out * partition_mid.T - C_bottom * partition_bottom.T - C_top * stage_top.partition.T
+    #         if partition_mid.B_specification is not None:
+    #             Q += stage_mid.H_in - partition_mid.H_out
+    #         d[i] = Q
+    #     stage_top = stage_mid
+    #     stage_mid = stage_bottom
+    #     partition_mid = partition_bottom
+    #     C_out = sum([i.C for i in partition_mid.outs])
+    #     C_top = stage_top.outs[1].C
+    #     a[-1] = -C_top
+    #     b[-1] = C_out
+    #     Q = (partition_mid.Q or 0.) + C_out * partition_mid.T - C_top * stage_top.partition.T
+    #     if partition_mid.B_specification is not None:
+    #         Q += stage_mid.H_in - partition_mid.H_out
+    #     d[-1] = Q
+    #     return solve_TDMA(a, b, c, d)
     
     def get_energy_balance_phase_ratio_departures(self):
         # ENERGY BALANCE
@@ -1075,7 +1173,7 @@ class MultiStageEquilibrium(Unit):
             partition = stage.partition
             partition.T += dT
             for i in partition.outs: i.T += dT
-            
+        
     def _get_top_flow_rates(self):
         stages = self.stages
         partitions = [i.partition for i in stages]
