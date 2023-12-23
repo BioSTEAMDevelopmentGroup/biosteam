@@ -105,7 +105,7 @@ class StageEquilibrium(Unit):
         # C1dT1 - Cv2*dT2 - Cl0*dT0 = Q1 - H_out + H_in
         coeff = {self: sum([i.C for i in self.outs])}
         for i in self.ins:
-            source = i.source
+            source = self.system._get_source_stage(i)
             if 'T' in source._decoupled_variables: continue
             coeff[source] = -i.C
         return coeff, (self.Q or 0.) + self.H_in - self.H_outs
@@ -114,33 +114,63 @@ class StageEquilibrium(Unit):
         # hV1*L1*dB1 - hv2*L2*dB2 = Q1 + H_in - H_out
         vapor, liquid = self.outs
         coeff = {self: vapor.h * liquid.F_mol}
-        for inlet in self.ins:
-            if inlet.phase != 'g': continue
-            source = inlet.source
-            if hasattr(source, 'stages'):
-                inlet = inlet.auxiliary()
+        for i in self.ins:
+            if i.phase != 'g': continue
+            source = self.system._get_source_stage(i)
             if 'B' in source._decoupled_variables: continue
-            stream = inlet
-            done = False
-            while len(source.outs) == 1:
-                stream = source.ins[0]
-                source = stream.source
-                if source is None: 
-                    done = True
-                    break
-            if done: continue
-            if stream.phase == 'g' and len(source.outs) == 2: 
-                coeff[source] = source
+            vapor, liquid = source.outs
+            coeff[source] = -vapor.h * liquid.F_mol
         return coeff, (self.Q or 0.) + self.H_in - self.H_outs
     
     def _create_mass_balance_equations(self):
-        component_ratios = 1. / (phase_ratios * partition_coefficients)
-        b = 1. + component_ratios
-        c = asplit[1:]
-        d = feed_flows.copy()
-        a = np.expand_dims(bsplit, -1) * component_ratios 
-        eq = {}
-        return eq
+        top_split = self.top_split
+        bottom_split = self.bottom_split
+        inlets = self.ins
+        fresh_inlets = [i for i in inlets if i.isfeed()]
+        process_inlets = [i for i in inlets if not i.isfeed()]
+        top, bottom, *_ = self.outs
+        top_side_draw = self.top_side_draw
+        bottom_side_draw = self.bottom_side_draw
+        equations = []
+        
+        # Overall flows
+        eq_overall = {}
+        S = self.K * self.B
+        for i in self.outs: eq_overall[i] = 1
+        for i in process_inlets: eq_overall[i] = -1
+        equations.append(
+            (eq_overall, sum([i.mol for i in fresh_inlets]))
+        )
+        
+        # Top to bottom flows
+        eq_outs = {}
+        eq_outs[top] = S
+        eq_outs[bottom] = -1
+        equations.append(
+            (eq_outs, 0)
+        )
+        
+        # Top split flows
+        if top_side_draw:
+            eq_top_split = {
+                top_side_draw: top_split,
+                top: top_split - 1,
+            }
+            equations.append(
+                (eq_top_split, 0)
+            )
+        
+        # Bottom split flows
+        if bottom_side_draw:
+            eq_bottom_split = {
+                bottom_side_draw: bottom_split,
+                bottom: bottom_split - 1,
+            }
+            equations.append(
+                (eq_bottom_split, 0)
+            )
+        
+        return equations
     
     def _create_linear_equations(self, variable):
         # list[dict[Unit|Stream, float]]
@@ -157,10 +187,10 @@ class StageEquilibrium(Unit):
     
     def _update_decoupled_variable(self, variable, value):
         if variable == 'T':
-            self.T += value
-            for i in self.outs: i.T += value
+            self._decoupled_variables['T'] = self.T = T = self.T + value
+            for i in self.outs: i.T = T
         elif variable == 'B':
-            self.B += value
+            self._decoupled_variables['B'] = self.B = self.B + value
     
     def add_feed(self, stream):
         self.ins.append(stream)

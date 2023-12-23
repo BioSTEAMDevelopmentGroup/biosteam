@@ -70,6 +70,7 @@ class SystemSpecification:
         
     def __call__(self): self.f(*self.args)
 
+
 # %% Phenomenological convergence tools
 
 def solve_variable(units, variable):
@@ -1489,9 +1490,6 @@ class System:
         self._extend_flattend_path_and_recycles(path, recycles, stacklevel=2)
         self._path = tuple(path)
         self._recycle = tuple(recycles)
-        N_recycles = len(recycles)
-        self.molar_tolerance *= N_recycles
-        self.temperature_tolerance *= N_recycles
 
     def to_unit_group(self, name: Optional[str]=None):
         """Return a UnitGroup object of all units within the system."""
@@ -1540,6 +1538,24 @@ class System:
     __pow__ = __sub__
     __rpow__ = __rsub__
 
+    def _get_source_stage(self, stream):
+        parent_source = stream.source
+        if parent_source in self.stages_set:
+            index = parent_source.outs.index(stream)
+            auxlet = parent_source.auxouts[index]
+            return auxlet.source
+        else:
+            return parent_source
+    
+    def _get_sink_stage(self, stream):
+        parent_sink = stream.sink
+        if parent_sink in self.stages_set:
+            return parent_sink
+        else:
+            index = parent_sink.ins.index(stream)
+            auxlet = parent_sink.auxins[index]
+            return auxlet.sink
+
     @property
     def subsystems(self) -> list[System]:
         """All subsystems in the system."""
@@ -1548,6 +1564,29 @@ class System:
         except:
             self._subsystems = [i for i in self._path if isinstance(i, System)]
             return self._subsystems
+
+    @property
+    def stages(self):
+        try:
+            return self._stages
+        except:
+            self._stages = stages = []
+            for i in self.units:
+                if isinstance(i, bst.MultiStageEquilibrium):
+                    stages.extend(i.stages)
+                elif isinstance(i, bst.StageEquilibrium):
+                    stages.append(i)
+                else:
+                    raise AttributeError('not all units are stages')
+            return stages
+
+    @property
+    def stages_set(self):
+        try:
+            return self._stages_set
+        except:
+            self._stages_set = stages_set = set(self.stages)
+            return stages_set
 
     @property
     def units(self) -> list[Unit]:
@@ -2094,7 +2133,10 @@ class System:
         if algorithm == 'Sequential modular':
             self.run_sequential_modular()
         elif algorithm == 'Decoupled phenomena':
-            self.run_decoupled_phenomena()
+            if self._iter == 0:
+                for i in self.unit_path: i.run()
+            else:
+                self.run_decoupled_phenomena()
         else:
             raise RuntimeError(f'unknown algorithm {algorithm!r}')
 
