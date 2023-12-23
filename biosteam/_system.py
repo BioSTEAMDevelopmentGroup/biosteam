@@ -2164,7 +2164,7 @@ class System:
                     i.recycle_system_hook(self)
             method = self._solve
         else:
-            method = self.run
+            method = self.run_sequential_modular
         if self._N_runs:
             for i in range(self._N_runs): method()
         else:
