@@ -1935,14 +1935,14 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
     outs...
     [0] vapor  
         phase: 'g', T: 366.33 K, P: 101325 Pa
-        flow (kmol/hr): AceticAcid  3.71
+        flow (kmol/hr): AceticAcid  3.72
                         Water       73.8
                         MTBE        20
     [1] liquid  
         phase: 'l', T: 372.87 K, P: 101325 Pa
-        flow (kmol/hr): AceticAcid  1.29
+        flow (kmol/hr): AceticAcid  1.28
                         Water       101
-                        MTBE        0.000372
+                        MTBE        0.000309
     
     >>> absorber.results()
     Absorber                                   Units         
@@ -2236,14 +2236,14 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     
     >>> D1.results()
     Distillation                                               Units          
-    Electricity         Power                                     kW     0.576
-                        Cost                                  USD/hr     0.045
+    Electricity         Power                                     kW     0.573
+                        Cost                                  USD/hr    0.0448
     Cooling water       Duty                                   kJ/hr -2.98e+06
                         Flow                                 kmol/hr  2.03e+03
                         Cost                                  USD/hr     0.992
     Low pressure steam  Duty                                   kJ/hr   7.8e+06
                         Flow                                 kmol/hr       202
-                        Cost                                  USD/hr      47.9
+                        Cost                                  USD/hr        48
     Design              Theoretical stages                                   5
                         Actual stages                                        7
                         Height                                    ft      24.3
@@ -2283,14 +2283,14 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     
     >>> D1.results()
     Distillation                                     Units          
-    Electricity         Power                           kW     0.918
-                        Cost                        USD/hr    0.0718
+    Electricity         Power                           kW     0.917
+                        Cost                        USD/hr    0.0717
     Cooling water       Duty                         kJ/hr -9.13e+06
                         Flow                       kmol/hr  6.24e+03
                         Cost                        USD/hr      3.04
-    Low pressure steam  Duty                         kJ/hr  9.63e+06
+    Low pressure steam  Duty                         kJ/hr  9.64e+06
                         Flow                       kmol/hr       249
-                        Cost                        USD/hr      59.2
+                        Cost                        USD/hr      59.3
     Design              Theoretical stages                         5
                         Actual stages                              6
                         Height                          ft      22.9
@@ -2301,11 +2301,11 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                         Tower                          USD  3.62e+04
                         Platform and ladders           USD   9.8e+03
                         Condenser - Floating head      USD   3.5e+04
-                        Pump - Pump                    USD  4.33e+03
-                        Pump - Motor                   USD       390
+                        Pump - Pump                    USD  4.34e+03
+                        Pump - Motor                   USD       389
                         Reboiler - Floating head       USD  2.41e+04
     Total purchase cost                                USD  1.17e+05
-    Utility cost                                    USD/hr      62.3
+    Utility cost                                    USD/hr      62.4
     
     Notes
     -----
@@ -2531,7 +2531,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                     )
                     N_stages += 1
                 except:
-                    N_stages += i.partition.phi in (0, 1)
+                    N_stages += i.partition.B in (0, inf)
             eff = eff ** (1 / N_stages)
             return N_stages, np.ceil(N_stages / eff)
         else:
