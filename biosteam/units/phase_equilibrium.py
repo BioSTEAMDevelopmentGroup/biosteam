@@ -22,6 +22,7 @@ from math import inf
 from .. import Unit
 
 __all__ = (
+    'StageEquilibrium',
     'MultiStageEquilibrium',
 )
 
@@ -59,7 +60,8 @@ class StageEquilibrium(Unit):
     auxiliary_unit_names = ('partition', 'mixer', 'splitters')
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
-            phases=None, partition_data=None, top_split, bottom_split
+            phases=None, partition_data=None, top_split=0, bottom_split=0,
+            B=None, Q=None,
         ):
         self._N_outs = 2 + int(top_split) + int(bottom_split)
         Unit.__init__(self, ID, ins, outs, thermo)
@@ -89,15 +91,55 @@ class StageEquilibrium(Unit):
                 partition-1, [self.outs[-1], self.outs[1]],
                 split=bottom_split, 
             )
+        self.set_specification(B, Q)
+    
+    @property
+    def Q(self):
+        return self.partition.Q
+    @Q.setter
+    def Q(self, Q):
+        self.partition.Q = Q
+    
+    @property
+    def B(self):
+        return self.partition.B
+    @B.setter
+    def B(self, B):
+        self.partition.B = B
+    
+    @property
+    def B_specification(self):
+        return self.partition.B_specification
+    @B_specification.setter
+    def B_specification(self, B_specification):
+        self.partition.B_specification = B_specification
+    
+    @property
+    def T(self):
+        return self.partition.T
+    @T.setter
+    def T(self, T):
+        self.partition.T = T
+        for i in self.partition.outs: i.T = T
+    
+    @property
+    def K(self):
+        return self.partition.K
+    @K.setter
+    def K(self, K):
+        self.partition.K = K
+        for i in self.partition.outs: i.K = K
     
     def _solve_decoupled_variables(self):
         partition = self.partition
         phases = partition.phases 
         if phases == ('g', 'l'):
-            self._decoupled_variables = {'K': partition.K, 'T': partition.T}
-            if self.B_specification: self._decoupled_variables['B'] = self.B_specification
+            self.partition._run(update=False, couple_energy_balance=False)
+            self._decoupled_variables = {'K', 'T'}
+            if self.B_specification: self._decoupled_variables.add('B')
         elif phases == ('L', 'l'):
-            self._decoupled_variables = {'K': partition.K, 'B': partition.B}
+            partition._run(update=False, couple_energy_balance=False)
+            self._decoupled_variables = {'K', 'B'}
         else:
             raise NotImplementedError(f'decoupled variables for phases {phases} is not yet implemented')
     
@@ -105,22 +147,33 @@ class StageEquilibrium(Unit):
         # C1dT1 - Cv2*dT2 - Cl0*dT0 = Q1 - H_out + H_in
         coeff = {self: sum([i.C for i in self.outs])}
         for i in self.ins:
-            source = self.system._get_source_stage(i)
-            if 'T' in source._decoupled_variables: continue
+            source = self.owner.system._get_source_stage(i)
+            if not source or 'T' in source._decoupled_variables: continue
             coeff[source] = -i.C
-        return coeff, (self.Q or 0.) + self.H_in - self.H_outs
+        return coeff, (self.Q or 0.) + self.H_in - self.H_out
     
     def _create_phase_ratio_departure_equation(self):
         # hV1*L1*dB1 - hv2*L2*dB2 = Q1 + H_in - H_out
-        vapor, liquid = self.outs
-        coeff = {self: vapor.h * liquid.F_mol}
+        vapor, liquid = self.partition.outs
+        coeff = {}
+        if vapor.isempty():
+            liquid.phase = 'g'
+            coeff[self] = liquid.H
+            liquid.phase = 'l'
+        else:
+            coeff[self] = vapor.h * liquid.F_mol
         for i in self.ins:
             if i.phase != 'g': continue
-            source = self.system._get_source_stage(i)
-            if 'B' in source._decoupled_variables: continue
-            vapor, liquid = source.outs
-            coeff[source] = -vapor.h * liquid.F_mol
-        return coeff, (self.Q or 0.) + self.H_in - self.H_outs
+            source = self.owner.system._get_source_stage(i)
+            if not source or 'B' in source._decoupled_variables: continue
+            vapor, liquid = source.partition.outs
+            if vapor.isempty():
+                liquid.phase = 'g'
+                coeff[source] = liquid.H
+                liquid.phase = 'l'
+            else:
+                coeff[source] = -vapor.h * liquid.F_mol
+        return coeff, (self.Q or 0.) + self.H_in - self.H_out
     
     def _create_mass_balance_equations(self):
         top_split = self.top_split
@@ -132,42 +185,45 @@ class StageEquilibrium(Unit):
         top_side_draw = self.top_side_draw
         bottom_side_draw = self.bottom_side_draw
         equations = []
+        ones = np.ones(self.chemicals.size)
+        minus_ones = -ones
+        zeros = np.zeros(self.chemicals.size)
         
         # Overall flows
         eq_overall = {}
         S = self.K * self.B
-        for i in self.outs: eq_overall[i] = 1
-        for i in process_inlets: eq_overall[i] = -1
+        for i in self.outs: eq_overall[i] = ones
+        for i in process_inlets: eq_overall[i] = minus_ones
         equations.append(
-            (eq_overall, sum([i.mol for i in fresh_inlets]))
+            (eq_overall, sum([i.mol for i in fresh_inlets], zeros))
         )
         
         # Top to bottom flows
         eq_outs = {}
-        eq_outs[top] = S
-        eq_outs[bottom] = -1
+        eq_outs[top] = ones
+        eq_outs[bottom] = -S
         equations.append(
-            (eq_outs, 0)
+            (eq_outs, zeros)
         )
         
         # Top split flows
         if top_side_draw:
             eq_top_split = {
-                top_side_draw: top_split,
-                top: top_split - 1,
+                top_side_draw: top_split * ones,
+                top: top_split + minus_ones,
             }
             equations.append(
-                (eq_top_split, 0)
+                (eq_top_split, zeros)
             )
         
         # Bottom split flows
         if bottom_side_draw:
             eq_bottom_split = {
-                bottom_side_draw: bottom_split,
-                bottom: bottom_split - 1,
+                bottom_side_draw: bottom_split * ones,
+                bottom: bottom_split + minus_ones,
             }
             equations.append(
-                (eq_bottom_split, 0)
+                (eq_bottom_split, zeros)
             )
         
         return equations
@@ -175,22 +231,25 @@ class StageEquilibrium(Unit):
     def _create_linear_equations(self, variable):
         # list[dict[Unit|Stream, float]]
         if variable in self._decoupled_variables:
-            return []
+            eqs = []
         elif variable == 'T':
-            return [self._create_temperature_departure_equation()]
+            eqs = [self._create_temperature_departure_equation()]
         elif variable == 'B':
-            return [self._create_phase_ratio_departure_equation()]
+            eqs = [self._create_phase_ratio_departure_equation()]
         elif variable == 'mol':
-            return self._create_mass_balance_equations()
+            eqs = self._create_mass_balance_equations()
         else:
-            return []
+            eqs = []
+        return eqs
     
     def _update_decoupled_variable(self, variable, value):
         if variable == 'T':
-            self._decoupled_variables['T'] = self.T = T = self.T + value
+            self.T = T = self.T + value
+            self._decoupled_variables.add('T')
             for i in self.outs: i.T = T
         elif variable == 'B':
-            self._decoupled_variables['B'] = self.B = self.B + value
+            self.B += value
+            self._decoupled_variables.add('B')
     
     def add_feed(self, stream):
         self.ins.append(stream)
@@ -201,6 +260,7 @@ class StageEquilibrium(Unit):
         )
         
     def set_specification(self, B, Q):
+        if B is None and Q is None: Q = 0.
         partition = self.partition
         partition.B_specification = partition.B = B
         partition.Q = Q
@@ -229,6 +289,12 @@ class StageEquilibrium(Unit):
         if self.top_split: return self.outs[2]
     @property
     def liquid_side_draw(self):
+        if self.bottom_split: return self.outs[-1]
+    @property
+    def top_side_draw(self):
+        if self.top_split: return self.outs[2]
+    @property
+    def bottom_side_draw(self):
         if self.bottom_split: return self.outs[-1]
     
     def _run(self):

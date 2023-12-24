@@ -74,26 +74,21 @@ class SystemSpecification:
 # %% Phenomenological convergence tools
 
 def solve_variable(units, variable):
-    leqs = LinearEquations.from_units(variable, units)
+    leqs = LinearEquations(variable, units)
     leqs.solve()
 
 class LinearEquations:
     __slots__ = ('variable', 'A', 'b')
     
-    def __init__(self, variable):
+    def __init__(self, variable, units=None):
         self.variable = variable
         self.A = []
         self.b = []
-        
-    def from_units(self, variable, units):
-        self.variable = variable
-        self.A = []
-        self.b = []
-        self.extend(units)
+        if units: self.extend(units)
         
     def append(self, unit):
         A = self.A; b = self.b
-        for coefficients, value in unit.create_linear_equations(self.variable):
+        for coefficients, value in unit._create_linear_equations(self.variable):
             A.append(coefficients)
             b.append(value)
     
@@ -101,10 +96,13 @@ class LinearEquations:
         for i in units: self.append(i)
         
     def solve(self):
+        b = self.b
+        if not b: return
         variable = self.variable
-        arr, objs = dictionaries2array(self.A)
-        values = solve(arr, np.array(self.b))
-        for obj, value in zip(objs, values): 
+        A, objs = dictionaries2array(self.A)
+        b = np.array(b).T
+        values = solve(A, b)
+        for obj, value in zip(objs, values.T): 
             obj._update_decoupled_variable(variable, value)
 
 
@@ -577,6 +575,8 @@ class System:
         '_TEA',
         '_LCA',
         '_subsystems',
+        '_stages',
+        '_stages_set',
         '_units',
         '_unit_set',
         '_unit_path',
@@ -640,6 +640,9 @@ class System:
     #: Method definitions for convergence
     available_methods: Methods[str, tuple(Callable, bool, dict)] = Methods()
 
+    #: Solution priority of variables for decoupled phenomena algorithm.
+    variable_priority: list[str] = ['T', 'B', 'mol']
+
     @classmethod
     def register_method(cls, name, solver, conditional=False, **kwargs):
         """
@@ -666,7 +669,7 @@ class System:
             ends: Iterable[Stream]=None,
             facility_recycle: Optional[Stream]=None,
             operating_hours: Optional[float]=None,
-            lang_factor: Optional[float]=None,
+            **kwargs,
         ):
         """
         Create a System object from a feedstock.
@@ -691,17 +694,13 @@ class System:
             Number of operating hours in a year. This parameter is used to
             compute annualized properties such as utility cost and material cost
             on a per year basis.
-        lang_factor : 
-            Lang factor for getting fixed capital investment from
-            total purchase cost. If no lang factor, installed equipment costs are
-            estimated using bare module factors.
 
         """
         if feedstock is None: raise ValueError('must pass feedstock stream')
         network = Network.from_feedstock(feedstock, feeds, ends)
         return cls._from_network(ID, network, facilities,
                                 facility_recycle, operating_hours,
-                                lang_factor)
+                                **kwargs)
 
     @classmethod
     def from_units(cls, ID: Optional[str]="",
@@ -709,7 +708,7 @@ class System:
                    ends: Optional[Iterable[Stream]]=None,
                    facility_recycle: Optional[Stream]=None, 
                    operating_hours: Optional[float]=None,
-                   lang_factor: Optional[float]=None):
+                   **kwargs):
         """
         Create a System object from all units given.
 
@@ -730,22 +729,18 @@ class System:
             Number of operating hours in a year. This parameter is used to
             compute annualized properties such as utility cost and material cost
             on a per year basis.
-        lang_factor : 
-            Lang factor for getting fixed capital investment from
-            total purchase cost. If no lang factor, installed equipment costs are
-            estimated using bare module factors.
 
         """
         facilities = facilities_from_units(units)
         network = Network.from_units(units, ends)
         return cls._from_network(ID, network, facilities,
                                 facility_recycle, operating_hours,
-                                lang_factor)
+                                **kwargs)
 
     @classmethod
     def from_segment(cls, ID: Optional[str]="", start: Optional[Unit]=None, 
                      end: Optional[Unit]=None, operating_hours: Optional[float]=None,
-                     lang_factor: Optional[float]=None, inclusive=False):
+                     inclusive=False, **kwargs):
         """
         Create a System object from all units in between start and end.
 
@@ -761,10 +756,6 @@ class System:
             Number of operating hours in a year. This parameter is used to
             compute annualized properties such as utility cost and material cost
             on a per year basis.
-        lang_factor : 
-            Lang factor for getting fixed capital investment from
-            total purchase cost. If no lang factor, installed equipment costs are
-            estimated using bare module factors.
         inclusive :
             Whether to include start and end units.
 
@@ -782,11 +773,11 @@ class System:
             if start is not None: units.add(start)
             if end is not None: units.add(end)
         return bst.System.from_units(ID, units, operating_hours=operating_hours,
-                                     lang_factor=lang_factor)
+                                     **kwargs)
          
     @classmethod
     def _from_network(cls, ID, network, facilities=(), facility_recycle=None,
-                     operating_hours=None, lang_factor=None):
+                     operating_hours=None, **kwargs):
         """
         Create a System object from a network.
 
@@ -805,10 +796,6 @@ class System:
             Number of operating hours in a year. This parameter is used to
             compute annualized properties such as utility cost and material cost
             on a per year basis.
-        lang_factor : float, optional
-            Lang factor for getting fixed capital investment from
-            total purchase cost. If no lang factor, installed equipment costs are
-            estimated using bare module factors.
 
         """
         facilities = Facility.ordered_facilities(facilities)
@@ -818,7 +805,7 @@ class System:
         path = [(cls._from_network(ID_subsys, i) if isa(i, Network) else i)
                 for i in network.path]
         return cls(ID, path, network.recycle, facilities, facility_recycle, None,
-                   operating_hours, lang_factor)
+                   operating_hours, **kwargs)
 
     def __init__(self, 
             ID: Optional[str]= '', 
@@ -830,30 +817,37 @@ class System:
             operating_hours: Optional[float]=None,
             lang_factor: Optional[float]=None,
             responses: Optional[list[Response]]=None,
+            algorithm: Optional[str]=None,
+            method: Optional[str]=None,
+            maxiter: Optional[int]=None,
+            molar_tolerance: Optional[float]=None,
+            relative_molar_tolerance: Optional[float]=None,
+            temperature_tolerance: Optional[float]=None,
+            relative_temperature_tolerance: Optional[float]=None,
         ):
         self.N_runs = N_runs
         
-        self.algorithm = self.default_algorithm
+        self.algorithm = self.default_algorithm if algorithm is None else algorithm
         
-        self.method = self.default_methods[self.algorithm]
+        self.method = self.default_methods[self.algorithm] if method is None else method
         
         #: Maximum number of iterations.
-        self.maxiter: int = self.default_maxiter
+        self.maxiter: int = self.default_maxiter if maxiter is None else maxiter
 
         #: Molar tolerance [kmol/hr].
-        self.molar_tolerance: float = self.default_molar_tolerance
+        self.molar_tolerance: float = self.default_molar_tolerance if molar_tolerance is None else molar_tolerance
 
         #: Relative molar tolerance.
-        self.relative_molar_tolerance: float = self.default_relative_molar_tolerance
+        self.relative_molar_tolerance: float = self.default_relative_molar_tolerance if relative_molar_tolerance is None else relative_molar_tolerance
 
         #: Temperature tolerance [K].
-        self.temperature_tolerance: float = self.default_temperature_tolerance
+        self.temperature_tolerance: float = self.default_temperature_tolerance if temperature_tolerance is None else temperature_tolerance
 
         #: Relative temperature tolerance.
-        self.relative_temperature_tolerance: float = self.default_relative_temperature_tolerance
+        self.relative_temperature_tolerance: float = self.default_relative_temperature_tolerance if relative_temperature_tolerance is None else relative_temperature_tolerance
 
         #: Number of operating hours per year
-        self.operating_hours: float|None = operating_hours
+        self.operating_hours: float|None = operating_hours if operating_hours is None else operating_hours
         
         #: Lang factor for computing fixed capital cost from purchase costs
         self.lang_factor: float|None = lang_factor
@@ -1540,12 +1534,14 @@ class System:
 
     def _get_source_stage(self, stream):
         parent_source = stream.source
-        if parent_source in self.stages_set:
+        if parent_source is None:
+            return None
+        elif parent_source in self.stages_set:
+            return parent_source
+        else:
             index = parent_source.outs.index(stream)
             auxlet = parent_source.auxouts[index]
             return auxlet.source
-        else:
-            return parent_source
     
     def _get_sink_stage(self, stream):
         parent_sink = stream.sink
@@ -2155,7 +2151,8 @@ class System:
         enthalpy, and reaction phenomena."""
         stages = self.stages
         for i in stages: i._solve_decoupled_variables()
-        for variable in self.variable_priority: solve_variable(stages, variable)
+        for variable in self.variable_priority:
+            solve_variable(stages, variable)
 
     def _solve(self):
         """Solve the system recycle iteratively."""

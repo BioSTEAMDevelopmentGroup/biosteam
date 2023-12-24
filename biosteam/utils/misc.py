@@ -35,13 +35,22 @@ def checkbounds(x, bounds):
 
 def dictionaries2array(dictionaries):
     keys = []
-    for i in dictionaries: keys.extend(i)
+    shape = ()
+    for dct in dictionaries: 
+        keys.extend(dct)
+        for sample in dct.values():
+            sample = np.asarray(sample)
+            shape = sample.shape
+            break
     keys = frozenset(keys)
-    array = np.zeros([len(dictionaries), len(keys)])
+    index = {j: i for i, j in enumerate(keys)}
+    array = np.zeros([*shape, len(dictionaries), len(keys)], dtype=float)
     for i, dct in enumerate(dictionaries):
-        for j, key in enumerate(keys):        
-            array[i, j] = dct[j]
+        for key, value in dct.items():
+            j = index[key]
+            array[..., i, j] = value
     return array, keys
+
 
 # %% String functions
 
