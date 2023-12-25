@@ -236,7 +236,7 @@ class Flowsheet:
                       ends: Optional[Iterable[Stream]]=None,
                       facility_recycle: Optional[Stream]=None, 
                       operating_hours: Optional[float]=None,
-                      lang_factor: Optional[float]=None):
+                      **kwargs):
         """
         Create a System object from all units and streams defined in the flowsheet.
         
@@ -255,14 +255,10 @@ class Flowsheet:
             Number of operating hours in a year. This parameter is used to
             compute annualized properties such as utility cost and material cost
             on a per year basis.
-        lang_factor : 
-            Lang factor for getting fixed capital investment from
-            total purchase cost. If no lang factor, installed equipment costs are
-            estimated using bare module factors.
         
         """
         return System.from_units(ID, self.unit, ends, facility_recycle,
-                                 operating_hours, lang_factor)
+                                 operating_hours, **kwargs)
     
     def __call__(self, ID: str|type[Unit], strict: Optional[bool]=False):
         """

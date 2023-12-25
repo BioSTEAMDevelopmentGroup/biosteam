@@ -89,6 +89,13 @@ class LinearEquations:
     def append(self, unit):
         A = self.A; b = self.b
         for coefficients, value in unit._create_linear_equations(self.variable):
+            for stream in tuple(coefficients):
+                if not hasattr(stream, 'port'): continue
+                original = stream
+                stream = stream.port.get_stream()
+                while hasattr(stream, 'port'): stream = stream.port.get_stream()                    
+                coef = coefficients.pop(original)
+                coefficients[stream] = coef
             A.append(coefficients)
             b.append(value)
     

@@ -60,14 +60,15 @@ class StageEquilibrium(Unit):
     auxiliary_unit_names = ('partition', 'mixer', 'splitters')
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
-            phases=None, partition_data=None, top_split=0, bottom_split=0,
+            phases, partition_data=None, top_split=0, bottom_split=0,
             B=None, Q=None,
         ):
         self._N_outs = 2 + int(top_split) + int(bottom_split)
         Unit.__init__(self, ID, ins, outs, thermo)
         mixer = self.auxiliary(
-            'mixer', bst.Mixer, ins=self.ins, conserve_phases=True,
+            'mixer', bst.Mixer, ins=self.ins, 
         )
+        mixer.outs[0].phases = phases
         partition = self.auxiliary(
             'partition', PhasePartition, ins=mixer-0, phases=phases,
             partition_data=partition_data, 
@@ -132,9 +133,18 @@ class StageEquilibrium(Unit):
     
     def _solve_decoupled_variables(self):
         partition = self.partition
+        chemicals = self.chemicals
         phases = partition.phases 
+        IDs = chemicals.IDs
+        IDs_old = partition.IDs
+        if IDs_old != IDs:
+            K = np.ones(chemicals.size)
+            for ID, value in zip(IDs_old, partition.K):
+                K[IDs.index(ID)] = value
+            partition.K = K
+            partition.IDs = IDs
         if phases == ('g', 'l'):
-            self.partition._run(update=False, couple_energy_balance=False)
+            partition._run(update=False, couple_energy_balance=False)
             self._decoupled_variables = {'K', 'T'}
             if self.B_specification: self._decoupled_variables.add('B')
         elif phases == ('L', 'l'):
@@ -1335,7 +1345,7 @@ class MultiStageEquilibrium(Unit):
                 mixer = i.mixer
                 partition = i.partition
                 mixer.outs[0].mix_from(
-                    mixer.ins, conserve_phases=True, energy_balance=False,
+                    mixer.ins, energy_balance=False,
                 )
                 partition._run(P=self.P, update=False, 
                                couple_energy_balance=False)
@@ -1381,7 +1391,9 @@ class MultiStageEquilibrium(Unit):
         self.fallback_iter += 1
         self.update(top_flow_rates)
         for i in self.stages: i._run()
-        for i in reversed(self.stages): i._run()
+        for i in reversed(self.stages): 
+            try: i._run()
+            except: breakpoint()
         mol = top_flow_rates.flatten()
         new_top_flow_rates = np.array([i.partition.outs[0].mol[self._update_index] for i in self.stages])
         mol_new = new_top_flow_rates.flatten()
