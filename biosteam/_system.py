@@ -648,7 +648,7 @@ class System:
     available_methods: Methods[str, tuple(Callable, bool, dict)] = Methods()
 
     #: Solution priority of variables for decoupled phenomena algorithm.
-    variable_priority: list[str] = ['T', 'B', 'mol']
+    variable_priority: list[str] = ['T', 'mol', 'B', 'mol']
 
     @classmethod
     def register_method(cls, name, solver, conditional=False, **kwargs):

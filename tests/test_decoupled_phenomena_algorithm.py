@@ -62,9 +62,10 @@ def test_trivial_distillation_case():
             phases=('g', 'l'),
         )
     sys.simulate()
-    sys.run_decoupled_phenomena()
     vapor, liquid = MSE.outs
-    assert round(vapor.imol['Ethanol'] / feed.imol['Ethanol'], 2) == 0.96
+    actual = round(vapor.imol['Ethanol'] / feed.imol['Ethanol'], 2)
+    sys.run_decoupled_phenomena()
+    assert round(vapor.imol['Ethanol'] / feed.imol['Ethanol'], 2) == actual
     
 def test_acetic_acid_separation_no_recycle():
     with bst.System(algorithm='decoupled phenomena') as sys:
@@ -88,7 +89,7 @@ def test_acetic_acid_separation_no_recycle():
     sys.run_decoupled_phenomena()
     values = [i.mol for i in streams]
     for actual, value in zip(actuals, values):
-        assert_allclose(actual, value, rtol=0.01)
+        assert_allclose(actual, value, rtol=0.001)
 
     
 if __name__ == '__main__':
