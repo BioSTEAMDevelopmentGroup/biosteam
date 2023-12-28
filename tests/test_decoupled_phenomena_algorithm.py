@@ -72,16 +72,21 @@ def test_acetic_acid_separation_no_recycle():
         bst.settings.set_thermo(['Water', 'AceticAcid', 'EthylAcetate'], cache=True)
         feed = bst.Stream(AceticAcid=6660, Water=23600)
         solvent = bst.Stream(EthylAcetate=65000)
-        LE = bst.MultiStageEquilibrium(N_stages=6, ins=[feed, solvent], phases=('L', 'l'))
+        LE = bst.MultiStageEquilibrium(
+            N_stages=6, ins=[feed, solvent], phases=('L', 'l'),
+            maxiter=100,
+        )
         DAA = bst.MultiStageEquilibrium(N_stages=6, ins=[LE-0], feed_stages=[3],
             outs=['vapor', 'liquid'],
             stage_specifications={0: ('Reflux', 0.673), -1: ('Boilup', 2.57)},
             phases=('g', 'l'),
+            maxiter=100,
         )
         DEA = bst.MultiStageEquilibrium(N_stages=6, ins=[LE-1], feed_stages=[3],
             outs=['vapor', 'liquid'],
             stage_specifications={0: ('Reflux', 0.673), -1: ('Boilup', 2.57)},
             phases=('g', 'l'),
+            maxiter=100,
         )
     sys.simulate()
     streams = [*sys.ins, *sys.outs]
