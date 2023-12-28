@@ -74,21 +74,25 @@ def test_acetic_acid_separation_no_recycle():
         solvent = bst.Stream(EthylAcetate=65000)
         LE = bst.MultiStageEquilibrium(
             N_stages=6, ins=[feed, solvent], phases=('L', 'l'),
-            maxiter=100,
+            maxiter='anderson',
+            use_cache=True,
         )
         DAA = bst.MultiStageEquilibrium(N_stages=6, ins=[LE-0], feed_stages=[3],
             outs=['vapor', 'liquid'],
             stage_specifications={0: ('Reflux', 0.673), -1: ('Boilup', 2.57)},
             phases=('g', 'l'),
-            maxiter=100,
+            method='fixed-point',
+            use_cache=True,
         )
         DEA = bst.MultiStageEquilibrium(N_stages=6, ins=[LE-1], feed_stages=[3],
             outs=['vapor', 'liquid'],
             stage_specifications={0: ('Reflux', 0.673), -1: ('Boilup', 2.57)},
             phases=('g', 'l'),
-            maxiter=100,
+            method='fixed-point',
+            use_cache=True,
         )
     sys.simulate()
+    for i in sys.units: print(i.ID, i.iter)
     streams = [*sys.ins, *sys.outs]
     actuals = [i.mol.copy() for i in streams]
     sys.run_decoupled_phenomena()
@@ -98,8 +102,8 @@ def test_acetic_acid_separation_no_recycle():
 
     
 if __name__ == '__main__':
-    test_trivial_lle_case()
-    test_trivial_vle_case()
-    test_trivial_liquid_extraction_case()
-    test_trivial_distillation_case()
+    # test_trivial_lle_case()
+    # test_trivial_vle_case()
+    # test_trivial_liquid_extraction_case()
+    # test_trivial_distillation_case()
     test_acetic_acid_separation_no_recycle()

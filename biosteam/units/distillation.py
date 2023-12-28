@@ -2580,8 +2580,8 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         Design['Weight'] = design.compute_tower_weight(Di, H, tv, rho_M)
 
     def _simulate_condenser_and_reboiler(self):
-        top = self.stages[0].partition
-        bottom = self.stages[-1].partition
+        top = self.stages[0]
+        bottom = self.stages[-1]
         reboiler = self.reboiler
         condenser = self.condenser
         reflux_drum = self.reflux_drum
