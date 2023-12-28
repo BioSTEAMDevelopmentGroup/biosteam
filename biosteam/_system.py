@@ -645,7 +645,7 @@ class System:
     strict_convergence: bool = True
 
     #: Method definitions for convergence
-    available_methods: Methods[str, tuple(Callable, bool, dict)] = Methods()
+    available_methods: Methods[str, tuple[Callable, bool, dict]] = Methods()
 
     #: Solution priority of variables for decoupled phenomena algorithm.
     variable_priority: list[str] = ['T', 'mol', 'B', 'mol']
