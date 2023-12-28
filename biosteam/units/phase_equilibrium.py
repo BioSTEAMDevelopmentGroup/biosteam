@@ -19,6 +19,9 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
 from math import inf
+from typing import Callable
+from scipy.optimize import root
+from ..exceptions import Converged
 from .. import Unit
 
 __all__ = (
@@ -606,9 +609,18 @@ class MultiStageEquilibrium(Unit):
     default_fallback_maxiter = 3
     default_molar_tolerance = 0.1
     default_relative_molar_tolerance = 0.001
-    default_method = 'fixed-point'
-    available_methods = {'fixed-point', 'optimize'}
-    optimization_convergence_options = dict(
+    default_algorithm = 'root'
+    available_algorithms = {'root', 'optimize'}
+    default_methods = {
+        'root': 'anderson',
+        'optimize': 'SLSQP',
+    }
+    
+    #: Method definitions for convergence
+    root_options: dict[str, tuple[Callable, bool, dict]] = {
+        'fixed-point': (flx.conditional_fixed_point, True, {}),
+    }
+    optimization_options = dict(
         method='SLSQP',
         tol=1e-3,
     )
@@ -657,7 +669,9 @@ class MultiStageEquilibrium(Unit):
             solvent=None, 
             use_cache=None,
             collapsed_init=True,
+            algorithm=None,
             method=None,
+            maxiter=None,
         ):
         # For VLE look for best published algorithm (don't try simple methods that fail often)
         if phases is None: phases = ('g', 'l')
@@ -742,7 +756,7 @@ class MultiStageEquilibrium(Unit):
             stages[i].set_specification(B=B, Q=Q)
             
         #: [int] Maximum number of iterations.
-        self.maxiter = self.default_maxiter
+        self.maxiter = self.default_maxiter if maxiter is None else maxiter
         
         #: [int] Maximum number of iterations for fallback algorithm.
         self.fallback_maxiter = self.default_fallback_maxiter
@@ -757,7 +771,9 @@ class MultiStageEquilibrium(Unit):
         
         self.collapsed_init = collapsed_init
         
-        self.method = self.default_method if method is None else method
+        self.algorithm = self.default_algorithm if algorithm is None else algorithm
+        
+        self.method = self.default_methods[self.algorithm] if method is None else method
     
     def correct_overall_mass_balance(self):
         outmol = sum([i.mol for i in self.outs])
@@ -825,21 +841,26 @@ class MultiStageEquilibrium(Unit):
         if all([i.isempty() for i in self.ins]): 
             for i in self.outs: i.empty()
             return
-        self.hot_start()
-        method = self.method
-        if method == 'fixed-point':
-            flx.conditional_fixed_point(
-                self.multistage_equilibrium_conditional_iter,
-                self.get_top_flow_rates(),
-            )
-            self.fallback_iter = 0
-            if self.iter == self.maxiter:
-                flx.conditional_fixed_point(
-                    self._sequential_iter, 
-                    self.get_top_flow_rates()
-                )
-        elif method == 'optimize':
-            constraints = []
+        top_flow_rates = self.hot_start()
+        algorithm = self.algorithm
+        if algorithm == 'root':
+            solver, conditional, options = self.root_options[self.method]
+            try:
+                if conditional:
+                    solver(self._conditional_iter, top_flow_rates)
+                else:
+                    solver(self._root_iter, top_flow_rates.flatten(), **options)
+            except Converged: 
+                pass
+            else:    
+                self.fallback_iter = 0
+                if self.iter == self.maxiter:
+                    flx.conditional_fixed_point(
+                        self._sequential_iter, 
+                        self.get_top_flow_rates()
+                    )
+        elif algorithm == 'optimize':
+            self.constraints = constraints = []
             stages = self.stages
             m, n = self.N_stages, self._N_chemicals
             last_stage = m - 1
@@ -847,20 +868,24 @@ class MultiStageEquilibrium(Unit):
             for i, stage in enumerate(stages):
                 if i == 0:
                     args = (i,)
-                    f = lambda x, i: feed_flows[i] - x[(i+1)*n:(i+2)*n] * asplit[i+1] - x[i*n:(i+1)*n]
+                    f = lambda x, i: feed_flows[i] - x[(i+1)*n:(i+2)*n] * asplit[i+1] - x[i*n:(i+1)*n] + 1e-6
                 elif i == last_stage:
                     args_last = args
                     args = (i, f, args_last)
-                    f = lambda x, i, f, args_last: feed_flows[i] + f(x, *args_last) - x[i*n:]
+                    f = lambda x, i, f, args_last: feed_flows[i] + f(x, *args_last) - x[i*n:] + 1e-6
                 else:
                     args_last = args
                     args = (i, f, args_last)
-                    f = lambda x, i, f, args_last: feed_flows[i] + f(x, *args_last) - x[(i+1)*n:(i+2)*n] * asplit[i+1] - x[i*n:(i+1)*n]
+                    f = lambda x, i, f, args_last: feed_flows[i] + f(x, *args_last) - x[(i+1)*n:(i+2)*n] * asplit[i+1] - x[i*n:(i+1)*n] + 1e-6
                 constraints.append(
                     dict(type='ineq', fun=f, args=args)
                 )
+            for i in range(10):
+                self._iter(
+                    self.get_top_flow_rates(),
+                )
             result = minimize(
-                self.multistage_equilibrium_overall_error, 
+                self._overall_error, 
                 self.get_top_flow_rates_flat(),
                 constraints=constraints,
                 bounds=[(0, None)] * (m * n),
@@ -870,7 +895,7 @@ class MultiStageEquilibrium(Unit):
             self.set_flow_rates(result.x.reshape([m, n]))
         else:
             raise RuntimeError(
-                f'invalid method {method!r}, only {self.available_methods} are allowed'
+                f'invalid algorithm {algorithm!r}, only {self.available_algorithms} are allowed'
             )
     
     def _hot_start_phase_ratios_iter(self, 
@@ -1114,7 +1139,7 @@ class MultiStageEquilibrium(Unit):
                 for i in bottom_side_draws:
                     for s in stages[i].splitters: s._run()
         for i in partitions: i.IDs = IDs
-        self.update_mass_balance()
+        return self.update_mass_balance()
     
     def get_energy_balance_temperature_departures(self):
         # ENERGY BALANCE
@@ -1346,6 +1371,7 @@ class MultiStageEquilibrium(Unit):
             *self._iter_args,
         )
         self.set_flow_rates(top_flow_rates)
+        return top_flow_rates
         
     def interpolate_missing_variables(self):
         stages = self.stages
@@ -1420,8 +1446,8 @@ class MultiStageEquilibrium(Unit):
             Bs_new[i] = partition.B
         return KTBs
     
-    def multistage_equilibrium_overall_error(self, top_flow_rates):
-        self.multistage_equilibrium_iter(
+    def _overall_error(self, top_flow_rates):
+        self._iter(
             top_flow_rates.reshape([self.N_stages, self._N_chemicals])
         ).flatten()
         H_out = np.array([i.H_out for i in self.stages])
@@ -1434,7 +1460,8 @@ class MultiStageEquilibrium(Unit):
         denominator_mask = np.abs(denominator) < 1e-12
         denominator[denominator_mask] = H_in[denominator_mask]
         errors = diff / denominator
-        return (errors * errors).sum()
+        MSE = (errors * errors).sum()
+        return MSE
     
     def energy_balance_phase_ratio_iter(self, Bs):
         partitions = [i.partition for i in self.stages]
@@ -1449,7 +1476,7 @@ class MultiStageEquilibrium(Unit):
                 dBs[i] = partition.B_specification
         return dBs
     
-    def multistage_equilibrium_iter(self, variables, KBTs=False):
+    def _iter(self, variables, KBTs=False):
         self.iter += 1
         stages = self.stages
         P = self.P
@@ -1469,7 +1496,9 @@ class MultiStageEquilibrium(Unit):
                                couple_energy_balance=False)
                 T = partition.T
                 for i in (partition.outs + i.outs): i.T = T
-            self.update_energy_balance_phase_ratios()
+            for i in range(2):
+                self.update_mass_balance()
+                self.update_energy_balance_phase_ratios()
         elif self._has_lle: # LLE
             for i in stages: 
                 mixer = i.mixer
@@ -1486,8 +1515,7 @@ class MultiStageEquilibrium(Unit):
         if KBTs:
             return self.get_KTBs()
         else:
-            self.update_mass_balance()
-            return self.get_top_flow_rates()
+            return self.update_mass_balance()
 
     def get_top_flow_rates_flat(self):
         N_chemicals = self._N_chemicals
@@ -1508,10 +1536,10 @@ class MultiStageEquilibrium(Unit):
             top_flow_rates[i] = partition.outs[0].mol[partition_index]
         return top_flow_rates
 
-    def multistage_equilibrium_conditional_iter(self, top_flow_rates):
-        mol = self.get_top_flow_rates_flat()
-        top_flow_rates = self.multistage_equilibrium_iter(top_flow_rates, KBTs=False)
-        mol_new = top_flow_rates.flatten()
+    def _conditional_iter(self, top_flow_rates):
+        mol = top_flow_rates.flatten()
+        top_flow_rates_new = self._iter(top_flow_rates)
+        mol_new = top_flow_rates_new.flatten()
         mol_errors = abs(mol - mol_new)
         if mol_errors.any():
             mol_error = mol_errors.max()
@@ -1528,7 +1556,14 @@ class MultiStageEquilibrium(Unit):
                 not_converged = False
         else:
             not_converged = False
-        return top_flow_rates, not_converged
+        return top_flow_rates_new, not_converged
+
+    def _root_iter(self, top_flow_rates):
+        new_top_flow_rates, not_converged = self._conditional_iter(
+            top_flow_rates.reshape([self.N_stages, self._N_chemicals])
+        )
+        if not not_converged: raise Converged
+        return new_top_flow_rates.flatten() - top_flow_rates
 
     def _sequential_iter(self, top_flow_rates):
         self.fallback_iter += 1
@@ -1538,8 +1573,8 @@ class MultiStageEquilibrium(Unit):
             try: i._run()
             except: breakpoint()
         mol = top_flow_rates.flatten()
-        new_top_flow_rates = self.get_top_flow_rates()
-        mol_new = new_top_flow_rates.flatten()
+        top_flow_rates = self.get_top_flow_rates()
+        mol_new = top_flow_rates.flatten()
         mol_errors = abs(mol - mol_new)
         if mol_errors.any():
             mol_error = mol_errors.max()
@@ -1556,7 +1591,8 @@ class MultiStageEquilibrium(Unit):
                 not_converged = False
         else:
             not_converged = False
-        return new_top_flow_rates, not_converged
+        return top_flow_rates, not_converged
+
 
 # %% General functional algorithms based on MESH equations to solve multi-stage 
 
@@ -1881,6 +1917,12 @@ def fillmissing(all_neighbors, index, all_index, values):
         else:
             new_values[i] = new_values[neighbors[0]]
     return new_values
+
+# %% Methods for root finding
+
+options = dict(fatol=1e-24, xatol=1e-24, xtol=1e-24, ftol=1e-24, maxiter=int(1e6))
+for name in ('anderson', 'diagbroyden', 'excitingmixing', 'linearmixing', 'broyden1', 'broyden2', 'krylov', 'hybr'):
+    MultiStageEquilibrium.root_options[name] = (root, False, {'method': name, 'options': options})
 
 # %% Russel's inside-out algorithm
 
