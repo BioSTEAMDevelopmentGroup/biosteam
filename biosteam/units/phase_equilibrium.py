@@ -678,6 +678,7 @@ class MultiStageEquilibrium(Unit):
             algorithm=None,
             method=None,
             maxiter=None,
+            inside_out=None,
         ):
         # For VLE look for best published algorithm (don't try simple methods that fail often)
         if phases is None: phases = ('g', 'l')
@@ -784,6 +785,8 @@ class MultiStageEquilibrium(Unit):
         self.algorithm = self.default_algorithm if algorithm is None else algorithm
         
         self.method = self.default_methods[self.algorithm] if method is None else method
+    
+        self.inside_out = inside_out
     
     def correct_overall_mass_balance(self):
         outmol = sum([i.mol for i in self.outs])
@@ -1132,73 +1135,6 @@ class MultiStageEquilibrium(Unit):
         for i in partitions: i.IDs = IDs
         return self.run_mass_balance()
     
-    # Old method, here for legacy purposes
-    # def get_energy_balance_temperature_departures_old(self):
-    #     # ENERGY BALANCE
-    #     # Hv1 + Cv1*(dT1) + Hl1 + Cl1*dT1 - Hv2 - Cv2*dT2 - Hl0 - Cl0 = Q1
-    #     # (Cv1 + Cl1)dT1 - Cv2*dT2 - Cl0*dT0 = Q1 - Hv1 - Hl1 + Hv2 + Hl0
-    #     # C1dT1 - Cv2*dT2 - Cl0*dT0 = Q1 - H_out + H_in
-    #     stages = self.stages
-    #     N_stages = self.N_stages
-    #     a = np.zeros(N_stages)
-    #     b = a.copy()
-    #     c = a.copy()
-    #     d = a.copy()
-    #     stage_mid = stages[0]
-    #     stage_bottom = stages[1]
-    #     partition_mid = stage_mid.partition
-    #     partition_bottom = stage_bottom.partition
-    #     C_out = sum([i.C for i in partition_mid.outs])
-    #     C_bottom = stage_bottom.outs[0].C
-    #     b[0] = C_out
-    #     c[0] = -C_bottom
-    #     Q = partition_mid.Q or 0.
-    #     if partition_mid.B_specification is None: d[0] = Q + stage_mid.H_in - partition_mid.H_out
-    #     for i in range(1, N_stages-1):
-    #         stage_top = stage_mid
-    #         stage_mid = stage_bottom
-    #         stage_bottom = stages[i+1]
-    #         partition_mid = partition_bottom
-    #         partition_bottom = stage_bottom.partition
-    #         C_out = sum([i.C for i in partition_mid.outs])
-    #         C_top = stage_top.outs[1].C
-    #         C_bottom = stage_bottom.outs[0].C
-    #         a[i] = -C_top
-    #         b[i] = C_out
-    #         c[i] = -C_bottom
-    #         Q = partition_mid.Q or 0.
-    #         if partition_mid.B_specification is None: d[i] = Q + stage_mid.H_in - partition_mid.H_out
-    #     stage_top = stage_mid
-    #     stage_mid = stage_bottom
-    #     partition_mid = partition_bottom
-    #     C_out = sum([i.C for i in partition_mid.outs])
-    #     C_top = stage_top.outs[1].C
-    #     a[-1] = -C_top
-    #     b[-1] = C_out
-    #     Q = partition_mid.Q or 0.
-    #     if partition_mid.B_specification is None: d[-1] = Q + stage_mid.H_in - partition_mid.H_out
-    #     return solve_TDMA(a, b, c, d)
-    
-    def get_energy_balance_temperature_departures(self):
-        partitions = self.partitions
-        N_stages = self.N_stages
-        Cl = np.zeros(N_stages)
-        Cv = Cl.copy()
-        Hv = Cl.copy()
-        Hl = Cl.copy()
-        specification_index = []
-        for i, j in enumerate(partitions):
-            top, bottom = j.outs
-            Hl[i] = bottom.H
-            Hv[i] = top.H
-            Cl[i] = bottom.C
-            Cv[i] = top.C
-            if j.B_specification: specification_index.append(i)
-        return temperature_departures(
-            Cv, Cl, Hv, Hl, self._asplit_left, self._bsplit_left,
-            N_stages, np.array(specification_index, int), self.feed_enthalpies
-        )
-    
     # TODO: This method is not working well. 
     # It should be mathematically the same as the departure method,
     # but it gives results that are extremely off.
@@ -1302,6 +1238,73 @@ class MultiStageEquilibrium(Unit):
     #         Q = partition_bottom.Q or 0.
     #         d[-1] = Q + stage_bottom.H_in - partition_bottom.H_out
     #     return solve_RBDMA_1D_careful(b, c, d)
+    
+    # Old method, here for legacy purposes
+    # def get_energy_balance_temperature_departures_old(self):
+    #     # ENERGY BALANCE
+    #     # Hv1 + Cv1*(dT1) + Hl1 + Cl1*dT1 - Hv2 - Cv2*dT2 - Hl0 - Cl0 = Q1
+    #     # (Cv1 + Cl1)dT1 - Cv2*dT2 - Cl0*dT0 = Q1 - Hv1 - Hl1 + Hv2 + Hl0
+    #     # C1dT1 - Cv2*dT2 - Cl0*dT0 = Q1 - H_out + H_in
+    #     stages = self.stages
+    #     N_stages = self.N_stages
+    #     a = np.zeros(N_stages)
+    #     b = a.copy()
+    #     c = a.copy()
+    #     d = a.copy()
+    #     stage_mid = stages[0]
+    #     stage_bottom = stages[1]
+    #     partition_mid = stage_mid.partition
+    #     partition_bottom = stage_bottom.partition
+    #     C_out = sum([i.C for i in partition_mid.outs])
+    #     C_bottom = stage_bottom.outs[0].C
+    #     b[0] = C_out
+    #     c[0] = -C_bottom
+    #     Q = partition_mid.Q or 0.
+    #     if partition_mid.B_specification is None: d[0] = Q + stage_mid.H_in - partition_mid.H_out
+    #     for i in range(1, N_stages-1):
+    #         stage_top = stage_mid
+    #         stage_mid = stage_bottom
+    #         stage_bottom = stages[i+1]
+    #         partition_mid = partition_bottom
+    #         partition_bottom = stage_bottom.partition
+    #         C_out = sum([i.C for i in partition_mid.outs])
+    #         C_top = stage_top.outs[1].C
+    #         C_bottom = stage_bottom.outs[0].C
+    #         a[i] = -C_top
+    #         b[i] = C_out
+    #         c[i] = -C_bottom
+    #         Q = partition_mid.Q or 0.
+    #         if partition_mid.B_specification is None: d[i] = Q + stage_mid.H_in - partition_mid.H_out
+    #     stage_top = stage_mid
+    #     stage_mid = stage_bottom
+    #     partition_mid = partition_bottom
+    #     C_out = sum([i.C for i in partition_mid.outs])
+    #     C_top = stage_top.outs[1].C
+    #     a[-1] = -C_top
+    #     b[-1] = C_out
+    #     Q = partition_mid.Q or 0.
+    #     if partition_mid.B_specification is None: d[-1] = Q + stage_mid.H_in - partition_mid.H_out
+    #     return solve_TDMA(a, b, c, d)
+    
+    def get_energy_balance_temperature_departures(self):
+        partitions = self.partitions
+        N_stages = self.N_stages
+        Cl = np.zeros(N_stages)
+        Cv = Cl.copy()
+        Hv = Cl.copy()
+        Hl = Cl.copy()
+        specification_index = []
+        for i, j in enumerate(partitions):
+            top, bottom = j.outs
+            Hl[i] = bottom.H
+            Hv[i] = top.H
+            Cl[i] = bottom.C
+            Cv[i] = top.C
+            if j.B_specification: specification_index.append(i)
+        return temperature_departures(
+            Cv, Cl, Hv, Hl, self._asplit_left, self._bsplit_left,
+            N_stages, np.array(specification_index, int), self.feed_enthalpies
+        )
     
     def get_energy_balance_phase_ratio_departures(self):
         # ENERGY BALANCE
@@ -1420,25 +1423,36 @@ class MultiStageEquilibrium(Unit):
     
     def set_KTBs(self, KTBs):
         lle = self._has_lle
-        Bs = KTBs[:, -1]
-        if lle: Ts = KTBs[:, -2]
+        N_stages = self.N_stages 
+        N_chemicals = self._N_chemicals
+        N_flows = N_stages * N_chemicals
+        K = KTBs[:N_flows]
+        if lle: Ts = KTBs[N_flows:-N_stages]
+        Bs = KTBs[-N_stages:]
+        K = K.reshape([N_stages, N_chemicals])
         partitions = self.partitions
         N_chemicals = self._N_chemicals
         for i, partition in enumerate(partitions):
             if partition.B_specification is None: partition.B = Bs[i]
             if lle: partition.T = Ts[i]
-            partition.K = KTBs[i,:N_chemicals]
+            partition.K = KTBs[i]
     
     def get_KTBs(self):
         lle = self._has_lle
+        N_stages = self.N_stages
         N_chemicals = self._N_chemicals
-        KTBs = np.zeros([self.N_stages, N_chemicals + 1 + lle])
-        Bs_new = KTBs[:, -1]
-        if lle: Ts_new = KTBs[:, -2]
+        N_flows = N_stages * N_chemicals
+        KTBs = np.zeros(N_flows + (1 + lle) * N_stages)
+        if lle: Ts = KTBs[N_flows:-N_stages]
+        Bs = KTBs[-N_stages:]
+        last_index = 0
+        new_index = N_chemicals
         for i, partition in enumerate(self.partitions):
-            KTBs[i, :N_chemicals] = partition.K
-            if lle: Ts_new[i] = partition.T
-            Bs_new[i] = partition.B
+            KTBs[last_index: new_index] = partition.K
+            if lle: Ts[i] = partition.T
+            Bs[i] = partition.B
+            last_index = new_index
+            new_index += N_chemicals
         return KTBs
     
     def _overall_error(self, top_flow_rates):
@@ -1471,9 +1485,9 @@ class MultiStageEquilibrium(Unit):
                 dBs[i] = partition.B_specification
         return dBs
     
-    def _iter(self, variables, KBTs=False):
+    def _iter(self, variables, KTBs=False):
         self.iter += 1
-        if KBTs:
+        if KTBs:
             self.set_KTBs(variables)
             self.update_mass_balance()
         else:
@@ -1513,7 +1527,34 @@ class MultiStageEquilibrium(Unit):
                 T = partition.T
                 for j in (i.outs + partition.outs): j.T = T
             self.update_energy_balance_temperatures()
-        if KBTs:
+        if self.inside_out and self._has_vle:
+            self.update_mass_balance()
+            N_stages = self.N_stages
+            N_chemicals = self._N_chemicals
+            T = np.zeros(N_stages)
+            hv = T.copy()
+            hl = T.copy()
+            specification_index = []
+            for i, j in enumerate(self.partitions):
+                top, bottom = j.outs
+                T[i] = j.T
+                hl[i] = bottom.h
+                hv[i] = top.h
+                if j.B_specification is not None: specification_index.append(i)
+            variables = solve_inside_loop(
+                self.get_KTBs(), T, hv, hl, self.feed_flows,
+                self._asplit_1, self._bsplit_1, 
+                self._asplit_left, self._bsplit_left,
+                N_stages, np.array(specification_index, int),
+                N_chemicals,
+                self.feed_enthalpies
+            )
+            if KTBs:
+                return variables
+            else:
+                self.set_KTBs(variables)
+                return self.run_mass_balance()
+        elif KTBs:
             return self.get_KTBs()
         else:
             return self.run_mass_balance()
@@ -1561,12 +1602,9 @@ class MultiStageEquilibrium(Unit):
 
     def _root_iter(self, KTBs):
         KTBs_new = self._iter(
-            KTBs.reshape([
-                self.N_stages, self._N_chemicals + 1 + self._has_lle
-            ]),
-            True,
+            KTBs, True,
         )
-        return KTBs_new.flatten() - KTBs
+        return KTBs_new - KTBs
 
     def _sequential_iter(self, top_flow_rates):
         self.fallback_iter += 1
@@ -1900,7 +1938,7 @@ def top_flow_rates(
     else:
         return solve_TDMA_2D_careful(a, b, c, d, bsplit_1)
 
-@njit(cache=True)
+# @njit(cache=True)
 def phase_ratio_departures(
         L, V, hl, hv, asplit_1, asplit_left, bsplit_left, 
         N_stages, specification_index, H_feeds
@@ -1918,7 +1956,6 @@ def phase_ratio_departures(
     for i, j in enumerate(specification_index):
         b[j] = 0
         d[j] = 0
-        c[j] = 0
         jlast = j - 1
         if jlast > 0: c[jlast] = 0
     return solve_RBDMA_1D_careful(b, c, d)
@@ -2013,7 +2050,7 @@ def fit(x, y):
     xmean = x.mean()
     ymean = y.mean()
     xxmean = x - xmean
-    m = (xxmean * (y - ymean)).sum() / (xxmean * xxmean)
+    m = (xxmean * (y - ymean)).sum() / (xxmean * xxmean).sum()
     b = ymean - m * xmean
     return m, b
 
@@ -2022,11 +2059,13 @@ def fit_partition_model(T, Kb):
     y = np.log(Kb)
     xdiff = np.diff(x)
     ydiff = np.diff(y)
-    M = ydiff / xdiff
-    m, b = fit(x[:-1], M) # Assume M is linear
-    M_fit = m * x + b
-    B_fit = y - M_fit * x
-    return M_fit, B_fit
+    M = y.copy()
+    B = y.copy()
+    M[:-1] = ydiff / xdiff
+    B[:-1] = y - M * x
+    M[-1] = M[-2]
+    B[-1] = B[-2]
+    return M, B
 
 def h_approx(T, m, b):
     return m * T + b
@@ -2034,42 +2073,84 @@ def h_approx(T, m, b):
 def T_approx(Kb, m, b):
     return m / (np.log(Kb) - b)
 
-def solve_inside_loop(K, B, T, hv, hl, mass_balance_args):
-    top_flows = top_flow_rates(*mass_balance_args)
+def solve_inside_loop(KB, T, hv, hl, feed_flows,
+                      asplit_1, bsplit_1, asplit_left, bsplit_left,
+                      N_stages, specification_index, N_chemicals, H_feeds):
+    N_flows = N_stages * N_chemicals
+    K = KB[:N_flows]
+    B = KB[N_flows:]
+    K = K.reshape([N_stages, N_chemicals])
+    Sb, safe = bottoms_stripping_factors_safe(B, K)
+    top_flows = top_flow_rates(
+        Sb, 
+        feed_flows,
+        asplit_1,
+        bsplit_1,
+        N_stages,
+        safe,
+    )
     top_flows[top_flows < 0] = 0
-    y = top_flows / top_flows.sum(axis=1, keepdims=True)
+    dummy = top_flows.sum(axis=1, keepdims=True)
+    dummy[dummy == 0] = 1
+    y = top_flows / dummy
     Kb = Kb_init(y, K)
     Kb_coef = fit_partition_model(T, Kb)
     hv_coef = fit(T, hv)
     hl_coef = fit(T, hl)
-    alpha = alpha_approx(K, Kb)
-    args = (alpha, Kb_coef, hv_coef, hl_coef, mass_balance_args)
+    alpha = alpha_approx(K, Kb[:, np.newaxis])
+    args = (alpha, Kb_coef, hv_coef, hl_coef, 
+            feed_flows, asplit_1, bsplit_1,
+            asplit_left, bsplit_left, N_stages, 
+            specification_index, N_chemicals, H_feeds)
+    KB_new = flx.fixed_point(inside_loop, KB.flatten(), xtol=1e-6, args=args)
+    return KB_new.reshape([N_stages, N_chemicals + 1])
     
 def inside_loop(KB, alpha, Kb_coef, hv_coef, hl_coef, 
-                feed_flows, asplit_1, bsplit_1, N_stages, 
-                B_specifications, specification_index, 
-                N_chemicals):
-    K = KB[:-N_stages * N_chemicals]
-    B = KB[-N_stages:, np.newaxis]
+                feed_flows, asplit_1, bsplit_1,
+                asplit_left, bsplit_left, N_stages, 
+                specification_index, N_chemicals, H_feeds):
+    N_flows = N_stages * N_chemicals
+    K = KB[:N_flows]
+    B = KB[N_flows:]
     K = K.reshape([N_stages, N_chemicals])
     Sb, safe = bottoms_stripping_factors_safe(B, K)
     top_flows = top_flow_rates(
-        B, K, asplit_1, bsplit_1, N_stages, N_chemicals
+        Sb, 
+        feed_flows,
+        asplit_1,
+        bsplit_1,
+        N_stages,
+        safe,
     )
     top_flows[top_flows < 0] = 0
-    top_flows_net = top_flows.sum(axis=1, keepdims=True)
-    top_flows_net[top_flows_net == 0] = 1e-12
+    top_flows_net = top_flows.sum(axis=1)
     bottom_flows = Sb * top_flows
-    bottom_flows_net = bottom_flows.sum(axis=1, keepdims=True)
-    bottom_flows_net[bottom_flows_net == 0] = 1e-12
-    x = bottom_flows / bottom_flows_net
+    bottom_flows_net = bottom_flows.sum(axis=1)
+    dummy = bottom_flows_net.copy()
+    dummy[dummy == 0] = 1e-12
+    x = bottom_flows / dummy[:, np.newaxis]
     Kb = Kb_iter(alpha, x)
-    K = alpha * K
+    KB_new = KB.copy()
+    last_index = 0
+    new_index = N_chemicals
+    KB_new = KB.copy()
+    for row in (alpha * Kb[:, np.newaxis]):
+        KB_new[last_index: new_index] = last_index = new_index
+        new_index = last_index + N_chemicals
     T = T_approx(Kb, *Kb_coef)
     hv = h_approx(T, *hv_coef)
     hl = h_approx(T, *hl_coef)
-    B = phase_ratios(
-        bottom_flows_net, hv, hl, top_split, bottom_split, N_stages,
-        B_specifications, specification_index,
+    print(T)
+    print(hv)
+    print(hl)
+    breakpoint()
+    KB_new[N_flows:] = B + phase_ratio_departures(
+        bottom_flows_net, top_flows_net, hv, hl, asplit_1, 
+        asplit_left, bsplit_left, N_stages,
+        specification_index, H_feeds
     )
+    return KB_new
+    
+    
+    
     
