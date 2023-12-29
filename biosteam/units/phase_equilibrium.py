@@ -1132,51 +1132,72 @@ class MultiStageEquilibrium(Unit):
         for i in partitions: i.IDs = IDs
         return self.run_mass_balance()
     
+    # Old method, here for legacy purposes
+    # def get_energy_balance_temperature_departures_old(self):
+    #     # ENERGY BALANCE
+    #     # Hv1 + Cv1*(dT1) + Hl1 + Cl1*dT1 - Hv2 - Cv2*dT2 - Hl0 - Cl0 = Q1
+    #     # (Cv1 + Cl1)dT1 - Cv2*dT2 - Cl0*dT0 = Q1 - Hv1 - Hl1 + Hv2 + Hl0
+    #     # C1dT1 - Cv2*dT2 - Cl0*dT0 = Q1 - H_out + H_in
+    #     stages = self.stages
+    #     N_stages = self.N_stages
+    #     a = np.zeros(N_stages)
+    #     b = a.copy()
+    #     c = a.copy()
+    #     d = a.copy()
+    #     stage_mid = stages[0]
+    #     stage_bottom = stages[1]
+    #     partition_mid = stage_mid.partition
+    #     partition_bottom = stage_bottom.partition
+    #     C_out = sum([i.C for i in partition_mid.outs])
+    #     C_bottom = stage_bottom.outs[0].C
+    #     b[0] = C_out
+    #     c[0] = -C_bottom
+    #     Q = partition_mid.Q or 0.
+    #     if partition_mid.B_specification is None: d[0] = Q + stage_mid.H_in - partition_mid.H_out
+    #     for i in range(1, N_stages-1):
+    #         stage_top = stage_mid
+    #         stage_mid = stage_bottom
+    #         stage_bottom = stages[i+1]
+    #         partition_mid = partition_bottom
+    #         partition_bottom = stage_bottom.partition
+    #         C_out = sum([i.C for i in partition_mid.outs])
+    #         C_top = stage_top.outs[1].C
+    #         C_bottom = stage_bottom.outs[0].C
+    #         a[i] = -C_top
+    #         b[i] = C_out
+    #         c[i] = -C_bottom
+    #         Q = partition_mid.Q or 0.
+    #         if partition_mid.B_specification is None: d[i] = Q + stage_mid.H_in - partition_mid.H_out
+    #     stage_top = stage_mid
+    #     stage_mid = stage_bottom
+    #     partition_mid = partition_bottom
+    #     C_out = sum([i.C for i in partition_mid.outs])
+    #     C_top = stage_top.outs[1].C
+    #     a[-1] = -C_top
+    #     b[-1] = C_out
+    #     Q = partition_mid.Q or 0.
+    #     if partition_mid.B_specification is None: d[-1] = Q + stage_mid.H_in - partition_mid.H_out
+    #     return solve_TDMA(a, b, c, d)
+    
     def get_energy_balance_temperature_departures(self):
-        # ENERGY BALANCE
-        # Hv1 + Cv1*(dT1) + Hl1 + Cl1*dT1 - Hv2 - Cv2*dT2 - Hl0 - Cl0 = Q1
-        # (Cv1 + Cl1)dT1 - Cv2*dT2 - Cl0*dT0 = Q1 - Hv1 - Hl1 + Hv2 + Hl0
-        # C1dT1 - Cv2*dT2 - Cl0*dT0 = Q1 - H_out + H_in
-        stages = self.stages
+        partitions = self.partitions
         N_stages = self.N_stages
-        a = np.zeros(N_stages)
-        b = a.copy()
-        c = a.copy()
-        d = a.copy()
-        stage_mid = stages[0]
-        stage_bottom = stages[1]
-        partition_mid = stage_mid.partition
-        partition_bottom = stage_bottom.partition
-        C_out = sum([i.C for i in partition_mid.outs])
-        C_bottom = stage_bottom.outs[0].C
-        b[0] = C_out
-        c[0] = -C_bottom
-        Q = partition_mid.Q or 0.
-        if partition_mid.B_specification is None: d[0] = Q + stage_mid.H_in - partition_mid.H_out
-        for i in range(1, N_stages-1):
-            stage_top = stage_mid
-            stage_mid = stage_bottom
-            stage_bottom = stages[i+1]
-            partition_mid = partition_bottom
-            partition_bottom = stage_bottom.partition
-            C_out = sum([i.C for i in partition_mid.outs])
-            C_top = stage_top.outs[1].C
-            C_bottom = stage_bottom.outs[0].C
-            a[i] = -C_top
-            b[i] = C_out
-            c[i] = -C_bottom
-            Q = partition_mid.Q or 0.
-            if partition_mid.B_specification is None: d[i] = Q + stage_mid.H_in - partition_mid.H_out
-        stage_top = stage_mid
-        stage_mid = stage_bottom
-        partition_mid = partition_bottom
-        C_out = sum([i.C for i in partition_mid.outs])
-        C_top = stage_top.outs[1].C
-        a[-1] = -C_top
-        b[-1] = C_out
-        Q = partition_mid.Q or 0.
-        if partition_mid.B_specification is None: d[-1] = Q + stage_mid.H_in - partition_mid.H_out
-        return solve_TDMA(a, b, c, d)
+        Cl = np.zeros(N_stages)
+        Cv = Cl.copy()
+        Hv = Cl.copy()
+        Hl = Cl.copy()
+        specification_index = []
+        for i, j in enumerate(partitions):
+            top, bottom = j.outs
+            Hl[i] = bottom.H
+            Hv[i] = top.H
+            Cl[i] = bottom.C
+            Cv[i] = top.C
+            if j.B_specification: specification_index.append(i)
+        return temperature_departures(
+            Cv, Cl, Hv, Hl, self._asplit_left, self._bsplit_left,
+            N_stages, np.array(specification_index, int), self.feed_enthalpies
+        )
     
     # TODO: This method is not working well. 
     # It should be mathematically the same as the departure method,
@@ -1233,7 +1254,7 @@ class MultiStageEquilibrium(Unit):
     #     d[-1] = Q
     #     return solve_TDMA(a, b, c, d)
     
-    # Old slow algorithm
+    # Old slow algorithm, here for legacy purposes
     # def get_energy_balance_phase_ratio_departures(self):
     #     # ENERGY BALANCE
     #     # hv1*V1 + hl1*L1 - hv2*V2 - hl0*L0 = Q1
@@ -1312,7 +1333,8 @@ class MultiStageEquilibrium(Unit):
                 hl[i] = bottom.h
             if j.B_specification: specification_index.append(i)
         return phase_ratio_departures(
-            L, V, hl, hv, self._asplit_1, 
+            L, V, hl, hv, 
+            self._asplit_1, 
             self._asplit_left,
             self._bsplit_left,
             N_stages,
@@ -1321,10 +1343,9 @@ class MultiStageEquilibrium(Unit):
         )
         
     def update_energy_balance_phase_ratios(self):
-        dBs = self.get_energy_balance_phase_ratio_departures_2()
+        dBs = self.get_energy_balance_phase_ratio_departures()
         for i, dB in zip(self.partitions, dBs):
             if i.B_specification is None: i.B += dB
-        print([i.B for i in self.partitions])
     
     def update_energy_balance_temperatures(self):
         dTs = self.get_energy_balance_temperature_departures()
@@ -1585,6 +1606,10 @@ def solve_TDMA(a, b, c, d): # Tridiagonal matrix solver
     
     http://en.wikipedia.org/wiki/Tridiagonal_matrix_algorithm
     http://www.cfd-online.com/Wiki/Tridiagonal_matrix_algorithm_-_TDMA_(Thomas_algorithm)
+    
+    Notes
+    -----
+    `a` array starts from a1 (not a0).
     
     """
     n = d.shape[0] - 1 # number of equations minus 1
@@ -1890,14 +1915,32 @@ def phase_ratio_departures(
     Hv_in = (Hv_out * asplit_left)[1:]
     d[1:] += Hl_in
     d[:-1] += Hv_in
-    last_stage = N_stages - 1
     for i, j in enumerate(specification_index):
         b[j] = 0
-        if j != last_stage: c[j] = 0
         d[j] = 0
+        c[j] = 0
         jlast = j - 1
         if jlast > 0: c[jlast] = 0
     return solve_RBDMA_1D_careful(b, c, d)
+
+@njit(cache=True)
+def temperature_departures(Cv, Cl, Hv, Hl, asplit_left, bsplit_left,
+                           N_stages, specification_index, H_feeds):
+    # ENERGY BALANCE
+    # C1dT1 - Cv2*dT2 - Cl0*dT0 = Q1 - H_out + H_in
+    b = (Cv + Cl)
+    a = -(Cl * bsplit_left)
+    c = -(Cv * asplit_left)[1:]
+    d = H_feeds - Hl - Hv
+    d[1:] += (Hl * bsplit_left)[:-1]
+    d[:-1] += (Hv * asplit_left)[1:]
+    for i, j in enumerate(specification_index):
+        a[j] = 0
+        b[j] = 0
+        d[j] = 0
+        jlast = j - 1
+        if jlast > 0: c[jlast] = 0
+    return solve_TDMA(a, b, c, d)
 
 def get_neighbors(index, all_index):
     size = all_index.size
