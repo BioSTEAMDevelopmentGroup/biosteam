@@ -74,21 +74,22 @@ def test_acetic_acid_separation_no_recycle():
         solvent = bst.Stream(EthylAcetate=65000)
         LE = bst.MultiStageEquilibrium(
             N_stages=6, ins=[feed, solvent], phases=('L', 'l'),
-            maxiter='anderson',
+            maxiter=200,
             use_cache=True,
+            method='fixed-point',
         )
         DAA = bst.MultiStageEquilibrium(N_stages=6, ins=[LE-0], feed_stages=[3],
             outs=['vapor', 'liquid'],
             stage_specifications={0: ('Reflux', 0.673), -1: ('Boilup', 2.57)},
             phases=('g', 'l'),
-            method='fixed-point',
+            method='anderson',
             use_cache=True,
         )
         DEA = bst.MultiStageEquilibrium(N_stages=6, ins=[LE-1], feed_stages=[3],
             outs=['vapor', 'liquid'],
             stage_specifications={0: ('Reflux', 0.673), -1: ('Boilup', 2.57)},
             phases=('g', 'l'),
-            method='fixed-point',
+            method='anderson',
             use_cache=True,
         )
     sys.simulate()
