@@ -434,9 +434,6 @@ class Unit:
     #: For embodied emissions (e.g., unit construction) in LCA
     _lca = AbstractMethod
     
-    #: dict[str, float] Return a dictionary of decoupled variables.
-    _solve_decoupled_variables = AbstractMethod
-    
     #: dict[Unit, float] Return unit coefficients for the given variable.
     _create_linear_equation = AbstractMethod
     

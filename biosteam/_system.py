@@ -75,7 +75,7 @@ class SystemSpecification:
 
 def solve_variable(units, variable):
     leqs = LinearEquations(variable, units)
-    leqs.solve()
+    return leqs.solve()
 
 class LinearEquations:
     __slots__ = ('variable', 'A', 'b')
@@ -108,10 +108,11 @@ class LinearEquations:
         variable = self.variable
         A, objs = dictionaries2array(self.A)
         b = np.array(b).T
-        values = solve(A, b)
-        for obj, value in zip(objs, values.T): 
+        values = solve(A, b).T
+        values[values < 0] = 0.
+        for obj, value in zip(objs, values): 
             obj._update_decoupled_variable(variable, value)
-
+        return objs, values
 
 # %% Sequential modular convergence tools
 
@@ -648,7 +649,7 @@ class System:
     available_methods: Methods[str, tuple[Callable, bool, dict]] = Methods()
 
     #: Solution priority of variables for decoupled phenomena algorithm.
-    variable_priority: list[str] = ['T', 'mol', 'B', 'mol']
+    variable_priority: list[str] = [('mol', 'K'), 'T', 'B']
 
     @classmethod
     def register_method(cls, name, solver, conditional=False, **kwargs):
@@ -1541,14 +1542,16 @@ class System:
 
     def _get_source_stage(self, stream):
         parent_source = stream.source
-        if parent_source is None:
-            return None
-        elif parent_source in self.stages_set:
-            return parent_source
-        else:
-            index = parent_source.outs.index(stream)
+        if parent_source is None: return None
+        ID = stream.ID
+        stages_set = self.stages_set
+        while parent_source not in stages_set:
+            IDs = [i.ID for i in parent_source.outs]
+            index = IDs.index(ID)
             auxlet = parent_source.auxouts[index]
-            return auxlet.source
+            parent_source = auxlet.source
+            if parent_source is None: break
+        return parent_source
     
     def _get_sink_stage(self, stream):
         parent_sink = stream.sink
@@ -1575,11 +1578,9 @@ class System:
         except:
             self._stages = stages = []
             for i in self.units:
-                if isinstance(i, bst.MultiStageEquilibrium):
+                try:
                     stages.extend(i.stages)
-                elif isinstance(i, bst.StageEquilibrium):
-                    stages.append(i)
-                else:
+                except:
                     raise AttributeError('not all units are stages')
             return stages
 
@@ -2157,9 +2158,26 @@ class System:
         """Run and sequentially solve material, equilibrium, summation, 
         enthalpy, and reaction phenomena."""
         stages = self.stages
-        for i in stages: i._solve_decoupled_variables()
-        for variable in self.variable_priority:
-            solve_variable(stages, variable)
+        for variables in self.variable_priority:
+            if isinstance(variables, tuple):
+                *variables, key = variables
+                for i in variables: solve_variable(stages, variables)
+                objs, x0 = solve_variable(stages, key)
+                def f(x):
+                    for obj, xi in zip(objs, x): obj._update_decoupled_variable(key, xi)
+                    for i in variables: solve_variable(stages, variables)
+                    _, x0 = solve_variable(stages, key)
+                    return x
+                
+                if key == 'K': 
+                    flx.fixed_point(
+                        f, x0, xtol=1e-3, maxiter=20, checkiter=False, 
+                        checkconvergence=False, convergenceiter=5
+                    )
+                else: 
+                    raise NotImplementedError(f'tolerance for {key!r} not available in BioSTEAM yet')
+            else:
+                solve_variable(stages, variables)
 
     def _solve(self):
         """Solve the system recycle iteratively."""
