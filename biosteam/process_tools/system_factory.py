@@ -13,6 +13,7 @@ import biosteam as bst
 from .._unit import streams
 from biosteam.utils import as_stream, MissingStream
 from biosteam.process_tools import utils
+from typing import Optional
 from inspect import signature
 
 __all__ = ('SystemFactory', 'stream_kwargs')
@@ -215,8 +216,17 @@ class SystemFactory:
                                  fixed_ins_size, fixed_outs_size,
                                  fthermo)
     
-    def __call__(self, ID=None, ins=None, outs=None, mockup=False, area=None, udct=None, 
-                 operating_hours=None, autorename=None, **kwargs):
+    def __call__(self, ID=None, ins=None, outs=None,
+            mockup=False, area=None, udct=None, 
+            autorename=None, operating_hours=None,
+            lang_factor=None, algorithm=None, 
+            method=None, maxiter=None,
+            molar_tolerance=None,
+            relative_molar_tolerance=None,
+            temperature_tolerance=None,
+            relative_temperature_tolerance=None,
+            **kwargs
+        ):
         fthermo = self.fthermo
         if fthermo: 
             fthermo_sig = signature(fthermo)
@@ -231,7 +241,17 @@ class SystemFactory:
         ins = create_streams(self.ins, ins, 'inlets', self.fixed_ins_size)
         outs = create_streams(self.outs, outs, 'outlets', self.fixed_outs_size)
         rename = area is not None
-        with (bst.MockSystem() if mockup else bst.System(ID or self.ID, operating_hours=operating_hours)) as system:
+        options = dict(
+            ID=ID or self.ID,
+            operating_hours=operating_hours,
+            lang_factor=lang_factor, algorithm=algorithm, 
+            method=method, maxiter=maxiter,
+            molar_tolerance=molar_tolerance,
+            relative_molar_tolerance=relative_molar_tolerance,
+            temperature_tolerance=temperature_tolerance,
+            relative_temperature_tolerance=relative_temperature_tolerance,
+        )
+        with (bst.MockSystem() if mockup else bst.System(**options)) as system:
             if rename: 
                 unit_registry = system.flowsheet.unit
                 irrelevant_units = tuple(unit_registry)

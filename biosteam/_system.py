@@ -109,7 +109,6 @@ class LinearEquations:
         A, objs = dictionaries2array(self.A)
         b = np.array(b).T
         values = solve(A, b).T
-        values[values < 0] = 0.
         for obj, value in zip(objs, values): 
             obj._update_decoupled_variable(variable, value)
         return objs, values
@@ -649,7 +648,7 @@ class System:
     available_methods: Methods[str, tuple[Callable, bool, dict]] = Methods()
 
     #: Solution priority of variables for decoupled phenomena algorithm.
-    variable_priority: list[str] = [('mol', 'K'), 'T', 'B']
+    variable_priority: list[str] = [('mol', 'K-pseudo'), 'K', 'T', 'B']
 
     @classmethod
     def register_method(cls, name, solver, conditional=False, **kwargs):
@@ -889,6 +888,11 @@ class System:
         self._DAE = None
         self.dynsim_kwargs = {}
         self.tracked_recycles = {}
+        subsystems = self.subsystems
+        algorithm = self._algorithm
+        method = self._method
+        for i in subsystems: i._algorithm = algorithm
+        for i in subsystems: i._method = method
 
     @property
     def responses(self):
@@ -1024,6 +1028,15 @@ class System:
         else:
             self.update_configuration(dump)
             self._load_stream_links()
+            self.set_tolerance(
+                algorithm=self._algorithm,
+                method=self._method,
+                mol=self.molar_tolerance,
+                rmol=self.relative_molar_tolerance,
+                T=self.temperature_tolerance,
+                rT=self.relative_temperature_tolerance,
+                subsystems=True,
+            )
 
     def _save_configuration(self):
         self._connections = [i.get_connection() for i in self.streams]
@@ -1100,7 +1113,8 @@ class System:
     def set_tolerance(self, mol: Optional[float]=None, rmol: Optional[float]=None,
                       T: Optional[float]=None, rT: Optional[float]=None, 
                       subsystems: bool=False, maxiter: Optional[int]=None, 
-                      subfactor: Optional[float]=None, method: Optional[str]=None):
+                      subfactor: Optional[float]=None, method: Optional[str]=None,
+                      algorithm: Optional[str]=None):
         """
         Set the convergence tolerance and convergence method of the system.
 
@@ -1121,8 +1135,9 @@ class System:
         subfactor :
             Factor to rescale tolerance in subsystems.
         method :
-            Convergence method.
-            
+            Numerical method.
+        algorithm :
+            Convergence algorithm
         
         """
         if mol: self.molar_tolerance = float(mol)
@@ -1131,12 +1146,13 @@ class System:
         if rT: self.temperature_tolerance = float(rT)
         if maxiter: self.maxiter = int(maxiter)
         if method: self.method = method
+        if algorithm: self.algorithm = algorithm
         if subsystems:
             if subfactor:
                 for i in self.subsystems: i.set_tolerance(*[(i * subfactor if i else i) for i in (mol, rmol, T, rT)],
-                                                          subsystems, maxiter, subfactor, method)
+                                                          subsystems, maxiter, subfactor, method, algorithm)
             else:
-                for i in self.subsystems: i.set_tolerance(mol, rmol, T, rT, subsystems, maxiter, subfactor, method)
+                for i in self.subsystems: i.set_tolerance(mol, rmol, T, rT, subsystems, maxiter, subfactor, method, algorithm)
 
     ins = MockSystem.ins
     outs = MockSystem.outs
@@ -2157,19 +2173,20 @@ class System:
     def run_decoupled_phenomena(self):
         """Run and sequentially solve material, equilibrium, summation, 
         enthalpy, and reaction phenomena."""
-        stages = self.stages
+        stages = self.stages + self.feeds
         for variables in self.variable_priority:
             if isinstance(variables, tuple):
                 *variables, key = variables
-                for i in variables: solve_variable(stages, variables)
-                objs, x0 = solve_variable(stages, key)
+                for i in variables: solve_variable(stages, i)
+                try: objs, x0 = solve_variable(stages, key)
+                except: continue
                 def f(x):
                     for obj, xi in zip(objs, x): obj._update_decoupled_variable(key, xi)
-                    for i in variables: solve_variable(stages, variables)
-                    _, x0 = solve_variable(stages, key)
+                    for i in variables: solve_variable(stages, i)
+                    _, x = solve_variable(stages, key)
                     return x
                 
-                if key == 'K': 
+                if key == 'K-pseudo': 
                     flx.fixed_point(
                         f, x0, xtol=1e-3, maxiter=20, checkiter=False, 
                         checkconvergence=False, convergenceiter=5

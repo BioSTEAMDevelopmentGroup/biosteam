@@ -2377,6 +2377,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
             vacuum_system_preference='Liquid-ring pump',
             partition_data=None,
             full_condenser=None,
+            collapsed_init=None,
             use_cache=None,
         ):
         if full_condenser: 
@@ -2395,7 +2396,8 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                       bottom_side_draws=liquid_side_draws,              
                       partition_data=partition_data,
                       phases=("g", "l"), P=P, use_cache=use_cache,
-                      stage_specifications=stage_specifications)
+                      stage_specifications=stage_specifications,
+                      collapsed_init=collapsed_init)
         
         # Construction specifications
         self.vessel_material = vessel_material

@@ -42,7 +42,7 @@ def dictionaries2array(dictionaries):
             sample = np.asarray(sample)
             shape = sample.shape
             break
-    keys = frozenset(keys)
+    keys = (*frozenset(keys),)
     index = {j: i for i, j in enumerate(keys)}
     array = np.zeros([*shape, len(dictionaries), len(keys)], dtype=float)
     for i, dct in enumerate(dictionaries):

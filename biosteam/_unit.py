@@ -435,7 +435,7 @@ class Unit:
     _lca = AbstractMethod
     
     #: dict[Unit, float] Return unit coefficients for the given variable.
-    _create_linear_equation = AbstractMethod
+    _create_linear_equations = AbstractMethod
     
     #: Update internal variables related to mass and energy balances.
     _update_variables = AbstractMethod

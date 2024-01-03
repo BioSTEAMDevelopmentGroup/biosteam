@@ -25,8 +25,7 @@ from ..exceptions import Converged
 from .. import Unit
 
 __all__ = (
-    'mass_balance',
-    'NoEquilibriumStage',
+    'SinglePhaseStage',
     'StageEquilibrium',
     'MultiStageEquilibrium',
 )
@@ -55,24 +54,11 @@ def _get_specification(name, value):
     else:
         raise RuntimeError(f"specification '{name}' not implemented for stage")
     return B, Q
-
-def mass_balance(f):
-    return MaterialSpecification(ID=f.__name__, f=f)
-
-class MaterialSpecification(Unit):
-    _N_ins = 0
-    _N_outs = 0
-    
-    def _init(self, f): 
-        self.f = f
-        self.stages = [self]
         
-    def _create_mass_balance_equations(self):
-        return self.f()
-
-class NoEquilibriumStage(Unit):
-    _N_ins = 1
+class SinglePhaseStage(Unit):
+    _N_ins = 2
     _N_outs = 1
+    _ins_size_is_fixed = False
     
     def _init(self, T=None, phase=None):
         self.T = T
@@ -80,17 +66,25 @@ class NoEquilibriumStage(Unit):
         self.stages = [self]
         
     def _run(self):
-        inlet = self.ins[0]
         outlet = self.outs[0]
-        outlet.copy_like(inlet)
+        outlet.mix_from(self.ins, energy_balance=False)
         outlet.phase = self.phase
         outlet.T = self.T
         
     def _create_mass_balance_equations(self):
-        inlet = self.ins[0]
         outlet = self.outs[0]
+        inlets = self.ins
+        fresh_inlets = [i for i in inlets if i.isfeed()]
+        process_inlets = [i for i in inlets if not i.isfeed()]
+        ones = np.ones(self.chemicals.size)
+        minus_ones = -ones
+        zeros = np.zeros(self.chemicals.size)
+        
+        # Overall flows
+        eq_overall = {outlet: ones}
+        for i in process_inlets: eq_overall[i] = minus_ones
         return [
-            ({outlet: 1, inlet: -1}, 0)
+            (eq_overall, sum([i.mol for i in fresh_inlets], zeros))
         ]
     
     def _create_linear_equations(self, variable):
@@ -109,7 +103,7 @@ class StageEquilibrium(Unit):
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
             phases, partition_data=None, top_split=0, bottom_split=0,
-            B=None, Q=None,
+            B=None, Q=None, solvent=None,
         ):
         self._N_outs = 2 + int(top_split) + int(bottom_split)
         self.phases = phases
@@ -121,7 +115,7 @@ class StageEquilibrium(Unit):
         mixer.outs[0].phases = phases
         partition = self.auxiliary(
             'partition', PhasePartition, ins=mixer-0, phases=phases,
-            partition_data=partition_data, 
+            partition_data=partition_data, solvent=solvent,
             outs=(
                 bst.Stream(None) if top_split else self.outs[0],
                 bst.Stream(None) if bottom_split else self.outs[1],
@@ -185,7 +179,7 @@ class StageEquilibrium(Unit):
         coeff = {self: sum([i.C for i in self.outs])}
         for i in self.ins:
             source = self.owner.system._get_source_stage(i)
-            if not source or source.phases == ('g', 'l'): continue
+            if not source or [i.phase for i in source.outs] != ['L', 'l']: continue
             coeff[source] = -i.C
         return coeff, (self.Q or 0.) + self.H_in - self.H_out
     
@@ -206,7 +200,7 @@ class StageEquilibrium(Unit):
                 or source.phases != ('g', 'l')
                 or source.B_specification is not None):
                 continue
-            vapor, liquid = source.partition.outs
+            vapor, liquid, *_ = source.outs
             if vapor.isempty():
                 liquid.phase = 'g'
                 coeff[source] = liquid.H
@@ -271,7 +265,8 @@ class StageEquilibrium(Unit):
     def _create_linear_equations(self, variable):
         # list[dict[Unit|Stream, float]]
         phases = self.phases
-        if variable == 'K':
+        if (variable == 'K' and phases == ('g', 'l')
+            or variable == 'K-pseudo' and phases == ('L', 'l')):
             partition = self.partition
             chemicals = self.chemicals
             IDs = chemicals.IDs
@@ -286,8 +281,10 @@ class StageEquilibrium(Unit):
                     setattr(self, name, array)
                 partition.IDs = IDs
             if phases == ('g', 'l'):
+                self.mixer.run()
                 partition._run_decoupled_KTvle()
             elif phases == ('L', 'l'):
+                self.mixer.run()
                 partition._run_decoupled_Kgamma()
             else:
                 raise NotImplementedError(f'K for phases {phases} is not yet implemented')
@@ -320,7 +317,7 @@ class StageEquilibrium(Unit):
             for i in self.outs: i.T = T
         elif variable == 'B':
             self.B += value
-        elif variable == 'K':
+        elif variable in ('K', 'K-pseudo'):
             self.K = value
     
     def add_feed(self, stream):
@@ -380,10 +377,10 @@ class PhasePartition(Unit):
     _N_outs = 2
     strict_infeasibility_check = False
     
-    def _init(self, phases, partition_data):
+    def _init(self, phases, partition_data, solvent=None):
         self.partition_data = partition_data
         self.phases = phases
-        self.solvent = None
+        self.solvent = solvent
         self.gamma_y = None
         self.IDs = None
         self.K = None
@@ -467,13 +464,14 @@ class PhasePartition(Unit):
         ms = self.feed.copy()
         ms.phases = self.phases
         top, bottom = ms
-        phi = sep.partition(
-            ms, top, bottom, self.IDs, self.K, 0.5, 
-            None, None, self.strict_infeasibility_check,
-            stacklevel+1
-        )
-        if phi <= 0: phi = 1e-6
-        elif phi >= 1: phi = 1 - 1e-6
+        try:
+            phi = sep.partition(
+                ms, top, bottom, self.IDs, self.K, 0.5, 
+                None, None, self.strict_infeasibility_check,
+                stacklevel+1
+            )
+        except: return
+        if phi <= 0 or phi >= 1: return
         self.B = phi / (1 - phi)
     
     def _run_decoupled_KTvle(self, P=None): # Bubble point
@@ -1125,8 +1123,8 @@ class MultiStageEquilibrium(Unit):
         stage_specifications = {stage_map[i]: j for i, j in stage_specifications.items()}
         top_side_draws = {stage_map[i]: j for i, j in top_side_draws.items()}
         bottom_side_draws = {stage_map[i]: j for i, j in bottom_side_draws.items()}
-        collapsed = MultiStageEquilibrium(
-            'collapsed', 
+        self.collapsed = collapsed = MultiStageEquilibrium(
+            '.collapsed', 
             ins=[i.copy() for i in self.ins],
             outs=[i.copy() for i in self.outs],
             N_stages=N_stages,
@@ -1655,7 +1653,10 @@ class MultiStageEquilibrium(Unit):
         for i, partition in enumerate(self.partitions):
             KTBs[last_index: new_index] = partition.K
             if lle: Ts[i] = partition.T
-            Bs[i] = partition.B
+            if partition.B_specification is None:
+                Bs[i] = partition.B
+            else:
+                Bs[i] = 0 # It doesnt matter, but it cannot be infinite
             last_index = new_index
             new_index += N_chemicals
         return KTBs
