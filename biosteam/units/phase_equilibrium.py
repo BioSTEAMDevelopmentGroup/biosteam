@@ -65,11 +65,21 @@ class SinglePhaseStage(Unit):
         self.phase = phase
         self.stages = [self]
         
+    @property
+    def phases(self):
+        return (self.phase,)
+        
     def _run(self):
         outlet = self.outs[0]
         outlet.mix_from(self.ins, energy_balance=False)
         outlet.phase = self.phase
         outlet.T = self.T
+        
+    def _get_decoupled_variable(self, variable):
+        if variable == 'T': return self.T
+        
+    def _update_decoupled_variable(self, variable, value): 
+        pass
         
     def _create_mass_balance_equations(self):
         outlet = self.outs[0]
@@ -90,6 +100,8 @@ class SinglePhaseStage(Unit):
     def _create_linear_equations(self, variable):
         if variable == 'mol':
             return self._create_mass_balance_equations()
+        elif variable == 'mol-LLE':
+            return [] # TODO: Create case where mixers are connected
         else:
             return []
     
@@ -178,8 +190,8 @@ class StageEquilibrium(Unit):
         # C1dT1 - Cv2*dT2 - Cl0*dT0 = Q1 - H_out + H_in
         coeff = {self: sum([i.C for i in self.outs])}
         for i in self.ins:
-            source = self.owner.system._get_source_stage(i)
-            if not source or [i.phase for i in source.outs] != ['L', 'l']: continue
+            source = i.source
+            if not source or source.phases != ('L', 'l'): continue
             coeff[source] = -i.C
         return coeff, (self.Q or 0.) + self.H_in - self.H_out
     
@@ -195,7 +207,7 @@ class StageEquilibrium(Unit):
             coeff[self] = vapor.h * liquid.F_mol
         for i in self.ins:
             if i.phase != 'g': continue
-            source = self.owner.system._get_source_stage(i)
+            source = i.source
             if (not source
                 or source.phases != ('g', 'l')
                 or source.B_specification is not None):
@@ -208,6 +220,64 @@ class StageEquilibrium(Unit):
             else:
                 coeff[source] = -vapor.h * liquid.F_mol
         return coeff, (self.Q or 0.) + self.H_in - self.H_out
+    
+    def _create_lle_mass_balance_equations(self):
+        top_split = self.top_split
+        bottom_split = self.bottom_split
+        inlets = self.ins
+        fresh_inlets = []
+        process_inlets = []
+        for i in inlets:
+            if not i.isfeed() and i.source.phases == ('L' 'l'):
+                process_inlets.append(i)
+            else:
+                fresh_inlets.append(i)
+        top, bottom, *_ = self.outs
+        top_side_draw = self.top_side_draw
+        bottom_side_draw = self.bottom_side_draw
+        equations = []
+        ones = np.ones(self.chemicals.size)
+        minus_ones = -ones
+        zeros = np.zeros(self.chemicals.size)
+        
+        # Overall flows
+        eq_overall = {}
+        S = self.K * self.B
+        for i in self.outs: eq_overall[i] = ones
+        for i in process_inlets: eq_overall[i] = minus_ones
+        equations.append(
+            (eq_overall, sum([i.mol for i in fresh_inlets], zeros))
+        )
+        
+        # Top to bottom flows
+        eq_outs = {}
+        eq_outs[top] = ones
+        eq_outs[bottom] = -S
+        equations.append(
+            (eq_outs, zeros)
+        )
+        
+        # Top split flows
+        if top_side_draw:
+            eq_top_split = {
+                top_side_draw: top_split * ones,
+                top: top_split + minus_ones,
+            }
+            equations.append(
+                (eq_top_split, zeros)
+            )
+        
+        # Bottom split flows
+        if bottom_side_draw:
+            eq_bottom_split = {
+                bottom_side_draw: bottom_split * ones,
+                bottom: bottom_split + minus_ones,
+            }
+            equations.append(
+                (eq_bottom_split, zeros)
+            )
+        
+        return equations
     
     def _create_mass_balance_equations(self):
         top_split = self.top_split
@@ -281,10 +351,8 @@ class StageEquilibrium(Unit):
                     setattr(self, name, array)
                 partition.IDs = IDs
             if phases == ('g', 'l'):
-                self.mixer.run()
                 partition._run_decoupled_KTvle()
             elif phases == ('L', 'l'):
-                self.mixer.run()
                 partition._run_decoupled_Kgamma()
             else:
                 raise NotImplementedError(f'K for phases {phases} is not yet implemented')
@@ -297,19 +365,29 @@ class StageEquilibrium(Unit):
             else:
                 raise NotImplementedError(f'K for phases {phases} is not yet implemented')
         elif variable == 'B':
-            if self.B_specification is not None: return []
-            if phases == ('g', 'l'):
+            if phases == ('g', 'l') and self.B_specification is None:
                 eqs = [self._create_phase_ratio_departure_equation()]
-            elif phases == ('L', 'l'):
-                self.partition._run_decoupled_B()
-                eqs = []
             else:
-                raise NotImplementedError(f'B for phases {phases} is not yet implemented')
+                eqs = []
+        elif variable == 'L' and phases == ('L', 'l'):
+            self.partition._run_decoupled_B()
+            eqs = []
         elif variable == 'mol':
             eqs = self._create_mass_balance_equations()
+        elif variable == 'mol-LLE' and phases == ('L', 'l'):
+            eqs = self._create_lle_mass_balance_equations()
         else:
             eqs = []
         return eqs
+    
+    def _get_decoupled_variable(self, variable):
+        if variable == 'T': 
+            return self.T
+        elif variable == 'L' and self.phases == ('L', 'l'): 
+            return self.B
+        elif (variable == 'K-pseudo' and self.phases == ('L', 'l')
+              or variable == 'K' and self.phases == ('g', 'l')):
+            return self.K
     
     def _update_decoupled_variable(self, variable, value):
         if variable == 'T':
@@ -317,8 +395,14 @@ class StageEquilibrium(Unit):
             for i in self.outs: i.T = T
         elif variable == 'B':
             self.B += value
-        elif variable in ('K', 'K-pseudo'):
+        elif variable == 'L':
+            self.B = value
+        elif (variable == 'K-pseudo' or variable == 'K'): 
             self.K = value
+        
+    def _update_auxiliaries(self):
+        for i in self.splitters: i.ins[0].mix_from(i.outs, energy_balance=False)
+        self.mixer.outs[0].mix_from(self.ins, energy_balance=False)
     
     def add_feed(self, stream):
         self.ins.append(stream)
@@ -819,7 +903,7 @@ class MultiStageEquilibrium(Unit):
         self.multi_stream = tmo.MultiStream(None, P=P, phases=phases, thermo=self.thermo)
         self.N_stages = N_stages
         self.P = P
-        phases = self.multi_stream.phases # Corrected order
+        self.phases = phases = self.multi_stream.phases # Corrected order
         self._has_vle = 'g' in phases
         self._has_lle = 'L' in phases
         top_mark = 2 + len(top_side_draws)
@@ -944,7 +1028,7 @@ class MultiStageEquilibrium(Unit):
         top_flows[top_flows < 0] = 0
         bottom_flows = mass_balance(
             top_flows, self.feed_flows, self._asplit_left, self._bsplit_left, 
-            np.ones(N_stages, bool), self.N_stages, self._N_chemicals
+            np.zeros(N_stages, bool), self.N_stages, self._N_chemicals
         )
         bottom_flows[bottom_flows < 0] = 0
         for i in range_stages:
@@ -994,7 +1078,7 @@ class MultiStageEquilibrium(Unit):
                         bottom_flow[mask] = 0.
                 s_bottom.mol[:] = bottom_flow
                 if stage.bottom_split: stage.splitters[-1]._run()
-        self.correct_overall_mass_balance()
+        # self.correct_overall_mass_balance()
             
     def _run(self):
         if all([i.isempty() for i in self.ins]): 

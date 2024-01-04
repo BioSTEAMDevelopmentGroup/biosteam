@@ -78,16 +78,18 @@ def solve_variable(units, variable):
     return leqs.solve()
 
 class LinearEquations:
-    __slots__ = ('variable', 'A', 'b')
+    __slots__ = ('variable', 'A', 'b', 'units')
     
     def __init__(self, variable, units=None):
         self.variable = variable
         self.A = []
         self.b = []
+        self.units = []
         if units: self.extend(units)
         
     def append(self, unit):
         A = self.A; b = self.b
+        self.units.append(unit)
         for coefficients, value in unit._create_linear_equations(self.variable):
             for stream in tuple(coefficients):
                 if not hasattr(stream, 'port'): continue
@@ -104,13 +106,24 @@ class LinearEquations:
         
     def solve(self):
         b = self.b
-        if not b: return
         variable = self.variable
+        if not b: 
+            objs = []
+            values = []
+            for i in self.units:
+                value = i._get_decoupled_variable(variable)
+                if value is None: continue 
+                objs.append(i)
+                values.append(value)
+            return objs, np.array(values)
         A, objs = dictionaries2array(self.A)
         b = np.array(b).T
         values = solve(A, b).T
         for obj, value in zip(objs, values): 
             obj._update_decoupled_variable(variable, value)
+        if variable in ('mol', 'mol-LLE'):
+            for i in self.units: 
+                if hasattr(i, '_update_auxiliaries'): i._update_auxiliaries()
         return objs, values
 
 # %% Sequential modular convergence tools
@@ -648,7 +661,7 @@ class System:
     available_methods: Methods[str, tuple[Callable, bool, dict]] = Methods()
 
     #: Solution priority of variables for decoupled phenomena algorithm.
-    variable_priority: list[str] = [('mol', 'K-pseudo'), 'K', 'T', 'B']
+    variable_priority: list[str] = [('mol', 'K-pseudo'), 'K', 'T', 'L', 'B']
 
     @classmethod
     def register_method(cls, name, solver, conditional=False, **kwargs):
@@ -2174,28 +2187,31 @@ class System:
         """Run and sequentially solve material, equilibrium, summation, 
         enthalpy, and reaction phenomena."""
         stages = self.stages + self.feeds
-        for variables in self.variable_priority:
-            if isinstance(variables, tuple):
-                *variables, key = variables
-                for i in variables: solve_variable(stages, i)
-                try: objs, x0 = solve_variable(stages, key)
-                except: continue
-                def f(x):
-                    for obj, xi in zip(objs, x): obj._update_decoupled_variable(key, xi)
-                    for i in variables: solve_variable(stages, i)
-                    _, x = solve_variable(stages, key)
-                    return x
+        def run_variables(variables):
+            for variables in variables:
+                if isinstance(variables, tuple):
+                    *variables, key = variables
+                    run_variables(variables)
+                    try: objs, x0 = solve_variable(stages, key)
+                    except: continue
+                    def f(x):
+                        for obj, xi in zip(objs, x): obj._update_decoupled_variable(key, xi)
+                        run_variables(variables)
+                        _, x = solve_variable(stages, key)
+                        return x
+                    
+                    if key == 'K-pseudo': 
+                        flx.fixed_point(
+                            f, x0, xtol=1e-6, maxiter=100, checkiter=False, 
+                            checkconvergence=False, convergenceiter=5
+                        )
+                    else: 
+                        raise NotImplementedError(f'tolerance for {key!r} not available in BioSTEAM yet')
+                else:
+                    solve_variable(stages, variables)
                 
-                if key == 'K-pseudo': 
-                    flx.fixed_point(
-                        f, x0, xtol=1e-3, maxiter=20, checkiter=False, 
-                        checkconvergence=False, convergenceiter=5
-                    )
-                else: 
-                    raise NotImplementedError(f'tolerance for {key!r} not available in BioSTEAM yet')
-            else:
-                solve_variable(stages, variables)
-
+        run_variables(self.variable_priority)
+        
     def _solve(self):
         """Solve the system recycle iteratively."""
         self._reset_iter()

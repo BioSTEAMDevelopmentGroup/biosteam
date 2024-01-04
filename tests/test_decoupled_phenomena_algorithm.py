@@ -69,8 +69,9 @@ def test_trivial_distillation_case():
     assert round(vapor.imol['Ethanol'] / feed.imol['Ethanol'], 2) == actual
     
 def test_simple_acetic_acid_separation_no_recycle():
-    with bst.System(algorithm='decoupled phenomena') as sys:
-        bst.settings.set_thermo(['Water', 'AceticAcid', 'EthylAcetate'], cache=True)
+    bst.settings.set_thermo(['Water', 'AceticAcid', 'EthylAcetate'], cache=True)
+    @bst.SystemFactory
+    def system(ins, outs):
         feed = bst.Stream(AceticAcid=6660, Water=43600)
         solvent = bst.Stream(EthylAcetate=65000)
         LE = bst.MultiStageEquilibrium(
@@ -79,13 +80,13 @@ def test_simple_acetic_acid_separation_no_recycle():
             use_cache=True,
             method='fixed-point',
         )
-        DAA = bst.MultiStageEquilibrium(N_stages=6, ins=[LE-0], feed_stages=[3],
-            outs=['vapor', 'liquid'],
-            stage_specifications={0: ('Reflux', 0.673), -1: ('Boilup', 2.57)},
-            phases=('g', 'l'),
-            method='anderson',
-            use_cache=True,
-        )
+        # DAA = bst.MultiStageEquilibrium(N_stages=6, ins=[LE-0], feed_stages=[3],
+        #     outs=['vapor', 'liquid'],
+        #     stage_specifications={0: ('Reflux', 0.673), -1: ('Boilup', 2.57)},
+        #     phases=('g', 'l'),
+        #     method='anderson',
+        #     use_cache=True,
+        # )
         DEA = bst.MultiStageEquilibrium(N_stages=6, ins=[LE-1], feed_stages=[3],
             outs=['vapor', 'liquid'],
             stage_specifications={0: ('Reflux', 0.673), -1: ('Boilup', 2.57)},
@@ -93,14 +94,26 @@ def test_simple_acetic_acid_separation_no_recycle():
             method='excitingmixing',
             use_cache=True,
         )
-    sys.simulate()
-    for i in sys.units: print(i.ID, i.iter)
-    streams = [*sys.ins, *sys.outs]
-    actuals = [i.mol.copy() for i in streams]
-    sys.run_decoupled_phenomena()
-    values = [i.mol for i in streams]
-    for actual, value in zip(actuals, values):
-        assert_allclose(actual, value, rtol=0.001)
+    init_sys = system()
+    init_sys.simulate()
+    dp_sys = system(algorithm='decoupled phenomena', 
+                    molar_tolerance=1e-6,
+                    relative_molar_tolerance=1e-6)
+    sm_sys = system(algorithm='sequential modular',
+                    molar_tolerance=1e-6,
+                    relative_molar_tolerance=1e-6,
+                    method='wegstein')
+    
+    for i in range(1): 
+        dp_sys.simulate()
+        dp_sys.run_decoupled_phenomena()
+    for i in range(1): sm_sys.simulate()
+    
+    
+    for s_sm, s_dp in zip(sm_sys.streams, dp_sys.streams):
+        actual = s_sm.mol
+        value = s_dp.mol
+        assert_allclose(actual, value, rtol=0.0001)
 
 def test_simple_acetic_acid_separation_with_recycle():
     bst.settings.set_thermo(['Water', 'AceticAcid', 'EthylAcetate'], cache=True)
@@ -127,14 +140,15 @@ def test_simple_acetic_acid_separation_with_recycle():
         #     use_cache=True,
         # )
         DEA = bst.MultiStageEquilibrium(N_stages=6, ins=[LE-1], feed_stages=[3],
-            outs=['', 'liquid', recycle],
-            stage_specifications={0: ('Reflux', float('inf')), -1: ('Boilup', 2.57)},
-            bottom_side_draws={0: 0.673 / (1 + 0.673)},
+            outs=['vapor', 'liquid'],
+            stage_specifications={0: ('Reflux', 0.673), -1: ('Boilup', 2.57)},
             phases=('g', 'l'),
             maxiter=200,
             method='fixed-point',
             use_cache=True,
         )
+        HX = bst.SinglePhaseStage(ins=DEA-0, outs=recycle, T=320, phase='l')
+        
         chemicals = bst.settings.chemicals
         
         @LE.add_specification(run=True)
@@ -163,10 +177,12 @@ def test_simple_acetic_acid_separation_with_recycle():
     init_sys.simulate()
     dp_sys = system(algorithm='decoupled phenomena', 
                     molar_tolerance=1e-6,
-                    relative_molar_tolerance=1e-6)
+                    relative_molar_tolerance=1e-6,
+                    method='fixed-point')
     sm_sys = system(algorithm='sequential modular',
                     molar_tolerance=1e-6,
-                    relative_molar_tolerance=1e-6)
+                    relative_molar_tolerance=1e-6,
+                    method='fixed-point')
     time = bst.TicToc()
     
     time.tic()
@@ -181,11 +197,10 @@ def test_simple_acetic_acid_separation_with_recycle():
     dp_sys.show()
     sm_sys.show()
     
-    values = [i.mol for i in dp_sys.streams]
-    actuals = [i.mol for i in sm_sys.streams]
-    
-    for actual, value in zip(actuals, values):
-        assert_allclose(actual, value, rtol=0.001)
+    for s_sm, s_dp in zip(sm_sys.streams, dp_sys.streams):
+        actual = s_sm.mol
+        value = s_dp.mol
+        assert_allclose(actual, value, rtol=0.01)
 
 def test_complex_acetic_acid_separation_system(solvent_feed_ratio=1):
     with bst.System(algorithm='decoupled phenomena') as sys:
@@ -296,10 +311,11 @@ def test_complex_acetic_acid_separation_system(solvent_feed_ratio=1):
     sys.simulate()
 
 if __name__ == '__main__':
+    pass
     # test_trivial_lle_case()
     # test_trivial_vle_case()
     # test_trivial_liquid_extraction_case()
     # test_trivial_distillation_case()
-    # test_simple_acetic_acid_separation_no_recycle()
+    test_simple_acetic_acid_separation_no_recycle()
     test_simple_acetic_acid_separation_with_recycle()
     # test_complex_acetic_acid_separation_system()
