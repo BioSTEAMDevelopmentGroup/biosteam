@@ -118,7 +118,11 @@ class LinearEquations:
             return objs, np.array(values)
         A, objs = dictionaries2array(self.A)
         b = np.array(b).T
-        values = solve(A, b).T
+        try: values = solve(A, b).T
+        except: 
+            print(variable)
+            for i in self.A: print(i)
+            breakpoint()
         for obj, value in zip(objs, values): 
             obj._update_decoupled_variable(variable, value)
         if variable in ('mol', 'mol-LLE'):
@@ -651,7 +655,7 @@ class System:
     #: Default method for convergence algorithm.
     default_methods: dict[str] = {
         'Sequential modular': 'Aitken',
-        'Decoupled phenomena': 'fixed-point',
+        'Phenomena oriented': 'fixed-point',
     }
     
     #: Whether to raise a RuntimeError when system doesn't converge
@@ -660,8 +664,8 @@ class System:
     #: Method definitions for convergence
     available_methods: Methods[str, tuple[Callable, bool, dict]] = Methods()
 
-    #: Solution priority of variables for decoupled phenomena algorithm.
-    variable_priority: list[str] = [('mol', 'K-pseudo'), 'K', 'T', 'L', 'B']
+    #: Variable solution priority for phenomena oriented simulation.
+    variable_priority: list[str] = [('mol-LLE', 'K-pseudo'), 'K', 'T', 'L', 'B', 'mol']
 
     @classmethod
     def register_method(cls, name, solver, conditional=False, **kwargs):
@@ -1811,7 +1815,19 @@ class System:
 
     @property
     def algorithm(self) -> str:
-        """Iterative convergence algorithm ('Sequatial modular', or 'Decoupled phenomena')."""
+        """Iterative convergence algorithm ('Sequatial modular', or 'Phenomena oriented').
+        
+        Notes
+        -----
+        Timulation algorithms are available:
+        
+        Sequential modular - squentially runs each unit and subsystem until 
+        the recycle (i.e. tear) stream convergences.
+        
+        Phenomena oriented - partitions and linearizes the
+        underlying phenomenological equations for rapid and robust convergence.
+        
+        """
         return self._algorithm
     @algorithm.setter
     def algorithm(self, algorithm):
@@ -2165,7 +2181,7 @@ class System:
         algorithm = self.algorithm 
         if algorithm == 'Sequential modular':
             self.run_sequential_modular()
-        elif algorithm == 'Decoupled phenomena':
+        elif algorithm == 'Phenomena oriented':
             if self._iter == 0:
                 for i in self.unit_path: i.run()
             else:
@@ -2184,8 +2200,8 @@ class System:
             else: raise RuntimeError('path elements must be either a unit or a system')
 
     def run_decoupled_phenomena(self):
-        """Run and sequentially solve material, equilibrium, summation, 
-        enthalpy, and reaction phenomena."""
+        """Decouple and linearize material, equilibrium, summation, enthalpy,
+        and reaction phenomena and iteratively solve them."""
         stages = self.stages + self.feeds
         def run_variables(variables):
             for variables in variables:
