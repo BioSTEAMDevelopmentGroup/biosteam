@@ -193,7 +193,7 @@ def taxable_and_nontaxable_cashflows(
     if finance_interest:
         interest = finance_interest
         years = finance_years
-        Loan[:start] = loan = finance_fraction*(C_FC[:start]+C_WC[:start])
+        Loan[:start] = loan = finance_fraction*(C_FC[:start])
         LP[start:start + years] = solve_payment(loan.sum()/years * (1. + interest),
                                                 loan, interest, years)
         taxable_cashflow = S - C - D - LP
@@ -744,12 +744,12 @@ class TEA:
             interest = self.finance_interest
             years = self.finance_years
             end = start + years
-            L[:start] = loan = self.finance_fraction*(C_FC[:start]+C_WC[:start])
+            L[:start] = loan = self.finance_fraction*(C_FC[:start])
             f_interest = (1. + interest)
             LP[start:end] = solve_payment(loan.sum()/years * f_interest,
                                           loan, interest, years)
             loan_principal = 0
-            for i in range(end):
+            for i in range(start, end):
                 LI[i] = li = (loan_principal + L[i]) * interest 
                 LPl[i] = loan_principal = loan_principal - LP[i] + li + L[i]
             taxable_cashflow = S - C - D - LP
