@@ -85,7 +85,7 @@ class Mixer(Unit):
     def _run(self):
         s_out, = self.outs
         s_out.mix_from(self.ins, vle=self.rigorous,
-                       conserve_phases=self.conserve_phases)
+                       conserve_phases=getattr(self, 'conserve_phases', None))
         
 
 class SteamMixer(Unit):
