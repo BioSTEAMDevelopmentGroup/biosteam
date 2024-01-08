@@ -577,7 +577,6 @@ class PhasePartition(Unit):
         if solvent is None: solvent = self.solvent
         else: self.solvent = solvent
         ms = self._get_mixture(update)
-        copy = ms.copy()
         eq = ms.lle
         if update:
             eq(T=ms.T, P=P, top_chemical=solvent, update=update)
