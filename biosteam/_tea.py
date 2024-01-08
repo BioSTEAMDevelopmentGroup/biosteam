@@ -76,8 +76,8 @@ def initial_loan_principal(loan, interest):
     principal = 0
     k = 1. + interest
     for i in loan:
-        principal += i
         principal *= k
+        principal += i
     return principal
 
 @njit(cache=True)
