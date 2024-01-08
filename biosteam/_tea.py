@@ -749,7 +749,7 @@ class TEA:
             LP[start:end] = solve_payment(loan.sum()/years * f_interest,
                                           loan, interest, years)
             loan_principal = 0
-            for i in range(start, end):
+            for i in range(end):
                 LI[i] = li = (loan_principal + L[i]) * interest 
                 LPl[i] = loan_principal = loan_principal - LP[i] + li + L[i]
             taxable_cashflow = S - C - D - LP
