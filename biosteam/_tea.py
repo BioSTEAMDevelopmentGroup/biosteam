@@ -72,27 +72,19 @@ def NPV_at_IRR(IRR, cashflow_array, duration_array):
     return (cashflow_array/(1.+IRR)**duration_array).sum()
 
 @njit(cache=True)
-def initial_loan_principal(loan, interest):
+def loan_principal_with_interest(loan, interest):
     principal = 0
     k = 1. + interest
     for i in loan:
-        principal *= k
         principal += i
+        principal *= k
     return principal
 
 @njit(cache=True)
-def final_loan_principal(payment, principal, interest, years):
-    for iter in range(years):
-        principal += principal * interest - payment
-    return principal
-
-def solve_payment(payment, loan, interest, years):
-    principal = initial_loan_principal(loan, interest)
-    payment = flx.aitken_secant(final_loan_principal,
-                                payment, payment+10., 1., 10.,
-                                args=(principal, interest, years),
-                                maxiter=200, checkiter=False)
-    return payment
+def solve_payment(loan_principal, interest, years):
+    f = 1 + interest
+    fn = f ** years
+    return loan_principal * interest * fn / (fn - 1)
 
 @njit(cache=True)
 def add_replacement_cost_to_cashflow_array(equipment_installed_cost, 
@@ -170,6 +162,7 @@ def taxable_and_nontaxable_cashflows(
         finance_fraction,
         start, years,
         lang_factor,
+        interest_during_construction,
     ):
     # Cash flow data and parameters
     # C_FC: Fixed capital
@@ -186,7 +179,7 @@ def taxable_and_nontaxable_cashflows(
         startup_FOCfrac,
         startup_salesfrac,
         construction_schedule,
-        start
+        start,
     )
     for i in unit_capital_costs:
         add_all_replacement_costs_to_cashflow_array(i, C_FC, years, start, lang_factor)
@@ -194,8 +187,11 @@ def taxable_and_nontaxable_cashflows(
         interest = finance_interest
         years = finance_years
         Loan[:start] = loan = finance_fraction*(C_FC[:start])
-        LP[start:start + years] = solve_payment(loan.sum()/years * (1. + interest),
-                                                loan, interest, years)
+        if interest_during_construction:
+            loan_principal = loan_principal_with_interest(loan, interest)
+        else:
+            loan_principal = loan.sum()
+        LP[start:start + years] = solve_payment(loan_principal, interest, years)
         taxable_cashflow = S - C - D - LP
         nontaxable_cashflow = D + Loan - C_FC - C_WC 
     else:
@@ -312,7 +308,7 @@ class TEA:
                  '_startup_schedule', '_operating_days',
                  '_duration', '_depreciation_key', '_depreciation',
                  '_years', '_duration', '_start',  'IRR', '_IRR', '_sales',
-                 '_duration_array_cache')
+                 '_duration_array_cache', 'interest_during_construction')
     
     #: Available depreciation schedules. Defaults include modified 
     #: accelerated cost recovery system from U.S. IRS publication 946 (MACRS),
@@ -389,7 +385,8 @@ class TEA:
                 construction_schedule: Sequence[float],
                 startup_months: float, startup_FOCfrac: float, startup_VOCfrac: float,
                 startup_salesfrac: float, WC_over_FCI: float,  finance_interest: float,
-                finance_years: int, finance_fraction: float):
+                finance_years: int, finance_fraction: float,
+                interest_during_construction: bool=True):
         #: System being evaluated.
         self.system: System = system
         
@@ -433,6 +430,9 @@ class TEA:
         
         #: Guess cost for solve_price method
         self._sales: float = 0
+        
+        #: Whether to accumulate interest during construction
+        self.interest_during_construction = interest_during_construction
         
         #: For convenience, set a TEA attribute for the system
         system._TEA = self
@@ -745,9 +745,11 @@ class TEA:
             years = self.finance_years
             end = start + years
             L[:start] = loan = self.finance_fraction*(C_FC[:start])
-            f_interest = (1. + interest)
-            LP[start:end] = solve_payment(loan.sum()/years * f_interest,
-                                          loan, interest, years)
+            if self.interest_during_construction:
+                initial_loan_principal = loan_principal_with_interest(loan, interest)
+            else:
+                initial_loan_principal = loan.sum()
+            LP[start:end] = solve_payment(initial_loan_principal, interest, years)
             loan_principal = 0
             for i in range(end):
                 LI[i] = li = (loan_principal + L[i]) * interest 
@@ -818,7 +820,8 @@ class TEA:
                 self.finance_years,
                 self.finance_fraction,
                 start, years,
-                self.lang_factor
+                self.lang_factor,
+                self.interest_during_construction,
             ),
             D
         )
