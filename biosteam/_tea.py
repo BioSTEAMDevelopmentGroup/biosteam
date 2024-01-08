@@ -386,7 +386,7 @@ class TEA:
                 startup_months: float, startup_FOCfrac: float, startup_VOCfrac: float,
                 startup_salesfrac: float, WC_over_FCI: float,  finance_interest: float,
                 finance_years: int, finance_fraction: float,
-                interest_during_construction: bool=True):
+                interest_during_construction: bool=False):
         #: System being evaluated.
         self.system: System = system
         
@@ -745,15 +745,25 @@ class TEA:
             years = self.finance_years
             end = start + years
             L[:start] = loan = self.finance_fraction*(C_FC[:start])
-            if self.interest_during_construction:
+            interest_during_construction = self.interest_during_construction
+            if interest_during_construction:
                 initial_loan_principal = loan_principal_with_interest(loan, interest)
             else:
                 initial_loan_principal = loan.sum()
             LP[start:end] = solve_payment(initial_loan_principal, interest, years)
             loan_principal = 0
-            for i in range(end):
-                LI[i] = li = (loan_principal + L[i]) * interest 
-                LPl[i] = loan_principal = loan_principal - LP[i] + li + L[i]
+            if interest_during_construction:
+                for i in range(end):
+                    LI[i] = li = (loan_principal + L[i]) * interest 
+                    LPl[i] = loan_principal = loan_principal - LP[i] + li + L[i]
+            else:
+                for i in range(end):
+                    if i < start: 
+                        li = 0
+                    else:
+                        li = (loan_principal + L[i]) * interest 
+                    LI[i] = li
+                    LPl[i] = loan_principal = loan_principal - LP[i] + li + L[i]
             taxable_cashflow = S - C - D - LP
             nontaxable_cashflow = D + L - C_FC - C_WC
         else:
