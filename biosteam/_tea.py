@@ -162,7 +162,7 @@ def taxable_and_nontaxable_cashflows(
         finance_fraction,
         start, years,
         lang_factor,
-        interest_during_construction,
+        pay_interest_during_construction,
     ):
     # Cash flow data and parameters
     # C_FC: Fixed capital
@@ -187,10 +187,11 @@ def taxable_and_nontaxable_cashflows(
         interest = finance_interest
         years = finance_years
         Loan[:start] = loan = finance_fraction*(C_FC[:start])
-        if interest_during_construction:
+        if pay_interest_during_construction:
             loan_principal = loan_principal_with_interest(loan, interest)
         else:
             loan_principal = loan.sum()
+            LP[:start] = loan * interest 
         LP[start:start + years] = solve_payment(loan_principal, interest, years)
         taxable_cashflow = S - C - D - LP
         nontaxable_cashflow = D + Loan - C_FC - C_WC 
@@ -308,7 +309,7 @@ class TEA:
                  '_startup_schedule', '_operating_days',
                  '_duration', '_depreciation_key', '_depreciation',
                  '_years', '_duration', '_start',  'IRR', '_IRR', '_sales',
-                 '_duration_array_cache', 'interest_during_construction')
+                 '_duration_array_cache', 'pay_interest_during_construction')
     
     #: Available depreciation schedules. Defaults include modified 
     #: accelerated cost recovery system from U.S. IRS publication 946 (MACRS),
@@ -386,7 +387,7 @@ class TEA:
                 startup_months: float, startup_FOCfrac: float, startup_VOCfrac: float,
                 startup_salesfrac: float, WC_over_FCI: float,  finance_interest: float,
                 finance_years: int, finance_fraction: float,
-                interest_during_construction: bool=True):
+                pay_interest_during_construction: bool=False):
         #: System being evaluated.
         self.system: System = system
         
@@ -431,8 +432,8 @@ class TEA:
         #: Guess cost for solve_price method
         self._sales: float = 0
         
-        #: Whether to accumulate interest during construction
-        self.interest_during_construction = interest_during_construction
+        #: Whether to pay interest before operation or to accumulate interest during construction
+        self.pay_interest_during_construction = pay_interest_during_construction
         
         #: For convenience, set a TEA attribute for the system
         system._TEA = self
@@ -745,16 +746,29 @@ class TEA:
             years = self.finance_years
             end = start + years
             L[:start] = loan = self.finance_fraction*(C_FC[:start])
-            if self.interest_during_construction:
+            pay_interest_during_construction = self.pay_interest_during_construction
+            if pay_interest_during_construction:
                 initial_loan_principal = loan_principal_with_interest(loan, interest)
             else:
                 initial_loan_principal = loan.sum()
             LP[start:end] = solve_payment(initial_loan_principal, interest, years)
             loan_principal = 0
-            for i in range(end):
-                LI[i] = li = (loan_principal + L[i]) * interest 
-                LPl[i] = loan_principal = loan_principal - LP[i] + li + L[i]
+            if pay_interest_during_construction:
+                for i in range(end):
+                    LI[i] = li = (loan_principal + L[i]) * interest 
+                    LPl[i] = loan_principal = loan_principal - LP[i] + li + L[i]
+            else:
+                for i in range(end):
+                    if i < start: 
+                        li = 0
+                    else:
+                        li = (loan_principal + L[i]) * interest 
+                    LI[i] = li
+                    LPl[i] = loan_principal = loan_principal - LP[i] + li + L[i]
+                LI[:start] = L[:start] * interest # Interest still needs to be payed
+                    
             taxable_cashflow = S - C - D - LP
+            if pay_interest_during_construction: taxable_cashflow[:start] -= LI[:start]
             nontaxable_cashflow = D + L - C_FC - C_WC
         else:
             taxable_cashflow = S - C - D
@@ -821,7 +835,7 @@ class TEA:
                 self.finance_fraction,
                 start, years,
                 self.lang_factor,
-                self.interest_during_construction,
+                self.pay_interest_during_construction,
             ),
             D
         )
