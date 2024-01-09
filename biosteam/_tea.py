@@ -768,6 +768,7 @@ class TEA:
                 LI[:start] = L[:start] * interest # Interest still needs to be payed
                     
             taxable_cashflow = S - C - D - LP
+            if pay_interest_during_construction: taxable_cashflow[:start] -= LI[:start]
             nontaxable_cashflow = D + L - C_FC - C_WC
         else:
             taxable_cashflow = S - C - D
