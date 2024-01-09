@@ -37,6 +37,7 @@ cashflow_columns = ('Depreciable capital [MM$]',
                     'Sales [MM$]',
                     'Tax [MM$]',
                     'Incentives [MM$]',
+                    'Taxed earnings [MM$]',
                     'Net earnings [MM$]',
                     'Cash flow [MM$]',
                     'Discount factor',
@@ -85,6 +86,17 @@ def solve_payment(loan_principal, interest, years):
     f = 1 + interest
     fn = f ** years
     return loan_principal * interest * fn / (fn - 1)
+
+@njit(cache=True)
+def taxable_earnings_with_fowarded_losses(taxable_cashflow): # Forwards losses to later years to reduce future taxes
+    taxed_earnings = taxable_cashflow.copy()
+    for i in range(taxed_earnings.size - 1):
+        x = taxed_earnings[i]
+        if x < 0:
+            taxed_earnings[i] = 0
+            taxed_earnings[i + 1] += x
+    if taxed_earnings[-1] < 0: taxed_earnings[-1] = 0
+    return taxed_earnings
 
 @njit(cache=True)
 def add_replacement_cost_to_cashflow_array(equipment_installed_cost, 
@@ -709,6 +721,7 @@ class TEA:
         # S: Sales
         # T: Tax
         # I: Incentives
+        # TE: Taxed earnings
         # NE: Net earnings
         # CF: Cash flow
         # DF: Discount factor
@@ -722,7 +735,7 @@ class TEA:
         VOC = self.VOC
         sales = self.sales
         length = start + years
-        C_D, C_FC, C_WC, D, L, LI, LP, LPl, C, S, T, I, NE, CF, DF, NPV, CNPV = data = np.zeros((17, length))
+        C_D, C_FC, C_WC, D, L, LI, LP, LPl, C, S, T, I, TE, NE, CF, DF, NPV, CNPV = data = np.zeros((18, length))
         self._fill_depreciation_array(D, start, years, TDC)
         w0 = self._startup_time
         w1 = 1. - w0
@@ -773,6 +786,7 @@ class TEA:
         else:
             taxable_cashflow = S - C - D
             nontaxable_cashflow = D - C_FC - C_WC
+        TE[:] = taxable_earnings_with_fowarded_losses(taxable_cashflow)
         self._fill_tax_and_incentives(I, taxable_cashflow, nontaxable_cashflow, T, D)
         NE[:] = taxable_cashflow + I - T
         CF[:] = NE + nontaxable_cashflow
@@ -841,8 +855,7 @@ class TEA:
         )
     
     def _fill_tax_and_incentives(self, incentives, taxable_cashflow, nontaxable_cashflow, tax, depreciation):
-        index = taxable_cashflow > 0.
-        tax[index] = self.income_tax * taxable_cashflow[index]
+        tax[:] = self.income_tax * taxable_earnings_with_fowarded_losses(taxable_cashflow)
     
     def _net_earnings_and_nontaxable_cashflow_arrays(self):
         taxable_cashflow, nontaxable_cashflow, depreciation = self._taxable_nontaxable_depreciation_cashflows()
