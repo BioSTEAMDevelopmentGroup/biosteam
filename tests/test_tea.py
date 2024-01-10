@@ -10,7 +10,8 @@
 
 import pytest, numpy as np
 from numpy.testing import assert_allclose
-from biosteam import TEA, System
+from biosteam import TEA, System, Stream, Unit, Chemical, settings
+from biorefineries.tea import create_cellulosic_ethanol_tea
 
 def test_depreciation_schedule():    
     correct_arrs = {
@@ -51,6 +52,46 @@ def test_depreciation_schedule():
     with pytest.raises(ValueError):
         tea.depreciation = 'bad'
 
+def test_cashflow():
+    settings.set_thermo([
+        Chemical('Dummy', default=True, phase='s', MW=1, search_db=False)
+    ])
+    
+    cost = Stream(Dummy=9793.983511363867 - 1280.916880939845, price=1) # Includes co-product electricity credits
+    ethanol = Stream(flow=[21978.374283953395], price=0.7198608114634679)
+    
+    class MockCellulosicEthanolBiorefinery(Unit):
+        _N_ins = _N_outs = 1
+        
+        def _run(self): pass
+        
+        def _cost(self):
+            self.baseline_purchase_costs['Biorefinery'] = 85338080.48935215
+            
+    class OSBL(Unit):
+        N_outs = _N_ins = 0
+        
+        def _run(self): pass
+        
+        def _cost(self):
+            self.baseline_purchase_costs['Biorefinery'] = 122287135.13152598
+            
+    unit = MockCellulosicEthanolBiorefinery(ins=cost, outs=ethanol)
+    osbl = OSBL()
+    sys = System.from_units(units=[unit, osbl])
+    sys.simulate()
+    tea = create_cellulosic_ethanol_tea(sys, OSBL_units=[osbl])
+    table = tea.get_cashflow_table()
+    assert_allclose(tea.NPV, 32131936.781448975)
+    assert_allclose(tea.NPV, table['Cumulative NPV [MM$]'].iloc[-1]*1e6)
+    tea.IRR = tea.solve_IRR()
+    assert_allclose(tea.NPV, 0, atol=100)
+    assert_allclose(tea.IRR, 0.11246761316144724)
+    tea.IRR = 0.10
+    ethanol.price = tea.solve_price(ethanol)
+    assert_allclose(ethanol.price, 0.6952016482242149)
+    assert_allclose(tea.NPV, 0, atol=100)
 
 if __name__ == '__main__':
     test_depreciation_schedule()
+    test_cashflow()
