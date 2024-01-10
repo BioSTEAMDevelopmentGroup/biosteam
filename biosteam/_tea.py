@@ -89,19 +89,15 @@ def solve_payment(loan_principal, interest, years):
     return loan_principal * interest * fn / (fn - 1)
 
 @njit(cache=True)
-def taxable_earnings_and_fowarded_losses(taxable_cashflow): # Forwards losses to later years to reduce future taxes
+def taxable_earnings_with_fowarded_losses(taxable_cashflow): # Forwards losses to later years to reduce future taxes
     taxed_earnings = taxable_cashflow.copy()
     for i in range(taxed_earnings.size - 1):
         x = taxed_earnings[i]
         if x < 0:
+            taxed_earnings[i] = 0
             taxed_earnings[i + 1] += x
     if taxed_earnings[-1] < 0: taxed_earnings[-1] = 0
-    forwarded_losses = taxed_earnings.copy()
-    forwarded_losses[forwarded_losses>0] = 0
-    taxed_earnings -= forwarded_losses
-    forwarded_losses[1:] = forwarded_losses[0:-1] # Forwarding to the next year
-    forwarded_losses[0] = 0
-    return taxed_earnings, forwarded_losses
+    return taxed_earnings
 
 @njit(cache=True)
 def add_replacement_cost_to_cashflow_array(equipment_installed_cost, 
@@ -179,7 +175,7 @@ def taxable_and_nontaxable_cashflows(
         finance_fraction,
         start, years,
         lang_factor,
-        pay_interest_during_construction,
+        accumulate_interest_during_construction,
     ):
     # Cash flow data and parameters
     # C_FC: Fixed capital
@@ -204,7 +200,7 @@ def taxable_and_nontaxable_cashflows(
         interest = finance_interest
         years = finance_years
         Loan[:start] = loan = finance_fraction*(C_FC[:start])
-        if pay_interest_during_construction:
+        if accumulate_interest_during_construction:
             loan_principal = loan_principal_with_interest(loan, interest)
         else:
             loan_principal = loan.sum()
@@ -326,7 +322,7 @@ class TEA:
                  '_startup_schedule', '_operating_days',
                  '_duration', '_depreciation_key', '_depreciation',
                  '_years', '_duration', '_start',  'IRR', '_IRR', '_sales',
-                 '_duration_array_cache', 'pay_interest_during_construction')
+                 '_duration_array_cache', 'accumulate_interest_during_construction')
     
     #: Available depreciation schedules. Defaults include modified 
     #: accelerated cost recovery system from U.S. IRS publication 946 (MACRS),
@@ -404,7 +400,7 @@ class TEA:
                 startup_months: float, startup_FOCfrac: float, startup_VOCfrac: float,
                 startup_salesfrac: float, WC_over_FCI: float,  finance_interest: float,
                 finance_years: int, finance_fraction: float,
-                pay_interest_during_construction: bool=False):
+                accumulate_interest_during_construction: bool=False):
         #: System being evaluated.
         self.system: System = system
         
@@ -449,8 +445,8 @@ class TEA:
         #: Guess cost for solve_price method
         self._sales: float = 0
         
-        #: Whether to pay interest before operation or to accumulate interest during construction
-        self.pay_interest_during_construction = pay_interest_during_construction
+        #: Whether to immediately pay interest before operation or to accumulate interest during construction
+        self.accumulate_interest_during_construction = accumulate_interest_during_construction
         
         #: For convenience, set a TEA attribute for the system
         system._TEA = self
@@ -765,14 +761,14 @@ class TEA:
             years = self.finance_years
             end = start + years
             L[:start] = loan = self.finance_fraction*(C_FC[:start])
-            pay_interest_during_construction = self.pay_interest_during_construction
-            if pay_interest_during_construction:
+            accumulate_interest_during_construction = self.accumulate_interest_during_construction
+            if accumulate_interest_during_construction:
                 initial_loan_principal = loan_principal_with_interest(loan, interest)
             else:
                 initial_loan_principal = loan.sum()
             LP[start:end] = solve_payment(initial_loan_principal, interest, years)
             loan_principal = 0
-            if pay_interest_during_construction:
+            if accumulate_interest_during_construction:
                 for i in range(end):
                     LI[i] = li = (loan_principal + L[i]) * interest 
                     LPl[i] = loan_principal = loan_principal - LP[i] + li + L[i]
@@ -788,19 +784,18 @@ class TEA:
                     
             taxable_cashflow = S - C - D - LP
             nontaxable_cashflow = D + L - C_FC - C_WC
-            if pay_interest_during_construction:
-                taxable_cashflow[:start] -= LI[:start]
-            else:
+            if not accumulate_interest_during_construction:
                 nontaxable_cashflow[:start] -= LI[:start] # Subtract the interest during construction from NPV
         else:
             taxable_cashflow = S - C - D
             nontaxable_cashflow = D - C_FC - C_WC
-        TE[:], FL[:] = taxable_earnings_and_fowarded_losses(taxable_cashflow)
+        TE[:] = taxable_earnings_with_fowarded_losses(taxable_cashflow)
+        FL[:] = (taxable_cashflow - TE).cumsum()
         self._fill_tax_and_incentives(I, taxable_cashflow, nontaxable_cashflow, T, D)
         NE[:] = taxable_cashflow + I - T
         CF[:] = NE + nontaxable_cashflow
         DF[:] = 1/(1.+self.IRR)**self._get_duration_array()
-        NPV[:] = CF*DF
+        NPV[:] = CF * DF
         CNPV[:] = NPV.cumsum()
         DF *= 1e6
         data /= 1e6
@@ -858,13 +853,13 @@ class TEA:
                 self.finance_fraction,
                 start, years,
                 self.lang_factor,
-                self.pay_interest_during_construction,
+                self.accumulate_interest_during_construction,
             ),
             D
         )
     
     def _fill_tax_and_incentives(self, incentives, taxable_cashflow, nontaxable_cashflow, tax, depreciation):
-        tax[:] = self.income_tax * taxable_earnings_and_fowarded_losses(taxable_cashflow)[0]
+        tax[:] = self.income_tax * taxable_earnings_with_fowarded_losses(taxable_cashflow)
     
     def _net_earnings_and_nontaxable_cashflow_arrays(self):
         taxable_cashflow, nontaxable_cashflow, depreciation = self._taxable_nontaxable_depreciation_cashflows()
