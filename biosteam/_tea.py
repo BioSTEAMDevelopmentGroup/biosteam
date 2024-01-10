@@ -204,10 +204,11 @@ def taxable_and_nontaxable_cashflows(
             loan_principal = loan_principal_with_interest(loan, interest)
         else:
             loan_principal = loan.sum()
-            LP[:start] = loan * interest 
         LP[start:start + years] = solve_payment(loan_principal, interest, years)
         taxable_cashflow = S - C - D - LP
         nontaxable_cashflow = D + Loan - C_FC - C_WC 
+        if not accumulate_interest_during_construction: 
+            nontaxable_cashflow[:start] -= loan * interest 
     else:
         taxable_cashflow = S - C - D
         nontaxable_cashflow = D - C_FC - C_WC
@@ -226,7 +227,7 @@ def NPV_with_sales(
     taxable_cashflow = taxable_cashflow + sales * sales_coefficients
     tax = np.zeros_like(taxable_cashflow)
     incentives = tax.copy()
-    fill_tax_and_incentives(incentives, taxable_cashflow, nontaxable_cashflow, tax, depreciation)
+    fill_tax_and_incentives(incentives, taxable_earnings_with_fowarded_losses(taxable_cashflow), nontaxable_cashflow, tax, depreciation)
     cashflow = nontaxable_cashflow + taxable_cashflow + incentives - tax
     return (cashflow/discount_factors).sum()
 
@@ -790,7 +791,7 @@ class TEA:
             taxable_cashflow = S - C - D
             nontaxable_cashflow = D - C_FC - C_WC
         TE[:] = taxable_earnings_with_fowarded_losses(taxable_cashflow)
-        FL[:] = (taxable_cashflow - TE).cumsum()
+        FL[1:] = (taxable_cashflow - TE).cumsum()[:-1]
         self._fill_tax_and_incentives(I, taxable_cashflow, nontaxable_cashflow, T, D)
         NE[:] = taxable_cashflow + I - T
         CF[:] = NE + nontaxable_cashflow
@@ -808,7 +809,9 @@ class TEA:
         taxable_cashflow, nontaxable_cashflow, depreciation = self._taxable_nontaxable_depreciation_cashflows()
         tax = np.zeros_like(taxable_cashflow)
         incentives = tax.copy()
-        self._fill_tax_and_incentives(incentives, taxable_cashflow, nontaxable_cashflow, tax, depreciation)
+        self._fill_tax_and_incentives(incentives,
+                                      taxable_earnings_with_fowarded_losses(taxable_cashflow),
+                                      nontaxable_cashflow, tax, depreciation)
         cashflow = nontaxable_cashflow + taxable_cashflow + incentives - tax
         return NPV_at_IRR(self.IRR, cashflow, self._get_duration_array())
     
