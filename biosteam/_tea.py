@@ -225,9 +225,13 @@ def NPV_with_sales(
     ):
     """Return NPV with an additional annualized sales."""
     taxable_cashflow = taxable_cashflow + sales * sales_coefficients
-    tax = np.zeros_like(taxable_cashflow)
+    tax = np.zeros_like(taxable_cashflow, dtype=float)
     incentives = tax.copy()
-    fill_tax_and_incentives(incentives, taxable_earnings_with_fowarded_losses(taxable_cashflow), nontaxable_cashflow, tax, depreciation)
+    fill_tax_and_incentives(
+        incentives, 
+        taxable_earnings_with_fowarded_losses(taxable_cashflow),
+        nontaxable_cashflow, tax, depreciation
+    )
     cashflow = nontaxable_cashflow + taxable_cashflow + incentives - tax
     return (cashflow/discount_factors).sum()
 
@@ -791,7 +795,9 @@ class TEA:
             nontaxable_cashflow = D - C_FC - C_WC
         TE[:] = taxable_earnings_with_fowarded_losses(taxable_cashflow)
         FL[1:] = (taxable_cashflow - TE).cumsum()[:-1]
-        self._fill_tax_and_incentives(I, taxable_cashflow, nontaxable_cashflow, T, D)
+        self._fill_tax_and_incentives(
+            I, TE, nontaxable_cashflow, T, D
+        )
         NE[:] = taxable_cashflow + I - T
         CF[:] = NE + nontaxable_cashflow
         DF[:] = 1/(1.+self.IRR)**self._get_duration_array()
@@ -808,9 +814,11 @@ class TEA:
         taxable_cashflow, nontaxable_cashflow, depreciation = self._taxable_nontaxable_depreciation_cashflows()
         tax = np.zeros_like(taxable_cashflow)
         incentives = tax.copy()
-        self._fill_tax_and_incentives(incentives,
-                                      taxable_earnings_with_fowarded_losses(taxable_cashflow),
-                                      nontaxable_cashflow, tax, depreciation)
+        self._fill_tax_and_incentives(
+            incentives,
+            taxable_earnings_with_fowarded_losses(taxable_cashflow),
+            nontaxable_cashflow, tax, depreciation
+        )
         cashflow = nontaxable_cashflow + taxable_cashflow + incentives - tax
         return NPV_at_IRR(self.IRR, cashflow, self._get_duration_array())
     
@@ -861,14 +869,18 @@ class TEA:
         )
     
     def _fill_tax_and_incentives(self, incentives, taxable_cashflow, nontaxable_cashflow, tax, depreciation):
-        tax[:] = self.income_tax * taxable_earnings_with_fowarded_losses(taxable_cashflow)
+        tax[:] = self.income_tax * taxable_cashflow
     
     def _net_earnings_and_nontaxable_cashflow_arrays(self):
         taxable_cashflow, nontaxable_cashflow, depreciation = self._taxable_nontaxable_depreciation_cashflows()
         size = taxable_cashflow.size
         tax = np.zeros(size)
         incentives = tax.copy()
-        self._fill_tax_and_incentives(incentives, taxable_cashflow, nontaxable_cashflow, tax, depreciation)
+        self._fill_tax_and_incentives(
+            incentives, 
+            taxable_earnings_with_fowarded_losses(taxable_cashflow), 
+            nontaxable_cashflow, tax, depreciation
+        )
         net_earnings = taxable_cashflow + incentives - tax
         return net_earnings, nontaxable_cashflow
     
@@ -986,12 +998,11 @@ class TEA:
         
         """
         discount_factors = (1 + self.IRR)**self._get_duration_array()
-        sales_coefficients = np.ones_like(discount_factors)
+        sales_coefficients = np.ones_like(discount_factors, dtype=float)
         start = self._start
         sales_coefficients[:start] = 0
         w0 = self._startup_time
-        sales_coefficients[self._start] =  w0*self.startup_VOCfrac + (1-w0)
-        sales = self._sales
+        sales_coefficients[start] =  w0*self.startup_salesfrac + (1.-w0)
         taxable_cashflow, nontaxable_cashflow, depreciation = self._taxable_nontaxable_depreciation_cashflows()
         if np.isnan(taxable_cashflow).any():
             warn('nan encountered in cashflow array; resimulating system', category=RuntimeWarning)
@@ -1005,17 +1016,16 @@ class TEA:
                 sales_coefficients,
                 discount_factors,
                 self._fill_tax_and_incentives)
-        x0 = sales
+        x0 = self._sales if np.isfinite(self._sales) else 0
         f = NPV_with_sales
-        if not np.isfinite(x0): x0 = 0.
         y0 = f(x0, *args)
         x1 = x0 - y0 / self._years # First estimate
         try:
-            sales = flx.aitken_secant(f, x0, x1, xtol=10, ytol=1000.,
+            sales = flx.aitken_secant(f, x0, x1, xtol=10, ytol=100.,
                                       maxiter=1000, args=args, checkiter=True)
         except:
             bracket = flx.find_bracket(f, x0, x1, args=args)
-            sales = flx.IQ_interpolation(f, *bracket, args=args, xtol=10, ytol=1000, maxiter=1000, checkiter=False)
+            sales = flx.IQ_interpolation(f, *bracket, args=args, xtol=10, ytol=100, maxiter=1000, checkiter=False)
         self._sales = sales
         return sales
     
