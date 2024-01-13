@@ -2005,13 +2005,15 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
             open_tray_area_fraction=0.1,
             downcomer_area_fraction=None,  
             use_cache=None,
+            collapsed_init=False,
+            method=None,
         ):
         super()._init(N_stages=N_stages, feed_stages=feed_stages,
                       top_side_draws=vapor_side_draws, 
                       bottom_side_draws=liquid_side_draws,
                       partition_data=partition_data,
-                      phases=("g", "l"),
-                      P=P, use_cache=use_cache)
+                      phases=("g", "l"), collapsed_init=collapsed_init,
+                      P=P, use_cache=use_cache, method=method)
        
         # Construction specifications
         self.solute = solute
@@ -2027,14 +2029,14 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
         self._last_args = (
             self.N_stages, self.feed_stages, self.vapor_side_draws, 
             self.liquid_side_draws, self.use_cache, *self._ins, 
-            self.solvent_ID, self.partition_data, self.P
+            self.partition_data, self.P, self.collapsed_init,
         )
         
     def _setup(self):
         super()._setup()
         args = (self.N_stages, self.feed_stages, self.vapor_side_draws, 
                 self.liquid_side_draws, self.use_cache, *self._ins, 
-                self.solvent_ID, self.partition_data, self.P)
+                self.partition_data, self.P, self.collapsed_init)
         if args != self._last_args:
             MultiStageEquilibrium._init(
                 self, N_stages=self.N_stages,
@@ -2044,6 +2046,7 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
                 bottom_side_draws=self.liquid_side_draws,
                 partition_data=self.partition_data, 
                 use_cache=self.use_cache, 
+                collapsed_init=self.collapsed_init,
             )
             self._last_args = args
     
@@ -2379,6 +2382,8 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
             full_condenser=None,
             collapsed_init=None,
             use_cache=None,
+            method=None,
+            inside_out=None,
         ):
         if full_condenser: 
             if liquid_side_draws is None:
@@ -2397,7 +2402,9 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                       partition_data=partition_data,
                       phases=("g", "l"), P=P, use_cache=use_cache,
                       stage_specifications=stage_specifications,
-                      collapsed_init=collapsed_init)
+                      collapsed_init=collapsed_init,
+                      inside_out=inside_out,
+                      method=method)
         
         # Construction specifications
         self.vessel_material = vessel_material
@@ -2414,7 +2421,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         self._last_args = (
             self.N_stages, self.feed_stages, self.vapor_side_draws, 
             self.liquid_side_draws, self.use_cache, *self._ins, 
-            self.solvent_ID, self.partition_data, self.P,
+            self.partition_data, self.P,
             reflux, boilup,
         )
         
@@ -2438,7 +2445,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         super()._setup()
         args = (self.N_stages, self.feed_stages, self.vapor_side_draws, 
                 self.liquid_side_draws, self.use_cache, *self._ins, 
-                self.solvent_ID, self.partition_data, self.P,
+                self.partition_data, self.P,
                 self.reflux, self.boilup)
         if args != self._last_args:
             MultiStageEquilibrium._init(
@@ -2460,7 +2467,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         
         #: [HXutility] Condenser.
         if reflux is None: # No condenser
-            self.condenser = self.reflux_drum = None
+            self.condenser = self.reflux_drum = self.top_split = None
             self.condensate = self.stages[0].outs[1]
         elif reflux == inf: # Full condenser
             self.reflux_drum = None

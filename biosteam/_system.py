@@ -118,10 +118,13 @@ class LinearEquations:
             return objs, np.array(values)
         A, objs = dictionaries2array(self.A)
         b = np.array(b).T
-        try: values = solve(A, b).T
-        except: 
-            print(variable)
-            for i in self.A: print(i)
+        try:
+            values = solve(A, b).T
+        except:
+            for i in self.A:
+                print('--')
+                for a, b in i.items():
+                    print(a.ID, b)
             breakpoint()
         for obj, value in zip(objs, values): 
             obj._update_decoupled_variable(variable, value)
@@ -1782,6 +1785,16 @@ class System:
                 return
         else:
             raise_recycle_type_error(recycle)
+    
+    @property
+    def depth(self):
+        if self.recycle: 
+            depth = [1]
+        else:
+            depth = [0]
+        for i in self.subsystems:
+            depth.append(i.depth + 1)
+        return max(depth)
 
     @property
     def N_runs(self) -> int|None:
@@ -2183,7 +2196,8 @@ class System:
             self.run_sequential_modular()
         elif algorithm == 'Phenomena oriented':
             if self._iter == 0:
-                for i in self.unit_path: i.run()
+                for i in range(self.depth):
+                    for i in self.unit_path: i.run()
             else:
                 self.run_decoupled_phenomena()
         else:
