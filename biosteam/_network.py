@@ -91,16 +91,9 @@ def fill_path(feed, path, paths_with_recycle,
               paths_without_recycle,
               ends, units):
     unit = feed.sink
-    has_recycle = None
-    if feed in ends:
-        has_recycle = False
-        if unit in path:
-            for other_path, recycle in paths_with_recycle:
-                has_recycle = recycle.sink is unit
-                if has_recycle: break
-    if not unit or isinstance(unit, Facility) or has_recycle is False or unit not in units:
+    if not unit or isinstance(unit, Facility) or unit not in units:
         paths_without_recycle.append(path)
-    elif has_recycle or unit in path: 
+    elif unit in path: 
         path_with_recycle = path, feed
         paths_with_recycle.append(path_with_recycle)
         ends.add(feed)
@@ -379,6 +372,8 @@ class Network:
         return system
     
     def reduce_recycles(self):
+        for i in self.path:
+            if isinstance(i, Network): i.reduce_recycles()
         if len(self.path) == 1:
             network = self.path[0]
             if isinstance(network, Network):
@@ -391,9 +386,6 @@ class Network:
                 sink = sinks.pop()
                 if len(sink.outs) == 1:
                     self.recycle = sink.outs[0]
-        for i in self.path:
-            if isinstance(i, Network):
-                i.reduce_recycles()
     
     def add_process_heat_exchangers(self, excluded=None):
         isa = isinstance
