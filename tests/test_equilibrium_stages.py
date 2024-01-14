@@ -80,7 +80,7 @@ def test_distillation():
         N_stages=10,
         ins=[hot_extract],
         feed_stages=[5],
-        outs=['', 'glacial_acetic_acid', 'distillate'],
+        outs=['', 'bottoms_product', 'distillate'],
         full_condenser=True,
         reflux=1.0,
         boilup=3.5,
