@@ -2478,7 +2478,7 @@ def solve_inside_loop(
     # result = root(inside_loop, KB.flatten(), 
     #               options=dict(ftol=1e-6), args=args)
     # print(result.x)
-    KB_new = flx.fixed_point(inside_loop, KB.flatten(), xtol=1e-6, args=args)
+    KB_new = flx.fixed_point(inside_loop, KB.flatten(), xtol=1e-6, args=args, checkiter=False)
     # print(KB_new)
     return KB_new
    

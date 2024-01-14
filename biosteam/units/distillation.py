@@ -729,8 +729,7 @@ class Distillation(Unit, isabstract=True):
         bottoms_product.mol[LHK_index] = LHK_mol - distillate_LHK_mol
         distillate.mol[intemediates_index] = \
         bottoms_product.mol[intemediates_index] = mol[intemediates_index] / 2
-        try: self._check_mass_balance()
-        except: breakpoint()
+        self._check_mass_balance()
     
     def _update_distillate_and_bottoms_temperature(self):
         distillate, bottoms_product = self.outs
@@ -1835,9 +1834,9 @@ class ShortcutColumn(Distillation, new_graphics=False):
         K_distillate = compute_partition_coefficients(dp.y, dp.x)
         K_bottoms = compute_partition_coefficients(bp.y, bp.x)
         HK_index = self._LHK_vle_index[1]
-        alpha_mean = compute_mean_volatilities_relative_to_heavy_key(K_distillate,
-                                                                     K_bottoms,
-                                                                     HK_index)
+        alpha_mean = compute_mean_volatilities_relative_to_heavy_key(
+            K_distillate, K_bottoms, HK_index
+        )
         return alpha_mean
         
     def _estimate_distillate_recoveries(self):
@@ -2384,6 +2383,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
             use_cache=None,
             method=None,
             inside_out=None,
+            maxiter=None,
         ):
         if full_condenser: 
             if liquid_side_draws is None:
@@ -2404,7 +2404,8 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                       stage_specifications=stage_specifications,
                       collapsed_init=collapsed_init,
                       inside_out=inside_out,
-                      method=method)
+                      method=method,
+                      maxiter=maxiter)
         
         # Construction specifications
         self.vessel_material = vessel_material
