@@ -837,7 +837,11 @@ class GasFedBioreactor(StirredTankReactor):
             vent.empty()
             self._run_vent(vent, effluent)
         
-        baseline_feed = bst.Stream.sum(self.normal_gas_feeds, energy_balance=False)
+        try:
+            baseline_feed = bst.Stream.sum(self.normal_gas_feeds, energy_balance=False)
+        except:
+            breakpoint()
+            bst.Stream.sum(self.normal_gas_feeds, energy_balance=False)
         baseline_flows = baseline_feed.get_flow('mol/s', self.gas_substrates)
         bounds = np.array([[max(SURs[i] - baseline_flows[i], 0), 5 * SURs[i]] for i in index])
         if self.optimize_power:

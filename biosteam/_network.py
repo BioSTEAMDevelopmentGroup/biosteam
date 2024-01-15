@@ -97,6 +97,8 @@ def fill_path(feed, path, paths_with_recycle,
         path_with_recycle = path, feed
         paths_with_recycle.append(path_with_recycle)
         ends.add(feed)
+    elif feed in ends:
+        paths_without_recycle.append(path)
     else:
         path.append(unit)
         outlets = unit._outs
@@ -439,7 +441,7 @@ class Network:
                 else:
                     self._insert_linear_network(index, network)
                 return
-        raise RuntimeError(f'{repr(unit)} not in path') # pragma: no cover
+        self.join_linear_network(network)
     
     def join_linear_network(self, linear_network):
         path = self.path

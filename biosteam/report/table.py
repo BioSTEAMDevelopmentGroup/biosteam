@@ -280,14 +280,14 @@ def lca_displacement_allocation_table(systems, key, items,
         electricity_consumption = sys.power_utility.rate * sys.operating_hours
         if electricity_consumption > 0.: 
             cf = PowerUtility.get_CF(key, production=False)
-            if not cf: continue
-            if 'Electricity' not in other_utilities: other_utilities.append('Electricity')
-            set_value('Electricity', sys, f"{cf} {impact_units}/kWhr", electricity_consumption * cf)
+            if cf:
+                if 'Electricity' not in other_utilities: other_utilities.append('Electricity')
+                set_value('Electricity', sys, f"{cf} {impact_units}/kWhr", electricity_consumption * cf)
         elif electricity_consumption < 0.:
             cf = PowerUtility.get_CF(key, consumption=False)
-            if not cf: continue
-            if 'Electricity' not in other_byproducts: other_byproducts.append('Electricity')
-            set_value('Electricity', sys, f"{cf} {impact_units}/kWhr", - electricity_consumption * cf)
+            if cf: 
+                if 'Electricity' not in other_byproducts: other_byproducts.append('Electricity')
+                set_value('Electricity', sys, f"{cf} {impact_units}/kWhr", - electricity_consumption * cf)
         try: process_impact_items = sys.process_impact_items[key]
         except: continue
         for item in process_impact_items:
