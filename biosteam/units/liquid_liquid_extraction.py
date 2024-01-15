@@ -1069,6 +1069,11 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
     Because octanol and water do not mix well, it may be a good idea to assume
     that these solvents do not mix at all:
         
+    >>> import biosteam as bst
+    >>> import numpy as np
+    >>> bst.settings.set_thermo(['Water', 'Methanol', 'Octanol'])
+    >>> feed = bst.Stream('feed', Water=5000, Methanol=500)
+    >>> solvent = bst.Stream('solvent', Octanol=5000)
     >>> MSMS1 = bst.MultiStageMixerSettlers('MSMS1', ins=(feed, solvent), outs=('extract', 'raffinate'), N_stages=20,
     ...     partition_data={
     ...         'K': np.array([1.38]),
@@ -1087,6 +1092,11 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
        
     Simulate with a feed at the 4th stage:
     
+    >>> import biosteam as bst
+    >>> import numpy as np
+    >>> bst.settings.set_thermo(['Water', 'Methanol', 'Octanol'])
+    >>> feed = bst.Stream('feed', Water=5000, Methanol=500)
+    >>> solvent = bst.Stream('solvent', Octanol=5000)
     >>> dilute_feed = bst.Stream('dilute_feed', Water=100, Methanol=2)
     >>> MSMS1 = bst.MultiStageMixerSettlers('MSMS1', ins=(feed, dilute_feed, solvent), outs=('extract', 'raffinate'), N_stages=5,
     ...     feed_stages=[0, 3, -1], # Stage at which each inlet enters, respectively
@@ -1102,7 +1112,12 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
     0.93
     
     Simulate with a 60% extract side draw at the 2nd stage and 10% raffinate side draw at the 3rd stage:
-    
+
+    >>> import biosteam as bst
+    >>> import numpy as np
+    >>> bst.settings.set_thermo(['Water', 'Methanol', 'Octanol'])
+    >>> feed = bst.Stream('feed', Water=5000, Methanol=500)
+    >>> solvent = bst.Stream('solvent', Octanol=5000)
     >>> MSMS1 = bst.MultiStageMixerSettlers('MSMS1', ins=(feed, solvent), N_stages=4,  
     ...     # Extract side draws always come first, then raffinate side draws
     ...     outs=('extract', 'raffinate', 'extract_side_draw', 'raffinate_side_draw'),  
@@ -1117,9 +1132,8 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
     ... )
     >>> MSMS1.simulate()
     >>> (MSMS1.extract.imol['Methanol'] + MSMS1.outs[2].imol['Methanol']) / feed.imol['Methanol'] # Recovery
-    0.87
+    0.92
     
-
     """
     _side_draw_names = ('extract_side_draws', 'raffinate_side_draws')
     _units = MixerSettler._units

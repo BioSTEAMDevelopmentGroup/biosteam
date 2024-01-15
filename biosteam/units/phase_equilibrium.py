@@ -772,7 +772,7 @@ class MultiStageEquilibrium(Unit):
     >>> MSE.simulate()
     >>> extract, raffinate, extract_side_draw, *raffinate_side_draws = MSE.outs
     >>> (extract.imol['Methanol'] + extract_side_draw.imol['Methanol']) / feed.imol['Methanol'] # Recovery
-    0.92
+    0.95
     
     Simulate stripping column with 2 stages
     
@@ -1231,6 +1231,7 @@ class MultiStageEquilibrium(Unit):
             top_side_draws=top_side_draws,
             bottom_side_draws=bottom_side_draws,  
             P=self.P, 
+            partition_data=self.partition_data,
             top_chemical=self.top_chemical, 
             use_cache=self.use_cache,
             thermo=self.thermo
@@ -1646,7 +1647,7 @@ class MultiStageEquilibrium(Unit):
         
     def interpolate_missing_variables(self):
         stages = self.stages
-        lle = self._has_lle
+        lle = self._has_lle and 'K' not in self.partition_data
         partitions = [i.partition for i in stages]
         Bs = []
         Ks = []
@@ -1790,23 +1791,26 @@ class MultiStageEquilibrium(Unit):
                 self.update_mass_balance()
                 self.update_energy_balance_phase_ratios()
         elif self._has_lle: # LLE
-            def psuedo_equilibrium(top_flow_rates):
-                self.set_flow_rates(top_flow_rates)
-                for n, i in enumerate(stages): 
-                    mixer = i.mixer
-                    partition = i.partition
-                    mixer.outs[0].mix_from(
-                        mixer.ins, energy_balance=False,
+            if 'K' in self.partition_data:
+                self.update_mass_balance()
+            else:
+                def psuedo_equilibrium(top_flow_rates):
+                        self.set_flow_rates(top_flow_rates)
+                        for n, i in enumerate(stages): 
+                            mixer = i.mixer
+                            partition = i.partition
+                            mixer.outs[0].mix_from(
+                                mixer.ins, energy_balance=False,
+                            )
+                            partition._run_decoupled_Kgamma(P=P)
+                        return self.run_mass_balance()
+                options = tmo.equilibrium.LLE.pseudo_equilibrium_inner_loop_options.copy()
+                options['xtol'] *= self.feed_flows.max()
+                self.set_flow_rates(
+                    flx.fixed_point(
+                        psuedo_equilibrium, top_flow_rates, **options,
                     )
-                    partition._run_decoupled_Kgamma(P=P)
-                return self.run_mass_balance()
-            options = tmo.equilibrium.LLE.pseudo_equilibrium_inner_loop_options.copy()
-            options['xtol'] *= self.feed_flows.max()
-            self.set_flow_rates(
-                flx.fixed_point(
-                    psuedo_equilibrium, top_flow_rates, **options,
                 )
-            )
             for i in stages: 
                 mixer = i.mixer
                 partition = i.partition

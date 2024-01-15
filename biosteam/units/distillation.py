@@ -1933,13 +1933,13 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
         flow (kmol/hr): Water  100
     outs...
     [0] vapor  
-        phase: 'g', T: 366.33 K, P: 101325 Pa
-        flow (kmol/hr): AceticAcid  3.72
+        phase: 'g', T: 366.32 K, P: 101325 Pa
+        flow (kmol/hr): AceticAcid  3.71
                         Water       73.8
                         MTBE        20
     [1] liquid  
         phase: 'l', T: 372.87 K, P: 101325 Pa
-        flow (kmol/hr): AceticAcid  1.28
+        flow (kmol/hr): AceticAcid  1.29
                         Water       101
                         MTBE        0.000309
     
@@ -2238,14 +2238,14 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     
     >>> D1.results()
     Distillation                                               Units          
-    Electricity         Power                                     kW     0.573
-                        Cost                                  USD/hr    0.0448
+    Electricity         Power                                     kW     0.575
+                        Cost                                  USD/hr     0.045
     Cooling water       Duty                                   kJ/hr -2.98e+06
                         Flow                                 kmol/hr  2.03e+03
                         Cost                                  USD/hr     0.992
     Low pressure steam  Duty                                   kJ/hr   7.8e+06
                         Flow                                 kmol/hr       202
-                        Cost                                  USD/hr        48
+                        Cost                                  USD/hr      47.9
     Design              Theoretical stages                                   5
                         Actual stages                                        7
                         Height                                    ft      24.3
@@ -2284,30 +2284,30 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     0.70
     
     >>> D1.results()
-    Distillation                                     Units          
-    Electricity         Power                           kW     0.917
-                        Cost                        USD/hr    0.0717
-    Cooling water       Duty                         kJ/hr -9.13e+06
-                        Flow                       kmol/hr  6.24e+03
-                        Cost                        USD/hr      3.04
-    Low pressure steam  Duty                         kJ/hr  9.64e+06
-                        Flow                       kmol/hr       249
-                        Cost                        USD/hr      59.3
-    Design              Theoretical stages                         5
-                        Actual stages                              6
-                        Height                          ft      22.9
-                        Diameter                        ft      3.82
-                        Wall thickness                  in     0.312
-                        Weight                          lb     4e+03
-    Purchase cost       Trays                          USD  7.58e+03
-                        Tower                          USD  3.62e+04
-                        Platform and ladders           USD   9.8e+03
-                        Condenser - Floating head      USD   3.5e+04
-                        Pump - Pump                    USD  4.34e+03
-                        Pump - Motor                   USD       389
-                        Reboiler - Floating head       USD  2.41e+04
-    Total purchase cost                                USD  1.17e+05
-    Utility cost                                    USD/hr      62.4
+    Distillation                                     Units         
+    Electricity         Power                           kW    0.917
+                        Cost                        USD/hr   0.0717
+    Cooling water       Duty                         kJ/hr -9.1e+06
+                        Flow                       kmol/hr 6.21e+03
+                        Cost                        USD/hr     3.03
+    Low pressure steam  Duty                         kJ/hr 9.61e+06
+                        Flow                       kmol/hr      248
+                        Cost                        USD/hr     59.1
+    Design              Theoretical stages                        5
+                        Actual stages                             6
+                        Height                          ft     22.9
+                        Diameter                        ft     3.82
+                        Wall thickness                  in    0.312
+                        Weight                          lb    4e+03
+    Purchase cost       Trays                          USD 7.58e+03
+                        Tower                          USD 3.62e+04
+                        Platform and ladders           USD 9.81e+03
+                        Condenser - Floating head      USD 3.47e+04
+                        Pump - Pump                    USD 4.34e+03
+                        Pump - Motor                   USD      389
+                        Reboiler - Floating head       USD 2.41e+04
+    Total purchase cost                                USD 1.17e+05
+    Utility cost                                    USD/hr     62.2
     
     Notes
     -----
