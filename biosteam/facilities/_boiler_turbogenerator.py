@@ -187,7 +187,7 @@ class BoilerTurbogenerator(bst.Facility):
         if ash_disposal_price is not None: self.ash_disposal_price = ash_disposal_price
         self.satisfy_system_electricity_demand = satisfy_system_electricity_demand
       
-    def _get_ID_lime(self):
+    def _get_desulfurization_rxn_and_coreactant(self):
         try:
             return self._ID_lime
         except:
@@ -196,20 +196,20 @@ class BoilerTurbogenerator(bst.Facility):
             has_common_name = 'Ca(OH)2' in chemicals
             if CAS_lime in chemicals or has_common_name:
                 if not has_common_name: chemicals.set_synonym(CAS_lime, 'Ca(OH)2')
-                self.desulfurization_reaction =  tmo.Reaction(
+                self.desulfurization_reaction = rxn = tmo.Reaction(
                     'SO2 + Ca(OH)2 + 0.5 O2 -> CaSO4 + H2O', 'SO2', 0.92, chemicals
                 )
                 self._ID_lime = ID = 'Ca(OH)2'
-                return ID
+                return rxn, ID
             CAS_lime = '1305-78-8'
             has_common_name = 'CaO' in chemicals
             if CAS_lime in chemicals or has_common_name:
                 if not has_common_name: chemicals.set_synonym(CAS_lime, 'CaO')
-                self.desulfurization_reaction =  tmo.Reaction(
+                self.desulfurization_reaction = rxn = tmo.Reaction(
                     'SO2 + CaO + 0.5 O2 -> CaSO4', 'SO2', 0.92, chemicals
                 )
                 self._ID_lime = ID = 'CaO'
-                return ID
+                return rxn, ID
         raise RuntimeError(
             "lime is required for boiler, but no chemical 'CaO' or 'Ca(OH)2' "
             "available in thermodynamic property package"
@@ -373,10 +373,10 @@ class BoilerTurbogenerator(bst.Facility):
             SO2_produced += emissions.imol['CaSO4']
             ash_IDs.append('CaSO4')
         if SO2_produced: 
-            self.desulfurization_reaction.force_reaction(emissions)
+            rxn, ID_lime = self._get_desulfurization_rxn_and_coreactant()
             # FGD lime scaled based on SO2 generated,	
             # 20% stoichiometric excess based on P52 of ref [1]
-            ID_lime = self._get_ID_lime()
+            rxn.force_reaction(emissions)
             lime.imol[ID_lime] = lime_mol = SO2_produced * 1.2
             emissions_mol.remove_negatives()
         else:
