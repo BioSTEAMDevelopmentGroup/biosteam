@@ -1786,7 +1786,9 @@ class MultiStageEquilibrium(Unit):
                 partition._run_decoupled_KTvle(P=P)
                 T = partition.T
                 for i in (partition.outs + i.outs): i.T = T
-            self.update_energy_balance_phase_ratios()
+            for i in range(2):
+                self.update_mass_balance()
+                self.update_energy_balance_phase_ratios()
         elif self._has_lle: # LLE
             def psuedo_equilibrium(top_flow_rates):
                 self.set_flow_rates(top_flow_rates)
@@ -2325,10 +2327,11 @@ def phase_ratio_departures(
     d[:-1] += Hv_in
     for i, j in enumerate(specification_index):
         b[j] = 0
-        c[j] = 0
         d[j] = 0
         jlast = j - 1
         if jlast > 0: c[jlast] = 0
+        try: c[j] = 0
+        except: pass
     return solve_RBDMA_1D_careful(b, c, d)
 
 @njit(cache=True)
