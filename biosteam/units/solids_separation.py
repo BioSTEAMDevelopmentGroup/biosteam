@@ -125,7 +125,7 @@ class SolidsCentrifuge(SolidsSeparator):
     kWhr_per_m3 = 1.40
 
 
-    def _init(self, split, order=None, solids=(), moisture_content=0.40,
+    def _init(self, split, order=None, solids=None, moisture_content=0.40,
               centrifuge_type='scroll_solid_bowl', moisture_ID=None,
               strict_moisture_content=None):
         SolidsSeparator._init(
@@ -133,6 +133,8 @@ class SolidsCentrifuge(SolidsSeparator):
             split=split, order=order, moisture_ID=moisture_ID,
             strict_moisture_content=strict_moisture_content
         )
+        if solids is None:
+            solids = [i.ID for i in self.chemicals if i.locked_state == 's']
         self.solids = solids
         self.centrifuge_type = centrifuge_type
     
