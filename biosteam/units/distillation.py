@@ -1934,12 +1934,12 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
     outs...
     [0] vapor  
         phase: 'g', T: 366.32 K, P: 101325 Pa
-        flow (kmol/hr): AceticAcid  3.71
+        flow (kmol/hr): AceticAcid  3.72
                         Water       73.8
                         MTBE        20
     [1] liquid  
         phase: 'l', T: 372.87 K, P: 101325 Pa
-        flow (kmol/hr): AceticAcid  1.29
+        flow (kmol/hr): AceticAcid  1.28
                         Water       101
                         MTBE        0.000309
     
@@ -2238,8 +2238,8 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     
     >>> D1.results()
     Distillation                                               Units          
-    Electricity         Power                                     kW     0.575
-                        Cost                                  USD/hr     0.045
+    Electricity         Power                                     kW     0.574
+                        Cost                                  USD/hr    0.0449
     Cooling water       Duty                                   kJ/hr -2.98e+06
                         Flow                                 kmol/hr  2.03e+03
                         Cost                                  USD/hr     0.992
@@ -2288,11 +2288,11 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     Electricity         Power                           kW    0.917
                         Cost                        USD/hr   0.0717
     Cooling water       Duty                         kJ/hr -9.1e+06
-                        Flow                       kmol/hr 6.21e+03
+                        Flow                       kmol/hr 6.22e+03
                         Cost                        USD/hr     3.03
-    Low pressure steam  Duty                         kJ/hr 9.61e+06
+    Low pressure steam  Duty                         kJ/hr  9.6e+06
                         Flow                       kmol/hr      248
-                        Cost                        USD/hr     59.1
+                        Cost                        USD/hr       59
     Design              Theoretical stages                        5
                         Actual stages                             6
                         Height                          ft     22.9

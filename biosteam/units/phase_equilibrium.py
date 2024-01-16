@@ -547,7 +547,7 @@ class PhasePartition(Unit):
         top, bottom = ms
         data = self.partition_data
         try:
-            if 'K' in data:
+            if data and 'K' in data:
                 phi = sep.partition(
                     ms, top, bottom, self.IDs, data['K'], 0.5, 
                     data.get('extract_chemicals') or data.get('top_chemicals'),
@@ -588,7 +588,7 @@ class PhasePartition(Unit):
         ms = self._get_mixture(update)
         eq = ms.lle
         data = self.partition_data
-        if 'K' in data:
+        if data and 'K' in data:
             ms.phases = self.phases
             top, bottom = ms
             ms.show()
@@ -850,8 +850,9 @@ class MultiStageEquilibrium(Unit):
     """
     _N_ins = 2
     _N_outs = 2
-    default_maxiter = 20
-    default_fallback_maxiter = 3
+    default_maxiter = 5
+    default_max_attempts = 10
+    default_fallback_maxiter = 1
     default_molar_tolerance = 0.1
     default_relative_molar_tolerance = 0.001
     default_algorithm = 'root'
@@ -1025,6 +1026,8 @@ class MultiStageEquilibrium(Unit):
         self.method = self.default_methods[self.algorithm] if method is None else method
     
         self.inside_out = inside_out
+        
+        self.max_attempts = self.default_max_attempts
     
     def correct_overall_mass_balance(self):
         outmol = sum([i.mol for i in self.outs])
@@ -1115,25 +1118,34 @@ class MultiStageEquilibrium(Unit):
         top_flow_rates = self.hot_start()
         algorithm = self.algorithm
         if algorithm == 'root':
-            solver, conditional, options = self.root_options[self.method]
-            try:
+            self.converged = True
+            for i in range(self.max_attempts):
+                self.attempt = i
+                self.iter = 0
+                self.fallback_iter = 0
+                method = self.method
+                solver, conditional, options = self.root_options[method]
                 if conditional:
-                    solver(self._conditional_iter, top_flow_rates)
+                    top_flow_rates = solver(self._conditional_iter, top_flow_rates)
                 else:
                     try:
-                        solver(self._root_iter, self.get_KTBs().flatten(), **options)
+                        result = solver(self._root_iter, self.get_KTBs().flatten(), **options)
+                        break
                     except RuntimeError: # Fall back to fixed-point
-                        solver, conditional, options = self.root_options['fixed-point']
-                        solver(self._conditional_iter, top_flow_rates)
-            except Converged: 
-                pass
-            else:    
-                self.fallback_iter = 0
-                if self.iter == self.maxiter:
-                    flx.conditional_fixed_point(
+                        method = 'fixed-point'
+                        solver, conditional, options = self.root_options[method]
+                        top_flow_rates = solver(self._conditional_iter, top_flow_rates)
+                if method == 'fixed-point' and self.iter == self.maxiter:
+                    top_flow_rates = flx.conditional_fixed_point(
                         self._sequential_iter, 
-                        self.get_top_flow_rates()
+                        top_flow_rates,
                     )
+                    if self.fallback_iter < self.fallback_maxiter:
+                        break
+                else:
+                    break
+            else:
+                self.converged = False
         elif algorithm == 'optimize':
             solver, options = self.optimize_options[self.method]
             self.constraints = constraints = []
@@ -1271,7 +1283,6 @@ class MultiStageEquilibrium(Unit):
         self.interpolate_missing_variables()
                 
     def hot_start(self):
-        self.iter = 0
         ms = self.multi_stream
         feeds = self.ins
         feed_stages = self.feed_stages
@@ -1805,9 +1816,7 @@ class MultiStageEquilibrium(Unit):
                 partition._run_decoupled_KTvle(P=P)
                 T = partition.T
                 for i in (partition.outs + i.outs): i.T = T
-            for i in range(2):
-                self.update_mass_balance()
-                self.update_energy_balance_phase_ratios()
+            self.update_energy_balance_phase_ratios()
         elif self._has_lle: # LLE
             if 'K' in self.partition_data:
                 self.set_flow_rates(top_flow_rates)
