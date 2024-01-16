@@ -189,7 +189,7 @@ class BoilerTurbogenerator(bst.Facility):
       
     def _get_desulfurization_rxn_and_coreactant(self):
         try:
-            return self._ID_lime
+            return self.desulfurization_reaction, self._ID_lime
         except:
             chemicals = self.chemicals
             CAS_lime = '1305-62-0'

@@ -477,31 +477,24 @@ class PhasePartition(Unit):
         self.B_specification = None
         self.B_fallback = 1
         for i, j in zip(self.outs, self.phases): i.phase = j 
-    
-    @property
-    def linked_multistream(self):
-        try:
-            ms = self._linked_multistream 
-        except:
-            outs = self.outs
-            self._linked_multistream = ms = tmo.MultiStream.from_streams(outs)
-        ms.copy_like(self.feed)
-        return ms
-        
-    @property    
-    def unlinked_multistream(self):
-        try:
-            return self._unlinked_multistream
-        except:
-            self._unlinked_multistream = ms = self.feed.copy()
-            ms.phases = self.phases
-            return ms
         
     def _get_mixture(self, linked=True):
         if linked:
-            return self.linked_multistream
+            try:
+                ms = self._linked_multistream 
+            except:
+                outs = self.outs
+                self._linked_multistream = ms = tmo.MultiStream.from_streams(outs)
+            ms.copy_like(self.feed)
+            return ms
         else:
-            return self.unlinked_multistream
+            try:
+                ms = self._unlinked_multistream
+                ms.copy_like(self.feed)
+            except:
+                self._unlinked_multistream = ms = self.feed.copy()
+                ms.phases = self.phases
+            return ms
     
     def _get_arrays(self):
         if self.gamma_y is None:
@@ -552,12 +545,21 @@ class PhasePartition(Unit):
         ms = self.feed.copy()
         ms.phases = self.phases
         top, bottom = ms
+        data = self.partition_data
         try:
-            phi = sep.partition(
-                ms, top, bottom, self.IDs, self.K, 0.5, 
-                None, None, self.strict_infeasibility_check,
-                stacklevel+1
-            )
+            if 'K' in data:
+                phi = sep.partition(
+                    ms, top, bottom, self.IDs, data['K'], 0.5, 
+                    data.get('extract_chemicals') or data.get('top_chemicals'),
+                    data.get('raffinate_chemicals') or data.get('bottom_chemicals'),
+                    self.strict_infeasibility_check, stacklevel+1
+                )
+            else:
+                phi = sep.partition(
+                    ms, top, bottom, self.IDs, self.K, 0.5, 
+                    None, None, self.strict_infeasibility_check,
+                    stacklevel+1
+                )
         except: 
             return self.B_fallback
         if phi <= 0 or phi >= 1: return
@@ -585,18 +587,34 @@ class PhasePartition(Unit):
         else: self.top_chemical = top_chemical
         ms = self._get_mixture(update)
         eq = ms.lle
-        if update:
-            eq(T=ms.T, P=P, top_chemical=top_chemical, update=update)
-            lle_chemicals, K_new, phi = eq._lle_chemicals, eq._K, eq._phi
+        data = self.partition_data
+        if 'K' in data:
+            ms.phases = self.phases
+            top, bottom = ms
+            ms.show()
+            phi = sep.partition(
+                ms, top, bottom, self.IDs, data['K'], 0.5, 
+                data.get('extract_chemicals') or data.get('top_chemicals'),
+                data.get('raffinate_chemicals') or data.get('bottom_chemicals'),
+                self.strict_infeasibility_check,1
+            )
+            if phi == 1:
+                self.B = np.inf
+            else:
+                self.B = phi / (1 - phi)
         else:
-            lle_chemicals, K_new, phi = eq(T=ms.T, P=P, top_chemical=top_chemical, update=update)
-        if phi == 1:
-            self.B = np.inf
-        else:
-            self.B = phi / (1 - phi)
-        self.T = ms.T
-        IDs = tuple([i.ID for i in lle_chemicals])
-        self._set_arrays(IDs, K=K_new)
+            if update:
+                eq(T=ms.T, P=P, top_chemical=top_chemical, update=update)
+                lle_chemicals, K_new, phi = eq._lle_chemicals, eq._K, eq._phi
+            else:
+                lle_chemicals, K_new, phi = eq(T=ms.T, P=P, top_chemical=top_chemical, update=update)
+            if phi == 1:
+                self.B = np.inf
+            else:
+                self.B = phi / (1 - phi)
+            self.T = ms.T
+            IDs = tuple([i.ID for i in lle_chemicals])
+            self._set_arrays(IDs, K=K_new)
     
     def _run_vle(self, P=None, update=True):
         ms = self._get_mixture(update)
@@ -772,7 +790,7 @@ class MultiStageEquilibrium(Unit):
     >>> MSE.simulate()
     >>> extract, raffinate, extract_side_draw, *raffinate_side_draws = MSE.outs
     >>> (extract.imol['Methanol'] + extract_side_draw.imol['Methanol']) / feed.imol['Methanol'] # Recovery
-    0.95
+    0.92
     
     Simulate stripping column with 2 stages
     
@@ -1792,7 +1810,7 @@ class MultiStageEquilibrium(Unit):
                 self.update_energy_balance_phase_ratios()
         elif self._has_lle: # LLE
             if 'K' in self.partition_data:
-                self.update_mass_balance()
+                self.set_flow_rates(top_flow_rates)
             else:
                 def psuedo_equilibrium(top_flow_rates):
                         self.set_flow_rates(top_flow_rates)
