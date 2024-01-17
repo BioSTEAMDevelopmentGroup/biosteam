@@ -1029,17 +1029,28 @@ def plot_contour_2d(X, Y, Z,
     """Create contour plots and return the figure and the axes."""
     if isinstance(metric_bars[0], MetricBar):
         nrows = len(metric_bars)
-        ncols = Z.shape[-1] if titles is None else len(titles)
+        if Z.ndim == 3: 
+            ncols = 1
+        else: 
+            ncols = Z.shape[-1] if titles is None else len(titles)
         row_bars = True
     else:
         nrows = len(metric_bars)
         ncols = len(metric_bars[0])
         row_bars = False
-    assert Z.shape == (*X.shape, nrows, ncols), (
-       f"Z was shape {Z.shape}, but expeted shape {(*X.shape, nrows, ncols)}; "
-        "Z.shape must be (X, Y, M, N), where (X, Y) is the shape of both X and Y, "
-        "M is the number of metrics, and N is the number of elements in titles (if given)"  
-    )
+    if Z.ndim == 3:
+        assert Z.shape == (*X.shape, nrows), (
+           f"Z was shape {Z.shape}, but expeted shape {(*X.shape, nrows)}; "
+            "Z.shape must be (X, Y, M), where (X, Y) is the shape of both X and Y, "
+            "M is the number of metrics"  
+        )
+        Z = Z[:, :, :, None]
+    else:
+        assert Z.shape == (*X.shape, nrows, ncols), (
+           f"Z was shape {Z.shape}, but expeted shape {(*X.shape, nrows, ncols)}; "
+            "Z.shape must be (X, Y, M, N), where (X, Y) is the shape of both X and Y, "
+            "M is the number of metrics, and N is the number of elements in titles (if given)"  
+        )
     if row_bars:
         fig, axes = contour_subplots(nrows, ncols, wbar=wbar)
         cbs = np.zeros([nrows], dtype=object)

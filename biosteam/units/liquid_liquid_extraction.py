@@ -1137,6 +1137,7 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
     """
     _side_draw_names = ('extract_side_draws', 'raffinate_side_draws')
     _units = MixerSettler._units
+    default_maxiter = 10
     
     def _init(self, N_stages, feed_stages=None, extract_side_draws=None, 
               raffinate_side_draws=None, partition_data=None, top_chemical=None,  
