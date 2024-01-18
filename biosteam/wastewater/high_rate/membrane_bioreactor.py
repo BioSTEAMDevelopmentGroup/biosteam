@@ -344,7 +344,9 @@ class AnMBR(bst.Unit):
         self.growth_rxns(mixed.mol)
         self.biogas_rxns(mixed.mol)
         mixed.split_to(perm, sludge, self._isplit.data)
-
+        degassing(perm, biogas)
+        degassing(sludge, biogas)
+        
         sludge_conc = self._sludge_conc
         insolubles = tuple(i.ID for i in self.chemicals if i.ID in default_insolubles)
         m_insolubles = sludge.imass[insolubles].sum()
@@ -355,9 +357,6 @@ class AnMBR(bst.Unit):
         if perm.imass['Water'] < 0:
             raise ValueError('Not enough moisture in the influent for waste sludge '
                              f'with {sludge_conc} g/L sludge concentration.')
-
-        degassing(perm, biogas)
-        degassing(sludge, biogas)
 
         # Gas for sparging, no sparging needed if submerged or using GAC
         air_out.link_with(air_in)
