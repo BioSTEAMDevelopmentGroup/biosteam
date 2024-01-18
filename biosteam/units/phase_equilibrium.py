@@ -539,6 +539,11 @@ class PhasePartition(Unit):
         y /= y.sum()
         gamma_y = f_gamma(y, T)
         K = gamma_x / gamma_y
+        good = (x != 0) | (y != 0)
+        if not good.all():
+            index = np.where(good)
+            IDs = [IDs[i] for i in index]
+            gamma_y = [gamma_y[i] for i in index]
         self._set_arrays(IDs, gamma_y=gamma_y, K=K)
         
     def _run_decoupled_B(self, stacklevel=1): # Flash Rashford-Rice
@@ -591,7 +596,6 @@ class PhasePartition(Unit):
         if data and 'K' in data:
             ms.phases = self.phases
             top, bottom = ms
-            ms.show()
             phi = sep.partition(
                 ms, top, bottom, self.IDs, data['K'], 0.5, 
                 data.get('extract_chemicals') or data.get('top_chemicals'),
@@ -1294,6 +1298,7 @@ class MultiStageEquilibrium(Unit):
         ms.P = self.P
         if eq == 'lle':
             self.top_chemical = top_chemical = self.top_chemical or feeds[1].main_chemical
+            for i in partitions: i.top_chemical = top_chemical
         data = self.partition_data
         if data:
             top_chemicals = data.get('extract_chemicals') or data.get('vapor_chemicals', [])
