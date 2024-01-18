@@ -86,11 +86,11 @@ def test_distillation():
         boilup=3.5,
         use_cache=True,
         LHK=('Water', 'AceticAcid'),
-        method='anderson',
+        method='fixed-point',
     )
     distillation.simulate()
     flows = (
-        [0.0, 0.0, 0.0]
+        [0.0, 0.0, 0.0],
         [0.11207623502718754, 4.350673197920912, 22.367339208146912],
         [22.05592376497281, 0.14372680207908728, 87.1436607918531],
     )
