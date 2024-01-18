@@ -132,8 +132,8 @@ class StageEquilibrium(Unit):
             'partition', PhasePartition, ins=mixer-0, phases=phases,
             partition_data=partition_data, top_chemical=top_chemical,
             outs=(
-                bst.Stream(None) if top_split else self.outs[0],
-                bst.Stream(None) if bottom_split else self.outs[1],
+                None if top_split else self.outs[0],
+                None if bottom_split else self.outs[1],
             ),
         )
         self.top_split = top_split
@@ -953,15 +953,13 @@ class MultiStageEquilibrium(Unit):
                     self-0, # extract or vapor
                 )
             else:
-                outs.append(bst.Stream(None))
+                outs.append(None)
             if i == N_stages - 1: 
                 outs.append(
                     self-1 # raffinate or liquid
                 )
             else:
-                outs.append(
-                    None
-                )
+                outs.append(None)
             if i in top_side_draws:
                 outs.append(next(tsd_iter))
                 top_split = top_side_draws[i]

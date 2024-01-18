@@ -529,10 +529,6 @@ class ConvergenceModel:
         data = self.data
         if exception and self.fitted:
             del data['samples'][-1]
-            if self.save_predicition: 
-                predicted = data['predicted']
-                for response in self.responses:
-                    del predicted[response][-1]
             raise exception
         actual = data['actual']
         for response in self.responses:

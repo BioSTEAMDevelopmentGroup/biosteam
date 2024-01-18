@@ -1161,7 +1161,8 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
         self.use_cache = use_cache
         self._last_args = (
             self.N_stages, self.feed_stages, self.extract_side_draws, self.use_cache,
-            *self._ins, self.raffinate_side_draws, self.top_chemical, self.partition_data
+            *self._ins, self.raffinate_side_draws, self.top_chemical, self.partition_data,
+            self.collapsed_init,
         )
     
     feed = MixerSettler.feed
@@ -1180,7 +1181,8 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
     def _setup(self):
         super()._setup()
         args = (self.N_stages, self.feed_stages, self.extract_side_draws, self.use_cache,
-                *self._ins, self.raffinate_side_draws, self.top_chemical, self.partition_data)
+                *self._ins, self.raffinate_side_draws, self.top_chemical, self.partition_data,
+                self.collapsed_init)
         if args != self._last_args:
             MultiStageEquilibrium._init(
                 self, N_stages=self.N_stages, feed_stages=self.feed_stages,
@@ -1189,6 +1191,7 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
                 bottom_side_draws=self.raffinate_side_draws,
                 stage_specifications=None, partition_data=self.partition_data, 
                 top_chemical=self.top_chemical, use_cache=self.use_cache, 
+                collapsed_init=self.collapsed_init,
             )
             self.mixer._ins = self._ins
             self.settler._outs = self._outs

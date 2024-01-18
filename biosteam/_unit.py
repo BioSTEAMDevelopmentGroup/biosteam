@@ -1747,9 +1747,9 @@ class Unit:
           from this unit. 
         
         """
-        if stream is None: stream = Stream(None)
+        if thermo is None: thermo = self.thermo
+        if stream is None: stream = Stream(None, thermo=thermo)
         if isinstance(stream, str): 
-            if thermo is None: thermo = self.thermo
             stream = Stream('.' + stream, thermo=thermo)
             stream._source = stream._sink = self
         if self is stream._source and stream in self._outs:
