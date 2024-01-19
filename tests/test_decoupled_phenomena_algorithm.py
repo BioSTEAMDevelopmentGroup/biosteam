@@ -107,7 +107,8 @@ def test_simple_acetic_acid_separation_no_recycle():
     for i in range(1): 
         dp_sys.simulate()
         dp_sys.run_decoupled_phenomena()
-    for i in range(1): sm_sys.simulate()
+    for i in range(2): 
+        sm_sys.simulate()
     
     
     for s_sm, s_dp in zip(sm_sys.streams, dp_sys.streams):
