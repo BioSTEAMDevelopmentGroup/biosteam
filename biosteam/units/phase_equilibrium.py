@@ -541,7 +541,7 @@ class PhasePartition(Unit):
         K = gamma_x / gamma_y
         good = (x != 0) | (y != 0)
         if not good.all():
-            index = np.where(good)
+            index, = np.where(good)
             IDs = [IDs[i] for i in index]
             gamma_y = [gamma_y[i] for i in index]
         self._set_arrays(IDs, gamma_y=gamma_y, K=K)
