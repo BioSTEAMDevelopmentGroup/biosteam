@@ -516,7 +516,7 @@ class PhasePartition(Unit):
     
     def _get_activity_model(self):
         chemicals = self.chemicals
-        index = chemicals.get_lle_indices(sum([i.mol for i in self.outs]).nonzero_keys())
+        index = chemicals.get_lle_indices(sum([i.mol for i in self.ins]).nonzero_keys())
         chemicals = chemicals.tuple
         lle_chemicals = [chemicals[i] for i in index]
         return self.thermo.Gamma(lle_chemicals), [i.ID for i in lle_chemicals], index
@@ -544,6 +544,7 @@ class PhasePartition(Unit):
             index, = np.where(good)
             IDs = [IDs[i] for i in index]
             gamma_y = [gamma_y[i] for i in index]
+            K = [K[i] for i in index]
         self._set_arrays(IDs, gamma_y=gamma_y, K=K)
         
     def _run_decoupled_B(self, stacklevel=1): # Flash Rashford-Rice

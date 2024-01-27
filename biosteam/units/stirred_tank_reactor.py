@@ -229,6 +229,9 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
     #: Default cleaning and unloading time (hr).
     tau_0_default: Optional[float]  = 3
     
+    #: Whether to default operation in batch mode or continuous
+    batch_default = False
+    
     @property
     def effluent(self):
         return self.outs[-1]
@@ -263,7 +266,7 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
         self.vessel_material = 'Stainless steel 316' if vessel_material is None else vessel_material
         self.vessel_type = 'Vertical' if vessel_type is None else vessel_type
         self.tau_0 = self.tau_0_default if tau_0 is None else tau_0
-        self.batch = batch
+        self.batch = self.batch_default if batch is None else batch
         self.load_auxiliaries()
 
     def load_auxiliaries(self):
@@ -422,6 +425,7 @@ class AeratedBioreactor(StirredTankReactor):
     T_default = 273.15 + 32 
     P_default = 101325
     kW_per_m3_default = 0.2955 # Reaction in homogeneous liquid; reference [1]
+    batch_default = True
     
     def _init(
             self, reactions, theta_O2=0.5, Q_O2_consumption=None,
@@ -702,6 +706,7 @@ class GasFedBioreactor(StirredTankReactor):
     T_default = 273.15 + 32 
     P_default = 101325
     kW_per_m3_default = 0.2955 # Reaction in homogeneous liquid
+    batch_default = True
     
     def _init(self, 
             reactions, gas_substrates, titer, backward_reactions, 
