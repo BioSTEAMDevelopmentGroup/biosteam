@@ -393,24 +393,24 @@ class AeratedBioreactor(StirredTankReactor):
     >>> R1.show()
     AeratedBioreactor: R1
     ins...
-    [0] feed
+    [0] feed  
         phase: 'l', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water    6.66e+03
                         Glucose  139
-    [1] air
+    [1] air  
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): O2  730
-                        N2  2.75e+03
+        flow (kmol/hr): O2  1.05e+03
+                        N2  3.93e+03
     outs...
-    [0] vent
+    [0] vent  
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water  109
+        flow (kmol/hr): Water  136
                         CO2    416
-                        O2     314
-                        N2     2.75e+03
-    [1] product
+                        O2     629
+                        N2     3.93e+03
+    [1] product  
         phase: 'l', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water    6.97e+03
+        flow (kmol/hr): Water    6.94e+03
                         Glucose  69.4
     
     """
