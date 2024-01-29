@@ -254,7 +254,6 @@ class Network:
         path_sources = [PathSource(i, ends) for i in self.path]
         N = len(path_sources)
         if not N: return
-        shift = 0
         for _ in range(N * N):
             stop = True
             for i in range(N - 1):
@@ -262,28 +261,27 @@ class Network:
                 for j in range(i + 1, N):
                     downstream = path_sources[j]
                     if upstream.downstream_from(downstream):
-                        if isinstance(downstream.source, Network):
-                            if isinstance(upstream.source, Network):
+                        path_sources.remove(downstream)
+                        path_sources.insert(i, downstream)
+                        upstream = downstream
+                        if upstream.downstream_from(downstream):
+                            if isinstance(downstream.source, Network):
+                                if isinstance(upstream.source, Network):
+                                    self.add_recycle(
+                                        downstream.source.streams.intersection(upstream.source.streams)
+                                    ) 
+                                else:
+                                    self.add_recycle(
+                                        downstream.source.streams.intersection(upstream.source.outs)
+                                    ) 
+                                stop = False
+                                break
+                            elif isinstance(upstream.source, Network):
                                 self.add_recycle(
-                                    downstream.source.streams.intersection(upstream.source.streams)
+                                    upstream.source.streams.intersection(downstream.source.outs)
                                 ) 
-                            else:
-                                self.add_recycle(
-                                    downstream.source.streams.intersection(upstream.source.outs)
-                                ) 
-                            stop = False
-                            break
-                        elif isinstance(upstream.source, Network):
-                            self.add_recycle(
-                                upstream.source.streams.intersection(downstream.source.outs)
-                            ) 
-                            stop = False
-                            break
-                        else:
-                            path_sources.remove(downstream)
-                            path_sources.insert(i, downstream)
-                            upstream = downstream
-                            stop = False
+                                stop = False
+                                break
             if stop: break
         self.path = [i.source for i in path_sources]
         for i in self.path: 
