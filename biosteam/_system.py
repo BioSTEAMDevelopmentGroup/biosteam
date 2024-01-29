@@ -1761,7 +1761,7 @@ class System:
         elif isa(recycle, Stream):
             self._recycle = recycle
         elif isa(recycle, abc.Iterable):
-            real_recycles = [i for i in recycle if isa(i, piping.stream_types)]
+            real_recycles = [i for i in recycle if isa(i, Stream)]
             if len(real_recycles) == 0: 
                 self.method = 'fixed-point'
                 permanent = self.unit_set
