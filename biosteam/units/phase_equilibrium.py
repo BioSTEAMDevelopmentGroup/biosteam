@@ -613,8 +613,9 @@ class PhasePartition(Unit):
                 lle_chemicals, K_new, phi = eq._lle_chemicals, eq._K, eq._phi
             else:
                 lle_chemicals, K_new, phi = eq(T=ms.T, P=P, top_chemical=top_chemical, update=update)
-            if phi == 1:
+            if phi == 1 or phi is None:
                 self.B = np.inf
+                return
             else:
                 self.B = phi / (1 - phi)
             self.T = ms.T
@@ -1943,9 +1944,7 @@ class MultiStageEquilibrium(Unit):
         self.fallback_iter += 1
         self.set_flow_rates(top_flow_rates)
         for i in self.stages: i._run()
-        for i in reversed(self.stages): 
-            try: i._run()
-            except: breakpoint()
+        for i in reversed(self.stages): i._run()
         mol = top_flow_rates.flatten()
         top_flow_rates = self.get_top_flow_rates()
         mol_new = top_flow_rates.flatten()

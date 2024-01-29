@@ -90,7 +90,10 @@ class LinearEquations:
     def append(self, unit):
         A = self.A; b = self.b
         self.units.append(unit)
+        zero = np.array(0)
         for coefficients, value in unit._create_linear_equations(self.variable):
+            # if all([(i == zero).all() for i in coefficients.values()]):
+            #     continue
             for stream in tuple(coefficients):
                 if not hasattr(stream, 'port'): continue
                 original = stream
@@ -117,15 +120,16 @@ class LinearEquations:
                 values.append(value)
             return objs, np.array(values)
         A, objs = dictionaries2array(self.A)
+        # (A == 0).all(axis=1)
         b = np.array(b).T
         try:
             values = solve(A, b).T
-        except:
+        except Exception as e:
             for i in self.A:
                 print('--')
-                for a, b in i.items():
-                    print(a.ID, b)
-            breakpoint()
+                for i, j in i.items():
+                    print(i.ID, j)
+            raise e
         for obj, value in zip(objs, values): 
             obj._update_decoupled_variable(variable, value)
         if variable in ('mol', 'mol-LLE'):
@@ -470,7 +474,7 @@ class MockSystem:
                 raise ValueError(f'{i} is not an inlet')
         self._ins = piping.StreamPorts.from_inlets(inlets)
         self._inlet_names = {} if names is None else names
-
+    
     def load_outlet_ports(self, outlets, names=None):
         """Load outlet ports to system."""
         all_outlets = utils.products_from_units(self.units)
@@ -583,6 +587,7 @@ class System:
         '_rmol_error',
         '_rT_error',
         '_iter',
+        'phenomena_maxiter',
         '_ins',
         '_outs',
         '_path_cache',
@@ -652,6 +657,10 @@ class System:
     #: Default relative temperature tolerance
     default_relative_temperature_tolerance: float = 0.001
 
+    #: Default maximum number of phenomena-oriented simulations before 
+    #: running each unit operation sequentially
+    default_phenomena_maxiter: int = 15
+
     #: Default convergence algorithm.
     default_algorithm: str = 'Sequential modular'
 
@@ -668,7 +677,7 @@ class System:
     available_methods: Methods[str, tuple[Callable, bool, dict]] = Methods()
 
     #: Variable solution priority for phenomena oriented simulation.
-    variable_priority: list[str] = [('mol-LLE', 'K-pseudo'), 'K', 'T', 'L', 'B', 'mol']
+    variable_priority: list[str] = [('mol', 'K-pseudo'), 'K', 'T', 'L', 'B']
 
     @classmethod
     def register_method(cls, name, solver, conditional=False, **kwargs):
@@ -860,6 +869,9 @@ class System:
         
         #: Maximum number of iterations.
         self.maxiter: int = self.default_maxiter if maxiter is None else maxiter
+
+        #: Default maximum number of phenomena-oriented simulations before attempting sequential modular
+        self.phenomena_maxiter = self.default_phenomena_maxiter
 
         #: Molar tolerance [kmol/hr].
         self.molar_tolerance: float = self.default_molar_tolerance if molar_tolerance is None else molar_tolerance
@@ -1749,7 +1761,7 @@ class System:
         elif isa(recycle, Stream):
             self._recycle = recycle
         elif isa(recycle, abc.Iterable):
-            real_recycles = [i for i in recycle if isa(recycle, Stream)]
+            real_recycles = [i for i in recycle if isa(i, piping.stream_types)]
             if len(real_recycles) == 0: 
                 self.method = 'fixed-point'
                 permanent = self.unit_set
@@ -2196,10 +2208,13 @@ class System:
             self.run_sequential_modular()
         elif algorithm == 'Phenomena oriented':
             if self._iter == 0:
-                for i in range(self.depth):
-                    for i in self.unit_path: i.run()
+                self.run_sequential_modular()
             else:
-                self.run_decoupled_phenomena()
+                try:
+                    self.run_phenomena()
+                except:
+                    print('FAILED PHENOMENA-ORIENTED SIMULATION')
+                    self.run_sequential_modular()
         else:
             raise RuntimeError(f'unknown algorithm {algorithm!r}')
 
@@ -2213,7 +2228,7 @@ class System:
             elif isa(i, System): f(i, i.converge)
             else: raise RuntimeError('path elements must be either a unit or a system')
 
-    def run_decoupled_phenomena(self):
+    def run_phenomena(self):
         """Decouple and linearize material, equilibrium, summation, enthalpy,
         and reaction phenomena and iteratively solve them."""
         stages = self.stages + self.feeds
