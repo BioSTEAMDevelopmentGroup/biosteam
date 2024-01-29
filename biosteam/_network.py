@@ -249,8 +249,10 @@ class Network:
             if isinstance(i, Network): i.get_all_recycles(all_recycles)
         return all_recycles
     
-    def sort(self, ends):
+    def sort(self):
         isa = isinstance
+        ends = self.recycle
+        if not isinstance(ends, set): ends = set([ends])
         path_sources = [PathSource(i, ends) for i in self.path]
         N = len(path_sources)
         if not N: return
@@ -263,7 +265,7 @@ class Network:
                     if upstream.downstream_from(downstream):
                         path_sources.remove(downstream)
                         path_sources.insert(i, downstream)
-                        upstream = downstream
+                        upstream, downstream = downstream, upstream
                         if upstream.downstream_from(downstream):
                             if isinstance(downstream.source, Network):
                                 if isinstance(upstream.source, Network):
@@ -282,10 +284,12 @@ class Network:
                                 ) 
                                 stop = False
                                 break
+                            else:
+                                self.add_recycle(set([i for i in upstream.source.outs if i in downstream.source.ins]))
             if stop: break
         self.path = [i.source for i in path_sources]
         for i in self.path: 
-            if isa(i, Network): i.sort(ends)
+            if isa(i, Network): i.sort()
         if not stop: warn(RuntimeWarning('network path could not be determined'))
     
     @classmethod
@@ -347,10 +351,10 @@ class Network:
                 network.join_network_at_unit(downstream_network,
                                              connecting_unit)
         
-        recycle_ends.update(network.get_all_recycles())
-        recycle_ends.update(bst.utils.products_from_units(network.units))
+        # recycle_ends.update(network.get_all_recycles())
+        # recycle_ends.update(bst.utils.products_from_units(network.units))
         network.add_process_heat_exchangers()
-        network.sort(recycle_ends)
+        network.sort()
         network.reduce_recycles()
         return network
     
