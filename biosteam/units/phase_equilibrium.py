@@ -505,9 +505,13 @@ class PhasePartition(Unit):
     def _set_arrays(self, IDs, **kwargs):
         IDs_last = self.IDs
         if IDs_last and IDs_last != IDs:
+            size = len(IDs_last)
             index = [IDs_last.index(i) for i in IDs]
             for name, array in kwargs.items():
                 last = getattr(self, name)
+                if last.size != size:
+                    last = np.ones(size)
+                    setattr(self, name, last)
                 for i, j in enumerate(index):
                     last[j] = array[i]
         else:
