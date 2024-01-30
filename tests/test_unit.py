@@ -182,7 +182,7 @@ def test_process_specifications_with_recycles():
                 recycle=M1_a-0),
              P2_b,
              S1_b],
-            recycle=[S3_b-1, P2_b-0, S1_b-1])]
+            recycle=[S3_b-1, S1_b-1])]
     )
     assert M1_b.specifications[0].path == ()
     

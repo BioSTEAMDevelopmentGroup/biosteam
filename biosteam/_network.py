@@ -251,9 +251,12 @@ class Network:
     
     def sort(self, ends):
         isa = isinstance
+        for i in self.path: 
+            if isa(i, Network): i.sort(ends)
         path_sources = [PathSource(i, ends) for i in self.path]
         N = len(path_sources)
         if not N: return
+        has_recycle = bool(self.recycle)
         for _ in range(N * N):
             stop = True
             for i in range(N - 1):
@@ -264,35 +267,29 @@ class Network:
                         if downstream.downstream_from(upstream):
                             if isinstance(downstream.source, Network):
                                 if isinstance(upstream.source, Network):
-                                    self.add_recycle(
-                                        downstream.source.streams.intersection(upstream.source.streams)
-                                    ) 
+                                    recycles = downstream.source.streams.intersection(upstream.source.streams) 
                                 else:
-                                    self.add_recycle(
-                                        downstream.source.streams.intersection(upstream.source.outs)
-                                    ) 
-                                stop = False
-                                break
+                                    recycles = downstream.source.streams.intersection(upstream.source.outs)
                             elif isinstance(upstream.source, Network):
-                                self.add_recycle(
-                                    upstream.source.streams.intersection(downstream.source.outs)
-                                ) 
-                                stop = False
-                                break
+                                recycles = upstream.source.streams.intersection(downstream.source.outs)
                             else:
-                                self.add_recycle(set([i for i in upstream.source.outs if i in downstream.source.ins]))
+                                recycles = set([i for i in upstream.source.outs if i in downstream.source.ins])
+                            recycles = [i for i in recycles if i not in ends]
+                            if recycles:
+                                self.add_recycle(set(recycles))
+                                stop = False
                         else:
                             path_sources.remove(downstream)
                             path_sources.insert(i, downstream)
                             upstream, downstream = downstream, upstream
+                            stop = False
+                        break
             if stop: break
         self.path = [i.source for i in path_sources]
-        for i in self.path: 
-            if isa(i, Network): i.sort(ends)
         if not stop: warn(RuntimeWarning('network path could not be determined'))
     
     @classmethod
-    def from_feedstock(cls, feedstock, feeds=(), ends=None, units=None):
+    def from_feedstock(cls, feedstock, feeds=(), ends=None, units=None, final=True):
         """
         Create a Network object from a feedstock.
         
@@ -330,7 +327,7 @@ class Network:
         disjunction_streams = set([i.get_stream() for i in disjunctions])
         for feed in feeds:
             if feed in ends or isa(feed.sink, Facility): continue
-            downstream_network = cls.from_feedstock(feed, (), ends, units)
+            downstream_network = cls.from_feedstock(feed, (), ends, units, final=False)
             new_streams = downstream_network.streams
             connections = ends.intersection(new_streams)
             connecting_units = {stream._sink for stream in connections
@@ -349,12 +346,13 @@ class Network:
                 connecting_unit = network.first_unit(connecting_units)
                 network.join_network_at_unit(downstream_network,
                                              connecting_unit)
-        
-        recycle_ends.update(network.get_all_recycles())
-        recycle_ends.update(bst.utils.products_from_units(network.units))
-        network.add_process_heat_exchangers()
-        network.sort(recycle_ends)
-        network.reduce_recycles()
+        if final:
+            recycle_ends.update(disjunction_streams)
+            recycle_ends.update(network.get_all_recycles())
+            recycle_ends.update(bst.utils.products_from_units(network.units))
+            network.add_process_heat_exchangers()
+            network.sort(recycle_ends)
+            network.reduce_recycles()
         return network
     
     @classmethod
