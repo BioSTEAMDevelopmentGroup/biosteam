@@ -120,19 +120,23 @@ class LinearEquations:
                 values.append(value)
             return objs, np.array(values)
         A, objs = dictionaries2array(self.A)
-        # rows = A.any(axis=0)
-        # cols = A.any(axis=1)
-        # b = [j for (i, j) in zip(rows, b)]
         b = np.array(b).T
-        # A = A[rows, ...][:, cols, ...]
-        # objs = [j for (i, j) in zip(cols, objs) if i]
+        if A.ndim == 2:
+            rows = A.any(axis=0)
+            cols = A.any(axis=1)
+            b = [j for (i, j) in zip(rows, b)]
+            A = A[rows][:, cols]
+            objs = [j for (i, j) in zip(cols, objs) if i]
+        else:
+            # TODO: A.ndim == 3
+            pass
         try:
             values = solve(A, b).T
         except Exception as e:
-            for i in self.A:
-                print('--')
-                for i, j in i.items():
-                    print(i.ID, j)
+            # for i in self.A:
+            #     print('--')
+            #     for i, j in i.items():
+            #         print(i.ID, j)
             raise e
         for obj, value in zip(objs, values): 
             obj._update_decoupled_variable(variable, value)
