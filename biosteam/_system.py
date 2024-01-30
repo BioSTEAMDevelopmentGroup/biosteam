@@ -129,7 +129,6 @@ class LinearEquations:
         try:
             values = solve(A, b).T
         except Exception as e:
-            breakpoint()
             for i in self.A:
                 print('--')
                 for i, j in i.items():
