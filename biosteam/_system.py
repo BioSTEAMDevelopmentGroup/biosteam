@@ -120,27 +120,7 @@ class LinearEquations:
                 values.append(value)
             return objs, np.array(values)
         A, objs = dictionaries2array(self.A)
-        if A.ndim == 3:
-            A_ = A
-            b_ = np.array(b).T
-            objs_ = objs
-            values = []
-            for A, b in zip(A_, b_):
-                rows = A.any(axis=0)
-                cols = A.any(axis=1)
-                b = [j for (i, j) in zip(rows, b)]
-                A = A[rows][:, cols]
-                objs = [j for (i, j) in zip(cols, objs_) if i]
-                values.append(solve(A, b).T)
-            values = np.array(values).T
-        else:
-            rows = A.any(axis=0)
-            cols = A.any(axis=1)
-            b = np.array(b).T
-            b = [j for (i, j) in zip(rows, b)]
-            A = A[rows][:, cols]
-            objs = [j for (i, j) in zip(cols, objs) if i]
-            values = solve(A, b).T
+        values = solve(A, np.array(b).T).T
         if np.isnan(values).any(): 
             raise RuntimeError('nan value in variables')
         for obj, value in zip(objs, values): 
