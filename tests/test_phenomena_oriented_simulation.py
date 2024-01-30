@@ -197,7 +197,7 @@ def test_simple_acetic_acid_separation_with_recycle():
     for i in range(1): sm_sys.simulate()
     t1 = time.toc()
     
-    assert t0 < 0.75 * t1, 'phenomena-oriented simulation speed should be faster than sequential-modular'
+    assert t0 < 0.2 * t1, 'phenomena-oriented simulation speed should be faster than sequential-modular'
     
     for s_sm, s_dp in zip(sm_sys.streams, dp_sys.streams):
         actual = s_sm.mol
@@ -296,6 +296,7 @@ def test_complex_acetic_acid_separation_system():
 
     time.tic()
     sm = create_system('sequential modular')
+    sm.flatten()
     sm.set_tolerance(rmol=1e-6, mol=1e-6, subsystems=True, method='fixed-point')
     sm.simulate()
     t_sequential = time.toc()

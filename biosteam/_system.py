@@ -120,24 +120,29 @@ class LinearEquations:
                 values.append(value)
             return objs, np.array(values)
         A, objs = dictionaries2array(self.A)
-        b = np.array(b).T
-        if A.ndim == 2:
+        if A.ndim == 3:
+            A_ = A
+            b_ = np.array(b).T
+            objs_ = objs
+            values = []
+            for A, b in zip(A_, b_):
+                rows = A.any(axis=0)
+                cols = A.any(axis=1)
+                b = [j for (i, j) in zip(rows, b)]
+                A = A[rows][:, cols]
+                objs = [j for (i, j) in zip(cols, objs_) if i]
+                values.append(solve(A, b).T)
+            values = np.array(values).T
+        else:
             rows = A.any(axis=0)
             cols = A.any(axis=1)
+            b = np.array(b).T
             b = [j for (i, j) in zip(rows, b)]
             A = A[rows][:, cols]
             objs = [j for (i, j) in zip(cols, objs) if i]
-        else:
-            # TODO: A.ndim == 3
-            pass
-        try:
             values = solve(A, b).T
-        except Exception as e:
-            # for i in self.A:
-            #     print('--')
-            #     for i, j in i.items():
-            #         print(i.ID, j)
-            raise e
+        if np.isnan(values).any(): 
+            raise RuntimeError('nan value in variables')
         for obj, value in zip(objs, values): 
             obj._update_decoupled_variable(variable, value)
         if variable in ('mol', 'mol-LLE'):
@@ -685,7 +690,7 @@ class System:
     available_methods: Methods[str, tuple[Callable, bool, dict]] = Methods()
 
     #: Variable solution priority for phenomena oriented simulation.
-    variable_priority: list[str] = ['mol', ('mol-LLE', 'K-pseudo'), 'K', 'T', 'L', 'B']
+    variable_priority: list[str] = ['mol', ('mol-LLE', 'K-pseudo'), 'K', 'B', 'mol', 'T', 'L']
 
     @classmethod
     def register_method(cls, name, solver, conditional=False, **kwargs):
@@ -2222,7 +2227,7 @@ class System:
                     self.run_phenomena()
                 except:
                     warn('phenomena-oriented simulation failed; '
-                         'attempting one sequential-modular loop', RuntimeWarning)
+                          'attempting one sequential-modular loop', RuntimeWarning)
                     for i in self.unit_path: i.run()
         else:
             raise RuntimeError(f'unknown algorithm {algorithm!r}')

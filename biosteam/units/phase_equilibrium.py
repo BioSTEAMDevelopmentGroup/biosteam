@@ -504,7 +504,7 @@ class PhasePartition(Unit):
     
     def _set_arrays(self, IDs, **kwargs):
         IDs_last = self.IDs
-        if IDs_last and IDs_last != IDs:
+        if IDs_last and IDs_last != IDs and len(IDs_last) > len(IDs):
             size = len(IDs_last)
             index = [IDs_last.index(i) for i in IDs]
             for name, array in kwargs.items():
@@ -668,7 +668,7 @@ class PhasePartition(Unit):
             y_mol = 0
         K_new = y_mol / x_mol
         if B is None: 
-            if V_total and not L_total:
+            if not L_total:
                 self.B = inf
             else:
                 self.B = V_total / L_total
