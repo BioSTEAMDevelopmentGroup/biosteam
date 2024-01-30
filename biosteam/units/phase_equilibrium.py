@@ -338,28 +338,28 @@ class StageEquilibrium(Unit):
     def _create_linear_equations(self, variable):
         # list[dict[Unit|Stream, float]]
         phases = self.phases
+        partition = self.partition
+        chemicals = self.chemicals
+        pIDs = partition.IDs
+        partition.IDs = IDs = chemicals.IDs
+        K = np.ones(chemicals.size)
+        index = [IDs.index(i) for i in pIDs]
+        for i, j in zip(index, partition.K): K[i] = j
+        partition.K = K
+        if phases == ('L', 'l'):
+            if partition.gamma_y is not None:
+                gamma_y = np.ones(chemicals.size)
+                for i, j in zip(index, partition.gamma_y): gamma_y[i] = j
+                partition.gamma_y = gamma_y
         if (variable == 'K' and phases == ('g', 'l')
             or variable == 'K-pseudo' and phases == ('L', 'l')):
-            partition = self.partition
-            chemicals = self.chemicals
-            IDs = chemicals.IDs
-            IDs_last = partition.IDs
-            if IDs_last != IDs:
-                arrays = self._get_arrays()
-                index = [IDs_last.index(i) for i in IDs]
-                for i, j in arrays.items():
-                    array = np.ones(chemicals.size)
-                    last = getattr(self, name)
-                    for i, j in enumerate(index): array[i] = last[j]
-                    setattr(self, name, array)
-                partition.IDs = IDs
             if phases == ('g', 'l'):
                 partition._run_decoupled_KTvle()
             elif phases == ('L', 'l'):
                 partition._run_decoupled_Kgamma()
             else:
                 raise NotImplementedError(f'K for phases {phases} is not yet implemented')
-            eqs = [({self: np.ones(chemicals.size)}, partition.K)]
+            eqs = [({self: np.ones(chemicals.size)}, self.K)]
         elif variable == 'T':
             if phases == ('g', 'l'):
                 eqs = []
@@ -503,20 +503,27 @@ class PhasePartition(Unit):
             return {'K': self.K, 'gamma_y': self.gamma_y}
     
     def _set_arrays(self, IDs, **kwargs):
+        IDs = tuple(IDs)
         IDs_last = self.IDs
-        if IDs_last and IDs_last != IDs and len(IDs_last) > len(IDs):
+        if IDs_last is None:
+            self.IDs = IDs
+            for i, j in kwargs.items(): setattr(self, i, j)
+        elif IDs_last != IDs:
             size = len(IDs_last)
-            index = [IDs_last.index(i) for i in IDs]
-            for name, array in kwargs.items():
-                last = getattr(self, name)
-                if last.size != size:
-                    last = np.ones(size)
-                    setattr(self, name, last)
-                for i, j in enumerate(index):
-                    last[j] = array[i]
+            if len(IDs) > size:
+                self.IDs = IDs
+                for i, j in kwargs.items(): setattr(self, i, j)
+            else:
+                index = [IDs_last.index(i) for i in IDs]
+                for name, array in kwargs.items():
+                    last = getattr(self, name)
+                    if last.size != size:
+                        last = np.ones(size)
+                        setattr(self, name, last)
+                    for i, j in enumerate(index):
+                        last[j] = array[i]
         else:
             for i, j in kwargs.items(): setattr(self, i, j)
-            self.IDs = IDs
     
     def _get_activity_model(self):
         chemicals = self.chemicals
@@ -537,16 +544,10 @@ class PhasePartition(Unit):
             x = np.ones(x.size) / x.size
         gamma_x = f_gamma(x, T)
         gamma_y = self.gamma_y
-        try:
-            init_gamma = gamma_y is None or gamma_y.size != len(index)
-        except:
-            init_gamma = True
-        if init_gamma:
+        if gamma_y is None or gamma_y.size != len(index):
             y = top.mol[index]
             y /= y.sum()
             self.gamma_y = gamma_y = f_gamma(y, T)
-            
-            
         K = self.K
         K = gamma_x / gamma_y 
         y = K * x
@@ -1249,7 +1250,8 @@ class MultiStageEquilibrium(Unit):
         )
         top_flow_rates = flx.wegstein(
             self._hot_start_phase_ratios_iter,
-            top_flow_rates, args=args, xtol=self.relative_molar_tolerance
+            top_flow_rates, args=args, xtol=self.relative_molar_tolerance,
+            checkiter=False
         )
         bottom_flow_rates = hot_start_bottom_flow_rates(
             top_flow_rates, *args
@@ -1349,7 +1351,7 @@ class MultiStageEquilibrium(Unit):
         bottom_side_draws = {(i if i >= 0 else N_stages + i): j for i, j in self.bottom_side_draws.items()}
         self.key_stages = key_stages = set([*feed_stages, *stage_specifications, *top_side_draws, *bottom_side_draws])
         if (self.use_cache 
-            and all([i.IDs == IDs for i in partitions])): # Use last set of data
+            and not any([i.ins[0].isempty() for i in partitions])): # Use last set of data
             pass
         elif self.collapsed_init and len(key_stages) != self.N_stages:
             self.hot_start_collapsed_stages(

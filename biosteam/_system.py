@@ -120,27 +120,28 @@ class LinearEquations:
                 values.append(value)
             return objs, np.array(values)
         A, objs = dictionaries2array(self.A)
-        if A.ndim == 3:
-            A_ = A
-            b_ = np.array(b).T
-            objs_ = objs
-            values = []
-            for A, b in zip(A_, b_):
-                rows = A.any(axis=0)
-                cols = A.any(axis=1)
-                b = [j for (i, j) in zip(rows, b)]
-                A = A[rows][:, cols]
-                objs = [j for (i, j) in zip(cols, objs_) if i]
-                values.append(solve(A, b).T)
-            values = np.array(values).T
-        else:
-            rows = A.any(axis=0)
-            cols = A.any(axis=1)
-            b = np.array(b).T
-            b = [j for (i, j) in zip(rows, b)]
-            A = A[rows][:, cols]
-            objs = [j for (i, j) in zip(cols, objs) if i]
-            values = solve(A, b).T
+        # if A.ndim == 3:
+        #     A_ = A
+        #     b_ = np.array(b).T
+        #     objs_ = objs
+        #     values = []
+        #     for A, b in zip(A_, b_):
+        #         rows = A.any(axis=1)
+        #         cols = A.any(axis=0)
+        #         b = [j for (i, j) in zip(rows, b) if i]
+        #         A = A[rows][:, cols]
+        #         objs = [j for (i, j) in zip(cols, objs_) if i]
+        #         values.append(solve(A, b))
+        #     values = np.array(values).T
+        # else:
+        #     rows = A.any(axis=1)
+        #     cols = A.any(axis=0)
+        #     b = [j for (i, j) in zip(rows, b) if i]
+        #     b = np.array(b).T
+        #     A = A[rows][:, cols]
+        #     objs = [j for (i, j) in zip(cols, objs) if i]
+        #     values = solve(A, b)
+        values = solve(A, np.array(b).T).T
         if np.isnan(values).any(): 
             raise RuntimeError('nan value in variables')
         for obj, value in zip(objs, values): 
@@ -690,7 +691,7 @@ class System:
     available_methods: Methods[str, tuple[Callable, bool, dict]] = Methods()
 
     #: Variable solution priority for phenomena oriented simulation.
-    variable_priority: list[str] = ['mol', ('mol-LLE', 'K-pseudo'), 'K', 'B', 'mol', 'T', 'L']
+    variable_priority: list[str] = ['mol', 'T', ('mol-LLE', 'K-pseudo'), 'K', 'B', 'mol', 'L']
 
     @classmethod
     def register_method(cls, name, solver, conditional=False, **kwargs):
@@ -2220,14 +2221,25 @@ class System:
         if algorithm == 'Sequential modular':
             self.run_sequential_modular()
         elif algorithm == 'Phenomena oriented':
-            if all([i.isempty() for i in self.get_all_recycles()]):
+            if self._iter == 0:
                 for i in self.unit_path: i.run()
             else:
                 try:
                     self.run_phenomena()
-                except:
+                    print('OK!')
+                except np.linalg.LinAlgError as e:
+                    print(e)
+                    print('Ohh no!')
+                    for i in self.unit_path: i.run()
+                except RuntimeError as e:
+                    print(e)
+                    print('Ohh no!')
+                    for i in self.unit_path: i.run()
+                except Exception as e:
+                    print(e)
+                    print('Ohh no!')
                     warn('phenomena-oriented simulation failed; '
-                          'attempting one sequential-modular loop', RuntimeWarning)
+                         'attempting one sequential-modular loop', RuntimeWarning)
                     for i in self.unit_path: i.run()
         else:
             raise RuntimeError(f'unknown algorithm {algorithm!r}')

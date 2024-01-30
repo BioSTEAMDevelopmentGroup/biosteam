@@ -48,7 +48,12 @@ def dictionaries2array(dictionaries):
     for i, dct in enumerate(dictionaries):
         for key, value in dct.items():
             j = index[key]
-            array[..., i, j] = value
+            try:
+                array[..., i, j] = value
+            except:
+                print(key)
+                print(value)
+                breakpoint()
     return array, keys
 
 
