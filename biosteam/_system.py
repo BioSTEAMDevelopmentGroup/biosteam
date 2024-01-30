@@ -90,7 +90,7 @@ class LinearEquations:
     def append(self, unit):
         A = self.A; b = self.b
         self.units.append(unit)
-        zero = np.array(0)
+        # zero = np.array(0)
         for coefficients, value in unit._create_linear_equations(self.variable):
             # if all([(i == zero).all() for i in coefficients.values()]):
             #     continue
@@ -120,11 +120,16 @@ class LinearEquations:
                 values.append(value)
             return objs, np.array(values)
         A, objs = dictionaries2array(self.A)
-        # (A == 0).all(axis=1)
+        # rows = A.any(axis=0)
+        # cols = A.any(axis=1)
+        # b = [j for (i, j) in zip(rows, b)]
         b = np.array(b).T
+        # A = A[rows, ...][:, cols, ...]
+        # objs = [j for (i, j) in zip(cols, objs) if i]
         try:
             values = solve(A, b).T
         except Exception as e:
+            breakpoint()
             for i in self.A:
                 print('--')
                 for i, j in i.items():
@@ -677,7 +682,7 @@ class System:
     available_methods: Methods[str, tuple[Callable, bool, dict]] = Methods()
 
     #: Variable solution priority for phenomena oriented simulation.
-    variable_priority: list[str] = [('mol', 'K-pseudo'), 'K', 'T', 'L', 'B']
+    variable_priority: list[str] = ['mol', ('mol-LLE', 'K-pseudo'), 'K', 'T', 'L', 'B']
 
     @classmethod
     def register_method(cls, name, solver, conditional=False, **kwargs):
@@ -2207,14 +2212,15 @@ class System:
         if algorithm == 'Sequential modular':
             self.run_sequential_modular()
         elif algorithm == 'Phenomena oriented':
-            if self._iter == 0:
-                self.run_sequential_modular()
+            if all([i.isempty() for i in self.get_all_recycles()]):
+                for i in self.unit_path: i.run()
             else:
                 try:
                     self.run_phenomena()
                 except:
-                    print('FAILED PHENOMENA-ORIENTED SIMULATION')
-                    self.run_sequential_modular()
+                    warn('phenomena-oriented simulation failed; '
+                         'attempting one sequential-modular loop', RuntimeWarning)
+                    for i in self.unit_path: i.run()
         else:
             raise RuntimeError(f'unknown algorithm {algorithm!r}')
 

@@ -530,13 +530,23 @@ class PhasePartition(Unit):
         f_gamma, IDs, index = self._get_activity_model()
         T = self.T
         x = bottom.mol[index]
-        x /= x.sum()
+        x_sum = x.sum()
+        if x_sum:
+            x /= x_sum
+        else:
+            x = np.ones(x.size) / x.size
         gamma_x = f_gamma(x, T)
         gamma_y = self.gamma_y
-        if gamma_y is None or gamma_y.size != len(index):
+        try:
+            init_gamma = gamma_y is None or gamma_y.size != len(index)
+        except:
+            init_gamma = True
+        if init_gamma:
             y = top.mol[index]
             y /= y.sum()
             self.gamma_y = gamma_y = f_gamma(y, T)
+            
+            
         K = self.K
         K = gamma_x / gamma_y 
         y = K * x

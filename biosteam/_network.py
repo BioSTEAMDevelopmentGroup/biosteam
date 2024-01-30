@@ -256,7 +256,6 @@ class Network:
         path_sources = [PathSource(i, ends) for i in self.path]
         N = len(path_sources)
         if not N: return
-        has_recycle = bool(self.recycle)
         for _ in range(N * N):
             stop = True
             for i in range(N - 1):
@@ -281,7 +280,7 @@ class Network:
                         else:
                             path_sources.remove(downstream)
                             path_sources.insert(i, downstream)
-                            upstream, downstream = downstream, upstream
+                            upstream = downstream
                             stop = False
                         break
             if stop: break
