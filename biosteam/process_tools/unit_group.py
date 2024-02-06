@@ -9,9 +9,10 @@
 import pandas as pd
 import biosteam as bst
 import numpy as np
+from thermosteam.utils import repr_items
 from . import utils
 from .._unit import Unit
-from ..utils import misc, streams_from_units
+from ..utils import streams_from_units
 from .._heat_utility import HeatUtility
 from collections.abc import Mapping
 
@@ -472,9 +473,9 @@ class UnitGroup:
         ... )
              Net electricity production
         0                           100
-        100                       -2.97
-        200                        -3.5
-        300                      -0.895
+        100                       -2.98
+        200                       -3.51
+        300                      -0.897
         400                           0
         
         >>> bst.UnitGroup.df_from_groups(
@@ -484,8 +485,8 @@ class UnitGroup:
              Net electricity production
         0                           108
         100                       -3.21
-        200                       -3.78
-        300                      -0.966
+        200                       -3.79
+        300                      -0.968
         400                           0
         
         >>> bst.default() # Reset to biosteam defaults
@@ -521,7 +522,7 @@ class UnitGroup:
     def show(self):
         units = self.units
         if units:
-            units = '\n' + misc.repr_items(' units: ', units)
+            units = '\n' + repr_items(' units: ', units)
         else:
             units = "\n units: (No units)"
         metrics = self.metrics

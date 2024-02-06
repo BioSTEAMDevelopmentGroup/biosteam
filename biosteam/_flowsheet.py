@@ -6,14 +6,16 @@
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 """
-As BioSTEAM objects are created, they are automatically registered. The `main_flowsheet` object allows the user to find any Unit, Stream or System instance.  When `main_flowsheet` is called, it simply looks up the item and returns it. 
+As BioSTEAM objects are created, they are automatically registered. 
+The `main_flowsheet` object allows the user to find any Unit, Stream or System instance.
+When `main_flowsheet` is called, it simply looks up the item and returns it. 
 """
 from __future__ import annotations
 from typing import Optional, Iterable
 import biosteam as bst
 from thermosteam.utils import Registry
-from thermosteam import Stream
-from ._unit import Unit
+from thermosteam import AbstractStream
+from ._unit import AbstractUnit
 from ._system import System
 
 __all__ = ('main_flowsheet', 'Flowsheet', 'F')
@@ -160,7 +162,7 @@ class Flowsheet:
     def clear(self, reset_ticket_numbers=True):
         for registry in self.registries: registry.clear()
         if reset_ticket_numbers:
-            for i in (Stream, Unit, System): i.ticket_numbers.clear()
+            for i in (AbstractStream, AbstractUnit, System): i.ticket_numbers.clear()
     
     def discard(self, ID):
         for registry in self.registries: registry.discard(ID)
@@ -233,8 +235,8 @@ class Flowsheet:
                                                 title, **graph_attrs)
     
     def create_system(self, ID: Optional[str]="", 
-                      ends: Optional[Iterable[Stream]]=None,
-                      facility_recycle: Optional[Stream]=None, 
+                      ends: Optional[Iterable[AbstractStream]]=None,
+                      facility_recycle: Optional[AbstractStream]=None, 
                       operating_hours: Optional[float]=None,
                       **kwargs):
         """
@@ -260,7 +262,7 @@ class Flowsheet:
         return System.from_units(ID, self.unit, ends, facility_recycle,
                                  operating_hours, **kwargs)
     
-    def __call__(self, ID: str|type[Unit], strict: Optional[bool]=False):
+    def __call__(self, ID: str|type[AbstractUnit], strict: Optional[bool]=False):
         """
 		Return requested biosteam item or a list of all matching items.
     
@@ -334,9 +336,9 @@ class MainFlowsheet(Flowsheet):
                 dct = new_flowsheet.__dict__
         else:
             raise TypeError('flowsheet must be a Flowsheet object')
-        Stream.registry = dct['stream']
+        AbstractStream.registry = dct['stream']
         System.registry = dct['system']
-        Unit.registry = dct['unit']
+        AbstractUnit.registry = dct['unit']
         object.__setattr__(self, '__dict__', dct)
         
     def get_flowsheet(self):
@@ -355,6 +357,6 @@ class MainFlowsheet(Flowsheet):
 F = main_flowsheet = object.__new__(MainFlowsheet)
 main_flowsheet.set_flowsheet(
     Flowsheet.from_registries(
-        'default', Stream.registry, Unit.registry, System.registry
+        'default', AbstractStream.registry, AbstractUnit.registry, System.registry
     )
 )

@@ -24,9 +24,10 @@ from . import HeatUtility, PowerUtility
 from thermosteam.utils import registered
 from scipy.optimize import root
 from .exceptions import try_method_with_object_stamp, Converged, UnitInheritanceError
-from ._network import Network, mark_disjunction, unmark_disjunction
+from thermosteam import Network, mark_disjunction, unmark_disjunction
 from ._facility import Facility
-from ._unit import Unit, repr_ins_and_outs
+from ._unit import Unit
+from thermosteam.network import repr_ins_and_outs
 from . import utils
 from .utils import (
     repr_items, ignore_docking_warnings,
@@ -43,7 +44,7 @@ import pandas as pd
 from numpy.linalg import solve
 from scipy.integrate import solve_ivp
 from . import report
-from ._temporary_connection import temporary_units_dump, TemporaryUnit
+from thermosteam.network import temporary_units_dump, TemporaryUnit
 import os
 import openpyxl
 if TYPE_CHECKING: 
@@ -144,11 +145,11 @@ class LinearEquations:
         values = solve(A, np.array(b).T).T
         if np.isnan(values).any(): 
             raise RuntimeError('nan value in variables')
-        c = variable not in ('K-pseudo', 'mol-LLE')
-        if c: print(variable)
-        if c: print('------')
+        # c = variable not in ('K-pseudo', 'mol-LLE')
+        # if c: print(variable)
+        # if c: print('------')
         for obj, value in zip(objs, values): 
-            if c: print(obj, value)
+            # if c: print(obj, value)
             obj._update_decoupled_variable(variable, value)
         if variable in ('mol', 'mol-LLE'):
             for i in self.units: 
@@ -1798,7 +1799,7 @@ class System:
                     raise AttributeError("recycle streams must be Stream objects; "
                                         f"not {type(i).__name__}")
             self._recycle = recycle
-        elif isa(recycle, piping.TemporaryStream):
+        elif recycle.__class__ is AbstractStream:
             self.method = 'fixed-point'
             permanent = self.unit_set
             unit_path = self.unit_path

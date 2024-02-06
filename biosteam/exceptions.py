@@ -13,7 +13,6 @@ from warnings import warn
 
 __all__ = (
     'DesignError', 
-    'GraphicsWarning',
     'FailedEvaluation',
     'UnitInheritanceError',
     'Converged',
@@ -30,9 +29,6 @@ del exceptions
 
 class DesignError(RuntimeError):
     """RuntimeError regarding unit design."""
-    
-class GraphicsWarning(RuntimeWarning):
-    """RuntimeWarning regarding diagrams."""
     
 class FailedEvaluation(RuntimeWarning):
     """RuntimeWarning regarding failed model evaluation."""

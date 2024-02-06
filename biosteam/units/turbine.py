@@ -21,7 +21,7 @@ from .heat_exchange import HX
 from .. import Unit
 from ..utils import list_available_names
 from ..exceptions import DesignWarning, bounds_warning
-from .._graphics import turbine_graphics
+from thermosteam._graphics import turbine_graphics
 
 
 __all__ = (

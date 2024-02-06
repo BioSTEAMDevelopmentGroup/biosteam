@@ -8,7 +8,7 @@
 """
 """
 from .._unit import Unit
-from .._graphics import junction_graphics
+from thermosteam._graphics import junction_graphics
 from .._power_utility import PowerUtility
 from ..exceptions import UndefinedChemical
 from ..utils.piping import Inlets, Outlets

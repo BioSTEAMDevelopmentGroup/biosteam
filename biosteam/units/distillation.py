@@ -49,7 +49,7 @@ from . import design_tools as design
 from thermosteam import separations
 from .. import Unit
 from .splitting import MockSplitter
-from .._graphics import vertical_column_graphics
+from thermosteam._graphics import vertical_column_graphics
 from scipy.optimize import brentq
 from warnings import warn
 import biosteam as bst

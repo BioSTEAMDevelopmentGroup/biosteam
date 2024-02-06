@@ -9,7 +9,7 @@
 """
 from .._unit import Unit
 from thermosteam.separations import material_balance
-from .._graphics import process_specification_graphics
+from thermosteam._graphics import process_specification_graphics
 from ..utils import static
 
 __all__ = ('MassBalance',)

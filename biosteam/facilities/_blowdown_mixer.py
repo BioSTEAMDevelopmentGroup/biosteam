@@ -7,7 +7,7 @@
 # for license details.
 """
 """
-from .._graphics import mixer_graphics
+from thermosteam._graphics import mixer_graphics
 import biosteam as bst
 
 __all__ = ('BlowdownMixer',)

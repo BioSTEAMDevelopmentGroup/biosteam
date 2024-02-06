@@ -10,7 +10,7 @@
 from __future__ import annotations
 import pandas as pd
 from warnings import warn
-from ._graphics import UnitGraphics, box_graphics
+from thermosteam._graphics import UnitGraphics, box_graphics
 from ._heat_utility import HeatUtility
 from .utils import AbstractMethod, format_title, static, piping, StreamLinkOptions
 from ._power_utility import PowerUtility
@@ -111,26 +111,6 @@ class ProcessSpecification:
 # stream = Union[Annotated[Union[Stream, str, None], 1], Union[Stream, str, None]]
 # stream_sequence = Collection[Union[Stream, str, None]]
 
-# %% Path utilities
-
-def add_path_segment(start, end, path, ignored):
-    fill_path_segment(start, path, end, set(), ignored)
-
-def fill_path_segment(start, path, end, previous_units, ignored):
-    if start is end: return path
-    if start not in previous_units: 
-        if start not in ignored: path.append(start)
-        previous_units.add(start)
-        success = False
-        for outlet in start._outs:
-            start = outlet._sink
-            if not start: continue
-            path_segment = fill_path_segment(start, [], end, previous_units, ignored)
-            if path_segment is not None: 
-                path.extend(path_segment)
-                success = True
-        if success: return path
-    
 # %% Unit Operation
 
 @thermo_user
@@ -325,44 +305,14 @@ class Unit(AbstractUnit):
     #: **class-attribute** Index for auxiliary outlets to parent unit for graphviz diagram settings.
     _auxout_index = {}
     
-    #: **class-attribute** Expected number of inlet streams. Defaults to 1.
-    _N_ins: int = 1  
-    
-    #: **class-attribute** Expected number of outlet streams. Defaults to 1
-    _N_outs: int = 1
-    
-    #: **class-attribute** Whether the number of streams in :attr:`~Unit.ins` is fixed.
-    _ins_size_is_fixed: bool = True
-    
-    #: **class-attribute** Whether the number of streams in :attr:`~Unit.outs` is fixed.
-    _outs_size_is_fixed: bool = True
-    
     #: **class-attribute** Options for linking streams
     _stream_link_options: StreamLinkOptions = None
-
-    #: **class-attribute** Used for piping warnings.
-    _stacklevel: int = 5
-    
-    #: **class-attribute** Name denoting the type of Unit class. Defaults to the class
-    #: name of the first child class
-    line: str = 'Unit'
 
     #: **class-attribute** Lifetime of equipment. Defaults to lifetime of
     #: production venture. Use an integer to specify the lifetime for all
     #: items in the unit purchase costs. Use a dictionary to specify the 
     #: lifetime of each purchase cost item.
     _default_equipment_lifetime: int|dict[str, int] = {}
-
-    #: **class-attribute** Settings for diagram representation. Defaults to a 
-    #: box with the same number of inlet and outlet edges as :attr:`~Unit._N_ins` 
-    #: and :attr:`~Unit._N_outs`.
-    _graphics: UnitGraphics = box_graphics
-
-    #: **class-attribute** Whether to skip detailed simulation when inlet 
-    #: streams are empty. If inlets are empty and this flag is True,
-    #: detailed mass and energy balance, design, and costing algorithms are skipped
-    #: and all outlet streams are emptied.
-    _skip_simulation_when_inlets_are_empty = False
 
     ### Abstract methods ###
     
@@ -391,7 +341,7 @@ class Unit(AbstractUnit):
     _update_variables = AbstractMethod
     
     Inlets = piping.Inlets
-    Outlets = piping.Inlets
+    Outlets = piping.Outlets
     
     def __init__(self,
             ID: Optional[str]='',
@@ -409,8 +359,8 @@ class Unit(AbstractUnit):
         
         self.auxins = {} #: dict[int, stream] Auxiliary inlets by index.
         self.auxouts = {} #:  dict[int, stream] Auxiliary outlets by index.
-        self._init_inlets(ins, thermo=self._thermo)
-        self._init_outlets(outs, thermo=self._thermo)
+        self._init_inlets(ins)
+        self._init_outlets(outs)
     
         ### Initialize utilities
     
@@ -997,10 +947,6 @@ class Unit(AbstractUnit):
             if not s: s.materialize_connection()
     
     @property
-    def system(self) -> System|None:
-        return self._system
-    
-    @property
     def owner(self) -> Unit:
         owner = getattr(self, '_owner', None)
         return self if owner is None else owner.owner
@@ -1008,8 +954,6 @@ class Unit(AbstractUnit):
     def owner(self, owner):
         if owner is not self: self._owner = owner
     
-    
-
     def _get_tooltip_string(self, format=None, full=None):
         """Return a string that can be used as a Tippy tooltip in HTML output"""
         if format is None: format = bst.preferences.graphviz_format
@@ -1050,17 +994,6 @@ class Unit(AbstractUnit):
             elif tooltip: tooltip = tooltip.lstrip(newline)
             if format == 'html': tooltip = ' ' + tooltip
         return tooltip
-    
-    def get_node(self):
-        """Return unit node attributes for graphviz."""
-        try: self._load_stream_links()
-        except: pass
-        if bst.preferences.minimal_nodes:
-            return self._graphics.get_minimal_node(self)
-        else:
-            node = self._graphics.get_node_tailored_to_unit(self)
-            node['tooltip'] = self._get_tooltip_string()
-            return node
     
     def get_design_result(self, key: str, units: str):
         """
@@ -1104,187 +1037,6 @@ class Unit(AbstractUnit):
             except:
                 pass
     
-    def add_specification(self, 
-            f: Optional[Callable]=None, 
-            run: Optional[bool]=None, 
-            args: Optional[tuple]=(),
-            impacted_units: Optional[tuple[Unit, ...]]=None,
-            prioritize: Optional[bool]=None,
-        ):
-        """
-        Add a specification.
-
-        Parameters
-        ----------
-        f : 
-            Specification function runned for mass and energy balance.
-        run : 
-            Whether to run the built-in mass and energy balance after 
-            specifications. Defaults to False.
-        args : 
-            Arguments to pass to the specification function.
-        impacted_units :
-            Other units impacted by specification. The system will make sure to 
-            run itermediate upstream units when simulating.
-        prioritize :
-            Whether to prioritize the unit operation within a recycle loop (if any).
-            
-        Examples
-        --------
-        :doc:`../tutorial/Process_specifications`
-
-        See Also
-        --------
-        add_bounded_numerical_specification
-        specifications
-        run
-
-        Notes
-        -----
-        This method also works as a decorator.
-
-        """
-        if not f: return lambda f: self.add_specification(f, run, args, impacted_units, prioritize)
-        if not callable(f): raise ValueError('specification must be callable')
-        self._specifications.append(ProcessSpecification(f, args, impacted_units))
-        if run is not None: self.run_after_specifications = run
-        if prioritize is not None: self.prioritize = prioritize
-        return f
-    
-    def add_bounded_numerical_specification(self, f=None, *args, **kwargs):
-        """
-        Add a bounded numerical specification that solves x where f(x) = 0 using an 
-        inverse quadratic interpolation solver.
-        
-        Parameters
-        ----------
-        f : Callable
-            Objective function in the form of f(x, *args).
-        x : float, optional
-            Root guess.
-        x0, x1 : float
-            Root bracket. Solution must lie within x0 and x1.
-        xtol : float, optional
-            Solver stops when the root lies within xtol. Defaults to 0.
-        ytol : float, optional 
-            Solver stops when the f(x) lies within ytol of the root. Defaults to 5e-8.
-        args : tuple, optional
-            Arguments to pass to f.
-        maxiter : 
-            Maximum number of iterations. Defaults to 50.
-        checkiter : bool, optional
-            Whether to raise a Runtime error when tolerance could not be 
-            satisfied before the maximum number of iterations. Defaults to True.
-        checkroot : bool, optional
-            Whether satisfying both tolerances, xtol and ytol, are required 
-            for termination. Defaults to False.
-        checkbounds : bool, optional
-            Whether to raise a ValueError when in a bounded solver when the 
-            root is not certain to lie within bounds (i.e. f(x0) * f(x1) > 0.).
-            Defaults to True.
-            
-        Examples
-        --------
-        :doc:`../tutorial/Process_specifications`
-
-        See Also
-        --------
-        add_specification
-        specifications
-        
-        Notes
-        -----
-        This method also works as a decorator.
-
-        """
-        if not f: return lambda f: self.add_bounded_numerical_specification(f, *args, **kwargs)
-        if not callable(f): raise ValueError('f must be callable')
-        self._specifications.append(bst.BoundedNumericalSpecification(f, *args, **kwargs))
-        return f
-    
-    def run(self):
-        """
-        Run mass and energy balance. This method also runs specifications
-        user defined specifications unless it is being run within a 
-        specification (to avoid infinite loops). 
-        
-        See Also
-        --------
-        _run
-        specifications
-        add_specification
-        add_bounded_numerical_specification
-        
-        """
-        if self._skip_simulation_when_inlets_are_empty and all([i.isempty() for i in self._ins]):
-            for i in self._outs: i.empty()
-            return
-        specifications = self._specifications
-        if specifications:
-            active_specifications = self._active_specifications
-            if len(active_specifications) == len(specifications):
-                self._run()
-            else:
-                for ps in specifications: 
-                    if ps in active_specifications: continue
-                    active_specifications.add(ps)
-                    try: ps()
-                    finally: active_specifications.remove(ps)
-                if self.run_after_specifications: self._run()
-        else:
-            self._run()
-    
-    def path_from(self, units, inclusive=False, system=None):
-        """
-        Return a tuple of units and systems starting from `units` until this one 
-        (not inclusive by default).
-        
-        """
-        units = (units,) if isinstance(units, Unit) else tuple(units)
-        if system: # Includes recycle loops
-            path = system.path_section(units, (self,))
-        else: # Path outside system, so recycle loops may not converge (and don't have to)
-            path = []
-            added_units = set()
-            upstream_units = self.get_upstream_units()
-            for unit in units:
-                if unit in upstream_units: add_path_segment(unit, self, path, added_units)
-            if inclusive and unit not in added_units: path.append(unit)
-        return path        
-    
-    def path_until(self, units, inclusive=False, system=None):
-        """
-        Return a tuple of units and systems starting from this one until the end
-        units (not inclusive by default).
-        
-        """
-        units = (units,) if isinstance(units, Unit) else tuple(units)
-        if system: # Includes recycle loops
-            path = system.path_section((self,), units, inclusive)
-        else: # Path outside system, so recycle loops may not converge (and don't have to)
-            path = []
-            added_units = set()
-            downstream_units = self.get_downstream_units()
-            for unit in units:
-                if unit in downstream_units: add_path_segment(self, unit, path, added_units)
-            if inclusive and unit not in added_units: path.append(unit)
-        return path
-    
-    def run_until(self, units, inclusive=False, system=None):
-        """
-        Run all units and converge all systems starting from this one until the end units
-        (not inclusive by default).
-        
-        See Also
-        --------
-        path_until
-        
-        """
-        isa = isinstance
-        for i in self.path_until(units, inclusive, system): 
-            if isa(i, Unit): i.run()
-            else: i.converge() # Must be a system
-        
     def _reevaluate(self):
         """Reevaluate design/cost/LCA results."""
         self._setup()
@@ -1491,7 +1243,7 @@ class Unit(AbstractUnit):
             return [self.auxlet(piping.MissingStream()) for i in range(N_streams)]
         elif streams == ():
             return [self.auxlet(Stream(None, thermo=thermo)) for i in range(N_streams)]
-        elif isinstance(streams, Stream) or streams.__class__ is str:
+        elif isinstance(streams, (tmo.AbstractStream, tmo.AbstractMissingStream)) or streams.__class__ is str:
             return self.auxlet(streams, thermo=thermo)
         else:
             return [self.auxlet(i, thermo=thermo) for i in streams]
@@ -1774,19 +1526,6 @@ class Unit(AbstractUnit):
             series = pd.Series(vals, pd.MultiIndex.from_tuples(keys))
             series.name = self.ID
             return series
-
-    @property
-    def thermo(self) -> tmo.Thermo:
-        """Thermodynamic property package."""
-        return self._thermo
-    @property
-    def ins(self) -> Sequence[Stream]:
-        """List of all inlet streams."""
-        return self._ins    
-    @property
-    def outs(self) -> Sequence[Stream]:
-        """List of all outlet streams."""
-        return self._outs
 
     def get_available_chemicals(self):
         streams = [i for i in (self._ins + self._outs) if i]

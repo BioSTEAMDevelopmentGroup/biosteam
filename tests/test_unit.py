@@ -10,7 +10,7 @@
 import pytest
 import biosteam as bst
 import numpy as np
-from biosteam._network import Network
+from thermosteam.network import Network
 from numpy.testing import assert_allclose
 
 def test_auxiliary_unit_owners():
@@ -225,11 +225,10 @@ def test_unit_graphics():
     
     S = bst.Splitter(None, outs=None, split=0.5)
     
-    GraphicsWarning = bst.exceptions.GraphicsWarning
-    with pytest.warns(GraphicsWarning):
+    with pytest.warns(RuntimeWarning):
         assert S._graphics.get_inlet_options(S, 1) == {'headport': 'c'}
     
-    with pytest.warns(GraphicsWarning):
+    with pytest.warns(RuntimeWarning):
         assert M._graphics.get_outlet_options(M, 1) == {'tailport': 'c'}
 
 def test_cost_decorator():

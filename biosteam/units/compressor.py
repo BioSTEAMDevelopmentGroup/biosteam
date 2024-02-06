@@ -32,7 +32,7 @@ from .heat_exchange import HX
 from ..utils import list_available_names
 from ..exceptions import DesignWarning, bounds_warning
 from .. import Unit
-from .._graphics import compressor_graphics
+from thermosteam._graphics import compressor_graphics
 
 __all__ = (
     'Compressor',
