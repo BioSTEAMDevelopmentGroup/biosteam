@@ -1,22 +1,17 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2024, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 """
 """
-from ._facility import Facility
 from .utils import streams_from_units
 from warnings import warn
-from thermosteam import Stream
 import biosteam as bst
-from collections.abc import Iterable
-from .utils import piping
-from ._temporary_connection import TemporaryUnit
 
-# %% Customization to system creation
+# %% Other tools
 
 disjunctions = []
 
@@ -25,24 +20,23 @@ def mark_disjunction(stream):
     In other words, the stream flow rates and thermal condition will not change
     when solving recycle loops. This will prevent the system from
     forming recycle loops about this stream."""
-    port = piping.OutletPort.from_outlet(stream)
+    port = bst.OutletPort.from_outlet(stream)
     if port not in disjunctions:
         disjunctions.append(port)
 
 def unmark_disjunction(stream):
-    port = piping.OutletPort.from_outlet(stream)
+    port = bst.OutletPort.from_outlet(stream)
     if port in disjunctions:
         disjunctions.remove(port)
 
-# %% Other tools
 
 def get_recycle_sink(recycle):
-    if isinstance(recycle, piping.stream_types):
-        return recycle._sink
-    elif isinstance(recycle, Iterable):
-        for i in recycle: return i._sink
+    if hasattr(recycle, 'sink'):
+        return recycle.sink
+    elif isinstance(recycle, set):
+        for i in recycle: return i.sink
     else: # pragma: no cover
-        raise ValueError('recycle must be either a stream or an Iterable; not a '
+        raise ValueError('recycle must be either an stream or an Iterable; not a '
                         f"'{type(recycle).__name__}' object")
 
 # %% Path tools
@@ -91,7 +85,7 @@ def fill_path(feed, path, paths_with_recycle,
               paths_without_recycle,
               ends, units):
     unit = feed.sink
-    if not unit or isinstance(unit, Facility) or unit not in units:
+    if not unit or unit._universal or unit not in units:
         paths_without_recycle.append(path)
     elif unit in path: 
         path_with_recycle = path, feed
@@ -241,7 +235,7 @@ class Network:
             all_recycles = set()
         recycle = self.recycle
         if recycle:
-            if isinstance(recycle, piping.stream_types):
+            if hasattr(recycle, 'sink'):
                 all_recycles.add(recycle)
             else:
                 all_recycles.update(recycle)
@@ -321,11 +315,10 @@ class Network:
         recycle_networks = [Network(*i) for i in cyclic_paths_with_recycle]
         for recycle_network in recycle_networks:
             network.join_recycle_network(recycle_network)
-        isa = isinstance
         ends.update(network.streams)
         disjunction_streams = set([i.get_stream() for i in disjunctions])
         for feed in feeds:
-            if feed in ends or isa(feed.sink, Facility): continue
+            if feed in ends or feed.sink._universal: continue
             downstream_network = cls.from_feedstock(feed, (), ends, units, final=False)
             new_streams = downstream_network.streams
             connections = ends.intersection(new_streams)
@@ -349,7 +342,7 @@ class Network:
             recycle_ends.update(disjunction_streams)
             recycle_ends.update(network.get_all_recycles())
             recycle_ends.update(bst.utils.products_from_units(network.units))
-            network.add_process_heat_exchangers()
+            network.add_interaction_nodes()
             network.sort(recycle_ends)
             network.reduce_recycles()
         return network
@@ -376,7 +369,7 @@ class Network:
                 au.owner = u
                 unit_set.discard(au)
         units = [u for u in units if u in unit_set] 
-        feeds = bst.utils.feeds_from_units(units) + [piping.MissingStream(None, i) for i in units if not i._ins]
+        feeds = bst.utils.feeds_from_units(units) + [bst.AbstractStream(source=None, sink=i) for i in units if not i._ins]
         bst.utils.sort_feeds_big_to_small(feeds)
         if feeds:
             feedstock, *feeds = feeds
@@ -398,7 +391,7 @@ class Network:
                 self.path = network.path
                 self.add_recycle(network.recycle)
         recycle = self.recycle
-        if recycle and not isinstance(recycle, piping.stream_types):
+        if recycle and not isinstance(recycle, set):
             sinks = set([i.sink for i in recycle])
             if len(sinks) == 1:
                 sink = sinks.pop()
@@ -410,19 +403,19 @@ class Network:
                 if len(source.ins) == 1:
                     self.recycle = source.ins[0]
     
-    def add_process_heat_exchangers(self, excluded=None):
+    def add_interaction_nodes(self, excluded=None):
         isa = isinstance
         path = self.path
         if excluded is None: excluded = set()
         for i, u in enumerate(path):
             if isa(u, Network):
-                u.add_process_heat_exchangers(excluded)
+                u.add_interaction_nodes(excluded)
             else:
-                if isa(u, bst.HXprocess): excluded.add(u)
+                if u._interaction: excluded.add(u)
                 for s in u.outs:
                     sink = s.sink
                     if u in excluded: continue
-                    if isa(sink, bst.HXprocess) and sink in path[:i] and not any([(sink in i.units if isa(i, Network) else sink is i) for i in path[i+1:]]):
+                    if u._interaction and sink in path[:i] and not any([(sink in i.units if isa(i, Network) else sink is i) for i in path[i+1:]]):
                         excluded.add(sink)
                         path.insert(i+1, sink)
         if len(path) > 1 and path[-1] is path[0]: path.pop()
@@ -509,22 +502,16 @@ class Network:
         if recycle is stream:
             return 
         isa = isinstance
-        if isa(recycle, piping.stream_types):
-            if isa(stream, piping.stream_types):
-                self.recycle = {self.recycle, stream}
-            elif isa(stream, set):
-                self.recycle = {self.recycle, *stream}
-            else: # pragma: no cover
-                raise ValueError(f'recycles must be stream objects; not {type(stream).__name__}')
-        elif isa(recycle, set):
-            if isa(stream, piping.stream_types):
-                recycle.add(stream)
-            elif isa(stream, set):
+        if isa(recycle, set):
+            if isa(stream, set):
                 recycle.update(stream)
-            else: # pragma: no cover
-                raise ValueError(f'recycles must be stream objects; not {type(stream).__name__}')
-        else: # pragma: no cover
-            raise RuntimeError(f"invalid recycle of type '{type(recycle).__name__}' encountered")
+            else:
+                recycle.add(stream)
+        else:
+            if isa(stream, set):
+                self.recycle = {self.recycle, *stream}
+            else: 
+                self.recycle = {self.recycle, stream}
      
     def _remove_overlap(self, network, path_tuple):
         path = self.path
@@ -608,11 +595,11 @@ class Network:
         info += '[' + (end + " ").join(path_info) + ']'
         recycle = self.recycle
         if recycle:
-            if isinstance(recycle, piping.stream_types):
-                recycle = recycle._source_info()
-            else:
+            if isinstance(recycle, set):
                 recycle = ", ".join([i._source_info() for i in recycle])
                 recycle = '[' + recycle + ']'
+            else:
+                recycle = recycle._source_info()
             info += end + f"recycle={recycle})"
         else:
             info += ')'

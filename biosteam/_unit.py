@@ -8,8 +8,6 @@
 """
 """
 from __future__ import annotations
-from .utils import ignore_docking_warnings
-import numpy as np
 import pandas as pd
 from warnings import warn
 from ._graphics import UnitGraphics, box_graphics
@@ -21,7 +19,7 @@ from thermosteam.utils import thermo_user, registered
 from thermosteam.units_of_measure import convert
 from copy import copy
 import biosteam as bst
-from thermosteam import Stream
+from thermosteam import Stream, AbstractUnit
 from thermosteam.base import display_asfunctor
 from numpy.typing import NDArray
 from types import FunctionType
@@ -35,7 +33,6 @@ if TYPE_CHECKING:
     UtilityAgent = bst.UtilityAgent
 
 streams = Optional[Sequence[Stream]] # TODO: Replace with Stream|str and make it an explicit TypeAlias once BioSTEAM moves to Python 3.10
-int_types = (int, np.int32)
 
 __all__ = ('Unit',)
 
@@ -114,52 +111,6 @@ class ProcessSpecification:
 # stream = Union[Annotated[Union[Stream, str, None], 1], Union[Stream, str, None]]
 # stream_sequence = Collection[Union[Stream, str, None]]
 
-# %% Inlet and outlet representation
-
-def repr_ins_and_outs(layout, ins, outs, T, P, flow, composition, N, IDs, sort, data):
-    info = ''
-    if ins:
-        info += 'ins...\n'
-        i = 0
-        for stream in ins:
-            unit = stream._source
-            source_info = f'from  {type(unit).__name__}-{unit}' if unit else ''
-            name = str(stream)
-            if name == '-' and source_info: 
-                name = ''
-            else:
-                name += '  '
-            if stream and data:
-                stream_info = stream._info(layout, T, P, flow, composition, N, IDs, sort)
-                index = stream_info.index('\n')
-                number = f'[{i}] '
-                spaces = len(number) * ' '
-                info += number + name + source_info + stream_info[index:].replace('\n', '\n' + spaces) + '\n'
-            else:
-                info += f'[{i}] {name}' + source_info + '\n'
-            i += 1
-    if outs:
-        info += 'outs...\n'
-        i = 0
-        for stream in outs:
-            unit = stream._sink
-            sink_info = f'to  {type(unit).__name__}-{unit}' if unit else ''
-            name = str(stream)
-            if name == '-' and sink_info: 
-                name = ''
-            else:
-                name += '  '
-            if stream and data:
-                stream_info = stream._info(layout, T, P, flow, composition, N, IDs, sort)
-                index = stream_info.index('\n')
-                number = f'[{i}] '
-                spaces = len(number) * ' '
-                info += number + name + sink_info + stream_info[index:].replace('\n', '\n' + spaces) + '\n'
-            else:
-                info += f'[{i}] {name}' + sink_info + '\n'
-            i += 1
-    return info[:-1]
-
 # %% Path utilities
 
 def add_path_segment(start, end, path, ignored):
@@ -183,8 +134,7 @@ def fill_path_segment(start, path, end, previous_units, ignored):
 # %% Unit Operation
 
 @thermo_user
-@registered(ticket_name='U')
-class Unit:
+class Unit(AbstractUnit):
     """
     Abstract class for Unit objects. Child objects must contain
     :attr:`~Unit._run`, :attr:`~Unit._design` and :attr:`~Unit._cost` methods to 
@@ -440,6 +390,9 @@ class Unit:
     #: Update internal variables related to mass and energy balances.
     _update_variables = AbstractMethod
     
+    Inlets = piping.Inlets
+    Outlets = piping.Inlets
+    
     def __init__(self,
             ID: Optional[str]='',
             ins: streams=None,
@@ -456,12 +409,8 @@ class Unit:
         
         self.auxins = {} #: dict[int, stream] Auxiliary inlets by index.
         self.auxouts = {} #:  dict[int, stream] Auxiliary outlets by index.
-        self._ins = piping.Inlets(
-            self, self._N_ins, ins, self._thermo, self._ins_size_is_fixed, self._stacklevel
-        )
-        self._outs = piping.Outlets(
-            self, self._N_outs, outs, self._thermo, self._outs_size_is_fixed, self._stacklevel
-        )
+        self._init_inlets(ins, thermo=self._thermo)
+        self._init_outlets(outs, thermo=self._thermo)
     
         ### Initialize utilities
     
@@ -558,15 +507,11 @@ class Unit:
     
     def _init_ins(self, ins):
         self.auxins = {}
-        self._ins = piping.Inlets(
-            self, self._N_ins, ins, self._thermo, self._ins_size_is_fixed, self._stacklevel
-        )
+        self._init_inlets(thermo=self._thermo)
     
     def _init_outs(self, outs):
         self.auxouts = {}
-        self._outs = piping.Outlets(
-            self, self._N_outs, outs, self._thermo, self._outs_size_is_fixed, self._stacklevel
-        )
+        self._init_outlets(thermo=self._thermo)
 
     def _init_utils(self):
         self.heat_utilities = [HeatUtility for i in range(getattr(self, '_N_heat_utilities', 0))]
@@ -736,14 +681,14 @@ class Unit:
     
     def define_utility(self, name: str, stream: Stream):
         """
-        Define an inlet or outlet stream as a utility by name.
+        Define an inlet or outlet stream as a utility/credit by name.
         
         Parameters
         ----------
         name : 
-            Name of utility, as defined in :meth:`settings.stream_utility_prices <thermosteam._settings.ProcessSettings.stream_utility_prices>`.
+            Name of utility/credit, as defined in :meth:`settings.stream_utility_prices <thermosteam._settings.ProcessSettings.stream_utility_prices>`.
         stream :
-            Inlet or outlet utility stream.
+            Inlet or outlet utility/credit stream.
         
         """
         if name not in bst.stream_utility_prices:
@@ -754,7 +699,9 @@ class Unit:
             self._outlet_utility_indices[name] = self._outs._streams.index(stream)
         else:
             raise ValueError(f"stream '{stream.ID}' must be connected to {repr(self)}")
-            
+    
+    define_credit = define_utility
+    
     def get_inlet_utility_flows(self):
         ins = self._ins._streams
         return {name: ins[index].F_mass for name, index in self._inlet_utility_indices.items()}
@@ -1061,91 +1008,7 @@ class Unit:
     def owner(self, owner):
         if owner is not self: self._owner = owner
     
-    @ignore_docking_warnings
-    def disconnect(self, discard=False, inlets=None, outlets=None, join_ends=False):
-        ins = self._ins
-        outs = self._outs
-        if inlets is None: 
-            inlets = [i for i in ins if i.source]
-            ins[:] = ()
-        else:
-            for i in inlets: ins[ins.index(i) if isinstance(i, Stream) else i] = None
-        if outlets is None: 
-            outlets = [i for i in outs if i.sink]
-            outs[:] = ()
-        else:
-           for o in outlets: outs[ins.index(o) if isinstance(o, Stream) else o] = None
-        if join_ends:
-            if len(inlets) != len(outlets):
-                raise ValueError("number of inlets must match number of outlets to join ends")
-            for inlet, outlet in zip(inlets, outlets):
-                outlet.sink.ins.replace(outlet, inlet)
-        if discard: bst.main_flowsheet.discard(self)
-
-    @ignore_docking_warnings
-    def insert(self, stream: Stream, inlet: int|Stream=None, outlet: int|Stream=None):
-        """
-        Insert unit between two units at a given stream connection.
-        
-        Examples
-        --------
-        >>> from biosteam import *
-        >>> settings.set_thermo(['Water'], cache=True)
-        >>> feed = Stream('feed')
-        >>> other_feed = Stream('other_feed')
-        >>> P1 = Pump('P1', feed, 'pump_outlet')
-        >>> H1 = HXutility('H1', P1-0, T=310)
-        >>> M1 = Mixer('M1', other_feed, 'mixer_outlet')
-        >>> M1.insert(P1-0)
-        >>> M1.show()
-        Mixer: M1
-        ins...
-        [0] other_feed
-            phase: 'l', T: 298.15 K, P: 101325 Pa
-            flow: 0
-        [1] pump_outlet  from  Pump-P1
-            phase: 'l', T: 298.15 K, P: 101325 Pa
-            flow: 0
-        outs...
-        [0] mixer_outlet  to  HXutility-H1
-            phase: 'l', T: 298.15 K, P: 101325 Pa
-            flow: 0
-        
-        """
-        source = stream.source
-        sink = stream.sink
-        added_stream = False
-        if outlet is None:
-            if self._outs_size_is_fixed:
-                if self._N_outs == 1:
-                    sink.ins.replace(stream, self.outs[0])
-                else:
-                    raise ValueError("undefined outlet; must pass outlet when outlets are fixed and multiple are available")
-            else:
-                self.outs.append(stream)
-                added_stream = True
-        else:
-            if isinstance(outlet, piping.stream_types):
-                if outlet.source is not self:
-                    raise ValueError("source of given outlet must be this unit")
-            else:
-                outlet = self.outs[outlet]
-            sink.ins.replace(stream, outlet)
-        if inlet is None:
-            if self._ins_size_is_fixed or added_stream:
-                if self._N_ins == 1:
-                    source.outs.replace(stream, self.ins[0])
-                else:
-                    raise ValueError("undefined inlet; must pass inlet when inlets are fixed and multiple are available")
-            else:
-                self.ins.append(stream)
-        else:
-            if isinstance(inlet, piping.stream_types):
-                if inlet.sink is not self:
-                    raise ValueError("sink of given inlet must be this unit")
-            else:
-                inlet = self.outs[inlet]
-            source.outs.replace(stream, inlet)
+    
 
     def _get_tooltip_string(self, format=None, full=None):
         """Return a string that can be used as a Tippy tooltip in HTML output"""
@@ -1224,78 +1087,6 @@ class Unit:
         
         """
         return convert(self.design_results[key], self._units[key], units)
-    
-    @piping.ignore_docking_warnings
-    def take_place_of(self, other, discard=False):
-        """Replace inlets and outlets from this unit or system with that of 
-        another unit or system."""
-        self._ins[:] = other.ins
-        self._outs[:] = other.outs
-        if discard: bst.main_flowsheet.unit.discard(other)
-    
-    @piping.ignore_docking_warnings
-    def replace_with(self, other=None, discard=False):
-        """Replace inlets and outlets from another unit with this unit."""
-        if other is None:
-            ins = self._ins
-            outs = self._outs
-            for inlet, outlet in zip(tuple(ins), tuple(outs)):
-                source = inlet.source
-                if source:
-                    source.outs.replace(inlet, outlet)
-                else:
-                    sink = outlet.sink
-                    if sink: sink.ins.replace(outlet, inlet)
-            ins.empty()
-            outs.empty()
-        else:
-            other.ins[:] = self._ins
-            other.outs[:] = self._outs
-        if discard: bst.main_flowsheet.unit.discard(self)
-                    
-    # Forward pipping
-    def __sub__(self, other):
-        """Source streams."""
-        isa = isinstance
-        if isa(other, (Unit, bst.System)):
-            other._ins[:] = self._outs
-            return other
-        elif isa(other, int_types):
-            return self._outs[other]
-        elif isa(other, Stream):
-            self._outs[:] = (other,)
-            return self
-        elif isa(other, (tuple, list, np.ndarray)):
-            if all([isa(i, int_types) for i in other]):
-                outs = self._outs
-                return [outs[i] for i in other]
-            else:
-                self._outs[:] = other
-                return self
-        else:
-            return other.__rsub__(self)
-
-    def __rsub__(self, other):
-        """Sink streams."""
-        isa = isinstance
-        if isa(other, int_types):
-            return self._ins[other]
-        elif isa(other, Stream):
-            self._ins[:] = (other,)
-            return self
-        elif isa(other, (tuple, list, np.ndarray)):
-            if all([isa(i, int_types) for i in other]):
-                ins = self._ins
-                return [ins[i] for i in other]
-            else:
-                self._ins[:] = other
-                return self
-        else:
-            raise ValueError(f"cannot pipe '{type(other).__name__}' object")
-
-    # Backwards pipping
-    __pow__ = __sub__
-    __rpow__ = __rsub__
     
     def reset_cache(self, isdynamic=None):
         pass
@@ -1699,8 +1490,8 @@ class Unit:
         if streams is None:
             return [self.auxlet(piping.MissingStream()) for i in range(N_streams)]
         elif streams == ():
-            return [self.auxlet(piping.Stream(None, thermo=thermo)) for i in range(N_streams)]
-        elif isinstance(streams, (str, *piping.stream_types)):
+            return [self.auxlet(Stream(None, thermo=thermo)) for i in range(N_streams)]
+        elif isinstance(streams, Stream) or streams.__class__ is str:
             return self.auxlet(streams, thermo=thermo)
         else:
             return [self.auxlet(i, thermo=thermo) for i in streams]
@@ -2003,138 +1794,6 @@ class Unit:
         required_chemicals = set(sum([i.available_chemicals for i in streams], reaction_chemicals))
         return [i for i in self.chemicals if i in required_chemicals]
 
-    def _add_upstream_neighbors_to_set(self, set, ends, facilities):
-        """Add upsteam neighboring units to set."""
-        for s in self._ins:
-            u = s._source
-            if u and (facilities or not isinstance(u, bst.Facility)) and not (ends and s in ends):
-                set.add(u)
-
-    def _add_downstream_neighbors_to_set(self, set, ends, facilities):
-        """Add downstream neighboring units to set."""
-        for s in self._outs:
-            u = s._sink
-            if u and (facilities or not isinstance(u, bst.Facility)) and not (ends and s in ends):
-                set.add(u)
-
-    def get_downstream_units(self, ends=None, facilities=True):
-        """Return a set of all units downstream."""
-        downstream_units = set()
-        outer_periphery = set()
-        self._add_downstream_neighbors_to_set(outer_periphery, ends, facilities)
-        inner_periphery = None
-        old_length = -1
-        new_length = 0
-        while new_length != old_length:
-            old_length = new_length
-            inner_periphery = outer_periphery
-            downstream_units.update(inner_periphery)
-            outer_periphery = set()
-            for unit in inner_periphery:
-                unit._add_downstream_neighbors_to_set(outer_periphery, ends, facilities)
-            new_length = len(downstream_units)
-        return downstream_units
-    
-    def get_upstream_units(self, ends=None, facilities=True):
-        """Return a set of all units upstream."""
-        upstream_units = set()
-        outer_periphery = set()
-        self._add_upstream_neighbors_to_set(outer_periphery, ends, facilities)
-        inner_periphery = None
-        old_length = -1
-        new_length = 0
-        while new_length != old_length:
-            old_length = new_length
-            inner_periphery = outer_periphery
-            upstream_units.update(inner_periphery)
-            outer_periphery = set()
-            for unit in inner_periphery:
-                unit._add_upstream_neighbors_to_set(outer_periphery, ends, facilities)
-            new_length = len(upstream_units)
-        return upstream_units
-    
-    def neighborhood(self, 
-            radius: Optional[int]=1, 
-            upstream: Optional[bool]=True,
-            downstream: Optional[bool]=True, 
-            ends: Optional[Stream]=None, 
-            facilities: Optional[bool]=None
-        ):
-        """
-        Return a set of all neighboring units within given radius.
-        
-        Parameters
-        ----------
-        radius : 
-            Maximum number streams between neighbors.
-        downstream : 
-            Whether to include downstream operations.
-        upstream : 
-            Whether to include upstream operations.
-        ends :
-            Streams that mark the end of the neighborhood.
-        facilities :
-            Whether to include facilities.
-        
-        """
-        radius -= 1
-        neighborhood = set()
-        if radius < 0: return neighborhood
-        if upstream:self._add_upstream_neighbors_to_set(neighborhood, ends, facilities)
-        if downstream: self._add_downstream_neighbors_to_set(neighborhood, ends, facilities)
-        direct_neighborhood = neighborhood
-        for i in range(radius):
-            neighbors = set()
-            for unit in direct_neighborhood:
-                if upstream: unit._add_upstream_neighbors_to_set(neighbors, ends, facilities)
-                if downstream: unit._add_downstream_neighbors_to_set(neighbors, ends, facilities)
-            if neighbors == direct_neighborhood: break
-            direct_neighborhood = neighbors
-            neighborhood.update(direct_neighborhood)
-        return neighborhood
-
-    def diagram(self, radius: Optional[int]=0, upstream: Optional[bool]=True,
-                downstream: Optional[bool]=True, file: Optional[str]=None, 
-                format: Optional[str]=None, display: Optional[bool]=True,
-                auxiliaries: Optional[bool]=-1,
-                **graph_attrs):
-        """
-        Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram
-        of the unit and all neighboring units within given radius.
-        
-        Parameters
-        ----------
-        radius : 
-            Maximum number streams between neighbors.
-        downstream : 
-            Whether to show downstream operations.
-        upstream : 
-            Whether to show upstream operations.
-        file : 
-            Must be one of the following:
-            
-            * [str] File name to save diagram.
-            * [None] Display diagram in console.
-            
-        format : 
-            Format of file.
-        display : 
-            Whether to display diagram in console or to return the graphviz 
-            object.
-        auxiliaries:
-            Depth of auxiliary units to display.
-        
-        """
-        if radius > 0:
-            units = self.neighborhood(radius, upstream, downstream)
-            units.add(self)
-        else:
-            units = [self]
-        return bst.System(None, units).diagram(
-            format=format, auxiliaries=auxiliaries, display=display, 
-            file=file, title='', **graph_attrs
-        )
-    
     ### Net input and output flows ###
     
     # Molar flow rates
@@ -2246,23 +1905,6 @@ class Unit:
     def Hnet(self) -> float:
         """Net enthalpy flow, including enthalpies of formation [kJ/hr]."""
         return self.H_out - self.H_in + self.Hf_out - self.Hf_in
-    
-    # Representation
-    def _info(self, layout, T, P, flow, composition, N, IDs, sort, data):
-        """Information on unit."""
-        if self.ID:
-            info = f'{type(self).__name__}: {self.ID}\n'
-        else:
-            info = f'{type(self).__name__}\n'
-        return info + repr_ins_and_outs(layout, self.ins, self.outs, T, P, flow, composition, N, IDs, sort, data)
-
-    def show(self, layout=None, T=None, P=None, flow=None, composition=None, N=None, IDs=None, sort=None, data=True):
-        """Prints information on unit."""
-        print(self._info(layout, T, P, flow, composition, N, IDs, sort, data))
-    
-    def _ipython_display_(self):
-        if bst.preferences.autodisplay: self.diagram()
-        self.show()
 
 
 class UnitDesignAndCapital:

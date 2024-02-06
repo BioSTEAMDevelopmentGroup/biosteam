@@ -760,6 +760,7 @@ class HXprocess(HX):
     
     """
     line = 'Heat exchanger'
+    _interaction = True # For system/network path
     _graphics = process_heat_exchanger_graphics
     _N_ins = 2
     _N_outs = 2

@@ -17,7 +17,7 @@ import biosteam as bst
 import flexsolve as flx
 import numpy as np
 import pandas as pd
-from scipy.optimize import minimize
+from scipy.optimize import minimize, differential_evolution
 from math import inf
 from typing import Callable
 from scipy.optimize import root
@@ -77,7 +77,9 @@ class SinglePhaseStage(Unit):
         outlet.mix_from(self.ins, energy_balance=False)
         outlet.phase = self.phase
         outlet.T = self.T
-        
+
+    # %% Decoupled phenomena equation oriented simulation
+    
     def _get_decoupled_variable(self, variable):
         if variable == 'T': return self.T
         
@@ -107,7 +109,8 @@ class SinglePhaseStage(Unit):
             return [] # TODO: Create case where mixers are connected
         else:
             return []
-    
+
+# %%
 
 class StageEquilibrium(Unit):
     _N_ins = 0
@@ -188,6 +191,63 @@ class StageEquilibrium(Unit):
     @K.setter
     def K(self, K):
         self.partition.K = K
+    
+    def _update_auxiliaries(self):
+        for i in self.splitters: i.ins[0].mix_from(i.outs, energy_balance=False)
+        self.mixer.outs[0].mix_from(self.ins, energy_balance=False)
+    
+    def add_feed(self, stream):
+        self.ins.append(stream)
+        self.mixer.ins.append(
+            self.auxlet(
+                stream
+            )
+        )
+        
+    def set_specification(self, B, Q):
+        if B is None and Q is None: Q = 0.
+        partition = self.partition
+        partition.B_specification = partition.B = B
+        partition.Q = Q
+    
+    @property
+    def extract(self):
+        return self.outs[0]
+    @property
+    def raffinate(self):
+        return self.outs[1]
+    @property
+    def extract_side_draw(self):
+        if self.top_split: return self.outs[2]
+    @property
+    def raffinate_side_draw(self):
+        if self.bottom_split: return self.outs[-1]
+    
+    @property
+    def vapor(self):
+        return self.outs[0]
+    @property
+    def liquid(self):
+        return self.outs[1]
+    @property
+    def vapor_side_draw(self):
+        if self.top_split: return self.outs[2]
+    @property
+    def liquid_side_draw(self):
+        if self.bottom_split: return self.outs[-1]
+    @property
+    def top_side_draw(self):
+        if self.top_split: return self.outs[2]
+    @property
+    def bottom_side_draw(self):
+        if self.bottom_split: return self.outs[-1]
+    
+    def _run(self):
+        self.mixer._run()
+        self.partition._run()
+        for i in self.splitters: i._run()
+    
+    # %% Decoupled phenomena equation oriented simulation
     
     def _create_temperature_departure_equation(self):
         # C1dT1 - Cv2*dT2 - Cl0*dT0 = Q1 - H_out + H_in
@@ -338,21 +398,23 @@ class StageEquilibrium(Unit):
     def _create_linear_equations(self, variable):
         # list[dict[Unit|Stream, float]]
         phases = self.phases
+        partition = self.partition
+        chemicals = self.chemicals
+        pIDs = partition.IDs
+        IDs = chemicals.IDs
+        if pIDs != IDs:
+            partition.IDs = IDs
+            K = np.ones(chemicals.size)
+            index = [IDs.index(i) for i in pIDs]
+            for i, j in zip(index, partition.K): K[i] = j
+            partition.K = K
+            if phases == ('L', 'l') and not getattr(self, 'coupled_KL', None):
+                if partition.gamma_y is not None:
+                    gamma_y = np.ones(chemicals.size)
+                    for i, j in zip(index, partition.gamma_y): gamma_y[i] = j
+                    partition.gamma_y = gamma_y
         if (variable == 'K' and phases == ('g', 'l')
             or variable == 'K-pseudo' and phases == ('L', 'l')):
-            partition = self.partition
-            chemicals = self.chemicals
-            IDs = chemicals.IDs
-            IDs_last = partition.IDs
-            if IDs_last != IDs:
-                arrays = self._get_arrays()
-                index = [IDs_last.index(i) for i in IDs]
-                for i, j in arrays.items():
-                    array = np.ones(chemicals.size)
-                    last = getattr(self, name)
-                    for i, j in enumerate(index): array[i] = last[j]
-                    setattr(self, name, array)
-                partition.IDs = IDs
             if phases == ('g', 'l'):
                 partition._run_decoupled_KTvle()
             elif phases == ('L', 'l'):
@@ -373,12 +435,19 @@ class StageEquilibrium(Unit):
             else:
                 eqs = []
         elif variable == 'L' and phases == ('L', 'l'):
-            self.partition._run_decoupled_B()
+            if not getattr(self, 'coupled_KL', None):
+                self.partition._run_decoupled_B()
             eqs = []
         elif variable == 'mol':
             eqs = self._create_mass_balance_equations()
         elif variable == 'mol-LLE' and phases == ('L', 'l'):
-            eqs = self._create_lle_mass_balance_equations()
+            if getattr(self, 'coupled_KL', None):
+                eqs = []
+            else:
+                eqs = self._create_lle_mass_balance_equations()
+        elif variable == 'KL' and getattr(self, 'coupled_KL', None):
+            self.partition._run_lle(update=False)
+            eqs = []
         else:
             eqs = []
         return eqs
@@ -387,9 +456,11 @@ class StageEquilibrium(Unit):
         if variable == 'T': 
             return self.T
         elif variable == 'L' and self.phases == ('L', 'l'): 
+            if getattr(self, 'coupled_KL', None): return
             return self.B
         elif (variable == 'K-pseudo' and self.phases == ('L', 'l')
               or variable == 'K' and self.phases == ('g', 'l')):
+            if getattr(self, 'coupled_KL', None): return
             return self.K
     
     def _update_decoupled_variable(self, variable, value):
@@ -402,62 +473,8 @@ class StageEquilibrium(Unit):
             self.B = value
         elif (variable == 'K-pseudo' or variable == 'K'): 
             self.K = value
-        
-    def _update_auxiliaries(self):
-        for i in self.splitters: i.ins[0].mix_from(i.outs, energy_balance=False)
-        self.mixer.outs[0].mix_from(self.ins, energy_balance=False)
     
-    def add_feed(self, stream):
-        self.ins.append(stream)
-        self.mixer.ins.append(
-            self.auxlet(
-                stream
-            )
-        )
-        
-    def set_specification(self, B, Q):
-        if B is None and Q is None: Q = 0.
-        partition = self.partition
-        partition.B_specification = partition.B = B
-        partition.Q = Q
-    
-    @property
-    def extract(self):
-        return self.outs[0]
-    @property
-    def raffinate(self):
-        return self.outs[1]
-    @property
-    def extract_side_draw(self):
-        if self.top_split: return self.outs[2]
-    @property
-    def raffinate_side_draw(self):
-        if self.bottom_split: return self.outs[-1]
-    
-    @property
-    def vapor(self):
-        return self.outs[0]
-    @property
-    def liquid(self):
-        return self.outs[1]
-    @property
-    def vapor_side_draw(self):
-        if self.top_split: return self.outs[2]
-    @property
-    def liquid_side_draw(self):
-        if self.bottom_split: return self.outs[-1]
-    @property
-    def top_side_draw(self):
-        if self.top_split: return self.outs[2]
-    @property
-    def bottom_side_draw(self):
-        if self.bottom_split: return self.outs[-1]
-    
-    def _run(self):
-        self.mixer._run()
-        self.partition._run()
-        for i in self.splitters: i._run()
-
+# %%
 
 class PhasePartition(Unit):
     _N_ins = 1
@@ -504,6 +521,7 @@ class PhasePartition(Unit):
     
     def _set_arrays(self, IDs, **kwargs):
         IDs_last = self.IDs
+        IDs = tuple(IDs)
         if IDs_last and IDs_last != IDs and len(IDs_last) > len(IDs):
             size = len(IDs_last)
             index = [IDs_last.index(i) for i in IDs]
@@ -543,10 +561,12 @@ class PhasePartition(Unit):
             init_gamma = True
         if init_gamma:
             y = top.mol[index]
-            y /= y.sum()
+            y_sum = y.sum()
+            if y_sum: 
+                y /= y_sum
+            else:
+                y = np.ones(y.size) / y.size
             self.gamma_y = gamma_y = f_gamma(y, T)
-            
-            
         K = self.K
         K = gamma_x / gamma_y 
         y = K * x
@@ -658,6 +678,7 @@ class PhasePartition(Unit):
         L_total = L_mol.sum()
         if L_total: 
             x_mol = L_mol / L_total
+            x_mol[x_mol == 0] = 1e-9
         else:
             x_mol = 1
         V_mol = ms.imol['g', IDs]
@@ -880,6 +901,7 @@ class MultiStageEquilibrium(Unit):
     default_methods = {
         'root': 'fixed-point',
         'optimize': 'SLSQP',
+        'SurPASS': 'differential evolution', 
     }
     
     #: Method definitions for convergence
@@ -888,6 +910,11 @@ class MultiStageEquilibrium(Unit):
     }
     optimize_options: dict[str, tuple[Callable, dict]] = {
         'SLSQP': (minimize, {'tol': 1e-3, 'method': 'SLSQP'})
+    }
+    SurPASS_options: dict[str, tuple[Callable, dict]] = {
+        'differential evolution': (
+            differential_evolution, {'seed': 0, 'popsize': 12, 'tol': 1e-6}
+        ),
     }
     auxiliary_unit_names = (
         'stages',
@@ -1249,7 +1276,8 @@ class MultiStageEquilibrium(Unit):
         )
         top_flow_rates = flx.wegstein(
             self._hot_start_phase_ratios_iter,
-            top_flow_rates, args=args, xtol=self.relative_molar_tolerance
+            top_flow_rates, args=args, xtol=self.relative_molar_tolerance,
+            checkiter=False,
         )
         bottom_flow_rates = hot_start_bottom_flow_rates(
             top_flow_rates, *args

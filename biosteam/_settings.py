@@ -131,7 +131,7 @@ def allocation_properties(self):
     return bst.allocation_properties
 
 def register_utility(self, name: str, price: float):
-    """Register new stream utility in BioSTEAM given the name and the price 
+    """Register new stream utility/credit in BioSTEAM given the name and the price 
     [USD/kg]."""
     if name not in bst.stream_utility_prices:
         docname = name.lower()
@@ -193,7 +193,7 @@ Settings.impact_indicators = impact_indicators
 Settings.stream_utility_prices = stream_utility_prices
 Settings.electricity_price = electricity_price
 Settings.skip_simulation_of_units_with_empty_inlets = skip_simulation_of_units_with_empty_inlets
-Settings.register_utility = register_utility
+Settings.register_utility = Settings.register_credit = register_utility
 Settings.allocation_properties = allocation_properties
 Settings.define_allocation_property = define_allocation_property
 

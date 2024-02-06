@@ -18,7 +18,7 @@ from warnings import warn
 import biosteam as bst
 from graphviz import Digraph
 from IPython import display
-from thermosteam import Stream
+from thermosteam import AbstractStream, AbstractUnit
 from xml.etree import ElementTree
 from typing import Optional
 import urllib
@@ -106,10 +106,8 @@ def get_section_inlets_and_outlets(units, streams):
 @ignore_docking_warnings
 def minimal_digraph(ID, units, streams, auxiliaries=None, **graph_attrs):
     ins, outs = get_section_inlets_and_outlets(units, streams)
-    product = Stream(None)
-    product._ID = ''
-    feed = Stream(None)
-    feed._ID = ''
+    product = AbstractStream('.')
+    feed = AbstractStream('.')
     ins = sort_streams(ins)
     outs = sort_streams(outs)
     feed_box = bst.units.DiagramOnlyStreamUnit('\n'.join([i.ID for i in ins]) or '-',
@@ -125,7 +123,7 @@ def surface_digraph(path, auxiliaries=None, **graph_attrs):
     surface_units = []
     old_unit_connections = set()
     isa = isinstance
-    Unit = bst.Unit
+    Unit = AbstractUnit
     done = set()
     for i in path:
         if i in done: continue
@@ -165,8 +163,7 @@ def extend_surface_units(ID, streams, units, surface_units, old_unit_connections
             old_unit_connections.add(u_io)
     
     if len(feeds) > 1:
-        feed = Stream(None)
-        feed._ID = ''
+        feed = AbstractStream('.')
         feeds = sort_streams(feeds)
         feed_box = StreamUnit('\n'.join([i.ID for i in feeds]) or '-', None, feed)
         ins.append(feed)
@@ -175,8 +172,7 @@ def extend_surface_units(ID, streams, units, surface_units, old_unit_connections
         ins += feeds
     
     if len(products) > 1:
-        product = Stream(None)
-        product._ID = ''
+        product = AbstractStream('.')
         products = sort_streams(products)
         product_box = StreamUnit('\n'.join([i.ID for i in products]) or '-', product, None)
         outs.append(product)
@@ -201,7 +197,7 @@ def digraph_from_units(units, streams=None, auxiliaries=None, **graph_attrs):
                 stream_set.add(s)
             for name, auxunit in unit._diagram_nested_auxiliary_units_with_names(depth=auxiliaries):
                 auxunit.owner = unit # In case units not created correctly through Unit.auxiliary method
-                if isinstance(auxunit, bst.Unit): 
+                if isinstance(auxunit, AbstractUnit): 
                     auxunit._ID = name
                     all_units.append(auxunit)
                     for s in auxunit.ins + auxunit.outs:
@@ -251,14 +247,14 @@ def update_digraph_from_path(f, path, recycle, depth, unit_names,
     subsystems = []
     isa = isinstance
     System = bst.System
-    Unit = bst.Unit
+    Unit = AbstractUnit
     for i in path:
         if isa(i, Unit):
             units.add(i)
             all_streams.update(i._ins + i._outs)
         elif isa(i, System): 
             subsystems.append(i)
-    if isa(recycle, bst.Stream): 
+    if isa(recycle, AbstractStream): 
         recycles = [recycle] 
     elif recycle:
         recycles = recycle

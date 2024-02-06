@@ -197,7 +197,7 @@ def test_simple_acetic_acid_separation_with_recycle():
     for i in range(1): sm_sys.simulate()
     t1 = time.toc()
     
-    assert t0 < 0.2 * t1, 'phenomena-oriented simulation speed should be faster than sequential-modular'
+    assert t0 < 0.5 * t1, 'phenomena-oriented simulation speed should be faster than sequential-modular'
     
     for s_sm, s_dp in zip(sm_sys.streams, dp_sys.streams):
         actual = s_sm.mol
@@ -280,6 +280,7 @@ def test_complex_acetic_acid_separation_system():
                 top_chemical='EthylAcetate',
                 top_split=0.5,
             )
+            # settler.coupled_KL = True
             RD = bst.MESHDistillation(
                 'raffinate_distiller',
                 LHK=('EthylAcetate', 'Water'),

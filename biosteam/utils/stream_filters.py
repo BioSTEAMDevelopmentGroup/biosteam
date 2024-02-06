@@ -8,7 +8,7 @@
 """
 """
 import biosteam as bst
-from thermosteam import Stream
+from thermosteam import AbstractStream as Stream
 
 __all__ = (
     'streams_from_units',
@@ -43,7 +43,7 @@ def streams_from_path(path):
     isa = isinstance
     streams = set()
     System = bst.System
-    Unit = bst.Unit
+    Unit = bst.AbstractUnit
     for i in path:
         if isa(i, System):
             streams.update(i.streams)
@@ -56,7 +56,7 @@ def get_inlet_origin(inlet):
     while source:
         if len(source.ins) == len(source.outs) == 1 and 'processing' not in source.line.lower():
             inlet = source.ins[0]
-        elif isinstance(source, bst.HXprocess):
+        elif source._interaction:
             index = source.outs.index(inlet)
             inlet = source.ins[index]
         else:
@@ -186,11 +186,9 @@ def get_fresh_process_water_streams(streams=None):
     
     """    
     if streams is None: streams = bst.main_flowsheet.stream
-    Facility = bst.Facility
-    isa = isinstance
     return [
         i for i in streams
-        if not i.price and i.isfeed() and not isa(i.sink, Facility) and has_only_water(i)
+        if not i.price and i.isfeed() and not (i.sink or i.sink._interaction) and has_only_water(i)
     ]
 
 def has_only_water(stream):
@@ -216,11 +214,10 @@ class FreeProductStreams:
         if 'streams' in cache:
             return cache['streams']
         else:
-            isa = isinstance
             cache['streams'] = streams = frozenset([
                 i for i in self.all_streams if 
                 not i.price and i.isproduct() and 'recycle' not in i._ID and not i.isempty()
-                and not isa(i.source, bst.Facility)
+                and not i._universal
             ])
         return streams
        

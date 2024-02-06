@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2024, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -17,11 +17,11 @@ temporary_units_dump = []
 def temporary_connection(source, sink):
     upstream = source.outs[0]
     downstream = sink.ins[0]
-    temporary_stream = piping.TemporaryStream()
+    temporary_stream = piping.AbstractStream(None)
     if isinstance(upstream.sink, TemporarySource):
         upstream.sink.outs.append(temporary_stream)
     else:
-        stream = piping.TemporaryStream()
+        stream = piping.AbstractStream(None)
         old_connection = upstream.get_connection()
         sink = upstream.sink
         if sink: upstream.sink.ins.replace(upstream, stream)
@@ -29,7 +29,7 @@ def temporary_connection(source, sink):
     if isinstance(downstream.source, TemporarySink):
         downstream.source.ins.append(temporary_stream)
     else:
-        stream = piping.TemporaryStream()
+        stream = piping.AbstractStream(None)
         old_connection = downstream.get_connection()
         downstream.sink.ins.replace(downstream, stream)
         TemporarySink([downstream, temporary_stream], stream, old_connection)

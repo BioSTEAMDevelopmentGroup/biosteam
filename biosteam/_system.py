@@ -18,7 +18,7 @@ from .digraph import (digraph_from_units,
                       minimal_digraph,
                       surface_digraph,
                       finalize_digraph)
-from thermosteam import Stream, MultiStream, Chemical
+from thermosteam import AbstractStream, Stream, MultiStream, Chemical
 from thermosteam.base import SparseArray
 from . import HeatUtility, PowerUtility
 from thermosteam.utils import registered
@@ -120,10 +120,35 @@ class LinearEquations:
                 values.append(value)
             return objs, np.array(values)
         A, objs = dictionaries2array(self.A)
+        # if A.ndim == 3:
+        #     A_ = A
+        #     b_ = np.array(b).T
+        #     objs_ = objs
+        #     values = []
+        #     for A, b in zip(A_, b_):
+        #         rows = A.any(axis=1)
+        #         cols = A.any(axis=0)
+        #         b = [j for (i, j) in zip(rows, b) if i]
+        #         A = A[rows][:, cols]
+        #         objs = [j for (i, j) in zip(cols, objs_) if i]
+        #         values.append(solve(A, b))
+        #     values = np.array(values).T
+        # else:
+        #     rows = A.any(axis=1)
+        #     cols = A.any(axis=0)
+        #     b = [j for (i, j) in zip(rows, b) if i]
+        #     b = np.array(b).T
+        #     A = A[rows][:, cols]
+        #     objs = [j for (i, j) in zip(cols, objs) if i]
+        #     values = solve(A, b)
         values = solve(A, np.array(b).T).T
         if np.isnan(values).any(): 
             raise RuntimeError('nan value in variables')
+        c = variable not in ('K-pseudo', 'mol-LLE')
+        if c: print(variable)
+        if c: print('------')
         for obj, value in zip(objs, values): 
+            if c: print(obj, value)
             obj._update_decoupled_variable(variable, value)
         if variable in ('mol', 'mol-LLE'):
             for i in self.units: 
@@ -670,7 +695,7 @@ class System:
     available_methods: Methods[str, tuple[Callable, bool, dict]] = Methods()
 
     #: Variable solution priority for phenomena oriented simulation.
-    variable_priority: list[str] = ['mol', ('mol-LLE', 'K-pseudo'), 'K', 'B', 'mol', 'T', 'L']
+    variable_priority: list[str] = ['mol', 'T', 'KL', ('mol-LLE', 'K-pseudo'), 'L', 'K', 'B']
 
     @classmethod
     def register_method(cls, name, solver, conditional=False, **kwargs):
@@ -1707,13 +1732,11 @@ class System:
         except:
             self._streams = streams = []
             stream_set = set()
-            isa = isinstance
-            temp = piping.TemporaryStream
             for u in self.units:
                 for s in u._ins + u._outs:
                     if not s: s = s.materialize_connection()
                     elif s in stream_set: continue
-                    elif isa(s, temp): continue
+                    elif s.__class__ is AbstractStream: continue
                     streams.append(s)
                     stream_set.add(s)
             return streams 
@@ -2200,14 +2223,14 @@ class System:
         if algorithm == 'Sequential modular':
             self.run_sequential_modular()
         elif algorithm == 'Phenomena oriented':
-            if all([i.isempty() for i in self.get_all_recycles()]):
+            if self._iter == 0:
                 for i in self.unit_path: i.run()
             else:
                 try:
                     self.run_phenomena()
-                except:
+                except Exception:
                     warn('phenomena-oriented simulation failed; '
-                          'attempting one sequential-modular loop', RuntimeWarning)
+                         'attempting one sequential-modular loop', RuntimeWarning)
                     for i in self.unit_path: i.run()
         else:
             raise RuntimeError(f'unknown algorithm {algorithm!r}')
@@ -2231,8 +2254,7 @@ class System:
                 if isinstance(variables, tuple):
                     *variables, key = variables
                     run_variables(variables)
-                    try: objs, x0 = solve_variable(stages, key)
-                    except: continue
+                    objs, x0 = solve_variable(stages, key)
                     def f(x):
                         for obj, xi in zip(objs, x): obj._update_decoupled_variable(key, xi)
                         run_variables(variables)
@@ -2247,7 +2269,17 @@ class System:
                     else: 
                         raise NotImplementedError(f'tolerance for {key!r} not available in BioSTEAM yet')
                 else:
+                    # print(variables)
                     solve_variable(stages, variables)
+                    # if self._iter >= 1:
+                    #     print('RECYCLES')
+                    #     for i in self.get_all_recycles(): i.show()
+                        # print('EXTRACTOR')
+                        # for i in self.flowsheet.extractor.stages:
+                        #     print(i.K)
+                        # print('SETTLER')
+                        # print(self.flowsheet.settler.K)
+                        # breakpoint()
                 
         run_variables(self.variable_priority)
         
