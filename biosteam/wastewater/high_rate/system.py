@@ -212,7 +212,7 @@ class BiogasUpgrading(bst.Unit):
         self.unit_upgrading_GWP = unit_upgrading_GWP
         self.RIN_incentive = prices['RIN']
         # Credits from the displaced fossil natural gas
-        self.FNG_price = bst.stream_utility_prices.get('Natural gas', 0) # $/kg
+        self.FNG_price = bst.stream_prices.get('Natural gas', 0) # $/kg
         self.FNG_CF = GWP_CFs['CH4']
 
 

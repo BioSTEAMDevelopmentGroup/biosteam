@@ -32,7 +32,7 @@ bst.Unit.{flowmethname} = {flowmethname}
 get_unit_utility_cost_executable = '''
 def {costmethname}(self):
     """Return the {docname} cost [USD/hr]."""
-    return bst.stream_utility_prices[name] * self.{flowmethname}()
+    return bst.stream_prices[name] * self.{flowmethname}()
 
 bst.Unit.{costmethname} = {costmethname}
 '''
@@ -48,7 +48,7 @@ bst.System.{flowmethname} = {flowmethname}
 get_system_utility_cost_executable = '''
 def {costmethname}(self):
     """Return the {docname} cost [USD/yr]."""
-    return bst.stream_utility_prices[name] * self.{flowmethname}()
+    return bst.stream_prices[name] * self.{flowmethname}()
 
 bst.System.{costmethname} = {costmethname}
 '''
@@ -89,13 +89,13 @@ def heating_agents(self, heating_agents):
     bst.HeatUtility.heating_agents = heating_agents
     
 @property
-def stream_utility_prices(self) -> dict[str, float]:
-    """Price of stream utilities [USD/kg] which are defined as 
+def stream_prices(self) -> dict[str, float]:
+    """Price of stream utilities/fees/credits [USD/kg] which are defined as 
     inlets and outlets to unit operations."""
-    return bst.stream_utility_prices
-@stream_utility_prices.setter
-def stream_utility_prices(self, stream_utility_prices):
-    bst.stream_utility_prices = stream_utility_prices
+    return bst.stream_prices
+@stream_prices.setter
+def stream_prices(self, stream_prices):
+    bst.stream_prices = stream_prices
 
 @property
 def impact_indicators(self) -> dict[str, str]:
@@ -130,10 +130,22 @@ def allocation_properties(self):
     """Defined allocation property and basis pairs for LCA."""
     return bst.allocation_properties
 
-def register_utility(self, name: str, price: float):
-    """Register new stream utility/credit in BioSTEAM given the name and the price 
+def register_credit(self, name: str, price: float):
+    """Register new stream credit in BioSTEAM given the name and the price 
     [USD/kg]."""
-    if name not in bst.stream_utility_prices:
+    self.register_utility(name, price)
+    bst.fees_and_credits.add(name)
+
+def register_fee(self, name: str, price: float):
+    """Register new stream fee in BioSTEAM given the name and the price 
+    [USD/kg]."""
+    self.register_utility(name, -price)
+    bst.fees_and_credits.add(name)
+
+def register_utility(self, name: str, price: float):
+    """Register new stream utility in BioSTEAM given the name and the price 
+    [USD/kg]."""
+    if name not in bst.stream_prices:
         docname = name.lower()
         methname = docname.replace(' ', '_').replace('-', '_')
         flowmethname = f"get_{methname}_flow"
@@ -159,7 +171,7 @@ def register_utility(self, name: str, price: float):
         # System
         exec(get_system_utility_flow_executable.format(**flow_kwargs), globs)
         exec(get_system_utility_cost_executable.format(**cost_kwargs), globs)
-    bst.stream_utility_prices[name] = price
+    bst.stream_prices[name] = price
 
 def define_allocation_property(
         self, name: str, basis: float, 
@@ -190,10 +202,12 @@ Settings.utility_characterization_factors = utility_characterization_factors
 Settings.cooling_agents = cooling_agents
 Settings.heating_agents = heating_agents
 Settings.impact_indicators = impact_indicators
-Settings.stream_utility_prices = stream_utility_prices
+Settings.stream_prices = stream_prices
 Settings.electricity_price = electricity_price
 Settings.skip_simulation_of_units_with_empty_inlets = skip_simulation_of_units_with_empty_inlets
-Settings.register_utility = Settings.register_credit = register_utility
+Settings.register_utility = register_utility
+Settings.register_credit = register_credit
+Settings.register_fee = register_fee
 Settings.allocation_properties = allocation_properties
 Settings.define_allocation_property = define_allocation_property
 

@@ -10,23 +10,19 @@
 from __future__ import annotations
 import pandas as pd
 from warnings import warn
-from thermosteam._graphics import UnitGraphics, box_graphics
+from thermosteam._graphics import UnitGraphics
 from ._heat_utility import HeatUtility
 from .utils import AbstractMethod, format_title, static, piping, StreamLinkOptions
 from ._power_utility import PowerUtility
 from .exceptions import UnitInheritanceError
-from thermosteam.utils import thermo_user, registered
+from thermosteam.utils import extended_signature
 from thermosteam.units_of_measure import convert
 from copy import copy
 import biosteam as bst
-from thermosteam import Stream, AbstractUnit
-from thermosteam.base import display_asfunctor
+from thermosteam import Stream, AbstractUnit, ProcessSpecification
 from numpy.typing import NDArray
-from types import FunctionType
 from typing import Callable, Optional, TYPE_CHECKING, Sequence, Iterable
 import thermosteam as tmo
-from inspect import signature
-from copy import deepcopy
 if TYPE_CHECKING: 
     System = bst.System
     HXutility = bst.HXutility
@@ -35,74 +31,6 @@ if TYPE_CHECKING:
 streams = Optional[Sequence[Stream]] # TODO: Replace with Stream|str and make it an explicit TypeAlias once BioSTEAM moves to Python 3.10
 
 __all__ = ('Unit',)
-
-_count = [0]
-def count():
-    _count[0] += 1
-    print(_count)
-
-def updated_signature(f, g):
-    if hasattr(f, '__wrapped__'): f = f.__wrapped__
-    sigf = signature(f)
-    paramsf = [*sigf.parameters.values()][1:-1]
-    sigg = signature(g)
-    paramsg = [*sigg.parameters.values()][1:]
-    h = FunctionType(f.__code__, f.__globals__, name=f.__name__,
-                     argdefs=f.__defaults__, closure=f.__closure__)
-    h.__kwdefaults__ = f.__kwdefaults__
-    all_params = [*paramsf, *[i.replace(kind=3) for i in paramsg]]
-    params = []
-    names = set()
-    for i in tuple(all_params):
-        if i.name in names: continue
-        names.add(i.name)
-        params.append(i)
-    h.__signature__ = sigf.replace(parameters=params)
-    h.__annotations__ = f.__annotations__ | g.__annotations__
-    h.__wrapped__ = f
-    return h
-
-# %% Process specification
-
-class ProcessSpecification:
-    __slots__ = ('f', 'args', 'impacted_units', 'path')
-    
-    def __init__(self, f, args, impacted_units):
-        self.f = f
-        self.args = args
-        if impacted_units: 
-            self.impacted_units = tuple(impacted_units)
-        else:
-            self.impacted_units = self.path = ()
-        
-    def __call__(self):
-        self.f(*self.args)
-        isa = isinstance
-        for i in self.path: 
-            if isa(i, Unit): i.run()
-            else: i.converge() # Must be a system
-            
-    def compile_path(self, unit):
-        upstream_units = unit.get_upstream_units()
-        # For upstream units, recycle loops will take care of it.
-        impacted_units = [i for i in self.impacted_units if i not in upstream_units]
-        self.path = unit.path_from(impacted_units, system=unit._system) if impacted_units else ()
-        
-    def create_temporary_connections(self, unit):
-        # Temporary connections are created first than the path because 
-        # temporary connections may change the system configuration 
-        # such that the path is incorrect.
-        impacted_units = self.impacted_units
-        if impacted_units:
-            downstream_units = unit.get_downstream_units()
-            upstream_units = unit.get_upstream_units()
-            for other in impacted_units:
-                if other in upstream_units or other not in downstream_units:
-                    bst.temporary_connection(unit, other)
-            
-    def __repr__(self):
-        return f"{type(self).__name__}(f={display_asfunctor(self.f)}, args={self.args}, impacted_units={self.impacted_units})"
-
 
 # %% Typing
 
@@ -113,7 +41,6 @@ class ProcessSpecification:
 
 # %% Unit Operation
 
-@thermo_user
 class Unit(AbstractUnit):
     """
     Abstract class for Unit objects. Child objects must contain
@@ -194,7 +121,7 @@ class Unit(AbstractUnit):
             if hasattr(init, 'extension'): cls._init = init.extension
         elif '_init' in dct:
             _init = dct['_init']
-            cls.__init__ = updated_signature(cls.__init__, _init)
+            cls.__init__ = extended_signature(cls.__init__, _init)
             cls.__init__.extension = _init
         if '_N_heat_utilities' in dct:
             warn("'_N_heat_utilities' class attribute is scheduled for deprecation; "
@@ -636,13 +563,13 @@ class Unit(AbstractUnit):
         Parameters
         ----------
         name : 
-            Name of utility/credit, as defined in :meth:`settings.stream_utility_prices <thermosteam._settings.ProcessSettings.stream_utility_prices>`.
+            Name of utility/credit, as defined in :meth:`settings.stream_prices <thermosteam._settings.ProcessSettings.stream_prices>`.
         stream :
             Inlet or outlet utility/credit stream.
         
         """
-        if name not in bst.stream_utility_prices:
-            raise ValueError(f"price of '{name}' must be defined in settings.stream_utility_prices")
+        if name not in bst.stream_prices:
+            raise ValueError(f"price of '{name}' must be defined in settings.stream_prices")
         if stream._sink is self:
             self._inlet_utility_indices[name] = self._ins._streams.index(stream)
         elif stream._source is self:
@@ -1067,12 +994,13 @@ class Unit(AbstractUnit):
     def _load_utility_cost(self):
         ins = self._ins._streams
         outs = self._outs._streams
-        prices = bst.stream_utility_prices
+        prices = bst.stream_prices
+        fees_and_credits = bst.fees_and_credits
         self._utility_cost = (
             sum([i.cost for i in self.heat_utilities]) 
             + self.power_utility.cost
-            + sum([s.F_mass * prices[name] for name, index in self._inlet_utility_indices.items() if (s:=ins[index]).price == 0.])
-            - sum([s.F_mass * prices[name] for name, index in self._outlet_utility_indices.items() if (s:=outs[index]).price == 0.])
+            + sum([s.F_mass * prices[name] for name, index in self._inlet_utility_indices.items() if (s:=ins[index]).price == 0. or name in fees_and_credits])
+            - sum([s.F_mass * prices[name] for name, index in self._outlet_utility_indices.items() if (s:=outs[index]).price == 0. or name in fees_and_credits])
         )
     
     @property
@@ -1406,7 +1334,7 @@ class Unit(AbstractUnit):
             keys.append(key)
         keys = []; 
         vals = []; addval = vals.append
-        stream_utility_prices = bst.stream_utility_prices
+        stream_prices = bst.stream_prices
         all_utilities = self.heat_utilities + external_utilities if external_utilities else self.heat_utilities
         if with_units:
             if include_utilities:
@@ -1433,14 +1361,14 @@ class Unit(AbstractUnit):
                         addkey((ID, 'Flow'))
                         addval(('kg/hr', flow))
                         addkey((ID, 'Cost'))
-                        addval(('USD/hr', flow * stream_utility_prices[name]))
+                        addval(('USD/hr', flow * stream_prices[name]))
                 for name, flow in self.get_outlet_utility_flows().items():
                     if include_zeros or flow:
                         ID = name + ' (outlet)'
                         addkey((ID, 'Flow'))
                         addval(('kg/hr', flow))
                         addkey((ID, 'Cost'))
-                        addval(('USD/hr', - flow * stream_utility_prices[name]))
+                        addval(('USD/hr', - flow * stream_prices[name]))
                 
             units = self._units
             Cost = self.purchase_costs
@@ -1494,14 +1422,14 @@ class Unit(AbstractUnit):
                         addkey((ID, 'Flow'))
                         addval(flow)
                         addkey((ID, 'Cost'))
-                        addval(flow * stream_utility_prices[name])
+                        addval(flow * stream_prices[name])
                 for name, flow in self.get_outlet_utility_flows().items():
                     if include_zeros or flow:
                         ID = name + ' (outlet)'
                         addkey((ID, 'Flow'))
                         addval(flow)
                         addkey((ID, 'Cost'))
-                        addval(-flow * stream_utility_prices[name])
+                        addval(-flow * stream_prices[name])
                             
             for ki, vi in self.design_results.items():
                 addkey(('Design', ki))
@@ -1684,5 +1612,3 @@ class UnitDesignAndCapital:
     @property
     def equipment_lifetime(self):
         return self.unit.equipment_lifetime
-
-del thermo_user, registered

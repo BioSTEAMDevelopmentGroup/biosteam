@@ -21,9 +21,15 @@ CE: float = 567.5
 #: User-defined impact indicators and their units of measure.
 impact_indicators: dict[str, str] = {}
 
-#: Price of stream utilities [USD/kg] which are defined as 
+#: Price of stream utilities/fees/credits [USD/kg] which are defined as 
 #: inlets and outlets to unit operations.
-stream_utility_prices: dict[str, float] = {}
+stream_prices: dict[str, float] = {}
+
+stream_utility_prices = stream_prices # For backwards compatibility
+
+#: Names of stream fees and credits which are tagged to
+#: inlets and outlets of unit operations.
+fees_and_credits: set(str) = set()
 
 #: Defined allocation property and basis pairs for LCA.
 allocation_properties: dict[str, str] = {}
