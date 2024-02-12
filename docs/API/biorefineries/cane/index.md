@@ -107,54 +107,15 @@ outs...
                     ...                   5.61
 ```
 
-Here are some additional examples:
-
-```python
->>> import biorefineries.cane as c
->>> S1 = c.Biorefinery('S1') # Load conventional sugarcane biorefinery
->>> S1.sys.show(data=False) # Full system
-System: sugarcane_sys
-Highest convergence error among components in recycle
-stream M201-0 after 5 loops:
-- flow rate   9.09e-13 kmol/hr (0%)
-- temperature 4.25e-06 K (1.3e-06%)
-ins...
-[0] sugarcane  
-[1] H3PO4  
-[2] lime  
-[3] polymer  
-[4] denaturant  
-outs...
-[0] advanced_ethanol  
-[1] vinasse  
-[2] fiber_fines  
-[3] emissions  
-[4] ash_disposal  
-
->>> O1 = c.Biorefinery('O1') # Load direct cogeneration oilcane configuration
->>> O1 = O1.sys.show(data=False)
-System: oilcane_sys
-Highest convergence error among components in recycle
-streams {S301-0, T901-0} after 3 loops:
-- flow rate   4.24e-03 kmol/hr (0.65%)
-- temperature 0.00e+00 K (0%)
-ins...
-[0] oilcane  
-outs...
-[0] advanced_ethanol  
-[1] biodiesel  
-[2] crude_glycerol  
-[3] vinasse  
-
-```
-
 To retrieve economic and environmental results at different scenarios, you can 
 use the Model object:
 
 ```python
 >>> import biorefineries.cane as c
->>> O7 = c.Biorefinery('O7.WT') # Load integrated co-fermentation oilcane configuration producing biodiesel from sugarcane
->>> parameters = O7.model.get_baseline_sample() # All parameters at the baseline scenario
+>>> # Load integrated co-fermentation oilcane configuration producing biodiesel from sugarcane
+>>> O7 = c.Biorefinery('O7.WT') 
+>>> # All parameters at the baseline scenario
+>>> parameters = O7.model.get_baseline_sample() 
 >>> parameters
 -                                  Juicing oil recovery [%]                    60
                                    Microbial oil recovery [%]                  70
@@ -250,6 +211,35 @@ Feedstock                Competitive biomass yield [dry MT/ha]               NaN
 dtype: float64
 
 ```
+
+Here are an additional example for loading the conventional sugarcane biorefinery
+producing ethanol and electricity:
+
+```python
+>>> import biorefineries.cane as c
+>>> S1 = c.Biorefinery('S1') # Load conventional sugarcane biorefinery
+>>> S1.sys.show(data=False) # Full system
+System: sugarcane_sys
+Highest convergence error among components in recycle
+stream M201-0 after 5 loops:
+- flow rate   9.09e-13 kmol/hr (0%)
+- temperature 4.25e-06 K (1.3e-06%)
+ins...
+[0] sugarcane  
+[1] H3PO4  
+[2] lime  
+[3] polymer  
+[4] denaturant  
+outs...
+[0] advanced_ethanol  
+[1] vinasse  
+[2] fiber_fines  
+[3] emissions  
+[4] ash_disposal  
+
+```
+
+
 
 ## References
 <a id="1">[1]</a> 
