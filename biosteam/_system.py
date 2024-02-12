@@ -2291,7 +2291,7 @@ class System:
         data = self._get_recycle_data()
         f = self._iter_run_conditional if conditional else self._iter_run
         try: solver(f, data, **kwargs)
-        except IndexError as error:
+        except (IndexError, ValueError) as error:
             data = self._get_recycle_data()
             try: solver(f, data, **kwargs)
             except Converged: pass
