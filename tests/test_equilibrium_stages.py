@@ -5,7 +5,7 @@ import pytest
 import biosteam as bst
 from numpy.testing import assert_allclose
 
-def test_multi_stage_vle():
+def test_multi_stage_adiabatic_vle():
     bst.settings.set_thermo(['AceticAcid', 'EthylAcetate', 'Water', 'MTBE'], cache=True)
     feed = bst.Stream('feed', Water=75, AceticAcid=5, MTBE=20, T=320)
     steam = bst.Stream('steam', Water=100, phase='g', T=390)
@@ -60,9 +60,46 @@ def test_multi_stage_vle():
         atol=1,
         rtol=0.01,
     )
+   
+def test_distillation():
+    import biosteam as bst
+    bst.settings.set_thermo(
+        ['Water', 'AceticAcid', 'EthylAcetate'],
+        cache=True
+    )
+    hot_extract = bst.MultiStream(
+        phases=('g', 'l'), T=358.05, P=101325,
+        g=[('Water', 20.29), 
+           ('AceticAcid', 3.872), 
+           ('EthylAcetate', 105.2)],
+        l=[('Water', 1.878), 
+           ('AceticAcid', 0.6224), 
+           ('EthylAcetate', 4.311)]
+    )
+    distillation = bst.MESHDistillation(
+        N_stages=10,
+        ins=[hot_extract],
+        feed_stages=[5],
+        outs=['', 'bottoms_product', 'distillate'],
+        full_condenser=True,
+        reflux=1.0,
+        boilup=3.5,
+        use_cache=True,
+        LHK=('Water', 'AceticAcid'),
+        method='fixed-point',
+    )
+    distillation.simulate()
+    flows = (
+        [0.0, 0.0, 0.0],
+        [0.11207623502718754, 4.350673197920912, 22.367339208146912],
+        [22.05592376497281, 0.14372680207908728, 87.1436607918531],
+    )
+    for i, j in zip(distillation.outs, flows):    
+        assert_allclose(i.mol, j)
     
 if __name__ == '__main__':
-    test_multi_stage_vle()
+    test_multi_stage_adiabatic_vle()
+    test_distillation()
 
 
 

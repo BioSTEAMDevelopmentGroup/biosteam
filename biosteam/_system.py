@@ -27,11 +27,12 @@ from .exceptions import try_method_with_object_stamp, Converged, UnitInheritance
 from ._network import Network, mark_disjunction, unmark_disjunction
 from ._facility import Facility
 from ._unit import Unit, repr_ins_and_outs
+from . import utils
 from .utils import (
-    repr_items, ignore_docking_warnings, SystemScope,
-    piping, colors, list_available_names
+    repr_items, ignore_docking_warnings,
+    piping, colors, list_available_names, dictionaries2array
 )
-from .process_tools import utils
+from .process_tools import get_power_utilities, get_heat_utilities
 from collections import abc
 from warnings import warn
 from inspect import signature
@@ -39,6 +40,7 @@ from thermosteam.utils import repr_kwargs
 import biosteam as bst
 import numpy as np
 import pandas as pd
+from numpy.linalg import solve
 from scipy.integrate import solve_ivp
 from . import report
 from ._temporary_connection import temporary_units_dump, TemporaryUnit
@@ -69,7 +71,66 @@ class SystemSpecification:
     def __call__(self): self.f(*self.args)
 
 
-# %% Convergence tools
+# %% Phenomenological convergence tools
+
+def solve_variable(units, variable):
+    leqs = LinearEquations(variable, units)
+    return leqs.solve()
+
+class LinearEquations:
+    __slots__ = ('variable', 'A', 'b', 'units')
+    
+    def __init__(self, variable, units=None):
+        self.variable = variable
+        self.A = []
+        self.b = []
+        self.units = []
+        if units: self.extend(units)
+        
+    def append(self, unit):
+        A = self.A; b = self.b
+        self.units.append(unit)
+        # zero = np.array(0)
+        for coefficients, value in unit._create_linear_equations(self.variable):
+            # if all([(i == zero).all() for i in coefficients.values()]):
+            #     continue
+            for stream in tuple(coefficients):
+                if not hasattr(stream, 'port'): continue
+                original = stream
+                stream = stream.port.get_stream()
+                while hasattr(stream, 'port'): stream = stream.port.get_stream()                    
+                coef = coefficients.pop(original)
+                coefficients[stream] = coef
+            A.append(coefficients)
+            b.append(value)
+    
+    def extend(self, units):
+        for i in units: self.append(i)
+        
+    def solve(self):
+        b = self.b
+        variable = self.variable
+        if not b: 
+            objs = []
+            values = []
+            for i in self.units:
+                value = i._get_decoupled_variable(variable)
+                if value is None: continue 
+                objs.append(i)
+                values.append(value)
+            return objs, np.array(values)
+        A, objs = dictionaries2array(self.A)
+        values = solve(A, np.array(b).T).T
+        if np.isnan(values).any(): 
+            raise RuntimeError('nan value in variables')
+        for obj, value in zip(objs, values): 
+            obj._update_decoupled_variable(variable, value)
+        if variable in ('mol', 'mol-LLE'):
+            for i in self.units: 
+                if hasattr(i, '_update_auxiliaries'): i._update_auxiliaries()
+        return objs, values
+
+# %% Sequential modular convergence tools
 
 class Methods(dict):
     
@@ -335,7 +396,7 @@ def _method_debug(self, f):
 
 def _method_profile(self, f):
     self._total_excecution_time_ = 0.
-    t = bst.utils.TicToc()
+    t = utils.TicToc()
     def g():
         t.tic()
         f()
@@ -384,7 +445,7 @@ class MockSystem:
         try:
             return self._ins
         except:
-            inlets = bst.utils.feeds_from_units(self.units)
+            inlets = utils.feeds_from_units(self.units)
             self._ins = ins = piping.StreamPorts.from_inlets(inlets, sort=True)
             return ins
     @property
@@ -393,23 +454,23 @@ class MockSystem:
         try:
             return self._outs
         except:
-            outlets = bst.utils.products_from_units(self.units)
+            outlets = utils.products_from_units(self.units)
             self._outs = outs = piping.StreamPorts.from_outlets(outlets, sort=True)
             return outs
 
     def load_inlet_ports(self, inlets, names=None):
         """Load inlet ports to system."""
-        all_inlets = bst.utils.feeds_from_units(self.units)
+        all_inlets = utils.feeds_from_units(self.units)
         inlets = list(inlets)
         for i in inlets:
             if i not in all_inlets:
                 raise ValueError(f'{i} is not an inlet')
         self._ins = piping.StreamPorts.from_inlets(inlets)
         self._inlet_names = {} if names is None else names
-
+    
     def load_outlet_ports(self, outlets, names=None):
         """Load outlet ports to system."""
-        all_outlets = bst.utils.products_from_units(self.units)
+        all_outlets = utils.products_from_units(self.units)
         outlets = list(outlets)
         for i in outlets:
             if i not in all_outlets:
@@ -512,11 +573,14 @@ class System:
         '_facility_loop',
         '_recycle',
         '_N_runs',
+        '_method',
+        '_algorithm',
         '_mol_error',
         '_T_error',
         '_rmol_error',
         '_rT_error',
         '_iter',
+        'phenomena_maxiter',
         '_ins',
         '_outs',
         '_path_cache',
@@ -533,10 +597,11 @@ class System:
         'process_impact_items',
         'tracked_recycles',
         '_connections',
-        '_method',
         '_TEA',
         '_LCA',
         '_subsystems',
+        '_stages',
+        '_stages_set',
         '_units',
         '_unit_set',
         '_unit_path',
@@ -585,14 +650,27 @@ class System:
     #: Default relative temperature tolerance
     default_relative_temperature_tolerance: float = 0.001
 
-    #: Default convergence method.
-    default_method: str = 'Aitken'
+    #: Default maximum number of phenomena-oriented simulations before 
+    #: running each unit operation sequentially
+    default_phenomena_maxiter: int = 15
 
+    #: Default convergence algorithm.
+    default_algorithm: str = 'Sequential modular'
+
+    #: Default method for convergence algorithm.
+    default_methods: dict[str] = {
+        'Sequential modular': 'Aitken',
+        'Phenomena oriented': 'fixed-point',
+    }
+    
     #: Whether to raise a RuntimeError when system doesn't converge
     strict_convergence: bool = True
 
     #: Method definitions for convergence
-    available_methods: Methods[str, tuple(Callable, bool, dict)] = Methods()
+    available_methods: Methods[str, tuple[Callable, bool, dict]] = Methods()
+
+    #: Variable solution priority for phenomena oriented simulation.
+    variable_priority: list[str] = ['mol', ('mol-LLE', 'K-pseudo'), 'K', 'B', 'mol', 'T', 'L']
 
     @classmethod
     def register_method(cls, name, solver, conditional=False, **kwargs):
@@ -620,7 +698,7 @@ class System:
             ends: Iterable[Stream]=None,
             facility_recycle: Optional[Stream]=None,
             operating_hours: Optional[float]=None,
-            lang_factor: Optional[float]=None,
+            **kwargs,
         ):
         """
         Create a System object from a feedstock.
@@ -645,17 +723,13 @@ class System:
             Number of operating hours in a year. This parameter is used to
             compute annualized properties such as utility cost and material cost
             on a per year basis.
-        lang_factor : 
-            Lang factor for getting fixed capital investment from
-            total purchase cost. If no lang factor, installed equipment costs are
-            estimated using bare module factors.
 
         """
         if feedstock is None: raise ValueError('must pass feedstock stream')
         network = Network.from_feedstock(feedstock, feeds, ends)
         return cls._from_network(ID, network, facilities,
                                 facility_recycle, operating_hours,
-                                lang_factor)
+                                **kwargs)
 
     @classmethod
     def from_units(cls, ID: Optional[str]="",
@@ -663,7 +737,7 @@ class System:
                    ends: Optional[Iterable[Stream]]=None,
                    facility_recycle: Optional[Stream]=None, 
                    operating_hours: Optional[float]=None,
-                   lang_factor: Optional[float]=None):
+                   **kwargs):
         """
         Create a System object from all units given.
 
@@ -684,22 +758,18 @@ class System:
             Number of operating hours in a year. This parameter is used to
             compute annualized properties such as utility cost and material cost
             on a per year basis.
-        lang_factor : 
-            Lang factor for getting fixed capital investment from
-            total purchase cost. If no lang factor, installed equipment costs are
-            estimated using bare module factors.
 
         """
         facilities = facilities_from_units(units)
         network = Network.from_units(units, ends)
         return cls._from_network(ID, network, facilities,
                                 facility_recycle, operating_hours,
-                                lang_factor)
+                                **kwargs)
 
     @classmethod
     def from_segment(cls, ID: Optional[str]="", start: Optional[Unit]=None, 
                      end: Optional[Unit]=None, operating_hours: Optional[float]=None,
-                     lang_factor: Optional[float]=None, inclusive=False):
+                     inclusive=False, **kwargs):
         """
         Create a System object from all units in between start and end.
 
@@ -715,10 +785,6 @@ class System:
             Number of operating hours in a year. This parameter is used to
             compute annualized properties such as utility cost and material cost
             on a per year basis.
-        lang_factor : 
-            Lang factor for getting fixed capital investment from
-            total purchase cost. If no lang factor, installed equipment costs are
-            estimated using bare module factors.
         inclusive :
             Whether to include start and end units.
 
@@ -736,11 +802,11 @@ class System:
             if start is not None: units.add(start)
             if end is not None: units.add(end)
         return bst.System.from_units(ID, units, operating_hours=operating_hours,
-                                     lang_factor=lang_factor)
+                                     **kwargs)
          
     @classmethod
     def _from_network(cls, ID, network, facilities=(), facility_recycle=None,
-                     operating_hours=None, lang_factor=None):
+                     operating_hours=None, **kwargs):
         """
         Create a System object from a network.
 
@@ -759,10 +825,6 @@ class System:
             Number of operating hours in a year. This parameter is used to
             compute annualized properties such as utility cost and material cost
             on a per year basis.
-        lang_factor : float, optional
-            Lang factor for getting fixed capital investment from
-            total purchase cost. If no lang factor, installed equipment costs are
-            estimated using bare module factors.
 
         """
         facilities = Facility.ordered_facilities(facilities)
@@ -772,7 +834,7 @@ class System:
         path = [(cls._from_network(ID_subsys, i) if isa(i, Network) else i)
                 for i in network.path]
         return cls(ID, path, network.recycle, facilities, facility_recycle, None,
-                   operating_hours, lang_factor)
+                   operating_hours, **kwargs)
 
     def __init__(self, 
             ID: Optional[str]= '', 
@@ -784,27 +846,40 @@ class System:
             operating_hours: Optional[float]=None,
             lang_factor: Optional[float]=None,
             responses: Optional[list[Response]]=None,
+            algorithm: Optional[str]=None,
+            method: Optional[str]=None,
+            maxiter: Optional[int]=None,
+            molar_tolerance: Optional[float]=None,
+            relative_molar_tolerance: Optional[float]=None,
+            temperature_tolerance: Optional[float]=None,
+            relative_temperature_tolerance: Optional[float]=None,
         ):
         self.N_runs = N_runs
-        self.method = self.default_method   
+        
+        self.algorithm = self.default_algorithm if algorithm is None else algorithm
+        
+        self.method = self.default_methods[self.algorithm] if method is None else method
         
         #: Maximum number of iterations.
-        self.maxiter: int = self.default_maxiter
+        self.maxiter: int = self.default_maxiter if maxiter is None else maxiter
+
+        #: Default maximum number of phenomena-oriented simulations before attempting sequential modular
+        self.phenomena_maxiter = self.default_phenomena_maxiter
 
         #: Molar tolerance [kmol/hr].
-        self.molar_tolerance: float = self.default_molar_tolerance
+        self.molar_tolerance: float = self.default_molar_tolerance if molar_tolerance is None else molar_tolerance
 
         #: Relative molar tolerance.
-        self.relative_molar_tolerance: float = self.default_relative_molar_tolerance
+        self.relative_molar_tolerance: float = self.default_relative_molar_tolerance if relative_molar_tolerance is None else relative_molar_tolerance
 
         #: Temperature tolerance [K].
-        self.temperature_tolerance: float = self.default_temperature_tolerance
+        self.temperature_tolerance: float = self.default_temperature_tolerance if temperature_tolerance is None else temperature_tolerance
 
         #: Relative temperature tolerance.
-        self.relative_temperature_tolerance: float = self.default_relative_temperature_tolerance
+        self.relative_temperature_tolerance: float = self.default_relative_temperature_tolerance if relative_temperature_tolerance is None else relative_temperature_tolerance
 
         #: Number of operating hours per year
-        self.operating_hours: float|None = operating_hours
+        self.operating_hours: float|None = operating_hours if operating_hours is None else operating_hours
         
         #: Lang factor for computing fixed capital cost from purchase costs
         self.lang_factor: float|None = lang_factor
@@ -838,6 +913,11 @@ class System:
         self._DAE = None
         self.dynsim_kwargs = {}
         self.tracked_recycles = {}
+        subsystems = self.subsystems
+        algorithm = self._algorithm
+        method = self._method
+        for i in subsystems: i._algorithm = algorithm
+        for i in subsystems: i._method = method
 
     @property
     def responses(self):
@@ -973,6 +1053,15 @@ class System:
         else:
             self.update_configuration(dump)
             self._load_stream_links()
+            self.set_tolerance(
+                algorithm=self._algorithm,
+                method=self._method,
+                mol=self.molar_tolerance,
+                rmol=self.relative_molar_tolerance,
+                T=self.temperature_tolerance,
+                rT=self.relative_temperature_tolerance,
+                subsystems=True,
+            )
 
     def _save_configuration(self):
         self._connections = [i.get_connection() for i in self.streams]
@@ -1049,7 +1138,8 @@ class System:
     def set_tolerance(self, mol: Optional[float]=None, rmol: Optional[float]=None,
                       T: Optional[float]=None, rT: Optional[float]=None, 
                       subsystems: bool=False, maxiter: Optional[int]=None, 
-                      subfactor: Optional[float]=None, method: Optional[str]=None):
+                      subfactor: Optional[float]=None, method: Optional[str]=None,
+                      algorithm: Optional[str]=None):
         """
         Set the convergence tolerance and convergence method of the system.
 
@@ -1070,8 +1160,9 @@ class System:
         subfactor :
             Factor to rescale tolerance in subsystems.
         method :
-            Convergence method.
-            
+            Numerical method.
+        algorithm :
+            Convergence algorithm
         
         """
         if mol: self.molar_tolerance = float(mol)
@@ -1080,12 +1171,13 @@ class System:
         if rT: self.temperature_tolerance = float(rT)
         if maxiter: self.maxiter = int(maxiter)
         if method: self.method = method
+        if algorithm: self.algorithm = algorithm
         if subsystems:
             if subfactor:
                 for i in self.subsystems: i.set_tolerance(*[(i * subfactor if i else i) for i in (mol, rmol, T, rT)],
-                                                          subsystems, maxiter, subfactor, method)
+                                                          subsystems, maxiter, subfactor, method, algorithm)
             else:
-                for i in self.subsystems: i.set_tolerance(mol, rmol, T, rT, subsystems, maxiter, subfactor, method)
+                for i in self.subsystems: i.set_tolerance(mol, rmol, T, rT, subsystems, maxiter, subfactor, method, algorithm)
 
     ins = MockSystem.ins
     outs = MockSystem.outs
@@ -1441,9 +1533,6 @@ class System:
         self._extend_flattend_path_and_recycles(path, recycles, stacklevel=2)
         self._path = tuple(path)
         self._recycle = tuple(recycles)
-        N_recycles = len(recycles)
-        self.molar_tolerance *= N_recycles
-        self.temperature_tolerance *= N_recycles
 
     def to_unit_group(self, name: Optional[str]=None):
         """Return a UnitGroup object of all units within the system."""
@@ -1492,6 +1581,28 @@ class System:
     __pow__ = __sub__
     __rpow__ = __rsub__
 
+    def _get_source_stage(self, stream):
+        parent_source = stream.source
+        if parent_source is None: return None
+        ID = stream.ID
+        stages_set = self.stages_set
+        while parent_source not in stages_set:
+            IDs = [i.ID for i in parent_source.outs]
+            index = IDs.index(ID)
+            auxlet = parent_source.auxouts[index]
+            parent_source = auxlet.source
+            if parent_source is None: break
+        return parent_source
+    
+    def _get_sink_stage(self, stream):
+        parent_sink = stream.sink
+        if parent_sink in self.stages_set:
+            return parent_sink
+        else:
+            index = parent_sink.ins.index(stream)
+            auxlet = parent_sink.auxins[index]
+            return auxlet.sink
+
     @property
     def subsystems(self) -> list[System]:
         """All subsystems in the system."""
@@ -1500,6 +1611,27 @@ class System:
         except:
             self._subsystems = [i for i in self._path if isinstance(i, System)]
             return self._subsystems
+
+    @property
+    def stages(self):
+        try:
+            return self._stages
+        except:
+            self._stages = stages = []
+            for i in self.units:
+                try:
+                    stages.extend(i.stages)
+                except:
+                    raise AttributeError('not all units are stages')
+            return stages
+
+    @property
+    def stages_set(self):
+        try:
+            return self._stages_set
+        except:
+            self._stages_set = stages_set = set(self.stages)
+            return stages_set
 
     @property
     def units(self) -> list[Unit]:
@@ -1566,7 +1698,7 @@ class System:
                 elif isa(i, System):
                     units.update(i.cost_units)
             return units
-        
+      
     @property
     def streams(self) -> list[Stream]:
         """All streams within the system."""
@@ -1584,14 +1716,15 @@ class System:
                     elif isa(s, temp): continue
                     streams.append(s)
                     stream_set.add(s)
-            return streams
+            return streams 
+    
     @property
     def feeds(self) -> list[Stream]:
         """All feeds to the system."""
         try:
             return self._feeds
         except:
-            self._feeds = feeds = bst.utils.feeds(self.streams)
+            self._feeds = feeds = utils.feeds(self.streams)
             return feeds
     @property
     def products(self) -> list[Stream]:
@@ -1599,7 +1732,7 @@ class System:
         try:
             return self._products
         except:
-            self._products = products = bst.utils.products(self.streams)
+            self._products = products = utils.products(self.streams)
             return products
 
     @property
@@ -1657,6 +1790,16 @@ class System:
                 return
         else:
             raise_recycle_type_error(recycle)
+    
+    @property
+    def depth(self):
+        if self.recycle: 
+            depth = [1]
+        else:
+            depth = [0]
+        for i in self.subsystems:
+            depth.append(i.depth + 1)
+        return max(depth)
 
     @property
     def N_runs(self) -> int|None:
@@ -1673,7 +1816,7 @@ class System:
 
     @property
     def method(self) -> str:
-        """Iterative convergence method ('wegstein', 'aitken', or 'fixedpoint')."""
+        """Iterative convergence accelerator method ('wegstein', 'aitken', or 'fixedpoint')."""
         return self._method
     @method.setter
     def method(self, method):
@@ -1687,6 +1830,33 @@ class System:
             )
 
     converge_method = method # For backwards compatibility
+
+    @property
+    def algorithm(self) -> str:
+        """Iterative convergence algorithm ('Sequatial modular', or 'Phenomena oriented').
+        
+        Notes
+        -----
+        Timulation algorithms are available:
+        
+        Sequential modular - squentially runs each unit and subsystem until 
+        the recycle (i.e. tear) stream convergences.
+        
+        Phenomena oriented - partitions and linearizes the
+        underlying phenomenological equations for rapid and robust convergence.
+        
+        """
+        return self._algorithm
+    @algorithm.setter
+    def algorithm(self, algorithm):
+        algorithm = algorithm.capitalize().replace('-', ' ').replace('_', '')
+        if algorithm in self.default_methods:
+            self._algorithm = algorithm
+        else:
+            raise AttributeError(
+                f"method '{algorithm}' not available; only "
+                f"{list_available_names(self.default_methods)} are available"
+            )
 
     @property
     def isdynamic(self) -> bool:
@@ -1982,8 +2152,8 @@ class System:
             u._system = self
             u._setup()
             u._check_setup()
-            for ps in u._specifications: ps.compile_path(u)
             if u not in prioritized_units:
+                for ps in u._specifications: ps.compile_path(u)
                 if u.prioritize: self.prioritize_unit(u)
                 prioritized_units.add(u)
                 
@@ -2027,6 +2197,23 @@ class System:
         self._path = tuple(new_path)
 
     def run(self):
+        algorithm = self.algorithm 
+        if algorithm == 'Sequential modular':
+            self.run_sequential_modular()
+        elif algorithm == 'Phenomena oriented':
+            if all([i.isempty() for i in self.get_all_recycles()]):
+                for i in self.unit_path: i.run()
+            else:
+                try:
+                    self.run_phenomena()
+                except:
+                    warn('phenomena-oriented simulation failed; '
+                          'attempting one sequential-modular loop', RuntimeWarning)
+                    for i in self.unit_path: i.run()
+        else:
+            raise RuntimeError(f'unknown algorithm {algorithm!r}')
+
+    def run_sequential_modular(self):
         """Run mass and energy balances for each element in the path
         without costing unit operations."""
         isa = isinstance
@@ -2034,8 +2221,37 @@ class System:
         for i in self._path:
             if isa(i, Unit): f(i, i.run)
             elif isa(i, System): f(i, i.converge)
-            else: i() # Assume it's a function
+            else: raise RuntimeError('path elements must be either a unit or a system')
 
+    def run_phenomena(self):
+        """Decouple and linearize material, equilibrium, summation, enthalpy,
+        and reaction phenomena and iteratively solve them."""
+        stages = self.stages + self.feeds
+        def run_variables(variables):
+            for variables in variables:
+                if isinstance(variables, tuple):
+                    *variables, key = variables
+                    run_variables(variables)
+                    try: objs, x0 = solve_variable(stages, key)
+                    except: continue
+                    def f(x):
+                        for obj, xi in zip(objs, x): obj._update_decoupled_variable(key, xi)
+                        run_variables(variables)
+                        _, x = solve_variable(stages, key)
+                        return x
+                    
+                    if key == 'K-pseudo': 
+                        flx.fixed_point(
+                            f, x0, xtol=1e-6, maxiter=100, checkiter=False, 
+                            checkconvergence=False, convergenceiter=5
+                        )
+                    else: 
+                        raise NotImplementedError(f'tolerance for {key!r} not available in BioSTEAM yet')
+                else:
+                    solve_variable(stages, variables)
+                
+        run_variables(self.variable_priority)
+        
     def _solve(self):
         """Solve the system recycle iteratively."""
         self._reset_iter()
@@ -2085,7 +2301,7 @@ class System:
                     i.recycle_system_hook(self)
             method = self._solve
         else:
-            method = self.run
+            method = self.run_sequential_modular
         if self._N_runs:
             for i in range(self._N_runs): method()
         else:
@@ -2138,8 +2354,8 @@ class System:
         """Reset all outlet streams to zero flow."""
         self._reset_errors()
         units = self.units
-        streams = bst.utils.streams_from_units(units)
-        bst.utils.filter_out_missing_streams(streams)
+        streams = utils.streams_from_units(units)
+        utils.filter_out_missing_streams(streams)
         streams_by_data = {}
         for i in streams:
             data = i.imol.data
@@ -2202,19 +2418,19 @@ class System:
                  f'set up a dynamic tracker.')
         
     @property
-    def scope(self) -> SystemScope:
+    def scope(self) -> utils.SystemScope:
         """
         A tracker of dynamic data of the system, set up
         with :class:`System`.`set_dynamic_tracker()`
         """
-        if not hasattr(self, '_scope'): self._scope = SystemScope(self)
+        if not hasattr(self, '_scope'): self._scope = utils.SystemScope(self)
         elif isinstance(self._scope, dict): 
             # sys.converge() seems to break WasteStreamScope, so it's now 
             # set up to initiate the SystemScope object after converge() when 
             # the system is run the first time 
             subjects = self._scope['subjects']
             kwargs = self._scope['kwargs']
-            self._scope = SystemScope(self, *subjects, **kwargs)
+            self._scope = utils.SystemScope(self, *subjects, **kwargs)
         return self._scope
     
     # _hasode = lambda unit: hasattr(unit, '_compile_ODE')
@@ -2543,12 +2759,12 @@ class System:
     @property
     def heat_utilities(self) -> tuple[HeatUtility, ...]:
         """The sum of all heat utilities in the system by agent."""
-        return HeatUtility.sum_by_agent(utils.get_heat_utilities(self.cost_units))
+        return HeatUtility.sum_by_agent(get_heat_utilities(self.cost_units))
 
     @property
     def power_utility(self) -> PowerUtility:
         """Sum of all power utilities in the system."""
-        return PowerUtility.sum(utils.get_power_utilities(self.cost_units))
+        return PowerUtility.sum(get_power_utilities(self.cost_units))
 
     def get_inlet_utility_flows(self):
         """
@@ -2611,9 +2827,9 @@ class System:
         """
         units += '/hr'
         if key:
-            return self.operating_hours * sum([i.get_flow(units, key) for i in bst.utils.feeds_from_units(self.units)])
+            return self.operating_hours * sum([i.get_flow(units, key) for i in utils.feeds_from_units(self.units)])
         else:
-            return self.operating_hours * sum([i.get_total_flow(units) for i in bst.utils.feeds_from_units(self.units)])
+            return self.operating_hours * sum([i.get_total_flow(units) for i in utils.feeds_from_units(self.units)])
 
     def get_outlet_flow(self, units: str, key: Optional[Sequence[str]|str]=None):
         """
@@ -2643,9 +2859,9 @@ class System:
         """
         units += '/hr'
         if key:
-            return self.operating_hours * sum([i.get_flow(units, key) for i in bst.utils.products_from_units(self.units)])
+            return self.operating_hours * sum([i.get_flow(units, key) for i in utils.products_from_units(self.units)])
         else:
-            return self.operating_hours * sum([i.get_total_flow(units) for i in bst.utils.products_from_units(self.units)])
+            return self.operating_hours * sum([i.get_total_flow(units) for i in utils.products_from_units(self.units)])
     
     def get_mass_flow(self, stream: Stream):
         """Return the mass flow rate of a stream [kg/yr]."""

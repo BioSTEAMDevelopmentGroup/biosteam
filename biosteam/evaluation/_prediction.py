@@ -319,6 +319,8 @@ class ConvergenceModel:
             model_type = model_type.lower()
             if model_type == 'linear regressor':
                 model_type = LinearRegressor
+            elif model_type == 'intercept linear regressor':
+                model_type = InterceptLinearRegressor
             elif model_type == 'linear svr': # linear support vector machine regression
                 from sklearn.svm import LinearSVR
                 from sklearn.pipeline import make_pipeline
@@ -527,10 +529,6 @@ class ConvergenceModel:
         data = self.data
         if exception and self.fitted:
             del data['samples'][-1]
-            if self.save_predicition: 
-                predicted = data['predicted']
-                for response in self.responses:
-                    del predicted[response][-1]
             raise exception
         actual = data['actual']
         for response in self.responses:

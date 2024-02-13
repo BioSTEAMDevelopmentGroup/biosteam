@@ -186,29 +186,35 @@ class BoilerTurbogenerator(bst.Facility):
         if natural_gas_price is not None: self.natural_gas_price = natural_gas_price
         if ash_disposal_price is not None: self.ash_disposal_price = ash_disposal_price
         self.satisfy_system_electricity_demand = satisfy_system_electricity_demand
-        self._load_components()
-        
-    def _load_components(self):
-        chemicals = self.chemicals
-        if 'SO2' in chemicals:
+      
+    def _get_desulfurization_rxn_and_coreactant(self):
+        try:
+            return self.desulfurization_reaction, self._ID_lime
+        except:
+            chemicals = self.chemicals
             CAS_lime = '1305-62-0'
-            if CAS_lime in chemicals or 'Ca(OH)2' in chemicals:
-                if 'Ca(OH)2' not in chemicals:
-                    chemicals.set_synonym(CAS_lime, 'Ca(OH)2')
-                self.desulfurization_reaction =  tmo.Reaction(
+            has_common_name = 'Ca(OH)2' in chemicals
+            if CAS_lime in chemicals or has_common_name:
+                if not has_common_name: chemicals.set_synonym(CAS_lime, 'Ca(OH)2')
+                self.desulfurization_reaction = rxn = tmo.Reaction(
                     'SO2 + Ca(OH)2 + 0.5 O2 -> CaSO4 + H2O', 'SO2', 0.92, chemicals
                 )
-                self._ID_lime = 'Ca(OH)2'
-                return
+                self._ID_lime = ID = 'Ca(OH)2'
+                return rxn, ID
             CAS_lime = '1305-78-8'
-            if CAS_lime in chemicals or 'CaO' in chemicals:
-                if 'CaO' not in chemicals:
-                    chemicals.set_synonym(CAS_lime, 'CaO')
-                self.desulfurization_reaction =  tmo.Reaction(
+            has_common_name = 'CaO' in chemicals
+            if CAS_lime in chemicals or has_common_name:
+                if not has_common_name: chemicals.set_synonym(CAS_lime, 'CaO')
+                self.desulfurization_reaction = rxn = tmo.Reaction(
                     'SO2 + CaO + 0.5 O2 -> CaSO4', 'SO2', 0.92, chemicals
                 )
-                self._ID_lime = 'CaO'
-                return
+                self._ID_lime = ID = 'CaO'
+                return rxn, ID
+        raise RuntimeError(
+            "lime is required for boiler, but no chemical 'CaO' or 'Ca(OH)2' "
+            "available in thermodynamic property package"
+        )
+        
     
     @property
     def blowdown_water(self):
@@ -360,15 +366,18 @@ class BoilerTurbogenerator(bst.Facility):
         )
         ash_IDs = [i.ID for i in self.chemicals if not i.formula]
         emissions_mol = emissions.mol
-        if 'SO2' in chemicals: 
+        SO2_produced = 0
+        if 'SO2' in chemicals:
+            SO2_produced += emissions.imol['SO2']
+        if 'CaSO4' in chemicals:
+            SO2_produced += emissions.imol['CaSO4']
             ash_IDs.append('CaSO4')
-            lime_index = emissions.chemicals.index(self._ID_lime)
-            sulfur_index = emissions.chemicals.index('CaSO4')
-            self.desulfurization_reaction.force_reaction(emissions)
+        if SO2_produced: 
+            rxn, ID_lime = self._get_desulfurization_rxn_and_coreactant()
             # FGD lime scaled based on SO2 generated,	
             # 20% stoichiometric excess based on P52 of ref [1]
-            
-            lime.mol[lime_index] = lime_mol = max(0, emissions_mol[sulfur_index] * 1.2)
+            rxn.force_reaction(emissions)
+            lime.imol[ID_lime] = lime_mol = SO2_produced * 1.2
             emissions_mol.remove_negatives()
         else:
             lime.empty()
@@ -378,10 +387,12 @@ class BoilerTurbogenerator(bst.Facility):
         ash_disposal.copy_flow(emissions, IDs=tuple(ash_IDs), remove=True)
         ash_disposal.imol['Ash'] += boiler_chems
         dry_ash = ash_disposal.F_mass
-        ash_disposal.imass['Water'] = moisture = dry_ash * 0.3 # ~20% moisture
+        moisture = min(emissions.imass['Water'], dry_ash * 0.3) # ~20% moisture
+        ash_disposal.imass['Water'] = moisture
+        emissions.imass['Water'] -= moisture
         Design['Ash disposal'] = dry_ash + moisture
-        if 'SO2' in chemicals:
-            if self._ID_lime == '1305-62-0': # Ca(OH)2
+        if SO2_produced:
+            if ID_lime == 'Ca(OH)2': # Ca(OH)2
                 lime.imol['Water'] = 4 * lime_mol # Its a slurry
             else: # CaO
                 lime.imol['Water'] = 5 * lime_mol 

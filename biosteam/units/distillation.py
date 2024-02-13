@@ -729,8 +729,7 @@ class Distillation(Unit, isabstract=True):
         bottoms_product.mol[LHK_index] = LHK_mol - distillate_LHK_mol
         distillate.mol[intemediates_index] = \
         bottoms_product.mol[intemediates_index] = mol[intemediates_index] / 2
-        try: self._check_mass_balance()
-        except: breakpoint()
+        self._check_mass_balance()
     
     def _update_distillate_and_bottoms_temperature(self):
         distillate, bottoms_product = self.outs
@@ -1835,9 +1834,9 @@ class ShortcutColumn(Distillation, new_graphics=False):
         K_distillate = compute_partition_coefficients(dp.y, dp.x)
         K_bottoms = compute_partition_coefficients(bp.y, bp.x)
         HK_index = self._LHK_vle_index[1]
-        alpha_mean = compute_mean_volatilities_relative_to_heavy_key(K_distillate,
-                                                                     K_bottoms,
-                                                                     HK_index)
+        alpha_mean = compute_mean_volatilities_relative_to_heavy_key(
+            K_distillate, K_bottoms, HK_index
+        )
         return alpha_mean
         
     def _estimate_distillate_recoveries(self):
@@ -1936,7 +1935,7 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
     [0] vapor  
         phase: 'g', T: 366.33 K, P: 101325 Pa
         flow (kmol/hr): AceticAcid  3.72
-                        Water       73.8
+                        Water       73.9
                         MTBE        20
     [1] liquid  
         phase: 'l', T: 372.87 K, P: 101325 Pa
@@ -2005,13 +2004,15 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
             open_tray_area_fraction=0.1,
             downcomer_area_fraction=None,  
             use_cache=None,
+            collapsed_init=False,
+            method=None,
         ):
         super()._init(N_stages=N_stages, feed_stages=feed_stages,
                       top_side_draws=vapor_side_draws, 
                       bottom_side_draws=liquid_side_draws,
                       partition_data=partition_data,
-                      phases=("g", "l"),
-                      P=P, use_cache=use_cache)
+                      phases=("g", "l"), collapsed_init=collapsed_init,
+                      P=P, use_cache=use_cache, method=method)
        
         # Construction specifications
         self.solute = solute
@@ -2027,14 +2028,14 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
         self._last_args = (
             self.N_stages, self.feed_stages, self.vapor_side_draws, 
             self.liquid_side_draws, self.use_cache, *self._ins, 
-            self.solvent_ID, self.partition_data, self.P
+            self.partition_data, self.P, self.collapsed_init,
         )
         
     def _setup(self):
         super()._setup()
         args = (self.N_stages, self.feed_stages, self.vapor_side_draws, 
                 self.liquid_side_draws, self.use_cache, *self._ins, 
-                self.solvent_ID, self.partition_data, self.P)
+                self.partition_data, self.P, self.collapsed_init)
         if args != self._last_args:
             MultiStageEquilibrium._init(
                 self, N_stages=self.N_stages,
@@ -2044,6 +2045,7 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
                 bottom_side_draws=self.liquid_side_draws,
                 partition_data=self.partition_data, 
                 use_cache=self.use_cache, 
+                collapsed_init=self.collapsed_init,
             )
             self._last_args = args
     
@@ -2236,8 +2238,8 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     
     >>> D1.results()
     Distillation                                               Units          
-    Electricity         Power                                     kW     0.573
-                        Cost                                  USD/hr    0.0448
+    Electricity         Power                                     kW     0.574
+                        Cost                                  USD/hr    0.0449
     Cooling water       Duty                                   kJ/hr -2.98e+06
                         Flow                                 kmol/hr  2.03e+03
                         Cost                                  USD/hr     0.992
@@ -2283,14 +2285,14 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     
     >>> D1.results()
     Distillation                                     Units          
-    Electricity         Power                           kW     0.917
-                        Cost                        USD/hr    0.0717
+    Electricity         Power                           kW     0.918
+                        Cost                        USD/hr    0.0718
     Cooling water       Duty                         kJ/hr -9.13e+06
                         Flow                       kmol/hr  6.24e+03
                         Cost                        USD/hr      3.04
-    Low pressure steam  Duty                         kJ/hr  9.64e+06
+    Low pressure steam  Duty                         kJ/hr  9.63e+06
                         Flow                       kmol/hr       249
-                        Cost                        USD/hr      59.3
+                        Cost                        USD/hr      59.2
     Design              Theoretical stages                         5
                         Actual stages                              6
                         Height                          ft      22.9
@@ -2301,11 +2303,11 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                         Tower                          USD  3.62e+04
                         Platform and ladders           USD   9.8e+03
                         Condenser - Floating head      USD   3.5e+04
-                        Pump - Pump                    USD  4.34e+03
-                        Pump - Motor                   USD       389
+                        Pump - Pump                    USD  4.33e+03
+                        Pump - Motor                   USD       390
                         Reboiler - Floating head       USD  2.41e+04
     Total purchase cost                                USD  1.17e+05
-    Utility cost                                    USD/hr      62.4
+    Utility cost                                    USD/hr      62.3
     
     Notes
     -----
@@ -2377,7 +2379,11 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
             vacuum_system_preference='Liquid-ring pump',
             partition_data=None,
             full_condenser=None,
+            collapsed_init=None,
             use_cache=None,
+            method=None,
+            inside_out=None,
+            maxiter=None,
         ):
         if full_condenser: 
             if liquid_side_draws is None:
@@ -2395,7 +2401,11 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                       bottom_side_draws=liquid_side_draws,              
                       partition_data=partition_data,
                       phases=("g", "l"), P=P, use_cache=use_cache,
-                      stage_specifications=stage_specifications)
+                      stage_specifications=stage_specifications,
+                      collapsed_init=collapsed_init,
+                      inside_out=inside_out,
+                      method=method,
+                      maxiter=maxiter)
         
         # Construction specifications
         self.vessel_material = vessel_material
@@ -2412,7 +2422,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         self._last_args = (
             self.N_stages, self.feed_stages, self.vapor_side_draws, 
             self.liquid_side_draws, self.use_cache, *self._ins, 
-            self.solvent_ID, self.partition_data, self.P,
+            self.partition_data, self.P,
             reflux, boilup,
         )
         
@@ -2436,7 +2446,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         super()._setup()
         args = (self.N_stages, self.feed_stages, self.vapor_side_draws, 
                 self.liquid_side_draws, self.use_cache, *self._ins, 
-                self.solvent_ID, self.partition_data, self.P,
+                self.partition_data, self.P,
                 self.reflux, self.boilup)
         if args != self._last_args:
             MultiStageEquilibrium._init(
@@ -2458,7 +2468,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         
         #: [HXutility] Condenser.
         if reflux is None: # No condenser
-            self.condenser = self.reflux_drum = None
+            self.condenser = self.reflux_drum = self.top_split = None
             self.condensate = self.stages[0].outs[1]
         elif reflux == inf: # Full condenser
             self.reflux_drum = None
@@ -2580,8 +2590,8 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         Design['Weight'] = design.compute_tower_weight(Di, H, tv, rho_M)
 
     def _simulate_condenser_and_reboiler(self):
-        top = self.stages[0].partition
-        bottom = self.stages[-1].partition
+        top = self.stages[0]
+        bottom = self.stages[-1]
         reboiler = self.reboiler
         condenser = self.condenser
         reflux_drum = self.reflux_drum

@@ -434,6 +434,12 @@ class Unit:
     #: For embodied emissions (e.g., unit construction) in LCA
     _lca = AbstractMethod
     
+    #: dict[Unit, float] Return unit coefficients for the given variable.
+    _create_linear_equations = AbstractMethod
+    
+    #: Update internal variables related to mass and energy balances.
+    _update_variables = AbstractMethod
+    
     def __init__(self,
             ID: Optional[str]='',
             ins: streams=None,
@@ -448,6 +454,8 @@ class Unit:
     
         ### Initialize streams
         
+        self.auxins = {} #: dict[int, stream] Auxiliary inlets by index.
+        self.auxouts = {} #:  dict[int, stream] Auxiliary outlets by index.
         self._ins = piping.Inlets(
             self, self._N_ins, ins, self._thermo, self._ins_size_is_fixed, self._stacklevel
         )
@@ -549,11 +557,13 @@ class Unit:
         self._init(**kwargs)
     
     def _init_ins(self, ins):
+        self.auxins = {}
         self._ins = piping.Inlets(
             self, self._N_ins, ins, self._thermo, self._ins_size_is_fixed, self._stacklevel
         )
     
     def _init_outs(self, outs):
+        self.auxouts = {}
         self._outs = piping.Outlets(
             self, self._N_outs, outs, self._thermo, self._outs_size_is_fixed, self._stacklevel
         )
@@ -1737,15 +1747,19 @@ class Unit:
           from this unit. 
         
         """
-        if stream is None: stream = Stream(None)
+        if thermo is None: thermo = self.thermo
+        if stream is None: stream = Stream(None, thermo=thermo)
         if isinstance(stream, str): 
-            if thermo is None: thermo = self.thermo
             stream = Stream('.' + stream, thermo=thermo)
             stream._source = stream._sink = self
         if self is stream._source and stream in self._outs:
-            stream = piping.SuperpositionOutlet(piping.OutletPort.from_outlet(stream))
+            port = piping.OutletPort.from_outlet(stream)
+            stream = piping.SuperpositionOutlet(port)
+            self.auxouts[port.index] = stream
         elif self is stream._sink and stream in self._ins:
-            stream = piping.SuperpositionInlet(piping.InletPort.from_inlet(stream))
+            port = piping.InletPort.from_inlet(stream)
+            stream = piping.SuperpositionInlet(port)
+            self.auxins[port.index] = stream
         else:
             if stream._source is None: stream._source = self
             if stream._sink is None: stream._sink = self

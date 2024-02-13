@@ -78,8 +78,8 @@ def loan_principal_with_interest(loan, interest):
     principal = 0
     k = 1. + interest
     for i in loan:
-        principal += i
         principal *= k
+        principal += i
     return principal
 
 @njit(cache=True)
@@ -786,7 +786,6 @@ class TEA:
                     LI[i] = li
                     LPl[i] = loan_principal = loan_principal - LP[i] + li + L[i]
                 LI[:start] = L[:start] * interest # Interest still needs to be payed
-                    
             taxable_cashflow = S - C - D - LP
             nontaxable_cashflow = D + L - C_FC - C_WC
             if not accumulate_interest_during_construction:

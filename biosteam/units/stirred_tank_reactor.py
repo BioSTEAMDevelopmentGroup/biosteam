@@ -229,6 +229,9 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
     #: Default cleaning and unloading time (hr).
     tau_0_default: Optional[float]  = 3
     
+    #: Whether to default operation in batch mode or continuous
+    batch_default = False
+    
     @property
     def effluent(self):
         return self.outs[-1]
@@ -263,7 +266,7 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
         self.vessel_material = 'Stainless steel 316' if vessel_material is None else vessel_material
         self.vessel_type = 'Vertical' if vessel_type is None else vessel_type
         self.tau_0 = self.tau_0_default if tau_0 is None else tau_0
-        self.batch = batch
+        self.batch = self.batch_default if batch is None else batch
         self.load_auxiliaries()
 
     def load_auxiliaries(self):
@@ -390,24 +393,24 @@ class AeratedBioreactor(StirredTankReactor):
     >>> R1.show()
     AeratedBioreactor: R1
     ins...
-    [0] feed
+    [0] feed  
         phase: 'l', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water    6.66e+03
                         Glucose  139
-    [1] air
+    [1] air  
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): O2  730
-                        N2  2.75e+03
+        flow (kmol/hr): O2  1.05e+03
+                        N2  3.93e+03
     outs...
-    [0] vent
+    [0] vent  
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water  109
+        flow (kmol/hr): Water  136
                         CO2    416
-                        O2     314
-                        N2     2.75e+03
-    [1] product
+                        O2     629
+                        N2     3.93e+03
+    [1] product  
         phase: 'l', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water    6.97e+03
+        flow (kmol/hr): Water    6.94e+03
                         Glucose  69.4
     
     """
@@ -422,6 +425,7 @@ class AeratedBioreactor(StirredTankReactor):
     T_default = 273.15 + 32 
     P_default = 101325
     kW_per_m3_default = 0.2955 # Reaction in homogeneous liquid; reference [1]
+    batch_default = True
     
     def _init(
             self, reactions, theta_O2=0.5, Q_O2_consumption=None,
@@ -702,6 +706,7 @@ class GasFedBioreactor(StirredTankReactor):
     T_default = 273.15 + 32 
     P_default = 101325
     kW_per_m3_default = 0.2955 # Reaction in homogeneous liquid
+    batch_default = True
     
     def _init(self, 
             reactions, gas_substrates, titer, backward_reactions, 
@@ -837,7 +842,11 @@ class GasFedBioreactor(StirredTankReactor):
             vent.empty()
             self._run_vent(vent, effluent)
         
-        baseline_feed = bst.Stream.sum(self.normal_gas_feeds, energy_balance=False)
+        try:
+            baseline_feed = bst.Stream.sum(self.normal_gas_feeds, energy_balance=False)
+        except:
+            breakpoint()
+            bst.Stream.sum(self.normal_gas_feeds, energy_balance=False)
         baseline_flows = baseline_feed.get_flow('mol/s', self.gas_substrates)
         bounds = np.array([[max(SURs[i] - baseline_flows[i], 0), 5 * SURs[i]] for i in index])
         if self.optimize_power:

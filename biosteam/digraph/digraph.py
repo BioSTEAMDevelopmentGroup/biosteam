@@ -66,7 +66,7 @@ class PenWidth:
         value = stream.get_property(self.name)
         for width, percentile in enumerate(self.percentiles, 1):
             if value <= percentile: return str(width * 0.6 + 0.4)
-        raise Exception(f'{self.name} beyond maximum')
+        return str(width * 0.6 + 0.4)
     
     def __repr__(self):
         return f"{type(self).__name__}(name={repr(self.name)}, scale={self.scale:.3g})"
