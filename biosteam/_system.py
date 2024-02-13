@@ -1861,9 +1861,10 @@ class System:
     @property
     def isdynamic(self) -> bool:
         """Whether the system contains any dynamic Unit."""
-        try:
-            return self._isdynamic
-        except:
+        if hasattr(self, '_isdynamic'):
+            if self._isdynamic is not None:
+                return self._isdynamic
+        else:
             isdynamic = False
             for i in self.units:
                 if i._isdynamic: 
