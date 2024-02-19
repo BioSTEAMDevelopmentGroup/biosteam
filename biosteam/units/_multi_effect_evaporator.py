@@ -246,6 +246,7 @@ class MultiEffectEvaporator(Unit):
     
     """
     line = 'Multi-effect evaporator'
+    vacuum_system_preference = 'Liquid-ring pump'
     auxiliary_unit_names = ('condenser', 'mixer', 'vacuum_system', 'evaporators')
     _units = {'Area': 'm^2',
               'Volume': 'm^3'}
@@ -488,7 +489,7 @@ class MultiEffectEvaporator(Unit):
         Cost['Evaporators'] = sum(evap_costs)
         
         self.vacuum_system = bst.VacuumSystem(
-            self, 'Liquid-ring pump', vessel_volume=total_volume, P_suction=self.outs[0].P,
+            self, self.vacuum_system_preference, vessel_volume=total_volume, P_suction=self.outs[0].P,
         )
             
         
