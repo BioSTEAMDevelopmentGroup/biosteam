@@ -3135,11 +3135,17 @@ class System:
     @property
     def sales(self) -> float:
         """Annual sales revenue [USD/yr]."""
-        return sum([s.cost for s in self.products if s.price]) * self.operating_hours
+        return self.operating_hours * (
+            sum([s.cost for s in self.products if s.price]) 
+            + sum([i._outlet_revenue for i in self.cost_units])
+        )
     @property
     def material_cost(self) -> float:
         """Annual material cost [USD/yr]."""
-        return sum([s.cost for s in self.feeds if s.price]) * self.operating_hours
+        return self.operating_hours * (
+            sum([s.cost for s in self.feeds if s.price])
+            + sum([i._inlet_cost for i in self.cost_units])
+        )
     @property
     def utility_cost(self) -> float:
         """Total utility cost [USD/yr]."""

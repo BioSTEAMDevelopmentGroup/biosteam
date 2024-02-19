@@ -130,20 +130,8 @@ def allocation_properties(self):
     """Defined allocation property and basis pairs for LCA."""
     return bst.allocation_properties
 
-def register_credit(self, name: str, price: float):
-    """Register new stream credit in BioSTEAM given the name and the price 
-    [USD/kg]."""
-    self.register_utility(name, price)
-    bst.fees_and_credits.add(name)
-
-def register_fee(self, name: str, price: float):
-    """Register new stream fee in BioSTEAM given the name and the price 
-    [USD/kg]."""
-    self.register_utility(name, -price)
-    bst.fees_and_credits.add(name)
-
 def register_utility(self, name: str, price: float):
-    """Register new stream utility in BioSTEAM given the name and the price 
+    """Register new stream utility/credit/fee in BioSTEAM given the name and the price 
     [USD/kg]."""
     if name not in bst.stream_prices:
         docname = name.lower()
@@ -205,9 +193,7 @@ Settings.impact_indicators = impact_indicators
 Settings.stream_prices = stream_prices
 Settings.electricity_price = electricity_price
 Settings.skip_simulation_of_units_with_empty_inlets = skip_simulation_of_units_with_empty_inlets
-Settings.register_utility = register_utility
-Settings.register_credit = register_credit
-Settings.register_fee = register_fee
+Settings.register_fee = Settings.register_credit = Settings.register_utility = register_utility
 Settings.allocation_properties = allocation_properties
 Settings.define_allocation_property = define_allocation_property
 

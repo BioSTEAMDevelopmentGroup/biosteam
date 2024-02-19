@@ -300,6 +300,12 @@ class Unit(AbstractUnit):
         #: Indices of additional utilities given by outlet streams.
         self._outlet_utility_indices: dict[str, int] = {}
         
+        #: Indices of additional credits/fees given by inlet streams.
+        self._inlet_cost_indices: dict[str, int] = {}
+        
+        #: Indices of additional credits/fees given by outlet streams.
+        self._outlet_cost_indices: dict[str, int] = {}
+        
         try:
             #: Lifetime of equipment. Defaults to values in the class attribute 
             #: :attr:`~Unit._default_equipment_lifetime`. Use an integer to specify the lifetime 
@@ -329,11 +335,11 @@ class Unit(AbstractUnit):
         
     def _init_ins(self, ins):
         self.auxins = {}
-        self._init_inlets(thermo=self._thermo)
+        self._init_inlets()
     
     def _init_outs(self, outs):
         self.auxouts = {}
-        self._init_outlets(thermo=self._thermo)
+        self._init_outlets()
 
     def _init_utils(self):
         self.heat_utilities = [HeatUtility for i in range(getattr(self, '_N_heat_utilities', 0))]
@@ -351,6 +357,8 @@ class Unit(AbstractUnit):
         self.installed_costs = {}
         self._inlet_utility_indices = {}
         self._outlet_utility_indices = {}
+        self._inlet_cost_indices = {}
+        self._outlet_cost_indices = {}
         try: self.equipment_lifetime = copy(self._default_equipment_lifetime)
         except AttributeError: self.equipment_lifetime = {}
 
@@ -503,14 +511,14 @@ class Unit(AbstractUnit):
     
     def define_utility(self, name: str, stream: Stream):
         """
-        Define an inlet or outlet stream as a utility/credit by name.
+        Define an inlet or outlet stream as a utility by name.
         
         Parameters
         ----------
         name : 
-            Name of utility/credit, as defined in :meth:`settings.stream_prices <thermosteam._settings.ProcessSettings.stream_prices>`.
+            Name of utility, as defined in :meth:`settings.stream_prices <thermosteam._settings.ProcessSettings.stream_prices>`.
         stream :
-            Inlet or outlet utility/credit stream.
+            Inlet or outlet utility stream.
         
         """
         if name not in bst.stream_prices:
@@ -522,7 +530,28 @@ class Unit(AbstractUnit):
         else:
             raise ValueError(f"stream '{stream.ID}' must be connected to {repr(self)}")
     
-    define_credit = define_utility
+    def define_credit(self, name: str, stream: Stream):
+        """
+        Define an inlet or outlet stream as a fee/credit by name.
+        
+        Parameters
+        ----------
+        name : 
+            Name of fee/credit, as defined in :meth:`settings.stream_prices <thermosteam._settings.ProcessSettings.stream_prices>`.
+        stream :
+            Inlet or outlet fee/credit stream.
+        
+        """
+        if name not in bst.stream_prices:
+            raise ValueError(f"price of '{name}' must be defined in settings.stream_prices")
+        if stream._sink is self:
+            self._inlet_cost_indices[name] = self._ins._streams.index(stream)
+        elif stream._source is self:
+            self._outlet_cost_indices[name] = self._outs._streams.index(stream)
+        else:
+            raise ValueError(f"stream '{stream.ID}' must be connected to {repr(self)}")
+    
+    define_fee = define_credit
     
     def get_inlet_utility_flows(self):
         ins = self._ins._streams
@@ -934,18 +963,23 @@ class Unit(AbstractUnit):
             self._lca(**lca_kwargs) if lca_kwargs else self._lca()
             self._check_utilities()
         self._load_costs()
-        self._load_utility_cost()
+        self._load_operation_costs()
 
-    def _load_utility_cost(self):
+    def _load_operation_costs(self):
         ins = self._ins._streams
         outs = self._outs._streams
         prices = bst.stream_prices
-        fees_and_credits = bst.fees_and_credits
         self._utility_cost = (
             sum([i.cost for i in self.heat_utilities]) 
             + self.power_utility.cost
-            + sum([s.F_mass * prices[name] for name, index in self._inlet_utility_indices.items() if (s:=ins[index]).price == 0. or name in fees_and_credits])
-            - sum([s.F_mass * prices[name] for name, index in self._outlet_utility_indices.items() if (s:=outs[index]).price == 0. or name in fees_and_credits])
+            + sum([s.F_mass * prices[name] for name, index in self._inlet_utility_indices.items() if (s:=ins[index]).price == 0.])
+            - sum([s.F_mass * prices[name] for name, index in self._outlet_utility_indices.items() if (s:=outs[index]).price == 0.])
+        )
+        self._inlet_cost = sum(
+            [ins[index].F_mass * prices[name] for name, index in self._inlet_cost_indices.items()]
+        )
+        self._outlet_revenue = sum(
+            [outs[index].F_mass * prices[name] for name, index in self._outlet_cost_indices.items()]
         )
     
     @property
