@@ -132,8 +132,8 @@ class MultiEffectEvaporator(Unit):
                         Volume                                   m^3     3.51
     Purchase cost       Evaporators (x5)                         USD 9.56e+03
                         Condenser - Double pipe                  USD 5.36e+03
-                        Vacuum system - Liquid-ring pump...      USD 1.24e+04
-    Total purchase cost                                          USD 2.73e+04
+                        Vacuum system - Liquid-ring pump...      USD 1.07e+04
+    Total purchase cost                                          USD 2.56e+04
     Utility cost                                              USD/hr     4.15
     
     Concentrate sugar setting overall vapor fraction:
@@ -186,8 +186,8 @@ class MultiEffectEvaporator(Unit):
                         Volume                                   m^3      3.07
     Purchase cost       Evaporators (x3)                         USD  2.74e+03
                         Condenser - Double pipe                  USD   3.9e+03
-                        Vacuum system - Liquid-ring pump...      USD  1.24e+04
-    Total purchase cost                                          USD  1.91e+04
+                        Vacuum system - Liquid-ring pump...      USD  1.08e+04
+    Total purchase cost                                          USD  1.74e+04
     Utility cost                                              USD/hr      2.85
     
     Concentrate sugar setting overall vapor fraction:
@@ -240,8 +240,8 @@ class MultiEffectEvaporator(Unit):
                         Volume                                   m^3      3.07
     Purchase cost       Evaporators (x3)                         USD  2.74e+03
                         Condenser - Double pipe                  USD   3.9e+03
-                        Vacuum system - Liquid-ring pump...      USD  1.24e+04
-    Total purchase cost                                          USD  1.91e+04
+                        Vacuum system - Liquid-ring pump...      USD  1.08e+04
+    Total purchase cost                                          USD  1.74e+04
     Utility cost                                              USD/hr      2.85
     
     """
@@ -488,7 +488,7 @@ class MultiEffectEvaporator(Unit):
         Cost['Evaporators'] = sum(evap_costs)
         
         self.vacuum_system = bst.VacuumSystem(
-            self, 'Steam-jet ejector', vessel_volume=total_volume, P_suction=self.outs[0].P,
+            self, 'Liquid-ring pump', vessel_volume=total_volume, P_suction=self.outs[0].P,
         )
             
         

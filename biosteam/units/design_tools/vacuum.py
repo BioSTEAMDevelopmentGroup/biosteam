@@ -56,7 +56,7 @@ _default_vacuum_systems = {'Liquid-ring pump': _liquid_ring,
 _default_rotary_vane_work_cost = {
     'One stage': (1/5 * 0.7457, 127*1.08), # hp to kW; 2023 USD (including tax & shipping)
     'Two stage': (1/3 * 0.7457, 248*1.08)
-    }
+}
 
 _air_density = 1.2041 # kg/m3 dry air
 
@@ -99,7 +99,7 @@ def compute_vacuum_system_power_and_cost(
     F_mass_kgph = (F_mass + 0.4536*F_mass_air)*factor # kg/hr
     F_mass_lbph = 2.205 * F_mass_kgph
     vacuum_systems = get_prefered_vacuum_systems(vacuum_system_preference)
-    name, grade, N = select_vacuum_system(vacuum_systems, F_vol_cfm, P_suction)
+    name, grade, N = select_vacuum_system(vacuum_systems, F_vol_cfm, P_suction, bool(vacuum_system_preference))
     base_cost = calculate_vacuum_cost(name, grade, F_mass_lbph, F_vol_cfm, P_suction)
     cost = bst.CE / 567.  * base_cost
     if name == 'Steam-jet ejector':
@@ -164,7 +164,7 @@ def get_available_vacuum_systems(F_vol_cfm, P_suction):
                 types.append((vacuumtype, grade))
     return types
 
-def select_vacuum_system(vacuum_systems, F_vol_cfm, P_suction):
+def select_vacuum_system(vacuum_systems, F_vol_cfm, P_suction, ignore_F_lb=False):
     """
     Return a heuristic vacuum type and grade
     
@@ -178,8 +178,11 @@ def select_vacuum_system(vacuum_systems, F_vol_cfm, P_suction):
     for name, vacuum_sys in vacuum_systems.items():
         for grade, flowrange_minsuction in vacuum_sys.items():
             flowrange, minsuction = flowrange_minsuction
-            if checkbounds(F_vol_cfm, flowrange) and P_suction > minsuction:
-                return (name, grade, 1)
+            if ignore_F_lb:
+                if F_vol_cfm < flowrange[-1] and P_suction > minsuction:
+                    return (name, grade, 1)
+            elif checkbounds(F_vol_cfm, flowrange) and P_suction > minsuction:
+                    return (name, grade, 1)
     for name, vacuum_sys in vacuum_systems.items(): # Flow rate too large
         for grade, flowrange_minsuction in vacuum_sys.items():
             flowrange, minsuction = flowrange_minsuction
