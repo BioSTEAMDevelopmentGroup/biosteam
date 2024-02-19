@@ -104,8 +104,8 @@ def get_section_inlets_and_outlets(units, streams):
 @ignore_docking_warnings
 def minimal_digraph(ID, units, streams, auxiliaries=None, **graph_attrs):
     ins, outs = get_section_inlets_and_outlets(units, streams)
-    product = AbstractStream('.')
-    feed = AbstractStream('.')
+    product = bst.Stream('.')
+    feed = bst.Stream('.')
     ins = sort_streams(ins)
     outs = sort_streams(outs)
     feed_box = bst.units.DiagramOnlyStreamUnit('\n'.join([i.ID for i in ins]) or '-',
@@ -161,7 +161,7 @@ def extend_surface_units(ID, streams, units, surface_units, old_unit_connections
             old_unit_connections.add(u_io)
     
     if len(feeds) > 1:
-        feed = AbstractStream('.')
+        feed = bst.Stream('.')
         feeds = sort_streams(feeds)
         feed_box = StreamUnit('\n'.join([i.ID for i in feeds]) or '-', None, feed)
         ins.append(feed)
@@ -170,7 +170,7 @@ def extend_surface_units(ID, streams, units, surface_units, old_unit_connections
         ins += feeds
     
     if len(products) > 1:
-        product = AbstractStream('.')
+        product = bst.Stream('.')
         products = sort_streams(products)
         product_box = StreamUnit('\n'.join([i.ID for i in products]) or '-', product, None)
         outs.append(product)
