@@ -10,7 +10,7 @@
 import pytest
 import numpy as np
 import biosteam as bst
-from biosteam._network import Network
+from thermosteam.network import Network
 from numpy.testing import assert_allclose
 from biosteam import (
     main_flowsheet as f,

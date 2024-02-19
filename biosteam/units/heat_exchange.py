@@ -16,7 +16,7 @@ This module contains heat exchanger unit operations.
 
 """
 from .. import Unit
-from .._graphics import utility_heat_exchanger_graphics, process_heat_exchanger_graphics
+from thermosteam._graphics import utility_heat_exchanger_graphics, process_heat_exchanger_graphics
 from .design_tools.specification_factors import (
     shell_and_tube_material_factor_coefficients,
     compute_shell_and_tube_material_factor)
@@ -760,6 +760,7 @@ class HXprocess(HX):
     
     """
     line = 'Heat exchanger'
+    _interaction = True # For system/network path
     _graphics = process_heat_exchanger_graphics
     _N_ins = 2
     _N_outs = 2

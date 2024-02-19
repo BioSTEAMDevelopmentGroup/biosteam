@@ -13,7 +13,7 @@
 
 """
 from __future__ import annotations
-__version__ = '2.38.6'
+__version__ = '2.41.0'
 
 #: Chemical engineering plant cost index (defaults to 567.5 at 2017).
 CE: float = 567.5 
@@ -21,9 +21,15 @@ CE: float = 567.5
 #: User-defined impact indicators and their units of measure.
 impact_indicators: dict[str, str] = {}
 
-#: Price of stream utilities [USD/kg] which are defined as 
+#: Price of stream utilities/fees/credits [USD/kg] which are defined as 
 #: inlets and outlets to unit operations.
-stream_utility_prices: dict[str, float] = {}
+stream_prices: dict[str, float] = {}
+
+stream_utility_prices = stream_prices # For backwards compatibility
+
+#: Names of stream fees and credits which are tagged to
+#: inlets and outlets of unit operations.
+fees_and_credits: set(str) = set()
 
 #: Defined allocation property and basis pairs for LCA.
 allocation_properties: dict[str, str] = {}
@@ -47,7 +53,6 @@ else:
 
 import thermosteam
 from thermosteam import *
-from ._preferences import preferences
 from ._heat_utility import UtilityAgent, HeatUtility
 from ._power_utility import PowerUtility
 from . import plots
@@ -62,8 +67,6 @@ from .process_tools import *
 from . import _tea
 from ._tea import *
 from . import utils
-from . import _temporary_connection
-from ._temporary_connection import *
 from . import units
 from .units import *
 from ._facility import Facility
@@ -83,7 +86,7 @@ __all__ = (
     'MultiStream', 'settings', 'exceptions', 'report',
     'process_tools', 'preferences', *_system.__all__, *_flowsheet.__all__, 
     *_tea.__all__, *units.__all__, *facilities.__all__, *wastewater.__all__,
-    *evaluation.__all__, *process_tools.__all__, *_temporary_connection.__all__,
+    *evaluation.__all__, *process_tools.__all__, 
 )
 
 def nbtutorial():

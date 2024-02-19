@@ -17,7 +17,7 @@ This module contains unit operations for splitting flows.
 
 """
 from .. import Unit
-from .._graphics import splitter_graphics
+from thermosteam._graphics import splitter_graphics
 from thermosteam import separations
 
 __all__ = ('Splitter', 'PhaseSplitter', 'FakeSplitter', 'MockSplitter',

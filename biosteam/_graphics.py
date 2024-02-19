@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2024, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 """
 """
-import biosteam as bst
-from warnings import warn
-from biosteam.exceptions import GraphicsWarning
-import os
+from thermosteam._graphics import *
 
+<<<<<<< HEAD
 file_path = os.path.dirname(__file__)
 
 __all__ = ('UnitGraphics',
@@ -325,3 +323,4 @@ def tailor_valve_node(node, unit): # pragma: no coverage
     node['fixedsize'] = 'true'
     node['fontcolor'] = bst.preferences.label_color
 valve_graphics = UnitGraphics(single_edge_in, single_edge_out, node, tailor_valve_node)
+

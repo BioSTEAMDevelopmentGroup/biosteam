@@ -14,7 +14,7 @@
 
 """
 from .._unit import Unit
-from .._graphics import mixer_graphics
+from thermosteam._graphics import mixer_graphics
 import flexsolve as flx
 import biosteam as bst
 from typing import Optional

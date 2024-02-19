@@ -13,7 +13,7 @@
 
 """
 from .. import Unit
-from .._graphics import valve_graphics
+from thermosteam._graphics import valve_graphics
 from warnings import warn
 
 __all__ = (

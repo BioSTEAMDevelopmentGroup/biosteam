@@ -672,7 +672,7 @@ def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
     if name is None: name = rhos[0].name
     if index is None: index = rhos[0].index
     values = np.array([i.values for i in rhos])
-    indices = list(range(values.shape[1]))
+    indices = list(range(values.shape[-1]))
     if cutoff:
         cutoff_index, = np.where(np.any(np.abs(rhos) > cutoff, axis=0))
         indices = [indices[i] for i in cutoff_index]
@@ -1109,7 +1109,7 @@ def plot_contour_2d(X, Y, Z,
             cbs[row] = metric_bar.colorbar(fig, cbar_ax, cp, fraction=0.5, shrink=metric_bar.shrink,)
         
         # plt.clim()
-    if titles:
+    if titles is not None:
         for col in range(ncols):
             title = titles[col]
             ax = axes[0, col]

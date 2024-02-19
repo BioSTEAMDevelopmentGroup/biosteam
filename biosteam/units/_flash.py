@@ -14,7 +14,7 @@ import numpy as np
 from . import design_tools as design
 from .splitting import Splitter
 from .heat_exchange import HX, HXutility
-from .._graphics import vertical_vessel_graphics
+from thermosteam._graphics import vertical_vessel_graphics
 import biosteam as bst
 
 exp = np.exp

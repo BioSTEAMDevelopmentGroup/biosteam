@@ -18,15 +18,16 @@ from .digraph import (digraph_from_units,
                       minimal_digraph,
                       surface_digraph,
                       finalize_digraph)
-from thermosteam import Stream, MultiStream, Chemical
+from thermosteam import AbstractStream, Stream, MultiStream, Chemical
 from thermosteam.base import SparseArray
 from . import HeatUtility, PowerUtility
 from thermosteam.utils import registered
 from scipy.optimize import root
 from .exceptions import try_method_with_object_stamp, Converged, UnitInheritanceError
-from ._network import Network, mark_disjunction, unmark_disjunction
+from thermosteam import Network, mark_disjunction, unmark_disjunction
 from ._facility import Facility
-from ._unit import Unit, repr_ins_and_outs
+from ._unit import Unit
+from thermosteam.network import repr_ins_and_outs
 from . import utils
 from .utils import (
     repr_items, ignore_docking_warnings,
@@ -43,7 +44,7 @@ import pandas as pd
 from numpy.linalg import solve
 from scipy.integrate import solve_ivp
 from . import report
-from ._temporary_connection import temporary_units_dump, TemporaryUnit
+from thermosteam.network import temporary_units_dump, TemporaryUnit
 import os
 import openpyxl
 if TYPE_CHECKING: 
@@ -120,10 +121,35 @@ class LinearEquations:
                 values.append(value)
             return objs, np.array(values)
         A, objs = dictionaries2array(self.A)
+        # if A.ndim == 3:
+        #     A_ = A
+        #     b_ = np.array(b).T
+        #     objs_ = objs
+        #     values = []
+        #     for A, b in zip(A_, b_):
+        #         rows = A.any(axis=1)
+        #         cols = A.any(axis=0)
+        #         b = [j for (i, j) in zip(rows, b) if i]
+        #         A = A[rows][:, cols]
+        #         objs = [j for (i, j) in zip(cols, objs_) if i]
+        #         values.append(solve(A, b))
+        #     values = np.array(values).T
+        # else:
+        #     rows = A.any(axis=1)
+        #     cols = A.any(axis=0)
+        #     b = [j for (i, j) in zip(rows, b) if i]
+        #     b = np.array(b).T
+        #     A = A[rows][:, cols]
+        #     objs = [j for (i, j) in zip(cols, objs) if i]
+        #     values = solve(A, b)
         values = solve(A, np.array(b).T).T
         if np.isnan(values).any(): 
             raise RuntimeError('nan value in variables')
+        # c = variable not in ('K-pseudo', 'mol-LLE')
+        # if c: print(variable)
+        # if c: print('------')
         for obj, value in zip(objs, values): 
+            # if c: print(obj, value)
             obj._update_decoupled_variable(variable, value)
         if variable in ('mol', 'mol-LLE'):
             for i in self.units: 
@@ -670,7 +696,7 @@ class System:
     available_methods: Methods[str, tuple[Callable, bool, dict]] = Methods()
 
     #: Variable solution priority for phenomena oriented simulation.
-    variable_priority: list[str] = ['mol', ('mol-LLE', 'K-pseudo'), 'K', 'B', 'mol', 'T', 'L']
+    variable_priority: list[str] = [('mol-LLE', 'K-pseudo'), 'L', 'K', 'B', 'mol', 'T']
 
     @classmethod
     def register_method(cls, name, solver, conditional=False, **kwargs):
@@ -1707,13 +1733,11 @@ class System:
         except:
             self._streams = streams = []
             stream_set = set()
-            isa = isinstance
-            temp = piping.TemporaryStream
             for u in self.units:
                 for s in u._ins + u._outs:
                     if not s: s = s.materialize_connection()
                     elif s in stream_set: continue
-                    elif isa(s, temp): continue
+                    elif s.__class__ is AbstractStream: continue
                     streams.append(s)
                     stream_set.add(s)
             return streams 
@@ -1775,7 +1799,7 @@ class System:
                     raise AttributeError("recycle streams must be Stream objects; "
                                         f"not {type(i).__name__}")
             self._recycle = recycle
-        elif isa(recycle, piping.TemporaryStream):
+        elif recycle.__class__ is AbstractStream:
             self.method = 'fixed-point'
             permanent = self.unit_set
             unit_path = self.unit_path
@@ -2201,14 +2225,14 @@ class System:
         if algorithm == 'Sequential modular':
             self.run_sequential_modular()
         elif algorithm == 'Phenomena oriented':
-            if all([i.isempty() for i in self.get_all_recycles()]):
+            if self._iter == 0:
                 for i in self.unit_path: i.run()
             else:
                 try:
                     self.run_phenomena()
-                except:
+                except Exception as e:
                     warn('phenomena-oriented simulation failed; '
-                          'attempting one sequential-modular loop', RuntimeWarning)
+                         'attempting one sequential-modular loop', RuntimeWarning)
                     for i in self.unit_path: i.run()
         else:
             raise RuntimeError(f'unknown algorithm {algorithm!r}')
@@ -2232,8 +2256,7 @@ class System:
                 if isinstance(variables, tuple):
                     *variables, key = variables
                     run_variables(variables)
-                    try: objs, x0 = solve_variable(stages, key)
-                    except: continue
+                    objs, x0 = solve_variable(stages, key)
                     def f(x):
                         for obj, xi in zip(objs, x): obj._update_decoupled_variable(key, xi)
                         run_variables(variables)
@@ -2241,14 +2264,27 @@ class System:
                         return x
                     
                     if key == 'K-pseudo': 
+                        for i in stages:
+                            if hasattr(i, 'gamma_y'):
+                                i.gamma_y = None
                         flx.fixed_point(
-                            f, x0, xtol=1e-6, maxiter=100, checkiter=False, 
-                            checkconvergence=False, convergenceiter=5
+                            f, x0, xtol=1e-9, maxiter=200, checkiter=False, 
+                            checkconvergence=False, convergenceiter=10,
                         )
                     else: 
                         raise NotImplementedError(f'tolerance for {key!r} not available in BioSTEAM yet')
                 else:
+                    # print(variables)
                     solve_variable(stages, variables)
+                    # if self._iter >= 1:
+                    #     print('RECYCLES')
+                    #     for i in self.get_all_recycles(): i.show()
+                        # print('EXTRACTOR')
+                        # for i in self.flowsheet.extractor.stages:
+                        #     print(i.K)
+                        # print('SETTLER')
+                        # print(self.flowsheet.settler.K)
+                        # breakpoint()
                 
         run_variables(self.variable_priority)
         
@@ -2259,7 +2295,7 @@ class System:
         data = self._get_recycle_data()
         f = self._iter_run_conditional if conditional else self._iter_run
         try: solver(f, data, **kwargs)
-        except IndexError as error:
+        except (IndexError, ValueError) as error:
             data = self._get_recycle_data()
             try: solver(f, data, **kwargs)
             except Converged: pass
@@ -3100,11 +3136,17 @@ class System:
     @property
     def sales(self) -> float:
         """Annual sales revenue [USD/yr]."""
-        return sum([s.cost for s in self.products if s.price]) * self.operating_hours
+        return self.operating_hours * (
+            sum([s.cost for s in self.products if s.price]) 
+            + sum([i._outlet_revenue for i in self.cost_units])
+        )
     @property
     def material_cost(self) -> float:
         """Annual material cost [USD/yr]."""
-        return sum([s.cost for s in self.feeds if s.price]) * self.operating_hours
+        return self.operating_hours * (
+            sum([s.cost for s in self.feeds if s.price])
+            + sum([i._inlet_cost for i in self.cost_units])
+        )
     @property
     def utility_cost(self) -> float:
         """Total utility cost [USD/yr]."""
