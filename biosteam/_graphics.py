@@ -9,7 +9,6 @@
 """
 from thermosteam._graphics import *
 
-<<<<<<< HEAD
 file_path = os.path.dirname(__file__)
 
 __all__ = ('UnitGraphics',
