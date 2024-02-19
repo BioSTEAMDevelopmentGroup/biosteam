@@ -332,14 +332,13 @@ class Unit(AbstractUnit):
     
         self._assert_compatible_property_package()
         
-        
     def _init_ins(self, ins):
         self.auxins = {}
-        self._init_inlets()
+        self._init_inlets(ins)
     
     def _init_outs(self, outs):
         self.auxouts = {}
-        self._init_outlets()
+        self._init_outlets(outs)
 
     def _init_utils(self):
         self.heat_utilities = [HeatUtility for i in range(getattr(self, '_N_heat_utilities', 0))]
