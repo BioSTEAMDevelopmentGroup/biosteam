@@ -15,7 +15,6 @@ from ._heat_utility import HeatUtility
 from .utils import AbstractMethod, format_title, static, piping, StreamLinkOptions
 from ._power_utility import PowerUtility
 from .exceptions import UnitInheritanceError
-from thermosteam.utils import extended_signature
 from thermosteam.units_of_measure import convert
 from copy import copy
 import biosteam as bst
@@ -108,21 +107,16 @@ class Unit(AbstractUnit):
     
     
     """ 
+    Stream = Stream
     max_parallel_units = int(10e3)
     
     def __init_subclass__(cls,
                           isabstract=False,
                           new_graphics=True,
                           does_nothing=None):
+        super().__init_subclass__()
         if does_nothing: return 
         dct = cls.__dict__
-        if '__init__' in dct and '_init' not in dct :
-            init = dct['__init__']
-            if hasattr(init, 'extension'): cls._init = init.extension
-        elif '_init' in dct:
-            _init = dct['_init']
-            cls.__init__ = extended_signature(cls.__init__, _init)
-            cls.__init__.extension = _init
         if '_N_heat_utilities' in dct:
             warn("'_N_heat_utilities' class attribute is scheduled for deprecation; "
                  "use the `add_heat_utility` method instead",
@@ -193,12 +187,6 @@ class Unit(AbstractUnit):
                         "must implement a '_run' method unless the "
                         "'isabstract' keyword argument is True"
                     )
-        if '__init__' in dct or '_init' in dct:
-            init = dct['__init__']
-            annotations = init.__annotations__
-            for i in ('ins', 'outs'):
-                if i not in annotations: annotations[i] = streams
-            if '_stacklevel' not in dct: cls._stacklevel += 1
         name = cls.__name__
         if hasattr(bst, 'units') and hasattr(bst, 'wastewater') and hasattr(bst, 'facilities'):
             # Add 3rd party unit to biosteam module for convinience
@@ -220,18 +208,6 @@ class Unit(AbstractUnit):
     #: flexible operation (e.g., filtration membranes).
     _materials_and_maintenance: frozenset[str] = frozenset()
     
-    #: **class-attribute** Name of attributes that are auxiliary units. These units
-    #: will be accounted for in the purchase and installed equipment costs
-    #: without having to add these costs in the :attr:`~Unit.baseline_purchase_costs` dictionary.
-    #: Heat and power utilities are also automatically accounted for.
-    auxiliary_unit_names: tuple[str, ...] = ()
-    
-    #: **class-attribute** Index for auxiliary inlets to parent unit for graphviz diagram settings.
-    _auxin_index = {}
-    
-    #: **class-attribute** Index for auxiliary outlets to parent unit for graphviz diagram settings.
-    _auxout_index = {}
-    
     #: **class-attribute** Options for linking streams
     _stream_link_options: StreamLinkOptions = None
 
@@ -243,14 +219,8 @@ class Unit(AbstractUnit):
 
     ### Abstract methods ###
     
-    #: Initialize unit operation with key-word arguments.
-    _init = AbstractMethod
-    
     #: Create auxiliary components.
     _load_components = AbstractMethod
-    
-    #: Run mass and energy balances and update outlet streams (without user-defined specifications).
-    _run = AbstractMethod
     
     #: Add design requirements to the :attr:`~Unit.design_results` dictionary.
     _design = AbstractMethod
@@ -277,18 +247,7 @@ class Unit(AbstractUnit):
             thermo: Optional[tmo.Thermo]=None,
             **kwargs
         ):
-        self._system = None
-        self._isdynamic = False
-        self._register(ID)
-        self._load_thermo(thermo)
-    
-        ### Initialize streams
         
-        self.auxins = {} #: dict[int, stream] Auxiliary inlets by index.
-        self.auxouts = {} #:  dict[int, stream] Auxiliary outlets by index.
-        self._init_inlets(ins)
-        self._init_outlets(outs)
-    
         ### Initialize utilities
     
         #: All heat utilities associated to unit. Cooling and heating requirements 
@@ -349,21 +308,6 @@ class Unit(AbstractUnit):
             self.equipment_lifetime: int|dict[str, int] = copy(self._default_equipment_lifetime)
         except AttributeError:
             self.equipment_lifetime = {}
-    
-        ### Initialize specification    
-    
-        #: All specification functions
-        self._specifications: list[Callable] = []
-        
-        #: Whether to run mass and energy balance after calling
-        #: specification functions
-        self.run_after_specifications: bool = False 
-        
-        #: Whether to prioritize unit operation specification within recycle loop (if any).
-        self.prioritize: bool = False
-        
-        #: Safety toggle to prevent infinite recursion
-        self._active_specifications: set[ProcessSpecification] = set()
         
         #: Name-number pairs of baseline purchase costs and auxiliary unit 
         #: operations in parallel. Use 'self' to refer to the main unit. Capital 
@@ -376,12 +320,13 @@ class Unit(AbstractUnit):
         #: by being able to predict better guesses.
         self.responses: set[bst.GenericResponse] = set()
         
-        self._assert_compatible_property_package()
-        
         self._utility_cost = None
         
-        self._init(**kwargs)
+        super().__init__(ID, ins, outs, thermo, **kwargs)
     
+        self._assert_compatible_property_package()
+        
+        
     def _init_ins(self, ins):
         self.auxins = {}
         self._init_inlets(thermo=self._thermo)
@@ -1050,198 +995,7 @@ class Unit(AbstractUnit):
         """Total utility cost [USD/hr]."""
         return self._utility_cost
 
-    @property
-    def auxiliary_units(self) -> list[Unit]:
-        """Return list of all auxiliary units."""
-        getfield = getattr
-        isa = isinstance
-        auxiliary_units = []
-        for name in self.auxiliary_unit_names:
-            unit = getfield(self, name, None)
-            if unit is None: continue 
-            if isa(unit, Iterable):
-                auxiliary_units.extend(unit)
-            else:
-                auxiliary_units.append(unit)
-        return auxiliary_units
 
-    @property
-    def nested_auxiliary_units(self) -> list[Unit]:
-        """Return list of all auxiliary units, including nested ones."""
-        getfield = getattr
-        isa = isinstance
-        auxiliary_units = []
-        for name in self.auxiliary_unit_names:
-            unit = getfield(self, name, None)
-            if unit is None: continue 
-            if isa(unit, Iterable):
-                auxiliary_units.extend(unit)
-                for u in unit:
-                    if not isinstance(u, Unit): continue
-                    for auxunit in u.auxiliary_units:
-                        auxiliary_units.append(auxunit)
-                        auxiliary_units.extend(auxunit.nested_auxiliary_units)
-            else:
-                auxiliary_units.append(unit)
-                if not isinstance(unit, Unit): continue
-                for auxunit in unit.auxiliary_units:
-                    auxiliary_units.append(auxunit)
-                    auxiliary_units.extend(auxunit.nested_auxiliary_units)
-        return auxiliary_units
-
-    def _diagram_auxiliary_units_with_names(self) -> list[tuple[str, Unit]]:
-        """Return list of name - auxiliary unit pairs."""
-        getfield = getattr
-        isa = isinstance
-        auxiliary_units = []
-        names = (
-            self.diagram_auxiliary_unit_names 
-            if hasattr(self, 'diagram_auxiliary_unit_names')
-            else self.auxiliary_unit_names
-        )
-        for name in names:
-            unit = getfield(self, name, None)
-            if unit is None: continue 
-            if isa(unit, Iterable):
-                for i, u in enumerate(unit):
-                    auxiliary_units.append(
-                        (f"{name}[{i}]", u)
-                    )
-            else:
-                auxiliary_units.append(
-                    (name, unit)
-                )
-        return auxiliary_units
-    
-    def get_auxiliary_units_with_names(self) -> list[tuple[str, Unit]]:
-        """Return list of name - auxiliary unit pairs."""
-        getfield = getattr
-        isa = isinstance
-        auxiliary_units = []
-        for name in self.auxiliary_unit_names:
-            unit = getfield(self, name, None)
-            if unit is None: continue 
-            if isa(unit, Iterable):
-                for i, u in enumerate(unit):
-                    auxiliary_units.append(
-                        (f"{name}[{i}]", u)
-                    )
-            else:
-                auxiliary_units.append(
-                    (name, unit)
-                )
-        return auxiliary_units
-
-    def _diagram_nested_auxiliary_units_with_names(self, depth=-1) -> list[Unit]:
-        """Return list of all diagram auxiliary units, including nested ones."""
-        auxiliary_units = []
-        if depth: 
-            depth -= 1
-        else:
-            return auxiliary_units
-        for name, auxunit in self._diagram_auxiliary_units_with_names():
-            if auxunit is None: continue 
-            auxiliary_units.append((name, auxunit))
-            if not isinstance(auxunit, Unit): continue
-            auxiliary_units.extend(
-                [('.'.join([name, i]), j)
-                 for i, j in auxunit._diagram_nested_auxiliary_units_with_names(depth)]
-            )
-        return auxiliary_units
-
-    def get_nested_auxiliary_units_with_names(self, depth=-1) -> list[Unit]:
-        """Return list of all auxiliary units, including nested ones."""
-        auxiliary_units = []
-        if depth: 
-            depth -= 1
-        else:
-            return auxiliary_units
-        for name, auxunit in self.get_auxiliary_units_with_names():
-            if auxunit is None: continue 
-            auxiliary_units.append((name, auxunit))
-            if not isinstance(auxunit, Unit): continue
-            auxiliary_units.extend(
-                [('.'.join([name, i]), j)
-                 for i, j in auxunit.get_nested_auxiliary_units_with_names(depth)]
-            )
-        return auxiliary_units
-
-    def _unit_auxlets(self, N_streams, streams, thermo):
-        if streams is None:
-            return [self.auxlet(piping.MissingStream()) for i in range(N_streams)]
-        elif streams == ():
-            return [self.auxlet(Stream(None, thermo=thermo)) for i in range(N_streams)]
-        elif isinstance(streams, (tmo.AbstractStream, tmo.AbstractMissingStream)) or streams.__class__ is str:
-            return self.auxlet(streams, thermo=thermo)
-        else:
-            return [self.auxlet(i, thermo=thermo) for i in streams]
-
-    def auxiliary(
-            self, name, cls, ins=None, outs=(), thermo=None,
-            **kwargs
-        ):
-        """
-        Create and register an auxiliary unit operation. Inlet and outlet
-        streams automatically become auxlets so that parent unit streams will
-        not disconnect.
-        
-        """
-        if thermo is None: thermo = self.thermo
-        auxunit = cls.__new__(cls)
-        stack = getattr(self, name, None)
-        if isinstance(stack, list): 
-            name = f"{name}[{len(stack)}]"
-            stack.append(auxunit)
-        else:
-            setattr(self, name, auxunit)
-        auxunit.owner = self # Avoids property package checks
-        auxunit.__init__(
-            '.' + name, 
-            self._unit_auxlets(cls._N_ins, ins, thermo), 
-            self._unit_auxlets(cls._N_outs, outs, thermo),
-            thermo, 
-            **kwargs
-        )
-        return auxunit
-
-    def auxlet(self, stream: Stream, thermo=None):
-        """
-        Define auxiliary unit inlet or outlet. This method has two
-        behaviors:
-        
-        * If the stream is not connected to this unit, define the Stream 
-          object's source or sink to be this unit without actually connecting 
-          it to this unit.
-        
-        * If the stream is already connected to this unit, return a superposition
-          stream which can be connected to auxiliary units without being disconnected
-          from this unit. 
-        
-        """
-        if thermo is None: thermo = self.thermo
-        if stream is None: stream = Stream(None, thermo=thermo)
-        if isinstance(stream, str): 
-            stream = Stream('.' + stream, thermo=thermo)
-            stream._source = stream._sink = self
-        if self is stream._source and stream in self._outs:
-            port = piping.OutletPort.from_outlet(stream)
-            stream = piping.SuperpositionOutlet(port)
-            self.auxouts[port.index] = stream
-        elif self is stream._sink and stream in self._ins:
-            port = piping.InletPort.from_inlet(stream)
-            stream = piping.SuperpositionInlet(port)
-            self.auxins[port.index] = stream
-        else:
-            if stream._source is None: stream._source = self
-            if stream._sink is None: stream._sink = self
-        return stream
-
-    def _assembled_from_auxiliary_units(self):
-        #: Serves for checking whether to include this unit in auxiliary diagrams.
-        #: If all streams are in common, it must be assembled by auxiliary units.
-        return not set([i.ID for i in self.ins + self.outs]).difference(
-            sum([[i.ID for i in (i.ins + i.outs)] for i in self.auxiliary_units], [])
-        )
 
     def mass_balance_error(self):
         """Return error in stoichiometric mass balance. If positive,

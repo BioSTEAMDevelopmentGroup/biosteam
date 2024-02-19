@@ -10,7 +10,6 @@
 from thermosteam import utils
 from . import (patches,
                tictoc,
-               abstract_method,
                piping,
                stream_link_options,
                functors,
@@ -19,11 +18,9 @@ from . import (patches,
 __all__ = ('colors',
            'patches', 
            'tictoc',
-           'abstract_method',
            'functors',
            *utils.__all__,
            *patches.__all__, 
-           *abstract_method.__all__, 
            *tictoc.__all__, 
            *piping.__all__, 
            *stream_link_options.__all__,
@@ -31,7 +28,6 @@ __all__ = ('colors',
            *scope.__all__,
 )
 from thermosteam.utils import *
-from .abstract_method import *
 from .patches import *
 from .tictoc import *
 from .piping import *

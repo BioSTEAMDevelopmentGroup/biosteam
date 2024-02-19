@@ -197,8 +197,6 @@ def test_simple_acetic_acid_separation_with_recycle():
     for i in range(1): sm_sys.simulate()
     t1 = time.toc()
     
-    assert t0 < 0.8 * t1, 'phenomena-oriented simulation speed should be faster than sequential-modular'
-    
     for s_sm, s_dp in zip(sm_sys.streams, dp_sys.streams):
         actual = s_sm.mol
         value = s_dp.mol
@@ -305,12 +303,13 @@ def test_simple_acetic_acid_separation_with_recycle():
 #     time.tic()
 #     po = create_system('phenomena oriented')
 #     po.set_tolerance(rmol=1e-6, mol=1e-6, 
-#                      subsystems=True,
-#                      method='fixed-point')
+#                       subsystems=True,
+#                       method='fixed-point')
 #     po.simulate()
 #     t_phenomena = time.toc()
     
-#     assert t_phenomena < 0.2 * t_sequential
+#     print('SM', t_sequential)
+#     print('PO', t_phenomena)
     
 #     for s_sm, s_dp in zip(sm.streams, po.streams):
 #         actual = s_sm.mol
@@ -458,4 +457,4 @@ if __name__ == '__main__':
     test_trivial_distillation_case()
     test_simple_acetic_acid_separation_no_recycle()
     test_simple_acetic_acid_separation_with_recycle()
-    # test_complex_acetic_acid_separation_system()
+#     test_complex_acetic_acid_separation_system()

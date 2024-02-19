@@ -10,9 +10,7 @@
 """
 import numpy as np
 from biosteam.utils.piping import (
-    ignore_docking_warnings, Connection,
-    SuperpositionInlet, 
-    SuperpositionOutlet, 
+    ignore_docking_warnings, Connection, 
 )
 from warnings import warn
 import biosteam as bst
@@ -340,7 +338,8 @@ def get_all_connections(streams, added_connections=None):
     if added_connections is None: added_connections = set()
     connections = []
     originals = {}
-    isa = isinstance
+    superinlet = lambda s: s.__class.__name__ == 'SuperpositionInlet'
+    superoutlet = lambda s: s.__class.__name__ == 'SuperpositionOutlet'
     for s in streams:
         original = s
         while hasattr(original, 'port'):
@@ -350,12 +349,12 @@ def get_all_connections(streams, added_connections=None):
             if original in originals:
                 source0, source_index0, stream0, sink_index0, sink0 = old_connection = originals[original]
                 source1, source_index1, stream1, sink_index1, sink1 = connection
-                if isa(stream1, SuperpositionOutlet) and isa(stream0, SuperpositionInlet):
+                if superoutlet(stream1) and superinlet(stream0):
                     connections.remove(old_connection)
                     added_connections.remove(old_connection)
                     stream = stream1.copy(ID='.' + s.ID)
                     connection = Connection(source1, source_index1, stream, sink_index0, sink0)
-                elif isa(stream0, SuperpositionOutlet) and isa(stream1, SuperpositionInlet):
+                elif superoutlet(stream0) and superinlet(stream1):
                     connections.remove(old_connection)
                     added_connections.remove(old_connection)
                     stream = stream1.copy(ID='.' + s.ID)

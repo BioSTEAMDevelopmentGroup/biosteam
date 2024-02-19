@@ -20,8 +20,7 @@ __all__ = ('AbstractStream', 'MissingStream', 'MockStream', 'Inlets',
            'Outlets', 'InletPort', 'OutletPort', 'StreamPorts', 
            'as_stream', 'as_upstream', 'as_downstream', 
            'materialize_connections', 'ignore_docking_warnings',
-           'IgnoreDockingWarnings', 'SuperpositionInlet', 'SuperpositionOutlet',
-           'Connection')
+           'IgnoreDockingWarnings', 'Connection')
 
 
 # %% Utilities
@@ -192,52 +191,3 @@ class Inlets(AbstractInlets):
 class Outlets(AbstractOutlets):
     Stream = Stream
     MissingStream = MissingStream
-
-
-# %% Auxiliary piping
-
-def superposition_property(name):
-    @property
-    def p(self):
-        return getattr(self.port.get_stream(), name)
-    @p.setter
-    def p(self, value):
-        setattr(self.port.get_stream(), name, value)
-        
-    return p
-
-def _superposition(cls, parent, port):
-    excluded = set([*cls.__dict__, port, '_' + port, 'port'])
-    for name in parent.__dict__:
-        if name in excluded: continue
-        setattr(cls, name, superposition_property(name))
-    for name in ('_source', '_sink'):
-        if name in excluded: continue
-        setattr(cls, name, superposition_property(name))
-    return cls
-
-def superposition(parent, port):
-    return lambda cls: _superposition(cls, parent, port)
-
-
-@superposition(Stream, 'sink')
-class SuperpositionInlet(Stream): 
-    """Create a SuperpositionInlet that references an inlet from another 
-    unit operation."""
-    __slots__ = ()
-    
-    def __init__(self, port, sink=None):
-        self.port = port
-        self._sink = sink
-      
-
-@superposition(Stream, 'source')
-class SuperpositionOutlet(Stream):
-    """Create a SuperpositionOutlet that references an outlet from another 
-    unit operation."""
-    __slots__ = ()
-    
-    def __init__(self, port, source=None):
-        self.port = port
-        self._source = source
-    

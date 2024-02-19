@@ -696,7 +696,7 @@ class System:
     available_methods: Methods[str, tuple[Callable, bool, dict]] = Methods()
 
     #: Variable solution priority for phenomena oriented simulation.
-    variable_priority: list[str] = ['mol', 'T', 'KL', ('mol-LLE', 'K-pseudo'), 'L', 'K', 'B']
+    variable_priority: list[str] = [('mol-LLE', 'K-pseudo'), 'L', 'K', 'B', 'mol', 'T']
 
     @classmethod
     def register_method(cls, name, solver, conditional=False, **kwargs):
@@ -2229,7 +2229,7 @@ class System:
             else:
                 try:
                     self.run_phenomena()
-                except Exception:
+                except Exception as e:
                     warn('phenomena-oriented simulation failed; '
                          'attempting one sequential-modular loop', RuntimeWarning)
                     for i in self.unit_path: i.run()
@@ -2263,9 +2263,12 @@ class System:
                         return x
                     
                     if key == 'K-pseudo': 
+                        for i in stages:
+                            if hasattr(i, 'gamma_y'):
+                                i.gamma_y = None
                         flx.fixed_point(
-                            f, x0, xtol=1e-6, maxiter=100, checkiter=False, 
-                            checkconvergence=False, convergenceiter=5
+                            f, x0, xtol=1e-9, maxiter=200, checkiter=False, 
+                            checkconvergence=False, convergenceiter=10,
                         )
                     else: 
                         raise NotImplementedError(f'tolerance for {key!r} not available in BioSTEAM yet')
