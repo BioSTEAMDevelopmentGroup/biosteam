@@ -26,6 +26,25 @@ def test_auxiliary_unit_owners():
     # Once unit is in a system, auxiliary units must have an owner
     assert unit.mixer.owner is unit
 
+def test_unit_convinience_properties():
+    class TestUnit(bst.Unit):
+        _N_ins = 2
+        _N_outs = 2
+        
+        def _run(self):
+            for i, j in zip(self.ins, self.outs):
+                j.copy_like(i)
+    
+    bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
+    ins = [bst.Stream(None, Water=1, Ethanol=2),
+           bst.Stream(None, Water=2, Ethanol=5)]
+    U = TestUnit(None, ins=ins, outs=(None, None))
+    U.run()
+    assert (U.mol_in == [3, 7]).all()
+    assert (U.mol_in == U.mol_out).all()
+    assert (U.z_mol_in == U.z_mol_out).all()
+    assert (U.z_mol_in == [0.3, 0.7]).all()
+
 def test_unit_inheritance_setup_method():
     class NewUnit(bst.Unit):
         def _setup(self):
@@ -382,6 +401,7 @@ def test_skipping_unit_simulation_with_empty_inlet_streams():
         
 if __name__ == '__main__':
     test_auxiliary_unit_owners()
+    test_unit_convinience_properties()
     test_unit_inheritance_setup_method()
     test_process_specifications_linear()
     test_process_specifications_with_recycles()
