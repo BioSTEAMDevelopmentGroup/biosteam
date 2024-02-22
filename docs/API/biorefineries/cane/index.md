@@ -112,6 +112,7 @@ use the Model object:
 
 ```python
 >>> import biorefineries.cane as c
+>>> c.YRCP2023()
 >>> # Load integrated co-fermentation oilcane configuration producing biodiesel from sugarcane
 >>> O7 = c.Biorefinery('O7.WT') 
 >>> # All parameters at the baseline scenario
@@ -123,16 +124,16 @@ use the Model object:
                                    Cane operating days [day/y]                180
                                    Sorghum operating days [day/y]              45
 Feedstock                          Available land [ha]                   1.87e+04
-                                   Dry biomass yield [DMT/ha/y]              25.6
-Crude oil                          Price [USD/L]                             64.9
+                                   Dry biomass yield [DMT/ha/y]              17.7
+Crude oil                          Price [USD/L]                            0.544
 Feedstock                          Price [USD/kg]                           0.035
-Ethanol                            Price [USD/L]                            0.368
-Biodiesel                          Price [USD/L]                            0.701
+Ethanol                            Price [USD/L]                            0.358
+Biodiesel                          Price [USD/L]                            0.749
 RIN D3                             Price [USD/RIN]                          0.534
 RIN D4                             Price [USD/RIN]                          0.206
 RIN D5                             Price [USD/RIN]                          0.205
-Natural gas                        Price [USD/m3]                           0.167
-Electricity                        Price [USD/kWh]                         0.0641
+Natural gas                        Price [USD/m3]                               0
+Electricity                        Price [USD/kWh]                              0
 -                                  IRR [%]                                     10
 Crude glycerol                     Price [USD/kg]                            0.16
 Pure glycerine                     Price [USD/kg]                            0.65
@@ -163,51 +164,52 @@ Pure glycerine                     GWP [kg*CO2e/kg]                          1.6
 Cellulase                          GWP [kg*CO2e/kg]                         0.404
 Natural gas                        GWP [kg*CO2e/kg]                          0.33
 -                                  Income tax [%]                              21
-Stream-Oilcane                     Oil content [dw %]                     0.00025
-                                   Moisture content [wt %]                  0.701
-                                   Sugar content [dw %]                     0.506
+Stream-Oilcane                     Oil content [dw %]                       0.018
+                                   Moisture content [wt %]                  0.667
+                                   Sugar content [dw %]                     0.367
 dtype: float64
 
 >>> parameters['oilcane', 'Cane oil content [dry wt. %]'] = 10 # Change oil content
+>>> parameters['oilcane', 'Moisture content [wt %]'] = 65 
 >>> O7.model(parameters) # Evaluate at new oil content
--                        MFPP [USD/MT]                                     -7.83
+-                        MFPP [USD/MT]                                     -7.48
                          MESP [USD/L]                                          0
-                         MBSP [USD/L]                                       3.46
+                         MBSP [USD/L]                                       3.48
                          Feedstock consumption [MT/y]                    1.6e+06
                          Biodiesel production [L/MT]                        15.6
                          Biodiesel yield [L/ha]                         1.33e+03
                          Ethanol production [L/MT]                             0
-                         Electricity production [kWh/MT]                     519
-                         Net energy production [GGE/MT]                     21.1
+                         Electricity production [kWh/MT]                     513
+                         Net energy production [GGE/MT]                     20.9
                          Natural gas consumption [m3/MT]                       0
-                         TCI [10^6*USD]                                      614
-                         Heat exchanger network error [%]               4.22e-13
-Economic allocation      GWP [kg*CO2e / USD]                               0.886
-                         Ethanol GWP [kg*CO2e / L]                         0.507
-                         Biodiesel GWP [kg*CO2e / L]                       0.507
-                         Crude glycerol GWP [kg*CO2e / kg]                 0.142
-                         Electricity GWP [kg*CO2e / MWh]                    56.8
+                         TCI [10^6*USD]                                      652
+                         Heat exchanger network error [%]                  4e-13
+Economic allocation      GWP [kg*CO2e / USD]                               0.848
+                         Ethanol GWP [kg*CO2e / L]                         0.477
+                         Biodiesel GWP [kg*CO2e / L]                       0.477
+                         Crude glycerol GWP [kg*CO2e / kg]                 0.136
+                         Electricity GWP [kg*CO2e / MWh]                    58.5
 Displacement allocation  Ethanol GWP [kg*CO2e / L]                             0
-                         Biodiesel GWP [kg*CO2e / L]                       -12.7
-Energy allocation        Biofuel GWP [kg*CO2e / GGE]                         1.8
-                         Ethanol GWP [kg*CO2e / L]                         0.317
-                         Biodiesel GWP [kg*CO2e / L]                       0.498
-                         Crude-glycerol GWP [kg*CO2e / kg]                  0.19
--                        MFPP derivative [USD/MT]                           3.48
-                         Biodiesel production derivative [L/MT]            0.901
-                         Ethanol production derivative [L/MT]                  0
-                         Electricity production derivative [kWh/MT]         18.1
-                         Natural gas consumption derivative [cf/MT]            0
-                         TCI derivative [10^6*USD]                         -15.6
-Economic allocation      GWP derivative [kg*CO2e / USD]                  -0.0296
-Ethanol                  GWP derivative [kg*CO2e / L]                    -0.0169
-Biodiesel                GWP derivative [kg*CO2e / L]                    -0.0169
-Crude glycerol           GWP derivative [kg*CO2e / kg]                  -0.00473
-Electricity              GWP derivative [kg*CO2e / MWh]                    -1.89
--                        ROI [%]                                            1.08
+                         Biodiesel GWP [kg*CO2e / L]                       -12.6
+Energy allocation        Biofuel GWP [kg*CO2e / GGE]                        1.81
+                         Ethanol GWP [kg*CO2e / L]                          0.32
+                         Biodiesel GWP [kg*CO2e / L]                       0.503
+                         Crude-glycerol GWP [kg*CO2e / kg]                 0.192
+-                        MFPP derivative [USD/MT]                            NaN
+                         Biodiesel production derivative [L/MT]              NaN
+                         Ethanol production derivative [L/MT]                NaN
+                         Electricity production derivative [kWh/MT]          NaN
+                         Natural gas consumption derivative [cf/MT]          NaN
+                         TCI derivative [10^6*USD]                           NaN
+Economic allocation      GWP derivative [kg*CO2e / USD]                        0
+Ethanol                  GWP derivative [kg*CO2e / L]                          0
+Biodiesel                GWP derivative [kg*CO2e / L]                          0
+Crude glycerol           GWP derivative [kg*CO2e / kg]                         0
+Electricity              GWP derivative [kg*CO2e / MWh]                        0
+-                        ROI [%]                                            1.16
 Feedstock                Competitive biomass yield [dry MT/ha]               NaN
                          Energy competitive biomass yield [dry MT/ha]        NaN
--                        Breakeven IRR [%]                                 -4.06
+-                        Breakeven IRR [%]                                 -3.77
 dtype: float64
 
 ```
