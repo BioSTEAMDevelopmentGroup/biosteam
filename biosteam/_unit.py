@@ -1263,11 +1263,11 @@ class Unit(AbstractUnit):
     @property
     def z_mol_in(self) -> NDArray[float]:
         """Molar fractions going in [kmol/hr]."""
-        return self._mol_in/self.F_mol_in
+        return self.mol_in/self.F_mol_in
     @property
     def z_mol_out(self) -> NDArray[float]:
         """Molar fractions going in."""
-        return self._mol_out/self.F_mol_out
+        return self.mol_out/self.F_mol_out
 
     @property
     def F_mol_in(self) -> float:
