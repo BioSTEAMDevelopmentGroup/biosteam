@@ -304,7 +304,7 @@ class Unit(AbstractUnit):
         self._inlet_cost_indices: dict[str, int] = {}
         
         #: Indices of additional credits/fees given by outlet streams.
-        self._outlet_cost_indices: dict[str, int] = {}
+        self._outlet_revenue_indices: dict[str, int] = {}
         
         try:
             #: Lifetime of equipment. Defaults to values in the class attribute 
@@ -357,7 +357,7 @@ class Unit(AbstractUnit):
         self._inlet_utility_indices = {}
         self._outlet_utility_indices = {}
         self._inlet_cost_indices = {}
-        self._outlet_cost_indices = {}
+        self._outlet_revenue_indices = {}
         try: self.equipment_lifetime = copy(self._default_equipment_lifetime)
         except AttributeError: self.equipment_lifetime = {}
 
@@ -546,19 +546,19 @@ class Unit(AbstractUnit):
         if stream._sink is self:
             self._inlet_cost_indices[name] = self._ins._streams.index(stream)
         elif stream._source is self:
-            self._outlet_cost_indices[name] = self._outs._streams.index(stream)
+            self._outlet_revenue_indices[name] = self._outs._streams.index(stream)
         else:
             raise ValueError(f"stream '{stream.ID}' must be connected to {repr(self)}")
     
     define_fee = define_credit
     
-    def get_inlet_utility_flows(self):
+    def get_inlet_cost_flows(self):
         ins = self._ins._streams
-        return {name: ins[index].F_mass for name, index in self._inlet_utility_indices.items()}
+        return {name: ins[index].F_mass for name, index in (self._inlet_utility_indices | self._inlet_cost_indices).items()}
     
-    def get_outlet_utility_flows(self):
+    def get_outlet_revenue_flows(self):
         outs = self._outs._streams
-        return {name: outs[index].F_mass for name, index in self._outlet_utility_indices.items()}
+        return {name: outs[index].F_mass for name, index in (self._outlet_utility_indices | self._outlet_revenue_indices).items()}
     
     def get_design_and_capital(self):
         return UnitDesignAndCapital(
@@ -978,7 +978,7 @@ class Unit(AbstractUnit):
             [ins[index].F_mass * prices[name] for name, index in self._inlet_cost_indices.items()]
         )
         self._outlet_revenue = sum(
-            [outs[index].F_mass * prices[name] for name, index in self._outlet_cost_indices.items()]
+            [outs[index].F_mass * prices[name] for name, index in self._outlet_revenue_indices.items()]
         )
     
     @property

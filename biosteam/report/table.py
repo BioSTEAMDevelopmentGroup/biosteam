@@ -69,10 +69,11 @@ def voc_table(systems, product_IDs, system_names=None, unit='MT', with_products=
     # Not ready for users yet
     isa = isinstance
     if isa(systems, bst.System): systems = [systems]
-    other_utilities_dct = {}
-    other_byproducts_dct = {}
-    prices = bst.stream_utility_prices
+    inlet_cost_dct = {}
+    outlet_revenue_dct = {}
+    prices = bst.stream_prices
     factor = 1 / tmo.units_of_measure.convert(1, 'kg', unit)
+    
     def getsubdct(dct, name):
         if name in dct:
             subdct = dct[name]
@@ -83,41 +84,41 @@ def voc_table(systems, product_IDs, system_names=None, unit='MT', with_products=
     for sys in systems:
         electricity_cost = sys.power_utility.cost * sys.operating_hours
         if electricity_cost > 0.: 
-            dct = getsubdct(other_utilities_dct, 'Electricity')
+            dct = getsubdct(inlet_cost_dct, 'Electricity')
             dct[sys] = (f"{bst.PowerUtility.price} $/kWh", electricity_cost)
         else:
-            dct = getsubdct(other_byproducts_dct, 'Electricity production')
+            dct = getsubdct(inlet_cost_dct, 'Electricity production')
             dct[sys] = (f"{bst.PowerUtility.price} $/kWh", -electricity_cost)
-        inlet_flows = sys.get_inlet_utility_flows()
+        inlet_flows = sys.get_inlet_cost_flows()
         for name, flow in inlet_flows.items():
-            dct = getsubdct(other_utilities_dct, name)
+            dct = getsubdct(inlet_cost_dct, name)
             price = prices[name]
-            dct[sys] = (price * factor, price * flow)
-        outlet_flows = sys.get_outlet_utility_flows()
+            dct[sys] = (price * factor, factor * price * flow)
+        outlet_flows = sys.get_outlet_revenue_flows()
         for name, flow in outlet_flows.items():
-            dct = getsubdct(other_byproducts_dct, name)
+            dct = getsubdct(outlet_revenue_dct, name)
             price = prices[name]
-            dct[sys] = (price * factor, price * flow)
+            dct[sys] = (price * factor, factor * price * flow)
         
     def reformat(name):
         name = name.replace('_', ' ')
         if name.islower(): name= name.capitalize()
         return name
     
-    feeds = sorted({i.ID for i in sum([i.feeds for i in systems], []) if sys.has_market_value(i)})
-    coproducts = sorted({i.ID for i in sum([i.products for i in systems], []) if sys.has_market_value(i) and i.ID not in product_IDs})
+    inlet_cost = sorted(inlet_cost_dct)
+    outlet_revenue = sorted(outlet_revenue_dct)
     system_heat_utilities = [bst.HeatUtility.sum_by_agent(sys.heat_utilities) for sys in systems]
-    other_utilities = sorted(other_utilities_dct)
-    other_byproducts = sorted(other_byproducts_dct)
+    feeds = sorted({i.ID for i in sum([i.feeds for i in systems], []) if any([sys.has_market_value(i) for sys in systems])})
+    coproducts = sorted({i.ID for i in sum([i.products for i in systems], []) if any([sys.has_market_value(i) for sys in systems]) and i.ID not in product_IDs})
     heating_agents = sorted(set(sum([[i.agent.ID for i in hus if i.cost and i.flow * i.duty > 0. and abs(i.flow) > 1e-6] for hus in system_heat_utilities], [])))
     cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if i.cost and i.flow * i.duty < 0. and abs(i.flow) > 1e-6] for hus in system_heat_utilities], [])))
-    index = {j: i for (i, j) in enumerate(feeds + heating_agents + cooling_agents + other_utilities + coproducts + other_byproducts)}
+    index = {j: i for (i, j) in enumerate(feeds + heating_agents + cooling_agents + inlet_cost + coproducts + outlet_revenue)}
     table_index = [*[('Raw materials', reformat(i)) for i in feeds],
                    *[('Heating utilities', reformat(i)) for i in heating_agents],
                    *[('Cooling utilities', reformat(i)) for i in cooling_agents],
-                   *[('Other utilities', i) for i in other_utilities],
-                   *[('By-products and credits', reformat(i)) for i in coproducts],
-                   *[('By-products and credits', i) for i in other_byproducts]]
+                   *[('Other utilities & fees', i) for i in inlet_cost],
+                   *[('Co-products & credits', reformat(i)) for i in coproducts],
+                   *[('Co-products & credits', reformat(i)) for i in outlet_revenue]]
     table_index.append(('Variable operating cost', ''))
     if with_products:
         table_index.extend(
@@ -127,7 +128,7 @@ def voc_table(systems, product_IDs, system_names=None, unit='MT', with_products=
     N_cols = len(systems) + 1
     N_rows = len(table_index)
     data = np.zeros([N_rows, N_cols], dtype=object)
-    N_coproducts = len(coproducts) + len(other_byproducts)
+    N_coproducts = len(coproducts) + len(outlet_revenue)
     for col, sys in enumerate(systems):
         for stream in sys.feeds + sys.products:
             if stream.ID in product_IDs and not with_products: continue
@@ -150,7 +151,7 @@ def voc_table(systems, product_IDs, system_names=None, unit='MT', with_products=
                 price += f"{hu.agent.regeneration_price} USD/kmol"
             data[ind, 0] = price 
             data[ind, col + 1] = cost / 1e6 # million USD / yr
-        for sysdct in (other_byproducts_dct, other_utilities_dct):
+        for sysdct in (inlet_cost_dct, outlet_revenue_dct):
             for i, dct in sysdct.items():
                 if sys not in dct: continue
                 price, cost = dct[sys]

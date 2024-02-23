@@ -469,6 +469,10 @@ class TEA:
         return TDC # For compatibility with Lang factors
 
     @property
+    def save_report(self):
+        return self.system.save_report
+
+    @property
     def units(self) -> set[Unit]:
         """All unit operations with costs."""
         return self.system.cost_units  

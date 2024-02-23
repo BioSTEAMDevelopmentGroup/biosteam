@@ -2802,16 +2802,13 @@ class System:
         """Sum of all power utilities in the system."""
         return PowerUtility.sum(get_power_utilities(self.cost_units))
 
-    def get_inlet_utility_flows(self):
+    def get_inlet_cost_flows(self):
         """
-        Return a dictionary with inlet stream utility flow rates, including
-        natural gas and ash disposal but excluding heating, refrigeration, and
-        electricity utilities.
-        
+        Return a dictionary with flow rates for inlet streams with fees/credits/utilities.
         """
         dct = {}
         for unit in self.units:
-            for name, flow in unit.get_inlet_utility_flows().items():
+            for name, flow in unit.get_inlet_cost_flows().items():
                 if flow:
                     if name in dct:
                         dct[name] += flow
@@ -2819,16 +2816,13 @@ class System:
                         dct[name] = flow
         return dct
 
-    def get_outlet_utility_flows(self):
+    def get_outlet_revenue_flows(self):
         """
-        Return a dictionary with outlet stream utility flow rates, including
-        natural gas and ash disposal but excluding heating, refrigeration, and
-        electricity utilities.
-        
+        Return a dictionary with flow rates for outlet streams with fees/credits/utilities.
         """
         dct = {}
         for unit in self.units:
-            for name, flow in unit.get_outlet_utility_flows().items():
+            for name, flow in unit.get_outlet_revenue_flows().items():
                 if flow:
                     if name in dct:
                         dct[name] += flow
@@ -3207,7 +3201,7 @@ class System:
         """
         keys = []; addkey = keys.append
         vals = []; addval = vals.append
-        stream_utility_prices = bst.stream_utility_prices
+        stream_prices = bst.stream_prices
         all_utilities = self.heat_utilities
         power_utility = self.power_utility
         if with_units:
@@ -3225,18 +3219,18 @@ class System:
                     addval(('kmol/hr', heat_utility.flow))
                     addkey((ID, 'Cost'))
                     addval(('USD/hr', heat_utility.cost))
-            for name, flow in self.get_inlet_utility_flows().items():
+            for name, flow in self.get_inlet_cost_flows().items():
                 ID = name + ' (inlet)'
                 addkey((ID, 'Flow'))
                 addval(('kg/hr', flow))
                 addkey((ID, 'Cost'))
-                addval(('USD/hr', flow * stream_utility_prices[name]))
-            for name, flow in self.get_outlet_utility_flows().items():
+                addval(('USD/hr', flow * stream_prices[name]))
+            for name, flow in self.get_outlet_revenue_flows().items():
                 ID = name + ' (outlet)'
                 addkey((ID, 'Flow'))
                 addval(('kg/hr', flow))
                 addkey((ID, 'Cost'))
-                addval(('USD/hr', - flow * stream_utility_prices[name]))
+                addval(('USD/hr', - flow * stream_prices[name]))
             addkey(('Total purchase cost', ''))
             addval(('USD', self.purchase_cost))
             addkey(('Installed equipment cost', ''))
@@ -3274,13 +3268,13 @@ class System:
                 addkey((ID, 'Flow'))
                 addval(flow)
                 addkey((ID, 'Cost'))
-                addval(flow * stream_utility_prices[name])
+                addval(flow * stream_prices[name])
             for name, flow in self.get_outlet_utility_flows().items():
                 ID = name + ' (outlet)'
                 addkey((ID, 'Flow'))
                 addval(flow)
                 addkey((ID, 'Cost'))
-                addval(-flow * stream_utility_prices[name])
+                addval(-flow * stream_prices[name])
             addkey(('Total purchase cost', ''))
             addval(self.purchase_cost)
             addkey(('Installed equipment cost', ''))
