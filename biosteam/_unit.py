@@ -1142,21 +1142,20 @@ class Unit(AbstractUnit):
                         if include_zeros or heat_utility.cost: 
                             addkey((ID, 'Cost'))
                             addval(('USD/hr', heat_utility.cost))
-                for name, flow in self.get_inlet_utility_flows().items():
+                for name, flow in self.get_inlet_cost_flows().items():
                     if include_zeros or flow:
                         ID = name + ' (inlet)'
                         addkey((ID, 'Flow'))
                         addval(('kg/hr', flow))
                         addkey((ID, 'Cost'))
                         addval(('USD/hr', flow * stream_prices[name]))
-                for name, flow in self.get_outlet_utility_flows().items():
+                for name, flow in self.get_outlet_revenue_flows().items():
                     if include_zeros or flow:
                         ID = name + ' (outlet)'
                         addkey((ID, 'Flow'))
                         addval(('kg/hr', flow))
                         addkey((ID, 'Cost'))
                         addval(('USD/hr', - flow * stream_prices[name]))
-                
             units = self._units
             Cost = self.purchase_costs
             for ki, vi in self.design_results.items():
@@ -1203,14 +1202,14 @@ class Unit(AbstractUnit):
                         if include_zeros or heat_utility.cost:
                             addkey((ID, 'Cost'))
                             addval(heat_utility.cost)
-                for name, flow in self.get_inlet_utility_flows().items():
+                for name, flow in self.get_inlet_cost_flows().items():
                     if include_zeros or flow:
                         ID = name + ' (inlet)'
                         addkey((ID, 'Flow'))
                         addval(flow)
                         addkey((ID, 'Cost'))
                         addval(flow * stream_prices[name])
-                for name, flow in self.get_outlet_utility_flows().items():
+                for name, flow in self.get_outlet_revenue_flows().items():
                     if include_zeros or flow:
                         ID = name + ' (outlet)'
                         addkey((ID, 'Flow'))
