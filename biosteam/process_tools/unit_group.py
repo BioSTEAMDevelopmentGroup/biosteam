@@ -473,9 +473,9 @@ class UnitGroup:
         ... )
              Net electricity production
         0                           100
-        100                       -2.98
-        200                       -3.51
-        300                      -0.897
+        100                       -2.97
+        200                        -3.5
+        300                      -0.907
         400                           0
         
         >>> bst.UnitGroup.df_from_groups(
@@ -485,8 +485,8 @@ class UnitGroup:
              Net electricity production
         0                           108
         100                       -3.21
-        200                       -3.79
-        300                      -0.968
+        200                       -3.78
+        300                       -0.98
         400                           0
         
         >>> bst.default() # Reset to biosteam defaults
