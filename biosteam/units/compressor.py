@@ -590,7 +590,7 @@ class PolytropicCompressor(Compressor, new_graphics=False):
         for real gases at high pressure ratios.
     n_steps: int
         Number of virtual steps used in numerical integration for hundseid method.
-    type: str
+    compressor_type: str
         Type of compressor : blower/centrifugal/reciprocating. If None, the type
         will be determined automatically.
 
