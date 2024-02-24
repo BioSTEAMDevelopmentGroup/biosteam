@@ -245,5 +245,6 @@ outs...
 ## References
 <a id="1">[1]</a> 
     Cortés-Peña, Y.R., C.V. Kurambhatti, K. Eilts, V. Singh, J.S. Guest, “Economic and Environmental Sustainability of Vegetative Oil Extraction Strategies at Integrated Oilcane and Oil-sorghum Biorefineries,” ACS Sustainable Chemistry & Engineering.
-<a id="2">[2]<\a>
+
+<a id="2">[2]</a>
     Cortés-Peña, Y., W. Woodruff, S. Banerjee, et al., “Integration of Plant and Microbial Oil Processing at Oilcane Biorefineries for More Sustainable Biofuel Production,” Chemistry, (2023). https://doi.org/10.26434/chemrxiv-2023-rdvbl.
