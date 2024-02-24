@@ -1704,7 +1704,8 @@ class MultiStageEquilibrium(Unit):
     
     def update_energy_balance_temperatures(self):
         dTs = self.get_energy_balance_temperature_departures()
-        dTs[np.abs(dTs) > 15] = 15
+        dTs[dTs > 15] = 15
+        dTs[dTs < -15] = -15
         for stage, dT in zip(self.stages, dTs):
             partition = stage.partition
             partition.T += dT
