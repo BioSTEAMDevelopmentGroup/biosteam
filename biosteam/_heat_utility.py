@@ -568,8 +568,8 @@ class HeatUtility:
             'propane',
             Propane=1,
             thermo=cls.thermo_propane,
-            T=273.15 - 42.11,
-            P=101325,
+            T=238.70,
+            P=cls.thermo_propane.chemicals.Propane.Psat(238.70),
             heat_transfer_price = 13.17e-6,
             phase='l',
         )
