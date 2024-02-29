@@ -263,10 +263,10 @@ html_theme_options = {
         'image_dark': 'logo_dark.png'
     },
     "show_toc_level": 2,
-    "announcement": (
-        "<p>Join us on Feb 20, 10:15-11:15am CST, for a BioSTEAM workshop! "
-        "<a href='mailto: biosteamdevelopmentgroup@gmail.com'>Email us for details</a></p>"
-    ),
+    # "announcement": (
+    #     "<p>Join us on Feb 20, 10:15-11:15am CST, for a BioSTEAM workshop! "
+    #     "<a href='mailto: biosteamdevelopmentgroup@gmail.com'>Email us for details</a></p>"
+    # ),
     "external_links": [
       {"name": "Bioindustrial-Park", "url": "https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park"},
       {"name": "How2STEAM", "url": "https://mybinder.org/v2/gh/BioSTEAMDevelopmentGroup/How2STEAM/HEAD"},
