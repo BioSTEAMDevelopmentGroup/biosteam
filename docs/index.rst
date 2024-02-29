@@ -158,6 +158,10 @@ tools for sustainability assessments. Here is a short list of related publicatio
 
 * **Bioproduct and biofuel studies**:
 
+  - `A Microbial Process for the Production of Benzyl Acetate. Nat Chem Eng 2024. <https://doi.org/10.1038/s44286-023-00022-0>`_
+
+  - `Characterizing the Opportunity Space for Sustainable Hydrothermal Valorization of Wet Organic Wastes. Environ. Sci. Technol. <https://doi.org/10.1021/acs.est.3c07394>`_
+
   - `An End-to-End Pipeline for Succinic Acid Production at an Industrially Relevant Scale Using Issatchenkia Orientalis. Nat Commun. 2023. <https://doi.org/10.1038/s41467-023-41616-9>`_
 
   - `Metabolic engineering of Yarrowia lipolytica to produce 1,2-diacyl-3-acetyl triacylglycerol. Metabolic Engineering. 2023 <https://doi.org/10.1016/j.ymben.2023.01.003>`_
