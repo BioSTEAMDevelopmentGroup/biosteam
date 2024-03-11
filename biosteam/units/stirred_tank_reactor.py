@@ -51,7 +51,7 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
     Abstract class for a stirred tank reactor, modeled as a pressure vessel with 
     a given aspect ratio and residence time. A pump-heat exchanger recirculation 
     loop is used to satisfy the duty, if any. By default, a turbine agitator is
-    also included if the power usage,`kW_per_m3`, is positive. A vacuum 
+    also included if the power usage,`kW_per_m3` , is positive. A vacuum 
     system is also automatically added if the operating pressure is at a vacuum. 
 
     Parameters

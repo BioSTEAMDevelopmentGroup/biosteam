@@ -102,6 +102,10 @@ class LinearEquations:
                 while hasattr(stream, 'port'): stream = stream.port.get_stream()                    
                 coef = coefficients.pop(original)
                 coefficients[stream] = coef
+            # print(unit)
+            # for i, j in coefficients.items():
+            #     if np.isnan(j).any(): breakpoint()
+            #     print(i, j)
             A.append(coefficients)
             b.append(value)
     
@@ -111,15 +115,9 @@ class LinearEquations:
     def solve(self):
         b = self.b
         variable = self.variable
-        if not b: 
-            objs = []
-            values = []
-            for i in self.units:
-                value = i._get_decoupled_variable(variable)
-                if value is None: continue 
-                objs.append(i)
-                values.append(value)
-            return objs, np.array(values)
+        # if variable == 'equilibrium':
+        #     for i in self.units:
+        #         if hasattr(i, 'B'): print(i, i.B, i.K)
         A, objs = dictionaries2array(self.A)
         # if A.ndim == 3:
         #     A_ = A
@@ -142,18 +140,29 @@ class LinearEquations:
         #     A = A[rows][:, cols]
         #     objs = [j for (i, j) in zip(cols, objs) if i]
         #     values = solve(A, b)
-        values = solve(A, np.array(b).T).T
+        # print(variable)
+        # breakpoint()
+        try:
+            values = solve(A, np.array(b).T).T
+        except Exception as e:
+            print(variable)
+            # breakpoint()
+            raise e
         if np.isnan(values).any(): 
+            print(variable)
+            # breakpoint()
             raise RuntimeError('nan value in variables')
-        # c = variable not in ('K-pseudo', 'mol-LLE')
-        # if c: print(variable)
-        # if c: print('------')
         for obj, value in zip(objs, values): 
-            # if c: print(obj, value)
             obj._update_decoupled_variable(variable, value)
-        if variable in ('mol', 'mol-LLE'):
+        if variable == 'material':
             for i in self.units: 
-                if hasattr(i, '_update_auxiliaries'): i._update_auxiliaries()
+                if hasattr(i, '_update_auxiliaries'):
+                    i._update_auxiliaries()
+                elif hasattr(i, 'stages'):
+                    for i in i.stages:
+                        if hasattr(i, '_update_auxiliaries'):
+                            i._update_auxiliaries()
+            # breakpoint()
         return objs, values
 
 # %% Sequential modular convergence tools
@@ -696,7 +705,7 @@ class System:
     available_methods: Methods[str, tuple[Callable, bool, dict]] = Methods()
 
     #: Variable solution priority for phenomena oriented simulation.
-    variable_priority: list[str] = [('mol-LLE', 'K-pseudo'), 'L', 'K', 'B', 'mol', 'T']
+    variable_priority: list[str] = ['equilibrium', 'material', 'energy']
 
     @classmethod
     def register_method(cls, name, solver, conditional=False, **kwargs):
@@ -1645,10 +1654,7 @@ class System:
         except:
             self._stages = stages = []
             for i in self.units:
-                try:
-                    stages.extend(i.stages)
-                except:
-                    raise AttributeError('not all units are stages')
+                stages.extend(i.aggregated_stages)
             return stages
 
     @property
@@ -2251,42 +2257,7 @@ class System:
         """Decouple and linearize material, equilibrium, summation, enthalpy,
         and reaction phenomena and iteratively solve them."""
         stages = self.stages + self.feeds
-        def run_variables(variables):
-            for variables in variables:
-                if isinstance(variables, tuple):
-                    *variables, key = variables
-                    run_variables(variables)
-                    objs, x0 = solve_variable(stages, key)
-                    def f(x):
-                        for obj, xi in zip(objs, x): obj._update_decoupled_variable(key, xi)
-                        run_variables(variables)
-                        _, x = solve_variable(stages, key)
-                        return x
-                    
-                    if key == 'K-pseudo': 
-                        for i in stages:
-                            if hasattr(i, 'gamma_y'):
-                                i.gamma_y = None
-                        flx.fixed_point(
-                            f, x0, xtol=1e-9, maxiter=200, checkiter=False, 
-                            checkconvergence=False, convergenceiter=10,
-                        )
-                    else: 
-                        raise NotImplementedError(f'tolerance for {key!r} not available in BioSTEAM yet')
-                else:
-                    # print(variables)
-                    solve_variable(stages, variables)
-                    # if self._iter >= 1:
-                    #     print('RECYCLES')
-                    #     for i in self.get_all_recycles(): i.show()
-                        # print('EXTRACTOR')
-                        # for i in self.flowsheet.extractor.stages:
-                        #     print(i.K)
-                        # print('SETTLER')
-                        # print(self.flowsheet.settler.K)
-                        # breakpoint()
-                
-        run_variables(self.variable_priority)
+        for variable in self.variable_priority: solve_variable(stages, variable)
         
     def _solve(self):
         """Solve the system recycle iteratively."""
