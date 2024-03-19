@@ -2241,17 +2241,7 @@ class System:
         if algorithm == 'Sequential modular':
             self.run_sequential_modular()
         elif algorithm == 'Phenomena oriented':
-            if self._iter == 0:
-                for i in self.unit_path: i.run()
-            else:
-                try:
-                    self.run_phenomena()
-                    # print('OK!')
-                except Exception as e:
-                    print(e)
-                    warn('phenomena-oriented simulation failed; '
-                         'attempting one sequential-modular loop', RuntimeWarning)
-                    for i in self.unit_path: i.run()
+            self.run_phenomena()
         else:
             raise RuntimeError(f'unknown algorithm {algorithm!r}')
 
@@ -2269,6 +2259,11 @@ class System:
         """Decouple and linearize material, equilibrium, summation, enthalpy,
         and reaction phenomena and iteratively solve them."""
         stages = self.stages + self.feeds
+        for i in self.unit_path: i.run()
+        for i in self.stages: 
+            if getattr(i, 'phases', None) == ('g', 'l'):
+                i._create_linear_equations('equilibrium')
+        for variable in ('material', 'energy', 'material'): solve_variable(stages, variable)
         for i in self.unit_path:
             i.run()
             for variable in ('material', 'energy', 'material'): solve_variable(stages, variable)

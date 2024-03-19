@@ -39,7 +39,7 @@ from numpy.testing import assert_allclose
 #         '', N_stages=N_stages, ins=midins, feed_stages=feed_stages,
 #         outs=[],
 #         phases=('g', 'l'),
-#         method='fixed-point',
+#         method='wegstein',
 #         use_cache=True,
 #     )
 
@@ -124,7 +124,6 @@ def test_simple_acetic_acid_separation_no_recycle():
             N_stages=6, ins=[feed, solvent], phases=('L', 'l'),
             maxiter=200,
             use_cache=True,
-            method='fixed-point',
         )
         # DAA = bst.MultiStageEquilibrium(N_stages=6, ins=[LE-0], feed_stages=[3],
         #     outs=['vapor', 'liquid'],
@@ -137,18 +136,18 @@ def test_simple_acetic_acid_separation_no_recycle():
             outs=['vapor', 'liquid'],
             stage_specifications={0: ('Reflux', 0.673), -1: ('Boilup', 2.57)},
             phases=('g', 'l'),
-            method='fixed-point',
             use_cache=True,
         )
     init_sys = system()
     init_sys.simulate()
     po = system(algorithm='phenomena oriented', 
                     molar_tolerance=1e-6,
-                    relative_molar_tolerance=1e-6)
+                    relative_molar_tolerance=1e-6,
+                    method='fixed-point')
     sm = system(algorithm='sequential modular',
                     molar_tolerance=1e-6,
                     relative_molar_tolerance=1e-6,
-                    method='wegstein')
+                    method='fixed-point')
     
     for i in range(2): 
         po.simulate()
@@ -178,14 +177,12 @@ def test_simple_acetic_acid_separation_with_recycle():
             phases=('L', 'l'),
             maxiter=200,
             use_cache=True,
-            method='fixed-point',
         )
         # DAA = bst.MultiStageEquilibrium(N_stages=6, ins=[LE-0], feed_stages=[3],
         #     outs=['vapor', 'liquid'],
         #     stage_specifications={0: ('Reflux', 0.673), -1: ('Boilup', 2.57)},
         #     maxiter=200,
         #     phases=('g', 'l'),
-        #     method='fixed-point',
         #     use_cache=True,
         # )
         DEA = bst.MultiStageEquilibrium(N_stages=6, ins=[LE-1], feed_stages=[3],
@@ -193,7 +190,6 @@ def test_simple_acetic_acid_separation_with_recycle():
             stage_specifications={0: ('Reflux', 0.673), -1: ('Boilup', 2.57)},
             phases=('g', 'l'),
             maxiter=200,
-            method='fixed-point',
             use_cache=True,
         )
         HX = bst.SinglePhaseStage(ins=DEA-0, outs=recycle, T=320, phase='l')
@@ -417,7 +413,7 @@ def test_integrated_settler_acetic_acid_separation_system(): # integratted settl
     sm = create_system('sequential modular')
     sm.flatten()
     sm.set_tolerance(
-        rmol=1e-3, mol=1e-3, subsystems=True,
+        rmol=1e-6, mol=1e-3, subsystems=True,
         method='fixed-point', maxiter=300,
     )
     sm.simulate()
@@ -428,7 +424,7 @@ def test_integrated_settler_acetic_acid_separation_system(): # integratted settl
     bst.F.set_flowsheet('PO')
     po = create_system('phenomena oriented')
     po.flatten()
-    po.set_tolerance(rmol=1e-3, mol=1e-3, 
+    po.set_tolerance(rmol=1e-6, mol=1e-3, 
                      subsystems=True,
                      method='fixed-point',
                      maxiter=300)
