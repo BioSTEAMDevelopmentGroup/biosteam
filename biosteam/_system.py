@@ -53,7 +53,8 @@ if TYPE_CHECKING:
 
 __all__ = ('System', 'AgileSystem', 'MockSystem',
            'AgileSystem', 'OperationModeResults',
-           'mark_disjunction', 'unmark_disjunction')
+           'mark_disjunction', 'unmark_disjunction',
+           'solve_variable')
 
 def _reformat(name):
     name = name.replace('_', ' ')
@@ -96,12 +97,21 @@ class LinearEquations:
             # if all([(i == zero).all() for i in coefficients.values()]):
             #     continue
             for stream in tuple(coefficients):
-                if not hasattr(stream, 'port'): continue
-                original = stream
+                if not hasattr(stream, 'port'): 
+                    while hasattr(stream, '_original'):
+                        remove = stream
+                        stream = stream._original
+                        coef = coefficients.pop(remove)
+                        coefficients[stream] = coef
+                        assert remove not in coefficients
+                    continue
+                remove = stream
                 stream = stream.port.get_stream()
                 while hasattr(stream, 'port'): stream = stream.port.get_stream()                    
-                coef = coefficients.pop(original)
+                while hasattr(stream, '_original'): stream = stream._original
+                coef = coefficients.pop(remove)
                 coefficients[stream] = coef
+                assert remove not in coefficients
             # print(unit)
             # for i, j in coefficients.items():
             #     if np.isnan(j).any(): breakpoint()
@@ -146,7 +156,7 @@ class LinearEquations:
             values = solve(A, np.array(b).T).T
         except Exception as e:
             print(variable)
-            # breakpoint()
+            print(e)
             raise e
         if np.isnan(values).any(): 
             print(variable)
@@ -705,7 +715,7 @@ class System:
     available_methods: Methods[str, tuple[Callable, bool, dict]] = Methods()
 
     #: Variable solution priority for phenomena oriented simulation.
-    variable_priority: list[str] = ['equilibrium', 'material', 'energy']
+    variable_priority: list[str] = ['equilibrium', 'material', 'energy', 'material']
 
     @classmethod
     def register_method(cls, name, solver, conditional=False, **kwargs):
@@ -2236,7 +2246,9 @@ class System:
             else:
                 try:
                     self.run_phenomena()
+                    # print('OK!')
                 except Exception as e:
+                    print(e)
                     warn('phenomena-oriented simulation failed; '
                          'attempting one sequential-modular loop', RuntimeWarning)
                     for i in self.unit_path: i.run()
@@ -2257,7 +2269,9 @@ class System:
         """Decouple and linearize material, equilibrium, summation, enthalpy,
         and reaction phenomena and iteratively solve them."""
         stages = self.stages + self.feeds
-        for variable in self.variable_priority: solve_variable(stages, variable)
+        for i in self.unit_path:
+            i.run()
+            for variable in ('material', 'energy', 'material'): solve_variable(stages, variable)
         
     def _solve(self):
         """Solve the system recycle iteratively."""

@@ -1912,6 +1912,33 @@ class ShortcutColumn(Distillation, new_graphics=False):
         )
         return equations
     
+    @property
+    def K(self):
+        try:
+            return self._K
+        except:
+            top, bottom = self.outs
+            if bottom.isempty():
+                self.B = np.inf
+                self._K = 1e16 * np.ones(self.chemicals.size)
+            elif top.isempty():
+                self._K = np.zeros(self.chemicals.size)
+                self.B = 0
+            else:
+                top_mol = top.mol.to_array()
+                bottom_mol = bottom.mol.to_array()
+                F_top = top_mol.sum()
+                F_bottom = bottom_mol.sum()
+                y = top_mol / F_top
+                x = bottom_mol / F_bottom
+                x[x <= 0] = 1e-16
+                self._K = y / x
+                self.B = F_top / F_bottom
+        return self._K
+    @K.setter
+    def K(self, K):
+        self._K = K
+    
     def _create_linear_equations(self, variable):
         # list[dict[Unit|Stream, float]]
         if not hasattr(self, 'B'):

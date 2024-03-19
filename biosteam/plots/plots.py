@@ -843,7 +843,7 @@ def plot_montecarlo_across_coordinate(xs, ys,
 
 # %% KDE
 
-def plot_kde(x, y, nbins=100, ax=None,
+def plot_kde(x, y, nbins=100, ax=None, fig=None,
              xticks=None, yticks=None, xticklabels=None, yticklabels=None,
              xtick0=True, ytick0=True, xtickf=True, ytickf=True,
              xbox=None, ybox=None, xbox_kwargs=None, ybox_kwargs=None, 
@@ -910,13 +910,17 @@ def plot_kde(x, y, nbins=100, ax=None,
             top=0.95, bottom=0.12,
             left=0.1, right=0.96,
         )
-    return ax
+    return fig, ax
     
 def plot_kde_2d(xs, ys, nbins=100, axes=None, xboxes=None, yboxes=None,
                 xticks=None, yticks=None, xticklabels=None, yticklabels=None,
                 autobox=True, xbox_kwargs=None, ybox_kwargs=None, aspect_ratio=1.,
                 **kwargs):
     N_rows, N_cols, *_ = xs.shape
+    if xticklabels and not hasattr(xticklabels, '__len__'):
+        xticklabels = N_cols * [xticklabels]
+    if yticklabels and not hasattr(yticklabels, '__len__'):
+        yticklabels = N_rows * [yticklabels]
     if axes is None:
         if autobox:
             grid_kw = dict(height_ratios=[1/N_cols, *N_rows*[4]], width_ratios=[*N_cols*[4], aspect_ratio/N_rows])
@@ -928,8 +932,14 @@ def plot_kde_2d(xs, ys, nbins=100, axes=None, xboxes=None, yboxes=None,
             axes = all_axes[1:, :-1]
             xbox_axes = all_axes[0, :-1]
             ybox_axes = all_axes[1:, -1]
-            if xbox_kwargs is None: xbox_kwargs = N_cols*[{}]
-            if ybox_kwargs is None: ybox_kwargs = N_rows*[{}]
+            if xbox_kwargs is None: 
+                xbox_kwargs = N_cols*[{}]
+            elif len(xbox_kwargs) == 1: 
+                xbox_kwargs = N_cols * xbox_kwargs
+            if ybox_kwargs is None:
+                ybox_kwargs = N_rows*[{}]
+            elif len(ybox_kwargs) == 1: 
+                ybox_kwargs = N_cols * ybox_kwargs
             xboxes = [Box(xbox_axes[i], **xbox_kwargs[i]) for i in range(N_cols)]
             yboxes = [Box(ybox_axes[i], **ybox_kwargs[i]) for i in range(N_rows)]
             plt.sca(ax_empty)
@@ -960,7 +970,7 @@ def plot_kde_2d(xs, ys, nbins=100, axes=None, xboxes=None, yboxes=None,
                 xticklabelsj = len(xticksj) * ['']
             if yticksi is not None and j != 0:
                 yticklabelsi = len(yticksi) * ['']
-            plot_kde(x, y, nbins=nbins, ax=ax, 
+            plot_kde(x, y, nbins=nbins, ax=ax, fig=fig,
                      xbox=xbox,
                      ybox=ybox,
                      xticks=xticksj,
@@ -977,7 +987,7 @@ def plot_kde_2d(xs, ys, nbins=100, axes=None, xboxes=None, yboxes=None,
     if yboxes: 
         for i in yboxes: i.reset()
     plt.subplots_adjust(hspace=0, wspace=0)
-    return axes
+    return fig, axes
 
     
 # %% Contours
@@ -1178,10 +1188,23 @@ def plot_contour_single_metric(
     return fig, axes, cps, cb, other_axes
             
 def color_quadrants(color=None, x=None, y=None, xlim=None, ylim=None, 
-                    line_color=None, linewidth=1.0):
-    if x is None: x = 0
-    if y is None: y = 0
+                    line_color=None, fill_color=None, linewidth=1.0):
+    if x is None: 
+        xlb = 0
+        xub = 0
+    elif hasattr(x, '__len__'):
+        xlb, xub = x
+    else:
+        xlb = xub = x
+    if y is None: 
+        ylb = 0
+        yub = 0
+    elif hasattr(y, '__len__'):
+        ylb, yub = y
+    else:
+        ylb = yub = y
     if line_color is None: line_color = c.grey.RGBn
+    if fill_color is None: fill_color = CABBI_colors.green_dirty.tint(85).RGBn
     if xlim is None: xlim = plt.xlim()
     if ylim is None: ylim = plt.ylim()
     x0, x1 = xlim
@@ -1189,44 +1212,72 @@ def color_quadrants(color=None, x=None, y=None, xlim=None, ylim=None,
     top_left, top_right, bottom_left, bottom_right = color
     # Top left
     if top_left is not None:
-        plt.fill_between([x0, x], y, y1,
+        plt.fill_between([x0, xlb], yub, y1,
                          color=top_left,
                          linewidth=linewidth,
                          zorder=0)
     # Top right
     if top_right is not None:
-        plt.fill_between([x, x1], y, y1,
+        plt.fill_between([xub, x1], yub, y1,
                          color=top_right,
                          linewidth=linewidth,
                          zorder=0)
     # Bottom left
     if bottom_left is not None:
-        plt.fill_between([x0, x], y0, y,
+        plt.fill_between([x0, xlb], y0, ylb,
                          color=bottom_left,
                          linewidth=linewidth,
                          zorder=0)
     # Bottom right
     if bottom_right is not None:
-        plt.fill_between([x, x1], y0, y,
+        plt.fill_between([xub, x1], y0, ylb,
                          color=bottom_right,
                          linewidth=linewidth,
                          zorder=0)
-    plot_vertical_line(x, line_color, zorder=0)
-    plot_horizontal_line(y, line_color, zorder=0)
-
+    if yub == ylb: 
+        plot_horizontal_line(ylb, line_color, zorder=0)
+    else:
+        plt.fill_between([x0, x1], ylb, yub,
+                         color=fill_color,
+                         linewidth=linewidth,
+                         zorder=0)
+        plot_horizontal_line(ylb, line_color, zorder=0)
+        plot_horizontal_line(yub, line_color, zorder=0)
+    if xub == xlb: 
+        plot_vertical_line(xlb, line_color, zorder=0)
+    else:
+        plt.fill_between([xlb, xub], y0, y1,
+                         color=fill_color,
+                         linewidth=linewidth,
+                         zorder=0)
+        plot_vertical_line(xlb, line_color, zorder=0)
+        plot_vertical_line(xub, line_color, zorder=0)
+    
 def label_quadrants(
         x=None, y=None, xr=None, yr=None, text=None, color=None,
     ):
-    if xr is None: xr = 0
-    if yr is None: yr = 0
+    if xr is None: 
+        xrlb = 0
+        xrub = 0
+    elif hasattr(xr, '__len__'):
+        xrlb, xrub = xr
+    else:
+        xrlb = xrub = xr
+    if yr is None: 
+        yrlb = 0
+        yrub = 0
+    elif hasattr(yr, '__len__'):
+        yrlb, yrub = yr
+    else:
+        yrlb = yrub = yr
     xlb, xub = plt.xlim()
     ylb, yub = plt.ylim()
     data_given = not (x is None or y is None)
     if data_given:
-        y_mt_0 = y > yr
-        y_lt_0 = y < yr
-        x_mt_0 = x > xr
-        x_lt_0 = x < xr
+        y_mt_0 = y > yrub
+        y_lt_0 = y < yrlb
+        x_mt_0 = x > xrub
+        x_lt_0 = x < xrlb
     xpos = lambda x: xlb + (xub - xlb) * x
     ypos = lambda y: ylb + (yub - ylb) * y
     xleft = 0.02
@@ -1236,37 +1287,37 @@ def label_quadrants(
     labeled = 4 * [False]
     top_left, top_right, bottom_left, bottom_right = text
     top_left_color, top_right_color, bottom_left_color, bottom_right_color = color
-    if yub > yr and xlb < xr and top_left:
+    if yub > yrub and xlb < xrlb and top_left:
         if data_given and top_left.endswith('()'):
             p = (y_mt_0 & x_lt_0).sum() / y.size
             top_left = f"{p:.0%} {top_left.strip('()')}"
         plt.text(xpos(xleft), ypos(ytop), top_left, color=top_left_color,
                  horizontalalignment='left', verticalalignment='top',
-                 fontsize=10, fontweight='bold', zorder=10)
+                 fontsize=8, fontweight='bold', zorder=10)
         labeled[0] = True
-    if yub > yr and xub > xr and top_right:
+    if yub > yrub and xub > xrub and top_right:
         if data_given and top_right.endswith('()'):
             p = (y_mt_0 & x_mt_0).sum() / y.size
             top_right = f"{p:.0%} {top_right.strip('()')}"
         plt.text(xpos(xright), ypos(ytop), top_right, color=top_right_color,
                  horizontalalignment='right', verticalalignment='top',
-                 fontsize=10, fontweight='bold', zorder=10)
+                 fontsize=8, fontweight='bold', zorder=10)
         labeled[1] = True
-    if ylb < yr and xlb < xr and bottom_left:
+    if ylb < yrlb and xlb < xrlb and bottom_left:
         if data_given and bottom_left.endswith('()'):
             p = (y_lt_0 & x_lt_0).sum() / y.size
             bottom_left = f"{p:.0%} {bottom_left.strip('()')}"
         plt.text(xpos(xleft), ypos(ybottom), bottom_left, color=bottom_left_color,
                  horizontalalignment='left', verticalalignment='bottom',
-                 fontsize=10, fontweight='bold', zorder=10)
+                 fontsize=8, fontweight='bold', zorder=10)
         labeled[2] = True
-    if ylb < yr and xub > xr and bottom_right:
+    if ylb < yrlb and xub > xrub and bottom_right:
         if data_given and bottom_right.endswith('()'):
             p = (y_lt_0 & x_mt_0).sum() / y.size
             bottom_right = f"{p:.0%} {bottom_right.strip('()')}"
         plt.text(xpos(xright), ypos(ybottom), bottom_right, color=bottom_right_color,
                  horizontalalignment='right', verticalalignment='bottom',
-                 fontsize=10, fontweight='bold', zorder=10)
+                 fontsize=8, fontweight='bold', zorder=10)
         labeled[3] = True
     return labeled
 
