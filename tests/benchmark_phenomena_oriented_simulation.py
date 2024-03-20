@@ -10,6 +10,7 @@ import biosteam as bst
 import numpy as np
 from biosteam.utils import colors as c
 from colorpalette import Color
+from scipy import interpolate
 thermo = bst.Thermo(['Water', 'AceticAcid', 'EthylAcetate'], cache=True)
 bst.settings.set_thermo(thermo)
 
@@ -216,18 +217,18 @@ def create_system_complex(alg):
         )
     return sys
 
-def profile_sequential_modular(total_time, kind='simple'):
-    bst.F.set_flowsheet('SM')
+def profile_sequential_modular(total_time, kind='simple', N=None):
     if kind == 'simple':
         sm = create_system_simple('sequential modular')
     else:
         sm = create_system_complex('sequential modular')
     sm.flatten()
     sm._setup_units()
-    return profile(sm.run_sequential_modular, *streams_and_stages(sm), total_time)
+    data = profile(sm.run_sequential_modular, *streams_and_stages(sm), total_time)
+    bst.F.clear()
+    return data
 
 def profile_phenomena_oriented(total_time, kind='simple', consolidated=None):
-    bst.F.set_flowsheet('PO')
     if kind == 'simple':
         po = create_system_simple('phenomena oriented')
     else:
@@ -235,8 +236,10 @@ def profile_phenomena_oriented(total_time, kind='simple', consolidated=None):
         for i in po.units: i.consolidated = consolidated
     po.flatten()
     po._setup_units()
-    return profile(po.run_phenomena, *streams_and_stages(po), total_time,
+    data = profile(po.run_phenomena, *streams_and_stages(po), total_time,
                    po.run_sequential_modular)
+    bst.F.clear()
+    return data
 
 def streams_and_stages(sys):
     all_stages = []
@@ -285,18 +288,18 @@ def profile(f, streams, adiabatic_stages, stages, total_time, g=None, kind=None)
         new_recycle_temperatures = np.array([i.T for i in streams])
         new_recycle_values = np.array([i.mol for i in streams])
         recycle_error.append(
-            np.log(np.abs(recycle_values - new_recycle_values).sum() + 1e-13)
+            np.log10(np.abs(recycle_values - new_recycle_values).sum() + 1e-15)
         )
         temperature_error.append(
-            np.log(np.abs(recycle_temperatures - new_recycle_temperatures).sum() + 1e-13)
+            np.log10(np.abs(recycle_temperatures - new_recycle_temperatures).sum() + 1e-15)
         )
         recycle_values = new_recycle_values
         recycle_temperatures = new_recycle_temperatures
         energy_error.append(
-            np.log(sum([abs(dT_error(i)) for i in adiabatic_stages]) + 1e-13)
+            np.log10(sum([abs(dT_error(i)) for i in adiabatic_stages]) + 1e-15)
         )
         material_error.append(
-            np.log(sum([abs(i.mass_balance_error()) for i in stages]) + 1e-13)
+            np.log10(sum([abs(i.mass_balance_error()) for i in stages]) + 1e-15)
         )
     return {
         'Time': record, 
@@ -310,7 +313,23 @@ cache = {}
 
 # %%  Run
 
-def plot_profile(kinds=('simple', 'complex'), times=[5, 20], consolidated=None):
+def dct_mean(dcts: list[dict], keys: list[str], ub: float, n=50):
+    N = len(dcts)
+    mean = {i: np.zeros(n) for i in keys}
+    tmin = np.min([np.min(i['Time']) for i in dcts])
+    t = np.linspace(0, ub, n)
+    for dct in dcts:
+        for i in keys: 
+            x = dct['Time']
+            mean['Time'] = t
+            values = interpolate.interp1d(x, dct[i], bounds_error=False)(t)
+            mask = ~np.isnan(values)
+            mean[i][mask] += values[mask]
+            mean[i][t < tmin] = np.nan
+    for i in keys: mean[i] /= N
+    return mean
+
+def plot_profile(kinds=('simple', 'complex'), times=[10, 40], N=4):
     bst.set_font()
     bst.set_figure_size(7)
     fig, all_axes = plt.subplots(4, 2)
@@ -321,27 +340,28 @@ def plot_profile(kinds=('simple', 'complex'), times=[5, 20], consolidated=None):
         'Energy balance',
     )
     units = (
-        r'$\mathrm{log}\ \mathrm{mol} \cdot \mathrm{hr}^{\mathrm{-1}}$',
-        r'$\mathrm{log}\ \mathrm{mol} \cdot \mathrm{hr}^{\mathrm{-1}}$',
-        r'$\mathrm{log}\ \mathrm{K}$',
-        r'$\mathrm{log}\ \mathrm{K}$',
+        r'$[\mathrm{log}_{\mathrm{10}}\ \mathrm{mol} \cdot \mathrm{hr}^{\mathrm{-1}}]$',
+        r'$[\mathrm{log}_{\mathrm{10}}\ \mathrm{mol} \cdot \mathrm{hr}^{\mathrm{-1}}]$',
+        r'$[\mathrm{log}_{\mathrm{10}}\ \mathrm{K}]$',
+        r'$[\mathrm{log}_{\mathrm{10}}\ \mathrm{K}]$',
     )
     for m, (kind, time) in enumerate(zip(kinds, times)):
         axes = all_axes[:, m]
-        key = (kind, time, consolidated)
+        key = (kind, time, N)
         if key in cache:
-            sm, po = cache[key]
+            sms, pos = cache[key]
         else:
-            profile_sequential_modular(0.1, kind=kind)
-            sm = profile_sequential_modular(time, kind=kind)
-            po = profile_phenomena_oriented(time, kind=kind, consolidated=consolidated)
-            cache[key] = (sm, po)
-        tsm = np.array(sm['Time'])
-        tpo = np.array(po['Time'])
+            # profile_sequential_modular(0.1, kind=kind)
+            # profile_phenomena_oriented(0.1, kind=kind)
+            sms = [profile_sequential_modular(time, kind=kind) for i in range(N)]
+            pos = [profile_phenomena_oriented(time, kind=kind) for i in range(N)]
+            cache[key] = (sms, pos)
         if kind == 'simple':
-            tub = 2
-        else:
             tub = 10
+        else:
+            tub = 40
+        sm = dct_mean(sms, keys, tub)
+        po = dct_mean(pos, keys, tub)
         csm = Color(fg='#33BBEE').RGBn
         cpo = Color(fg='#EE7733').RGBn
         yticklabels = m == 0
@@ -355,36 +375,32 @@ def plot_profile(kinds=('simple', 'complex'), times=[5, 20], consolidated=None):
             else:
                 label = i
             if m == 0: plt.ylabel(f'{label}\n{u}')
+            # for sm, po in zip(sms, pos):
             ysm = np.array(sm[i])
             ypo = np.array(po[i])
-            xsm = tsm.copy()
-            xpo = tpo.copy()
-            mask = ysm > -29
-            ysm = ysm[mask]
-            xsm = xsm[mask]
-            mask = ypo > -29
-            ypo = ypo[mask]
-            xpo = xpo[mask]
-            plt.plot(xsm, ysm, lw=0, marker='s', color=csm, markersize=2.5)
-            plt.plot(xsm, ysm, '-', color=csm, lw=1.5)
-            plt.plot(xpo, ypo, lw=0, marker='d', color=cpo, markersize=2.5)
-            plt.plot(xpo, ypo, '-', color=cpo, lw=1.5)
-            step = tub // 10
-            if step == 0:
-                xticks = [i*0.5 for i in range(2*tub + 1)]
+            tsm = np.array(sm['Time'])
+            tpo = np.array(po['Time'])
+            # ysm[ysm < -10] = -10
+            # ypo[ypo < -10] = -10
+            # plt.plot(xsm, ysm, lw=0, marker='s', color=csm, markersize=2.5)
+            plt.plot(tsm, ysm, '-', color=csm, lw=1.5)
+            # plt.plot(xpo, ypo, lw=0, marker='d', color=cpo, markersize=2.5)
+            plt.plot(tpo, ypo, '-', color=cpo, lw=1.5)
+            if kind == 'simple':
+                step = 1
             else:
-                xticks = [*range(0, tub + 1, step)]
+                step = tub // 10
+            xticks = [*range(0, tub + 1, step)]
             xticklabels = xtick0 = n == 3
             ytick0 = n == 3
             plt.xlim(0, xticks[-1])
-            plt.ylim(-28, 10)
+            plt.ylim(-16, 8)
             bst.utils.style_axis(
-                ax, xticks=xticks, yticks=[*range(-30, 25, 10)], 
+                ax, xticks=xticks, yticks=[*range(-16, 8, 6)], 
                 xtick0=xtick0, ytick0=ytick0, xticklabels=xticklabels,
                 yticklabels=yticklabels,
             )
     plt.subplots_adjust(hspace=0, wspace=0.15)
-    plt.show()
-    return fig, all_axes, sm, po
+    return fig, all_axes, sms, pos
 
 fig, axes, sm, po = plot_profile()
