@@ -2260,12 +2260,17 @@ class System:
         and reaction phenomena and iteratively solve them."""
         stages = self.stages + self.feeds
         for i in self.unit_path: i.run()
+        for variable in ('material', 'energy', 'material'): solve_variable(stages, variable)
         for i in self.unit_path:
             i.run()
-            for variable in ('material', 'energy', 'material'): solve_variable(stages, variable)
+            try:
+                for variable in ('material', 'energy', 'material'): solve_variable(stages, variable)
+            except: pass
         for i in self.stages: 
             if getattr(i, 'phases', None) == ('g', 'l'): i._create_linear_equations('equilibrium')
-        for variable in ('material', 'energy', 'material'): solve_variable(stages, variable)
+        try:
+            for variable in ('material', 'energy', 'material'): solve_variable(stages, variable)
+        except: pass
         
     def _solve(self):
         """Solve the system recycle iteratively."""

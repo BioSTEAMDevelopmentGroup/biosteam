@@ -11,6 +11,14 @@ import numpy as np
 from biosteam.utils import colors as c
 from colorpalette import Color
 from scipy import interpolate
+from scipy.ndimage import gaussian_filter
+import os
+
+try:
+    images_folder = os.path.join(os.path.dirname(__file__), 'images')
+except:
+    images_folder = os.path.join(os.getcwd(), 'images')
+
 thermo = bst.Thermo(['Water', 'AceticAcid', 'EthylAcetate'], cache=True)
 bst.settings.set_thermo(thermo)
 
@@ -146,7 +154,7 @@ def create_system_complex(alg):
             'HX_extract',
             ins=[extractor.extract], 
             phases=('g', 'l'),
-            B=1,
+            B=0,
         )
         ED = bst.MESHDistillation(
             'extract_distiller',
@@ -156,7 +164,7 @@ def create_system_complex(alg):
             N_stages=10,
             feed_stages=(5, 0),
             reflux=None,
-            boilup=4.37,
+            boilup=3,
             use_cache=True,
         )
         settler = bst.StageEquilibrium(
@@ -188,15 +196,9 @@ def create_system_complex(alg):
         #         0, broth * solvent_feed_ratio - EtAc_recycle
         #     )
         # settler.coupled_KL = True
-        HX = bst.StageEquilibrium(
-            'HX_raffinate',
-            ins=[extractor.raffinate, water_rich], 
-            phases=('g', 'l'),
-            B=0,
-        )
         AD = bst.ShortcutColumn(
             'acetic_acid_distiller',
-            LHK=('Water', 'AceticAcid'),
+            LHK=('EthylAcetate', 'AceticAcid'),
             ins=ED-1,
             outs=[distillate_2, glacial_acetic_acid],
             partial_condenser=False,
@@ -204,16 +206,17 @@ def create_system_complex(alg):
             Hr=0.999,
             k=1.5,
         )
+        AD.check_LHK = False
         RD = bst.MESHDistillation(
             'raffinate_distiller',
             LHK=('EthylAcetate', 'Water'),
-            ins=[HX-1],
+            ins=[extractor.raffinate, water_rich],
             outs=['', wastewater, distillate],
             full_condenser=True,
-            N_stages=15,
-            feed_stages=(2,),
-            reflux=0.1,
-            boilup=1,
+            N_stages=10,
+            feed_stages=(0, 0),
+            reflux=0.5,
+            boilup=0.5,
         )
     return sys
 
@@ -288,18 +291,18 @@ def profile(f, streams, adiabatic_stages, stages, total_time, g=None, kind=None)
         new_recycle_temperatures = np.array([i.T for i in streams])
         new_recycle_values = np.array([i.mol for i in streams])
         recycle_error.append(
-            np.log10(np.abs(recycle_values - new_recycle_values).sum() + 1e-15)
+            np.log10(np.abs(recycle_values - new_recycle_values).max() + 1e-15)
         )
         temperature_error.append(
-            np.log10(np.abs(recycle_temperatures - new_recycle_temperatures).sum() + 1e-15)
+            np.log10(np.abs(recycle_temperatures - new_recycle_temperatures).max() + 1e-15)
         )
         recycle_values = new_recycle_values
         recycle_temperatures = new_recycle_temperatures
         energy_error.append(
-            np.log10(sum([abs(dT_error(i)) for i in adiabatic_stages]) + 1e-15)
+            np.log10(max([abs(dT_error(i)) for i in adiabatic_stages]) + 1e-15)
         )
         material_error.append(
-            np.log10(sum([abs(i.mass_balance_error()) for i in stages]) + 1e-15)
+            np.log10(max([abs(i.mass_balance_error()) for i in stages]) + 1e-15)
         )
     return {
         'Time': record, 
@@ -312,6 +315,7 @@ def profile(f, streams, adiabatic_stages, stages, total_time, g=None, kind=None)
 cache = {}
 
 # %%  Run
+
 
 def dct_mean(dcts: list[dict], keys: list[str], ub: float, n=50):
     N = len(dcts)
@@ -329,9 +333,9 @@ def dct_mean(dcts: list[dict], keys: list[str], ub: float, n=50):
     for i in keys: mean[i] /= N
     return mean
 
-def plot_profile(kinds=('simple', 'complex'), times=[10, 40], N=4):
-    bst.set_font()
-    bst.set_figure_size(7)
+def plot_profile(kinds=('simple', 'complex'), times=[10, 40], N=5):
+    bst.set_font(9)
+    bst.set_figure_size(aspect_ratio=1)
     fig, all_axes = plt.subplots(4, 2)
     keys = (
         'Component flow rate',
@@ -340,11 +344,12 @@ def plot_profile(kinds=('simple', 'complex'), times=[10, 40], N=4):
         'Energy balance',
     )
     units = (
-        r'$[\mathrm{log}_{\mathrm{10}}\ \mathrm{mol} \cdot \mathrm{hr}^{\mathrm{-1}}]$',
-        r'$[\mathrm{log}_{\mathrm{10}}\ \mathrm{mol} \cdot \mathrm{hr}^{\mathrm{-1}}]$',
-        r'$[\mathrm{log}_{\mathrm{10}}\ \mathrm{K}]$',
-        r'$[\mathrm{log}_{\mathrm{10}}\ \mathrm{K}]$',
+        r'$[\mathrm{mol} \cdot \mathrm{hr}^{\mathrm{-1}}]$',
+        r'$[\mathrm{mol} \cdot \mathrm{hr}^{\mathrm{-1}}]$',
+        r'$[\mathrm{K}]$',
+        r'$[\mathrm{K}]$',
     )
+    yticks = [-15, -10, -5, 0, 5, 10]
     for m, (kind, time) in enumerate(zip(kinds, times)):
         axes = all_axes[:, m]
         key = (kind, time, N)
@@ -353,8 +358,11 @@ def plot_profile(kinds=('simple', 'complex'), times=[10, 40], N=4):
         else:
             # profile_sequential_modular(0.1, kind=kind)
             # profile_phenomena_oriented(0.1, kind=kind)
-            sms = [profile_sequential_modular(time, kind=kind) for i in range(N)]
-            pos = [profile_phenomena_oriented(time, kind=kind) for i in range(N)]
+            sms = []
+            pos = []
+            for i in range(N):
+                sms.append(profile_sequential_modular(time, kind=kind))
+                pos.append(profile_phenomena_oriented(time, kind=kind))
             cache[key] = (sms, pos)
         if kind == 'simple':
             tub = 10
@@ -365,19 +373,22 @@ def plot_profile(kinds=('simple', 'complex'), times=[10, 40], N=4):
         csm = Color(fg='#33BBEE').RGBn
         cpo = Color(fg='#EE7733').RGBn
         yticklabels = m == 0
+        if yticklabels:
+            yticklabels = [r'$\mathrm{10}^{' f'{i}' '}$' for i in yticks]
+        labels = {
+            'Component flow rate': 'Flow rate\nconvergence error',
+            'Stream temperature': 'Temperature\nconvergence error',
+            'Material balance': 'Stage material\nbalance error',
+            'Energy balance': 'Stage energy\nbalance error',
+        }
         for n, (i, ax, u) in enumerate(zip(keys, axes, units)):
             plt.sca(ax)
             if n == 3: plt.xlabel('Time [s]')
-            if i == 'Stream temperature':
-                label = 'Temperature'
-            elif i == 'Component flow rate':
-                label = 'Flow rate'
-            else:
-                label = i
+            label = labels[i]
             if m == 0: plt.ylabel(f'{label}\n{u}')
             # for sm, po in zip(sms, pos):
-            ysm = np.array(sm[i])
-            ypo = np.array(po[i])
+            ysm = gaussian_filter(np.array(sm[i]), 0.2)
+            ypo = gaussian_filter(np.array(po[i]), 0.2)
             tsm = np.array(sm['Time'])
             tpo = np.array(po['Time'])
             # ysm[ysm < -10] = -10
@@ -387,20 +398,36 @@ def plot_profile(kinds=('simple', 'complex'), times=[10, 40], N=4):
             # plt.plot(xpo, ypo, lw=0, marker='d', color=cpo, markersize=2.5)
             plt.plot(tpo, ypo, '-', color=cpo, lw=1.5)
             if kind == 'simple':
-                step = 1
+                step = 2
             else:
-                step = tub // 10
+                step = 8
             xticks = [*range(0, tub + 1, step)]
             xticklabels = xtick0 = n == 3
+            xtickf = m == 1
             ytick0 = n == 3
+            ytickf = n == 0
             plt.xlim(0, xticks[-1])
-            plt.ylim(-16, 8)
+            plt.ylim(-15, 10)
             bst.utils.style_axis(
-                ax, xticks=xticks, yticks=[*range(-16, 8, 6)], 
-                xtick0=xtick0, ytick0=ytick0, xticklabels=xticklabels,
+                ax, xticks=xticks, yticks=yticks, 
+                xtick0=xtick0, xtickf=xtickf, ytick0=ytick0, ytickf=ytickf,
+                xticklabels=xticklabels,
                 yticklabels=yticklabels,
             )
-    plt.subplots_adjust(hspace=0, wspace=0.15)
+    plt.subplots_adjust(right=0.96, left=0.2, hspace=0, wspace=0)
+    titles = ['Coupled acetic acid\ndistillation & liquid extraction', 'Glacial acetic acid\npurification']
+    letter_color = c.neutral.shade(25).RGBn
+    for ax, letter in zip(all_axes[0], titles):
+        plt.sca(ax)
+        ylb, yub = plt.ylim()
+        xlb, xub = plt.xlim()
+        plt.text((xlb + xub) * 0.5, ylb + (yub - ylb) * 1.2, letter, color=letter_color,
+                  horizontalalignment='center',verticalalignment='center',
+                  fontsize=10, fontweight='bold')
+    for i in ('svg', 'png'):
+        name = f'PO_SM_benchmark_AA_purification.{i}'
+        file = os.path.join(images_folder, name)
+        plt.savefig(file, dpi=900, transparent=True)
     return fig, all_axes, sms, pos
 
 fig, axes, sm, po = plot_profile()
