@@ -337,15 +337,15 @@ def test_integrated_settler_acetic_acid_separation_system(): # integratted settl
                 'HX_extract',
                 ins=[extractor.extract], 
                 phases=('g', 'l'),
-                B=0,
+                B=1,
             )
             ED = bst.MESHDistillation(
                 'extract_distiller',
-                ins=[HX-1, reflux],
+                ins=[HX-0, HX-1, reflux],
                 outs=['vapor', ''],
                 LHK=('EthylAcetate', 'AceticAcid'),
-                N_stages=10,
-                feed_stages=(5, 0),
+                N_stages=15,
+                feed_stages=(7, 7, 0),
                 reflux=None,
                 boilup=3,
                 use_cache=True,
@@ -356,8 +356,8 @@ def test_integrated_settler_acetic_acid_separation_system(): # integratted settl
                 outs=(solvent_recycle, water_rich, ''),
                 phases=('L', 'l'),
                 top_chemical='EthylAcetate',
-                top_split=0.1,
-                T=340,
+                top_split=0.4,
+                T=310,
                 # partition_data={
                 #     'K': np.array([ 0.253,  2.26 , 40.816]),
                 #     'IDs': ('Water', 'AceticAcid', 'EthylAcetate'),
@@ -389,17 +389,23 @@ def test_integrated_settler_acetic_acid_separation_system(): # integratted settl
                 Hr=0.999,
                 k=1.5,
             )
+            HX = bst.StageEquilibrium(
+                'HX',
+                ins=[water_rich, extractor.raffinate], 
+                phases=('g', 'l'),
+                B=0,
+            )
             AD.check_LHK = False
             RD = bst.MESHDistillation(
                 'raffinate_distiller',
                 LHK=('EthylAcetate', 'Water'),
-                ins=[extractor.raffinate, water_rich],
+                ins=[HX-0, HX-1],
                 outs=['', wastewater, distillate],
                 full_condenser=True,
                 N_stages=10,
-                feed_stages=(0, 0),
-                reflux=0.5,
-                boilup=0.5,
+                feed_stages=(1, 2),
+                reflux=1,
+                boilup=2,
             )
         return sys
     time = bst.TicToc()

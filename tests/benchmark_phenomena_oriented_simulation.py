@@ -154,15 +154,15 @@ def create_system_complex(alg):
             'HX_extract',
             ins=[extractor.extract], 
             phases=('g', 'l'),
-            B=0,
+            B=1,
         )
         ED = bst.MESHDistillation(
             'extract_distiller',
-            ins=[HX-1, reflux],
+            ins=[HX-0, HX-1, reflux],
             outs=['vapor', ''],
             LHK=('EthylAcetate', 'AceticAcid'),
-            N_stages=10,
-            feed_stages=(5, 0),
+            N_stages=15,
+            feed_stages=(7, 7, 0),
             reflux=None,
             boilup=3,
             use_cache=True,
@@ -173,8 +173,8 @@ def create_system_complex(alg):
             outs=(solvent_recycle, water_rich, ''),
             phases=('L', 'l'),
             top_chemical='EthylAcetate',
-            top_split=0.1,
-            T=340,
+            top_split=0.4,
+            T=310,
             # partition_data={
             #     'K': np.array([ 0.253,  2.26 , 40.816]),
             #     'IDs': ('Water', 'AceticAcid', 'EthylAcetate'),
@@ -206,17 +206,23 @@ def create_system_complex(alg):
             Hr=0.999,
             k=1.5,
         )
+        HX = bst.StageEquilibrium(
+            'HX',
+            ins=[water_rich, extractor.raffinate], 
+            phases=('g', 'l'),
+            B=0,
+        )
         AD.check_LHK = False
         RD = bst.MESHDistillation(
             'raffinate_distiller',
             LHK=('EthylAcetate', 'Water'),
-            ins=[extractor.raffinate, water_rich],
+            ins=[HX-0, HX-1],
             outs=['', wastewater, distillate],
             full_condenser=True,
             N_stages=10,
-            feed_stages=(0, 0),
-            reflux=0.5,
-            boilup=0.5,
+            feed_stages=(1, 2),
+            reflux=1,
+            boilup=2,
         )
     return sys
 
@@ -270,7 +276,7 @@ def dT_error(stage):
         return 0
     else:
         return (
-            sum([i.H for i in stage.outs]) - sum([i.H for i in stage.ins])
+            sum([i.H + i.Hf for i in stage.outs]) - sum([i.H + i.Hf for i in stage.ins])
         ) / sum([i.C for i in stage.outs])
 
 def profile(f, streams, adiabatic_stages, stages, total_time, g=None, kind=None):
@@ -291,18 +297,18 @@ def profile(f, streams, adiabatic_stages, stages, total_time, g=None, kind=None)
         new_recycle_temperatures = np.array([i.T for i in streams])
         new_recycle_values = np.array([i.mol for i in streams])
         recycle_error.append(
-            np.log10(np.abs(recycle_values - new_recycle_values).max() + 1e-15)
+            np.log10(np.abs(recycle_values - new_recycle_values).sum() + 1e-15)
         )
         temperature_error.append(
-            np.log10(np.abs(recycle_temperatures - new_recycle_temperatures).max() + 1e-15)
+            np.log10(np.abs(recycle_temperatures - new_recycle_temperatures).sum() + 1e-15)
         )
         recycle_values = new_recycle_values
         recycle_temperatures = new_recycle_temperatures
         energy_error.append(
-            np.log10(max([abs(dT_error(i)) for i in adiabatic_stages]) + 1e-15)
+            np.log10(sum([abs(dT_error(i)) for i in adiabatic_stages]) + 1e-15)
         )
         material_error.append(
-            np.log10(max([abs(i.mass_balance_error()) for i in stages]) + 1e-15)
+            np.log10(sum([abs(i.mass_balance_error()) for i in stages]) + 1e-15)
         )
     return {
         'Time': record, 
@@ -322,31 +328,33 @@ def dct_mean(dcts: list[dict], keys: list[str], ub: float, n=50):
     mean = {i: np.zeros(n) for i in keys}
     tmin = np.min([np.min(i['Time']) for i in dcts])
     t = np.linspace(0, ub, n)
+    goods = [np.zeros(n) for i in range(N)]
     for dct in dcts:
-        for i in keys: 
+        for i, good in zip(keys, goods): 
             x = dct['Time']
             mean['Time'] = t
             values = interpolate.interp1d(x, dct[i], bounds_error=False)(t)
             mask = ~np.isnan(values)
             mean[i][mask] += values[mask]
             mean[i][t < tmin] = np.nan
-    for i in keys: mean[i] /= N
+            good[t > tmin] += 1
+    for i, j in zip(keys, goods): mean[i][j > 0] /= j[j > 0]
     return mean
 
-def plot_profile(kinds=('simple', 'complex'), times=[10, 40], N=5):
+def plot_profile(kinds=('simple', 'complex'), times=[10, 80], N=10):
     bst.set_font(9)
     bst.set_figure_size(aspect_ratio=1)
     fig, all_axes = plt.subplots(4, 2)
     keys = (
         'Component flow rate',
-        'Material balance',
         'Stream temperature',
+        'Material balance',
         'Energy balance',
     )
     units = (
         r'$[\mathrm{mol} \cdot \mathrm{hr}^{\mathrm{-1}}]$',
-        r'$[\mathrm{mol} \cdot \mathrm{hr}^{\mathrm{-1}}]$',
         r'$[\mathrm{K}]$',
+        r'$[\mathrm{mol} \cdot \mathrm{hr}^{\mathrm{-1}}]$',
         r'$[\mathrm{K}]$',
     )
     yticks = [-15, -10, -5, 0, 5, 10]
@@ -367,7 +375,7 @@ def plot_profile(kinds=('simple', 'complex'), times=[10, 40], N=5):
         if kind == 'simple':
             tub = 10
         else:
-            tub = 40
+            tub = 80
         sm = dct_mean(sms, keys, tub)
         po = dct_mean(pos, keys, tub)
         csm = Color(fg='#33BBEE').RGBn
@@ -397,10 +405,32 @@ def plot_profile(kinds=('simple', 'complex'), times=[10, 40], N=5):
             plt.plot(tsm, ysm, '-', color=csm, lw=1.5)
             # plt.plot(xpo, ypo, lw=0, marker='d', color=cpo, markersize=2.5)
             plt.plot(tpo, ypo, '-', color=cpo, lw=1.5)
+            if m == 0 and n == 0:
+                index = int(len(tsm) * 0.6)
+                xy = x, y = (tsm[index], ysm[index])
+                ax.annotate('Sequential\nmodular',
+                    xy=xy, 
+                    xytext=(x+1, y+1),
+                    arrowprops=dict(arrowstyle="->", color=csm),
+                    color=csm,
+                    fontsize=8,
+                    fontweight='bold',
+                )
+                index = int(len(tpo) * 0.4)
+                xy = x, y = (tpo[index], ypo[index])
+                ax.annotate('Phenomena\noriented',
+                    xy=xy, 
+                    xytext=(x-1, y-2),
+                    arrowprops=dict(arrowstyle="->", color=cpo),
+                    ha='right',
+                    color=cpo,
+                    fontsize=8,
+                    fontweight='bold',
+                )
             if kind == 'simple':
                 step = 2
             else:
-                step = 8
+                step = 10
             xticks = [*range(0, tub + 1, step)]
             xticklabels = xtick0 = n == 3
             xtickf = m == 1

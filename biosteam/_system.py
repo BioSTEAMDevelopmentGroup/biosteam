@@ -2241,7 +2241,10 @@ class System:
         if algorithm == 'Sequential modular':
             self.run_sequential_modular()
         elif algorithm == 'Phenomena oriented':
-            self.run_phenomena()
+            if self._iter == 0: 
+                for i in self.unit_path: i.run()
+            else:
+                self.run_phenomena()
         else:
             raise RuntimeError(f'unknown algorithm {algorithm!r}')
 
@@ -2259,18 +2262,18 @@ class System:
         """Decouple and linearize material, equilibrium, summation, enthalpy,
         and reaction phenomena and iteratively solve them."""
         stages = self.stages + self.feeds
-        for i in self.unit_path: i.run()
-        for variable in ('material', 'energy', 'material'): solve_variable(stages, variable)
-        for i in self.unit_path:
-            i.run()
-            try:
+        # for i in self.unit_path: i.run()
+        # for variable in ('material', 'energy', 'material'): solve_variable(stages, variable)
+        try:
+            unit_path = self.unit_path
+            for n, i in enumerate(unit_path):
+                i.run()
                 for variable in ('material', 'energy', 'material'): solve_variable(stages, variable)
-            except: pass
+        except:
+            for i in unit_path[n+1:]: i.run()
         for i in self.stages: 
             if getattr(i, 'phases', None) == ('g', 'l'): i._create_linear_equations('equilibrium')
-        try:
-            for variable in ('material', 'energy', 'material'): solve_variable(stages, variable)
-        except: pass
+        for variable in ('material', 'energy', 'material'): solve_variable(stages, variable)
         
     def _solve(self):
         """Solve the system recycle iteratively."""
