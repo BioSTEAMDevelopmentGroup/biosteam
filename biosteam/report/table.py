@@ -19,6 +19,7 @@ ExcelWriter = pd.ExcelWriter
 __all__ = ('stream_table', 'cost_table', 'unit_reaction_tables',
            'unit_result_tables', 'heat_utility_tables',
            'power_utility_table', 'tables_to_excel', 'voc_table',
+           'other_utilities_table', 
            'lca_displacement_allocation_table', 
            'lca_inventory_table',
            'lca_property_allocation_factor_table',
@@ -642,9 +643,47 @@ def power_utility_table(units):
     data = []
     for i, u, pu in zip(range(length), units, power_utilities):
         data.append((u.line, pu.rate, pu.cost))
-    return DataFrame(data, index=[u.ID for u in units if u.power_utility],
-                     columns=('Unit Operation', 'Rate (kW)', 'Cost (USD/hr)'))
+    df = DataFrame(data, index=[u.ID for u in units if u.power_utility],
+                   columns=('Unit Operation', 'Rate (kW)', 'Cost (USD/hr)'))
+    df.columns.name = 'Electricity'
+    return df
 
+def other_utilities_table(units):
+    # Sort fees by unit type, then by 
+    units = sorted(units, key=(lambda u: type(u).__name__))
+    
+    # Make a list of tables, keeping all results with same Type in one table
+    tables = []
+    for name, price in bst.stream_prices.items():
+        data = []; index = []
+        for u in units:
+            if name in u._inlet_utility_indices:
+                s = u.ins[u._inlet_utility_indices[name]]
+                if s.price or s.isempty(): continue
+                flow = s.F_mass
+                cost = flow * price
+                data.append(
+                    (u.line, flow, cost)
+                )
+                index.append(u.ID)
+            if name in u._outlet_utility_indices:
+                s = u.outs[u._outlet_utility_indices[name]]
+                if s.price or s.isempty(): continue
+                flow = s.F_mass
+                cost = flow * price
+                data.append(
+                    (u.line, flow, -cost)
+                )
+                index.append(u.ID)
+        if not data: continue
+        table = DataFrame(data, index=index,
+                          columns=('Unit operation',
+                                   'Flow (kg/hr)',
+                                   'Cost (USD/hr)'))
+        table.columns.name = name
+        tables.append(table)
+    return tables
+    
 # def lca_tables(sys):
 #     all_feeds = [i for i in sys.feeds if i.characterization_factors]
 #     all_products = [i for i in sys.products if i.characterization_factors]

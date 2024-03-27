@@ -2268,12 +2268,12 @@ class System:
             unit_path = self.unit_path
             for n, i in enumerate(unit_path):
                 i.run()
-                for variable in ('material', 'energy', 'material'): solve_variable(stages, variable)
+                for variable in ('material', 'energy'): solve_variable(stages, variable)
         except:
             for i in unit_path[n+1:]: i.run()
         for i in self.stages: 
             if getattr(i, 'phases', None) == ('g', 'l'): i._create_linear_equations('equilibrium')
-        for variable in ('material', 'energy', 'material'): solve_variable(stages, variable)
+        for variable in ('material', 'energy', 'material', 'temperature'): solve_variable(stages, variable)
         
     def _solve(self):
         """Solve the system recycle iteratively."""
@@ -3355,9 +3355,11 @@ class System:
         
         # Power utility table
         power_utility = report.power_utility_table(cost_units)
-        power_utility.to_excel(writer, 'Utilities', 
-                               index_label='Electricity',
-                               startrow=n_row)
+        n_row = report.tables_to_excel([power_utility], writer, 'Utilities', n_row=n_row)
+        
+        # Fees table
+        other_utilities = report.other_utilities_table(cost_units)
+        n_row = report.tables_to_excel(other_utilities, writer, 'Utilities', n_row=n_row)
         
         # General desing requirements
         results = report.unit_result_tables(cost_units)

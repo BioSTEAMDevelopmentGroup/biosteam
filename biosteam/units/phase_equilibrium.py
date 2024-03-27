@@ -71,7 +71,7 @@ class SinglePhaseStage(Unit):
     _ins_size_is_fixed = False
     
     def _init(self, T=None, phase=None):
-        self.T = T
+        self.T = self.T_specification = T
         self.phase = phase
         self.aggregated_stages = [self]
         
@@ -269,17 +269,28 @@ class StageEquilibrium(Unit):
     
     # %% Decoupled phenomena equation oriented simulation
     
-    def _create_energy_departure_equations(self):
-        if self.T_specification is None:
-            return [self._create_energy_departure_equation()]
-        else:
-            return []
+    def _create_energy_departure_equations(self, temperature_only=False):
+        return [self._create_energy_departure_equation(temperature_only)]
     
-    def _create_energy_departure_equation(self):
+    def _create_energy_departure_equation(self, temperature_only=False):
         # Ll: C1dT1 - Ce2*dT2 - Cr0*dT0 - hv2*L2*dB2 = Q1 - H_out + H_in
         # gl: hV1*L1*dB1 - hv2*L2*dB2 - Ce2*dT2 - Cr0*dT0 = Q1 + H_in - H_out
         phases = self.phases
-        if phases == ('g', 'l'):
+        if temperature_only:
+            coeff = {self: sum([i.C for i in self.outs])}
+            for i in self.ins:
+                source = i.source
+                if not source: continue
+                if hasattr(source, 'outlet_stages') and not source.aggregated:
+                    try: source = source.outlet_stages[i.port.get_stream()]
+                    except: pass
+                elif (hasattr(source, 'T')
+                      and source.T_specification is None
+                      and source.B_specification is None):
+                    coeff[source] = -i.C
+                else:
+                    continue
+        elif phases == ('g', 'l'):
             vapor, liquid = self.partition.outs
             coeff = {}
             if vapor.isempty():
@@ -432,7 +443,19 @@ class StageEquilibrium(Unit):
                     gamma_y = np.ones(chemicals.size)
                     for i, j in zip(index, partition.gamma_y): gamma_y[i] = j
                     partition.gamma_y = gamma_y
-        if variable == 'equilibrium':
+        if variable == 'material':
+            eqs = self._create_material_balance_equations()
+        elif variable == 'energy':
+            if self.B_specification is None and self.T_specification is None:
+                eqs = self._create_energy_departure_equations()
+            else:
+                eqs = []
+        elif variable == 'temperature':
+            if self.B_specification is None and self.T_specification is None:
+                eqs = self._create_energy_departure_equations(temperature_only=True)
+            else:
+                eqs = []
+        elif variable == 'equilibrium':
             if phases == ('g', 'l'):
                 partition._run_decoupled_KTvle()
             elif phases == ('L', 'l'):
@@ -440,13 +463,6 @@ class StageEquilibrium(Unit):
             else:
                 raise NotImplementedError(f'K for phases {phases} is not yet implemented')
             eqs = []
-        elif variable == 'energy':
-            if self.B_specification is None:
-                eqs = self._create_energy_departure_equations()
-            else:
-                eqs = []
-        elif variable == 'material':
-            eqs = self._create_material_balance_equations()
         else:
             eqs = []
         return eqs
@@ -461,6 +477,9 @@ class StageEquilibrium(Unit):
                 for i in self.outs: i.T = T
             else:
                 raise RuntimeError('invalid phases')
+        elif variable == 'temperature':
+            self.T = T = self.T + value
+            for i in self.outs: i.T = T
     
 # %%
 
@@ -1204,12 +1223,26 @@ class MultiStageEquilibrium(Unit):
 
     # %% Decoupled phenomena equation oriented simulation
     
-    def _create_energy_departure_equations(self):
+    def _create_energy_departure_equations(self, temperature_only=False):
         # Ll: C1dT1 - Ce2*dT2 - Cr0*dT0 - hv2*L2*dB2 = Q1 - H_out + H_in
         # gl: hV1*L1*dB1 - hv2*L2*dB2 - Ce2*dT2 - Cr0*dT0 = Q1 + H_in - H_out
         # return sum([i._create_energy_departure_equations() for i in self.stages], [])
         phases = self.phases
-        if phases == ('g', 'l'):
+        if temperature_only:
+            coeff = {self: sum([i.C for i in self.outs])}
+            for i in self.ins:
+                source = i.source
+                if not source: continue
+                if hasattr(source, 'outlet_stages') and not source.aggregated:
+                    try: source = source.outlet_stages[i.port.get_stream()]
+                    except: pass
+                elif (hasattr(source, 'T')
+                      and source.T_specification is None
+                      and source.B_specification is None):
+                    coeff[source] = -i.C
+                else:
+                    continue
+        elif phases == ('g', 'l'):
             vapor, liquid = self.outs
             coeff = {}
             if vapor.isempty():
@@ -1348,10 +1381,12 @@ class MultiStageEquilibrium(Unit):
                 x[x <= 0] = 1e-16
                 self.K = y / x
                 self.B = F_top / F_bottom
-            if variable == 'energy':
-                eqs = self._create_energy_departure_equations()
-            elif variable == 'material':
+            if variable == 'material':
                 eqs = self._create_material_balance_equations()
+            elif variable == 'energy':
+                eqs = self._create_energy_departure_equations()
+            elif variable == 'temperature':
+                eqs = self._create_energy_departure_equations(temperature_only=True)
             else:
                 eqs = []
         return eqs
@@ -1365,6 +1400,8 @@ class MultiStageEquilibrium(Unit):
                 for i in self.outs: i.T += value
             else:
                 raise RuntimeError('invalid phases')
+        elif variable == 'temperature':
+            for i in self.outs: i.T = value
         else:
             raise RuntimeError(f'invalid variable {variable!r}')
     

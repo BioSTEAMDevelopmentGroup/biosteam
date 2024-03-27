@@ -221,12 +221,12 @@ def test_simple_acetic_acid_separation_with_recycle():
     init_sys = system()
     init_sys.simulate()
     po = system(algorithm='phenomena oriented', 
-                    molar_tolerance=1e-6,
-                    relative_molar_tolerance=1e-6,
+                    molar_tolerance=1e-9,
+                    relative_molar_tolerance=1e-9,
                     method='fixed-point')
     sm = system(algorithm='sequential modular',
-                    molar_tolerance=1e-6,
-                    relative_molar_tolerance=1e-6,
+                    molar_tolerance=1e-9,
+                    relative_molar_tolerance=1e-9,
                     method='fixed-point')
     time = bst.TicToc()
     
@@ -414,7 +414,7 @@ def test_integrated_settler_acetic_acid_separation_system(): # integratted settl
     sm = create_system('sequential modular')
     sm.flatten()
     sm.set_tolerance(
-        rmol=1e-6, mol=1e-3, subsystems=True,
+        rmol=1e-3, mol=1e-3, subsystems=True,
         method='fixed-point', maxiter=300,
     )
     sm.simulate()
@@ -425,7 +425,7 @@ def test_integrated_settler_acetic_acid_separation_system(): # integratted settl
     bst.F.set_flowsheet('PO')
     po = create_system('phenomena oriented')
     po.flatten()
-    po.set_tolerance(rmol=1e-6, mol=1e-3, 
+    po.set_tolerance(rmol=1e-3, mol=1e-3, 
                      subsystems=True,
                      method='fixed-point',
                      maxiter=300)
