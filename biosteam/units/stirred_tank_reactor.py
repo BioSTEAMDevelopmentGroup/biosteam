@@ -327,6 +327,11 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
             # Note: Flow and duty are rescaled to simulate an individual
             # heat exchanger, then BioSTEAM accounts for number of units in parallel
             # through the `parallel` attribute.
+            if N == 0:
+                raise RuntimeError(
+                    'stirred tank reactor has heating/cooling duty but no '
+                    'liquid to recirculate to heat exchanger'
+                )
             reactor_duty = duty / N
             dT_hx_loop = self.dT_hx_loop
             reactor_product = self.effluent.copy()
