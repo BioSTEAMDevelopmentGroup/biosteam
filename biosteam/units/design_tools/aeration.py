@@ -79,6 +79,98 @@ def kLa(P, V, U, coefficients=None):
         a, b, c = coefficients
     return a * (P / V) ** b * U ** c
 
+def get_efficiency_factor():
+    """
+    Return the efficiency factor for mass transfer in
+    bubble column reactors.    
+    Take present that the units of the efficiency factor are [m^-1].
+    This values are 
+        - 0.016-0.028 m^-1 for coarse bubble diffusers
+        - 0.07-0.1 m^-1 for fine bubble diffusers
+    """
+    K = None
+    return K
+
+def kLa_corr_bubcol(U_g, Q, mu, k, n,correlation = "Deshpande", 
+                    system_like = None):
+    """
+    Returns the kLa coefficient given a certain correlation used, these are for bubble columns. 
+    Various correlations are available in literature. 
+    Mainly we are going to cover the correlations from the following sources:
+    
+    *correlation = "Deshpande"
+    -  Deshpande, S. S., Kar, K., Pressler, J., Tebeka, I., Martins, B., Rosenfeld, D., & Biggs, J. (2019).
+        Mass transfer estimation for bubble column scale up. Chemical Engineering Science, 205, 350–357.
+        https://doi.org/10.1016/j.ces.2019.05.011
+        This follows a power law correlation, which is fairly used in the literature. The correlation is given by:
+            kla = alpha U_g ^ beta
+        parameters:
+        - U_g = superficial gas velocity, [m/s]
+        - alpha = K (H(T) * M_l)/(Rhat T * rho_l) 
+            - K = efficiency change per unit change in liquid height above sparger, [m^-1]
+            - H(T)  = Henry’s law constant for oxygen in water @ T (in K) [Pa]
+            - M_l = molar mass of water (0.018 kg/mol), [kg/mol]
+            - Rhat = ideal gas constant (8.314 J/mol-K), [J/mol-K]
+            - T = temperature [K]
+            - rho_l = mass density of water (1000 kg/m3), [kg/m3]
+        - beta = 1    
+    *correlation ="DeJesus"
+    - De Jesus, S. S., Moreira Neto, J., & Maciel Filho, R. (2017). 
+        Hydrodynamics and mass transfer in bubble column, conventional airlift,
+        stirred airlift and stirred tank bioreactors, using viscous fluid: A comparative study. 
+        Biochemical Engineering Journal, 118, 70–81. https://doi.org/10.1016/j.bej.2016.11.019
+
+        This correlation is based on:
+            kla = a Q ^ c * mu ^ d  -> for Newtonian fluids
+            kla = e Q ^ h * k ^ i * n ^ j -> for non-Newtonian fluids
+        
+        parameters:
+        - Q = specific air flow rate [vmm]
+        - mu = Dynamic viscosity [Pa.s]
+        - k = Consistency index [Pa.s^n]
+        - gamma_AV = Average Shear rate [s^-1]
+        - n = flow behavior index
+        - a, c, d = constants
+
+        In this case, the case studies give the following values that might be used in the case 
+        in which the fluid behaves similarly:
+        - Glycerol:
+            - a = 1.27e-2
+            - c = 0.51
+            - d = -0.12
+        - Xanthan:
+            - e = 5.80e-3
+            - h = 0.66
+            - i = -0.50
+            - j = -0.80
+    """
+    if correlation == "Deshpande":
+        K = get_efficiency_factor()
+        H_at_293 = 3.9e-9 #[Pa]
+        M_l = 0.018 #[kg/mol]
+        Rhat = 8.314 #[J/mol-K]
+        T = 293.15 #[K]
+        rho_l = 1000
+        alpha = K * (H_at_293 * M_l)/(Rhat * T * rho_l)
+        beta = 1
+        return alpha * U_g ** beta
+    elif correlation == "DeJesus":
+        if system_like == "Glycerol":
+            a = 1.27e-2
+            c = 0.51
+            d = -0.12
+            return a * Q ** c * mu ** d
+        elif system_like == "Xanthan":
+            e = 5.80e-3
+            h = 0.66
+            i = -0.50
+            j = -0.80
+            return e * Q ** h * k ** i * n ** j
+
+
+    
+    else:
+        raise ValueError(f"Correlation {correlation} not available. Please choose a valid correlation")
 def P_at_kLa(kLa, V, U, coefficients=None):
     """
     Return the gassed power input (P; W) given the lumped mass transfer 
