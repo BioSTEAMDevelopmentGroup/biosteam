@@ -441,7 +441,7 @@ class AeratedBioreactor(StirredTankReactor):
         self.theta_O2 = theta_O2 # Average concentration of O2 in the liquid as a fraction of saturation.
         self.Q_O2_consumption = Q_O2_consumption # Forced duty per O2 consummed [kJ/kmol].
         self.optimize_power = True if optimize_power is None else optimize_power
-        self.kLa_coefficients = kLa_coefficients
+        self.kLa_coefficients = kLa_coefficients  
     
     def _get_duty(self):
         if self.Q_O2_consumption is None:
@@ -555,6 +555,7 @@ class AeratedBioreactor(StirredTankReactor):
         R = 0.5 * D
         A = pi * R * R
         self.superficial_gas_flow = U = F / A # m / s 
+        
         vent = self.vent
         P_O2_air = air_in.get_property('P', 'bar') * air_in.imol['O2'] / air_in.F_mol
         P_O2_vent = 0. if vent.isempty() else vent.get_property('P', 'bar') * vent.imol['O2'] / vent.F_mol
@@ -562,7 +563,7 @@ class AeratedBioreactor(StirredTankReactor):
         C_O2_sat_vent = aeration.C_O2_L(self.T, P_O2_vent) # mol / kg
         theta_O2 = self.theta_O2
         LMDF = aeration.log_mean_driving_force(C_O2_sat_vent, C_O2_sat_air, theta_O2 * C_O2_sat_vent, theta_O2 * C_O2_sat_air)
-        kLa = OUR / (LMDF * V * self.effluent_density * N_reactors * operating_time)
+        kLa = OUR / (LMDF * V * self.effluent_density * N_reactors * operating_time) 
         P = aeration.P_at_kLa(kLa, V, U, self.kLa_coefficients)
         agitation_power_kW = P / 1000
         total_power_kW = (agitation_power_kW + self.compressor.power_utility.consumption / N_reactors) / V
@@ -589,6 +590,7 @@ class AeratedBioreactor(StirredTankReactor):
         R = 0.5 * D
         A = pi * R * R
         self.superficial_gas_flow = U = F / A # m / s 
+        
         kLa = aeration.kLa(P, V, U, self.kLa_coefficients) # 1 / s 
         air_in = self.cooled_compressed_air
         vent = self.vent
