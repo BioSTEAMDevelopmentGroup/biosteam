@@ -207,6 +207,7 @@ class PolishingFilter(bst.Unit):
             air_out.empty()
         else:
             biogas.empty()
+            air_out.empty()
             degassing(eff, air_out)
             degassing(waste, air_out)
             air_out.imol['N2'] += air_in.imol['N2']
