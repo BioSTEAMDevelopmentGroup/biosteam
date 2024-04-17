@@ -373,19 +373,20 @@ class AnMBR(bst.Unit):
 
         mod_per_cas, cas_per_tank = N_mod_min, N_cas_min
 
-        J, J_max, N_train = self.J, self.J_max, self._N_train_min
-        while J > J_max:
+        J_max = self.J_max
+        
+        while self.J > J_max:
             mod_per_cas += 1
             if mod_per_cas == N_mod_max + 1:
                 if cas_per_tank == N_cas_max + 1:
-                    N_train += 1
+                    self.N_train+=1
                     mod_per_cas, cas_per_tank = N_mod_min, N_cas_min
                 else:
                     cas_per_tank += 1
                     mod_per_cas = N_mod_min
-
-        self._N_train, self._mod_per_cas, self._cas_per_tank = \
-            N_train, mod_per_cas, cas_per_tank
+                    
+        self._mod_per_cas, self._cas_per_tank = \
+            mod_per_cas, cas_per_tank
 
 
     # Called by _run
