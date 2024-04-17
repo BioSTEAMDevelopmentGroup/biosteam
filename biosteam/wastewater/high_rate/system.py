@@ -470,7 +470,6 @@ def create_high_rate_wastewater_treatment_system(
                          Cellobiose         0.00211
                          Cellulase          0.00462
                          -----------------  8.51e+03 kg/hr
-    
     >>> u = wwt_sys.flowsheet.unit
     >>> print(round(u.R603.outs[3].F_mol, 2))
     50.46
