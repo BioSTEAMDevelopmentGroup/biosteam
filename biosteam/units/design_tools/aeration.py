@@ -385,6 +385,29 @@ def kla_bubcol_Shah(D, V_l, g, V_g, rho_l, mu_l):
     kla = (V_l/D) * 0.0029 * (V_g**2 / (g * D))**0.301 * (V_l**2/(g * D))**-0.511 * (g*rho_l**3 * D**3 / (mu_l**2))**0.12
     return kla
 
+def kla_stirred_Labik(N, D, v_s, P0):
+    """
+    Returns the KLa coefficient for a stirred tank reactor based on the Labik et al. (2017) correlation.
+    ------
+    Parameters:
+    N: float
+        impeller frequency [s^-1]
+    D: float
+        impeller diameter [m]
+    v_s: float
+        gas superficial velocity [m/s]
+    P0: float
+        impeller power number (P_u/rhh N^3 D^5) [-]
+    ------
+    References:
+    Labík, L., Moucha, T., Petříček, R., Rejl, J. F., Valenz, L., & Haidl, J. (2017). 
+        Volumetric mass transfer coefficient in viscous liquid in mechanically agitated fermenters. 
+        Measurement and correlation. Chemical Engineering Science, 170, 451–463. https://doi.org/10.1016/j.ces.2017.04.006
+    """
+    kla = 0.295 * ( N * D)**2.083 * v_s**0.461 * P0 ** 0.737
+    return kla
+
+
 
 
 def kla_stirred_Galaction(aeration_type: str, V, C_x, v_s, P_a = None, P = None, organism_type = None):
@@ -419,7 +442,7 @@ def kla_stirred_Galaction(aeration_type: str, V, C_x, v_s, P_a = None, P = None,
         """
         Auxiliary function to calculate kla for surface aeration.
         """
-        return 1/exp(alpha) * beta
+        return 1/exp(alpha) * (P/V) ** beta
     
     if aeration_type == 'Submerged':
         
