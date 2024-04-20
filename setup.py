@@ -22,7 +22,7 @@ setup(
                       'pyyaml'],
     extras_require={ 
         'dev': [
-            'biorefineries>=2.26.0',
+            'biorefineries>=2.29.0',
             'sympy',
             'sphinx', 
             'sphinx_multitoc_numbering', 
