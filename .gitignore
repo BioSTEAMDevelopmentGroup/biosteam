@@ -6,6 +6,9 @@ biosteam/thermosteam/preferences.yaml
 **/.ipynb_checkpoints
 *.pyc
 *.pyo
+*.svg
+*.png
+*.npy
 .gitignore
 .pypirc
 dist
