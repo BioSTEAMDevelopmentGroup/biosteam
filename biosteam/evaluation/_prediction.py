@@ -103,6 +103,7 @@ class Average:
     
 fast_fit_model_types = set([
     LinearRegressor, 
+    InterceptLinearRegressor,
     Average
 ])
 linear_model_types = set([
@@ -155,7 +156,7 @@ class Response:
         distances = cdist(x, X, metric=distance)
         exact_match = distances == 0
         if exact_match.any(): return y[exact_match[0]].mean()
-        w = np.sqrt(weight(distances))
+        w = weight(distances)
         X = X * w.transpose()
         y = y * w[0]
         self.model.fit(X, y)
@@ -348,8 +349,7 @@ class ConvergenceModel:
                 recess = 0
             else:
                 recess = 5 * sum([i.kind == 'coupled' for i in predictors])
-        if interaction_pairs is None:
-            interaction_pairs = model_type in linear_model_types
+        if interaction_pairs is None: interaction_pairs = False
         if local_weighted is None:
             if model_type in fast_fit_model_types:
                 local_weighted = True
@@ -385,7 +385,11 @@ class ConvergenceModel:
     def normalize_sample(self, sample):
         return (sample - self.sample_min) / self.sample_range
     
-    def reframe_sample(self, sample):
+    def reframe_sample(self, sample, predictors=None):
+        if predictors is not None and predictors != self.predictors:
+            index = {j: i for i, j in enumerate(self.predictors)}
+            sample = self.data['samples'][-1]
+            for p, s in zip(predictors, sample): sample[index[p]] = s
         if self.predictor_index is not None:
             sample = np.asarray(sample)[self.predictor_index]
         if self.normalization:
@@ -446,7 +450,7 @@ class ConvergenceModel:
     def R2_fitted(self):
         return self._R2('fitted')
     
-    def practice(self, case_study):
+    def practice(self, case_study, predictors=None):
         """
         Predict and set recycle responses given the sample, then append actual
         simulation result to data.
@@ -472,7 +476,7 @@ class ConvergenceModel:
         Does nothing if not used in with statement containing simulation.
         
         """
-        self.case_study = self.reframe_sample(case_study)
+        self.case_study = self.reframe_sample(case_study, predictors)
         return self
         
     def __enter__(self):

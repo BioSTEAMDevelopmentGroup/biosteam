@@ -82,14 +82,14 @@ def test_cashflow_consistency():
     sys.simulate()
     tea = create_cellulosic_ethanol_tea(sys, OSBL_units=[osbl])
     table = tea.get_cashflow_table()
-    assert_allclose(tea.NPV, 32131936.781448975)
+    assert_allclose(tea.NPV, 48964863.88462368)
     assert_allclose(tea.NPV, table['Cumulative NPV [MM$]'].iloc[-1]*1e6)
     tea.IRR = tea.solve_IRR()
     assert_allclose(tea.NPV, 0, atol=100)
-    assert_allclose(tea.IRR, 0.11246761316144724)
+    assert_allclose(tea.IRR, 0.12196475238550361)
     tea.IRR = 0.10
     ethanol.price = tea.solve_price(ethanol)
-    assert_allclose(ethanol.price, 0.6952016482242149)
+    assert_allclose(ethanol.price, 0.6837971746118124)
     assert_allclose(tea.NPV, 0, atol=100)
 
 def test_tea():   

@@ -74,17 +74,15 @@ def test_process_specifications_linear():
         ethanol = T2.ins[0]
         water.F_mass = ethanol.F_mass
     sys.simulate()
-    assert M1.specifications[0].path == ()
+    assert M1.specifications[0].path == [T1, H1]
     assert sys._to_network() == Network(
         [T2,
          H2,
+         T1,
+         H1,
          T3,
          H3,
-         Network(
-            [M1,
-             T1,
-             H1],
-            recycle=H1-0),
+         M1,
          H4]
     )
     assert_allclose(H4.outs[0].mol, sum([i.ins[0].mol for i in (T1, T2, T3)]))
@@ -134,8 +132,8 @@ def test_process_specifications_linear():
     H2.add_specification(lambda: None, run=True, impacted_units=[T1])
     sys.simulate()
     assert sys.unit_path.index(H1) < sys.unit_path.index(T2)
-    assert H1.specifications[0].path == ()
-    assert H2.specifications[0].path == ()
+    assert H1.specifications[0].path == []
+    assert H2.specifications[0].path == [T1, H1, T2]
     # Net simulation order is ..., T2, H2, T1, H1, T2, H2, ...
     
 def test_process_specifications_with_recycles():
@@ -188,22 +186,29 @@ def test_process_specifications_with_recycles():
          P2_a,
          S1_a,
          Network(
-            [P1_b,
-             Network(
-                [M1_b,
-                 S2_a,
-                 M2_a,
-                 S2_b,
-                 S3_a,
-                 M2_b,
-                 S3_b,
-                 M1_a],
-                recycle=M1_a-0),
-             P2_b,
-             S1_b],
-            recycle=[S3_b-1, S1_b-1])]
+            [M1_a,
+             S2_a,
+             M2_a,
+             S3_a],
+            recycle=S3_a-1),
+         P2_b,
+         S1_b,
+         P1_b,
+         Network(
+            [M1_b,
+             S2_b,
+             M2_b,
+             S3_b],
+            recycle=S3_b-1)]
     )
-    assert M1_b.specifications[0].path == ()
+    assert M1_b.specifications[0].path == [
+        recycle_loop_sys.subsystems[0],
+        P2_b,
+        S1_b,
+        P1_b,
+        M2_b,
+        S3_b
+    ]
     
 def test_unit_connections():
     from biorefineries import sugarcane as sc

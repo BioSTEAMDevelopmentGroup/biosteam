@@ -11,10 +11,9 @@ from ._utils import *
 from ._feature import *
 from ._parameter import *
 from ._prediction import *
-from ._state import *
 from ._model import *
 from ._metric import *
-from . import (_parameter, _prediction, _state, _model,
+from . import (_parameter, _prediction, _model,
               _metric, evaluation_tools, _feature,
               _utils)
 
@@ -23,6 +22,5 @@ __all__ = ('evaluation_tools',
            *_parameter.__all__,
            *_prediction.__all__,
            *_metric.__all__,
-           *_state.__all__,
            *_model.__all__,
            *_utils.__all__)

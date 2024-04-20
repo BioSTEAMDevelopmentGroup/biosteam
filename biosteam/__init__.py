@@ -86,6 +86,7 @@ __all__ = (
 )
 
 def nbtutorial():
+    main_flowsheet.clear()
     preferences.reset()
     preferences.light_mode(bg='#ffffffaa')
     preferences.tooltips_full_results = False

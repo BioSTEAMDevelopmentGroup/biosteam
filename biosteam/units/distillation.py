@@ -1493,7 +1493,9 @@ def compute_distillate_recoveries_Hengsteback_and_Gaddes(d_Lr, b_Hr,
     A_dummy = (1. - b_Hr) / b_Hr
     A = np.log10(A_dummy)
     B = np.log10(d_Lr / (1. - d_Lr) / A_dummy) / np.log10(alpha_LK)
+    alpha_mean[alpha_mean < 1e-9] = 1e-9
     dummy = 10.**A * alpha_mean**B
+    dummy[dummy > 1e16] = 1e16
     distillate_recoveries = dummy / (1. + dummy)
     distillate_recoveries[LHK_index] = [d_Lr, 1. - b_Hr]
     distillate_recoveries[distillate_recoveries < 1e-12] = 0.
@@ -1692,7 +1694,12 @@ class ShortcutColumn(Distillation, new_graphics=False):
     def phases(self):
         return [i.phase for i in self.outs]
     
+    def reset_cache(self, isdynamic=None):
+        self._vle_chemicals = None
+        super().reset_cache()
+    
     def _run(self):
+        for i in self.outs: i.empty()
         if all([i.isempty() for i in self.ins]): return
         # Initial mass balance
         self._run_binary_distillation_mass_balance()
@@ -1700,7 +1707,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
         # Initialize objects to calculate bubble and dew points
         vle_chemicals = self.mixed_feed.vle_chemicals
         try:
-            reset_cache = self._vle_chemicals != vle_chemicals
+            reset_cache = self._vle_chemicals != vle_chemicals or np.isnan(self._distillate_recoveries).any()
         except:
             reset_cache = True
         if reset_cache:
@@ -1736,7 +1743,12 @@ class ShortcutColumn(Distillation, new_graphics=False):
             distillate_recoveries[distillate_recoveries > ub] = ub
         
         # Solve for new recoveries
-        self._solve_distillate_recoveries()
+        try:
+            self._solve_distillate_recoveries()
+        except:
+            if not reset_cache:
+                self.reset_cache()
+                self._run()
         self._update_distillate_and_bottoms_temperature()
         
         # Remove temporary data
@@ -2049,14 +2061,14 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
     outs...
     [0] vapor  
         phase: 'g', T: 366.33 K, P: 101325 Pa
-        flow (kmol/hr): AceticAcid  3.72
-                        Water       73.9
+        flow (kmol/hr): AceticAcid  3.71
+                        Water       73.8
                         MTBE        20
     [1] liquid  
         phase: 'l', T: 372.87 K, P: 101325 Pa
-        flow (kmol/hr): AceticAcid  1.28
+        flow (kmol/hr): AceticAcid  1.29
                         Water       101
-                        MTBE        0.000309
+                        MTBE        0.00031
     
     >>> absorber.results()
     Absorber                                   Units         

@@ -543,6 +543,7 @@ class SplitFlash(Flash):
         
         self.flash_inlet = False
     
+    isplit = Splitter.isplit
     split = Splitter.split
     V = None
     

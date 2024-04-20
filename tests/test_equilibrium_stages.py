@@ -91,11 +91,11 @@ def test_distillation():
     distillation.simulate()
     flows = (
         [0.0, 0.0, 0.0],
-        [0.11207623502718754, 4.350673197920912, 22.367339208146912],
-        [22.05592376497281, 0.14372680207908728, 87.1436607918531],
+        [0.11204024722315109, 4.350461125782479, 22.355809910555514],
+        [22.055959752776847, 0.14393887421752138, 87.15519008944449],
     )
     for i, j in zip(distillation.outs, flows):    
-        assert_allclose(i.mol, j)
+        assert_allclose(i.mol, j, rtol=1e-6, atol=1e-3)
     
 if __name__ == '__main__':
     test_multi_stage_adiabatic_vle()

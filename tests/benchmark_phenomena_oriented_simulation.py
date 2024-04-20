@@ -13,11 +13,14 @@ from colorpalette import Color
 from scipy import interpolate
 from scipy.ndimage import gaussian_filter
 import os
+import pickle
 
 try:
     images_folder = os.path.join(os.path.dirname(__file__), 'images')
+    simulations_folder = os.path.join(os.path.dirname(__file__), 'simulations')
 except:
     images_folder = os.path.join(os.getcwd(), 'images')
+    simulations_folder = os.path.join(os.getcwd(), 'simulations')
 
 thermo = bst.Thermo(['Water', 'AceticAcid', 'EthylAcetate'], cache=True)
 bst.settings.set_thermo(thermo)
@@ -349,41 +352,63 @@ def dct_mean(dcts: list[dict], keys: list[str], ub: float, n=50):
     for i, j in zip(keys, goods): mean[i][j > 0] /= j[j > 0]
     return mean
 
-def plot_profile(kinds=('simple', 'complex',), times=[10, 80], N=1):
-    bst.set_font(9)
-    bst.set_figure_size(aspect_ratio=1.1)
-    fig, all_axes = plt.subplots(5, 2)
+def plot_profile(kinds=('simple', 'complex',), times=[10, 100], N=10, load=True, save=True):
+    fs = 9
+    bst.set_font(fs)
     keys = (
         'Component flow rate',
         'Stream temperature',
-        'Stripping factor',
+        # 'Stripping factor',
         'Material balance',
         'Energy balance',
     )
     units = (
         r'$[\mathrm{mol} \cdot \mathrm{hr}^{\mathrm{-1}}]$',
         r'$[\mathrm{K}]$',
-        r'$[-]$',
+        # r'$[-]$',
         r'$[\mathrm{mol} \cdot \mathrm{hr}^{\mathrm{-1}}]$',
         r'$[\mathrm{K}]$',
     )
+    n_rows = len(units)
+    if n_rows == 4:
+        bst.set_figure_size(aspect_ratio=1.1)
+    elif n_rows == 2:
+        bst.set_figure_size(aspect_ratio=0.6)
+    else:
+        bst.set_figure_size(aspect_ratio=1)
+    fig, all_axes = plt.subplots(n_rows, 2)
     yticks = [-15, -10, -5, 0, 5, 10]
     for m, (kind, time) in enumerate(zip(kinds, times)):
         axes = all_axes[:, m]
         sms = []
         pos = []
-        for i in range(N):
-            key = (kind, time, i)
-            if key in cache:
-                sm, po = cache[key]
-            else:
-                sm = profile_sequential_modular(time, kind=kind)
-                po = profile_phenomena_oriented(time, kind=kind)
-                cache[key] = (sm, po)
-            sms.append(sm)
-            pos.append(po)
+        if load:
+            sm_name = f'sm_{time}_{kind}.npy'
+            file = os.path.join(simulations_folder, sm_name)
+            with open(file, 'rb') as f: sms = pickle.load(f)
+            po_name = f'po_{time}_{kind}.npy'
+            file = os.path.join(simulations_folder, po_name)
+            with open(file, 'rb') as f: pos = pickle.load(f)
+        else:
+            for i in range(N):
+                key = (kind, time, i)
+                if key in cache:
+                    sm, po = cache[key]
+                else:
+                    sm = profile_sequential_modular(time, kind=kind)
+                    po = profile_phenomena_oriented(time, kind=kind)
+                    cache[key] = (sm, po)
+                sms.append(sm)
+                pos.append(po)
+            if save:
+                sm_name = f'sm_{time}_{kind}.npy'
+                file = os.path.join(simulations_folder, sm_name)
+                with open(file, 'wb') as f: pickle.dump(sms, f)
+                po_name = f'po_{time}_{kind}.npy'
+                file = os.path.join(simulations_folder, po_name)
+                with open(file, 'wb') as f: pickle.dump(pos, f)
         if kind == 'simple':
-            tub = 3
+            tub = 10
         else:
             tub = 80
         sm = dct_mean(sms, keys, tub)
@@ -402,7 +427,7 @@ def plot_profile(kinds=('simple', 'complex',), times=[10, 80], N=1):
         }
         for n, (i, ax, u) in enumerate(zip(keys, axes, units)):
             plt.sca(ax)
-            if n == 4: plt.xlabel('Time [s]')
+            if n == n_rows-1: plt.xlabel('Time [s]')
             label = labels[i]
             if m == 0: plt.ylabel(f'{label}\n{u}')
             ysm = gaussian_filter(np.array(sm[i]), 0.2)
@@ -412,38 +437,38 @@ def plot_profile(kinds=('simple', 'complex',), times=[10, 80], N=1):
             ysm[ysm < -10] = -10
             ypo[ypo < -10] = -10
             # plt.plot(xsm, ysm, lw=0, marker='s', color=csm, markersize=2.5)
-            plt.plot(tsm, ysm, '-', color=csm, lw=1.5)
+            plt.plot(tsm, ysm, '--', color=csm, lw=1.5)
             # plt.plot(xpo, ypo, lw=0, marker='d', color=cpo, markersize=2.5)
             plt.plot(tpo, ypo, '-', color=cpo, lw=1.5)
             if m == 0 and n == 0:
-                index = int(len(tsm) * 0.5)
+                index = int(len(tsm) * 0.55)
                 xy = x, y = (tsm[index], ysm[index])
                 ax.annotate('Sequential\nmodular',
                     xy=xy, 
-                    xytext=(x+0.4, y+1),
+                    xytext=(x+1, y+1),
                     arrowprops=dict(arrowstyle="->", color=csm),
                     color=csm,
-                    fontsize=8,
+                    fontsize=fs,
                     fontweight='bold',
                 )
-                index = int(len(tpo) * 0.36)
+                index = int(len(tpo) * 0.45)
                 xy = x, y = (tpo[index], ypo[index])
                 ax.annotate('Phenomena\noriented',
                     xy=xy, 
-                    xytext=(x-0.3, y-5),
+                    xytext=(x-1, y-5),
                     arrowprops=dict(arrowstyle="->", color=cpo),
                     ha='right',
                     color=cpo,
-                    fontsize=8,
+                    fontsize=fs,
                     fontweight='bold',
                 )
             if kind == 'simple':
-                xticks = [0.5 * i for i in range(0, 2*tub + 1, 1)]
+                xticks = [i for i in range(0, tub + 1, 2)]
             else:
                 xticks = [*range(0, tub + 1, 10)]
-            xticklabels = xtick0 = n == 4
+            xticklabels = xtick0 = n == n_rows-1
             xtickf = m == 1
-            ytick0 = n == 4
+            ytick0 = n == n_rows-1
             ytickf = n == 0
             plt.xlim(0, xticks[-1])
             plt.ylim(-15, 10)
