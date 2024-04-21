@@ -6,12 +6,14 @@ units
 
    decorators
    design_tools/index
+   aerated_bioreactor
    compressor
    distillation
    drying
    heat_exchange
    liquid_liquid_extraction
    mixing
+   nrel_bioreactor
    tank
    solids_separation
    splitting
@@ -19,9 +21,7 @@ units
    vacuum_system
    valve
    Pump
-   BatchBioreactor
    Duplicator
-   Fermentation
    Flash
    Junction
    MassBalance

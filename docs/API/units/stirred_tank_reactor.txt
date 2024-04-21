@@ -1,4 +1,4 @@
-Stirred tank reactor
+stirred_tank_reactor
 ====================
 
 .. automodule:: biosteam.units.stirred_tank_reactor
