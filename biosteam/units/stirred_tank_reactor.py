@@ -431,8 +431,8 @@ class AeratedBioreactor(StirredTankReactor):
     P_default = 101325
     kW_per_m3_default = 0.2955 # Reaction in homogeneous liquid; reference [1]
     batch_default = True
-    default_method = {
-        'Stirred tank': 'Reit',
+    default_methods = {
+        'Stirred tank': 'Riet',
         'Bubble column': 'DeJesus',
     }
     def _init(
@@ -467,7 +467,7 @@ class AeratedBioreactor(StirredTankReactor):
         self.kLa_kwargs = {} if kLa_kwargs is None else kLa_kwargs
     
     def get_kLa(self):
-        if self.kLa is aeration.kLa_Riet:
+        if self.kLa is aeration.kLa_stirred_Riet:
             V = self.get_design_result('Reactor volume', 'm3') * self.V_wf
             operating_time = self.tau / self.design_results.get('Batch time', 1.)
             N_reactors = self.parallel['self']
@@ -478,12 +478,12 @@ class AeratedBioreactor(StirredTankReactor):
             R = 0.5 * D
             A = pi * R * R
             self.superficial_gas_flow = U = F / A # m / s 
-            return aeration.kLa_Riet(P, V, U, **self.kLa_kwargs) # 1 / s 
+            return aeration.kLa_stirred_Riet(P, V, U, **self.kLa_kwargs) # 1 / s 
         else:
             raise NotImplementedError('kLa method has not been implemented in BioSTEAM yet')
     
     def get_agitation_power(self, kLa):
-        if self.kLa is aeration.kLa_Riet:
+        if self.kLa is aeration.kLa_stirred_Riet:
             air_in = self.cooled_compressed_air
             N_reactors = self.parallel['self']
             operating_time = self.tau / self.design_results.get('Batch time', 1.)
@@ -631,7 +631,7 @@ class AeratedBioreactor(StirredTankReactor):
         V = self.get_design_result('Reactor volume', 'm3') * self.V_wf
         operating_time = self.tau / self.design_results.get('Batch time', 1.)
         N_reactors = self.parallel['self']
-        kLa = self.get_KLa()
+        kLa = self.get_kLa()
         air_in = self.cooled_compressed_air
         vent = self.vent
         P_O2_air = air_in.get_property('P', 'bar') * air_in.imol['O2'] / air_in.F_mol
@@ -754,6 +754,9 @@ class GasFedBioreactor(StirredTankReactor):
     P_default = 101325
     kW_per_m3_default = 0.2955 # Reaction in homogeneous liquid
     batch_default = True
+    default_methods = AeratedBioreactor.default_methods
+    get_kLa = AeratedBioreactor.get_kLa
+    get_agitation_power = AeratedBioreactor.get_agitation_power
     
     def _init(self, 
             reactions, gas_substrates, titer, backward_reactions, 
@@ -985,7 +988,7 @@ class GasFedBioreactor(StirredTankReactor):
         R = 0.5 * D
         A = pi * R * R
         self.superficial_gas_flow = U = F / A # m / s 
-        kLa = aeration.kLa_Riet(P, V, U, **self.kLa_kwargs) # 1 / s 
+        kLa = aeration.kLa_stirred_Riet(P, V, U, **self.kLa_kwargs) # 1 / s 
         vent = self.vent
         P_gas = gas_in.get_property('P', 'bar')
         P_vent = vent.get_property('P', 'bar')

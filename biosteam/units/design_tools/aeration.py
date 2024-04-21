@@ -564,7 +564,7 @@ def P_at_kLa_Riet(kLa, V, U, coefficients=None):
     Other Parameters
     ----------------
     coefficients : Iterable[float]|str, optional
-        Name of author or an iterable in the form of a, b, c. The
+        Name of author or an iterable in the form of a, b, c.
         
     Notes
     ------
