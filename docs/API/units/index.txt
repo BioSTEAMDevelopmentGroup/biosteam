@@ -5,7 +5,7 @@ units
    :maxdepth: 1
 
    decorators
-   design_tools/design_tools
+   design_tools/index
    compressor
    distillation
    drying
