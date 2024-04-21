@@ -431,17 +431,71 @@ class AeratedBioreactor(StirredTankReactor):
     P_default = 101325
     kW_per_m3_default = 0.2955 # Reaction in homogeneous liquid; reference [1]
     batch_default = True
-    
+    default_method = {
+        'Stirred tank': 'Reit',
+        'Bubble column': 'DeJesus',
+    }
     def _init(
             self, reactions, theta_O2=0.5, Q_O2_consumption=None,
-            optimize_power=None, kLa_coefficients=None, **kwargs,
+            optimize_power=None, design=None, method=None, kLa_kwargs=None,
+            **kwargs,
         ):
         StirredTankReactor._init(self, **kwargs)
         self.reactions = reactions
         self.theta_O2 = theta_O2 # Average concentration of O2 in the liquid as a fraction of saturation.
         self.Q_O2_consumption = Q_O2_consumption # Forced duty per O2 consummed [kJ/kmol].
         self.optimize_power = True if optimize_power is None else optimize_power
-        self.kLa_coefficients = kLa_coefficients  
+        if design is None: 
+            design = 'Stirred tank'
+        elif design not in aeration.kLa_method_names:
+            raise ValueError(
+                f"{design!r} is not a valid design; only "
+                f"{list(aeration.kLa_method_names)} are valid"
+            )
+        self.design = design
+        if method is None:
+            method = self.default_methods[design]
+        if (key:=(design, method)) in aeration.kLa_methods:
+            self.kLa = aeration.kLa_methods[key]
+        elif hasattr(method, '__call__'):
+            self.kLa = method
+        else:
+            raise ValueError(
+                f"{method!r} is not a valid kLa method; only "
+                f"{aeration.kLa_method_names[design]} are valid"
+            )
+        self.kLa_kwargs = {} if kLa_kwargs is None else kLa_kwargs
+    
+    def get_kLa(self):
+        if self.kLa is aeration.kLa_Riet:
+            V = self.get_design_result('Reactor volume', 'm3') * self.V_wf
+            operating_time = self.tau / self.design_results.get('Batch time', 1.)
+            N_reactors = self.parallel['self']
+            P = 1000 * self.kW_per_m3 * V # W
+            air_in = self.cooled_compressed_air
+            D = self.get_design_result('Diameter', 'm')
+            F = air_in.get_total_flow('m3/s') / N_reactors / operating_time
+            R = 0.5 * D
+            A = pi * R * R
+            self.superficial_gas_flow = U = F / A # m / s 
+            return aeration.kLa_Riet(P, V, U, **self.kLa_kwargs) # 1 / s 
+        else:
+            raise NotImplementedError('kLa method has not been implemented in BioSTEAM yet')
+    
+    def get_agitation_power(self, kLa):
+        if self.kLa is aeration.kLa_Riet:
+            air_in = self.cooled_compressed_air
+            N_reactors = self.parallel['self']
+            operating_time = self.tau / self.design_results.get('Batch time', 1.)
+            V = self.get_design_result('Reactor volume', 'm3') * self.V_wf
+            D = self.get_design_result('Diameter', 'm')
+            F = air_in.get_total_flow('m3/s') / N_reactors / operating_time
+            R = 0.5 * D
+            A = pi * R * R
+            self.superficial_gas_flow = U = F / A # m / s
+            return aeration.P_at_kLa_Riet(kLa, V, U, **self.kLa_kwargs)
+        else:
+            raise NotImplementedError('kLa method has not been implemented in BioSTEAM yet')
     
     def _get_duty(self):
         if self.Q_O2_consumption is None:
@@ -550,12 +604,6 @@ class AeratedBioreactor(StirredTankReactor):
         N_reactors = self.parallel['self']
         operating_time = self.tau / self.design_results.get('Batch time', 1.)
         V = self.get_design_result('Reactor volume', 'm3') * self.V_wf
-        D = self.get_design_result('Diameter', 'm')
-        F = air_in.get_total_flow('m3/s') / N_reactors / operating_time
-        R = 0.5 * D
-        A = pi * R * R
-        self.superficial_gas_flow = U = F / A # m / s 
-        
         vent = self.vent
         P_O2_air = air_in.get_property('P', 'bar') * air_in.imol['O2'] / air_in.F_mol
         P_O2_vent = 0. if vent.isempty() else vent.get_property('P', 'bar') * vent.imol['O2'] / vent.F_mol
@@ -564,7 +612,7 @@ class AeratedBioreactor(StirredTankReactor):
         theta_O2 = self.theta_O2
         LMDF = aeration.log_mean_driving_force(C_O2_sat_vent, C_O2_sat_air, theta_O2 * C_O2_sat_vent, theta_O2 * C_O2_sat_air)
         kLa = OUR / (LMDF * V * self.effluent_density * N_reactors * operating_time) 
-        P = aeration.P_at_kLa(kLa, V, U, self.kLa_coefficients)
+        P = self.get_agitation_power(kLa)
         agitation_power_kW = P / 1000
         total_power_kW = (agitation_power_kW + self.compressor.power_utility.consumption / N_reactors) / V
         self.kW_per_m3 = agitation_power_kW / V 
@@ -583,15 +631,7 @@ class AeratedBioreactor(StirredTankReactor):
         V = self.get_design_result('Reactor volume', 'm3') * self.V_wf
         operating_time = self.tau / self.design_results.get('Batch time', 1.)
         N_reactors = self.parallel['self']
-        P = 1000 * self.kW_per_m3 * V # W
-        air_in = self.cooled_compressed_air
-        D = self.get_design_result('Diameter', 'm')
-        F = air_in.get_total_flow('m3/s') / N_reactors / operating_time
-        R = 0.5 * D
-        A = pi * R * R
-        self.superficial_gas_flow = U = F / A # m / s 
-        
-        kLa = aeration.kLa(P, V, U, self.kLa_coefficients) # 1 / s 
+        kLa = self.get_KLa()
         air_in = self.cooled_compressed_air
         vent = self.vent
         P_O2_air = air_in.get_property('P', 'bar') * air_in.imol['O2'] / air_in.F_mol
@@ -717,9 +757,9 @@ class GasFedBioreactor(StirredTankReactor):
     
     def _init(self, 
             reactions, gas_substrates, titer, backward_reactions, 
-            feed_gas_compositions, 
+            feed_gas_compositions, design=None, method=None, kLa_kwargs=None,
             theta=0.5, Q_consumption=None,
-            optimize_power=None, kLa_coefficients=None, 
+            optimize_power=None, 
             mixins=None,
             **kwargs,
         ):
@@ -727,13 +767,32 @@ class GasFedBioreactor(StirredTankReactor):
         self.backward_reactions = backward_reactions
         self.theta = theta # Average concentration of gas substrate in the liquid as a fraction of saturation.
         self.Q_consumption = Q_consumption # Forced duty per gas substrate consummed [kJ/kmol].
-        self.kLa_coefficients = kLa_coefficients
+        self.kLa_kwargs = {} if kLa_kwargs is None else kLa_kwargs
         self.optimize_power = True if optimize_power is None else optimize_power
         self.feed_gas_compositions = feed_gas_compositions # dict[int, dict] Feed index and composition pairs.
         self.gas_substrates = gas_substrates
         self.titer = titer # dict[str, float] g / L
         self.mixins = {} if mixins is None else mixins # dict[int, tuple[int]] Pairs of variable feed gas index and inlets that will be mixed.
         StirredTankReactor._init(self, **kwargs)
+        if design is None: 
+            design = 'Stirred tank'
+        elif design not in aeration.kLa_method_names:
+            raise ValueError(
+                f"{design!r} is not a valid design; only "
+                f"{list(aeration.kLa_method_names)} are valid"
+            )
+        self.design = design
+        if method is None:
+            method = self.default_methods[design]
+        if (key:=(design, method)) in aeration.kLa_methods:
+            self.kLa = aeration.kLa_methods[key]
+        elif hasattr(method, '__call__'):
+            self.kLa = method
+        else:
+            raise ValueError(
+                f"{method!r} is not a valid kLa method; only "
+                f"{aeration.kLa_method_names[design]} are valid"
+            )
     
     def _get_duty(self):
         if self.Q_consumption is None:
@@ -906,7 +965,7 @@ class GasFedBioreactor(StirredTankReactor):
             theta = self.theta
             LMDF = aeration.log_mean_driving_force(C_sat_vent, C_sat_gas, theta * C_sat_vent, theta * C_sat_gas)
             kLa = SUR / (LMDF * V * self.effluent_density * N_reactors * operating_time)
-            Ps.append(aeration.P_at_kLa(kLa, V, U, self.kLa_coefficients))
+            Ps.append(aeration.P_at_kLa_Riet(kLa, V, U, **self.kLa_kwargs))
         P = max(Ps)  
         agitation_power_kW = P / 1000
         compressor_power_kW = sum([i.power_utility.consumption for i in self.compressors]) / N_reactors
@@ -926,7 +985,7 @@ class GasFedBioreactor(StirredTankReactor):
         R = 0.5 * D
         A = pi * R * R
         self.superficial_gas_flow = U = F / A # m / s 
-        kLa = aeration.kLa(P, V, U, self.kLa_coefficients) # 1 / s 
+        kLa = aeration.kLa_Riet(P, V, U, **self.kLa_kwargs) # 1 / s 
         vent = self.vent
         P_gas = gas_in.get_property('P', 'bar')
         P_vent = vent.get_property('P', 'bar')
