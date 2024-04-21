@@ -1,4 +1,4 @@
-mechanical
-----------
+Aeration
+--------
 
 .. automodule:: biosteam.units.design_tools.aeration
