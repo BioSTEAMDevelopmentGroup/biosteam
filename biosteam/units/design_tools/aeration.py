@@ -184,7 +184,7 @@ def kla_bubcol_Akita_Yoshida(D, mu_l, rho_l, D_l, g, sigma_l, epsilon_g):
     rho_l: float    
         Density of the liquid, [kg/m^3]
     D_l: float
-        Diffusivity ofliquid, [m^2/s]
+        Diffusivity of liquid, [m^2/s]
     g: float
         Gravitational acceleration, [m/s^2] 
     sigma_l: float
@@ -559,3 +559,97 @@ def log_mean_driving_force(C_sat_out, C_sat_in, C_out, C_in=None):
     if dC_out < 1e-9: # This is not theoretically possible, but may be an assumption
         dC_out = 1e-9 # Assume it near zero
     return (dC_out - dC_in) / log(dC_out / dC_in)
+
+
+if __name__ == "__main__":
+    print('hola')
+
+    repeated_names = [
+        ('U_g', ('U_G', 'V_G')),
+
+    ]   
+    fermentation_variables_bub_col = {
+        'Dashpande': {
+        'epsilon_g': (0.5, 1.2), 
+        'K': (0.016, 0.028), # for coarse bubble diffusers  'K': (0.07, 0.1), # for fine bubble diffusers
+        'M_l': 0.018, # kg/mol
+        'Rhat': 8.314, # J/mol-K
+        'T': 298.15, # K
+        'rho_l': 1000, # kg/m^3
+        'U_g': (0.01,0.1), # m/s
+        },
+        'DeJesus': {
+            'Q':(0, 1.6), # vvm
+            'mu': (0.001, 0.1), # Pa.s
+            'k': (0.1, 100), # Pa.s^n
+            'n': (0, 2) # Flow behavior index <1 for pseudoplastic, >1 for dilatant, 1 for Newtonian
+        },
+        'Akita_Yoshida': {
+            'D': 0.15, # m
+            'H': 4, # m
+            'V_g': (0, 0.33), # m/s
+            'mu_l': (0.5, 100), # Cp 1 water, 100 xanthan
+            'rho_l': (995, 1043), # kg/m^3
+            'D_l': (1.68  * 10**-9, 3.24  * 10**-9) , # m^2/s
+            'g': 9.81, # m/s^2
+            'sigma_l':  (0.0348,0.0728), # N/m
+            'epsilon_g': (0.01, 1) # m/s
+        },
+        'Posarac_Tekic': {
+            'D': 0.1, # m
+            'H': 2.5, # m
+            'V_g': (0.008, 0.08), # m/s
+            'mu_l': (0.5, 100), # Cp 1 water, 100 xanthan
+            'rho_l': (995, 1043), # kg/m^3
+            'D_l': (1.68  * 10**-9, 3.24  * 10**-9), # m^2/s
+            'sigma_l':  (0.0348,0.0728), # N/m
+            'epsilon_g': (0.01, 1) # m/s    
+        },
+        'Seno': {
+            'D': 0.0464, # m
+            'H': 1.36, # m
+            'V_g': (0.005, 0.04), # m/s
+            'V_l': (0.005, 0.1), # m/s
+            'rho_l': (995, 1043), # kg/m^3
+            'mu_l': (0.653, 1.31), # Cp 1 water, 100 xanthan
+            'D_l': (1.68 * 10**-9, 3.24 * 10**-9), # m^2/s
+            'g': 9.81, # m/s^2
+            'sigma_l': (0.0348,0.0728), # N/m
+            'epsilon_g': (0.01, 1) # m/s
+        },
+        'Suh': {
+            'D': 0.15, # m
+            'H': 2.9, # m
+            'V_g': (0.005, 0.04), # m/s
+            'rho_l': (1001, 1264), # kg/m^3
+            'mu_l': (0.653, 1.31), # Cp 1 water, 100 xanthan
+            'D_l': (0.318 * 10**-9, 2.5 * 10**-9) , # m^2/s
+            'g': 9.81, # m/s^2
+            'sigma_l': (0.0656,0.0746), # N/m
+            'epsilon_g': (0.01, 1) # m/s
+        },
+        'Shah': {
+            'D': 0.29, # m
+            'H': 0.2, # m
+            'V_g': (0.021, 0.105), # m/s
+            'V_l': (0.0005, 0.002), # m/s
+            'rho_l': (1, 50), # kg/m^3
+            'mu_l': (1, 50), # Cp 1 water, 100 xanthan
+        },
+    }
+
+    fermentation_variables_stirred = {
+        'Labik':{
+            'N': (4.17, 14.17), # s^-1
+            'D':(0.1,0.2), # m
+            'v_s': (2.12 * 10^-3, 8.48 * 10^-3) , # m/s
+            'P0': (100, 10000),
+        },
+        'Galaction':{ # look into what is better for the P_a/V and P/V
+            'P_a/V' : (30,120), # W/m^3
+            'v_s': (0.8 * 10^-3, 5 * 10^-3), # m/s
+            'C_x': (5, 150), # g/l dry weight
+            'P/V': (10, 1900), # W/m^3
+
+        }
+        }
