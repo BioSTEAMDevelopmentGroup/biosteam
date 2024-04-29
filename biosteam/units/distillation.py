@@ -1884,10 +1884,6 @@ class ShortcutColumn(Distillation, new_graphics=False):
         self._distillate_recoveries = distillate_recoveries
         return distillate_recoveries
     
-    @property
-    def aggregated_stages(self):
-        return [self]
-    
     def _create_material_balance_equations(self):
         inlets = self.ins
         fresh_inlets = [i for i in inlets if i.isfeed()]
@@ -2508,6 +2504,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
             full_condenser=None,
             collapsed_init=None,
             use_cache=None,
+            algorithm=None,
             method=None,
             inside_out=None,
             maxiter=None,
@@ -2531,6 +2528,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                       stage_specifications=stage_specifications,
                       collapsed_init=collapsed_init,
                       inside_out=inside_out,
+                      algorithm=algorithm,
                       method=method,
                       maxiter=maxiter)
         

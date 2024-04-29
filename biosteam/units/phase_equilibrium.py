@@ -73,7 +73,6 @@ class SinglePhaseStage(Unit):
     def _init(self, T=None, phase=None):
         self.T = self.T_specification = T
         self.phase = phase
-        self.aggregated_stages = [self]
         
     @property
     def phases(self):
@@ -101,7 +100,11 @@ class SinglePhaseStage(Unit):
         
         # Overall flows
         eq_overall = {outlet: ones}
-        for i in process_inlets: eq_overall[i] = minus_ones
+        for i in process_inlets: 
+            if i in eq_overall:
+                del eq_overall[i]
+            else:
+                eq_overall[i] = minus_ones
         return [
             (eq_overall, sum([i.mol for i in fresh_inlets], zeros))
         ]
@@ -127,7 +130,6 @@ class StageEquilibrium(Unit):
         ):
         self._N_outs = 2 + int(top_split) + int(bottom_split)
         self.phases = phases
-        self.aggregated_stages = [self]
         Unit.__init__(self, ID, ins, outs, thermo)
         mixer = self.auxiliary(
             'mixer', bst.Mixer, ins=self.ins, 
@@ -281,9 +283,6 @@ class StageEquilibrium(Unit):
             for i in self.ins:
                 source = i.source
                 if not source: continue
-                if hasattr(source, 'outlet_stages') and not source.aggregated:
-                    try: source = source.outlet_stages[i.port.get_stream()]
-                    except: pass
                 elif (hasattr(source, 'T')
                       and source.T_specification is None
                       and source.B_specification is None):
@@ -302,9 +301,6 @@ class StageEquilibrium(Unit):
             for i in self.ins:
                 source = i.source
                 if not source: continue
-                if hasattr(source, 'outlet_stages') and not source.aggregated:
-                    try: source = source.outlet_stages[i.port.get_stream()]
-                    except: pass
                 if source.phases == ('g', 'l'):
                     if i.phase != 'g': continue
                     if getattr(source, 'B_specification', None) is not None: continue
@@ -334,9 +330,6 @@ class StageEquilibrium(Unit):
             for i in self.ins:
                 source = i.source
                 if not source: continue
-                if hasattr(source, 'outlet_stages') and not source.aggregated:
-                    try: source = source.outlet_stages[i.port.get_stream()]
-                    except: pass
                 if source == ('g', 'l'):
                     if i.phase != 'g': continue
                     if getattr(source, 'B_specification', None) is not None: continue
@@ -382,8 +375,11 @@ class StageEquilibrium(Unit):
         # Overall flows
         eq_overall = {}
         if self.B is None or np.isnan(self.B): self.run()
-        for i in self.outs: eq_overall[i] = ones
-        for i in process_inlets: eq_overall[i] = minus_ones
+        for i in self.outs: 
+            eq_overall[i] = ones
+        for i in process_inlets:
+            if i in eq_overall: del eq_overall[i]
+            else: eq_overall[i] = minus_ones
         equations.append(
             (eq_overall, sum([i.mol for i in fresh_inlets], zeros))
         )
@@ -402,7 +398,6 @@ class StageEquilibrium(Unit):
         equations.append(
             (eq_outs, zeros)
         )
-        
         # Top split flows
         if top_side_draw:
             eq_top_split = {
@@ -412,7 +407,6 @@ class StageEquilibrium(Unit):
             equations.append(
                 (eq_top_split, zeros)
             )
-        
         # Bottom split flows
         if bottom_side_draw:
             eq_bottom_split = {
@@ -422,7 +416,6 @@ class StageEquilibrium(Unit):
             equations.append(
                 (eq_bottom_split, zeros)
             )
-        
         return equations
     
     def _create_linear_equations(self, variable):
@@ -906,8 +899,8 @@ class MultiStageEquilibrium(Unit):
     default_maxiter = 10
     default_max_attempts = 20
     default_fallback_maxiter = 1
-    default_molar_tolerance = 0.01
-    default_relative_molar_tolerance = 0.001
+    default_molar_tolerance = 0.001
+    default_relative_molar_tolerance = 0.0001
     default_algorithm = 'root'
     available_algorithms = {'root', 'optimize'}
     default_methods = {
@@ -919,9 +912,11 @@ class MultiStageEquilibrium(Unit):
     #: Method definitions for convergence
     root_options: dict[str, tuple[Callable, bool, dict]] = {
         'fixed-point': (flx.conditional_fixed_point, True, {}),
+        'wegstein': (flx.conditional_wegstein, True, {}),
     }
     optimize_options: dict[str, tuple[Callable, dict]] = {
-        'SLSQP': (minimize, {'tol': 1e-3, 'method': 'SLSQP'})
+        'SLSQP': (minimize, True, True, {'tol': 0.1, 'method': 'SLSQP'}),
+        'CG': (minimize, False, False, {'tol': 0.1, 'method': 'CG'})
     }
     SurPASS_options: dict[str, tuple[Callable, dict]] = {
         'differential evolution': (
@@ -932,10 +927,6 @@ class MultiStageEquilibrium(Unit):
         'stages',
     )
     _side_draw_names = ('top_side_draws', 'bottom_side_draws')
-    
-    # Default phenomena-oriented simulation
-    fractionated = True
-    consolidated = False
     
     def __init_subclass__(cls, *args, **kwargs):
         super().__init_subclass__(cls, *args, **kwargs)
@@ -981,36 +972,31 @@ class MultiStageEquilibrium(Unit):
             for n, stage in enumerate(stages):
                 for s in stage.ins:
                     if s.source not in stages_set: 
-                        # sp = s.proxy()
-                        # sp._source = s._source
-                        s.sink.ins.replace(s, s.proxy())
-                        ins.append(s)
+                        sp = s.proxy()
+                        sp._source = s._source
+                        ins.append(sp)
                         feed_stages.append(n)
                 top, bottom, *other = stage.outs
                 if stage.top_split:
                     s = other[0]
-                    # sp = s.proxy()
-                    # sp._sink = s._sink
-                    s.source.outs.replace(s, s.proxy())
-                    top_side_draws_outs.append(s)
+                    sp = s.proxy()
+                    sp._sink = s._sink
+                    top_side_draws_outs.append(sp)
                     top_side_draws[n] = stage.top_split
                 if stage.bottom_split:
                     s = other[-1]
-                    # sp = s.proxy()
-                    # sp._sink = s._sink
-                    s.source.outs.replace(s, s.proxy())
-                    bottom_side_draws_outs.append(s)
+                    sp = s.proxy()
+                    sp._sink = s._sink
+                    bottom_side_draws_outs.append(sp)
                     bottom_side_draws[n] = stage.bottom_split
                 if top.sink not in stages_set: 
-                    # s = top.proxy()
-                    # s._sink = top._sink
-                    top.source.outs.replace(top, top.proxy())
-                    outs.append(top)
+                    sp = top.proxy()
+                    sp._sink = top._sink
+                    outs.append(sp)
                 if bottom.sink not in stages_set: 
-                    # s = bottom.proxy()
-                    # s._sink = bottom._sink
-                    bottom.source.outs.replace(bottom, bottom.proxy())
-                    outs.append(bottom)
+                    sp = bottom.proxy()
+                    sp._sink = bottom._sink
+                    outs.append(sp)
                 if stage.B_specification is not None: 
                     stage_specifications[n] = ('Boilup', stage.B_specification)
             outs = [*outs, *top_side_draws_outs, *bottom_side_draws_outs]
@@ -1165,10 +1151,7 @@ class MultiStageEquilibrium(Unit):
     
     @property
     def aggregated_stages(self):
-        if self.fractionated:
-            self.aggregated = False
-            return self.stages
-        elif not (any([i.B_specification for i in self.partitions]) or self.top_side_draws or self.bottom_side_draws):
+        if not (any([i.B_specification for i in self.partitions]) or self.top_side_draws or self.bottom_side_draws):
             self.aggregated = True
             self.use_cache = True
             return [self]
@@ -1192,13 +1175,13 @@ class MultiStageEquilibrium(Unit):
                             method=self.method, maxiter=self.maxiter, 
                             algorithm=self.algorithm,
                             top_chemical=self.top_chemical, 
-                            collapsed_init=self.collapsed_init,
+                            collapsed_init=False,
                             inside_out=self.inside_out,
                         )
-                        last_stage.consolidated = self.consolidated
                         last_stage._N_chemicals = self._N_chemicals
                         last_stage._system = self._system
                         last_stage.aggregated = True
+                        last_stage.parent = self
                         aggregated.append(last_stage)
                     aggregated.append(stage)
                     stages = []
@@ -1210,10 +1193,10 @@ class MultiStageEquilibrium(Unit):
                     method=self.method, maxiter=self.maxiter, 
                     algorithm=self.algorithm,
                     top_chemical=self.top_chemical, 
-                    collapsed_init=self.collapsed_init,
+                    collapsed_init=False,
                     inside_out=self.inside_out,
                 )
-                last_stage.consolidated = self.consolidated
+                last_stage.parent = self
                 last_stage._N_chemicals = self._N_chemicals
                 last_stage._system = self._system
                 last_stage.aggregated = True
@@ -1226,19 +1209,14 @@ class MultiStageEquilibrium(Unit):
     def _create_energy_departure_equations(self, temperature_only=False):
         # Ll: C1dT1 - Ce2*dT2 - Cr0*dT0 - hv2*L2*dB2 = Q1 - H_out + H_in
         # gl: hV1*L1*dB1 - hv2*L2*dB2 - Ce2*dT2 - Cr0*dT0 = Q1 + H_in - H_out
-        # return sum([i._create_energy_departure_equations() for i in self.stages], [])
         phases = self.phases
         if temperature_only:
             coeff = {self: sum([i.C for i in self.outs])}
             for i in self.ins:
                 source = i.source
                 if not source: continue
-                if hasattr(source, 'outlet_stages') and not source.aggregated:
-                    try: source = source.outlet_stages[i.port.get_stream()]
-                    except: pass
-                elif (hasattr(source, 'T')
-                      and source.T_specification is None
-                      and source.B_specification is None):
+                if (getattr(source, 'T_specification', None) is None
+                    and getattr(source, 'B_specification', None) is None):
                     coeff[source] = -i.C
                 else:
                     continue
@@ -1254,9 +1232,6 @@ class MultiStageEquilibrium(Unit):
             for i in self.ins:
                 source = i.source
                 if not source: continue
-                if hasattr(source, 'outlet_stages') and not source.aggregated:
-                    try: source = source.outlet_stages[i.port.get_stream()]
-                    except: pass
                 if source.phases == ('g', 'l'):
                     if i.phase != 'g': continue
                     if getattr(source, 'B_specification', None) is not None: continue
@@ -1286,9 +1261,6 @@ class MultiStageEquilibrium(Unit):
             for i in self.ins:
                 source = i.source
                 if not source: continue
-                if hasattr(source, 'outlet_stages') and not source.aggregated:
-                    try: source = source.outlet_stages[i.port.get_stream()]
-                    except: pass
                 if source == ('g', 'l'):
                     if i.phase != 'g': continue
                     if getattr(source, 'B_specification', None) is not None: continue
@@ -1333,7 +1305,11 @@ class MultiStageEquilibrium(Unit):
         if np.isnan(self.B): self._run()
         S = self.K * self.B
         for i in self.outs: eq_overall[i] = ones
-        for i in process_inlets: eq_overall[i] = minus_ones
+        for i in process_inlets: 
+            if i in eq_overall:
+                del eq_overall[i]
+            else:
+                eq_overall[i] = minus_ones
         equations.append(
             (eq_overall, sum([i.mol for i in fresh_inlets], zeros))
         )
@@ -1358,10 +1334,7 @@ class MultiStageEquilibrium(Unit):
         # list[dict[Unit|Stream, float]]
         if variable == 'equilibrium':
             top, bottom = self.outs
-            if self.consolidated:
-                self._run_consolidated_mass_and_energy_balance()
-            else:
-                self.run()
+            self.run()
             eqs = []
         else:
             top, bottom = self.outs
@@ -1401,12 +1374,13 @@ class MultiStageEquilibrium(Unit):
             else:
                 raise RuntimeError('invalid phases')
         elif variable == 'temperature':
-            for i in self.outs: i.T = value
+            for i in self.outs: i.T += value
         else:
             raise RuntimeError(f'invalid variable {variable!r}')
     
     @property
     def outlet_stages(self):
+        if hasattr(self, 'parent'): return self.parent.outlet_stages
         try:
             return self._outlet_stages
         except:
@@ -1456,8 +1430,17 @@ class MultiStageEquilibrium(Unit):
             stage = stages[i]
             partition = stage.partition
             s_top, s_bot = partition.outs
-            s_top.mol[index] = top_flows[i]
-            s_bot.mol[index] = bottom_flows[i]
+            t = top_flows[i]
+            b = bottom_flows[i]
+            s_top.mol[index] = t
+            s_bot.mol[index] = b
+            bnet = b.sum()
+            tnet = t.sum()
+            if bnet == 0:
+                if tnet != 0:
+                    partition.B = inf
+            else:
+                partition.B = tnet / bnet
             for i in stage.splitters: i._run()
         
     def set_flow_rates_old(self, top_flows):
@@ -1500,64 +1483,6 @@ class MultiStageEquilibrium(Unit):
                 s_bottom.mol[:] = bottom_flow
                 if stage.bottom_split: stage.splitters[-1]._run()
             
-    def _run_consolidated_mass_and_energy_balance(self):
-        scale = max([i.mol.max() for i in self.ins])
-        options = tmo.equilibrium.LLE.pseudo_equilibrium_outer_loop_options.copy()
-        options['xtol'] *= scale
-        all_stages = []
-        for i in self._system.units:
-            if i is self:
-                all_stages.extend(i.stages)
-            else:
-                all_stages.extend(i.aggregated_stages)
-        for i in all_stages:
-            if not hasattr(i, 'K'): 
-                i._run_consolidated_mass_and_energy_balance = lambda: None
-                try:
-                    i._create_linear_equations('equilibrium')
-                finally:
-                    del i._run_consolidated_mass_and_energy_balance
-        all_stages.extend(self._system.feeds)
-        try:
-            self.aggregated = False
-            flx.fixed_point(
-                self._consolidated_iter, 
-                np.array([i.outs[0].mol for i in self.stages]),
-                args=(scale, all_stages), **options,
-            )
-        finally:
-            self.aggregated = True
-        
-    def _consolidated_iter(self, top_flow_rates, scale, all_stages):
-        stages = self.stages
-        P = self.P
-        if self._has_vle:
-            for i in stages:
-                partition = i.partition
-                partition._run_decoupled_KTvle(P=P)
-                T = partition.T
-                for i in (partition.outs + i.outs): i.T = T
-            self.interpolate_missing_variables()
-            bst.solve_variable(all_stages, 'energy')
-            bst.solve_variable(all_stages, 'material')
-        elif self._has_lle: # LLE
-            def psuedo_equilibrium(top_flows):
-                bst.solve_variable(all_stages, 'material')
-                for n, i in enumerate(stages): 
-                    partition = i.partition
-                    partition._run_decoupled_Kgamma(P=P)
-                self.interpolate_missing_variables()
-                return np.array([i.outs[0].mol for i in self.stages])
-            options = tmo.equilibrium.LLE.pseudo_equilibrium_inner_loop_options.copy()
-            options['xtol'] *= scale
-            flx.fixed_point(
-                psuedo_equilibrium, top_flow_rates, **options,
-            )
-            for i in self.partitions: i._run_decoupled_B()
-            bst.solve_variable(all_stages, 'material')
-            bst.solve_variable(all_stages, 'energy')
-        return np.array([i.outs[0].mol for i in self.stages])
-        
     def _run(self):
         if all([i.isempty() for i in self.ins]): 
             for i in self.outs: i.empty()
@@ -1576,13 +1501,7 @@ class MultiStageEquilibrium(Unit):
                     if conditional:
                         top_flow_rates = solver(self._conditional_iter, top_flow_rates)
                     else:
-                        try:
-                            result = solver(self._root_iter, self.get_KTBs().flatten(), **options)
-                            break
-                        except RuntimeError: # Fall back to fixed-point
-                            method = 'fixed-point'
-                            solver, conditional, options = self.root_options[method]
-                            top_flow_rates = solver(self._conditional_iter, top_flow_rates)
+                        raise NotImplementedError(f'method {self.method!r} not implemented in BioSTEAM (yet)')
                     if method == 'fixed-point' and self.iter == self.maxiter:
                         top_flow_rates = flx.conditional_fixed_point(
                             self._sequential_iter, 
@@ -1595,35 +1514,66 @@ class MultiStageEquilibrium(Unit):
                 else:
                     self.converged = False
             elif algorithm == 'optimize':
-                solver, options = self.optimize_options[self.method]
-                self.constraints = constraints = []
-                stages = self.stages
-                m, n = self.N_stages, self._N_chemicals
-                last_stage = m - 1
-                feed_flows, asplit_1, bsplit_1, _ = self._iter_args
-                for i, stage in enumerate(stages):
-                    if i == 0:
-                        args = (i,)
-                        f = lambda x, i: feed_flows[i] - x[(i+1)*n:(i+2)*n] * asplit_1[i+1] - x[i*n:(i+1)*n] + 1e-6
-                    elif i == last_stage:
-                        args_last = args
-                        args = (i, f, args_last)
-                        f = lambda x, i, f, args_last: feed_flows[i] + f(x, *args_last) - x[i*n:] + 1e-6
-                    else:
-                        args_last = args
-                        args = (i, f, args_last)
-                        f = lambda x, i, f, args_last: feed_flows[i] + f(x, *args_last) - x[(i+1)*n:(i+2)*n] * asplit_1[i+1] - x[i*n:(i+1)*n] + 1e-6
-                    constraints.append(
-                        dict(type='ineq', fun=f, args=args)
+                solver, constraints, bounded, options = self.optimize_options[self.method]
+                if constraints and bounded:
+                    self.constraints = constraints = []
+                    stages = self.stages
+                    m, n = self.N_stages, self._N_chemicals
+                    last_stage = m - 1
+                    feed_flows, asplit_1, bsplit_1, _ = self._iter_args
+                    for i, stage in enumerate(stages):
+                        if i == 0:
+                            args = (i,)
+                            f = lambda x, i: feed_flows[i] - x[(i+1)*n:(i+2)*n] * asplit_1[i+1] - x[i*n:(i+1)*n] + 1e-6
+                        elif i == last_stage:
+                            args_last = args
+                            args = (i, f, args_last)
+                            f = lambda x, i, f, args_last: feed_flows[i] + f(x, *args_last) - x[i*n:] + 1e-6
+                        else:
+                            args_last = args
+                            args = (i, f, args_last)
+                            f = lambda x, i, f, args_last: feed_flows[i] + f(x, *args_last) - x[(i+1)*n:(i+2)*n] * asplit_1[i+1] - x[i*n:(i+1)*n] + 1e-6
+                        constraints.append(
+                            dict(type='ineq', fun=f, args=args)
+                        )
+                    result = minimize(
+                        self._energy_balance_error_at_top_flow_rates, 
+                        self.get_top_flow_rates_flat(),
+                        constraints=constraints,
+                        bounds=[(0, None)] * (m * n),
+                        **options,
                     )
-                result = minimize(
-                    self._overall_error, 
-                    self.get_top_flow_rates_flat(),
-                    constraints=constraints,
-                    bounds=[(0, None)] * (m * n),
-                    **options,
-                )
-                self.set_flow_rates(result.x.reshape([m, n]))
+                    self.set_flow_rates(result.x.reshape([m, n]))
+                elif not (constraints or bounded):
+                    self.iter = 0
+                    partitions = self.partitions
+                    Sb, safe = bottoms_stripping_factors_safe(
+                        np.array([i.B for i in partitions]), 
+                        np.array([i.K for i in partitions]),
+                    )
+                    if safe:
+                        self._Sb_index = None
+                    else:
+                        self._Sb = Sb
+                        self._Sb_index = Sb_index = [
+                            i for i, j in enumerate(partitions)
+                            if not (j.B_specification == 0 or j.B_specification == np.inf)
+                        ]
+                        Sb = Sb[Sb_index]
+                    lnSb = np.log(Sb).flatten()
+                    self._result = result = minimize(
+                        self._energy_balance_error_at_lnSb, 
+                        lnSb,
+                        **options,
+                    )
+                    if safe:
+                        Sb = np.exp(result.x).reshape([self.N_stages, self._N_chemicals])
+                    else:
+                        self._Sb[Sb_index] = np.exp(result.x).reshape([len(Sb_index), self._N_chemicals])
+                        Sb = self._Sb
+                    self.set_flow_rates(
+                        estimate_top_flow_rates(Sb, *self._iter_args, safe)
+                    )
             else:
                 raise RuntimeError(
                     f'invalid algorithm {algorithm!r}, only {self.available_algorithms} are allowed'
@@ -1887,6 +1837,7 @@ class MultiStageEquilibrium(Unit):
             for i in stages:
                 for s in i.splitters: s._run()
         for i in partitions: i.IDs = IDs
+        self.interpolate_missing_variables()
         return self.run_mass_balance()
     
     def get_energy_balance_temperature_departures(self):
@@ -2068,69 +2019,56 @@ class MultiStageEquilibrium(Unit):
                 partition.K = Ks[i]
                 if lle: partition.gamma_y = gamma_y[i]
     
-    def set_KTBs(self, KTBs):
-        if (KTBs <= 0.).any() or not np.isfinite(KTBs).all():
-            raise RuntimeError('infeasible equilibrium condition')
-        lle = self._has_lle
-        N_stages = self.N_stages 
-        N_chemicals = self._N_chemicals
-        N_flows = N_stages * N_chemicals
-        K = KTBs[:N_flows]
-        if lle: Ts = KTBs[N_flows:-N_stages]
-        Bs = KTBs[-N_stages:]
-        K = K.reshape([N_stages, N_chemicals])
-        partitions = self.partitions
-        N_chemicals = self._N_chemicals
-        for i, partition in enumerate(partitions):
-            if partition.B_specification is None: partition.B = Bs[i]
-            if lle: partition.T = Ts[i]
-            partition.K = K[i]
-    
-    def get_KTBs(self):
-        lle = self._has_lle
-        N_stages = self.N_stages
-        N_chemicals = self._N_chemicals
-        N_flows = N_stages * N_chemicals
-        KTBs = np.zeros(N_flows + (1 + lle) * N_stages)
-        if lle: Ts = KTBs[N_flows:-N_stages]
-        Bs = KTBs[-N_stages:]
-        last_index = 0
-        new_index = N_chemicals
-        for i, partition in enumerate(self.partitions):
-            KTBs[last_index: new_index] = partition.K
-            if lle: Ts[i] = partition.T
-            if partition.B_specification is None:
-                Bs[i] = partition.B
-            else:
-                Bs[i] = 0 # It doesnt matter, but it cannot be infinite
-            last_index = new_index
-            new_index += N_chemicals
-        return KTBs
-    
-    def _overall_error(self, top_flow_rates):
+    def _energy_balance_error_at_top_flow_rates(self, top_flow_rates):
         self._iter(
             top_flow_rates.reshape([self.N_stages, self._N_chemicals])
         ).flatten()
-        H_out = np.array([i.H_out for i in self.stages])
-        H_in = np.array([i.H_in for i in self.stages])
+        H_out = np.array([i.H_out for i in self.stages if i.B_specification is None])
+        H_in = np.array([i.H_in for i in self.stages if i.B_specification is None])
         diff = H_out - H_in
-        diff_mask = np.abs(diff) > 1e-12
-        diff = diff[diff_mask]
-        denominator = H_out[diff_mask]
-        H_in = H_in[diff_mask]
-        denominator_mask = np.abs(denominator) < 1e-12
-        denominator[denominator_mask] = H_in[denominator_mask]
-        errors = diff / denominator
+        C = np.array([sum([j.C for j in i.outs]) for i in self.stages if i.B_specification is None])
+        errors = diff / C
         MSE = (errors * errors).sum()
         return MSE
     
-    def _iter(self, variables, KTBs=False):
+    def _energy_balance_error_at_lnSb(self, lnSb):
         self.iter += 1
-        if KTBs:
-            self.set_KTBs(variables)
-            top_flow_rates = self.run_mass_balance()
+        Sb_index = self._Sb_index
+        if Sb_index:
+            Sb = self._Sb
+            lnSb = lnSb.reshape([len(Sb_index), self._N_chemicals])
+            Sb[Sb_index] = np.exp(lnSb)
+            top_flow_rates = estimate_top_flow_rates(
+                Sb, *self._iter_args, False
+            )
         else:
-            top_flow_rates = variables
+            lnSb = lnSb.reshape([self.N_stages, self._N_chemicals])
+            Sb = np.exp(lnSb)
+            top_flow_rates = estimate_top_flow_rates(
+                Sb, *self._iter_args, True
+            )
+        if not self._has_vle: raise NotImplementedError('only VLE objective function exists')
+        self.set_flow_rates(top_flow_rates)
+        P = self.P
+        for i in self.stages:
+            mixer = i.mixer
+            partition = i.partition
+            mixer.outs[0].mix_from(
+                mixer.ins, energy_balance=False,
+            )
+            partition._run_decoupled_KTvle(P=P)
+            T = partition.T
+            for i in (partition.outs + i.outs): i.T = T
+        H_out = np.array([i.H_out for i in self.stages if i.B_specification is None])
+        H_in = np.array([i.H_in for i in self.stages if i.B_specification is None])
+        diff = H_out - H_in
+        C = np.array([sum([j.C for j in i.outs]) for i in self.stages if i.B_specification is None])
+        errors = diff / C
+        MSE = (errors * errors).sum() / self.N_stages
+        return MSE
+    
+    def _iter(self, top_flow_rates):
+        self.iter += 1
         stages = self.stages
         P = self.P
         if self._has_vle:
@@ -2177,16 +2115,21 @@ class MultiStageEquilibrium(Unit):
                 partition._run_decoupled_B()
             self.update_energy_balance_temperatures()
         if self.inside_out and self._has_vle:
+            raise NotImplementedError('inside-out algorithm not implemented in BioSTEAM (yet)')
             self.update_mass_balance()
             N_stages = self.N_stages
             N_chemicals = self._N_chemicals
             T = np.zeros(N_stages)
+            B = np.zeros(N_stages)
+            K = np.zeros([N_stages, N_chemicals])
             hv = T.copy()
             hl = T.copy()
             specification_index = []
             for i, j in enumerate(self.partitions):
                 top, bottom = j.outs
                 T[i] = j.T
+                B[i] = j.B
+                K[i] = j.K
                 if bottom.isempty():
                     top.phase = 'l'
                     hl[i] = top.h
@@ -2199,24 +2142,40 @@ class MultiStageEquilibrium(Unit):
                     bottom.phase = 'l'
                 else:
                     hv[i] = top.h
-                if j.B_specification is not None: specification_index.append(i)
-            variables = solve_inside_loop(
-                self.get_KTBs(), T, hv, hl, self.feed_flows,
+                if j.B_specification is not None or j.T_specification: specification_index.append(i)
+            Sb, safe = bottoms_stripping_factors_safe(B, K)
+            top_flows = estimate_top_flow_rates(
+                Sb, 
+                self.feed_flows,
+                self._asplit_1,
+                self._bsplit_1,
+                N_stages,
+                safe,
+            )
+            if safe:
+                Sb_index = None
+                lnSb = np.exp(Sb).flatten()
+            else:
+                Sb_index = [
+                    i for i, j in enumerate(self.partitions)
+                    if not (j.B_specification == 0 or j.B_specification == np.inf)
+                ]
+                Sb_init = Sb[Sb_index]
+                lnSb = np.exp(Sb_init).flatten()
+            result = solve_inside_loop(
+                lnSb, Sb, Sb_index, top_flows, K, B, T, hv, hl, self.feed_flows,
                 self._asplit_1, self._bsplit_1, 
                 self._asplit_left, self._bsplit_left,
                 N_stages, np.array(specification_index, int),
                 N_chemicals,
                 self.feed_enthalpies
             )
-            if KTBs:
-                return variables
+            if safe:
+                Sb = np.exp(result.x).reshape([N_stages, N_chemicals])
             else:
-                self.set_KTBs(variables)
-                return self.run_mass_balance()
-        elif KTBs:
-            return self.get_KTBs()
-        else:
-            return self.run_mass_balance()
+                Sb[Sb_index] = np.exp(result.x).reshape([len(Sb_index), N_chemicals])
+            return estimate_top_flow_rates(Sb, *self._iter_args, safe)
+        return self.run_mass_balance()
 
     def get_top_flow_rates_flat(self):
         N_chemicals = self._N_chemicals
@@ -2258,12 +2217,6 @@ class MultiStageEquilibrium(Unit):
         else:
             not_converged = False
         return top_flow_rates_new, not_converged
-
-    def _root_iter(self, KTBs):
-        KTBs_new = self._iter(
-            KTBs, True,
-        )
-        return KTBs_new - KTBs
 
     def _sequential_iter(self, top_flow_rates):
         self.fallback_iter += 1
@@ -2597,6 +2550,8 @@ def top_flow_rates(
         top_flows = solve_TDMA_2D_careful(a, b, c, d, bsplit_1)
     return top_flows
 
+estimate_top_flow_rates = top_flow_rates
+
 @njit(cache=True)
 def bottom_flow_rates(
         top_flows, feed_flows, asplit_left, bsplit_left,
@@ -2802,14 +2757,12 @@ def fit(x, y):
 
 @njit(cache=True)
 def fit_partition_model(T, Kb):
+    # TODO: update to use adjacent stages
     x = 1 / T
     y = np.log(Kb)
-    xdiff = np.diff(x)
-    ydiff = np.diff(y)
+    m, b = fit(x, y)
     M = y.copy()
-    M[:-1] = ydiff / xdiff
-    M[-1] = M[-2]
-    M[-2] = (M[-3] + M[-1]) / 2
+    M[:] = m
     B = y - M * x
     return M, B
 
@@ -2822,44 +2775,28 @@ def T_approx(Kb, m, b):
     return m / (np.log(Kb) - b)
 
 def solve_inside_loop(
-        KB, T, hv, hl, feed_flows,
+        lnSb, Sb, Sb_index, top_flows, K, B, T, hv, hl, feed_flows,
         asplit_1, bsplit_1, asplit_left, bsplit_left,
         N_stages, specification_index, N_chemicals, H_feeds
     ):
     correct_stages = np.ones(N_stages, bool)
-    args = inside_loop_args(
-            KB, T, hv, hl, feed_flows,
-            asplit_1, bsplit_1, asplit_left, bsplit_left,
-            N_stages, specification_index, N_chemicals, H_feeds,
-            correct_stages
-        )
+    args = (
+        *inside_loop_args(top_flows, K, T, hv, hl),
+        feed_flows, asplit_1, bsplit_1,
+        asplit_left, bsplit_left, N_stages, 
+        specification_index, N_chemicals, H_feeds,
+        correct_stages, Sb, Sb_index,
+    )
     # result = root(inside_loop, KB.flatten(), 
     #               options=dict(ftol=1e-6), args=args)
     # print(result.x)
-    KB_new = flx.fixed_point(inside_loop, KB.flatten(), xtol=1e-6, args=args, checkiter=False)
     # print(KB_new)
-    return KB_new
+    return minimize(inside_loop_enthalpy_error, lnSb, method='CG', args=args)
    
 @njit(cache=True)
 def inside_loop_args(
-        KB, T, hv, hl, feed_flows,
-        asplit_1, bsplit_1, asplit_left, bsplit_left,
-        N_stages, specification_index, N_chemicals, H_feeds,
-        correct_stages,
+        top_flows, K, T, hv, hl
     ):
-    N_flows = N_stages * N_chemicals
-    K = KB[:N_flows]
-    B = KB[N_flows:]
-    K = K.reshape((N_stages, N_chemicals))
-    Sb, safe = bottoms_stripping_factors_safe(B, K)
-    top_flows = top_flow_rates(
-        Sb, 
-        feed_flows,
-        asplit_1,
-        bsplit_1,
-        N_stages,
-        safe,
-    )
     dummy = top_flows.sum(axis=1)
     dummy[dummy == 0] = 1
     y = top_flows / np.expand_dims(dummy, -1)
@@ -2868,23 +2805,21 @@ def inside_loop_args(
     hv_coef = fit(T, hv)
     hl_coef = fit(T, hl)
     alpha = alpha_approx(K, np.expand_dims(Kb, -1))
-    return (alpha, Kb_coef, hv_coef, hl_coef, 
-            feed_flows, asplit_1, bsplit_1,
-            asplit_left, bsplit_left, N_stages, 
-            specification_index, N_chemicals, H_feeds,
-            correct_stages)
+    return alpha, Kb_coef, hv_coef, hl_coef
     
-@njit(cache=True)
-def inside_loop(KB, alpha, Kb_coef, hv_coef, hl_coef, 
-                feed_flows, asplit_1, bsplit_1,
-                asplit_left, bsplit_left, N_stages, 
-                specification_index, N_chemicals, H_feeds,
-                correct_stages):
-    N_flows = N_stages * N_chemicals
-    K = KB[:N_flows]
-    B = KB[N_flows:]
-    K = K.reshape((N_stages, N_chemicals))
-    Sb, safe = bottoms_stripping_factors_safe(B, K)
+# @njit(cache=True)
+def inside_loop_enthalpy_error(
+        lnSb, alpha, Kb_coef, hv_coef, hl_coef, 
+        feed_flows, asplit_1, bsplit_1,
+        asplit_left, bsplit_left, N_stages, 
+        specification_index, N_chemicals, H_feeds,
+        correct_stages, Sb, Sb_index,
+    ):
+    safe = Sb_index is None
+    if safe: 
+        Sb = np.exp(lnSb).reshape([N_stages, N_chemicals])
+    else:
+        Sb[Sb_index] = np.exp(lnSb).reshape([len(Sb_index), N_chemicals])
     top_flows = top_flow_rates(
         Sb, 
         feed_flows,
@@ -2904,26 +2839,22 @@ def inside_loop(KB, alpha, Kb_coef, hv_coef, hl_coef,
     x = bottom_flows / dummy[:, np.newaxis]
     dummy = top_flows_net.copy()
     dummy[dummy == 0] = 1e-12
-    y = top_flows / dummy[:, np.newaxis]
-    mask = (x == 0)
-    for i in mask: x[i] =  y[i] / K[i]
     Kb = Kb_iter(alpha, x)
-    KB_new = KB.copy()
-    last_index = 0
-    new_index = N_chemicals
-    for row in (alpha * Kb[:, np.newaxis]):
-        KB_new[last_index: new_index] = row
-        new_index = last_index + N_chemicals
     T = T_approx(Kb, *Kb_coef)
-    T.sort()
+    print(T)
     hv = h_approx(T, *hv_coef)
     hl = h_approx(T, *hl_coef)
-    KB_new[N_flows:] = B + phase_ratio_departures(
-        bottom_flows_net, top_flows_net, hl, hv, asplit_1, 
-        asplit_left, bsplit_left, N_stages,
-        specification_index, H_feeds
-    )
-    return KB_new
+    print(hl)
+    Hl_out = hl * bottom_flows_net
+    Hv_out = hv * top_flows_net
+    d = H_feeds - Hl_out - Hv_out
+    Hl_in = (Hl_out * bsplit_left)[:-1]
+    Hv_in = (Hv_out * asplit_left)[1:]
+    d[1:] += Hl_in
+    d[:-1] += Hv_in
+    for i in specification_index: d[i] = 0
+    print(np.abs(d).sum())
+    return np.abs(d).sum() 
     
     
     

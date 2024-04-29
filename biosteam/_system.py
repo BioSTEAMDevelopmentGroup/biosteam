@@ -53,13 +53,13 @@ if TYPE_CHECKING:
 
 __all__ = ('System', 'AgileSystem', 'MockSystem',
            'AgileSystem', 'OperationModeResults',
-           'mark_disjunction', 'unmark_disjunction',
-           'solve_variable')
+           'mark_disjunction', 'unmark_disjunction')
 
 def _reformat(name):
     name = name.replace('_', ' ')
     if name.islower(): name= name.capitalize()
     return name
+
 
 # %% System specification
 
@@ -73,60 +73,88 @@ class SystemSpecification:
     def __call__(self): self.f(*self.args)
 
 
+# %% Reconfiguration for phenomena oriented simulation
+
+class Configuration:
+    __slots__ = ('stages', 'nodes', 'streams', 'stream_ref', 'connections')
+    
+    def __init__(self, stages, nodes, streams, stream_ref, connections):
+        self.stages = stages
+        self.nodes = nodes
+        self.streams = streams
+        self.stream_ref = stream_ref
+        self.connections = connections
+        
+    def solve_variable(self, variable):
+        leqs = LinearEquations(variable, self.nodes, self.stream_ref)
+        return leqs.solve()
+        
+    def __enter__(self):
+        units = self.stages
+        streams = self.streams
+        sinks = {}
+        sources = {}
+        for u in units:
+            for i in u.ins: 
+                i._sink = u
+                assert i.sink is u
+                sinks[i.imol] = u
+            for i in u.outs: 
+                i._source = u
+                assert i.source is u
+                sources[i.imol] = u
+        units_set = set(units)
+        for i in streams:
+            if i.source and i.source not in units_set: i._source = sources[i.imol]
+            if i.sink and i.sink not in units_set: i._sink = sinks[i.imol]
+        return self
+    
+    def __exit__(self, type, exception, traceback):
+        for s, source, sink in self.connections:
+            s._source = source
+            s._sink = sink
+        if exception: raise exception
+            
+
 # %% Phenomenological convergence tools
 
-def solve_variable(units, variable):
-    leqs = LinearEquations(variable, units)
-    return leqs.solve()
-
 class LinearEquations:
-    __slots__ = ('variable', 'A', 'b', 'units')
+    __slots__ = ('variable', 'A', 'b', 'nodes', 'node_set', 'streams')
     
-    def __init__(self, variable, units=None):
+    def __init__(self, variable, nodes, streams):
         self.variable = variable
         self.A = []
         self.b = []
-        self.units = []
-        if units: self.extend(units)
+        self.nodes = []
+        self.streams = streams
+        self.node_set = set(nodes)
+        self.extend(nodes)
         
-    def append(self, unit):
+    def append(self, node):
         A = self.A; b = self.b
-        self.units.append(unit)
-        # zero = np.array(0)
-        for coefficients, value in unit._create_linear_equations(self.variable):
-            # if all([(i == zero).all() for i in coefficients.values()]):
-            #     continue
-            for stream in tuple(coefficients):
-                if not hasattr(stream, 'port'): 
-                    while hasattr(stream, '_original'):
-                        remove = stream
-                        stream = stream._original
-                        coef = coefficients.pop(remove)
-                        coefficients[stream] = coef
-                        assert remove not in coefficients
-                    continue
-                remove = stream
-                stream = stream.port.get_stream()
-                while hasattr(stream, 'port'): stream = stream.port.get_stream()                    
-                while hasattr(stream, '_original'): stream = stream._original
-                coef = coefficients.pop(remove)
-                coefficients[stream] = coef
-                assert remove not in coefficients
-            # print(unit)
-            # for i, j in coefficients.items():
-            #     if np.isnan(j).any(): breakpoint()
-            #     print(i, j)
+        self.nodes.append(node)
+        streams = self.streams
+        for coefficients, value in node._create_linear_equations(self.variable):
+            coefficients = {
+                streams[i.imol] if isinstance(i, bst.AbstractStream) else i: j
+                for i, j in coefficients.items()
+            }
+            try:
+                for i in coefficients: assert (i in self.node_set or i.imol in streams)
+            except:
+                breakpoint()
+                node._create_linear_equations(self.variable)
             A.append(coefficients)
             b.append(value)
     
-    def extend(self, units):
-        for i in units: self.append(i)
+    def extend(self, nodes):
+        for i in nodes: self.append(i)
         
     def solve(self):
         b = self.b
         variable = self.variable
         # if variable == 'equilibrium':
-        #     for i in self.units:
+        #     for i in self.nodes:
         #         if hasattr(i, 'B'): print(i, i.B, i.K)
         A, objs = dictionaries2array(self.A)
         # if A.ndim == 3:
@@ -165,7 +193,7 @@ class LinearEquations:
         for obj, value in zip(objs, values): 
             obj._update_decoupled_variable(variable, value)
         if variable == 'material':
-            for i in self.units: 
+            for i in self.nodes: 
                 if hasattr(i, '_update_auxiliaries'):
                     i._update_auxiliaries()
                 elif hasattr(i, 'stages'):
@@ -646,7 +674,7 @@ class System:
         '_LCA',
         '_subsystems',
         '_stages',
-        '_stages_set',
+        '_aggregated_stages',
         '_units',
         '_unit_set',
         '_unit_path',
@@ -665,6 +693,9 @@ class System:
         '_simulation_outputs',
         # Convergence prediction
         '_responses',
+        # Phenomena oriented simulation
+        '_aggregated_stage_configuration',
+        '_stage_configuration',
         # Dynamic simulation
         '_isdynamic',
         '_state',
@@ -1626,11 +1657,10 @@ class System:
     __pow__ = __sub__
     __rpow__ = __rsub__
 
-    def _get_source_stage(self, stream):
+    def _get_source_stage(self, stream, stages_set):
         parent_source = stream.source
         if parent_source is None: return None
         ID = stream.ID
-        stages_set = self.stages_set
         while parent_source not in stages_set:
             IDs = [i.ID for i in parent_source.outs]
             index = IDs.index(ID)
@@ -1639,9 +1669,9 @@ class System:
             if parent_source is None: break
         return parent_source
     
-    def _get_sink_stage(self, stream):
+    def _get_sink_stage(self, stream, stages_set):
         parent_sink = stream.sink
-        if parent_sink in self.stages_set:
+        if parent_sink in stages_set:
             return parent_sink
         else:
             index = parent_sink.ins.index(stream)
@@ -1664,16 +1694,18 @@ class System:
         except:
             self._stages = stages = []
             for i in self.units:
-                stages.extend(i.aggregated_stages)
+                stages.extend(getattr(i, 'stages', [i]))
             return stages
 
     @property
-    def stages_set(self):
+    def aggregated_stages(self):
         try:
-            return self._stages_set
+            return self._aggregated_stages
         except:
-            self._stages_set = stages_set = set(self.stages)
-            return stages_set
+            self._aggregated_stages = aggregated_stages = []
+            for i in self.units:
+                aggregated_stages.extend(getattr(i, 'aggregated_stages', [i]))
+            return aggregated_stages
 
     @property
     def units(self) -> list[Unit]:
@@ -2258,22 +2290,63 @@ class System:
             elif isa(i, System): f(i, i.converge)
             else: raise RuntimeError('path elements must be either a unit or a system')
 
+    def stage_configuration(self, aggregated=False):
+        try:
+            if aggregated:
+                return self._aggregated_stage_configuration
+            else:
+                return self._stage_configuration
+        except:
+            feeds = [i for i in self.feeds if i.equations]
+            stages = self.stages
+            streams = list(set([i for s in stages for i in s.ins + s.outs]))
+            connections = [(i, i.source, i.sink) for i in streams]
+            if aggregated:
+                stages = self.aggregated_stages
+                nodes = stages + feeds
+                streams = [i for u in stages for i in u.ins + u.outs]
+                stream_ref = {i.imol: i for u in stages for i in (*u.ins, *u.outs)}
+                self._aggregated_stage_configuration = conf = Configuration(
+                    stages, nodes, streams, stream_ref, connections
+                )
+            else:
+                nodes = stages + feeds
+                stream_ref = {i.imol: i for i in streams}
+                self._stage_configuration = conf = Configuration(
+                    stages, nodes, streams, stream_ref, connections
+                )
+            return conf
+
     def run_phenomena(self):
         """Decouple and linearize material, equilibrium, summation, enthalpy,
         and reaction phenomena and iteratively solve them."""
-        stages = self.stages + self.feeds
         # for i in self.unit_path: i.run()
         # for variable in ('material', 'energy', 'material'): solve_variable(stages, variable)
+        path = self.unit_path
         try:
-            unit_path = self.unit_path
-            for n, i in enumerate(unit_path):
+            for n, i in enumerate(path):
                 i.run()
-                for variable in ('material', 'energy'): solve_variable(stages, variable)
+                try:
+                    with self.stage_configuration() as conf:
+                        for variable in ('material', 'energy'): conf.solve_variable(variable)
+                    # print('good!1')
+                except:
+                    # print('Ohh no!1', variable, 'could not solve')
+                    with self.stage_configuration(aggregated=True) as conf:
+                        for variable in ('material', 'energy'): conf.solve_variable(variable)
         except:
-            for i in unit_path[n+1:]: i.run()
+            for i in path[n+1:]: i.run()
         for i in self.stages: 
             if getattr(i, 'phases', None) == ('g', 'l'): i._create_linear_equations('equilibrium')
-        for variable in ('material', 'energy', 'material', 'temperature'): solve_variable(stages, variable)
+        try:
+            with self.stage_configuration() as conf:
+                for variable in ('material', 'energy'): conf.solve_variable(variable)
+            # print('good!2')
+        except: 
+            # print('Ohh no!2', variable, 'could not solve')
+            with self.stage_configuration(aggregated=True) as conf:
+                for variable in ('material', 'energy'): conf.solve_variable(variable)
+            
         
     def _solve(self):
         """Solve the system recycle iteratively."""

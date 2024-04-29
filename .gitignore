@@ -2,6 +2,8 @@ build
 dist
 biosteam.egg-info
 biosteam/thermosteam/preferences.yaml
+biosteam/benchmark/images/*
+biosteam/benchmark/simulations/*
 **/__pycache__
 **/.ipynb_checkpoints
 *.pyc

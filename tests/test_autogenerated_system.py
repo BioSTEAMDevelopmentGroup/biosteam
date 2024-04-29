@@ -85,6 +85,27 @@ def test_simple_recycle_loop():
     assert_allclose(x_nested_solution, x_flat_solution, rtol=2e-2)
     f.clear()
 
+def test_single_unit_recycle_loop():
+    f.set_flowsheet('single_unit_recycle_loop')
+    settings.set_thermo(['Water', 'Ethanol'], cache=True)
+    feed = Stream('feed', Water=1000, Ethanol=500)
+    recycle = Stream('liquid_recycle')
+    liquid_product = Stream('liquid_product')
+    vapor_product = Stream('vapor_product')
+    stage = bst.StageEquilibrium(
+        'stage', ins=[feed, recycle], outs=[vapor_product, recycle, liquid_product], 
+        B=1, bottom_split=0.4, phases=('g', 'l')
+    )
+    single_unit_recycle_loop_sys = f.create_system('single_unit_recycle_loop_sys')
+    network = single_unit_recycle_loop_sys._to_network()
+    actual_network = Network(
+        [stage], recycle=recycle
+    )
+    assert network == actual_network
+    solution = [583.103718, 59.391173]
+    single_unit_recycle_loop_sys.simulate()
+    assert_allclose(solution, recycle.mol, rtol=2e-2)
+
 def test_unconnected_case():
     f.set_flowsheet('unconnected_case')
     settings.set_thermo(['Water'], cache=True)
@@ -692,6 +713,7 @@ if __name__ == '__main__':
     test_linear_case()
     test_unconnected_case()
     test_simple_recycle_loop()
+    test_single_unit_recycle_loop()
     test_unconnected_recycle_loop()
     test_unconnected_recycle_loops()
     test_inner_recycle_loop()

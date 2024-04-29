@@ -338,8 +338,8 @@ def get_all_connections(streams, added_connections=None):
     if added_connections is None: added_connections = set()
     connections = []
     originals = {}
-    superinlet = lambda s: s.__class.__name__ == 'SuperpositionInlet'
-    superoutlet = lambda s: s.__class.__name__ == 'SuperpositionOutlet'
+    superinlet = lambda s: s.__class__.__name__ == 'SuperpositionInlet'
+    superoutlet = lambda s: s.__class__.__name__ == 'SuperpositionOutlet'
     for s in streams:
         original = s
         while hasattr(original, 'port'):
