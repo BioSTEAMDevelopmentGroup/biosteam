@@ -20,7 +20,7 @@ from math import pi
 import numpy as np
 from scipy.constants import g
 import flexsolve as flx
-from warnings import catch_warnings
+from warnings import filterwarnings, catch_warnings
 from scipy.optimize import minimize_scalar, minimize, least_squares
 from biosteam.units.design_tools import aeration
 
@@ -582,7 +582,8 @@ class GasFedBioreactor(StirredTankReactor):
                 return total_power
             
             f = total_power_at_substrate_flow
-            with catch_warnings(action='ignore'):
+            with catch_warnings():
+                filterwarnings('ignore')
                 results = minimize(f, 1.2 * SURs, bounds=bounds, tol=SURs.max() * 1e-6)
                 load_flow_rates(results.x / x_substrates)
         else:
@@ -598,9 +599,11 @@ class GasFedBioreactor(StirredTankReactor):
             
             f = gas_flow_rate_objective
             bounds = bounds.T
-            with catch_warnings(action='ignore'):
+            with catch_warnings():
+                filterwarnings('ignore')
                 results = least_squares(f, 1.2 * SURs, bounds=bounds, ftol=SURs.min() * 1e-6)
-                load_flow_rates(results.x / x_substrates)
+            load_flow_rates(results.x / x_substrates)
+            
         
         # self.show()
         # breakpoint()
