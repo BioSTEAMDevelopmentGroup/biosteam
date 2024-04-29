@@ -2411,11 +2411,11 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     Electricity         Power                           kW     0.918
                         Cost                        USD/hr    0.0718
     Cooling water       Duty                         kJ/hr -9.13e+06
-                        Flow                       kmol/hr  6.24e+03
+                        Flow                       kmol/hr  6.23e+03
                         Cost                        USD/hr      3.04
-    Low pressure steam  Duty                         kJ/hr  9.63e+06
+    Low pressure steam  Duty                         kJ/hr  9.62e+06
                         Flow                       kmol/hr       249
-                        Cost                        USD/hr      59.2
+                        Cost                        USD/hr      59.1
     Design              Theoretical stages                         5
                         Actual stages                              6
                         Height                          ft      22.9
@@ -2430,7 +2430,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                         Pump - Motor                   USD       390
                         Reboiler - Floating head       USD  2.41e+04
     Total purchase cost                                USD  1.17e+05
-    Utility cost                                    USD/hr      62.3
+    Utility cost                                    USD/hr      62.2
     
     Notes
     -----

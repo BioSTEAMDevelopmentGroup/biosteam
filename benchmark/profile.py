@@ -215,9 +215,10 @@ def plot_benchmark(systems=None, N=10, load=True, save=True):
         sm = dct_mean_std(sms, keys)
         po = dct_mean_std(pos, keys)
         system_results.append((sm, po))
-    results = {i: np.zeros([n_systems, 2]) for i in keys}
+    # Assume only time matters from here on
+    results = np.zeros([n_systems, 2])
     for i, (sm, po) in enumerate(system_results):
-        for key in keys: results[key][i] = uncertainty_percent(po[key], sm[key])
+        results[i] = uncertainty_percent(po['Time'], sm['Time'])
     csm = Color(fg='#33BBEE').RGBn
     cpo = Color(fg='#EE7733').RGBn
     mean, std = results['Time'].T
@@ -226,12 +227,12 @@ def plot_benchmark(systems=None, N=10, load=True, save=True):
     xticks = list(range(n_systems))
     xticklabels = []
     for sys in systems:
-        names = sys.split('_')
+        names = sys.upper().split('_')
         xticklabels.append(
-            ''.join([i[0].upper()])
+            ''.join([i[0] for i in names])
         )
-    plt.ylabel('Time [s]')
-    plt.plot()
+    plt.ylabel('Time [% Sequential modular]')
+    plt.scatter()
     bst.utils.style_axis(
         ax, xticks=xticks, yticks=yticks,
         xticklabels=xticklabels,
