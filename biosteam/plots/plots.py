@@ -784,8 +784,7 @@ def plot_montecarlo(data,
             plt.scatter(x=data.max(axis=0), y=positions, marker='2', c=[dark_color])
     if xmarks: plt.xticks(positions, xmarks)
     if hatch:
-        for box in bx['boxes']:
-            box.set(hatch = hatch)
+        for box in bx['boxes']: box.set(hatch = hatch)
     return bx
 
 def plot_montecarlo_across_coordinate(xs, ys, 

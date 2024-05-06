@@ -141,6 +141,8 @@ class VacuumSystem(Auxiliary):
             if vessel_volume is None:
                 if 'Total volume' in unit.design_results:
                     vessel_volume = unit.get_design_result('Total volume', 'm3')
+                elif 'Volume' in unit.design_results:
+                    vessel_volume = unit.get_design_result('Volume', 'm3')
                 else:
                     raise ValueError("'Total volume' was not found in design results; "
                                      "'vessel_volume' parameter could not be deduced")

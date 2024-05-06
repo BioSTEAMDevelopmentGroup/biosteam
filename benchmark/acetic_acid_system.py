@@ -15,7 +15,7 @@ __all__ = (
 
 @register(
     'acetic_acid_simple', 'Acetic acid\ndistillation & liquid extraction',
-    10, [0, 2, 4, 6, 8, 10]
+    10, [0, 2, 4, 6, 8, 10], 'Liq. ext. &\ndistillation'
 )
 def create_acetic_acid_simple_system(alg):
     solvent_feed_ratio = 1
@@ -77,7 +77,7 @@ def create_acetic_acid_simple_system(alg):
 
 @register(
     'acetic_acid_complex', 'Glacial acetic acid\npurification',
-    80, [0, 10, 20, 30, 40, 50, 60, 70, 80],
+    80, [0, 10, 20, 30, 40, 50, 60, 70, 80], 'AcOH\nsep.'
 )
 def create_acetic_acid_complex_system(alg):
     thermo = bst.Thermo(['Water', 'AceticAcid', 'EthylAcetate'], cache=True)

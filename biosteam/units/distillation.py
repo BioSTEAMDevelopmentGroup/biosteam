@@ -1463,6 +1463,89 @@ class BinaryDistillation(Distillation, new_graphics=False):
         plt.show()
         return plt
 
+    def _create_material_balance_equations(self):
+        inlets = self.ins
+        fresh_inlets = [i for i in inlets if i.isfeed()]
+        process_inlets = [i for i in inlets if not i.isfeed()]
+        top, bottom, *_ = self.outs
+        equations = []
+        ones = np.ones(self.chemicals.size)
+        minus_ones = -ones
+        zeros = np.zeros(self.chemicals.size)
+        
+        # Overall flows
+        eq_overall = {}
+        if np.isnan(self.B): self.run()
+        try:
+            S = self.K * self.B
+        except:
+            self._create_linear_equations('equilibrium')
+            S = self.K * self.B
+        for i in self.outs: eq_overall[i] = ones
+        for i in process_inlets: eq_overall[i] = minus_ones
+        equations.append(
+            (eq_overall, sum([i.mol for i in fresh_inlets], zeros))
+        )
+        
+        # Top to bottom flows
+        B = self.B
+        eq_outs = {}
+        if B == np.inf:
+            eq_outs[bottom] = ones
+        elif B == 0:
+            eq_outs[top] = ones
+        else:
+            S = self.K * B
+            eq_outs[top] = ones
+            eq_outs[bottom] = -S
+        equations.append(
+            (eq_outs, zeros)
+        )
+        return equations
+    
+    def _create_linear_equations(self, variable):
+        # list[dict[Unit|Stream, float]]
+        if not hasattr(self, 'B'):
+            outs = top, bottom = self.outs
+            if bottom.isempty():
+                self.B = np.inf
+            elif top.isempty():
+                self.B = 0
+            else:
+                self.B = top.F_mol / bottom.F_mol
+        if variable == 'equilibrium':
+            outs = top, bottom = self.outs
+            data = [i.get_data() for i in outs]
+            self.run()
+            Ts = [i.T for i in outs]
+            if bottom.isempty():
+                self.B = np.inf
+                self.K = 1e16 * np.ones(self.chemicals.size)
+            elif top.isempty():
+                self.K = np.zeros(self.chemicals.size)
+                self.B = 0
+            else:
+                top_mol = top.mol.to_array()
+                bottom_mol = bottom.mol.to_array()
+                F_top = top_mol.sum()
+                F_bottom = bottom_mol.sum()
+                y = top_mol / F_top
+                x = bottom_mol / F_bottom
+                x[x <= 0] = 1e-16
+                self.K = y / x
+                self.B = F_top / F_bottom
+            for i, j, T in zip(outs, data, Ts): 
+                i.set_data(j)
+                i.T = T
+            eqs = []
+        elif variable == 'material':
+            eqs = self._create_material_balance_equations()
+        else:
+            eqs = []
+        return eqs
+    
+    def _update_decoupled_variable(self, variable, value):
+        raise RuntimeError(f'invalid variable {variable!r}')
 
 
 # %% Fenske-Underwook-Gilliland distillation model utilities
@@ -1690,9 +1773,6 @@ class ShortcutColumn(Distillation, new_graphics=False):
         checkconvergence=False, 
         convergenceiter=3,
     )
-    @property
-    def phases(self):
-        return [i.phase for i in self.outs]
     
     def reset_cache(self, isdynamic=None):
         self._vle_chemicals = None
@@ -1884,112 +1964,9 @@ class ShortcutColumn(Distillation, new_graphics=False):
         self._distillate_recoveries = distillate_recoveries
         return distillate_recoveries
     
-    def _create_material_balance_equations(self):
-        inlets = self.ins
-        fresh_inlets = [i for i in inlets if i.isfeed()]
-        process_inlets = [i for i in inlets if not i.isfeed()]
-        top, bottom, *_ = self.outs
-        equations = []
-        ones = np.ones(self.chemicals.size)
-        minus_ones = -ones
-        zeros = np.zeros(self.chemicals.size)
-        
-        # Overall flows
-        eq_overall = {}
-        if np.isnan(self.B): self.run()
-        S = self.K * self.B
-        for i in self.outs: eq_overall[i] = ones
-        for i in process_inlets: eq_overall[i] = minus_ones
-        equations.append(
-            (eq_overall, sum([i.mol for i in fresh_inlets], zeros))
-        )
-        
-        # Top to bottom flows
-        B = self.B
-        eq_outs = {}
-        if B == np.inf:
-            eq_outs[bottom] = ones
-        elif B == 0:
-            eq_outs[top] = ones
-        else:
-            S = self.K * B
-            eq_outs[top] = ones
-            eq_outs[bottom] = -S
-        equations.append(
-            (eq_outs, zeros)
-        )
-        return equations
-    
-    @property
-    def K(self):
-        try:
-            return self._K
-        except:
-            top, bottom = self.outs
-            if bottom.isempty():
-                self.B = np.inf
-                self._K = 1e16 * np.ones(self.chemicals.size)
-            elif top.isempty():
-                self._K = np.zeros(self.chemicals.size)
-                self.B = 0
-            else:
-                top_mol = top.mol.to_array()
-                bottom_mol = bottom.mol.to_array()
-                F_top = top_mol.sum()
-                F_bottom = bottom_mol.sum()
-                y = top_mol / F_top
-                x = bottom_mol / F_bottom
-                x[x <= 0] = 1e-16
-                self._K = y / x
-                self.B = F_top / F_bottom
-        return self._K
-    @K.setter
-    def K(self, K):
-        self._K = K
-    
-    def _create_linear_equations(self, variable):
-        # list[dict[Unit|Stream, float]]
-        if not hasattr(self, 'B'):
-            outs = top, bottom = self.outs
-            if bottom.isempty():
-                self.B = np.inf
-            elif top.isempty():
-                self.B = 0
-            else:
-                self.B = top.F_mol / bottom.F_mol
-        if variable == 'equilibrium':
-            outs = top, bottom = self.outs
-            data = [i.get_data() for i in outs]
-            self.run()
-            Ts = [i.T for i in outs]
-            if bottom.isempty():
-                self.B = np.inf
-                self.K = 1e16 * np.ones(self.chemicals.size)
-            elif top.isempty():
-                self.K = np.zeros(self.chemicals.size)
-                self.B = 0
-            else:
-                top_mol = top.mol.to_array()
-                bottom_mol = bottom.mol.to_array()
-                F_top = top_mol.sum()
-                F_bottom = bottom_mol.sum()
-                y = top_mol / F_top
-                x = bottom_mol / F_bottom
-                x[x <= 0] = 1e-16
-                self.K = y / x
-                self.B = F_top / F_bottom
-            for i, j, T in zip(outs, data, Ts): 
-                i.set_data(j)
-                i.T = T
-            eqs = []
-        elif variable == 'material':
-            eqs = self._create_material_balance_equations()
-        else:
-            eqs = []
-        return eqs
-    
-    def _update_decoupled_variable(self, variable, value):
-        raise RuntimeError(f'invalid variable {variable!r}')
+    _create_material_balance_equations = BinaryDistillation._create_material_balance_equations
+    _create_linear_equations = BinaryDistillation._create_linear_equations
+    _update_decoupled_variable = BinaryDistillation._update_decoupled_variable
 
 
 # %% Rigorous absorption/stripping column

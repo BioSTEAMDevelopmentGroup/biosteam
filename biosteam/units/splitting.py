@@ -19,9 +19,11 @@ This module contains unit operations for splitting flows.
 from .. import Unit
 from thermosteam._graphics import splitter_graphics
 from thermosteam import separations
+import biosteam as bst
+import numpy as np
 
 __all__ = ('Splitter', 'PhaseSplitter', 'FakeSplitter', 'MockSplitter',
-           'ReversedSplitter')
+           'ReversedSplitter', 'Separator')
 
 class Splitter(Unit):
     """
@@ -161,7 +163,6 @@ class Splitter(Unit):
         if isplit.chemicals is not feed.chemicals: self._reset_thermo(feed._thermo)
         feed.split_to(*self.outs, isplit.data)
 
-
 class PhaseSplitter(Unit):
     """
     Create a PhaseSplitter object that splits the feed to outlets by phase.
@@ -262,5 +263,137 @@ def reversed_split(inlet, outlets):
         out.P = P
         out.phase = phase 
 
-  
+
+class Separator(Unit):
+    _N_ins = 1
+    _N_outs = 2
+    _ins_size_is_fixed = False
+    
+    @property
+    def isplit(self):
+        """[ChemicalIndexer] Componentwise split of feed to 0th outlet stream."""
+        return self._isplit
+    @property
+    def split(self):
+        """[SparseArray] Componentwise split of feed to 0th outlet stream."""
+        return self._isplit.data
+    @split.setter
+    def split(self, values):
+        split = self.split
+        if split is not values:
+            split[:] = values
+    
+    def _init(self, split, order=None, T=None, P=None, phases=None):
+        self._isplit = self.thermo.chemicals.isplit(split, order)
+        self.T_specification = self.T = T
+        self.P = P
+        self.phases = phases
+        
+    def _run(self):
+        ins = self._ins
+        top, bottom = self._outs
+        top.mix_from(ins)
+        top.split_to(*self.outs, self._isplit.data)
+        if self.T_specification:
+            top.T = bottom.T = self.T_specification
+        if self.phases:
+            top.phase, bottom.phase = self.phases
+        if self.P:
+            top.P = bottom.P = self.P
+        
+    def _create_material_balance_equations(self):
+        inlets = self.ins
+        top, bottom = self.outs
+        equations = []
+        ones = np.ones(self.chemicals.size)
+        minus_ones = -ones
+        zeros = np.zeros(self.chemicals.size)
+        fresh_inlets = [i for i in inlets if i.isfeed() and not i.equations]
+        process_inlets = [i for i in inlets if not i.isfeed() or i.equations]
+        
+        # Overall flows
+        eq_overall = {}
+        for i in self.outs: 
+            eq_overall[i] = ones
+        for i in process_inlets:
+            if i in eq_overall: del eq_overall[i]
+            else: eq_overall[i] = minus_ones
+        equations.append(
+            (eq_overall, sum([i.mol for i in fresh_inlets], zeros))
+        )
+        
+        # Top and bottom flows
+        eq_outs = {}
+        split = self.split
+        for i in process_inlets: eq_outs[i] = split
+        rhs = sum([split * i.mol for i in fresh_inlets], zeros)
+        eq_outs[top] = minus_ones
+        equations.append(
+            (eq_outs, rhs)
+        )
+        return equations
+    
+    def _create_energy_departure_equations(self, temperature_only=False):
+        # Ll: C1dT1 - Ce2*dT2 - Cr0*dT0 - hv2*L2*dB2 = Q1 - H_out + H_in
+        # gl: hV1*L1*dB1 - hv2*L2*dB2 - Ce2*dT2 - Cr0*dT0 = Q1 + H_in - H_out
+        if self.T_specification: return []
+        if temperature_only:
+            coeff = {self: sum([i.C for i in self.outs])}
+            for i in self.ins:
+                source = i.source
+                if not source: continue
+                if (getattr(source, 'T_specification', None) is None
+                    and getattr(source, 'B_specification', None) is None):
+                    coeff[source] = -i.C
+                else:
+                    continue
+        else:
+            coeff = {self: sum([i.C for i in self.outs])}
+            for i in self.ins:
+                source = i.source
+                if not source: continue
+                if source.phases == ('g', 'l'):
+                    if i.phase != 'g': continue
+                    if getattr(source, 'B_specification', None) is not None: continue
+                    if hasattr(source, 'partition'):    
+                        vapor, liquid = source.partition.outs
+                        split = (1 - source.top_split) if vapor.imol is i.imol else source.top_split
+                        if vapor.isempty():
+                            liquid.phase = 'g'
+                            coeff[source] = liquid.H * split
+                            liquid.phase = 'l'
+                        else:
+                            coeff[source] = -vapor.h * liquid.F_mol * split
+                    elif isinstance(source, bst.MultiStageEquilibrium):
+                        vapor, liquid = source.outs
+                        if vapor.isempty():
+                            liquid.phase = 'g'
+                            coeff[source] = liquid.H
+                            liquid.phase = 'l'
+                        else:
+                            coeff[source] = -vapor.h * liquid.F_mol
+                elif getattr(source, 'T_specification', None) is None: 
+                    coeff[source] = -i.C
+                else:
+                    continue
+        return [(coeff, self.H_in - self.H_out + sum([i.Q for i in self.stages]))]
+    
+    def _create_linear_equations(self, variable):
+        # list[dict[Unit|Stream, float]]
+        if variable == 'material':
+            return self._create_material_balance_equations()
+        elif variable == 'energy':
+            eqs = self._create_energy_departure_equations()
+        elif variable == 'temperature':
+            eqs = self._create_energy_departure_equations(temperature_only=True)
+        elif variable == 'equilibrium':
+            eqs = []
+        else:
+            eqs = []
+        return eqs
+    
+    def _update_decoupled_variable(self, variable, value):
+        if variable in ('energy', 'temperature'):
+            self.T = T = self.T + value
+            for i in self.outs: i.T = T
     

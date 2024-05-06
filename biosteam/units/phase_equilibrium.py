@@ -126,7 +126,7 @@ class StageEquilibrium(Unit):
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
             phases, partition_data=None, top_split=0, bottom_split=0,
-            B=None, Q=None, T=None, top_chemical=None,
+            B=None, Q=None, T=None, top_chemical=None, P=None,
         ):
         self._N_outs = 2 + int(top_split) + int(bottom_split)
         self.phases = phases
@@ -159,6 +159,7 @@ class StageEquilibrium(Unit):
                 split=bottom_split, 
             )
         self.set_specification(B, Q, T)
+        self.P = P
     
     @property
     def Q(self):
@@ -188,6 +189,14 @@ class StageEquilibrium(Unit):
     def T(self, T):
         self.partition.T = T
         for i in self.partition.outs: i.T = T
+    
+    @property
+    def P(self):
+        return self.partition.P
+    @P.setter
+    def P(self, P):
+        self.partition.P = P
+        for i in self.partition.outs: i.P = P
     
     @property
     def T_specification(self):
@@ -301,7 +310,7 @@ class StageEquilibrium(Unit):
             for i in self.ins:
                 source = i.source
                 if not source: continue
-                if source.phases == ('g', 'l'):
+                if getattr(source, 'phases', None) == ('g', 'l'):
                     if i.phase != 'g': continue
                     if getattr(source, 'B_specification', None) is not None: continue
                     if hasattr(source, 'partition'):
@@ -321,7 +330,7 @@ class StageEquilibrium(Unit):
                             liquid.phase = 'l'
                         else:
                             coeff[source] = -vapor.h * liquid.F_mol
-                elif source.phases == ('L', 'l') and getattr(source, 'T_specification', None) is None:
+                elif getattr(source, 'T_specification', None) is None:
                     coeff[source] = -i.C
                 else:
                     continue
@@ -330,7 +339,7 @@ class StageEquilibrium(Unit):
             for i in self.ins:
                 source = i.source
                 if not source: continue
-                if source == ('g', 'l'):
+                if getattr(source, 'phases', None) == ('g', 'l'):
                     if i.phase != 'g': continue
                     if getattr(source, 'B_specification', None) is not None: continue
                     if hasattr(source, 'partition'):
@@ -350,7 +359,7 @@ class StageEquilibrium(Unit):
                             liquid.phase = 'l'
                         else:
                             coeff[source] = -vapor.h * liquid.F_mol
-                elif source.phases == ('L', 'l') and getattr(source, 'T_specification', None) is None: 
+                elif getattr(source, 'T_specification', None) is None: 
                     coeff[source] = -i.C
                 else:
                     continue
@@ -490,6 +499,7 @@ class PhasePartition(Unit):
         self.K = None
         self.B = None
         self.T = None
+        self.P = None
         self.Q = 0.
         self.B_specification = self.T_specification = None
         self.B_fallback = 1
@@ -611,20 +621,23 @@ class PhasePartition(Unit):
     
     def _run_decoupled_KTvle(self, P=None): # Bubble point
         top, bottom = self.outs
-        if bottom.isempty():
-            if top.isempty(): return
-            p = top.dew_point_at_P(P)
-        elif top.isempty():
-            return
+        if self.T_specification:
+            self._run_vle()
         else:
-            p = bottom.bubble_point_at_P(P)
-        # TODO: Note that solution decomposition method is bubble point
-        x = p.x
-        x[x == 0] = 1.
-        K_new = p.y / p.x
-        IDs = p.IDs
-        self.T = p.T
-        self._set_arrays(IDs, K=K_new)
+            if bottom.isempty():
+                if top.isempty(): return
+                p = top.dew_point_at_P(P)
+            elif top.isempty():
+                return
+            else:
+                p = bottom.bubble_point_at_P(P)
+            # TODO: Note that solution decomposition method is bubble point
+            x = p.x
+            x[x == 0] = 1.
+            K_new = p.y / p.x
+            IDs = p.IDs
+            self.T = p.T
+            self._set_arrays(IDs, K=K_new)
     
     def _run_lle(self, P=None, update=True, top_chemical=None):
         if top_chemical is None: top_chemical = self.top_chemical
@@ -647,10 +660,10 @@ class PhasePartition(Unit):
                 self.B = phi / (1 - phi)
         else:
             if update:
-                eq(T=ms.T, P=P, top_chemical=top_chemical, update=update)
+                eq(T=ms.T, P=P or self.P, top_chemical=top_chemical, update=update)
                 lle_chemicals, K_new, phi = eq._lle_chemicals, eq._K, eq._phi
             else:
-                lle_chemicals, K_new, phi = eq(T=ms.T, P=P, top_chemical=top_chemical, update=update)
+                lle_chemicals, K_new, phi = eq(T=ms.T, P=P or self.P, top_chemical=top_chemical, update=update)
             if phi == 1 or phi is None:
                 self.B = np.inf
                 self.T = ms.T
@@ -664,18 +677,21 @@ class PhasePartition(Unit):
     def _run_vle(self, P=None, update=True):
         ms = self._get_mixture(update)
         B = self.B_specification
+        T = self.T_specification
         Q = self.Q
-        if B is None: 
-            H = ms.H + Q
-            V = None
+        kwargs = {'P': P or self.P or ms.P}
+        if T is None:
+            if B is None: 
+                kwargs['H'] = ms.H + Q
+            else:
+                # B = V / (1 - V)
+                # B(1 - V) = V
+                # B - BV - V = 0
+                # -V(1 + B) + B = 0
+                kwargs['V'] = B / (1 + B)
         else:
-            H = None
-            # B = V / (1 - V)
-            # B(1 - V) = V
-            # B - BV - V = 0
-            # -V(1 + B) + B = 0
-            V = B / (1 + B)
-        ms.vle(P=P or ms.P, H=H, V=V)
+            kwargs['T'] = T
+        ms.vle(**kwargs)
         index = ms.vle._index
         IDs = ms.chemicals.IDs
         IDs = tuple([IDs[i] for i in index])
@@ -1232,9 +1248,11 @@ class MultiStageEquilibrium(Unit):
             for i in self.ins:
                 source = i.source
                 if not source: continue
-                if source.phases == ('g', 'l'):
+                if getattr(source, 'phases', None) == ('g', 'l'):
                     if i.phase != 'g': continue
-                    if getattr(source, 'B_specification', None) is not None: continue
+                    if (getattr(source, 'B_specification', None) is not None
+                        or getattr(source, 'T_specification', None) is not None):
+                        continue
                     if hasattr(source, 'partition'):
                         vapor, liquid, *_ = source.partition.outs
                         split = (1 - source.top_split) if vapor.imol is i.imol else source.top_split
@@ -1252,7 +1270,7 @@ class MultiStageEquilibrium(Unit):
                             liquid.phase = 'l'
                         else:
                             coeff[source] = -vapor.h * liquid.F_mol
-                elif source.phases == ('L', 'l') and getattr(source, 'T_specification', None) is None:
+                elif getattr(source, 'T_specification', None) is None:
                     coeff[source] = -i.C
                 else:
                     continue
@@ -1261,9 +1279,11 @@ class MultiStageEquilibrium(Unit):
             for i in self.ins:
                 source = i.source
                 if not source: continue
-                if source == ('g', 'l'):
+                if getattr(source, 'phases', None) == ('g', 'l'):
                     if i.phase != 'g': continue
-                    if getattr(source, 'B_specification', None) is not None: continue
+                    if (getattr(source, 'B_specification', None) is not None
+                        or getattr(source, 'T_specification', None) is not None):
+                        continue
                     if hasattr(source, 'partition'):    
                         vapor, liquid = source.partition.outs
                         split = (1 - source.top_split) if vapor.imol is i.imol else source.top_split
@@ -1281,7 +1301,7 @@ class MultiStageEquilibrium(Unit):
                             liquid.phase = 'l'
                         else:
                             coeff[source] = -vapor.h * liquid.F_mol
-                elif source.phases == ('L', 'l') and getattr(source, 'T_specification', None) is None: 
+                elif getattr(source, 'T_specification', None) is None: 
                     coeff[source] = -i.C
                 else:
                     continue
@@ -1514,6 +1534,7 @@ class MultiStageEquilibrium(Unit):
                 else:
                     self.converged = False
             elif algorithm == 'optimize':
+                raise NotImplementedError(f'optimize method {self.method!r} not implemented in BioSTEAM (yet)')
                 solver, constraints, bounded, options = self.optimize_options[self.method]
                 if constraints and bounded:
                     self.constraints = constraints = []
@@ -1545,6 +1566,7 @@ class MultiStageEquilibrium(Unit):
                     )
                     self.set_flow_rates(result.x.reshape([m, n]))
                 elif not (constraints or bounded):
+                    raise NotImplementedError(f'optimize method {self.method!r} not implemented in BioSTEAM (yet)')
                     self.iter = 0
                     partitions = self.partitions
                     Sb, safe = bottoms_stripping_factors_safe(
@@ -1905,7 +1927,8 @@ class MultiStageEquilibrium(Unit):
                 if Li == 0:  
                     hv[i] = None
                     hl[i] = None
-                    if j.B_specification: specification_index.append(i)
+                    if j.B_specification is not None or j.T_specification is not None:
+                        specification_index.append(i)
                     missing.append(i)
                     continue
                 bottom.phase = 'g'
@@ -1919,7 +1942,8 @@ class MultiStageEquilibrium(Unit):
                 top.phase = 'g'
             else:
                 hl[i] = bottom.h
-            if j.B_specification: specification_index.append(i)
+            if j.B_specification is not None or j.T_specification is not None:
+                specification_index.append(i)
         if missing:
             neighbors = get_neighbors(missing=missing, size=N_stages)
             hv = fillmissing(neighbors, hv)
@@ -2031,41 +2055,41 @@ class MultiStageEquilibrium(Unit):
         MSE = (errors * errors).sum()
         return MSE
     
-    def _energy_balance_error_at_lnSb(self, lnSb):
-        self.iter += 1
-        Sb_index = self._Sb_index
-        if Sb_index:
-            Sb = self._Sb
-            lnSb = lnSb.reshape([len(Sb_index), self._N_chemicals])
-            Sb[Sb_index] = np.exp(lnSb)
-            top_flow_rates = estimate_top_flow_rates(
-                Sb, *self._iter_args, False
-            )
-        else:
-            lnSb = lnSb.reshape([self.N_stages, self._N_chemicals])
-            Sb = np.exp(lnSb)
-            top_flow_rates = estimate_top_flow_rates(
-                Sb, *self._iter_args, True
-            )
-        if not self._has_vle: raise NotImplementedError('only VLE objective function exists')
-        self.set_flow_rates(top_flow_rates)
-        P = self.P
-        for i in self.stages:
-            mixer = i.mixer
-            partition = i.partition
-            mixer.outs[0].mix_from(
-                mixer.ins, energy_balance=False,
-            )
-            partition._run_decoupled_KTvle(P=P)
-            T = partition.T
-            for i in (partition.outs + i.outs): i.T = T
-        H_out = np.array([i.H_out for i in self.stages if i.B_specification is None])
-        H_in = np.array([i.H_in for i in self.stages if i.B_specification is None])
-        diff = H_out - H_in
-        C = np.array([sum([j.C for j in i.outs]) for i in self.stages if i.B_specification is None])
-        errors = diff / C
-        MSE = (errors * errors).sum() / self.N_stages
-        return MSE
+    # def _energy_balance_error_at_lnSb(self, lnSb):
+    #     self.iter += 1
+    #     Sb_index = self._Sb_index
+    #     if Sb_index:
+    #         Sb = self._Sb
+    #         lnSb = lnSb.reshape([len(Sb_index), self._N_chemicals])
+    #         Sb[Sb_index] = np.exp(lnSb)
+    #         top_flow_rates = estimate_top_flow_rates(
+    #             Sb, *self._iter_args, False
+    #         )
+    #     else:
+    #         lnSb = lnSb.reshape([self.N_stages, self._N_chemicals])
+    #         Sb = np.exp(lnSb)
+    #         top_flow_rates = estimate_top_flow_rates(
+    #             Sb, *self._iter_args, True
+    #         )
+    #     if not self._has_vle: raise NotImplementedError('only VLE objective function exists')
+    #     self.set_flow_rates(top_flow_rates)
+    #     P = self.P
+    #     for i in self.stages:
+    #         mixer = i.mixer
+    #         partition = i.partition
+    #         mixer.outs[0].mix_from(
+    #             mixer.ins, energy_balance=False,
+    #         )
+    #         partition._run_decoupled_KTvle(P=P)
+    #         T = partition.T
+    #         for i in (partition.outs + i.outs): i.T = T
+    #     H_out = np.array([i.H_out for i in self.stages if i.B_specification is None])
+    #     H_in = np.array([i.H_in for i in self.stages if i.B_specification is None])
+    #     diff = H_out - H_in
+    #     C = np.array([sum([j.C for j in i.outs]) for i in self.stages if i.B_specification is None])
+    #     errors = diff / C
+    #     MSE = (errors * errors).sum() / self.N_stages
+    #     return MSE
     
     def _iter(self, top_flow_rates):
         self.iter += 1

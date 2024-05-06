@@ -14,7 +14,7 @@ __all__ = (
 
 @register(
     'hydrocarbon_narrow_flash', 'Hydrocarbon flash narrow',
-    0.02, [0.004, 0.008, 0.012, 0.016, 0.02]
+    0.02, [0.004, 0.008, 0.012, 0.016, 0.02], 'Alkane\nflash\nnarrow'
 )
 def create_system_hydrocarbon_narrow_flash(alg):
     bst.settings.set_thermo(['heptane', 'octane'], cache=True, Gamma=bst.IdealActivityCoefficients)
@@ -31,7 +31,7 @@ def create_system_hydrocarbon_narrow_flash(alg):
 
 @register(
     'hydrocarbon_wide_flash', 'Hydrocarbon flash wide',
-    0.02, [0.004, 0.008, 0.012, 0.016, 0.02]
+    0.02, [0.004, 0.008, 0.012, 0.016, 0.02], 'Alkane\nflash\nwide'
 )
 def create_system_hydrocarbon_wide_flash(alg):
     bst.settings.set_thermo(['propane', 'octane'], cache=True, Gamma=bst.IdealActivityCoefficients)

@@ -146,7 +146,7 @@ class Flash(design.PressureVessel, Unit):
         Cost Accounting and Capital Cost Estimation (Chapter 16)
     
     """
-    auxiliary_unit_names = ('heat_exchanger', 'vacuum_system')
+    auxiliary_unit_names = ('heat_exchanger', 'vacuum_system', 'vapor_condenser')
     _auxin_index = {
         'heat_exchanger': 0
     }
@@ -177,9 +177,8 @@ class Flash(design.PressureVessel, Unit):
             surge_time=7.5,
             has_mist_eliminator=False,
             flash_inlet=True, 
+            has_vapor_condenser=None,
         ):
-        self._load_components()
-        
         #: Enforced molar vapor fraction
         self.V = V
         
@@ -226,11 +225,22 @@ class Flash(design.PressureVessel, Unit):
         #: False can save simulation time.
         self.flash_inlet = flash_inlet
         
+        #: [bool] Whether to condense the vapor leaving the flash. This allows
+        #: vacuum systems to operate more efficiently.
+        self.has_vapor_condenser = has_vapor_condenser
+        
+        self._load_components()
+        
     def _load_components(self):
         self._multi_stream = ms = MultiStream(None, thermo=self.thermo)
         self.auxiliary(
             'heat_exchanger', HXutility, ins=self.feed, outs=ms
         )
+        if self.has_vapor_condenser:
+            self.auxiliary(
+                'vapor_condenser', HXutility, ins='vapor', 
+                outs=self.outs[0], V=0, rigorous=True,
+            )
         
     def reset_cache(self, isdynamic=None):
         self._multi_stream.reset_cache()
@@ -271,6 +281,9 @@ class Flash(design.PressureVessel, Unit):
     def _run(self):
         separations.vle(self.ins[0], *self.outs, self.T, self.P, self.V, 
                         self.Q, self.x, self.y, self._multi_stream)
+        if self.has_vapor_condenser: 
+            self.vapor_condenser.ins[0].copy_like(self.outs[0])
+            self.vapor_condenser.run()
             
     def _size_flash_vessel(self):
         vap, liq, *_ = self.outs

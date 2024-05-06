@@ -13,13 +13,16 @@ from colorpalette import Color
 from scipy import interpolate
 from scipy.ndimage import gaussian_filter
 from math import sqrt
+from warnings import catch_warnings, filterwarnings
 import os
 import pickle
+import thermosteam as tmo
 
 __all__ = (
     'plot_benchmark',
     'plot_profile',
     'register',
+    'test_convergence'
 )
 
 try:
@@ -33,22 +36,105 @@ all_systems = {}
 system_titles = {}
 system_convergence_times = {}
 system_tickmarks = {}
+system_labels = {}
 
-def _register(f, name, title, time, tickmarks):
+def _register(f, name, title, time, tickmarks, label):
     all_systems[name] = f
     system_titles[name] = title
     system_convergence_times[name] = time
     system_tickmarks[name] = tickmarks
+    system_labels[name] = label
     return f
 
-def register(name, title, time, tickmarks):
-    return lambda f: _register(f, name, title, time, tickmarks)
+def register(name, title, time, tickmarks, label):
+    return lambda f: _register(f, name, title, time, tickmarks, label)
+
+def high_precision(f):
+    def g(*args, **kwargs):
+        m = (
+            bst.MultiStageEquilibrium.default_maxiter,
+            bst.MultiStageEquilibrium.default_max_attempts,
+            bst.MultiStageEquilibrium.default_fallback_maxiter,
+            bst.MultiStageEquilibrium.default_molar_tolerance,
+            bst.MultiStageEquilibrium.default_relative_molar_tolerance,
+            bst.MultiStageEquilibrium.default_molar_tolerance,
+            bst.MultiStageEquilibrium.default_relative_molar_tolerance,
+            bst.MultiStageMixerSettlers.default_maxiter,
+            tmo.VLE.maxiter,
+            tmo.VLE.T_tol,
+            tmo.VLE.P_tol,
+            tmo.VLE.H_hat_tol,
+            tmo.VLE.S_hat_tol ,
+            tmo.VLE.V_tol,
+            tmo.VLE.x_tol,
+            tmo.VLE.y_tol,
+            tmo.LLE.shgo_options,
+            tmo.LLE.differential_evolution_options,
+            tmo.LLE.pseudo_equilibrium_outer_loop_options,
+            tmo.LLE.pseudo_equilibrium_inner_loop_options,
+            tmo.LLE.default_composition_cache_tolerance,
+            tmo.LLE.default_temperature_cache_tolerance,
+        )
+        bst.MultiStageEquilibrium.default_maxiter = 10
+        bst.MultiStageEquilibrium.default_max_attempts = 20
+        bst.MultiStageEquilibrium.default_fallback_maxiter = 1
+        bst.MultiStageEquilibrium.default_molar_tolerance = 1e-6
+        bst.MultiStageEquilibrium.default_relative_molar_tolerance = 1e-9
+        bst.MultiStageEquilibrium.default_molar_tolerance = 1e-6
+        bst.MultiStageEquilibrium.default_relative_molar_tolerance = 1e-9
+        bst.MultiStageMixerSettlers.default_maxiter = 50
+        tmo.VLE.maxiter = 50 # -> 20 [-]
+        tmo.VLE.T_tol = 1e-9 # -> 5e-8 [K]
+        tmo.VLE.P_tol = 1e-3 # -> 1. [Pa]
+        tmo.VLE.H_hat_tol = 1e-9 # -> 1e-6 [J/g]
+        tmo.VLE.S_hat_tol = 1e-9 # -> 1e-6 [J/g/K]
+        tmo.VLE.V_tol = 1e-9 # -> 1e-6 [mol %]
+        tmo.VLE.x_tol = 1e-12 # -> 1e-9 [mol %]
+        tmo.VLE.y_tol = 1e-12 # -> 1e-9 [mol %]
+        tmo.LLE.shgo_options = dict(f_tol=1e-9, minimizer_kwargs=dict(f_tol=1e-9))
+        tmo.LLE.differential_evolution_options = {'seed': 0, 'popsize': 12, 'tol': 1e-9}
+        tmo.LLE.pseudo_equilibrium_outer_loop_options = dict(
+            xtol=1e-12, maxiter=200, checkiter=False, 
+            checkconvergence=False, convergenceiter=20,
+        )
+        tmo.LLE.pseudo_equilibrium_inner_loop_options = dict(
+            xtol=1e-16, maxiter=200, checkiter=False,
+            checkconvergence=False, convergenceiter=20,
+        )
+        tmo.LLE.default_composition_cache_tolerance = 1e-12
+        tmo.LLE.default_temperature_cache_tolerance = 1e-9
+        try:
+            return f(*args, **kwargs)
+        finally:
+            (bst.MultiStageEquilibrium.default_maxiter,
+             bst.MultiStageEquilibrium.default_max_attempts,
+             bst.MultiStageEquilibrium.default_fallback_maxiter,
+             bst.MultiStageEquilibrium.default_molar_tolerance,
+             bst.MultiStageEquilibrium.default_relative_molar_tolerance,
+             bst.MultiStageEquilibrium.default_molar_tolerance,
+             bst.MultiStageEquilibrium.default_relative_molar_tolerance,
+             bst.MultiStageMixerSettlers.default_maxiter,
+             tmo.VLE.maxiter,
+             tmo.VLE.T_tol,
+             tmo.VLE.P_tol,
+             tmo.VLE.H_hat_tol,
+             tmo.VLE.S_hat_tol ,
+             tmo.VLE.V_tol,
+             tmo.VLE.x_tol,
+             tmo.VLE.y_tol,
+             tmo.LLE.shgo_options,
+             tmo.LLE.differential_evolution_options,
+             tmo.LLE.pseudo_equilibrium_outer_loop_options,
+             tmo.LLE.pseudo_equilibrium_inner_loop_options,
+             tmo.LLE.default_composition_cache_tolerance,
+             tmo.LLE.default_temperature_cache_tolerance) = m
+    return g
 
 def profile_sequential_modular(system, total_time):
     sm = all_systems[system]('sequential modular')
     sm.flatten()
     sm._setup_units()
-    data = profile(sm.run_sequential_modular, *streams_and_stages(sm), total_time, init=sm.run_sequential_modular)
+    data = profile(sm.run_sequential_modular, *streams_and_stages(sm), total_time)
     bst.F.clear()
     return data
 
@@ -56,7 +142,7 @@ def benchmark_sequential_modular(system, total_time):
     sm = all_systems[system]('sequential modular')
     sm.flatten()
     sm._setup_units()
-    data = benchmark(sm.run_sequential_modular, *streams_and_stages(sm), total_time, init=sm.run_sequential_modular)
+    data = benchmark(sm.run_sequential_modular, *streams_and_stages(sm), total_time)
     bst.F.clear()
     return data
 
@@ -64,8 +150,7 @@ def profile_phenomena_oriented(system, total_time):
     po = all_systems[system]('phenomena oriented')
     po.flatten()
     po._setup_units()
-    data = profile(po.run_phenomena, *streams_and_stages(po), total_time,
-                   init=po.run_sequential_modular)
+    data = profile(po.run_phenomena, *streams_and_stages(po), total_time)
     bst.F.clear()
     return data
 
@@ -73,8 +158,7 @@ def benchmark_phenomena_oriented(system, total_time):
     po = all_systems[system]('phenomena oriented')
     po.flatten()
     po._setup_units()
-    data = benchmark(po.run_phenomena, *streams_and_stages(po), total_time,
-                   init=po.run_sequential_modular)
+    data = benchmark(po.run_phenomena, *streams_and_stages(po), total_time)
     bst.F.clear()
     return data
 
@@ -93,9 +177,9 @@ def streams_and_stages(sys):
             try:
                 if i.B_specification is None and i.T_specification is None:
                     adiabatic_stages.append(j)
-                all_stages.append(i)
             except:
                 pass
+            all_stages.append(i)
             streams.extend(i.outs + i.ins)
     return (streams, adiabatic_stages, all_stages)
 
@@ -107,10 +191,10 @@ def dT_error(stage):
             sum([i.H for i in stage.outs]) - sum([i.H for i in stage.ins])
         ) / sum([i.C for i in stage.outs])
 
-def benchmark(f, streams, adiabatic_stages, stages, total_time, init):
+# @high_precision
+def benchmark(f, streams, adiabatic_stages, stages, total_time):
     time = bst.TicToc()
     net_time = 0
-    init()
     temperatures = np.array([i.T for i in streams])
     flows = np.array([i.mol for i in streams])
     while net_time < total_time:
@@ -121,21 +205,27 @@ def benchmark(f, streams, adiabatic_stages, stages, total_time, init):
         new_flows = np.array([i.mol for i in streams])
         dF = np.abs(flows - new_flows)
         nonzero_index = dF > 0
-        dF = dF[nonzero_index]
-        dF_max = np.maximum.reduce([abs(flows[nonzero_index]), abs(new_flows[nonzero_index])])
-        rdF = dF / dF_max
-        dT = np.abs(temperatures - new_temperatures).sum()
+        if nonzero_index.any(): 
+            dF = dF[nonzero_index]
+            dF_max = np.maximum.reduce([abs(flows[nonzero_index]), abs(new_flows[nonzero_index])])
+            rdF = dF / dF_max
+            rdF_max = rdF.max()
+            dF_max = dF_max.max()
+        else:
+            dF_max = rdF_max = 0
+        dT = np.abs(temperatures - new_temperatures)
         dT_max = np.maximum.reduce([abs(temperatures), abs(new_temperatures)])
         rdT = dT / dT_max
-        if (rdF.max() < 1e-9 or dF_max.max() < 1e-6) and (rdT.max() < 1e-9 or dT_max.max() < 1e-6): break
+        if (rdF_max < 1e-6 or dF_max < 1e-6) and (rdT.max() < 1e-6 or dT_max.max() < 1e-6): break
         flows = new_flows
         temperatures = new_temperatures
-    dM = sum([abs(i.mass_balance_error()) for i in stages])
-    dE = sum([abs(dT_error(i)) for i in adiabatic_stages])
+    dM = max([abs(i.mass_balance_error()) for i in stages])
+    dEs = [abs(dT_error(i)) for i in adiabatic_stages]
+    dE = max(dEs) if dEs else 0
     return {
         'Time': net_time, 
-        'Stream temperature': dT,
-        'Component flow rate': dF, 
+        'Stream temperature': rdT.max(),
+        'Component flow rate': rdF.max(), 
         'Energy balance': dE, 
         'Material balance': dM,
     }
@@ -155,25 +245,45 @@ def uncertainty_percent(xdx, ydy):
             dyy = 0
         else:
             dyy = dy / y
-        return [100 * z, 100 * z * sqrt(dxx + dyy)]
+        return [100 * z, 100 * z * sqrt(dxx*dxx + dyy*dyy)]
 
-def plot_benchmark(systems=None, N=10, load=True, save=True):
+# @high_precision
+def test_convergence(systems=None):
     if systems is None: systems = list(all_systems)
-    fs = 9
-    bst.set_font(fs)
+    with catch_warnings():
+        filterwarnings('ignore')
+        time = bst.TicToc()
+        for sys in systems:
+            f_sys = all_systems[sys]
+            sm = f_sys('sequential modular')
+            sm.flatten()
+            sm.set_tolerance(rmol=1e-5, mol=1e-5, subsystems=True, method='fixed-point', maxiter=500)
+            time.tic()
+            sm.simulate()
+            print(sys)
+            print('- Sequential modular', time.toc())
+            po = f_sys('phenomena oriented')
+            po.flatten()
+            po.set_tolerance(rmol=1e-5, mol=1e-5, subsystems=True, method='fixed-point', maxiter=500)
+            time.tic()
+            po.simulate()
+            print('- Phenomena oriented', time.toc())
+            for s_sm, s_dp in zip(sm.streams, po.streams):
+                actual = s_sm.mol
+                value = s_dp.mol
+                try:
+                    assert_allclose(actual, value, rtol=0.01, atol=0.01)
+                except:
+                    print(f'- Multiple steady stages for {s_sm}: sm-{actual} po-{value}')
+                    break
+
+def plot_benchmark(systems=None, N=100, load=True, save=True):
+    if systems is None: systems = list(all_systems)
     keys = (
         'Time',
     )
-    units = (
-        r'$[s]$',
-    )
-    n_rows = 1
-    n_cols = 1
-    bst.set_figure_size(aspect_ratio=1)
-    fig, ax = plt.subplots(n_rows, n_cols)
-    yticks = [-15, -10, -5, 0, 5, 10]
-    system_results = []
     n_systems = len(systems)
+    results = np.zeros([n_systems, 2])
     for m, sys in enumerate(systems):
         time = system_convergence_times[sys]
         sms = []
@@ -188,8 +298,8 @@ def plot_benchmark(systems=None, N=10, load=True, save=True):
                 with open(file, 'rb') as f: pos = pickle.load(f)
             except:
                 for i in range(N):
-                    sm = benchmark_sequential_modular(sys, time)
-                    po = benchmark_phenomena_oriented(sys, time)
+                    sm = benchmark_sequential_modular(sys, 1000)
+                    po = benchmark_phenomena_oriented(sys, 1000)
                     sms.append(sm)
                     pos.append(po)
                 if save:
@@ -212,49 +322,44 @@ def plot_benchmark(systems=None, N=10, load=True, save=True):
                 po_name = f'po_{time}_{sys}_benchmark_{N}.npy'
                 file = os.path.join(simulations_folder, po_name)
                 with open(file, 'wb') as f: pickle.dump(pos, f)
-        sm = dct_mean_std(sms, keys)
-        po = dct_mean_std(pos, keys)
-        system_results.append((sm, po))
+        data = np.array([j['Time'] / i['Time'] for i, j in zip(sms, pos)])
+        results[m] = [100 * np.mean(data), 100 * np.std(data)]
+        # sm = dct_mean_std(sms, keys)
+        # po = dct_mean_std(pos, keys)
+        # system_results.append((sm, po))
     # Assume only time matters from here on
-    results = np.zeros([n_systems, 2])
-    for i, (sm, po) in enumerate(system_results):
-        results[i] = uncertainty_percent(po['Time'], sm['Time'])
+    # for i, (sm, po) in enumerate(system_results):
+    #     results[i] = uncertainty_percent(po['Time'], sm['Time'])
+    n_rows = 1
+    n_cols = 1
+    fs = 11
+    bst.set_font(fs)
+    bst.set_figure_size(aspect_ratio=0.9)
+    fig, ax = plt.subplots(n_rows, n_cols)
     csm = Color(fg='#33BBEE').RGBn
     cpo = Color(fg='#EE7733').RGBn
-    mean, std = results['Time'].T
-    yticks = (0, 50, 100, 150, 200)
+    yticks = (0, 25, 50, 75, 100, 125)
     yticklabels = [f'{i}%' for i in yticks]
     xticks = list(range(n_systems))
-    xticklabels = []
-    for sys in systems:
-        names = sys.upper().split('_')
-        xticklabels.append(
-            ''.join([i[0] for i in names])
-        )
-    plt.ylabel('Time [% Sequential modular]')
-    plt.scatter()
+    xticklabels = [system_labels[sys] for sys in systems]
+    plt.errorbar(xticks, results[:, 0], yerr=results[:, 1], color=cpo,
+                 marker='s', linestyle='', capsize=5, capthick=1.5, ecolor=csm)
+    plt.axhline(y=100, color='grey', ls='--', zorder=-1)
+    plt.ylabel('Simulation time [%]')
     bst.utils.style_axis(
         ax, xticks=xticks, yticks=yticks,
         xticklabels=xticklabels,
         yticklabels=yticklabels,
     )
     plt.subplots_adjust(right=0.96, left=0.2, hspace=0, wspace=0)
-    letter_color = c.neutral.shade(25).RGBn
-    titles = [system_titles[i] for i in systems]
-    for ax, letter in zip(all_axes[0], titles):
-        plt.sca(ax)
-        ylb, yub = plt.ylim()
-        xlb, xub = plt.xlim()
-        plt.text((xlb + xub) * 0.5, ylb + (yub - ylb) * 1.2, letter, color=letter_color,
-                  horizontalalignment='center',verticalalignment='center',
-                  fontsize=10, fontweight='bold')
     for i in ('svg', 'png'):
-        name = f'PO_SM_benchmark_AA_purification.{i}'
+        name = f'PO_SM_{time}_benchmark_{N}.{i}'
         file = os.path.join(images_folder, name)
         plt.savefig(file, dpi=900, transparent=True)
-    return fig, all_axes, sms, pos
+    return fig, ax, sms, pos
 
-def profile(f, streams, adiabatic_stages, stages, total_time, init):
+# @high_precision
+def profile(f, streams, adiabatic_stages, stages, total_time):
     time = bst.TicToc()
     KB_error = []
     flow_error = []
@@ -263,7 +368,6 @@ def profile(f, streams, adiabatic_stages, stages, total_time, init):
     temperature_error = []
     record = []
     net_time = 0
-    init()
     KBs = np.array([i.K * i.B for i in stages if hasattr(i, 'K')])
     temperatures = np.array([i.T for i in streams])
     flows = np.array([i.mol for i in streams])
@@ -465,7 +569,7 @@ def plot_profile(
                   horizontalalignment='center',verticalalignment='center',
                   fontsize=10, fontweight='bold')
     for i in ('svg', 'png'):
-        name = f'PO_SM_benchmark_AA_purification.{i}'
+        name = f'PO_SM_profile.{i}'
         file = os.path.join(images_folder, name)
         plt.savefig(file, dpi=900, transparent=True)
     return fig, all_axes, sms, pos

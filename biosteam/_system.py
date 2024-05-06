@@ -86,8 +86,7 @@ class Configuration:
         self.connections = connections
         
     def solve_variable(self, variable):
-        leqs = LinearEquations(variable, self.nodes, self.stream_ref)
-        return leqs.solve()
+        return solve_linear_equations(variable, self.nodes, self.stream_ref)
         
     def __enter__(self):
         units = self.stages
@@ -118,90 +117,86 @@ class Configuration:
 
 # %% Phenomenological convergence tools
 
-class LinearEquations:
-    __slots__ = ('variable', 'A', 'b', 'nodes', 'node_set', 'streams')
-    
-    def __init__(self, variable, nodes, streams):
-        self.variable = variable
-        self.A = []
-        self.b = []
-        self.nodes = []
-        self.streams = streams
-        self.node_set = set(nodes)
-        self.extend(nodes)
-        
-    def append(self, node):
-        A = self.A; b = self.b
-        self.nodes.append(node)
-        streams = self.streams
-        for coefficients, value in node._create_linear_equations(self.variable):
-            coefficients = {
-                streams[i.imol] if isinstance(i, bst.AbstractStream) else i: j
-                for i, j in coefficients.items()
-            }
+def solve_linear_equations(variable, nodes, streams):
+    A = []
+    b = []
+    if variable == 'material':
+        for node in nodes:
+            for coefficients, value in node._create_linear_equations(variable):
+                coefficients = {
+                    streams[i.imol]: j for i, j in coefficients.items()
+                }
+                A.append(coefficients)
+                b.append(value)
+        ObjectType = np.dtype('O')
+        delayed = [(i, j) for i, j in enumerate(b) if j.dtype is ObjectType]
+        if delayed:
+            delayed_index = []
+            for _, t in delayed:
+                delayed_index.extend([i for i, j in enumerate(t) if callable(j)])
+            delayed_set = set(delayed_index)
+            delayed_index = list(delayed_set)
+            ready_index = [i for i in range(len(t)) if i not in delayed_set]
+            A_ready = [{i: j[ready_index] for i, j in dct.items()} for dct in A]
+            A_ready, objs = dictionaries2array(A_ready)
+            b_ready = np.array([i[ready_index] for i in b], float)
+            values = solve(A_ready, b_ready.T).T
+            for obj, value in zip(objs, values): 
+                obj._update_decoupled_variable(variable, value, ready_index)
+            A_delayed = [{i: j[delayed_index] for i, j in dct.items()} for dct in A]
+            A_delayed, objs = dictionaries2array(A_delayed)
+            b_delayed = np.array([
+                [(f(j) if callable(f:=bi[j]) else f) for j in delayed_index]
+                for bi in b
+            ], float)
             try:
-                for i in coefficients: assert (i in self.node_set or i.imol in streams)
+                values = solve(A_delayed, b_delayed.T).T
             except:
                 breakpoint()
-                node._create_linear_equations(self.variable)
-            A.append(coefficients)
-            b.append(value)
-    
-    def extend(self, nodes):
-        for i in nodes: self.append(i)
-        
-    def solve(self):
-        b = self.b
-        variable = self.variable
-        # if variable == 'equilibrium':
-        #     for i in self.nodes:
-        #         if hasattr(i, 'B'): print(i, i.B, i.K)
-        A, objs = dictionaries2array(self.A)
-        # if A.ndim == 3:
-        #     A_ = A
-        #     b_ = np.array(b).T
-        #     objs_ = objs
-        #     values = []
-        #     for A, b in zip(A_, b_):
-        #         rows = A.any(axis=1)
-        #         cols = A.any(axis=0)
-        #         b = [j for (i, j) in zip(rows, b) if i]
-        #         A = A[rows][:, cols]
-        #         objs = [j for (i, j) in zip(cols, objs_) if i]
-        #         values.append(solve(A, b))
-        #     values = np.array(values).T
-        # else:
-        #     rows = A.any(axis=1)
-        #     cols = A.any(axis=0)
-        #     b = [j for (i, j) in zip(rows, b) if i]
-        #     b = np.array(b).T
-        #     A = A[rows][:, cols]
-        #     objs = [j for (i, j) in zip(cols, objs) if i]
-        #     values = solve(A, b)
-        # print(variable)
-        # breakpoint()
-        try:
+            for obj, value in zip(objs, values): 
+                obj._update_decoupled_variable(variable, value, delayed_index)
+            # nonlimiting_players = []
+            # for _, i in conversions:
+            #     i = i.reaction
+            #     if isinstance(i, (bst.Rxn, bst.RxnI)):
+            #         index = i._X_index[1] if i.phases else i._X_index
+            #         for i in i._stoichiometry.nonzero_keys():
+            #             if i == index: continue
+            #             nonlimiting_players.append(i)
+            #     elif isinstance(i, bst.RxnS):
+            #         index = [j[1] for j in i._X_index] if i.phases else i._X_index
+            #         index_set = set(index)
+            #         for i in i._stoichiometry.nonzero_keys():
+            #             if i in index_set: continue
+            #             nonlimiting_players.append(i)
+            #     else:
+            #         raise RuntimeError('unknown error')
+            # nonlimiting_set = set(nonlimiting_players)
+            # chemicals = conversions[1].reaction.chemicals
+            # others = [i for i in range(chemicals.size) if i not in nonlimiting_set]
+        else:
+            A, objs = dictionaries2array(A)
             values = solve(A, np.array(b).T).T
-        except Exception as e:
-            print(variable)
-            print(e)
-            raise e
-        if np.isnan(values).any(): 
-            print(variable)
-            # breakpoint()
-            raise RuntimeError('nan value in variables')
+            for obj, value in zip(objs, values): 
+                obj._update_decoupled_variable(variable, value)
+        for i in nodes: 
+            if hasattr(i, '_update_auxiliaries'):
+                i._update_auxiliaries()
+            elif hasattr(i, 'stages'):
+                for i in i.stages:
+                    if hasattr(i, '_update_auxiliaries'):
+                        i._update_auxiliaries()
+        
+    else:
+        for node in nodes:
+            for coefficients, value in node._create_linear_equations(variable):
+                A.append(coefficients)
+                b.append(value)
+        A, objs = dictionaries2array(A)
+        values = solve(A, np.array(b).T).T
         for obj, value in zip(objs, values): 
             obj._update_decoupled_variable(variable, value)
-        if variable == 'material':
-            for i in self.nodes: 
-                if hasattr(i, '_update_auxiliaries'):
-                    i._update_auxiliaries()
-                elif hasattr(i, 'stages'):
-                    for i in i.stages:
-                        if hasattr(i, '_update_auxiliaries'):
-                            i._update_auxiliaries()
-            # breakpoint()
-        return objs, values
+    return objs, values
 
 # %% Sequential modular convergence tools
 
@@ -2273,10 +2268,7 @@ class System:
         if algorithm == 'Sequential modular':
             self.run_sequential_modular()
         elif algorithm == 'Phenomena oriented':
-            if self._iter == 0: 
-                for i in self.unit_path: i.run()
-            else:
-                self.run_phenomena()
+            self.run_phenomena()
         else:
             raise RuntimeError(f'unknown algorithm {algorithm!r}')
 
@@ -2326,27 +2318,20 @@ class System:
         try:
             for n, i in enumerate(path):
                 i.run()
-                try:
-                    with self.stage_configuration() as conf:
-                        for variable in ('material', 'energy'): conf.solve_variable(variable)
-                    # print('good!1')
-                except:
-                    # print('Ohh no!1', variable, 'could not solve')
-                    with self.stage_configuration(aggregated=True) as conf:
-                        for variable in ('material', 'energy'): conf.solve_variable(variable)
+                with self.stage_configuration(aggregated=False) as conf:
+                    for variable in ('material', 'energy'): conf.solve_variable(variable)
         except:
             for i in path[n+1:]: i.run()
         for i in self.stages: 
             if getattr(i, 'phases', None) == ('g', 'l'): i._create_linear_equations('equilibrium')
         try:
-            with self.stage_configuration() as conf:
+            with self.stage_configuration(aggregated=False) as conf:
                 for variable in ('material', 'energy'): conf.solve_variable(variable)
             # print('good!2')
         except: 
             # print('Ohh no!2', variable, 'could not solve')
             with self.stage_configuration(aggregated=True) as conf:
                 for variable in ('material', 'energy'): conf.solve_variable(variable)
-            
         
     def _solve(self):
         """Solve the system recycle iteratively."""

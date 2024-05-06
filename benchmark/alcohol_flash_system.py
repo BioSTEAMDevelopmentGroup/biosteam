@@ -14,7 +14,7 @@ __all__ = (
 
 @register(
     'alcohol_narrow_flash', 'Alcohol flash narrow',
-    0.02, [0.004, 0.008, 0.012, 0.016, 0.02]
+    0.02, [0.004, 0.008, 0.012, 0.016, 0.02], 'Alcohol\nflash\nnarrow'
 )
 def create_system_alcohol_narrow_flash(alg):
     bst.settings.set_thermo(['heptanol', 'octanol'], cache=True, Gamma=bst.IdealActivityCoefficients)
@@ -31,7 +31,7 @@ def create_system_alcohol_narrow_flash(alg):
 
 @register(
     'alcohol_wide_flash', 'Alcohol flash wide',
-    0.02, [0.004, 0.008, 0.012, 0.016, 0.02]
+    0.02, [0.004, 0.008, 0.012, 0.016, 0.02], 'Alcohol\nflash\nwide'
 )
 def create_system_alcohol_wide_flash(alg):
     bst.settings.set_thermo(['propanol', 'octanol'], cache=True, Gamma=bst.IdealActivityCoefficients)
