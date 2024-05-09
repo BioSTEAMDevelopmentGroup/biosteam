@@ -115,7 +115,7 @@ def kla_bubcol_Deshpande(K, M_l, Rhat, T, rho_l, U_g):
         Mass transfer estimation for bubble column scale up. Chemical Engineering Science, 205, 350–357.
         https://doi.org/10.1016/j.ces.2019.05.011
     """
-    H_at_T = Henrys_law_constant(T)
+    H_at_T = 3.9e9
     alpha = K * (H_at_T * M_l)/(Rhat * T * rho_l)
     beta = 1
     return alpha * U_g ** beta
@@ -269,7 +269,7 @@ def kla_bubcol_Seno(D, mu_l, rho_l, D_l, g, sigma_l, epsilon_g, V_g, V_l):
     g: float
         Gravitational acceleration, [m/s^2] 
     sigma_l: float
-        The surface tension ofliquid [N/m]
+        The surface tension of liquid [N/m]
     epsilon_g: float
         Overall gashold-up
     V_g: float
@@ -297,7 +297,7 @@ def kla_bubcol_Seno(D, mu_l, rho_l, D_l, g, sigma_l, epsilon_g, V_g, V_l):
     O2- Water, Aqueous Solution of Butanol, Polyoxyethylene sorbitan monolaurate with silicone oil
 
     """
-    kla = (D_l/(D**2)) * 0.6 * (V_g/(V_g+V_l))**-0.39 *(mu_l/(rho_l * D_l))**(0.5) * ((g * rho_l**2 * D**2)/sigma_l)**(0.62) * ((g * D**3 * rho_l**2)/mu_l**2)**(0.31) * epsilon_g**(1.1)
+    kla = (D_l/(D**2)) * 0.6 * (V_g/(V_g+V_l))**-0.39 *(mu_l/(rho_l * D_l))**(0.5) * ((g * rho_l**2 * D**2)/mu_l)**(0.62) * ((g * D**3 * rho_l**2)/mu_l**2)**(0.31) * epsilon_g**(1.1)
     return kla
 
 def kla_bubcol_Suh(D, mu_l, rho_l, D_l, g, sigma_l, epsilon_g, V_g, V_l):
@@ -346,7 +346,7 @@ def kla_bubcol_Suh(D, mu_l, rho_l, D_l, g, sigma_l, epsilon_g, V_g, V_l):
     Air-Aqueous Sucrose Solution
     """
 
-    kla = (D_l/(D**2)) * 0.018 * (mu_l/(rho_l * D_l))**(0.5) * ((g*rho_l*D**2)/sigma_l)**(0.75) * (g*D**3*rho_l**2/(mu_l**2))**(0.39)*(V_g/(sqrt(g*D)))
+    kla = (D_l/(D**2)) * 0.018 * (mu_l/(rho_l * D_l))**(0.5) * ((g*rho_l*D**2)/sigma_l)**(0.75) * (g*D**3*rho_l**2/(mu_l**2))**(0.39)*(V_g/(sqrt(g*D)))**0.51
 
     return kla
 
@@ -633,6 +633,7 @@ if __name__ == "__main__":
             'H': 0.2, # m
             'V_g': (0.021, 0.105), # m/s
             'V_l': (0.0005, 0.002), # m/s
+            'rho_l': (1, 50), # kg/m^3
             'mu_l': (1, 50), # Cp 1 water, 100 xanthan
         },
     }
