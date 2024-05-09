@@ -3071,7 +3071,7 @@ class System:
             - self.get_total_products_impact(key)
         )
     
-    def get_property_allocated_impact(self, key, name, basis, ignored=None):
+    def get_property_allocated_impact(self, key, name, basis, ignored=None, products=None):
         if ignored is None: ignored = frozenset()
         total_property = 0.
         heat_utilities = self.heat_utilities
@@ -3086,7 +3086,8 @@ class System:
             for hu in heat_utilities:
                 if hu.flow < 0.: total_property += hu.get_property(name, units) * operating_hours
         if hasattr(bst.Stream, name):
-            for stream in self.products:
+            if products is None: products = self.products
+            for stream in products:
                 if stream in ignored: continue
                 total_property += self.get_property(stream, name, units)
         impact = self.get_total_feeds_impact(key)
@@ -3097,7 +3098,7 @@ class System:
         impact += self.get_process_impact(key)
         return impact / total_property
     
-    def get_property_allocation_factors(self, name, basis=None, groups=(), ignored=None):
+    def get_property_allocation_factors(self, name, basis=None, groups=(), ignored=None, products=None):
         if ignored is None: ignored = frozenset()
         heat_utilities = self.heat_utilities
         power_utility = self.power_utility
@@ -3116,7 +3117,8 @@ class System:
                     value = hu.get_property(name, units)
                     set_impact_value(properties, hu.agent.ID, value * operating_hours, groups)
         if hasattr(bst.Stream, name):
-            for stream in self.products:
+            if products is None: products = self.products
+            for stream in products:
                 if stream in ignored: continue
                 value = self.get_property(stream, name, units)
                 set_impact_value(properties, stream.ID, value, groups)

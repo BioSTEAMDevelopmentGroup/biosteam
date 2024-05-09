@@ -373,10 +373,10 @@ def lca_displacement_allocation_table(systems, key, items,
                         columns=(f'Characterization factor [{impact_units}/kg]', *columns))
 
 def lca_property_allocation_factor_table(
-        systems, property, basis=None, system_names=None, groups=None,
+        systems, property, basis=None, system_names=None, groups=None, products=None,
     ):
     if groups is None: groups = {}
-    system_allocation_factors = [i.get_property_allocation_factors(property, basis, groups) for i in systems]
+    system_allocation_factors = [i.get_property_allocation_factors(property, basis, groups, products=products) for i in systems]
     table_index = sorted(set(sum([tuple(i) for i in system_allocation_factors], ())))
     index = {j: i for i, j in enumerate(table_index)}
     N_cols = len(systems)
