@@ -25,7 +25,7 @@ ln = np.log
 #if not (0.1 < V < 70):
 #    raise DesignError(f"Volume is out of bounds for costing")
 #lambda V, CE: CE*13*V**0.62 # V (m3)
-__all__ = ('Flash', 'SplitFlash', 'RatioFlash')
+__all__ = ('Flash', 'SplitFlash')
 
 
 # %% Flash
@@ -521,9 +521,11 @@ class SplitFlash(Flash):
             vessel_type=None,
             holdup_time=15,
             surge_time=7.5,
-            has_mist_eliminator=False
+            has_mist_eliminator=False,
+            has_vapor_condenser=False,
         ):
         Splitter._init(self, split=split, order=order)
+        self.has_vapor_condenser = has_vapor_condenser
         self._load_components()
         
         self.T = T #: Operating temperature (K)
@@ -555,6 +557,7 @@ class SplitFlash(Flash):
         self.has_mist_eliminator = has_mist_eliminator
         
         self.flash_inlet = False
+        
     
     isplit = Splitter.isplit
     split = Splitter.split
@@ -574,59 +577,7 @@ class SplitFlash(Flash):
     def _design(self):
         self.heat_exchanger.simulate_as_auxiliary_exchanger(self.ins, self.outs, vle=False)
         super()._design()
-    
-# TODO: Remove this in favor of partition coefficients
-class RatioFlash(Flash):
 
-    def _init(self, 
-            K_chemicals, Ks, top_solvents=(), top_split=(),
-            bot_solvents=(), bot_split=()
-        ):
-        self._load_components()
-        self.K_chemicals = K_chemicals
-        self.Ks = Ks
-        self.top_solvents = top_solvents
-        self.top_split = top_split
-        self.bot_solvents = bot_solvents
-        self.bot_split = bot_split
-
-    def _run(self):
-        feed = self.ins[0]
-        top, bot = self.outs
-        indices = self.chemicals.get_index
-        def flattend(indices, split):
-            flat_index = []
-            flat_split = []
-            integer = int
-            isa = isinstance
-            for i, j in zip(indices, split):
-                if isa(i, integer): 
-                    flat_index.append(i)
-                    flat_split.append(j)
-                else:
-                    flat_index.extend(i)
-                    flat_split.extend([j] * len(i))
-            return flat_index, np.array(flat_split)
-        
-        K_index, Ks = flattend(indices(self.K_chemicals), self.Ks)
-        top_index, top_split = flattend(indices(self.top_solvents), self.top_split)
-        bot_index, bot_split = flattend(indices(self.bot_solvents), self.bot_split)
-        top_mol = top.mol; bot_mol = bot.mol; feed_mol = feed.mol
-        top_mol[top_index] = feed_mol[top_index] * top_split
-        bot_mol[top_index] = feed_mol[top_index] - top_mol[top_index]
-        bot_mol[bot_index] = feed_mol[bot_index] * bot_split
-        top_mol[bot_index] = feed_mol[bot_index] - bot_mol[bot_index]
-        topnet = top_mol[top_index].sum()
-        botnet = bot_mol[bot_index].sum()
-        molnet = topnet+botnet
-        top_mol[K_index] = Ks * topnet * feed_mol[K_index] / molnet  # solvent * mol ratio
-        bot_mol[K_index] = feed_mol[K_index] - top_mol[K_index]
-        top.T, top.P = feed.T, feed.P
-        bot.T, bot.P = feed.T, feed.P
-
-    def _design(self): # pragma: no cover
-        self.heat_exchanger.simulate_as_auxiliary_exchanger(self.ins, self.outs, vle=False)
-        super()._design()
 
 # %% Single Component for MultiEffectEvaporator
 

@@ -158,8 +158,7 @@ class StageEquilibrium(Unit):
                 partition-1, [self.outs[-1], self.outs[1]],
                 split=bottom_split, 
             )
-        self.set_specification(B, Q, T)
-        self.P = P
+        self.set_specification(B, Q, T, P)
     
     @property
     def Q(self):
@@ -225,13 +224,15 @@ class StageEquilibrium(Unit):
             )
         )
         
-    def set_specification(self, B, Q, T):
+    def set_specification(self, B, Q, T, P):
         if B is None and Q is None and T is None: Q = 0.
         partition = self.partition
         partition.B_specification = partition.B = B
         partition.T_specification = partition.T = T
         if T is not None: 
             for i in partition.outs: i.T = T
+        if P is not None: 
+            for i in partition.outs: i.P = P
         partition.Q = Q
     
     @property
@@ -1122,7 +1123,7 @@ class MultiStageEquilibrium(Unit):
             self.stage_specifications = stage_specifications
             for i, (name, value) in stage_specifications.items():
                 B, Q, T = _get_specification(name, value)
-                stages[i].set_specification(B=B, Q=Q, T=T)
+                stages[i].set_specification(B=B, Q=Q, T=T, P=P)
         else:
             self.stage_specifications = stage_specifications
             self.stages = stages

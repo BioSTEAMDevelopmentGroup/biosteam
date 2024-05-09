@@ -23,3 +23,27 @@ class ProcessModel:
             setattr(self, i.setter.__name__, i)
         for i in model.metrics:
             setattr(self, i.getter.__name__, i)
+    
+    @property
+    def parameters(self):
+        return self.model._parameters
+        
+    @property
+    def metrics(self):
+        return self.model._metrics
+            
+    def _repr(self, m):
+        clsname = type(self).__name__
+        newline = "\n" + " "*(len(clsname)+2)
+        return f'{clsname}: {newline.join([i.describe() for i in self.metrics])}'
+    
+    def __repr__(self):
+        return f'<{type(self).__name__}: {len(self.parameters)}-parameters, {len(self.metrics)}-metrics>'
+    
+    def _info(self, p, m):
+        return 'Process' + self.model._info(p, m)
+    
+    def show(self, p=None, m=None):
+        """Return information on p-parameters and m-metrics."""
+        print(self._info(p, m))
+    _ipython_display_ = show
