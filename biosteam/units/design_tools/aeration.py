@@ -395,6 +395,35 @@ def kla_bubcol_Suh(D, mu_l, rho_l, D_l, g, sigma_l, epsilon_g, V_g, V_l, coeffic
 
     kla = (D_l/(D**2)) * 0.018 * (mu_l/(rho_l * D_l))**(0.5) * ((g*rho_l*D**2)/sigma_l)**(0.75) * (g*D**3*rho_l**2/(mu_l**2))**(0.39)*(V_g/(sqrt(g*D)))**0.51
     return kla
+@register
+def kla_bubcol_Dewes(V_g, mu_l, rho_g):
+    """
+    Returns the KLa coefficient for a bubble column reactor based on the Dewes & Schumpe (1997) correlation.
+    -------
+    Parameters:
+    V_g: float
+        Superficial gas velocity, [m/s]
+    mu_l: float
+        Viscosity of the liquid, [mPa.s]
+    rho_g: float
+        Density of the gas, [kg/m^3]
+    -------
+    References: 
+    Dewes, I., & Schumpe, A. (1997). 
+        Gas density effect on mass transfer in the slurry bubble column. 
+        Chemical Engineering Science, 52(21–22), 4105–4109. https://doi.org/10.1016/S0009-2509(97)00252-2
+    -------
+    Notes:
+    This correlation is valid under the following range of values:
+    D_c: 0.115 m -> Diameter of the column [m]
+    H_l: 1.37 m -> Liquid height in the column [m]
+    V_g: 0.01 - 0.08 m/s -> Superficial gas velocity [m/s]
+    mu_l: 1.35 - 583 mPa.s -> Viscosity of the liquid [mPa.s]
+    rho_g: 0.4 - 18.8 kg/m^3 -> Density of the gas [kg/m^3]
+    """
+
+    kla = V_g**0.90 * mu_l**(-0.55) * rho_g**0.46
+    return kla
 
 @register
 def kla_bubcol_Shah(D, V_l, g, V_g, rho_l, mu_l, coefficients=None):
