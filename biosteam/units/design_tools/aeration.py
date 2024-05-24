@@ -97,34 +97,6 @@ def C_O2_L(T, P_O2): # Commonly used, so here for convinience
     partial pressure of O2 in the gas [bar]."""
     return P_O2 * Henrys_law_constant(T, *H_coefficients['O2'])
 
-def log_mean_driving_force(C_sat_out, C_sat_in, C_out, C_in=None):
-    """
-    Return the driving force for mass transfer. In small vessels (<1 m tall) 
-    where both liquid concentration and saturation are almost constant, the simple
-    form is adequate [11]_. In tall vessels, the log-mean driving force should be 
-    used for more accuracy, since both the local concentration and the saturation
-    concentration are different in the top and bottom of a bioreactor [11]_. 
-    
-    Parameters
-    ----------
-    C_sat_out : float
-        Saturated concentration entering the bioreactor.
-    C_sat_out : float
-        Saturated concentration exiting the bioreactor.
-    C_out : float, optional
-        Outlet concentration. 
-    C_in : float
-        Inlet concentration. Defaults to the outlet concentration, which
-        assumes perfect mixing and oxygen uptake rate is the same everywhere.
-        
-    """
-    if C_in is None: C_in = C_out # Assume perfect mixing and oxygen uptake rate is the same everywhere.
-    dC_out = C_sat_out - C_out
-    dC_in = C_sat_in - C_in
-    if dC_out < 1e-9: # This is not theoretically possible, but may be an assumption
-        dC_out = 1e-9 # Assume it near zero
-    return (dC_out - dC_in) / log(dC_out / dC_in)
-
 kLa_methods = {}
 kLa_method_names = {
     'Bubble column': [],
@@ -183,7 +155,7 @@ def kLa_stirred_Riet(P, V, U, coefficients=None):
 #     bubble column reactors.    
 #     Take present that the units of the efficiency factor are [m**-1].
 #     This values are 
-#         - 0.016-0.028 m^-1 for coarse bubble diffusers
+#         - 0.016-0.028 m**-1 for coarse bubble diffusers
 #         - 0.07-0.1 m^-1 for fine bubble diffusers
 #     """
 #     K = None
@@ -421,7 +393,36 @@ def kla_bubcol_Suh(D, mu_l, rho_l, D_l, g, sigma_l, epsilon_g, V_g, V_l, coeffic
     Air-Aqueous Sucrose Solution
     """
 
-    kla = (D_l/(D**2)) * 0.018 * (mu_l/(rho_l * D_l))**(0.5) * ((g*rho_l*D**2)/sigma_l)**(0.75) * (g*D**3*rho_l**2/(mu_l**2))**(0.39)*(V_g/(sqrt(g*D)))
+    kla = (D_l/(D**2)) * 0.018 * (mu_l/(rho_l * D_l))**(0.5) * ((g*rho_l*D**2)/sigma_l)**(0.75) * (g*D**3*rho_l**2/(mu_l**2))**(0.39)*(V_g/(sqrt(g*D)))**0.51
+    return kla
+@register
+def kla_bubcol_Dewes(V_g, mu_l, rho_g):
+    """
+    Returns the KLa coefficient for a bubble column reactor based on the Dewes & Schumpe (1997) correlation.
+    -------
+    Parameters:
+    V_g: float
+        Superficial gas velocity, [m/s]
+    mu_l: float
+        Viscosity of the liquid, [mPa.s]
+    rho_g: float
+        Density of the gas, [kg/m^3]
+    -------
+    References: 
+    Dewes, I., & Schumpe, A. (1997). 
+        Gas density effect on mass transfer in the slurry bubble column. 
+        Chemical Engineering Science, 52(21–22), 4105–4109. https://doi.org/10.1016/S0009-2509(97)00252-2
+    -------
+    Notes:
+    This correlation is valid under the following range of values:
+    D_c: 0.115 m -> Diameter of the column [m]
+    H_l: 1.37 m -> Liquid height in the column [m]
+    V_g: 0.01 - 0.08 m/s -> Superficial gas velocity [m/s]
+    mu_l: 1.35 - 583 mPa.s -> Viscosity of the liquid [mPa.s]
+    rho_g: 0.4 - 18.8 kg/m^3 -> Density of the gas [kg/m^3]
+    """
+
+    kla = V_g**0.90 * mu_l**(-0.55) * rho_g**0.46
     return kla
 
 @register
@@ -578,3 +579,124 @@ def P_at_kLa_Riet(kLa, V, U, coefficients=None):
     else:
         a, b, c = coefficients
     return (kLa / (a * U ** c)) ** (1 / b) * V
+
+def log_mean_driving_force(C_sat_out, C_sat_in, C_out, C_in=None):
+    """
+    Return the driving force for mass transfer. In small vessels (<1 m tall) 
+    where both liquid concentration and saturation are almost constant, the simple
+    form is adequate [11]_. In tall vessels, the log-mean driving force should be 
+    used for more accuracy, since both the local concentration and the saturation
+    concentration are different in the top and bottom of a bioreactor [11]_. 
+    
+    Parameters
+    ----------
+    C_sat_out : float
+        Saturated concentration entering the bioreactor.
+    C_sat_out : float
+        Saturated concentration exiting the bioreactor.
+    C_out : float, optional
+        Outlet concentration. 
+    C_in : float
+        Inlet concentration. Defaults to the outlet concentration, which
+        assumes perfect mixing and oxygen uptake rate is the same everywhere.
+        
+    """
+    if C_in is None: C_in = C_out # Assume perfect mixing and oxygen uptake rate is the same everywhere.
+    dC_out = C_sat_out - C_out
+    dC_in = C_sat_in - C_in
+    if dC_out < 1e-9: # This is not theoretically possible, but may be an assumption
+        dC_out = 1e-9 # Assume it near zero
+    return (dC_out - dC_in) / log(dC_out / dC_in)
+
+if __name__ == "__main__":
+    print('hola')
+
+    repeated_names = [
+        ('U_g', ('U_G', 'V_G')),
+
+    ]   
+    fermentation_variables_bub_col = {
+        'Dashpande': {
+        'epsilon_g': (0.5, 1.2), 
+        'K': (0.016, 0.028), # for coarse bubble diffusers  'K': (0.07, 0.1), # for fine bubble diffusers
+        'M_l': 0.018, # kg/mol
+        'Rhat': 8.314, # J/mol-K
+        'T': 298.15, # K
+        'rho_l': 1000, # kg/m^3
+        'U_g': (0.01,0.1), # m/s
+        },
+        'DeJesus': {
+            'Q':(0, 1.6), # vvm
+            'mu': (0.001, 0.1), # Pa.s
+            'k': (0.1, 100), # Pa.s^n
+            'n': (0, 2) # Flow behavior index <1 for pseudoplastic, >1 for dilatant, 1 for Newtonian
+        },
+        'Akita_Yoshida': {
+            'D': 0.15, # m
+            'H': 4, # m
+            'V_g': (0, 0.33), # m/s
+            'mu_l': (0.5, 100), # Cp 1 water, 100 xanthan
+            'rho_l': (995, 1043), # kg/m^3
+            'D_l': (1.68  * 10**-9, 3.24  * 10**-9) , # m^2/s
+            'g': 9.81, # m/s^2
+            'sigma_l':  (0.0348,0.0728), # N/m
+            'epsilon_g': (0.01, 1) # m/s
+        },
+        'Posarac_Tekic': {
+            'D': 0.1, # m
+            'H': 2.5, # m
+            'V_g': (0.008, 0.08), # m/s
+            'mu_l': (0.5, 100), # Cp 1 water, 100 xanthan
+            'rho_l': (995, 1043), # kg/m^3
+            'D_l': (1.68  * 10**-9, 3.24  * 10**-9), # m^2/s
+            'sigma_l':  (0.0348,0.0728), # N/m
+            'epsilon_g': (0.01, 1) # m/s    
+        },
+        'Seno': {
+            'D': 0.0464, # m
+            'H': 1.36, # m
+            'V_g': (0.005, 0.04), # m/s
+            'V_l': (0.005, 0.1), # m/s
+            'rho_l': (995, 1043), # kg/m^3
+            'mu_l': (0.653, 1.31), # Cp 1 water, 100 xanthan
+            'D_l': (1.68 * 10**-9, 3.24 * 10**-9), # m^2/s
+            'g': 9.81, # m/s^2
+            'sigma_l': (0.0348,0.0728), # N/m
+            'epsilon_g': (0.01, 1) # m/s
+        },
+        'Suh': {
+            'D': 0.15, # m
+            'H': 2.9, # m
+            'V_g': (0.005, 0.04), # m/s
+            'rho_l': (1001, 1264), # kg/m^3
+            'mu_l': (0.653, 1.31), # Cp 1 water, 100 xanthan
+            'D_l': (0.318 * 10**-9, 2.5 * 10**-9) , # m^2/s
+            'g': 9.81, # m/s^2
+            'sigma_l': (0.0656,0.0746), # N/m
+            'epsilon_g': (0.01, 1) # m/s
+        },
+        'Shah': {
+            'D': 0.29, # m
+            'H': 0.2, # m
+            'V_g': (0.021, 0.105), # m/s
+            'V_l': (0.0005, 0.002), # m/s
+            'rho_l': (1, 50), # kg/m^3
+            'mu_l': (1, 50), # Cp 1 water, 100 xanthan
+        },
+    }
+
+    fermentation_variables_stirred = {
+        'Labik':{
+            'N': (4.17, 14.17), # s^-1
+            'D':(0.1, 0.2), # m
+            'v_s': (2.12 * 1e-3, 8.48 * 1e-3) , # m/s
+            'P0': (100, 10000),
+        },
+        'Galaction':{ # look into what is better for the P_a/V and P/V
+            'P_a/V' : (30,120), # W/m^3
+            'v_s': (0.8 * 1e-3, 5 * 1e-3), # m/s
+            'C_x': (5, 150), # g/l dry weight
+            'P/V': (10, 1900), # W/m^3
+
+        }
+    }
