@@ -56,7 +56,7 @@ import biosteam as bst
 from math import inf
 from .heat_exchange import HXutility
 from ._flash import Flash
-from .phase_equilibrium import MultiStageEquilibrium
+from .stage import MultiStageEquilibrium
 
 __all__ = (
     'Distillation', 
@@ -1073,7 +1073,7 @@ def compute_stages_McCabeThiele(P, operating_line,
 # %% McCabe-Thiele distillation column unit operation
 
 
-class BinaryDistillation(Distillation, new_graphics=False):
+class BinaryDistillation(Distillation, new_graphics=False, phenomena_oriented=True):
     r"""
     Create a binary distillation column that assumes all light and heavy non keys
     separate to the top and bottoms product respectively. McCabe-Thiele
@@ -1543,9 +1543,6 @@ class BinaryDistillation(Distillation, new_graphics=False):
         else:
             eqs = []
         return eqs
-    
-    def _update_decoupled_variable(self, variable, value):
-        raise RuntimeError(f'invalid variable {variable!r}')
 
 
 # %% Fenske-Underwook-Gilliland distillation model utilities
@@ -1620,7 +1617,7 @@ def compute_feed_stage_Kirkbride(N, B, D,
 
 # %% Fenske-Underwook-Gilliland distillation column unit operation
 
-class ShortcutColumn(Distillation, new_graphics=False):
+class ShortcutColumn(Distillation, new_graphics=False, phenomena_oriented=True):
     r"""
     Create a multicomponent distillation column that relies on the
     Fenske-Underwood-Gilliland method to solve for the theoretical design
@@ -1966,7 +1963,6 @@ class ShortcutColumn(Distillation, new_graphics=False):
     
     _create_material_balance_equations = BinaryDistillation._create_material_balance_equations
     _create_linear_equations = BinaryDistillation._create_linear_equations
-    _update_decoupled_variable = BinaryDistillation._update_decoupled_variable
 
 
 # %% Rigorous absorption/stripping column

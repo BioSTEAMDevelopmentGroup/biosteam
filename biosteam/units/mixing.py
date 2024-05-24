@@ -17,6 +17,7 @@ from .._unit import Unit
 from thermosteam._graphics import mixer_graphics
 import flexsolve as flx
 import biosteam as bst
+import numpy as np
 from typing import Optional
 
 __all__ = ('Mixer', 'SteamMixer', 'FakeMixer', 'MockMixer')
@@ -87,6 +88,116 @@ class Mixer(Unit):
         s_out.mix_from(self.ins, vle=self.rigorous,
                        conserve_phases=getattr(self, 'conserve_phases', None))
         
+    # %% Decoupled phenomena equation oriented simulation
+    
+    def _get_energy_departure_coefficient(self, stream):
+        if stream.phases == ('g', 'l'):
+            vapor, liquid = stream
+            if vapor.isempty():
+                with liquid.temporary_phase('g'): coeff = liquid.H
+            else:
+                coeff = -vapor.h * liquid.F_mol
+        else:
+            coeff = -stream.C
+        return (self, coeff)
+    
+    def _create_energy_departure_equations(self):
+        return [self._create_energy_departure_equation()]
+    
+    def _create_energy_departure_equation(self):
+        # Ll: C1dT1 - Ce2*dT2 - Cr0*dT0 - hv2*L2*dB2 = Q1 - H_out + H_in
+        # gl: hV1*L1*dB1 - hv2*L2*dB2 - Ce2*dT2 - Cr0*dT0 = Q1 + H_in - H_out
+        outlet = self.outs[0]
+        phases = outlet.phases
+        if phases == ('g', 'l'):
+            vapor, liquid = outlet
+            coeff = {}
+            if vapor.isempty():
+                with liquid.temporary_phase('g'): coeff[self] = liquid.H
+            else:
+                coeff[self] = vapor.h * liquid.F_mol
+        else:
+            coeff = {self: outlet.C}
+        for i in self.ins: i._update_energy_departure_coefficient(coeff)
+        return (coeff, self.H_in - self.H_out)
+    
+    def _create_material_balance_equations(self):
+        inlets = self.ins
+        outlet, = self.outs
+        fresh_inlets = [i for i in inlets if i.isfeed() and not i.equations]
+        process_inlets = [i for i in inlets if not i.isfeed() or i.equations]
+        if len(outlet) == 1:
+            ones = np.ones(self.chemicals.size)
+            minus_ones = -ones
+            zeros = np.zeros(self.chemicals.size)
+            
+            # Overall flows
+            eq_overall = {outlet: ones}
+            for i in process_inlets: eq_overall[i] = minus_ones
+            equations = [
+                (eq_overall, sum([i.mol for i in fresh_inlets], zeros))
+            ]
+        else:
+            top, bottom = outlet
+            equations = []
+            ones = np.ones(self.chemicals.size)
+            minus_ones = -ones
+            zeros = np.zeros(self.chemicals.size)
+            
+            # Overall flows
+            eq_overall = {}
+            for i in outlet: 
+                eq_overall[i] = ones
+            for i in process_inlets:
+                eq_overall[i] = minus_ones
+            equations.append(
+                (eq_overall, sum([i.mol for i in fresh_inlets], zeros))
+            )
+            
+            # Top to bottom flows
+            try:
+                B = self._B
+            except:
+                V = outlet.vapor_fraction
+                if V == 0:
+                    B = 0
+                elif V == 1:
+                    B = np.inf
+                else:
+                    B = V / (1 - V)
+            eq_outs = {}
+            if B == np.inf:
+                eq_outs[bottom] = ones
+            elif B == 0:
+                eq_outs[top] = ones
+            else:
+                bp = outlet.bubble_point_at_P()
+                outlet.T = bp.T
+                S = bp.K * B
+                eq_outs[top] = ones
+                eq_outs[bottom] = -S
+            equations.append(
+                (eq_outs, zeros)
+            )
+            return equations
+    
+    def _create_linear_equations(self, variable):
+        if variable == 'material':
+            eqs = self._create_material_balance_equations()
+        elif variable == 'energy':
+            eqs = self._create_energy_departure_equations()
+        else:
+            eqs = []
+        return eqs
+    
+    def _update_decoupled_variable(self, variable, value):
+        if variable == 'energy':
+            phases = self.phases
+            if phases == ('g', 'l'):
+                self._B += value
+            else:
+                self.outs[0].T += value
+
 
 class SteamMixer(Unit):
     """

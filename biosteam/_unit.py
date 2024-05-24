@@ -21,6 +21,7 @@ import biosteam as bst
 from thermosteam import Stream, AbstractUnit, ProcessSpecification
 from numpy.typing import NDArray
 from typing import Callable, Optional, TYPE_CHECKING, Sequence, Iterable
+from inspect import signature
 import thermosteam as tmo
 if TYPE_CHECKING: 
     System = bst.System
@@ -37,6 +38,13 @@ __all__ = ('Unit',)
 # streams = Union[Collection[Union[Stream, str, None]], Union[Stream, str, None]]
 # stream = Union[Annotated[Union[Stream, str, None], 1], Union[Stream, str, None]]
 # stream_sequence = Collection[Union[Stream, str, None]]
+
+# %% Defaults
+
+def _get_energy_departure_coefficient(self, stream): return
+
+def _update_decoupled_variable(self, variable, value): return
+
 
 # %% Unit Operation
 
@@ -113,10 +121,32 @@ class Unit(AbstractUnit):
     def __init_subclass__(cls,
                           isabstract=False,
                           new_graphics=True,
-                          does_nothing=None):
+                          does_nothing=None,
+                          phenomena_oriented=None):
         super().__init_subclass__()
         if does_nothing: return 
         dct = cls.__dict__
+        if phenomena_oriented:
+            signatures = (
+                ('_create_linear_equations', ('self', 'variable'), None),
+                ('_update_decoupled_variable', ('self', 'variable', 'value'), _update_decoupled_variable),
+                ('_get_energy_departure_coefficient', ('self', 'stream'), _get_energy_departure_coefficient),
+            )
+            for name, params, default in signatures:
+                if hasattr(cls, name):
+                    f = signature(getattr(cls, name))
+                    if tuple(f.parameters) != params:
+                        raise NotImplementedError(
+                            'invalid signtaure {name}.{str(f)}; correct signature is '
+                            '{name}({', '.join(params)})'
+                        )
+                elif default:
+                    setattr(cls, name, default)
+                else:
+                    raise NotImplementedError(
+                        f'unit must implement a `{name}` '
+                        'method for phenomena-oriented simulation'
+                    )
         if '_N_heat_utilities' in dct:
             warn("'_N_heat_utilities' class attribute is scheduled for deprecation; "
                  "use the `add_heat_utility` method instead",

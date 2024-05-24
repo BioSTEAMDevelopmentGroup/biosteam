@@ -76,8 +76,8 @@ class HX(Unit, isabstract=True):
     _units = {'Area': 'ft^2',
               'Overall heat transfer coefficient': 'kW/m^2/K',
               'Log-mean temperature difference': 'K',
-              'Tube side pressure drop': 'psi',
-              'Shell side pressure drop': 'psi',
+              'Tube side pressure drop': 'Pa',
+              'Shell side pressure drop': 'Pa',
               'Operating pressure': 'psi',
               'Total tube length': 'ft'}
     _N_ins = 1
@@ -113,7 +113,7 @@ class HX(Unit, isabstract=True):
             raise AttributeError("heat exchange type must be one of the following: "
                                  f"{list_available_names(Cb_dict)}")
         self._heat_exchanger_type = heat_exchanger_type     
-
+    
     def _assert_compatible_property_package(self):
         if self.owner is not self: return
         assert all([i.chemicals is j.chemicals for i, j in zip(self._ins, self._outs) if (i and j)]), (
@@ -151,7 +151,6 @@ class HX(Unit, isabstract=True):
         
         # Get overall heat transfer coefficient
         U = self.U or ht.heuristic_overall_heat_transfer_coefficient(ci, hi, co, ho)
-        dP_tube, dP_shell = ht.heuristic_tubeside_and_shellside_pressure_drops(ci, hi, co, ho)
         
         # TODO: Complete design of heat exchanger to find L
         # For now assume lenght is 20 ft
@@ -163,10 +162,11 @@ class HX(Unit, isabstract=True):
         Design['Overall heat transfer coefficient'] = U
         Design['Log-mean temperature difference'] = LMTD
         Design['Fouling correction factor'] = ft
-        Design['Tube side pressure drop'] = dP_tube
-        Design['Shell side pressure drop'] = dP_shell
         Design['Operating pressure'] = P * 14.7/101325 # psi
         Design['Total tube length'] = L
+        if not self.neglect_pressure_drop:
+            Design['Tube side pressure drop'] = ho.P - hi.P
+            Design['Shell side pressure drop'] = co.P - ci.P
 
     def _cost(self):
         Design = self.design_results
@@ -407,6 +407,9 @@ class HXutility(HX):
             heat_only=None,
             cool_only=None,
             heat_transfer_efficiency=None,
+            inner_fluid_pressure_drop=None,
+            outer_fluid_pressure_drop=None,
+            neglect_pressure_drop=True,
         ):
         self.T = T #: [float] Temperature of outlet stream (K).
         self.V = V #: [float] Vapor fraction of outlet stream.
@@ -432,6 +435,15 @@ class HXutility(HX):
         
         self.material = material
         self.heat_exchanger_type = heat_exchanger_type
+        
+        #: Optional[float] Pressure drop along the inner fluid.
+        self.inner_fluid_pressure_drop = inner_fluid_pressure_drop
+        
+        #: Optional[float] Pressure drop along the outer fluid.
+        self.outer_fluid_pressure_drop = outer_fluid_pressure_drop
+        
+        #: [bool] Whether to assume a negligible pressure drop.
+        self.neglect_pressure_drop = neglect_pressure_drop
         
         #: [bool] User enforced heat transfer efficiency. A value less than 1
         #: means that a fraction of heat transfered is lost to the environment.
@@ -501,7 +513,6 @@ class HXutility(HX):
         outlet = self.outs[0]
         outlet.copy_flow(feed)
         if outlet.isempty(): return
-        outlet.P = feed.P
         T = self.T
         V = self.V
         H = self.H
@@ -512,7 +523,35 @@ class HXutility(HX):
         if N_given == 0:
             raise RuntimeError("no specification available; must define at either "
                                "temperature 'T', vapor fraction, 'V', or enthalpy 'H'")
-        elif self.rigorous:
+        if self.neglect_pressure_drop:
+            outlet.P = feed.P
+        else:
+            if T_given:
+                cooling = T > feed.T
+            elif V_given:
+                cooling = V < feed.vapor_fraction
+            elif H_given:
+                cooling = H < feed.H
+            else:
+                raise RuntimeError('unknown error')
+            if cooling:
+                if self.outer_fluid_pressure_drop:
+                    outlet.P = feed.P - self.outer_fluid_pressure_drop
+                else:
+                    estimate_pressure_drop = True 
+            else:
+                if self.inner_fluid_pressure_drop:
+                    outlet.P = feed.P - self.inner_fluid_pressure_drop
+                else:
+                    estimate_pressure_drop = True 
+            if estimate_pressure_drop:
+                self.neglect_pressure_drop = True
+                # Need to rerun to see find pressure drop.
+                # TODO: Make more efficient instead of rerunning.
+                try: self._run() 
+                finally: self.neglect_pressure_drop = False
+                outlet.P = feed.P - 6894.76 * ht.heuristic_pressure_drop(feed.vapor_fraction, outlet.vapor_fraction)
+        if self.rigorous:
             if N_given > 1:
                 raise RuntimeError("may only specify either temperature, 'T', "
                                    "vapor fraction 'V', or enthalpy 'H', "
@@ -774,6 +813,9 @@ class HXprocess(HX):
             phase1=None,
             H_lim0=None,
             H_lim1=None,
+            inner_fluid_pressure_drop=None,
+            outer_fluid_pressure_drop=None,
+            neglect_pressure_drop=True,
         ):
         #: [float] Enforced overall heat transfer coefficent (kW/m^2/K)
         self.U = U
@@ -811,6 +853,15 @@ class HXprocess(HX):
         self.material = material
         self.heat_exchanger_type = heat_exchanger_type
         self.reset_streams_at_setup = False
+        
+        #: Optional[float] Pressure drop along the inner fluid.
+        self.inner_fluid_pressure_drop = inner_fluid_pressure_drop
+        
+        #: Optional[float] Pressure drop along the outer fluid.
+        self.outer_fluid_pressure_drop = outer_fluid_pressure_drop
+        
+        #: [bool] Whether to assume a negligible pressure drop.
+        self.neglect_pressure_drop = neglect_pressure_drop
         
     def get_streams(self):
         s_in_a, s_in_b = self.ins
@@ -853,6 +904,7 @@ class HXprocess(HX):
                     if len(phase) == 1: s_out.phase = phase
     
     def _run_counter_current_heat_exchange(self):
+        #: TODO: Implement pressure drop
         self.total_heat_transfer = ht.counter_current_heat_exchange(
             *self._ins, *self._outs, self.dT, self.T_lim0, self.T_lim1,
             self.phase0, self.phase1, self.H_lim0, self.H_lim1

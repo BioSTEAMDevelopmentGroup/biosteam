@@ -220,7 +220,7 @@ def heuristic_overall_heat_transfer_coefficient(ci, hi, co, ho):
     else:
         return 0.5
 
-def heuristic_pressure_drop(inlet_phase, outlet_phase):
+def heuristic_pressure_drop(inlet_vapor_fraction, outlet_vapor_fraction):
     """
     Return a heuristic estimate of the pressure drop [dP; in psi]. If the fluid 
     changes phase, `dP` is 1.5 psi. If the fluid remains a liquid, `dP` is 5 psi.
@@ -228,8 +228,8 @@ def heuristic_pressure_drop(inlet_phase, outlet_phase):
     
     Parameters
     ----------
-    inlet_phase: str
-    outlet_phase : str
+    inlet_vapor_fraction : float
+    outlet_vapor_fraction : float
         
     Returns
     -------
@@ -237,15 +237,13 @@ def heuristic_pressure_drop(inlet_phase, outlet_phase):
         Pressure drop [psi].
     
     """
-    inlet_phase = inlet_phase.lower()
-    outlet_phase = outlet_phase.lower()
-    if ('l' in inlet_phase and 'g' in outlet_phase) or ('g' in inlet_phase and 'l' in outlet_phase):
+    if inlet_vapor_fraction != outlet_vapor_fraction:
         # Latent fluid (boiling or condensing)
         dP = 1.5
-    elif 'l' in inlet_phase:
+    elif inlet_vapor_fraction < 0.5:
         # Sensible liquid
         dP = 5.
-    elif 'g' in outlet_phase:
+    else:
         # Sensible vapor
         dP = 3.
     return dP
@@ -276,8 +274,8 @@ def heuristic_tubeside_and_shellside_pressure_drops(ci, hi, co, ho,
         Shellside pressure drop (psi)
     
     """
-    dP_c = heuristic_pressure_drop(ci.phase, co.phase)
-    dP_h = heuristic_pressure_drop(hi.phase, ho.phase)
+    dP_c = heuristic_pressure_drop(ci.vapor_fraction, co.vapor_fraction)
+    dP_h = heuristic_pressure_drop(hi.vapor_fraction, ho.vapor_fraction)
     if tubeside_iscooling:
         dP_tube = dP_h
         dP_shell = dP_c

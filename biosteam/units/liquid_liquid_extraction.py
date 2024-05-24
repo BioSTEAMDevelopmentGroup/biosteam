@@ -45,7 +45,7 @@ import biosteam as bst
 from .splitting import Splitter
 from .design_tools import CEPCI_by_year, geometry, PressureVessel
 from .decorators import cost, copy_algorithm
-from .phase_equilibrium import MultiStageEquilibrium
+from .stage import MultiStageEquilibrium
 from thermosteam._graphics import mixer_settler_graphics
 from .. import Unit
 from thermosteam import separations as sep

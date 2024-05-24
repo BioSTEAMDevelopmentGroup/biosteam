@@ -96,11 +96,9 @@ class Configuration:
         for u in units:
             for i in u.ins: 
                 i._sink = u
-                assert i.sink is u
                 sinks[i.imol] = u
             for i in u.outs: 
                 i._source = u
-                assert i.source is u
                 sources[i.imol] = u
         units_set = set(units)
         for i in streams:
@@ -149,31 +147,9 @@ def solve_linear_equations(variable, nodes, streams):
                 [(f(j) if callable(f:=bi[j]) else f) for j in delayed_index]
                 for bi in b
             ], float)
-            try:
-                values = solve(A_delayed, b_delayed.T).T
-            except:
-                breakpoint()
+            values = solve(A_delayed, b_delayed.T).T
             for obj, value in zip(objs, values): 
                 obj._update_decoupled_variable(variable, value, delayed_index)
-            # nonlimiting_players = []
-            # for _, i in conversions:
-            #     i = i.reaction
-            #     if isinstance(i, (bst.Rxn, bst.RxnI)):
-            #         index = i._X_index[1] if i.phases else i._X_index
-            #         for i in i._stoichiometry.nonzero_keys():
-            #             if i == index: continue
-            #             nonlimiting_players.append(i)
-            #     elif isinstance(i, bst.RxnS):
-            #         index = [j[1] for j in i._X_index] if i.phases else i._X_index
-            #         index_set = set(index)
-            #         for i in i._stoichiometry.nonzero_keys():
-            #             if i in index_set: continue
-            #             nonlimiting_players.append(i)
-            #     else:
-            #         raise RuntimeError('unknown error')
-            # nonlimiting_set = set(nonlimiting_players)
-            # chemicals = conversions[1].reaction.chemicals
-            # others = [i for i in range(chemicals.size) if i not in nonlimiting_set]
         else:
             A, objs = dictionaries2array(A)
             values = solve(A, np.array(b).T).T
@@ -186,7 +162,6 @@ def solve_linear_equations(variable, nodes, streams):
                 for i in i.stages:
                     if hasattr(i, '_update_auxiliaries'):
                         i._update_auxiliaries()
-        
     else:
         for node in nodes:
             for coefficients, value in node._create_linear_equations(variable):
