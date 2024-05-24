@@ -274,8 +274,6 @@ class HXutility(HX):
                         Overall heat transfer coefficient  kW/m^2/K      0.5
                         Log-mean temperature difference           K      101
                         Fouling correction factor                          1
-                        Tube side pressure drop                 psi      1.5
-                        Shell side pressure drop                psi        5
                         Operating pressure                      psi       50
                         Total tube length                        ft       20
     Purchase cost       Double pipe                             USD 4.78e+03
@@ -309,8 +307,6 @@ class HXutility(HX):
                         Overall heat transfer coefficient  kW/m^2/K        1
                         Log-mean temperature difference           K     80.8
                         Fouling correction factor                          1
-                        Tube side pressure drop                 psi      1.5
-                        Shell side pressure drop                psi      1.5
                         Operating pressure                      psi       50
                         Total tube length                        ft       20
     Purchase cost       Floating head                           USD 2.65e+04
@@ -330,8 +326,6 @@ class HXutility(HX):
                         Overall heat transfer coefficient  kW/m^2/K        1
                         Log-mean temperature difference           K     80.8
                         Fouling correction factor                          1
-                        Tube side pressure drop                 psi      1.5
-                        Shell side pressure drop                psi      1.5
                         Operating pressure                      psi       50
                         Total tube length                        ft       20
     Purchase cost       Floating head                           USD 2.61e+04
@@ -365,8 +359,6 @@ class HXutility(HX):
                         Overall heat transfer coefficient  kW/m^2/K        1
                         Log-mean temperature difference           K     80.8
                         Fouling correction factor                          1
-                        Tube side pressure drop                 psi      1.5
-                        Shell side pressure drop                psi      1.5
                         Operating pressure                      psi       50
                         Total tube length                        ft       20
     Purchase cost       Floating head                           USD 2.65e+04
@@ -386,8 +378,6 @@ class HXutility(HX):
                         Overall heat transfer coefficient  kW/m^2/K        1
                         Log-mean temperature difference           K     80.8
                         Fouling correction factor                          1
-                        Tube side pressure drop                 psi      1.5
-                        Shell side pressure drop                psi      1.5
                         Operating pressure                      psi       50
                         Total tube length                        ft       20
     Purchase cost       Floating head                           USD 2.61e+04
@@ -735,8 +725,6 @@ class HXprocess(HX):
                         Overall heat transfer coefficient  kW/m^2/K      0.5
                         Log-mean temperature difference           K     20.4
                         Fouling correction factor                          1
-                        Tube side pressure drop                 psi      1.5
-                        Shell side pressure drop                psi        5
                         Operating pressure                      psi     14.7
                         Total tube length                        ft       20
     Purchase cost       Floating head                           USD 2.06e+04
@@ -776,8 +764,6 @@ class HXprocess(HX):
                         Overall heat transfer coefficient  kW/m^2/K      0.5
                         Log-mean temperature difference           K     11.4
                         Fouling correction factor                          1
-                        Tube side pressure drop                 psi        5
-                        Shell side pressure drop                psi        5
                         Operating pressure                      psi     14.7
                         Total tube length                        ft       20
     Purchase cost       Floating head                           USD 2.23e+04
@@ -789,8 +775,6 @@ class HXprocess(HX):
                         Overall heat transfer coefficient  kW/m^2/K      0.5
                         Log-mean temperature difference           K     11.4
                         Fouling correction factor                          1
-                        Tube side pressure drop                 psi        5
-                        Shell side pressure drop                psi        5
                         Operating pressure                      psi     14.7
                         Total tube length                        ft       20
     Purchase cost       Floating head                           USD 2.23e+04
