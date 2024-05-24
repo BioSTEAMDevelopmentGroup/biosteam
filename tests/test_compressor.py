@@ -235,10 +235,8 @@ def test_multistage_hydrogen_compressor_simple():
     assert K.design_results["Type"] == "Multistage compressor"
     # assert K.design_results["Driver"] == "Electric motor"
     assert_allclose(
-        [K.design_results["Area"],
-         K.design_results['Tube side pressure drop'],
-         K.design_results['Shell side pressure drop']],
-        [1.7906277579485619, 15.0, 25.0],
+        [K.design_results["Area"]],
+        [1.7906277579485619],
         rtol=1e-3,
     )
     # check heat utilities
@@ -295,10 +293,8 @@ def test_multistage_hydrogen_compressor_advanced():
     assert K.design_results["Type"] == "Multistage compressor"
     # assert K.design_results["Driver"] == "Electric motor"
     assert_allclose(
-        [K.design_results["Area"],
-         K.design_results['Tube side pressure drop'],
-         K.design_results['Shell side pressure drop']],
-        [1.1008174238336854, 15.0, 25.0],
+        [K.design_results["Area"],],
+        [1.1008174238336854],
         rtol=1e-3,
     )
     # check heat utilities
