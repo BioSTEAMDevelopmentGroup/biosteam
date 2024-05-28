@@ -167,7 +167,7 @@ def test_simple_acetic_acid_separation_with_recycle():
                 0, broth * solvent_feed_ratio - EtAc_recycle
             )
         
-        @solvent.equation('material')
+        @solvent.material_balance
         def fresh_solvent_flow_rate():
             s = np.ones(chemicals.size)
             r = np.zeros(chemicals.size)
@@ -212,10 +212,9 @@ def test_simple_acetic_acid_separation_with_recycle():
 
 
 if __name__ == '__main__':
-    pass
-    # test_trivial_lle_case()
-    # test_trivial_vle_case()
-    # test_trivial_liquid_extraction_case()
-    # test_trivial_distillation_case()
-    # test_simple_acetic_acid_separation_no_recycle()
-    # test_simple_acetic_acid_separation_with_recycle()
+    test_trivial_lle_case()
+    test_trivial_vle_case()
+    test_trivial_liquid_extraction_case()
+    test_trivial_distillation_case()
+    test_simple_acetic_acid_separation_no_recycle()
+    test_simple_acetic_acid_separation_with_recycle()

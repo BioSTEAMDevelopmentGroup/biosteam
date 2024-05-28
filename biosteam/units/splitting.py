@@ -308,8 +308,8 @@ class Separator(Unit):
         ones = np.ones(self.chemicals.size)
         minus_ones = -ones
         zeros = np.zeros(self.chemicals.size)
-        fresh_inlets = [i for i in inlets if i.isfeed() and not i.equations]
-        process_inlets = [i for i in inlets if not i.isfeed() or i.equations]
+        fresh_inlets = [i for i in inlets if i.isfeed() and not i.material_equations]
+        process_inlets = [i for i in inlets if not i.isfeed() or i.material_equations]
         
         # Overall flows
         eq_overall = {}
@@ -333,67 +333,16 @@ class Separator(Unit):
         )
         return equations
     
+    def _get_energy_departure_coefficient(self, stream):
+        coeff = -stream.C
+        return (self, coeff)
+    
     def _create_energy_departure_equations(self, temperature_only=False):
-        # Ll: C1dT1 - Ce2*dT2 - Cr0*dT0 - hv2*L2*dB2 = Q1 - H_out + H_in
-        # gl: hV1*L1*dB1 - hv2*L2*dB2 - Ce2*dT2 - Cr0*dT0 = Q1 + H_in - H_out
-        if self.T_specification: return []
-        if temperature_only:
-            coeff = {self: sum([i.C for i in self.outs])}
-            for i in self.ins:
-                source = i.source
-                if not source: continue
-                if (getattr(source, 'T_specification', None) is None
-                    and getattr(source, 'B_specification', None) is None):
-                    coeff[source] = -i.C
-                else:
-                    continue
-        else:
-            coeff = {self: sum([i.C for i in self.outs])}
-            for i in self.ins:
-                source = i.source
-                if not source: continue
-                if source.phases == ('g', 'l'):
-                    if i.phase != 'g': continue
-                    if getattr(source, 'B_specification', None) is not None: continue
-                    if hasattr(source, 'partition'):    
-                        vapor, liquid = source.partition.outs
-                        split = (1 - source.top_split) if vapor.imol is i.imol else source.top_split
-                        if vapor.isempty():
-                            liquid.phase = 'g'
-                            coeff[source] = liquid.H * split
-                            liquid.phase = 'l'
-                        else:
-                            coeff[source] = -vapor.h * liquid.F_mol * split
-                    elif isinstance(source, bst.MultiStageEquilibrium):
-                        vapor, liquid = source.outs
-                        if vapor.isempty():
-                            liquid.phase = 'g'
-                            coeff[source] = liquid.H
-                            liquid.phase = 'l'
-                        else:
-                            coeff[source] = -vapor.h * liquid.F_mol
-                elif getattr(source, 'T_specification', None) is None: 
-                    coeff[source] = -i.C
-                else:
-                    continue
-        return [(coeff, self.H_in - self.H_out + sum([i.Q for i in self.stages]))]
+        coeff = {self: self.ins[0].C}
+        self.ins[0]._update_energy_departure_coefficient(coeff)
+        return [(coeff, self.H_in - self.H_out)]
     
-    def _create_linear_equations(self, variable):
-        # list[dict[Unit|Stream, float]]
-        if variable == 'material':
-            return self._create_material_balance_equations()
-        elif variable == 'energy':
-            eqs = self._create_energy_departure_equations()
-        elif variable == 'temperature':
-            eqs = self._create_energy_departure_equations(temperature_only=True)
-        elif variable == 'equilibrium':
-            eqs = []
-        else:
-            eqs = []
-        return eqs
-    
-    def _update_decoupled_variable(self, variable, value):
-        if variable in ('energy', 'temperature'):
-            self.T = T = self.T + value
-            for i in self.outs: i.T = T
+    def _update_energy_variable(self, value):
+        self.T = T = self.T + value
+        for i in self.outs: i.T = T
     

@@ -60,7 +60,7 @@ def create_acetic_acid_simple_system(alg):
                 0, broth * solvent_feed_ratio - EtAc_recycle
             )
 
-        @solvent.equation('material')
+        @solvent.material_balance
         def fresh_solvent_flow_rate():
             s = np.ones(chemicals.size)
             r = np.zeros(chemicals.size)
@@ -104,7 +104,7 @@ def create_acetic_acid_complex_system(alg):
     distillate = bst.Stream('distillate')
     distillate_2 = bst.Stream('distillate_2')
     with bst.System(algorithm=alg) as sys:
-        # @ethyl_acetate.equation('material')
+        # @ethyl_acetate.material_balance
         # def fresh_solvent_flow_rate():
         #     f = np.ones(chemicals.size)
         #     r = np.zeros(chemicals.size)
@@ -119,7 +119,7 @@ def create_acetic_acid_complex_system(alg):
         #          distillate_2: r},
         #          v
         #     )
-        @ethyl_acetate.equation('material')
+        @ethyl_acetate.material_balance
         def fresh_solvent_flow_rate():
             f = np.ones(chemicals.size)
             r = np.zeros(chemicals.size)

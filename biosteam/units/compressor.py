@@ -370,7 +370,7 @@ class IsothermalCompressor(Compressor, new_graphics=False):
         self._set_power(ideal_power / self.eta)
 
 
-class IsentropicCompressor(Compressor, new_graphics=False, phenomena_oriented=True):
+class IsentropicCompressor(Compressor, new_graphics=False):
     """
     Create an isentropic compressor.
 
@@ -567,11 +567,8 @@ class IsentropicCompressor(Compressor, new_graphics=False, phenomena_oriented=Tr
     def _design(self):
         super()._design()
         self._set_power(self.design_results['Ideal power'] / self.eta)
-        
-    def _create_energy_departure_equations(self):
-        return [self._create_energy_departure_equation()]
     
-    def _create_energy_departure_equation(self):
+    def _create_energy_departure_equations(self):
         # Ll: C1dT1 - Ce2*dT2 - Cr0*dT0 - hv2*L2*dB2 = Q1 - H_out + H_in
         # gl: hV1*L1*dB1 - hv2*L2*dB2 - Ce2*dT2 - Cr0*dT0 = Q1 + H_in - H_out
         feed = self.ins[0]
@@ -582,11 +579,9 @@ class IsentropicCompressor(Compressor, new_graphics=False, phenomena_oriented=Tr
             J = R / (2. * product.Cn * self.eta) * log(feed.P / self.P)
             coeff = {self: (1 - J) / (1 + J) * product.Cn}
             for i in self.ins: i._update_energy_departure_coefficient(coeff)
-        return (coeff, 0)
+        return [(coeff, 0)]
     
     def _create_material_balance_equations(self):
-        top_split = self.top_split
-        bottom_split = self.bottom_split
         inlets = self.ins
         fresh_inlets = [i for i in inlets if i.isfeed() and not i.equations]
         process_inlets = [i for i in inlets if not i.isfeed() or i.equations]
@@ -605,18 +600,8 @@ class IsentropicCompressor(Compressor, new_graphics=False, phenomena_oriented=Tr
         
         return equations
     
-    def _create_linear_equations(self, variable):
-        # list[dict[Unit|Stream, float]]
-        if variable == 'material':
-            eqs = self._create_material_balance_equations()
-        elif variable == 'energy':
-            eqs = self._create_energy_departure_equations()
-        else:
-            eqs = []
-        return eqs
-    
-    def _update_decoupled_variable(self, variable, value):
-        if variable == 'energy': self.outs[0].T += value
+    def _update_energy_variable(self, variable, value):
+        self.outs[0].T += value
 
 
 class PolytropicCompressor(Compressor, new_graphics=False):

@@ -1073,7 +1073,7 @@ def compute_stages_McCabeThiele(P, operating_line,
 # %% McCabe-Thiele distillation column unit operation
 
 
-class BinaryDistillation(Distillation, new_graphics=False, phenomena_oriented=True):
+class BinaryDistillation(Distillation, new_graphics=False):
     r"""
     Create a binary distillation column that assumes all light and heavy non keys
     separate to the top and bottoms product respectively. McCabe-Thiele
@@ -1464,8 +1464,26 @@ class BinaryDistillation(Distillation, new_graphics=False, phenomena_oriented=Tr
         return plt
 
     def _create_material_balance_equations(self):
+        top, bottom = self.outs
+        if bottom.isempty():
+            B = np.inf
+            K = 1e16 * np.ones(self.chemicals.size)
+        elif top.isempty():
+            K = np.zeros(self.chemicals.size)
+            B = 0
+        else:
+            top_mol = top.mol.to_array()
+            bottom_mol = bottom.mol.to_array()
+            F_top = top_mol.sum()
+            F_bottom = bottom_mol.sum()
+            y = top_mol / F_top
+            x = bottom_mol / F_bottom
+            x[x <= 0] = 1e-16
+            K = y / x
+            B = F_top / F_bottom
+        
         inlets = self.ins
-        fresh_inlets = [i for i in inlets if i.isfeed()]
+        fresh_inlets = [i for i in inlets if i.isfeed() and not i.material_equations]
         process_inlets = [i for i in inlets if not i.isfeed()]
         top, bottom, *_ = self.outs
         equations = []
@@ -1475,12 +1493,6 @@ class BinaryDistillation(Distillation, new_graphics=False, phenomena_oriented=Tr
         
         # Overall flows
         eq_overall = {}
-        if np.isnan(self.B): self.run()
-        try:
-            S = self.K * self.B
-        except:
-            self._create_linear_equations('equilibrium')
-            S = self.K * self.B
         for i in self.outs: eq_overall[i] = ones
         for i in process_inlets: eq_overall[i] = minus_ones
         equations.append(
@@ -1488,14 +1500,13 @@ class BinaryDistillation(Distillation, new_graphics=False, phenomena_oriented=Tr
         )
         
         # Top to bottom flows
-        B = self.B
         eq_outs = {}
         if B == np.inf:
             eq_outs[bottom] = ones
         elif B == 0:
             eq_outs[top] = ones
         else:
-            S = self.K * B
+            S = K * B
             eq_outs[top] = ones
             eq_outs[bottom] = -S
         equations.append(
@@ -1503,46 +1514,14 @@ class BinaryDistillation(Distillation, new_graphics=False, phenomena_oriented=Tr
         )
         return equations
     
-    def _create_linear_equations(self, variable):
-        # list[dict[Unit|Stream, float]]
-        if not hasattr(self, 'B'):
-            outs = top, bottom = self.outs
-            if bottom.isempty():
-                self.B = np.inf
-            elif top.isempty():
-                self.B = 0
-            else:
-                self.B = top.F_mol / bottom.F_mol
-        if variable == 'equilibrium':
-            outs = top, bottom = self.outs
-            data = [i.get_data() for i in outs]
-            self.run()
-            Ts = [i.T for i in outs]
-            if bottom.isempty():
-                self.B = np.inf
-                self.K = 1e16 * np.ones(self.chemicals.size)
-            elif top.isempty():
-                self.K = np.zeros(self.chemicals.size)
-                self.B = 0
-            else:
-                top_mol = top.mol.to_array()
-                bottom_mol = bottom.mol.to_array()
-                F_top = top_mol.sum()
-                F_bottom = bottom_mol.sum()
-                y = top_mol / F_top
-                x = bottom_mol / F_bottom
-                x[x <= 0] = 1e-16
-                self.K = y / x
-                self.B = F_top / F_bottom
-            for i, j, T in zip(outs, data, Ts): 
-                i.set_data(j)
-                i.T = T
-            eqs = []
-        elif variable == 'material':
-            eqs = self._create_material_balance_equations()
-        else:
-            eqs = []
-        return eqs
+    def _update_equilibrium_variables(self):
+        outs = top, bottom = self.outs
+        data = [i.get_data() for i in outs]
+        self.run()
+        Ts = [i.T for i in outs]
+        for i, j, T in zip(outs, data, Ts): 
+            i.set_data(j)
+            i.T = T
 
 
 # %% Fenske-Underwook-Gilliland distillation model utilities
@@ -1617,7 +1596,7 @@ def compute_feed_stage_Kirkbride(N, B, D,
 
 # %% Fenske-Underwook-Gilliland distillation column unit operation
 
-class ShortcutColumn(Distillation, new_graphics=False, phenomena_oriented=True):
+class ShortcutColumn(Distillation, new_graphics=False):
     r"""
     Create a multicomponent distillation column that relies on the
     Fenske-Underwood-Gilliland method to solve for the theoretical design
@@ -1962,7 +1941,7 @@ class ShortcutColumn(Distillation, new_graphics=False, phenomena_oriented=True):
         return distillate_recoveries
     
     _create_material_balance_equations = BinaryDistillation._create_material_balance_equations
-    _create_linear_equations = BinaryDistillation._create_linear_equations
+    _update_equilibrium_variables = BinaryDistillation._update_equilibrium_variables
 
 
 # %% Rigorous absorption/stripping column

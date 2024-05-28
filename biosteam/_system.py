@@ -73,7 +73,7 @@ class SystemSpecification:
     def __call__(self): self.f(*self.args)
 
 
-# %% Reconfiguration for phenomena oriented simulation
+# %% Reconfiguration for phenomena oriented simulation and convergence
 
 class Configuration:
     __slots__ = ('stages', 'nodes', 'streams', 'stream_ref', 'connections')
@@ -85,8 +85,67 @@ class Configuration:
         self.stream_ref = stream_ref
         self.connections = connections
         
-    def solve_variable(self, variable):
-        return solve_linear_equations(variable, self.nodes, self.stream_ref)
+    def solve_material_flows(self):
+        nodes = self.nodes
+        streams = self.stream_ref
+        A = []
+        b = []
+        for node in nodes:
+            for coefficients, value in node._create_material_balance_equations():
+                coefficients = {
+                    streams[i.imol]: j for i, j in coefficients.items()
+                }
+                A.append(coefficients)
+                b.append(value)
+        ObjectType = np.dtype('O')
+        delayed = [(i, j) for i, j in enumerate(b) if j.dtype is ObjectType]
+        if delayed:
+            delayed_index = []
+            for _, t in delayed:
+                delayed_index.extend([i for i, j in enumerate(t) if callable(j)])
+            delayed_set = set(delayed_index)
+            delayed_index = list(delayed_set)
+            ready_index = [i for i in range(len(t)) if i not in delayed_set]
+            A_ready = [{i: j[ready_index] for i, j in dct.items()} for dct in A]
+            A_ready, objs = dictionaries2array(A_ready)
+            b_ready = np.array([i[ready_index] for i in b], float)
+            values = solve(A_ready, b_ready.T).T
+            for obj, value in zip(objs, values): 
+                obj._update_material_flows(value, ready_index)
+            A_delayed = [{i: j[delayed_index] for i, j in dct.items()} for dct in A]
+            A_delayed, objs = dictionaries2array(A_delayed)
+            b_delayed = np.array([
+                [(f(j) if callable(f:=bi[j]) else f) for j in delayed_index]
+                for bi in b
+            ], float)
+            values = solve(A_delayed, b_delayed.T).T
+            for obj, value in zip(objs, values): 
+                obj._update_material_flows(value, delayed_index)
+        else:
+            A, objs = dictionaries2array(A)
+            values = solve(A, np.array(b).T).T
+            for obj, value in zip(objs, values): 
+                obj._update_material_flows(value)
+        for i in nodes: 
+            if hasattr(i, '_update_auxiliaries'):
+                i._update_auxiliaries()
+            elif hasattr(i, 'stages'):
+                for i in i.stages:
+                    if hasattr(i, '_update_auxiliaries'):
+                        i._update_auxiliaries()
+        
+    def solve_energy_departures(self):
+        nodes = self.nodes
+        A = []
+        b = []
+        for node in nodes:
+            for coefficients, value in node._create_energy_departure_equations():
+                A.append(coefficients)
+                b.append(value)
+        A, objs = dictionaries2array(A)
+        values = solve(A, np.array(b).T).T
+        for obj, value in zip(objs, values): 
+            obj._update_energy_variable(value)
         
     def __enter__(self):
         units = self.stages
@@ -112,66 +171,6 @@ class Configuration:
             s._sink = sink
         if exception: raise exception
             
-
-# %% Phenomenological convergence tools
-
-def solve_linear_equations(variable, nodes, streams):
-    A = []
-    b = []
-    if variable == 'material':
-        for node in nodes:
-            for coefficients, value in node._create_linear_equations(variable):
-                coefficients = {
-                    streams[i.imol]: j for i, j in coefficients.items()
-                }
-                A.append(coefficients)
-                b.append(value)
-        ObjectType = np.dtype('O')
-        delayed = [(i, j) for i, j in enumerate(b) if j.dtype is ObjectType]
-        if delayed:
-            delayed_index = []
-            for _, t in delayed:
-                delayed_index.extend([i for i, j in enumerate(t) if callable(j)])
-            delayed_set = set(delayed_index)
-            delayed_index = list(delayed_set)
-            ready_index = [i for i in range(len(t)) if i not in delayed_set]
-            A_ready = [{i: j[ready_index] for i, j in dct.items()} for dct in A]
-            A_ready, objs = dictionaries2array(A_ready)
-            b_ready = np.array([i[ready_index] for i in b], float)
-            values = solve(A_ready, b_ready.T).T
-            for obj, value in zip(objs, values): 
-                obj._update_decoupled_variable(variable, value, ready_index)
-            A_delayed = [{i: j[delayed_index] for i, j in dct.items()} for dct in A]
-            A_delayed, objs = dictionaries2array(A_delayed)
-            b_delayed = np.array([
-                [(f(j) if callable(f:=bi[j]) else f) for j in delayed_index]
-                for bi in b
-            ], float)
-            values = solve(A_delayed, b_delayed.T).T
-            for obj, value in zip(objs, values): 
-                obj._update_decoupled_variable(variable, value, delayed_index)
-        else:
-            A, objs = dictionaries2array(A)
-            values = solve(A, np.array(b).T).T
-            for obj, value in zip(objs, values): 
-                obj._update_decoupled_variable(variable, value)
-        for i in nodes: 
-            if hasattr(i, '_update_auxiliaries'):
-                i._update_auxiliaries()
-            elif hasattr(i, 'stages'):
-                for i in i.stages:
-                    if hasattr(i, '_update_auxiliaries'):
-                        i._update_auxiliaries()
-    else:
-        for node in nodes:
-            for coefficients, value in node._create_linear_equations(variable):
-                A.append(coefficients)
-                b.append(value)
-        A, objs = dictionaries2array(A)
-        values = solve(A, np.array(b).T).T
-        for obj, value in zip(objs, values): 
-            obj._update_decoupled_variable(variable, value)
-    return objs, values
 
 # %% Sequential modular convergence tools
 
@@ -714,9 +713,6 @@ class System:
 
     #: Method definitions for convergence
     available_methods: Methods[str, tuple[Callable, bool, dict]] = Methods()
-
-    #: Variable solution priority for phenomena oriented simulation.
-    variable_priority: list[str] = ['equilibrium', 'material', 'energy', 'material']
 
     @classmethod
     def register_method(cls, name, solver, conditional=False, **kwargs):
@@ -2264,7 +2260,7 @@ class System:
             else:
                 return self._stage_configuration
         except:
-            feeds = [i for i in self.feeds if i.equations]
+            feeds = [i for i in self.feeds if i.material_equations]
             stages = self.stages
             streams = list(set([i for s in stages for i in s.ins + s.outs]))
             connections = [(i, i.source, i.sink) for i in streams]
@@ -2287,22 +2283,30 @@ class System:
     def run_phenomena(self):
         """Decouple and linearize material, equilibrium, summation, enthalpy,
         and reaction phenomena and iteratively solve them."""
-        path = self.unit_path
+        *path, last = self.unit_path
         try:
             for n, i in enumerate(path):
                 i.run()
                 with self.stage_configuration(aggregated=False) as conf:
-                    for variable in ('material', 'energy'): conf.solve_variable(variable)
+                    conf.solve_material_flows()
+                    conf.solve_energy_departures()
         except:
             for i in path[n+1:]: i.run()
+        last.run()
         for i in self.stages: 
-            if getattr(i, 'phases', None) == ('g', 'l'): i._create_linear_equations('equilibrium')
+            if (hasattr(i, '_update_equilibrium_variables') 
+                and getattr(i, 'phases', None) == ('g', 'l')):
+                i._update_equilibrium_variables()
+            if hasattr(i, '_update_reaction_conversion'): 
+                i._update_reaction_conversion()
         try:
             with self.stage_configuration(aggregated=False) as conf:
-                for variable in ('material', 'energy'): conf.solve_variable(variable)
+                conf.solve_energy_departures()
+                conf.solve_material_flows()
         except: 
             with self.stage_configuration(aggregated=True) as conf:
-                for variable in ('material', 'energy'): conf.solve_variable(variable)
+                conf.solve_energy_departures()
+                conf.solve_material_flows()
         
     def _solve(self):
         """Solve the system recycle iteratively."""

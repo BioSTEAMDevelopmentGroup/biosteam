@@ -87,8 +87,6 @@ class Mixer(Unit):
         s_out, = self.outs
         s_out.mix_from(self.ins, vle=self.rigorous,
                        conserve_phases=getattr(self, 'conserve_phases', None))
-        
-    # %% Decoupled phenomena equation oriented simulation
     
     def _get_energy_departure_coefficient(self, stream):
         if stream.phases == ('g', 'l'):
@@ -102,9 +100,6 @@ class Mixer(Unit):
         return (self, coeff)
     
     def _create_energy_departure_equations(self):
-        return [self._create_energy_departure_equation()]
-    
-    def _create_energy_departure_equation(self):
         # Ll: C1dT1 - Ce2*dT2 - Cr0*dT0 - hv2*L2*dB2 = Q1 - H_out + H_in
         # gl: hV1*L1*dB1 - hv2*L2*dB2 - Ce2*dT2 - Cr0*dT0 = Q1 + H_in - H_out
         outlet = self.outs[0]
@@ -119,13 +114,13 @@ class Mixer(Unit):
         else:
             coeff = {self: outlet.C}
         for i in self.ins: i._update_energy_departure_coefficient(coeff)
-        return (coeff, self.H_in - self.H_out)
+        return [(coeff, self.H_in - self.H_out)]
     
     def _create_material_balance_equations(self):
         inlets = self.ins
         outlet, = self.outs
-        fresh_inlets = [i for i in inlets if i.isfeed() and not i.equations]
-        process_inlets = [i for i in inlets if not i.isfeed() or i.equations]
+        fresh_inlets = [i for i in inlets if i.isfeed() and not i.material_equations]
+        process_inlets = [i for i in inlets if not i.isfeed() or i.material_equations]
         if len(outlet) == 1:
             ones = np.ones(self.chemicals.size)
             minus_ones = -ones
@@ -181,22 +176,12 @@ class Mixer(Unit):
             )
             return equations
     
-    def _create_linear_equations(self, variable):
-        if variable == 'material':
-            eqs = self._create_material_balance_equations()
-        elif variable == 'energy':
-            eqs = self._create_energy_departure_equations()
+    def _update_energy_variable(self, value):
+        phases = self.phases
+        if phases == ('g', 'l'):
+            self._B += value
         else:
-            eqs = []
-        return eqs
-    
-    def _update_decoupled_variable(self, variable, value):
-        if variable == 'energy':
-            phases = self.phases
-            if phases == ('g', 'l'):
-                self._B += value
-            else:
-                self.outs[0].T += value
+            self.outs[0].T += value
 
 
 class SteamMixer(Unit):

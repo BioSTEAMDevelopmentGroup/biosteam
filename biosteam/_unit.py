@@ -39,12 +39,6 @@ __all__ = ('Unit',)
 # stream = Union[Annotated[Union[Stream, str, None], 1], Union[Stream, str, None]]
 # stream_sequence = Collection[Union[Stream, str, None]]
 
-# %% Defaults
-
-def _get_energy_departure_coefficient(self, stream): return
-
-def _update_decoupled_variable(self, variable, value): return
-
 
 # %% Unit Operation
 
@@ -121,32 +115,10 @@ class Unit(AbstractUnit):
     def __init_subclass__(cls,
                           isabstract=False,
                           new_graphics=True,
-                          does_nothing=None,
-                          phenomena_oriented=None):
+                          does_nothing=None):
         super().__init_subclass__()
         if does_nothing: return 
         dct = cls.__dict__
-        if phenomena_oriented:
-            signatures = (
-                ('_create_linear_equations', ('self', 'variable'), None),
-                ('_update_decoupled_variable', ('self', 'variable', 'value'), _update_decoupled_variable),
-                ('_get_energy_departure_coefficient', ('self', 'stream'), _get_energy_departure_coefficient),
-            )
-            for name, params, default in signatures:
-                if hasattr(cls, name):
-                    f = signature(getattr(cls, name))
-                    if tuple(f.parameters) != params:
-                        raise NotImplementedError(
-                            'invalid signtaure {name}.{str(f)}; correct signature is '
-                            '{name}({', '.join(params)})'
-                        )
-                elif default:
-                    setattr(cls, name, default)
-                else:
-                    raise NotImplementedError(
-                        f'unit must implement a `{name}` '
-                        'method for phenomena-oriented simulation'
-                    )
         if '_N_heat_utilities' in dct:
             warn("'_N_heat_utilities' class attribute is scheduled for deprecation; "
                  "use the `add_heat_utility` method instead",
@@ -258,14 +230,26 @@ class Unit(AbstractUnit):
     #: Add itemized purchase costs to the :attr:`~Unit.baseline_purchase_costs` dictionary.
     _cost = AbstractMethod
 
-    #: For embodied emissions (e.g., unit construction) in LCA
+    #: Add embodied emissions (e.g., unit construction) in LCA
     _lca = AbstractMethod
     
-    #: dict[Unit, float] Return unit coefficients for the given variable.
-    _create_linear_equations = AbstractMethod
+    #: Create material balance equations for phenomena-oriented simulation.
+    _create_material_balance_equations = AbstractMethod
     
-    #: Update internal variables related to mass and energy balances.
-    _update_variables = AbstractMethod
+    #: Create energy departure equations for phenomena-oriented simulation.
+    _create_energy_departure_equations = AbstractMethod
+    
+    #: Return energy departure coefficient of a stream for phenomena-oriented simulation.
+    _get_energy_departure_coefficient = AbstractMethod
+    
+    #: Update energy variable being solved in energy departure equations for phenomena-oriented simulation.
+    _update_energy_variable = AbstractMethod
+    
+    #: Update equilibrium variables for phenomena-oriented simulation.
+    _update_equilibrium_variables = AbstractMethod
+    
+    #: Update reaction conversion for phenomena-oriented simulation.
+    _update_reaction_conversion = AbstractMethod
     
     Inlets = piping.Inlets
     Outlets = piping.Outlets

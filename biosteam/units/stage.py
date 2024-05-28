@@ -65,25 +65,7 @@ def _get_specification(name, value):
     else:
         raise RuntimeError(f"specification '{name}' not implemented for stage")
     return B, Q, T
-        
-# %% Reactive utilities
-
-class DelayedConversionFlow:
-    __slots__ = ('flows', 'reaction', 'baseline', 'cache', 'obj')
-    
-    def __init__(self, flows, reaction, baseline, obj):
-        self.flows = flows
-        self.reaction = reaction
-        self.baseline = baseline
-        self.obj = obj
-    
-    def __call__(self, index):
-        try:
-            conversion = self.cache
-        except:
-            self.cache = self.obj._dmol = conversion = self.reaction._conversion(sum(self.flows))
-        return self.baseline[index] + conversion[index]
-  
+      
 
 # %% Single phase
 
@@ -120,24 +102,18 @@ class SinglePhaseStage(Unit):
         if self.T is None: return (self, -stream.C)
     
     def _create_energy_departure_equations(self):
-        return [self._create_energy_departure_equation()]
-    
-    def _create_energy_departure_equation(self):
         # Ll: C1dT1 - Ce2*dT2 - Cr0*dT0 - hv2*L2*dB2 = Q1 - H_out + H_in
         # gl: hV1*L1*dB1 - hv2*L2*dB2 - Ce2*dT2 - Cr0*dT0 = Q1 + H_in - H_out
         outlet = self.outs[0]
         coeff = {self: outlet.C}
         for i in self.ins: i._update_energy_departure_coefficient(coeff)
-        return (coeff, outlet.H - sum([i.H for i in self.ins]))
-    
-    def _update_decoupled_variable(self, variable, value): 
-        pass
+        return [(coeff, outlet.H - sum([i.H for i in self.ins]))]
         
     def _create_material_balance_equations(self):
         outlet = self.outs[0]
         inlets = self.ins
-        fresh_inlets = [i for i in inlets if i.isfeed() and not i.equations]
-        process_inlets = [i for i in inlets if not i.isfeed() or i.equations]
+        fresh_inlets = [i for i in inlets if i.isfeed() and not i.material_equations]
+        process_inlets = [i for i in inlets if not i.isfeed() or i.material_equations]
         ones = np.ones(self.chemicals.size)
         minus_ones = -ones
         zeros = np.zeros(self.chemicals.size)
@@ -152,14 +128,6 @@ class SinglePhaseStage(Unit):
         return [
             (eq_overall, sum([i.mol for i in fresh_inlets], zeros))
         ]
-    
-    def _create_linear_equations(self, variable):
-        if variable == 'material':
-            return self._create_material_balance_equations()
-        elif variable == 'energy' and self.T is None:
-            return self._create_energy_departure_equations()
-        else:
-            return []
 
 
 class ReactivePhaseStage(bst.Unit): # Does not include VLE
@@ -192,37 +160,24 @@ class ReactivePhaseStage(bst.Unit): # Does not include VLE
         n = self.chemicals.size
         ones = np.ones(n)
         minus_ones = -ones
-        fresh_inlets = [i for i in inlets if i.isfeed() and not i.equations]
-        process_inlets = [i for i in inlets if not i.isfeed() or i.equations]
-        
+        fresh_inlets = [i for i in inlets if i.isfeed() and not i.material_equations]
+        process_inlets = [i for i in inlets if not i.isfeed() or i.material_equations]
         reaction = self.reaction
         if isinstance(reaction, (bst.Rxn, bst.RxnI)):
             if reaction._rate:
                 # Overall flows
                 eq_overall = {}
-                flows = [i.imol.data for i in process_inlets]
                 predetermined_flow = SparseVector.from_dict(sum_sparse_vectors([i.mol for i in fresh_inlets]), size=n)
-                flows.append(predetermined_flow)
-                rhs = predetermined_flow + reaction.conversion(sum(flows), T=self.T, P=self.P, phase=self.phase)
+                rhs = predetermined_flow + reaction._dmol
                 eq_overall[product] = ones
                 for i in process_inlets: eq_overall[i] = minus_ones
-                equations.append(
-                    (eq_overall, rhs)
-                )
             else:
                 index = reaction._X_index[1] if reaction.phases else reaction._X_index
-                nonlimiting_players = [
-                    i for i in reaction._stoichiometry.nonzero_keys()
-                    if i != index
-                ]
                 # Overall flows
                 eq_overall = {}
-                flows = [i.imol.data for i in process_inlets]
                 predetermined_flow = SparseVector.from_dict(sum_sparse_vectors([i.mol for i in fresh_inlets]), size=n)
-                flows.append(predetermined_flow)
-                rhs = predetermined_flow.to_array(dtype=object)
-                delayed_flow = DelayedConversionFlow(flows, reaction, predetermined_flow)
-                rhs[nonlimiting_players] = delayed_flow
+                rhs = predetermined_flow + self._dmol
+                rhs[index] = predetermined_flow[index]
                 if reaction.X == 1:
                     eq_overall[product] = ones
                     inlet_coef = minus_ones.copy()
@@ -234,9 +189,9 @@ class ReactivePhaseStage(bst.Unit): # Does not include VLE
                     product_coef[index] /= (1 - reaction.X)
                     eq_overall[product] = product_coef
                     for i in process_inlets: eq_overall[i] = minus_ones
-                equations.append(
-                    (eq_overall, rhs)
-                )
+            equations.append(
+                (eq_overall, rhs)
+            )
         else:
             # TODO: implement case with reaction system / parallel reaction / series reaction
             # TODO: implement case with chemicals with multiple roles as limiting reactants/products/co-reactants
@@ -256,32 +211,20 @@ class ReactivePhaseStage(bst.Unit): # Does not include VLE
         return (self, coeff)
     
     def _create_energy_departure_equations(self):
-        return [self._create_energy_departure_equation()]
-    
-    def _create_energy_departure_equation(self):
         # Ll: C1dT1 - Ce2*dT2 - Cr0*dT0 - hv2*L2*dB2 = Q1 - H_out + H_in
         # gl: hV1*L1*dB1 - hv2*L2*dB2 - Ce2*dT2 - Cr0*dT0 = Q1 + H_in - H_out
         outlet = self.outs[0]
         coeff = {self: outlet.C}
         for i in self.ins: i._update_energy_departure_coefficient(coeff)
-        return (coeff, self.Hnet)
+        return [(coeff, self.Hnet)]
     
-    def _create_linear_equations(self, variable):
-        # list[dict[Unit|Stream, float]]
-        if variable == 'material':
-            return self._create_material_balance_equations()
-        elif variable == 'energy' and self.T is None:
-            return self._create_energy_departure_equations()
-        else:
-            eqs = []
-        return eqs
+    def _update_reaction_conversion(self):
+        self._dmol = self.reaction.conversion(self.outs[0])
     
-    def _update_decoupled_variable(self, variable, value):
-        pass
 
 # %% Two phases
 
-class StageEquilibrium(Unit, phenomena_oriented=True):
+class StageEquilibrium(Unit):
     _N_ins = 0
     _N_outs = 2
     _ins_size_is_fixed = False
@@ -469,9 +412,7 @@ class StageEquilibrium(Unit, phenomena_oriented=True):
         return (self, coeff)
     
     def _create_energy_departure_equations(self):
-        return [self._create_energy_departure_equation()]
-    
-    def _create_energy_departure_equation(self):
+        if not (self.B_specification is None and self.T_specification is None): return []
         # Ll: C1dT1 - Ce2*dT2 - Cr0*dT0 - hv2*L2*dB2 = Q1 - H_out + H_in
         # gl: hV1*L1*dB1 - hv2*L2*dB2 - Ce2*dT2 - Cr0*dT0 = Q1 + H_in - H_out
         phases = self.phases
@@ -489,14 +430,35 @@ class StageEquilibrium(Unit, phenomena_oriented=True):
         else:
             raise RuntimeError('invalid phases')
         for i in self.ins: i._update_energy_departure_coefficient(coeff)
-        return (coeff, (self.Q or 0.) + self.H_in - self.H_out)
+        if self.reaction:
+            dH = self.Q + self.Hnet
+        else:
+            dH = self.Q + self.H_in - self.H_out
+        return [(coeff, dH)]
     
     def _create_material_balance_equations(self):
+        phases = self.phases
+        partition = self.partition
+        chemicals = self.chemicals
+        pIDs = partition.IDs
+        IDs = chemicals.IDs
+        if pIDs != IDs and pIDs is not None:
+            partition.IDs = IDs
+            K = np.ones(chemicals.size)
+            index = [IDs.index(i) for i in pIDs]
+            for i, j in zip(index, partition.K): K[i] = j
+            partition.K = K
+            if phases == ('L', 'l'):
+                if partition.gamma_y is not None:
+                    gamma_y = np.ones(chemicals.size)
+                    for i, j in zip(index, partition.gamma_y): gamma_y[i] = j
+                    partition.gamma_y = gamma_y
+        
         top_split = self.top_split
         bottom_split = self.bottom_split
         inlets = self.ins
-        fresh_inlets = [i for i in inlets if i.isfeed() and not i.equations]
-        process_inlets = [i for i in inlets if not i.isfeed() or i.equations]
+        fresh_inlets = [i for i in inlets if i.isfeed() and not i.material_equations]
+        process_inlets = [i for i in inlets if not i.isfeed() or i.material_equations]
         top, bottom, *_ = self.outs
         top_side_draw = self.top_side_draw
         bottom_side_draw = self.bottom_side_draw
@@ -512,39 +474,35 @@ class StageEquilibrium(Unit, phenomena_oriented=True):
         if self.B is None or np.isnan(self.B): self.run()
         if reaction: # Reactive liquid
             if isinstance(reaction, (bst.Rxn, bst.RxnI)):
-                if reaction._rate:
-                    predetermined_flow = SparseVector.from_dict(sum_sparse_vectors([i.mol for i in fresh_inlets]), size=N)
-                    self._dmol = dmol = reaction.conversion(self.partition.outs[1])
-                    rhs = predetermined_flow + dmol
-                    for i in self.outs: eq_overall[i] = ones
-                    for i in process_inlets: eq_overall[i] = minus_ones
-                else:
-                    index = reaction._X_index[1] if reaction.phases else reaction._X_index
-                    nonlimiting_players = [
-                        i for i in reaction._stoichiometry.nonzero_keys()
-                        if i != index
-                    ]
-                    flows = [bottom.imol.data]
-                    if bottom_side_draw: flows.append(bottom_side_draw.imol.data)
-                    predetermined_flow = SparseVector.from_dict(sum_sparse_vectors([i.mol for i in fresh_inlets]), size=N)
-                    rhs = predetermined_flow.to_array(dtype=object)
-                    delayed_flow = DelayedConversionFlow(flows, reaction, predetermined_flow, self)
-                    rhs[nonlimiting_players] = delayed_flow
-                    if reaction.X == 1:
-                        for i in self.outs: eq_overall[i] = ones
-                        inlet_coef = minus_ones.copy()
-                        inlet_coef[index] = 0
-                        for i in process_inlets: eq_overall[i] = inlet_coef
-                        rhs[index] = 0
-                    else:
-                        liquid_coef = ones.copy()
-                        liquid_coef[index] /= (1 - reaction.X)
-                        for i in self.outs: 
-                            if i.phase == 'l':
-                                eq_overall[i] = liquid_coef
-                            else:
-                                eq_overall[i] = ones
-                        for i in process_inlets: eq_overall[i] = minus_ones
+                predetermined_flow = SparseVector.from_dict(sum_sparse_vectors([i.mol for i in fresh_inlets]), size=N)
+                rhs = predetermined_flow + self.partition._dmol
+                for i in self.outs: eq_overall[i] = ones
+                for i in process_inlets: eq_overall[i] = minus_ones
+                # if reaction._rate:
+                #     predetermined_flow = SparseVector.from_dict(sum_sparse_vectors([i.mol for i in fresh_inlets]), size=N)
+                #     rhs = predetermined_flow + self.partition._dmol
+                #     for i in self.outs: eq_overall[i] = ones
+                #     for i in process_inlets: eq_overall[i] = minus_ones
+                # else:
+                #     index = reaction._X_index[1] if reaction.phases else reaction._X_index
+                #     predetermined_flow = SparseVector.from_dict(sum_sparse_vectors([i.mol for i in fresh_inlets]), size=N)
+                #     rhs = predetermined_flow + self.partition._dmol
+                #     rhs[index] = predetermined_flow[index]
+                #     if reaction.X == 1:
+                #         for i in self.outs: eq_overall[i] = ones
+                #         inlet_coef = minus_ones.copy()
+                #         inlet_coef[index] = 0
+                #         for i in process_inlets: eq_overall[i] = inlet_coef
+                #         rhs[index] = 0
+                #     else:
+                #         liquid_coef = ones.copy()
+                #         liquid_coef[index] /= (1 - reaction.X)
+                #         for i in self.outs: 
+                #             if i.phase == 'l':
+                #                 eq_overall[i] = liquid_coef
+                #             else:
+                #                 eq_overall[i] = ones
+                #         for i in process_inlets: eq_overall[i] = minus_ones
             else:
                 # TODO: implement case with reaction system / parallel reaction / series reaction
                 # TODO: implement case with chemicals with multiple roles as limiting reactants/products/co-reactants
@@ -595,54 +553,32 @@ class StageEquilibrium(Unit, phenomena_oriented=True):
             )
         return equations
     
-    def _create_linear_equations(self, variable):
-        # list[dict[Unit|Stream, float]]
+    def _update_energy_variable(self, value):
         phases = self.phases
-        partition = self.partition
-        chemicals = self.chemicals
-        pIDs = partition.IDs
-        IDs = chemicals.IDs
-        if pIDs != IDs and pIDs is not None:
-            partition.IDs = IDs
-            K = np.ones(chemicals.size)
-            index = [IDs.index(i) for i in pIDs]
-            for i, j in zip(index, partition.K): K[i] = j
-            partition.K = K
-            if phases == ('L', 'l'):
-                if partition.gamma_y is not None:
-                    gamma_y = np.ones(chemicals.size)
-                    for i, j in zip(index, partition.gamma_y): gamma_y[i] = j
-                    partition.gamma_y = gamma_y
-        if variable == 'material':
-            eqs = self._create_material_balance_equations()
-        elif variable == 'energy':
-            if self.B_specification is None and self.T_specification is None:
-                eqs = self._create_energy_departure_equations()
-            else:
-                eqs = []
-        elif variable == 'equilibrium':
-            if phases == ('g', 'l'):
-                partition._run_decoupled_KTvle()
-                # if self.reaction: partition._run_decoupled_reaction()
-            elif phases == ('L', 'l'):
-                partition._run_lle(update=False)
-            else:
-                raise NotImplementedError(f'K for phases {phases} is not yet implemented')
-            eqs = []
+        if phases == ('g', 'l'):
+            self.B += value
+        elif phases == ('L', 'l'):
+            self.T = T = self.T + value
+            for i in self.outs: i.T = T
         else:
-            eqs = []
-        return eqs
+            raise RuntimeError('invalid phases')
     
-    def _update_decoupled_variable(self, variable, value):
-        if variable == 'energy':
-            phases = self.phases
-            if phases == ('g', 'l'):
-                self.B += value
-            elif phases == ('L', 'l'):
-                self.T = T = self.T + value
-                for i in self.outs: i.T = T
-            else:
-                raise RuntimeError('invalid phases')
+    def _update_equilibrium_variables(self):
+        phases = self.phases
+        if phases == ('g', 'l'):
+            partition = self.partition
+            partition._run_decoupled_KTvle()
+            T = partition.T
+            for i in (partition.outs, self.outs): i.T = T
+        elif phases == ('L', 'l'):
+            self.partition._run_lle(update=False)
+        else:
+            raise NotImplementedError(f'K for phases {phases} is not yet implemented')
+        
+    def _update_reaction_conversion(self):    
+        if self.reaction and self.phases == ('g', 'l'):
+            self.partition._run_decoupled_reaction()    
+    
     
 # %%
 
@@ -893,7 +829,7 @@ class PhasePartition(Unit):
             self._run_lle()
 
 
-class MultiStageEquilibrium(Unit, phenomena_oriented=True):
+class MultiStageEquilibrium(Unit):
     """
     Create a MultiStageEquilibrium object that models counter-current 
     equilibrium stages.
@@ -1081,7 +1017,7 @@ class MultiStageEquilibrium(Unit, phenomena_oriented=True):
     """
     _N_ins = 2
     _N_outs = 2
-    default_maxiter = 10
+    default_maxiter = 20
     default_max_attempts = 20
     default_fallback_maxiter = 1
     default_molar_tolerance = 0.001
@@ -1437,14 +1373,34 @@ class MultiStageEquilibrium(Unit, phenomena_oriented=True):
             coeff = {self: sum([i.C for i in self.outs])}
         else:
             raise RuntimeError('invalid phases')
-        for i in self.ins: i._update_energy_departure_coefficients(coeff)
-        return [(coeff, self.H_in - self.H_out + sum([i.Q for i in self.stages]))]
+        for i in self.ins: i._update_energy_departure_coefficient(coeff)
+        if self.stage_reactions:
+            return [(coeff, self.H_net + sum([i.Q for i in self.stages]))]
+        else:
+            return [(coeff, self.H_in - self.H_out + sum([i.Q for i in self.stages]))]
     
     def _create_material_balance_equations(self):
-        # return sum([i._create_material_balance_equations() for i in self.stages], [])
+        top, bottom = self.outs
+        if bottom.isempty():
+            B = np.inf
+            K = 1e16 * np.ones(self.chemicals.size)
+        elif top.isempty():
+            K = np.zeros(self.chemicals.size)
+            B = 0
+        else:
+            top_mol = top.mol.to_array()
+            bottom_mol = bottom.mol.to_array()
+            F_top = top_mol.sum()
+            F_bottom = bottom_mol.sum()
+            y = top_mol / F_top
+            x = bottom_mol / F_bottom
+            x[x <= 0] = 1e-16
+            K = y / x
+            B = F_top / F_bottom
+        
         inlets = self.ins
-        fresh_inlets = [i for i in inlets if i.isfeed() and not i.equations]
-        process_inlets = [i for i in inlets if not i.isfeed() or i.equations]
+        fresh_inlets = [i for i in inlets if i.isfeed() and not i.material_equations]
+        process_inlets = [i for i in inlets if not i.isfeed() or i.material_equations]
         top, bottom, *_ = self.outs
         equations = []
         ones = np.ones(self.chemicals.size)
@@ -1453,8 +1409,6 @@ class MultiStageEquilibrium(Unit, phenomena_oriented=True):
         
         # Overall flows
         eq_overall = {}
-        if np.isnan(self.B): self._run()
-        S = self.K * self.B
         for i in self.outs: eq_overall[i] = ones
         for i in process_inlets: 
             if i in eq_overall:
@@ -1466,64 +1420,31 @@ class MultiStageEquilibrium(Unit, phenomena_oriented=True):
         )
         
         # Top to bottom flows
-        B = self.B
         eq_outs = {}
         if B == np.inf:
             eq_outs[bottom] = ones
         elif B == 0:
             eq_outs[top] = ones
         else:
-            S = self.K * B
             eq_outs[top] = ones
-            eq_outs[bottom] = -S
+            eq_outs[bottom] = -(K * B)
         equations.append(
             (eq_outs, zeros)
         )
         return equations
     
-    def _create_linear_equations(self, variable):
-        # list[dict[Unit|Stream, float]]
-        if variable == 'equilibrium':
-            top, bottom = self.outs
-            self.run()
-            eqs = []
-        else:
-            top, bottom = self.outs
-            if bottom.isempty():
-                self.B = np.inf
-                self.K = 1e16 * np.ones(self.chemicals.size)
-            elif top.isempty():
-                self.K = np.zeros(self.chemicals.size)
-                self.B = 0
-            else:
-                top_mol = top.mol.to_array()
-                bottom_mol = bottom.mol.to_array()
-                F_top = top_mol.sum()
-                F_bottom = bottom_mol.sum()
-                y = top_mol / F_top
-                x = bottom_mol / F_bottom
-                x[x <= 0] = 1e-16
-                self.K = y / x
-                self.B = F_top / F_bottom
-            if variable == 'material':
-                eqs = self._create_material_balance_equations()
-            elif variable == 'energy':
-                eqs = self._create_energy_departure_equations()
-            else:
-                eqs = []
-        return eqs
+    def _update_equilibrium_variables(self):
+        outs = top, bottom = self.outs
+        self.run()
     
-    def _update_decoupled_variable(self, variable, value):
-        if variable == 'energy':
-            phases = self.phases
-            if phases == ('g', 'l'):
-                self.B += value
-            elif phases == ('L', 'l'):
-                for i in self.outs: i.T += value
-            else:
-                raise RuntimeError('invalid phases')
+    def _update_energy_variable(self, value):
+        phases = self.phases
+        if phases == ('g', 'l'):
+            self.B += value
+        elif phases == ('L', 'l'):
+            for i in self.outs: i.T += value
         else:
-            raise RuntimeError(f'invalid variable {variable!r}')
+            raise RuntimeError('invalid phases')
     
     @property
     def outlet_stages(self):
@@ -1542,6 +1463,7 @@ class MultiStageEquilibrium(Unit, phenomena_oriented=True):
             return outlet_stages
     
     def correct_overall_mass_balance(self):
+        return
         outmol = sum([i.mol for i in self.outs])
         inmol = sum([i.mol for i in self.ins])
         stage_reactions = self.stage_reactions
