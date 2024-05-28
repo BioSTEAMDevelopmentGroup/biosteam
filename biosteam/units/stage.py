@@ -1681,7 +1681,7 @@ class MultiStageEquilibrium(Unit, phenomena_oriented=True):
                     )
                     self.set_flow_rates(result.x.reshape([m, n]))
                 elif bounded and not constraints:
-                    raise NotImplementedError(f'optimize method {self.method!r} not implemented in BioSTEAM (yet)')
+                    # raise NotImplementedError(f'optimize method {self.method!r} not implemented in BioSTEAM (yet)')
                     self.iter = 0
                     partitions = self.partitions
                     Sb, safe = bottoms_stripping_factors_safe(
