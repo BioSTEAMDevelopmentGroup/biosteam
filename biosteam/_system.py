@@ -2287,8 +2287,6 @@ class System:
     def run_phenomena(self):
         """Decouple and linearize material, equilibrium, summation, enthalpy,
         and reaction phenomena and iteratively solve them."""
-        # for i in self.unit_path: i.run()
-        # for variable in ('material', 'energy', 'material'): solve_variable(stages, variable)
         path = self.unit_path
         try:
             for n, i in enumerate(path):
@@ -2302,9 +2300,7 @@ class System:
         try:
             with self.stage_configuration(aggregated=False) as conf:
                 for variable in ('material', 'energy'): conf.solve_variable(variable)
-            # print('good!2')
         except: 
-            # print('Ohh no!2', variable, 'could not solve')
             with self.stage_configuration(aggregated=True) as conf:
                 for variable in ('material', 'energy'): conf.solve_variable(variable)
         

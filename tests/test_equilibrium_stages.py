@@ -160,7 +160,9 @@ def test_reactive_distillation():
         method='fixed-point',
     )
     distillation.simulate()
-    
+    sys = bst.System.from_units(units=[distillation])
+    sys._setup()
+    sys.run_phenomena()
     
 def test_distillation():
     import biosteam as bst
@@ -197,6 +199,7 @@ def test_distillation():
     ]
     for i, j in zip(distillation.outs, flows):    
         assert_allclose(i.mol, j, rtol=1e-6, atol=1e-3)
+    
     
 if __name__ == '__main__':
     test_multi_stage_adiabatic_vle()

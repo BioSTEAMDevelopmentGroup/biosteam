@@ -12,6 +12,7 @@ This module contains abstract classes for modeling stage-wise separations/reacti
 from warnings import warn
 from numba import njit, objmode
 import thermosteam as tmo
+from thermosteam.base.sparse import SparseVector, sum_sparse_vectors
 from thermosteam import separations as sep
 import biosteam as bst
 import flexsolve as flx
@@ -68,18 +69,19 @@ def _get_specification(name, value):
 # %% Reactive utilities
 
 class DelayedConversionFlow:
-    __slots__ = ('flows', 'reaction', 'baseline', 'cache')
+    __slots__ = ('flows', 'reaction', 'baseline', 'cache', 'obj')
     
-    def __init__(self, flows, reaction, baseline):
+    def __init__(self, flows, reaction, baseline, obj):
         self.flows = flows
         self.reaction = reaction
         self.baseline = baseline
+        self.obj = obj
     
     def __call__(self, index):
         try:
             conversion = self.cache
         except:
-            self.cache = conversion = self.reaction._conversion(sum(self.flows))
+            self.cache = self.obj._dmol = conversion = self.reaction._conversion(sum(self.flows))
         return self.baseline[index] + conversion[index]
   
 
@@ -195,37 +197,50 @@ class ReactivePhaseStage(bst.Unit): # Does not include VLE
         
         reaction = self.reaction
         if isinstance(reaction, (bst.Rxn, bst.RxnI)):
-            index = reaction._X_index[1] if reaction.phases else reaction._X_index
-            nonlimiting_players = [
-                i for i in reaction._stoichiometry.nonzero_keys()
-                if i != index
-            ]
+            if reaction._rate:
+                # Overall flows
+                eq_overall = {}
+                flows = [i.imol.data for i in process_inlets]
+                predetermined_flow = SparseVector.from_dict(sum_sparse_vectors([i.mol for i in fresh_inlets]), size=n)
+                flows.append(predetermined_flow)
+                rhs = predetermined_flow + reaction.conversion(sum(flows), T=self.T, P=self.P, phase=self.phase)
+                eq_overall[product] = ones
+                for i in process_inlets: eq_overall[i] = minus_ones
+                equations.append(
+                    (eq_overall, rhs)
+                )
+            else:
+                index = reaction._X_index[1] if reaction.phases else reaction._X_index
+                nonlimiting_players = [
+                    i for i in reaction._stoichiometry.nonzero_keys()
+                    if i != index
+                ]
+                # Overall flows
+                eq_overall = {}
+                flows = [i.imol.data for i in process_inlets]
+                predetermined_flow = SparseVector.from_dict(sum_sparse_vectors([i.mol for i in fresh_inlets]), size=n)
+                flows.append(predetermined_flow)
+                rhs = predetermined_flow.to_array(dtype=object)
+                delayed_flow = DelayedConversionFlow(flows, reaction, predetermined_flow)
+                rhs[nonlimiting_players] = delayed_flow
+                if reaction.X == 1:
+                    eq_overall[product] = ones
+                    inlet_coef = minus_ones.copy()
+                    inlet_coef[index] = 0
+                    for i in process_inlets: eq_overall[i] = inlet_coef
+                    rhs[index] = 0
+                else:
+                    product_coef = ones.copy()
+                    product_coef[index] /= (1 - reaction.X)
+                    eq_overall[product] = product_coef
+                    for i in process_inlets: eq_overall[i] = minus_ones
+                equations.append(
+                    (eq_overall, rhs)
+                )
         else:
             # TODO: implement case with reaction system / parallel reaction / series reaction
             # TODO: implement case with chemicals with multiple roles as limiting reactants/products/co-reactants
             raise NotImplementedError('only single reaction objects work (for now)')
-        # Overall flows
-        eq_overall = {}
-        flows = [i.imol.data for i in process_inlets]
-        predetermined_flow = sum([i.mol for i in fresh_inlets])
-        flows.append(predetermined_flow)
-        rhs = predetermined_flow.to_array(dtype=object)
-        delayed_flow = DelayedConversionFlow(flows, reaction, predetermined_flow)
-        rhs[nonlimiting_players] = delayed_flow
-        if reaction.X == 1:
-            eq_overall[product] = ones
-            inlet_coef = minus_ones.copy()
-            inlet_coef[index] = 0
-            for i in process_inlets: eq_overall[i] = inlet_coef
-            rhs[index] = 0
-        else:
-            product_coef = ones.copy()
-            product_coef[index] /= (1 - reaction.X)
-            eq_overall[product] = product_coef
-            for i in process_inlets: eq_overall[i] = minus_ones
-        equations.append(
-            (eq_overall, rhs)
-        )
         return equations
     
     def _get_energy_departure_coefficient(self, stream):
@@ -486,9 +501,10 @@ class StageEquilibrium(Unit, phenomena_oriented=True):
         top_side_draw = self.top_side_draw
         bottom_side_draw = self.bottom_side_draw
         equations = []
-        ones = np.ones(self.chemicals.size)
+        N = self.chemicals.size
+        ones = np.ones(N)
         minus_ones = -ones
-        zeros = np.zeros(self.chemicals.size)
+        zeros = np.zeros(N)
         
         # # Overall flows
         eq_overall = {}
@@ -496,36 +512,43 @@ class StageEquilibrium(Unit, phenomena_oriented=True):
         if self.B is None or np.isnan(self.B): self.run()
         if reaction: # Reactive liquid
             if isinstance(reaction, (bst.Rxn, bst.RxnI)):
-                index = reaction._X_index[1] if reaction.phases else reaction._X_index
-                nonlimiting_players = [
-                    i for i in reaction._stoichiometry.nonzero_keys()
-                    if i != index
-                ]
+                if reaction._rate:
+                    predetermined_flow = SparseVector.from_dict(sum_sparse_vectors([i.mol for i in fresh_inlets]), size=N)
+                    self._dmol = dmol = reaction.conversion(self.partition.outs[1])
+                    rhs = predetermined_flow + dmol
+                    for i in self.outs: eq_overall[i] = ones
+                    for i in process_inlets: eq_overall[i] = minus_ones
+                else:
+                    index = reaction._X_index[1] if reaction.phases else reaction._X_index
+                    nonlimiting_players = [
+                        i for i in reaction._stoichiometry.nonzero_keys()
+                        if i != index
+                    ]
+                    flows = [bottom.imol.data]
+                    if bottom_side_draw: flows.append(bottom_side_draw.imol.data)
+                    predetermined_flow = SparseVector.from_dict(sum_sparse_vectors([i.mol for i in fresh_inlets]), size=N)
+                    rhs = predetermined_flow.to_array(dtype=object)
+                    delayed_flow = DelayedConversionFlow(flows, reaction, predetermined_flow, self)
+                    rhs[nonlimiting_players] = delayed_flow
+                    if reaction.X == 1:
+                        for i in self.outs: eq_overall[i] = ones
+                        inlet_coef = minus_ones.copy()
+                        inlet_coef[index] = 0
+                        for i in process_inlets: eq_overall[i] = inlet_coef
+                        rhs[index] = 0
+                    else:
+                        liquid_coef = ones.copy()
+                        liquid_coef[index] /= (1 - reaction.X)
+                        for i in self.outs: 
+                            if i.phase == 'l':
+                                eq_overall[i] = liquid_coef
+                            else:
+                                eq_overall[i] = ones
+                        for i in process_inlets: eq_overall[i] = minus_ones
             else:
                 # TODO: implement case with reaction system / parallel reaction / series reaction
                 # TODO: implement case with chemicals with multiple roles as limiting reactants/products/co-reactants
                 raise NotImplementedError('only single reaction objects work (for now)')
-            flows = [bottom.imol.data]
-            if bottom_side_draw: flows.append(bottom_side_draw.imol.data)
-            predetermined_flow = sum([i.mol for i in fresh_inlets])
-            rhs = predetermined_flow.to_array(dtype=object)
-            delayed_flow = DelayedConversionFlow(flows, reaction, predetermined_flow)
-            rhs[nonlimiting_players] = delayed_flow
-            if reaction.X == 1:
-                for i in self.outs: eq_overall[i] = ones
-                inlet_coef = minus_ones.copy()
-                inlet_coef[index] = 0
-                for i in process_inlets: eq_overall[i] = inlet_coef
-                rhs[index] = 0
-            else:
-                liquid_coef = ones.copy()
-                liquid_coef[index] /= (1 - reaction.X)
-                for i in self.outs: 
-                    if i.phase == 'l':
-                        eq_overall[i] = liquid_coef
-                    else:
-                        eq_overall[i] = ones
-                for i in process_inlets: eq_overall[i] = minus_ones
             equations.append(
                 (eq_overall, rhs)
             )
@@ -642,6 +665,7 @@ class PhasePartition(Unit):
         self.Q = 0.
         self.B_specification = self.T_specification = None
         self.B_fallback = 1
+        self._dmol = 0
         for i, j in zip(self.outs, self.phases): i.phase = j 
         
     def _get_mixture(self, linked=True):
@@ -780,7 +804,7 @@ class PhasePartition(Unit):
     
     def _run_decoupled_reaction(self, P=None):
         top, bottom = self.outs
-        self._dmol = self.reaction.conversion(bottom, P=None)
+        self._dmol = self.reaction.conversion(bottom)
     
     def _run_lle(self, P=None, update=True, top_chemical=None):
         if top_chemical is None: top_chemical = self.top_chemical
@@ -1537,24 +1561,31 @@ class MultiStageEquilibrium(Unit, phenomena_oriented=True):
         IDs = self.multi_stream.chemicals.IDs
         for stage in stages:
             errors.append(
-                sum([i.imol[IDs] for i in stage.ins],
-                    -sum([i.imol[IDs] for i in stage.outs]))
+                sum([i.mol for i in stage.ins],
+                    -sum([i.mol for i in stage.outs], -stage.partition._dmol))
             )
         return pd.DataFrame(errors, columns=IDs)
+    
+    def _feed_flows_and_conversion(self):
+        feed_flows = self.feed_flows.copy()
+        partition = self.partitions
+        index = self._update_index
+        for i in self.stage_reactions: 
+            dmol = partition[i]._dmol
+            try:
+                for j in index: feed_flows[i, j] += dmol[j]
+            except: break
+        return feed_flows
     
     def set_flow_rates(self, top_flows):
         stages = self.stages
         N_stages = self.N_stages
         range_stages = range(N_stages)
-        index = self._update_index
         top_flows[top_flows < 0] = 0
         feed_flows = self.feed_flows
+        index = self._update_index
         if self.stage_reactions:
-            feed_flows = feed_flows.copy()
-            partition = self.partitions
-            for i in self.stage_reactions: 
-                try: feed_flows[i] += partition[i]._dmol
-                except: break
+            feed_flows = self._feed_flows_and_conversion()
         bottom_flows = mass_balance(
             top_flows, feed_flows, self._asplit_left, self._bsplit_left, 
             np.zeros(N_stages, bool), self.N_stages, self._N_chemicals
@@ -2131,11 +2162,7 @@ class MultiStageEquilibrium(Unit, phenomena_oriented=True):
         )
         feed_flows, *args = self._iter_args
         if self.stage_reactions:
-            feed_flows = feed_flows.copy()
-            partition = self.partitions
-            for i in self.stage_reactions: 
-                try: feed_flows[i] += partition[i]._dmol
-                except: break
+            feed_flows = self._feed_flows_and_conversion()
         return top_flow_rates(Sb, feed_flows, *args, safe)
        
     def update_mass_balance(self):
@@ -2533,11 +2560,11 @@ def solve_TDMA_2D_careful(a, b, c, d, ab_fallback):
         d[inext] = d[inext] - m * d[i]
         
     bn = d[n] / b[n]
-    # bn[bn < 0] = 0
+    bn[bn < 0] = 0
     b[n] = bn
     for i in range(n-1, -1, -1):
         bi = (d[i] - c[i] * b[i+1]) / b[i]
-        # bi[bi < 0] = 0
+        bi[bi < 0] = 0
         b[i] = bi
     return b
 
