@@ -219,7 +219,7 @@ class ReactivePhaseStage(bst.Unit): # Does not include VLE
         return [(coeff, self.Hnet)]
     
     def _update_reaction_conversion(self):
-        self._dmol = self.reaction.conversion(self.outs[0])
+        self._dmol = 0.99 * (self._dmol + self.reaction.conversion(self.outs[0]))
     
 
 # %% Two phases
@@ -474,35 +474,35 @@ class StageEquilibrium(Unit):
         if self.B is None or np.isnan(self.B): self.run()
         if reaction: # Reactive liquid
             if isinstance(reaction, (bst.Rxn, bst.RxnI)):
-                predetermined_flow = SparseVector.from_dict(sum_sparse_vectors([i.mol for i in fresh_inlets]), size=N)
-                rhs = predetermined_flow + self.partition._dmol
-                for i in self.outs: eq_overall[i] = ones
-                for i in process_inlets: eq_overall[i] = minus_ones
-                # if reaction._rate:
-                #     predetermined_flow = SparseVector.from_dict(sum_sparse_vectors([i.mol for i in fresh_inlets]), size=N)
-                #     rhs = predetermined_flow + self.partition._dmol
-                #     for i in self.outs: eq_overall[i] = ones
-                #     for i in process_inlets: eq_overall[i] = minus_ones
-                # else:
-                #     index = reaction._X_index[1] if reaction.phases else reaction._X_index
-                #     predetermined_flow = SparseVector.from_dict(sum_sparse_vectors([i.mol for i in fresh_inlets]), size=N)
-                #     rhs = predetermined_flow + self.partition._dmol
-                #     rhs[index] = predetermined_flow[index]
-                #     if reaction.X == 1:
-                #         for i in self.outs: eq_overall[i] = ones
-                #         inlet_coef = minus_ones.copy()
-                #         inlet_coef[index] = 0
-                #         for i in process_inlets: eq_overall[i] = inlet_coef
-                #         rhs[index] = 0
-                #     else:
-                #         liquid_coef = ones.copy()
-                #         liquid_coef[index] /= (1 - reaction.X)
-                #         for i in self.outs: 
-                #             if i.phase == 'l':
-                #                 eq_overall[i] = liquid_coef
-                #             else:
-                #                 eq_overall[i] = ones
-                #         for i in process_inlets: eq_overall[i] = minus_ones
+                # predetermined_flow = SparseVector.from_dict(sum_sparse_vectors([i.mol for i in fresh_inlets]), size=N)
+                # rhs = predetermined_flow + self.partition._dmol
+                # for i in self.outs: eq_overall[i] = ones
+                # for i in process_inlets: eq_overall[i] = minus_ones
+                if reaction._rate:
+                    predetermined_flow = SparseVector.from_dict(sum_sparse_vectors([i.mol for i in fresh_inlets]), size=N)
+                    rhs = predetermined_flow + self.partition._dmol
+                    for i in self.outs: eq_overall[i] = ones
+                    for i in process_inlets: eq_overall[i] = minus_ones
+                else:
+                    index = reaction._X_index[1] if reaction.phases else reaction._X_index
+                    predetermined_flow = SparseVector.from_dict(sum_sparse_vectors([i.mol for i in fresh_inlets]), size=N)
+                    rhs = predetermined_flow + self.partition._dmol
+                    rhs[index] = predetermined_flow[index]
+                    if reaction.X == 1:
+                        for i in self.outs: eq_overall[i] = ones
+                        inlet_coef = minus_ones.copy()
+                        inlet_coef[index] = 0
+                        for i in process_inlets: eq_overall[i] = inlet_coef
+                        rhs[index] = 0
+                    else:
+                        liquid_coef = ones.copy()
+                        liquid_coef[index] /= (1 - reaction.X)
+                        for i in self.outs: 
+                            if i.phase == 'l':
+                                eq_overall[i] = liquid_coef
+                            else:
+                                eq_overall[i] = ones
+                        for i in process_inlets: eq_overall[i] = minus_ones
             else:
                 # TODO: implement case with reaction system / parallel reaction / series reaction
                 # TODO: implement case with chemicals with multiple roles as limiting reactants/products/co-reactants
@@ -586,6 +586,7 @@ class PhasePartition(Unit):
     _N_ins = 1
     _N_outs = 2
     strict_infeasibility_check = False
+    reactive_relaxation_factor = 0.5
     
     def _init(self, phases, partition_data, top_chemical=None, reaction=None):
         self.partition_data = partition_data
@@ -601,7 +602,7 @@ class PhasePartition(Unit):
         self.Q = 0.
         self.B_specification = self.T_specification = None
         self.B_fallback = 1
-        self._dmol = 0
+        self._dmol = SparseVector.from_size(self.chemicals.size)
         for i, j in zip(self.outs, self.phases): i.phase = j 
         
     def _get_mixture(self, linked=True):
@@ -740,7 +741,8 @@ class PhasePartition(Unit):
     
     def _run_decoupled_reaction(self, P=None):
         top, bottom = self.outs
-        self._dmol = self.reaction.conversion(bottom)
+        f = self.reactive_relaxation_factor
+        self._dmol = f * self._dmol + (1 - f) * self.reaction.conversion(bottom)
     
     def _run_lle(self, P=None, update=True, top_chemical=None):
         if top_chemical is None: top_chemical = self.top_chemical
@@ -1493,10 +1495,13 @@ class MultiStageEquilibrium(Unit):
         partition = self.partitions
         index = self._update_index
         for i in self.stage_reactions: 
-            dmol = partition[i]._dmol
-            try:
-                for j in index: feed_flows[i, j] += dmol[j]
-            except: break
+            p = partition[i]
+            dmol = p._dmol
+            feed_mol = p.feed.mol
+            pseudo_feed = feed_mol + dmol
+            mask = pseudo_feed < 0
+            dmol[mask] = feed_mol[mask]
+            for j in index: feed_flows[i, j] += dmol[j]
         return feed_flows
     
     def set_flow_rates(self, top_flows):
