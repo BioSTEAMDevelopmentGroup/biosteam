@@ -561,7 +561,7 @@ class StageEquilibrium(Unit):
     def _update_energy_variable(self, departure):
         phases = self.phases
         if phases == ('g', 'l'):
-            self.B += departure
+            self.B += self.B_relaxation_factor * departure
         elif phases == ('L', 'l'):
             self.T = T = self.T + departure
             for i in self.outs: i.T = T
@@ -593,6 +593,7 @@ class PhasePartition(Unit):
     _N_outs = 2
     strict_infeasibility_check = False
     dmol_relaxation_factor = 0.5
+    B_relaxation_factor = 0.5
     T_relaxation_factor = 0.5
     K_relaxation_factor = 0.5
     
@@ -1069,8 +1070,8 @@ class MultiStageEquilibrium(Unit):
     default_maxiter = 20
     default_max_attempts = 20
     default_fallback_maxiter = 1
-    default_molar_tolerance = 0.001
-    default_relative_molar_tolerance = 0.0001
+    default_molar_tolerance = 1e-3
+    default_relative_molar_tolerance = 1e-6
     default_algorithm = 'root'
     available_algorithms = {'root', 'optimize'}
     default_methods = {
@@ -2158,7 +2159,7 @@ class MultiStageEquilibrium(Unit):
     def update_energy_balance_phase_ratio_departures(self):
         dBs = self.get_energy_balance_phase_ratio_departures()
         for i, dB in zip(self.partitions, dBs):
-            if i.B_specification is None: i.B += dB
+            if i.B_specification is None: i.B += i.B_relaxation_factor * dB
     
     def update_energy_balance_temperatures(self):
         dTs = self.get_energy_balance_temperature_departures()
