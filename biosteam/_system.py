@@ -91,6 +91,8 @@ class Configuration:
         A = []
         b = []
         for node in nodes:
+            if not node._create_material_balance_equations: 
+                raise NotImplementedError(f'{node!r} has no method `_create_material_balance_equations`')
             for coefficients, value in node._create_material_balance_equations():
                 coefficients = {
                     streams[i.imol]: j for i, j in coefficients.items()
@@ -139,13 +141,17 @@ class Configuration:
         A = []
         b = []
         for node in nodes:
+            if not node._create_energy_departure_equations: 
+                raise NotImplementedError(f'{node!r} has no method `_create_energy_departure_equations`')
             for coefficients, value in node._create_energy_departure_equations():
                 A.append(coefficients)
                 b.append(value)
         A, objs = dictionaries2array(A)
-        values = solve(A, np.array(b).T).T
-        for obj, value in zip(objs, values): 
-            obj._update_energy_variable(value)
+        departures = solve(A, np.array(b).T).T
+        for obj, departure in zip(objs, departures): 
+            if not obj._update_energy_variable:
+                raise NotImplementedError(f'{obj!r} has no method `_update_energy_variable`')
+            obj._update_energy_variable(departure)
         
     def __enter__(self):
         units = self.stages
@@ -2293,18 +2299,22 @@ class System:
         except:
             for i in path[n+1:]: i.run()
         last.run()
-        for i in self.stages: 
-            if (hasattr(i, '_update_equilibrium_variables') 
-                and getattr(i, 'phases', None) == ('g', 'l')):
-                i._update_equilibrium_variables()
-            if hasattr(i, '_update_reaction_conversion'): 
-                i._update_reaction_conversion()
         try:
             with self.stage_configuration(aggregated=False) as conf:
+                for i in conf.stages: 
+                    if hasattr(i, '_update_equilibrium_variables'):
+                        i._update_equilibrium_variables()
+                    if hasattr(i, '_update_reaction_conversion'): 
+                        i._update_reaction_conversion()
                 conf.solve_energy_departures()
                 conf.solve_material_flows()
         except: 
             with self.stage_configuration(aggregated=True) as conf:
+                for i in conf.stages: 
+                    if hasattr(i, '_update_equilibrium_variables'):
+                        i._update_equilibrium_variables()
+                    if hasattr(i, '_update_reaction_conversion'): 
+                        i._update_reaction_conversion()
                 conf.solve_energy_departures()
                 conf.solve_material_flows()
         

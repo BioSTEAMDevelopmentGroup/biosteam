@@ -342,7 +342,7 @@ class Separator(Unit):
         self.ins[0]._update_energy_departure_coefficient(coeff)
         return [(coeff, self.H_in - self.H_out)]
     
-    def _update_energy_variable(self, value):
-        self.T = T = self.T + value
+    def _update_energy_variable(self, departure):
+        self.T = T = self.T + departure
         for i in self.outs: i.T = T
     

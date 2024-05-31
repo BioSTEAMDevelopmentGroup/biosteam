@@ -600,8 +600,8 @@ class IsentropicCompressor(Compressor, new_graphics=False):
         
         return equations
     
-    def _update_energy_variable(self, variable, value):
-        self.outs[0].T += value
+    def _update_energy_variable(self, departure):
+        self.outs[0].T += departure
 
 
 class PolytropicCompressor(Compressor, new_graphics=False):

@@ -1514,6 +1514,12 @@ class BinaryDistillation(Distillation, new_graphics=False):
         )
         return equations
     
+    def _get_energy_departure_coefficient(self, stream):
+        return None
+    
+    def _create_energy_departure_equations(self):
+        return []
+    
     def _update_equilibrium_variables(self):
         outs = top, bottom = self.outs
         data = [i.get_data() for i in outs]
@@ -1940,6 +1946,8 @@ class ShortcutColumn(Distillation, new_graphics=False):
         self._distillate_recoveries = distillate_recoveries
         return distillate_recoveries
     
+    _get_energy_departure_coefficient = BinaryDistillation._get_energy_departure_coefficient
+    _create_energy_departure_equations = BinaryDistillation._create_energy_departure_equations
     _create_material_balance_equations = BinaryDistillation._create_material_balance_equations
     _update_equilibrium_variables = BinaryDistillation._update_equilibrium_variables
 

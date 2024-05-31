@@ -150,6 +150,8 @@ def profile_phenomena_oriented(system, total_time):
     po = all_systems[system]('phenomena oriented')
     po.flatten()
     po._setup_units()
+    # print(po.algorithm)
+    # breakpoint()
     data = profile(po.run_phenomena, *streams_and_stages(po), total_time)
     bst.F.clear()
     return data
@@ -191,7 +193,6 @@ def dT_error(stage):
             sum([i.H for i in stage.outs]) - sum([i.H for i in stage.ins])
         ) / sum([i.C for i in stage.outs])
 
-# @high_precision
 def benchmark(f, streams, adiabatic_stages, stages, total_time):
     time = bst.TicToc()
     net_time = 0
@@ -361,29 +362,29 @@ def plot_benchmark(systems=None, N=100, load=True, save=True):
 # @high_precision
 def profile(f, streams, adiabatic_stages, stages, total_time):
     time = bst.TicToc()
-    KB_error = []
     flow_error = []
     energy_error = []
     material_error = []
     temperature_error = []
     record = []
     net_time = 0
-    KBs = np.array([i.K * i.B for i in stages if hasattr(i, 'K')])
     temperatures = np.array([i.T for i in streams])
     flows = np.array([i.mol for i in streams])
     while net_time < total_time:
         time.tic()
         f()
         net_time += time.toc()
-        new_KBs = np.array([i.K * i.B for i in stages if hasattr(i, 'K')])
         new_temperatures = np.array([i.T for i in streams])
         new_flows = np.array([i.mol for i in streams])
         record.append(net_time)
         dF = np.abs(flows - new_flows).sum()
+        # sys = f.__self__
+        # print(sys.algorithm)
+        # if sys.algorithm == 'Phenomena oriented':
+        #     sys.show()
+        #     breakpoint()
+        #     print(dF)
         dT = np.abs(temperatures - new_temperatures).sum()
-        KB_error.append(
-            np.log10(np.abs(new_KBs - KBs).sum() + 1e-15)
-        )
         flow_error.append(
             np.log10(dF + 1e-15)
         )
@@ -396,12 +397,10 @@ def profile(f, streams, adiabatic_stages, stages, total_time):
         material_error.append(
             np.log10(sum([abs(i.mass_balance_error()) for i in stages]) + 1e-15)
         )
-        KBs = new_KBs
         flows = new_flows
         temperatures = new_temperatures
     return {
         'Time': record, 
-        'Stripping factor': KB_error,
         'Stream temperature': temperature_error,
         'Component flow rate': flow_error, 
         'Energy balance': energy_error, 
@@ -436,7 +435,7 @@ def dct_mean_std(dcts: list[dict], keys: list[str]):
     return {i: (values[i].mean(), values[i].std()) for i in keys}
 
 def plot_profile(
-        systems=None, N=10, load=True, save=True
+        systems=None, N=1, load=True, save=True
     ):
     if systems is None: systems = list(all_systems)
     fs = 9

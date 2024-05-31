@@ -207,7 +207,7 @@ def test_simple_acetic_acid_separation_with_recycle():
     for s_sm, s_dp in zip(sm.streams, po.streams):
         actual = s_sm.mol
         value = s_dp.mol
-        assert_allclose(actual, value, rtol=1e-1, atol=1e-3)
+        assert_allclose(actual, value, rtol=1e-5, atol=1e-3)
 
 if __name__ == '__main__':
     test_trivial_lle_case()

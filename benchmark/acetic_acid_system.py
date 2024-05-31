@@ -6,7 +6,11 @@ Created on Sat Mar 16 13:38:11 2024
 """
 import biosteam as bst
 import numpy as np
-from .profile import register
+try:
+    from .profile import register
+except:
+    def register(*args, **kwargs):
+        return lambda f: f
 
 __all__ = (
     'create_acetic_acid_simple_system',
@@ -77,7 +81,7 @@ def create_acetic_acid_simple_system(alg):
 
 @register(
     'acetic_acid_complex', 'Glacial acetic acid\npurification',
-    80, [0, 10, 20, 30, 40, 50, 60, 70, 80], 'AcOH\nsep.'
+    60, [0, 10, 20, 30, 40, 50, 60], 'AcOH\nsep.'
 )
 def create_acetic_acid_complex_system(alg):
     thermo = bst.Thermo(['Water', 'AceticAcid', 'EthylAcetate'], cache=True)
@@ -169,6 +173,7 @@ def create_acetic_acid_complex_system(alg):
             reflux=None,
             boilup=3,
             use_cache=True,
+            maxiter=10,
         )
         settler = bst.StageEquilibrium(
             'settler',
@@ -226,6 +231,7 @@ def create_acetic_acid_complex_system(alg):
             feed_stages=(1, 2),
             reflux=1,
             boilup=2,
+            maxiter=10,
         )
     return sys
 

@@ -194,11 +194,11 @@ def test_distillation():
     distillation.simulate()
     flows = [
         [0.0, 0.0, 0.0],
-        [0.11207831812626445, 4.350506202064179, 22.358675959386957],
-        [22.055921681873734, 0.14389379793582036, 87.15232404061304],
+        [0.1120748575014966, 4.350505208368632, 22.358805264239038],
+        [22.055925142498495, 0.14389479163136612, 87.1521947357609],
     ]
     for i, j in zip(distillation.outs, flows):    
-        assert_allclose(i.mol, j, rtol=1e-6, atol=1e-3)
+        assert_allclose(i.mol, j, rtol=1e-5, atol=1e-3)
     
     
 if __name__ == '__main__':

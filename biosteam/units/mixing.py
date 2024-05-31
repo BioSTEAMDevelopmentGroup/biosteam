@@ -176,12 +176,12 @@ class Mixer(Unit):
             )
             return equations
     
-    def _update_energy_variable(self, value):
+    def _update_energy_variable(self, departure):
         phases = self.phases
         if phases == ('g', 'l'):
-            self._B += value
+            self._B += departure
         else:
-            self.outs[0].T += value
+            self.outs[0].T += departure
 
 
 class SteamMixer(Unit):

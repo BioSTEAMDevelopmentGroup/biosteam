@@ -5,7 +5,11 @@ Created on Sat Mar 16 13:38:11 2024
 @author: cortespea
 """
 import biosteam as bst
-from .profile import register
+try:
+    from .profile import register
+except:
+    def register(*args, **kwargs):
+        return lambda f: f
 
 __all__ = (
     'create_system_butanol_purification',
@@ -13,7 +17,7 @@ __all__ = (
 
 @register(
     'butanol_purification', 'Butanol purification',
-    5, [1, 2, 3, 4, 5], 'BtOH\nsep.'
+    2, [0.5, 1, 1.5, 2], 'BtOH\nsep.'
 )
 def create_system_butanol_purification(alg):
     bst.settings.set_thermo(['Water', 'Butanol'], cache=True)
@@ -53,5 +57,5 @@ def create_system_butanol_purification(alg):
         LHK=('Water', 'Butanol'),
     )
     
-    sys = bst.System.from_units(units=[water_distiller, settler, butanol_distiller])
+    sys = bst.System.from_units(units=[water_distiller, settler, butanol_distiller], algorithm=alg)
     return sys
