@@ -561,7 +561,7 @@ class StageEquilibrium(Unit):
     def _update_energy_variable(self, departure):
         phases = self.phases
         if phases == ('g', 'l'):
-            self.B += self.B_relaxation_factor * departure
+            self.B += self.partition.B_relaxation_factor * departure
         elif phases == ('L', 'l'):
             self.T = T = self.T + departure
             for i in self.outs: i.T = T
