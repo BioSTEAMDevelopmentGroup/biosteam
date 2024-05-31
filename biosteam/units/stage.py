@@ -2285,7 +2285,7 @@ class MultiStageEquilibrium(Unit):
             mixer.outs[0].mix_from(
                 mixer.ins, energy_balance=False,
             )
-            partition._run_decoupled_KTvle(P=P)
+            partition._run_decoupled_KTvle(P=P, K_relaxation_factor=0, T_relaxation_factor=0)
             partition._run_decoupled_B()
             T = partition.T
             for i in (partition.outs + i.outs): i.T = T
@@ -2329,7 +2329,7 @@ class MultiStageEquilibrium(Unit):
             mixer.outs[0].mix_from(
                 mixer.ins, energy_balance=False,
             )
-            partition._run_decoupled_KTvle(P=P)
+            partition._run_decoupled_KTvle(P=P, K_relaxation_factor=0, T_relaxation_factor=0)
             partition._run_decoupled_B()
             T = partition.T
             for i in (partition.outs + i.outs): i.T = T
