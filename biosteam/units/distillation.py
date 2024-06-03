@@ -53,7 +53,7 @@ from thermosteam._graphics import vertical_column_graphics
 from scipy.optimize import brentq
 from warnings import warn
 import biosteam as bst
-from math import inf
+from math import inf, sqrt, exp, pi
 from .heat_exchange import HXutility
 from ._flash import Flash
 from .stage import MultiStageEquilibrium
@@ -218,8 +218,8 @@ class Distillation(Unit, isabstract=True):
         flooding.
     foaming_factor=1.0 : float
         Must be between 0 to 1.
-    open_tray_area_fraction=0.1 : float
-        Fraction of open area to active area of a tray.
+    open_tray_area=0.1 : float
+        Ratio of open area to active area of a tray.
     downcomer_area_fraction=None : float
         Enforced fraction of downcomer area to net (total) area of a tray.
         If None, estimate ratio based on Oliver's estimation [1]_.
@@ -309,13 +309,14 @@ class Distillation(Unit, isabstract=True):
             stage_efficiency=None,
             velocity_fraction=0.8,
             foaming_factor=1.0,
-            open_tray_area_fraction=0.1,
+            open_tray_area=0.1,
             downcomer_area_fraction=None,
             is_divided=False,
             vacuum_system_preference='Liquid-ring pump',
             condenser_thermo=None,
             reboiler_thermo=None,
             partial_condenser=True,
+            weir_height=0.1,
         ):
         self.check_LHK = True
         
@@ -332,10 +333,11 @@ class Distillation(Unit, isabstract=True):
         self.tray_type = tray_type
         self.tray_material = tray_material
         self.tray_spacing = tray_spacing
+        self.weir_height = weir_height
         self.stage_efficiency = stage_efficiency
         self.velocity_fraction = velocity_fraction
         self.foaming_factor = foaming_factor
-        self.open_tray_area_fraction = open_tray_area_fraction
+        self.open_tray_area = open_tray_area
         self.downcomer_area_fraction = downcomer_area_fraction
         self.is_divided = is_divided
         self.vacuum_system_preference = vacuum_system_preference
@@ -508,11 +510,28 @@ class Distillation(Unit, isabstract=True):
         return self._Hr
     @Hr.setter
     def Hr(self, Hr):
-        assert self.product_specification_format == "Recovery", (
-            "product specification format must be 'Recovery' "
-            "to set heavy key recovery")
-        assert 0 < Hr < 1, "heavy key recovery in the bottoms product must be a fraction" 
+        if not self.product_specification_format == "Recovery":
+            raise ValueError(
+                "product specification format must be 'Recovery' "
+                "to set heavy key recovery"
+            )
+        if not 0 < Hr < 1:
+            raise ValueError(
+                "heavy key recovery in the bottoms product must be a fraction" 
+            )
         self._Hr = Hr
+    
+    @property
+    def weir_height(self):
+        """Weir height as a fraction tray spacing."""
+        return self._WH
+    @weir_height.setter
+    def weir_height(self, WS):
+        if not 0 < WS < 1:
+            raise ValueError(
+                "weir height must be a fraction" 
+            )
+        self._WH = WS
     
     @property
     def tray_spacing(self):
@@ -549,11 +568,11 @@ class Distillation(Unit, isabstract=True):
         self._F_F = F_F
     
     @property
-    def open_tray_area_fraction(self):
-        """Fraction of open area, A_h, to active area, A_a."""
+    def open_tray_area(self):
+        """Ratio of open area, A_h, to active area, A_a."""
         return self._A_ha
-    @open_tray_area_fraction.setter
-    def open_tray_area_fraction(self, A_ha):
+    @open_tray_area.setter
+    def open_tray_area(self, A_ha):
         self._A_ha = A_ha
     
     @property
@@ -915,7 +934,7 @@ class Distillation(Unit, isabstract=True):
         U_f = design.compute_max_vapor_velocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha)
         A_dn = self._A_dn
         if A_dn is None:
-           self._A_dn = A_dn = design.compute_downcomer_area_fraction(F_LV)
+           A_dn = design.compute_downcomer_area_fraction(F_LV)
         f = self._f
         R_diameter = design.compute_tower_diameter(V_vol, U_f, f, A_dn) * 3.28
         
@@ -1135,7 +1154,7 @@ class BinaryDistillation(Distillation, new_graphics=False):
         flooding.
     foaming_factor=1.0 : float
         Must be between 0 to 1.
-    open_tray_area_fraction=0.1 : float
+    open_tray_area=0.1 : float
         Fraction of open area to active area of a tray.
     downcomer_area_fraction=None : float
         Enforced fraction of downcomer area to net (total) area of a tray.
@@ -1656,7 +1675,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
         flooding.
     foaming_factor=1.0 : float
         Must be between 0 to 1.
-    open_tray_area_fraction=0.1 : float
+    open_tray_area=0.1 : float
         Fraction of open area to active area of a tray.
     downcomer_area_fraction=None : float
         Enforced fraction of downcomer area to net (total) area of a tray.
@@ -1986,7 +2005,7 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
         flooding.
     foaming_factor=1.0 : float
         Must be between 0 to 1.
-    open_tray_area_fraction=0.1 : float
+    open_tray_area=0.1 : float
         Fraction of open area to active area of a tray.
     downcomer_area_fraction=None : float
         Enforced fraction of downcomer area to net (total) area of a tray.
@@ -2084,8 +2103,9 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
             stage_efficiency=None,
             velocity_fraction=0.8,
             foaming_factor=1.0,
-            open_tray_area_fraction=0.1,
-            downcomer_area_fraction=None,  
+            open_tray_area=0.1,
+            downcomer_area_fraction=None,
+            weir_height=0.1,
             use_cache=None,
             collapsed_init=False,
             method=None,
@@ -2106,8 +2126,9 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
         self.stage_efficiency = stage_efficiency
         self.velocity_fraction = velocity_fraction
         self.foaming_factor = foaming_factor
-        self.open_tray_area_fraction = open_tray_area_fraction
+        self.open_tray_area = open_tray_area
         self.downcomer_area_fraction = downcomer_area_fraction
+        self.weir_height = weir_height
         self._last_args = (
             self.N_stages, self.feed_stages, self.vapor_side_draws, 
             self.liquid_side_draws, self.use_cache, *self._ins, 
@@ -2143,11 +2164,12 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
     def liquid(self):
         return self.outs[1]   
     
+    weir_height = Distillation.weir_height
     tray_spacing = Distillation.tray_spacing
     stage_efficiency = Distillation.stage_efficiency
     velocity_fraction = Distillation.velocity_fraction
     foaming_factor = Distillation.foaming_factor
-    open_tray_area_fraction = Distillation.open_tray_area_fraction
+    open_tray_area = Distillation.open_tray_area
     downcomer_area_fraction = Distillation.downcomer_area_fraction
     tray_type = Distillation.tray_type
     tray_material = Distillation.tray_material
@@ -2291,7 +2313,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         flooding.
     foaming_factor=1.0 : float
         Must be between 0 to 1.
-    open_tray_area_fraction=0.1 : float
+    open_tray_area=0.1 : float
         Fraction of open area to active area of a tray.
     downcomer_area_fraction=None : float
         Enforced fraction of downcomer area to net (total) area of a tray.
@@ -2371,11 +2393,11 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     Electricity         Power                           kW     0.918
                         Cost                        USD/hr    0.0718
     Cooling water       Duty                         kJ/hr -9.13e+06
-                        Flow                       kmol/hr  6.23e+03
+                        Flow                       kmol/hr  6.24e+03
                         Cost                        USD/hr      3.04
     Low pressure steam  Duty                         kJ/hr  9.62e+06
                         Flow                       kmol/hr       249
-                        Cost                        USD/hr      59.1
+                        Cost                        USD/hr      59.2
     Design              Theoretical stages                         5
                         Actual stages                              6
                         Height                          ft      22.9
@@ -2390,7 +2412,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                         Pump - Motor                   USD       390
                         Reboiler - Floating head       USD  2.41e+04
     Total purchase cost                                USD  1.17e+05
-    Utility cost                                    USD/hr      62.2
+    Utility cost                                    USD/hr      62.3
     
     Notes
     -----
@@ -2435,11 +2457,12 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     _max_agile_design = AdiabaticMultiStageVLEColumn._max_agile_design
     _units = AdiabaticMultiStageVLEColumn._units
     
+    weir_height = Distillation.weir_height
     tray_spacing = Distillation.tray_spacing
     stage_efficiency = Distillation.stage_efficiency
     velocity_fraction = Distillation.velocity_fraction
     foaming_factor = Distillation.foaming_factor
-    open_tray_area_fraction = Distillation.open_tray_area_fraction
+    open_tray_area = Distillation.open_tray_area
     downcomer_area_fraction = Distillation.downcomer_area_fraction
     tray_type = Distillation.tray_type
     tray_material = Distillation.tray_material
@@ -2458,7 +2481,8 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
             stage_efficiency=None,
             velocity_fraction=0.8,
             foaming_factor=1.0,
-            open_tray_area_fraction=0.1,
+            open_tray_area=0.1,
+            weir_height=0.1,
             downcomer_area_fraction=None,
             vacuum_system_preference='Liquid-ring pump',
             partition_data=None,
@@ -2495,6 +2519,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                       maxiter=maxiter)
         
         # Construction specifications
+        self.weir_height = weir_height
         self.vessel_material = vessel_material
         self.tray_type = tray_type
         self.tray_material = tray_material
@@ -2502,7 +2527,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         self.stage_efficiency = stage_efficiency
         self.velocity_fraction = velocity_fraction
         self.foaming_factor = foaming_factor
-        self.open_tray_area_fraction = open_tray_area_fraction
+        self.open_tray_area = open_tray_area
         self.downcomer_area_fraction = downcomer_area_fraction
         self.vacuum_system_preference = vacuum_system_preference
         self._load_components()
@@ -2634,16 +2659,34 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         else:
             return self.N_stages, np.ceil(self.N_stages / eff)
        
-    def _design(self):
-        self._simulate_condenser_and_reboiler()
-        Design = self.design_results
+    def update_liquid_holdup(self):
+        diameter = self.estimate_diameter()
+        hw = weir_height = diameter * self.weir_height * 12 # inches
+        area = diameter * diameter * pi / 4
+        b = 2/3
+        partitions = self.partitions
+        for i in self.stage_reactions:
+            partition = partitions[i]
+            vapor, liquid = partition.outs
+            rho_V = vapor.rho
+            rho_L = liquid.rho
+            active_area = area * (1 - partition.downcomer_area_fraction)
+            Ua = vapor.get_total_flow('ft3/s') / active_area
+            Ks = Ua * sqrt(rho_V / (rho_L - rho_V)) # Capacity parameter
+            Phi_e = exp(-4.257 * Ks**0.91) # Effective relative froth density 
+            Lw = 0.73 * diameter * 12 # Weir length [in] assuming Ad/A = 0.1
+            # TODO: Compute weir length or other Ad/A
+            qL = liquid.get_total_flow('gal/min')
+            CL = 0.362 + 0.317 * exp(-3.5 * weir_height)
+            hL = Phi_e * (hw + CL * (qL / (Lw * Phi_e)) ** b) # equivalent height of clear liquid holdup [in]
+            partition.liquid_volume = hL * area * 0.00236155 # m3 
+       
+    def estimate_diameter(self): # ft
+        diameters = []
         TS = self._TS
         A_ha = self._A_ha
         F_F = self._F_F
         f = self._f
-       
-        ### Get maximum required diameter of column across stages ###
-        diameters = []
         for i in self.stages:
             vapor, liquid = i.partition.outs
             if liquid.isempty() or vapor.isempty(): continue
@@ -2657,11 +2700,17 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
             C_sbf = design.compute_max_capacity_parameter(TS, F_LV)
             U_f = design.compute_max_vapor_velocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha)
             A_dn = self._A_dn
-            if A_dn is None: A_dn = design.compute_downcomer_area_fraction(F_LV)
+            if A_dn is None: i.partition.downcomer_area_fraction = A_dn = design.compute_downcomer_area_fraction(F_LV)
             diameters.append(
                 design.compute_tower_diameter(V_vol, U_f, f, A_dn)
             )
-        diameter = max(diameters) * 3.28
+        return max(diameters) * 3.28 # ft
+        
+    def _design(self):
+        self._simulate_condenser_and_reboiler()
+        Design = self.design_results
+        
+        ### Get maximum required diameter of column across stages ###
         Po = self.P * 0.000145078 # to psi
         rho_M = material_densities_lb_per_in3[self.vessel_material]
         if Po < 14.68:
@@ -2669,10 +2718,11 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                  'wall thickness may be inaccurate and stiffening rings may be '
                  'required', category=RuntimeWarning)
         N_theoretical, N_actual = self._actual_stages()
+        TS = self._TS
         Design['Theoretical stages'] = N_theoretical
         Design['Actual stages'] = actual_stages = N_actual - (bool(self.condenser) + bool(self.reboiler))
         Design['Height'] = H = design.compute_tower_height(TS, actual_stages) * 3.28
-        Design['Diameter'] = Di = diameter
+        Design['Diameter'] = Di = self.estimate_diameter()
         Design['Wall thickness'] = tv = design.compute_tower_wall_thickness(Po, Di, H)
         Design['Weight'] = design.compute_tower_weight(Di, H, tv, rho_M)
 

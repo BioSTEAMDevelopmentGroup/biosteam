@@ -345,7 +345,7 @@ def compute_max_vapor_velocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha):
     F_F : 
         Foaming factor
     A_ha : 
-        Ratio of open area, A_h, to active area, A_a
+        Ratio of open area, A_h, to active area, A_a.
     
     Notes
     -----
@@ -407,7 +407,7 @@ def compute_tower_diameter(V_vol, U_f, f, A_dn):
     The tower diameter is given by [3]_. See source code for details.
     
     """
-    Di = np.sqrt(4.*V_vol/(f*U_f*np.pi*(1.-A_dn)))
+    Di = np.sqrt(4. * V_vol/(f * U_f * np.pi* (1. - A_dn)))
     if Di < 0.914:
         # Make sure diameter is not too small
         Di = 0.914

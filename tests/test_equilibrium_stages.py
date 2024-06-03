@@ -124,24 +124,20 @@ def test_reactive_distillation():
     from numpy.testing import assert_allclose
     bst.settings.set_thermo(['EthylLactate', 'LacticAcid', 'H2O', 'Ethanol'], cache=True)
     
-    class Esterification(bst.Reaction):
-        __slots__ = ('mcat',)
+    class Esterification(bst.KineticReaction):
         
-        def __init__(self):
-            super().__init__(
-                'LacticAcid + Ethanol -> H2O + EthylLactate',
-                reactant='LacticAcid', X=0.2
-            )
-            self.mcat = 0.01
+        def volume(self, stream):
+            return 0.01 # Kg of catalyst
         
-        def _rate(self, stream):
+        def rate(self, stream):
             T = stream.T
+            if T > 365: return 0 # Prevents multiple steady states.
             kf = 6.52e3 * exp(-4.8e4 / (R * T))
             kr = 2.72e3 * exp(-4.8e4 / (R * T))
             LaEt, La, H2O, EtOH = stream.mol / stream.F_mol
-            return self.mcat * (kf * La * EtOH - kr * LaEt * H2O)
+            return 3600 * (kf * La * EtOH - kr * LaEt * H2O) # kmol / kg-catalyst / hr
     
-    rxn = Esterification()
+    rxn = Esterification('LacticAcid + Ethanol -> H2O + EthylLactate')
     stream = bst.Stream(
         H2O=10, Ethanol=10, LacticAcid=2, T=355,
     )
@@ -156,13 +152,24 @@ def test_reactive_distillation():
         boilup=2.0,
         use_cache=True,
         LHK=('H2O', 'EthylLactate'),
-        stage_reactions={i: rxn for i in range(5)},
+        stage_reactions={i: rxn for i in range(2)},
         method='fixed-point',
+        maxiter=100,
     )
     distillation.simulate()
+    flows = [
+        [6.575895653800856e-06, 3.6651391022703107e-09, 
+         3.1210737204600005, 8.043951319613521],
+        [0.019035234263940305, 2.0190418064944553, 
+         6.897968089699594, 1.9750904905460722],
+    ]
+    for i, j in zip(distillation.outs, flows):    
+        assert_allclose(i.mol, j, rtol=1e-5, atol=1e-3)
     sys = bst.System.from_units(units=[distillation])
     sys._setup()
     sys.run_phenomena()
+    for i, j in zip(distillation.outs, flows):    
+        assert_allclose(i.mol, j, rtol=1e-5, atol=1e-3)
     
 def test_distillation():
     import biosteam as bst
@@ -204,6 +211,7 @@ def test_distillation():
 if __name__ == '__main__':
     test_multi_stage_adiabatic_vle()
     test_distillation()
+    test_reactive_distillation()
 
 
 

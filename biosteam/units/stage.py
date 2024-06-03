@@ -224,7 +224,7 @@ class ReactivePhaseStage(bst.Unit): # Does not include VLE
         return [(coeff, self.Hnet)]
     
     def _update_reaction_conversion(self):
-        self.dmol = 0.99 * (self.dmol + self.reaction.conversion(self.outs[0]))
+        self.dmol = self.reaction.conversion(self.outs[0])
     
 
 # %% Two phases
@@ -478,12 +478,12 @@ class StageEquilibrium(Unit):
         reaction = self.reaction
         if self.B is None or np.isnan(self.B): self.run()
         if reaction: # Reactive liquid
-            if isinstance(reaction, (bst.Rxn, bst.RxnI)):
+            if isinstance(reaction, (bst.Rxn, bst.RxnI, bst.KRxn)):
                 # predetermined_flow = SparseVector.from_dict(sum_sparse_vectors([i.mol for i in fresh_inlets]), size=N)
                 # rhs = predetermined_flow + self.partition.dmol
                 # for i in self.outs: eq_overall[i] = ones
                 # for i in process_inlets: eq_overall[i] = minus_ones
-                if reaction._rate:
+                if isinstance(reaction, bst.KRxn):
                     predetermined_flow = SparseVector.from_dict(sum_sparse_vectors([i.mol for i in fresh_inlets]), size=N)
                     rhs = predetermined_flow + self.partition.dmol
                     for i in self.outs: eq_overall[i] = ones
@@ -846,7 +846,7 @@ class PhasePartition(Unit):
             kwargs['T'] = T
         ms.vle(**kwargs)
         index = ms.vle._index
-        if self.reaction: self.dmol = ms.mol[index] - self.feed.mol[index]
+        if self.reaction: self.dmol = ms.mol - self.feed.mol
         IDs = ms.chemicals.IDs
         IDs = tuple([IDs[i] for i in index])
         L_mol = ms.imol['l', IDs]
@@ -2356,16 +2356,28 @@ class MultiStageEquilibrium(Unit):
         P = self.P
         if self._has_vle:
             self.set_flow_rates(top_flow_rates)
-            for i in stages:
-                mixer = i.mixer
-                partition = i.partition
-                mixer.outs[0].mix_from(
-                    mixer.ins, energy_balance=False,
-                )
-                partition._run_decoupled_KTvle(P=P)
-                T = partition.T
-                for i in (partition.outs + i.outs): i.T = T
-                if partition.reaction: partition._run_decoupled_reaction(P=P)
+            if self.stage_reactions:
+                self.update_liquid_holdup() # Finds liquid volume at each stage
+                for i in stages:
+                    mixer = i.mixer
+                    partition = i.partition
+                    mixer.outs[0].mix_from(
+                        mixer.ins, energy_balance=False,
+                    )
+                    partition._run_decoupled_KTvle(P=P)
+                    T = partition.T
+                    for i in (partition.outs + i.outs): i.T = T
+                    if partition.reaction: partition._run_decoupled_reaction(P=P)
+            else:
+                for i in stages:
+                    mixer = i.mixer
+                    partition = i.partition
+                    mixer.outs[0].mix_from(
+                        mixer.ins, energy_balance=False,
+                    )
+                    partition._run_decoupled_KTvle(P=P)
+                    T = partition.T
+                    for i in (partition.outs + i.outs): i.T = T
             self.interpolate_missing_variables()
             self.update_energy_balance_phase_ratio_departures()
         elif self._has_lle: # LLE
