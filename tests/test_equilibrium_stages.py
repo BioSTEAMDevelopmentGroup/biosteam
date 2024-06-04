@@ -141,7 +141,7 @@ def test_reactive_distillation():
     stream = bst.Stream(
         H2O=10, Ethanol=10, LacticAcid=2, T=355,
     )
-    stream.vle(V=0, P=101325, liquid_reaction=rxn)
+    stream.vle(V=0, P=101325, liquid_conversion=rxn)
     distillation = bst.MESHDistillation(
         N_stages=5,
         ins=[stream],

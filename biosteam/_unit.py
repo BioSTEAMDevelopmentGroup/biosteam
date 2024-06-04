@@ -1042,8 +1042,6 @@ class Unit(AbstractUnit):
         """Total utility cost [USD/hr]."""
         return self._utility_cost
 
-
-
     def mass_balance_error(self):
         """Return error in stoichiometric mass balance. If positive,
         mass is being created. If negative, mass is being destroyed."""

@@ -2493,6 +2493,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
             method=None,
             inside_out=None,
             maxiter=None,
+            stage_specifications=None,
         ):
         if full_condenser: 
             if liquid_side_draws is None:
@@ -2501,10 +2502,11 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                 liquid_side_draws[0] = reflux / (1 + reflux)
             reflux = inf # Boil-up is 0
         self.LHK = LHK
-        stage_specifications = {}
-        stage_specifications[0] = ('Reflux', reflux)
-        stage_specifications[-1] = ('Boilup', boilup)
-        
+        if stage_specifications is None: stage_specifications = {}
+        if reflux is not None:
+            stage_specifications[0] = ('Reflux', reflux)
+        if boilup is not None:
+            stage_specifications[-1] = ('Boilup', boilup)
         super()._init(N_stages=N_stages, feed_stages=feed_stages,
                       top_side_draws=vapor_side_draws, 
                       bottom_side_draws=liquid_side_draws,              
@@ -2548,8 +2550,13 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     
     @property
     def boilup(self):
-        name, value = self.stage_specifications[-1]
-        if name == 'Boilup': return value
+        if -1 in self.stage_specifications:
+            name, value = self.stage_specifications[-1]
+            if name == 'Boilup': return value
+        else:
+            last_stage = self.N_stages - 1
+            name, value = self.stage_specifications[last_stage]
+            if name == 'Boilup': return value
     @boilup.setter
     def boilup(self, boilup):
         self.stage_specifications[-1] = ('Boilup', boilup)
@@ -2558,7 +2565,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         super()._setup()
         args = (self.N_stages, self.feed_stages, self.vapor_side_draws, 
                 self.liquid_side_draws, self.use_cache, *self._ins, 
-                self.partition_data, self.P,
+                self.partition_data, self.P, 
                 self.reflux, self.boilup)
         if args != self._last_args:
             MultiStageEquilibrium._init(
@@ -2569,6 +2576,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                 bottom_side_draws=self.liquid_side_draws,
                 partition_data=self.partition_data, 
                 stage_specifications=self.stage_specifications,
+                stage_reactions=self.stage_reactions,
                 use_cache=self.use_cache, 
             )
             self._last_args = args
@@ -2668,18 +2676,24 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         for i in self.stage_reactions:
             partition = partitions[i]
             vapor, liquid = partition.outs
-            rho_V = vapor.rho
-            rho_L = liquid.rho
-            active_area = area * (1 - partition.downcomer_area_fraction)
-            Ua = vapor.get_total_flow('ft3/s') / active_area
-            Ks = Ua * sqrt(rho_V / (rho_L - rho_V)) # Capacity parameter
+            if vapor.isempty():
+                Ks = 0
+            elif liquid.isempty():
+                partition.reaction.liquid_volume = 0
+                continue
+            else:
+                rho_V = vapor.rho
+                rho_L = liquid.rho
+                active_area = area * (1 - partition.downcomer_area_fraction)
+                Ua = vapor.get_total_flow('ft3/s') / active_area
+                Ks = Ua * sqrt(rho_V / (rho_L - rho_V)) # Capacity parameter    
             Phi_e = exp(-4.257 * Ks**0.91) # Effective relative froth density 
             Lw = 0.73 * diameter * 12 # Weir length [in] assuming Ad/A = 0.1
             # TODO: Compute weir length or other Ad/A
             qL = liquid.get_total_flow('gal/min')
             CL = 0.362 + 0.317 * exp(-3.5 * weir_height)
             hL = Phi_e * (hw + CL * (qL / (Lw * Phi_e)) ** b) # equivalent height of clear liquid holdup [in]
-            partition.liquid_volume = hL * area * 0.00236155 # m3 
+            partition.reaction.liquid_volume = hL * area * 0.00236155 # m3 
        
     def estimate_diameter(self): # ft
         diameters = []

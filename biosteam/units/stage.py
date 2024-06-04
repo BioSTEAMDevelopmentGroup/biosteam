@@ -168,39 +168,38 @@ class ReactivePhaseStage(bst.Unit): # Does not include VLE
         fresh_inlets = [i for i in inlets if i.isfeed() and not i.material_equations]
         process_inlets = [i for i in inlets if not i.isfeed() or i.material_equations]
         reaction = self.reaction
-        if isinstance(reaction, (bst.Rxn, bst.RxnI)):
-            if reaction._rate:
-                # Overall flows
-                eq_overall = {}
-                predetermined_flow = SparseVector.from_dict(sum_sparse_vectors([i.mol for i in fresh_inlets]), size=n)
-                rhs = predetermined_flow + reaction.dmol
+        if isinstance(reaction, bst.KRxn):
+            # Overall flows
+            eq_overall = {}
+            predetermined_flow = SparseVector.from_dict(sum_sparse_vectors([i.mol for i in fresh_inlets]), size=n)
+            rhs = predetermined_flow + self.dmol
+            eq_overall[product] = ones
+            for i in process_inlets: eq_overall[i] = minus_ones
+        elif isinstance(reaction, (bst.Rxn, bst.RxnI)):
+            index = reaction._X_index[1] if reaction.phases else reaction._X_index
+            # Overall flows
+            eq_overall = {}
+            predetermined_flow = SparseVector.from_dict(sum_sparse_vectors([i.mol for i in fresh_inlets]), size=n)
+            rhs = predetermined_flow + self.dmol
+            rhs[index] = predetermined_flow[index]
+            if reaction.X == 1:
                 eq_overall[product] = ones
-                for i in process_inlets: eq_overall[i] = minus_ones
+                inlet_coef = minus_ones.copy()
+                inlet_coef[index] = 0
+                for i in process_inlets: eq_overall[i] = inlet_coef
+                rhs[index] = 0
             else:
-                index = reaction._X_index[1] if reaction.phases else reaction._X_index
-                # Overall flows
-                eq_overall = {}
-                predetermined_flow = SparseVector.from_dict(sum_sparse_vectors([i.mol for i in fresh_inlets]), size=n)
-                rhs = predetermined_flow + self.dmol
-                rhs[index] = predetermined_flow[index]
-                if reaction.X == 1:
-                    eq_overall[product] = ones
-                    inlet_coef = minus_ones.copy()
-                    inlet_coef[index] = 0
-                    for i in process_inlets: eq_overall[i] = inlet_coef
-                    rhs[index] = 0
-                else:
-                    product_coef = ones.copy()
-                    product_coef[index] /= (1 - reaction.X)
-                    eq_overall[product] = product_coef
-                    for i in process_inlets: eq_overall[i] = minus_ones
-            equations.append(
-                (eq_overall, rhs)
-            )
+                product_coef = ones.copy()
+                product_coef[index] /= (1 - reaction.X)
+                eq_overall[product] = product_coef
+                for i in process_inlets: eq_overall[i] = minus_ones
         else:
             # TODO: implement case with reaction system / parallel reaction / series reaction
             # TODO: implement case with chemicals with multiple roles as limiting reactants/products/co-reactants
             raise NotImplementedError('only single reaction objects work (for now)')
+        equations.append(
+            (eq_overall, rhs)
+        )
         return equations
     
     def _get_energy_departure_coefficient(self, stream):
@@ -653,8 +652,6 @@ class PhasePartition(Unit):
                     setattr(self, name, last)
                 for i, j in enumerate(index):
                     last[j] = array[i]
-        elif IDs_last and len(IDs_last) < len(IDs):
-            raise RuntimeError('unknown error')
         else:
             for i, j in kwargs.items(): setattr(self, i, j)
             self.IDs = IDs
@@ -674,8 +671,6 @@ class PhasePartition(Unit):
                     setattr(self, name, last)
                 for i, j in enumerate(index):
                     last[j] = f * last[j]  + g * array[i]
-        elif IDs_last and len(IDs_last) < len(IDs):
-            raise RuntimeError('unknown error')
         elif IDs_last == IDs:
             for i, j in kwargs.items(): 
                 last = getattr(self, i)
@@ -759,6 +754,7 @@ class PhasePartition(Unit):
                              T_relaxation_factor=None,
                              K_relaxation_factor=None): # Bubble point
         top, bottom = self.outs
+        if P is not None: top.P = bottom.P = P
         if self.T_specification:
             self._run_vle()
         else:
@@ -831,7 +827,9 @@ class PhasePartition(Unit):
         B = self.B_specification
         T = self.T_specification
         Q = self.Q
-        kwargs = {'P': P or self.P or ms.P, 'liquid_reaction': self.reaction}
+        kwargs = {'P': P or self.P or ms.P}
+        if self.reaction:
+            kwargs['liquid_conversion'] = self.reaction.conversion_handle(self.outs[1])
         if T is None:
             if B is None: 
                 if self.reaction: Q += ms.Hf
@@ -1175,7 +1173,7 @@ class MultiStageEquilibrium(Unit):
                 elif stage.T_specification is not None:
                     stage_specifications[n] = ('Temperature', stage.T_specification)
                 elif stage.Q != 0:
-                    stage_specifications[n] = ('Duty', stage.T_specification)
+                    stage_specifications[n] = ('Duty', stage.Q)
                 if stage.reaction is not None:
                     stage_reactions[n] = stage.reaction
             outs = [*outs, *top_side_draws_outs, *bottom_side_draws_outs]
@@ -1205,7 +1203,7 @@ class MultiStageEquilibrium(Unit):
             partition_data=None, 
             top_chemical=None, 
             use_cache=None,
-            collapsed_init=True,
+            collapsed_init=False,
             algorithm=None,
             method=None,
             maxiter=None,
@@ -1589,9 +1587,12 @@ class MultiStageEquilibrium(Unit):
             dmol = p.dmol
             feed_mol = p.feed.mol
             pseudo_feed = feed_mol + dmol
-            mask = pseudo_feed < 0
-            dmol[mask] = feed_mol[mask]
-            for j in index: feed_flows[i, j] += dmol[j]
+            mask = (pseudo_feed < 0) & (dmol < 0)
+            if pseudo_feed[mask].any():
+                x = (-feed_mol[mask] / dmol[mask]).min()
+                assert 0 <= x <= 1
+                dmol *= x
+            for n, j in enumerate(index): feed_flows[i, n] += dmol[j]
         return feed_flows
     
     def set_flow_rates(self, top_flows):
@@ -1934,6 +1935,15 @@ class MultiStageEquilibrium(Unit):
             IDs = data['IDs'] if 'IDs' in data else [i.ID for i in ms.lle_chemicals]
         else:
             IDs = data['IDs'] if 'IDs' in data else [i.ID for i in ms.vle_chemicals]
+        if self.stage_reactions:
+            nonzero = set()
+            for rxn in self.stage_reactions.values():
+                nonzero.update(rxn.stoichiometry.nonzero_keys())
+            all_IDs = set(IDs)
+            for i in nonzero:
+                ID = chemicals.IDs[i]
+                if ID not in all_IDs:
+                    IDs.append(ID)
         self._IDs = IDs = tuple(IDs)
         self._N_chemicals = N_chemicals = len(IDs)
         self._update_index = index = ms.chemicals.get_index(IDs)
@@ -1995,6 +2005,8 @@ class MultiStageEquilibrium(Unit):
                     T_top = bp.T
                     dT_stage = (T_bot - T_top) / N_stages
                     phase_ratios = self.hot_start_phase_ratios()
+                    z = bp.z
+                    z[z == 0] = 1.
                     K = bp.y / bp.z
                     for i, B in enumerate(phase_ratios):
                         partition = partitions[i]
@@ -2285,6 +2297,7 @@ class MultiStageEquilibrium(Unit):
             mixer.outs[0].mix_from(
                 mixer.ins, energy_balance=False,
             )
+            mixer.outs[0].P = P
             partition._run_decoupled_KTvle(P=P, K_relaxation_factor=0, T_relaxation_factor=0)
             partition._run_decoupled_B()
             T = partition.T
@@ -2329,6 +2342,7 @@ class MultiStageEquilibrium(Unit):
             mixer.outs[0].mix_from(
                 mixer.ins, energy_balance=False,
             )
+            mixer.outs[0].P = P
             partition._run_decoupled_KTvle(P=P, K_relaxation_factor=0, T_relaxation_factor=0)
             partition._run_decoupled_B()
             T = partition.T
@@ -2364,6 +2378,7 @@ class MultiStageEquilibrium(Unit):
                     mixer.outs[0].mix_from(
                         mixer.ins, energy_balance=False,
                     )
+                    mixer.outs[0].P = P
                     partition._run_decoupled_KTvle(P=P)
                     T = partition.T
                     for i in (partition.outs + i.outs): i.T = T
@@ -2375,6 +2390,7 @@ class MultiStageEquilibrium(Unit):
                     mixer.outs[0].mix_from(
                         mixer.ins, energy_balance=False,
                     )
+                    mixer.outs[0].P = P
                     partition._run_decoupled_KTvle(P=P)
                     T = partition.T
                     for i in (partition.outs + i.outs): i.T = T
