@@ -47,3 +47,4 @@ class ProcessModel:
         """Return information on p-parameters and m-metrics."""
         print(self._info(p, m))
     _ipython_display_ = show
+    

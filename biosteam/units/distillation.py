@@ -2536,14 +2536,14 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         self._last_args = (
             self.N_stages, self.feed_stages, self.vapor_side_draws, 
             self.liquid_side_draws, self.use_cache, *self._ins, 
-            self.partition_data, self.P,
-            reflux, boilup,
+            self.partition_data, self.P, self.stage_specifications,
         )
         
     @property
     def reflux(self):
-        name, value = self.stage_specifications[0]
-        if name == 'Reflux': return value
+        if 0 in self.stage_specifications:
+            name, value = self.stage_specifications[0]
+            if name == 'Reflux': return value
     @reflux.setter
     def reflux(self, reflux):
         self.stage_specifications[0] = ('Reflux', reflux)
@@ -2565,8 +2565,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         super()._setup()
         args = (self.N_stages, self.feed_stages, self.vapor_side_draws, 
                 self.liquid_side_draws, self.use_cache, *self._ins, 
-                self.partition_data, self.P, 
-                self.reflux, self.boilup)
+                self.partition_data, self.P, self.stage_specifications)
         if args != self._last_args:
             MultiStageEquilibrium._init(
                 self, N_stages=self.N_stages,
@@ -2668,8 +2667,8 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
             return self.N_stages, np.ceil(self.N_stages / eff)
        
     def update_liquid_holdup(self):
-        diameter = self.estimate_diameter()
-        hw = weir_height = diameter * self.weir_height * 12 # inches
+        diameter = self.estimate_diameter() 
+        hw = weir_height = self._TS * self.weir_height * 0.0393701 # mm to inches
         area = diameter * diameter * pi / 4
         b = 2/3
         partitions = self.partitions
@@ -2684,7 +2683,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
             else:
                 rho_V = vapor.rho
                 rho_L = liquid.rho
-                active_area = area * (1 - partition.downcomer_area_fraction)
+                active_area = area * (1 - 2 * partition.downcomer_area_fraction)
                 Ua = vapor.get_total_flow('ft3/s') / active_area
                 Ks = Ua * sqrt(rho_V / (rho_L - rho_V)) # Capacity parameter    
             Phi_e = exp(-4.257 * Ks**0.91) # Effective relative froth density 

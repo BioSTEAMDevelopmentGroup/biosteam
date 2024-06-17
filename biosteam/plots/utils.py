@@ -75,9 +75,9 @@ class MetricBar(NamedTuple): # pragma: no coverage
         # cbar_ax.locator_params(nbins=self.N_ticks)
         if label:
             if self.title_position == 'top':
-                cbar_ax.set_title(self.title, self.ylabelkwargs)
+                cbar_ax.set_title(self.title, **self.ylabelkwargs)
             else:
-                cbar_ax.set_ylabel(self.title, self.ylabelkwargs)
+                cbar_ax.set_ylabel(self.title, **self.ylabelkwargs)
         try:
             ylabels = [y.get_text() for y in cbar_ax.get_yticklabels()]
             ylabels = [(i if i[0].isdigit() else '-'+i[1:]) for i in ylabels]

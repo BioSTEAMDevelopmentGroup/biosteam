@@ -32,7 +32,7 @@ bst.Unit.{flowmethname} = {flowmethname}
 get_unit_utility_cost_executable = '''
 def {costmethname}(self):
     """Return the {docname} cost [USD/hr]."""
-    return bst.stream_prices[name] * self.{flowmethname}()
+    return bst.stream_prices[{name}] * self.{flowmethname}()
 
 bst.Unit.{costmethname} = {costmethname}
 '''
@@ -199,7 +199,8 @@ Settings.define_allocation_property = define_allocation_property
 
 # %% Register stream utilities
 
-settings.register_utility('Natural gas', 0.218)
+settings.register_utility('Fuel', 0.218) # Natural gas
+settings.register_utility('Natural gas', 0.218) # Natural gas
 settings.register_utility('Ash disposal', -0.0318)
 settings.register_utility('Reverse osmosis water', 5.6e-4)
 settings.register_utility('Process water', 2.7e-4)

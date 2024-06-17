@@ -21,7 +21,7 @@ import numpy as np
 from scipy.constants import g
 import flexsolve as flx
 from warnings import filterwarnings, catch_warnings
-from scipy.optimize import minimize_scalar, minimize, least_squares
+from scipy.optimize import minimize_scalar, minimize, least_squares, differential_evolution
 from biosteam.units.design_tools import aeration
 
 __all__ = (
@@ -90,7 +90,7 @@ class AeratedBioreactor(StirredTankReactor):
     batch_default = True
     default_methods = {
         'Stirred tank': 'Riet',
-        'Bubble column': 'DeJesus',
+        'Bubble column': 'Dewes',
     }
     def _init(
             self, reactions, theta_O2=0.5, Q_O2_consumption=None,
@@ -129,19 +129,31 @@ class AeratedBioreactor(StirredTankReactor):
             operating_time = self.tau / self.design_results.get('Batch time', 1.)
             N_reactors = self.parallel['self']
             P = 1000 * self.kW_per_m3 * V # W
-            air_in = self.cooled_compressed_air
+            air_in = self.sparged_gas
             D = self.get_design_result('Diameter', 'm')
             F = air_in.get_total_flow('m3/s') / N_reactors / operating_time
             R = 0.5 * D
             A = pi * R * R
             self.superficial_gas_flow = U = F / A # m / s 
             return aeration.kLa_stirred_Riet(P, V, U, **self.kLa_kwargs) # 1 / s 
+        elif self.kLa is aeration.kla_bubcol_Dewes:
+            V = self.get_design_result('Reactor volume', 'm3') * self.V_wf
+            operating_time = self.tau / self.design_results.get('Batch time', 1.)
+            N_reactors = self.parallel['self']
+            air_in = self.sparged_gas
+            D = self.get_design_result('Diameter', 'm')
+            F = air_in.get_total_flow('m3/s') / N_reactors / operating_time
+            R = 0.5 * D
+            A = pi * R * R
+            self.superficial_gas_flow = U = F / A # m / s 
+            feed = self.ins[0]
+            return aeration.kla_bubcol_Dewes(U, feed.get_property('mu', 'mPa*s'), air_in.get_property('rho', 'kg/m3'))
         else:
             raise NotImplementedError('kLa method has not been implemented in BioSTEAM yet')
     
     def get_agitation_power(self, kLa):
         if self.kLa is aeration.kLa_stirred_Riet:
-            air_in = self.cooled_compressed_air
+            air_in = self.sparged_gas
             N_reactors = self.parallel['self']
             operating_time = self.tau / self.design_results.get('Batch time', 1.)
             V = self.get_design_result('Reactor volume', 'm3') * self.V_wf
@@ -174,7 +186,7 @@ class AeratedBioreactor(StirredTankReactor):
             if i.phase == 'g': return i
     
     @property
-    def cooled_compressed_air(self):
+    def sparged_gas(self):
         return self.air_cooler.outs[0]
     
     @property
@@ -216,7 +228,7 @@ class AeratedBioreactor(StirredTankReactor):
             if OUR > 0: effluent.imol['O2'] = 0.
             self._run_vent(vent, effluent)
             return
-        air_cc = self.cooled_compressed_air
+        air_cc = self.sparged_gas
         air_cc.copy_like(air)
         air_cc.P = compressor.P = self._inlet_air_pressure()
         air_cc.T = self.T
@@ -257,7 +269,7 @@ class AeratedBioreactor(StirredTankReactor):
         self.reactions.force_reaction(effluent)
     
     def _solve_total_power(self, OUR): # For OTR = OUR [mol / s]
-        air_in = self.cooled_compressed_air
+        air_in = self.sparged_gas
         N_reactors = self.parallel['self']
         operating_time = self.tau / self.design_results.get('Batch time', 1.)
         V = self.get_design_result('Reactor volume', 'm3') * self.V_wf
@@ -289,7 +301,7 @@ class AeratedBioreactor(StirredTankReactor):
         operating_time = self.tau / self.design_results.get('Batch time', 1.)
         N_reactors = self.parallel['self']
         kLa = self.get_kLa()
-        air_in = self.cooled_compressed_air
+        air_in = self.sparged_gas
         vent = self.vent
         P_O2_air = air_in.get_property('P', 'bar') * air_in.imol['O2'] / air_in.F_mol
         P_O2_vent = vent.get_property('P', 'bar') * vent.imol['O2'] / vent.F_mol
@@ -435,7 +447,10 @@ class GasFedBioreactor(StirredTankReactor):
         self.mixins = {} if mixins is None else mixins # dict[int, tuple[int]] Pairs of variable feed gas index and inlets that will be mixed.
         StirredTankReactor._init(self, **kwargs)
         if design is None: 
-            design = 'Stirred tank'
+            if self.kW_per_m3 == 0:
+                design = 'Bubble column'
+            else:
+                design = 'Stirred tank'
         elif design not in aeration.kLa_method_names:
             raise ValueError(
                 f"{design!r} is not a valid design; only "
@@ -565,6 +580,7 @@ class GasFedBioreactor(StirredTankReactor):
             run_auxiliaries()
             effluent.set_data(effluent_liquid_data)
             effluent.mix_from([self.sparged_gas, -s_consumed, s_produced, *liquid_feeds], energy_balance=False)
+            if (effluent.mol < 0).any(): breakpoint()
             vent.empty()
             self._run_vent(vent, effluent)
         
@@ -574,7 +590,7 @@ class GasFedBioreactor(StirredTankReactor):
             breakpoint()
             bst.Stream.sum(self.normal_gas_feeds, energy_balance=False)
         baseline_flows = baseline_feed.get_flow('mol/s', self.gas_substrates)
-        bounds = np.array([[max(SURs[i] - baseline_flows[i], 0), 5 * SURs[i]] for i in index])
+        bounds = np.array([[max(1.01 * SURs[i] - baseline_flows[i], 0), 10 * SURs[i]] for i in index])
         if self.optimize_power:
             def total_power_at_substrate_flow(F_substrates):
                 load_flow_rates(F_substrates)
@@ -595,13 +611,20 @@ class GasFedBioreactor(StirredTankReactor):
                 mask = STRs - F_ins > 0
                 STRs[mask] = F_ins[mask]
                 diff = SURs - STRs
+                diff[diff > 0] *= 1e6 # Force transfer rate to meet uptake rate
                 return (diff * diff).sum()
             
             f = gas_flow_rate_objective
-            bounds = bounds.T
             with catch_warnings():
                 filterwarnings('ignore')
+                bounds = bounds.T
                 results = least_squares(f, 1.2 * SURs, bounds=bounds, ftol=SURs.min() * 1e-6)
+                # results = differential_evolution(f, bounds=bounds, tol=SURs.min() * 1e-6)
+                # print('----')
+                # print(results)
+            if getattr(self, 'debug', None):
+                breakpoint()
+            self._results = results
             load_flow_rates(results.x / x_substrates)
             
         
@@ -641,14 +664,8 @@ class GasFedBioreactor(StirredTankReactor):
         V = self.get_design_result('Reactor volume', 'm3') * self.V_wf
         operating_time = self.tau / self.design_results.get('Batch time', 1.)
         N_reactors = self.parallel['self']
-        P = 1000 * self.kW_per_m3 * V # W
         gas_in = self.sparged_gas
-        D = self.get_design_result('Diameter', 'm')
-        F = gas_in.get_total_flow('m3/s') / N_reactors / operating_time
-        R = 0.5 * D
-        A = pi * R * R
-        self.superficial_gas_flow = U = F / A # m / s 
-        kLa = aeration.kLa_stirred_Riet(P, V, U, **self.kLa_kwargs) # 1 / s 
+        kLa = self.get_kLa() # 1 / s 
         vent = self.vent
         P_gas = gas_in.get_property('P', 'bar')
         P_vent = vent.get_property('P', 'bar')

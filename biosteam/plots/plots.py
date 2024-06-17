@@ -699,15 +699,17 @@ def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
 class Box:
     __slots__ = ('axis', 'light', 'dark', '_position', '_baseline_position')
     
-    def __init__(self, axis, position=0, light=None, dark=None):
+    def __init__(self, axis, position=None, light=None, dark=None):
         self.axis = axis
         self.light = light
         self.dark = dark
-        self._baseline_position = self._position = position
+        if position is None: position = [0]
+        self._baseline_position = position[0]
+        self._position = position
         
     def get_position(self, shift=1):
-        self._position += shift
-        return self._position
+        self._position[0] += shift
+        return self._position[0]
     
     def reset(self):
         self._position = self._baseline_position
@@ -849,6 +851,10 @@ def plot_kde(x, y, nbins=100, ax=None, fig=None,
              aspect_ratio=1.25, cmaps=None, xbox_width=None,
              ybox_width=None, **kwargs):
     axis_not_given = ax is None
+    xs = x if isinstance(x, (tuple, list)) else (x,)
+    ys = y if isinstance(y, (tuple, list)) else (y,)
+    N_xs = len(xs)
+    N_ys = len(ys)
     if axis_not_given:
         grid_kw = dict(height_ratios=[1, 8], width_ratios=[8, aspect_ratio])
         fig, all_axes = plt.subplots(
@@ -859,12 +865,30 @@ def plot_kde(x, y, nbins=100, ax=None, fig=None,
         ax = all_axes[1, 0]
         xbox_ax = all_axes[0, 0]
         ybox_ax = all_axes[1, 1]
-        xbox = Box(xbox_ax, **(xbox_kwargs or {}))
-        ybox = Box(ybox_ax, **(ybox_kwargs or {}))
-    xs = x if isinstance(x, tuple) else (x,)
-    ys = y if isinstance(y, tuple) else (y,)
+    if xbox is None: 
+        if xbox_kwargs is None: xbox_kwargs = {}
+        position = [0]
+        if isinstance(xbox_kwargs, dict):
+            xboxes = [Box(xbox_ax, position, **xbox_kwargs)] * N_xs
+        else:
+            xboxes = [Box(xbox_ax, position, **i) for i in xbox_kwargs]
+    elif isinstance(xbox, Box):
+        xboxes = [xbox] * N_xs
+    else:
+        xboxes = xbox
+    if ybox is None:
+        if ybox_kwargs is None: ybox_kwargs = {}
+        position = [0]
+        if isinstance(ybox_kwargs, dict):
+            yboxes = [Box(ybox_ax, position, **ybox_kwargs)] * N_xs
+        else:
+            yboxes = [Box(ybox_ax, position, **i) for i in ybox_kwargs]
+    elif isinstance(ybox, Box):
+        yboxes = [ybox] * N_ys
+    else:
+        yboxes = ybox
     if cmaps is None: cmaps = len(xs) * [None]
-    for x, y, cmap in zip(xs, ys, cmaps):
+    for x, y, cmap, xbox, ybox in zip(xs, ys, cmaps, xboxes, yboxes):
         # Evaluate a gaussian kde on a regular grid of nbins x nbins over data extents
         k = kde.gaussian_kde([x, y])
         z = k(np.vstack([x, y]))

@@ -560,7 +560,7 @@ class StageEquilibrium(Unit):
     def _update_energy_variable(self, departure):
         phases = self.phases
         if phases == ('g', 'l'):
-            self.B += self.partition.B_relaxation_factor * departure
+            self.B += (1 - self.partition.B_relaxation_factor) * departure
         elif phases == ('L', 'l'):
             self.T = T = self.T + departure
             for i in self.outs: i.T = T
@@ -591,10 +591,10 @@ class PhasePartition(Unit):
     _N_ins = 1
     _N_outs = 2
     strict_infeasibility_check = False
-    dmol_relaxation_factor = 0.5
-    B_relaxation_factor = 0.5
-    T_relaxation_factor = 0.5
-    K_relaxation_factor = 0.5
+    dmol_relaxation_factor = 0.9
+    B_relaxation_factor = 0.9
+    T_relaxation_factor = 0.9
+    K_relaxation_factor = 0.9
     
     def _init(self, phases, partition_data, top_chemical=None, reaction=None):
         self.partition_data = partition_data
@@ -785,6 +785,11 @@ class PhasePartition(Unit):
         f = self.dmol_relaxation_factor if relaxation_factor is None else relaxation_factor
         old = self.dmol
         new = self.reaction.conversion(bottom)
+        # mol = bottom.mol
+        # mask = (mol + old) < 0
+        # if mask.any(): 
+        #     old *= (-mol[mask] / old[mask]).min() * (1 - 1e-6)
+        #     assert (old + mol >= 0).all()
         self.dmol = f * old + (1 - f) * new
     
     def _run_lle(self, P=None, update=True, top_chemical=None):
@@ -1065,16 +1070,16 @@ class MultiStageEquilibrium(Unit):
     """
     _N_ins = 2
     _N_outs = 2
-    default_maxiter = 20
-    default_max_attempts = 20
-    default_fallback_maxiter = 1
+    max_attempts = 5
+    default_maxiter = 50
+    default_fallback = None
     default_molar_tolerance = 1e-3
     default_relative_molar_tolerance = 1e-6
     default_algorithm = 'root'
     available_algorithms = {'root', 'optimize'}
     default_methods = {
         'root': 'fixed-point',
-        'optimize': 'SLSQP',
+        'optimize': 'CG',
         'SurPASS': 'differential evolution', 
     }
     
@@ -1084,9 +1089,9 @@ class MultiStageEquilibrium(Unit):
         'wegstein': (flx.conditional_wegstein, True, {}),
     }
     optimize_options: dict[str, tuple[Callable, dict]] = {
-        'SLSQP': (minimize, True, True, {'tol': 0.1, 'method': 'SLSQP'}),
-        'CG': (minimize, False, False, {'tol': 1e-3, 'method': 'CG', 'options':{'maxiter': 500}}),
-        'differential evolution': (differential_evolution, False, True, {'seed': 0, 'popsize': 12, 'tol': 1e-6}),
+        'SLSQP': (minimize, True, True, {'tol': 0.1, 'method': 'SLSQP'}), # This one does not work
+        'CG': (minimize, False, False, {'tol': 1e-3, 'method': 'CG', 'options':{'maxiter': 500}}), # This one is great
+        'differential evolution': (differential_evolution, False, True, {'seed': 0, 'popsize': 12, 'tol': 1e-6}), # This works, but its extremely slow
     }
     SurPASS_options: dict[str, tuple[Callable, dict]] = {
         'differential evolution': (
@@ -1313,8 +1318,8 @@ class MultiStageEquilibrium(Unit):
         #: [int] Maximum number of iterations.
         self.maxiter = self.default_maxiter if maxiter is None else maxiter
         
-        #: [int] Maximum number of iterations for fallback algorithm.
-        self.fallback_maxiter = self.default_fallback_maxiter
+        #: tuple[str, str] Fallback algorithm and method.
+        self.fallback = self.default_fallback
 
         #: [float] Molar tolerance (kmol/hr)
         self.molar_tolerance = self.default_molar_tolerance
@@ -1331,8 +1336,6 @@ class MultiStageEquilibrium(Unit):
         self.method = self.default_methods[self.algorithm] if method is None else method
     
         self.inside_out = inside_out
-        
-        self.max_attempts = self.default_max_attempts
     
     @property
     def aggregated_stages(self):
@@ -1553,7 +1556,6 @@ class MultiStageEquilibrium(Unit):
             return outlet_stages
     
     def correct_overall_mass_balance(self):
-        return
         outmol = sum([i.mol for i in self.outs])
         inmol = sum([i.mol for i in self.ins])
         stage_reactions = self.stage_reactions
@@ -1587,7 +1589,7 @@ class MultiStageEquilibrium(Unit):
             dmol = p.dmol
             feed_mol = p.feed.mol
             pseudo_feed = feed_mol + dmol
-            mask = (pseudo_feed < 0) & (dmol < 0)
+            mask = (pseudo_feed < 0)
             if pseudo_feed[mask].any():
                 x = (-feed_mol[mask] / dmol[mask]).min()
                 assert 0 <= x <= 1
@@ -1627,46 +1629,6 @@ class MultiStageEquilibrium(Unit):
                     partition.B = tnet / bnet
             for i in stage.splitters: i._run()
         
-    def set_flow_rates_old(self, top_flows):
-        top, bottom = self.multi_stream.phases
-        flow_tol = -1e-6 * self.multi_stream.mol
-        stages = self.stages
-        N_stages = self.N_stages
-        range_stages = range(N_stages)
-        index = self._update_index
-        top_flows[top_flows < 0.] = 0.
-        has_infeasible_flow = True
-        infeasible_checks = set()
-        while has_infeasible_flow:
-            has_infeasible_flow = False
-            for i in range_stages:
-                stage = stages[i]
-                partition = stage.partition
-                s_top, _ = partition.outs
-                s_top.mol[index] = top_flows[i]
-                if stage.top_split: stage.splitters[0]._run()
-            for i in range_stages:
-                stage = stages[i]
-                partition = stage.partition
-                s_top, s_bottom = partition.outs
-                bottom_flow = sum([i.mol for i in stage.ins]) - s_top.mol
-                mask = bottom_flow < 0.
-                if mask.any():
-                    has_infeasible_flow = (bottom_flow[mask] < flow_tol[mask]).any()
-                    if i not in infeasible_checks and has_infeasible_flow:
-                        infeasible_checks.add(i)
-                        infeasible_index, = np.where(mask[index])
-                        # TODO: Find algebraic solution to keeping top flow rates within feasible region.
-                        # This is only a temporary solution.
-                        infeasible_flow = bottom_flow[mask]
-                        top_flows[i, infeasible_index] += infeasible_flow
-                        break
-                    else:
-                        has_infeasible_flow = False
-                        bottom_flow[mask] = 0.
-                s_bottom.mol[:] = bottom_flow
-                if stage.bottom_split: stage.splitters[-1]._run()
-            
     def _run(self):
         if all([i.isempty() for i in self.ins]): 
             for i in self.outs: i.empty()
@@ -1674,63 +1636,41 @@ class MultiStageEquilibrium(Unit):
         try:
             top_flow_rates = self.hot_start()
             algorithm = self.algorithm
+            if self._has_lle:
+                self._psuedo_equilibrium_options = tmo.equilibrium.LLE.pseudo_equilibrium_inner_loop_options.copy()
+                self._psuedo_equilibrium_options['xtol'] *= self.feed_flows.max()
             if algorithm == 'root':
-                self.converged = True
+                method = self.method
+                solver, conditional, options = self.root_options[method]
+                if not conditional: raise NotImplementedError(f'method {self.method!r} not implemented in BioSTEAM (yet)')
                 for i in range(self.max_attempts):
-                    self.attempt = i
                     self.iter = 0
-                    self.fallback_iter = 0
-                    method = self.method
-                    solver, conditional, options = self.root_options[method]
-                    if conditional:
-                        top_flow_rates = solver(self._conditional_iter, top_flow_rates)
-                    else:
-                        raise NotImplementedError(f'method {self.method!r} not implemented in BioSTEAM (yet)')
-                    if method == 'fixed-point' and self.iter == self.maxiter:
-                        top_flow_rates = flx.conditional_fixed_point(
-                            self._sequential_iter, 
-                            top_flow_rates,
-                        )
-                        if self.fallback_iter < self.fallback_maxiter:
-                            break
+                    top_flow_rates = solver(self._conditional_iter, top_flow_rates)
+                    if self.iter == self.maxiter:
+                        for i in self.stages: i._run()
+                        for i in reversed(self.stages): i._run()
                     else:
                         break
-                else:
-                    self.converged = False
+                if self.iter == self.maxiter and self.fallback and self.fallback != (self.algorithm, self.method):
+                    algorithm, method = self.algorithm, self.method
+                    self.algorithm, self.method = self.fallback
+                    try:
+                        self._run()
+                    finally:
+                        self.algorithm, self.method = algorithm, method
+                    self.iter = 0
+                    top_flow_rates = solver(self._conditional_iter, top_flow_rates)
+            elif algorithm == 'sequential':
+                self.iter = 0
+                top_flow_rates = flx.conditional_fixed_point(
+                    self._sequential_iter, 
+                    top_flow_rates,
+                )
             elif algorithm == 'optimize':
                 solver, constraints, bounded, options = self.optimize_options[self.method]
                 if constraints and bounded:
                     raise NotImplementedError(f'optimize method {self.method!r} not implemented in BioSTEAM (yet)')
-                    self.constraints = constraints = []
-                    stages = self.stages
-                    m, n = self.N_stages, self._N_chemicals
-                    last_stage = m - 1
-                    feed_flows, asplit_1, bsplit_1, _ = self._iter_args
-                    for i, stage in enumerate(stages):
-                        if i == 0:
-                            args = (i,)
-                            f = lambda x, i: feed_flows[i] - x[(i+1)*n:(i+2)*n] * asplit_1[i+1] - x[i*n:(i+1)*n] + 1e-6
-                        elif i == last_stage:
-                            args_last = args
-                            args = (i, f, args_last)
-                            f = lambda x, i, f, args_last: feed_flows[i] + f(x, *args_last) - x[i*n:] + 1e-6
-                        else:
-                            args_last = args
-                            args = (i, f, args_last)
-                            f = lambda x, i, f, args_last: feed_flows[i] + f(x, *args_last) - x[(i+1)*n:(i+2)*n] * asplit_1[i+1] - x[i*n:(i+1)*n] + 1e-6
-                        constraints.append(
-                            dict(type='ineq', fun=f, args=args)
-                        )
-                    result = solver(
-                        self._energy_balance_error_at_top_flow_rates, 
-                        self.get_top_flow_rates_flat(),
-                        constraints=constraints,
-                        bounds=[(0, None)] * (m * n),
-                        **options,
-                    )
-                    self.set_flow_rates(result.x.reshape([m, n]))
                 elif bounded and not constraints:
-                    # raise NotImplementedError(f'optimize method {self.method!r} not implemented in BioSTEAM (yet)')
                     self.iter = 0
                     partitions = self.partitions
                     Sb, safe = bottoms_stripping_factors_safe(
@@ -1754,8 +1694,8 @@ class MultiStageEquilibrium(Unit):
                         bounds,
                         **options,
                     )
+                    if self._has_lle: self.update_energy_balance_temperatures()
                 elif not (constraints or bounded):
-                    # raise NotImplementedError(f'optimize method {self.method!r} not implemented in BioSTEAM (yet)')
                     self.iter = 0
                     partitions = self.partitions
                     Sb, safe = bottoms_stripping_factors_safe(
@@ -1785,11 +1725,12 @@ class MultiStageEquilibrium(Unit):
                     self.set_flow_rates(
                         estimate_top_flow_rates(Sb, *self._iter_args, safe)
                     )
+                    if self._has_lle: self.update_energy_balance_temperatures()
             else:
                 raise RuntimeError(
                     f'invalid algorithm {algorithm!r}, only {self.available_algorithms} are allowed'
                 )
-            self.correct_overall_mass_balance()
+            # self.correct_overall_mass_balance()
         except Exception as e:
             if self.use_cache:
                 self.use_cache = False
@@ -2140,7 +2081,7 @@ class MultiStageEquilibrium(Unit):
                 hv[i] = top.h
             if Li == 0:
                 top.phase = 'l'
-                hl[i] = bottom.h
+                hl[i] = top.h
                 top.phase = 'g'
             else:
                 hl[i] = bottom.h
@@ -2171,7 +2112,7 @@ class MultiStageEquilibrium(Unit):
     def update_energy_balance_phase_ratio_departures(self):
         dBs = self.get_energy_balance_phase_ratio_departures()
         for i, dB in zip(self.partitions, dBs):
-            if i.B_specification is None: i.B += i.B_relaxation_factor * dB
+            if i.B_specification is None: i.B += (1 - i.B_relaxation_factor) * dB
     
     def update_energy_balance_temperatures(self):
         dTs = self.get_energy_balance_temperature_departures()
@@ -2182,6 +2123,7 @@ class MultiStageEquilibrium(Unit):
             partition = stage.partition
             partition.T += dT
             for i in partition.outs: i.T += dT
+        return dTs
        
     def run_mass_balance(self):
         partitions = self.partitions
@@ -2291,17 +2233,34 @@ class MultiStageEquilibrium(Unit):
         if not self._has_vle: raise NotImplementedError('only VLE objective function exists')
         self.set_flow_rates(top_flow_rates)
         P = self.P
-        for i in self.stages:
-            mixer = i.mixer
-            partition = i.partition
-            mixer.outs[0].mix_from(
-                mixer.ins, energy_balance=False,
+        stages = self.stages
+        if self._has_vle: 
+            for i in stages:
+                mixer = i.mixer
+                partition = i.partition
+                mixer.outs[0].mix_from(
+                    mixer.ins, energy_balance=False,
+                )
+                mixer.outs[0].P = P
+                partition._run_decoupled_KTvle(P=P, K_relaxation_factor=0, T_relaxation_factor=0)
+                partition._run_decoupled_B()
+                T = partition.T
+                for i in (partition.outs + i.outs): i.T = T
+            energy_error = lambda stage: abs(
+                (sum([i.H for i in stage.outs]) - sum([i.H for i in stage.ins])) / sum([i.C for i in stage.outs])
             )
-            mixer.outs[0].P = P
-            partition._run_decoupled_KTvle(P=P, K_relaxation_factor=0, T_relaxation_factor=0)
-            partition._run_decoupled_B()
-            T = partition.T
-            for i in (partition.outs + i.outs): i.T = T
+            total_energy_error = sum([energy_error(stage) for stage in stages if stage.B_specification is None and stage.T_specification is None])
+        else:
+            for i in range(5):
+                dTs = self.update_energy_balance_temperatures()
+                if np.abs(dTs).sum() < 1e-12: break
+            for i in self.stages: 
+                mixer = i.mixer
+                partition = i.partition
+                mixer.outs[0].mix_from(
+                    mixer.ins, energy_balance=False,
+                )
+                partition._run_lle(update=False, P=P)
         partitions = self.partitions
         if Sb_index:
             Sb_new = np.array([1 / (partitions[i].K * partitions[i].B) for i in Sb_index]).flatten()
@@ -2309,12 +2268,11 @@ class MultiStageEquilibrium(Unit):
             Sb_new = np.array([1 / (i.K * i.B) for i in partitions]).flatten()
         splits_new = 1 / (Sb_new + 1)
         diff = splits_new - splits
-        energy_error = lambda stage: abs(
-            (sum([i.H for i in stage.outs]) - sum([i.H for i in stage.ins])) / sum([i.C for i in stage.outs])
-        )
-        total_energy_error = sum([energy_error(stage) for stage in self.stages if stage.B_specification is None and stage.T_specification is None])
         total_split_error = np.abs(diff).sum()
-        total_error = total_split_error + total_energy_error / self.N_stages
+        if self._has_vle:
+            total_error = total_split_error + total_energy_error / self.N_stages
+        else:
+            total_error = total_split_error
         err = np.sqrt(total_error)
         return err
     
@@ -2333,20 +2291,36 @@ class MultiStageEquilibrium(Unit):
             top_flow_rates = estimate_top_flow_rates(
                 Sb, *self._iter_args, True
             )
-        if not self._has_vle: raise NotImplementedError('only VLE objective function exists')
         self.set_flow_rates(top_flow_rates)
+        stages = self.stages
         P = self.P
-        for i in self.stages:
-            mixer = i.mixer
-            partition = i.partition
-            mixer.outs[0].mix_from(
-                mixer.ins, energy_balance=False,
+        if self._has_vle: 
+            for i in stages:
+                mixer = i.mixer
+                partition = i.partition
+                mixer.outs[0].mix_from(
+                    mixer.ins, energy_balance=False,
+                )
+                mixer.outs[0].P = P
+                partition._run_decoupled_KTvle(P=P, K_relaxation_factor=0, T_relaxation_factor=0)
+                partition._run_decoupled_B()
+                T = partition.T
+                for i in (partition.outs + i.outs): i.T = T
+            energy_error = lambda stage: abs(
+                (sum([i.H for i in stage.outs]) - sum([i.H for i in stage.ins])) / sum([i.C for i in stage.outs])
             )
-            mixer.outs[0].P = P
-            partition._run_decoupled_KTvle(P=P, K_relaxation_factor=0, T_relaxation_factor=0)
-            partition._run_decoupled_B()
-            T = partition.T
-            for i in (partition.outs + i.outs): i.T = T
+            total_energy_error = sum([energy_error(stage) for stage in stages if stage.B_specification is None and stage.T_specification is None])
+        else:
+            for i in range(5):
+                dTs = self.update_energy_balance_temperatures()
+                if np.abs(dTs).sum() < 1e-12: break
+            for i in self.stages: 
+                mixer = i.mixer
+                partition = i.partition
+                mixer.outs[0].mix_from(
+                    mixer.ins, energy_balance=False,
+                )
+                partition._run_lle(update=False, P=P)
         partitions = self.partitions
         if Sb_index:
             Sb_new = np.array([1 / (partitions[i].K * partitions[i].B) for i in Sb_index]).flatten()
@@ -2355,12 +2329,11 @@ class MultiStageEquilibrium(Unit):
         splits_new = 1 / (Sb_new + 1)
         splits = 1 / (Sb_original + 1)
         diff = splits_new - splits
-        energy_error = lambda stage: abs(
-            (sum([i.H for i in stage.outs]) - sum([i.H for i in stage.ins])) / sum([i.C for i in stage.outs])
-        )
-        total_energy_error = sum([energy_error(stage) for stage in self.stages if stage.B_specification is None and stage.T_specification is None])
         total_split_error = np.abs(diff).sum()
-        total_error = total_split_error + total_energy_error / self.N_stages
+        if self._has_vle:
+            total_error = total_split_error + total_energy_error / self.N_stages
+        else:
+            total_error = total_split_error
         err = np.sqrt(total_error)
         return err
     
@@ -2382,7 +2355,8 @@ class MultiStageEquilibrium(Unit):
                     partition._run_decoupled_KTvle(P=P)
                     T = partition.T
                     for i in (partition.outs + i.outs): i.T = T
-                    if partition.reaction: partition._run_decoupled_reaction(P=P)
+                    if partition.reaction: 
+                        partition._run_decoupled_reaction(P=P)
             else:
                 for i in stages:
                     mixer = i.mixer
@@ -2411,11 +2385,9 @@ class MultiStageEquilibrium(Unit):
                             partition._run_decoupled_Kgamma(P=P)
                         self.interpolate_missing_variables()
                         return self.run_mass_balance()
-                options = tmo.equilibrium.LLE.pseudo_equilibrium_inner_loop_options.copy()
-                options['xtol'] *= self.feed_flows.max()
                 self.set_flow_rates(
                     flx.fixed_point(
-                        psuedo_equilibrium, top_flow_rates, **options,
+                        psuedo_equilibrium, top_flow_rates, **self._psuedo_equilibrium_options,
                     )
                 )
             for i in stages: 
@@ -2531,7 +2503,7 @@ class MultiStageEquilibrium(Unit):
         return top_flow_rates_new, not_converged
 
     def _sequential_iter(self, top_flow_rates):
-        self.fallback_iter += 1
+        self.iter += 1
         self.set_flow_rates(top_flow_rates)
         for i in self.stages: i._run()
         for i in reversed(self.stages): i._run()
@@ -2547,7 +2519,7 @@ class MultiStageEquilibrium(Unit):
                 max_errors = np.maximum.reduce([abs(mol[nonzero_index]), abs(mol_new[nonzero_index])])
                 rmol_error = (mol_errors / max_errors).max()
                 not_converged = (
-                    self.fallback_iter < self.fallback_maxiter and (mol_error > self.molar_tolerance
+                    self.iter < self.maxiter and (mol_error > self.molar_tolerance
                      or rmol_error > self.relative_molar_tolerance)
                 )
             else:

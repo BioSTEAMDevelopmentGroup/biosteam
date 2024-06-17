@@ -40,7 +40,7 @@ class BoilerTurbogenerator(bst.Facility):
         * [0] Liquid/solid feed that will be burned.
         * [1] Gas feed that will be burned.
         * [2] Make-up water. 
-        * [3] Natural gas to satisfy steam and power requirement.
+        * [3] Natural gas/fuel to satisfy steam and electricity demand.
         * [4] Lime for flue gas desulfurization.
         * [5] Boiler chemicals.
     outs : 
@@ -55,7 +55,9 @@ class BoilerTurbogenerator(bst.Facility):
         Steam produced. Defaults to low pressure steam.
     other_agents = () : Iterable[UtilityAgent], optional
         Other steams produced. Defaults to all other heating agents.
-    natural_gas_price : float, optional
+    fuel_source : str, optional
+        Name fuel used to satisfy steam and electricity demand. Defaults to 'CH4'.
+    fuel_price : float, optional
         Price of natural gas [USD/kg]. Same as `bst.stream_utility_prices['Natural gas']`,
         which defaults to 0.218.
     ash_disposal_price : float, optional
@@ -159,21 +161,25 @@ class BoilerTurbogenerator(bst.Facility):
                  side_steam=None,
                  agent=None,
                  other_agents=None,
+                 fuel_price=None,
                  natural_gas_price=None,
                  ash_disposal_price=None,
                  T_emissions=None,
                  satisfy_system_electricity_demand=None,
                  boiler_efficiency_basis=None,
+                 fuel_source=None,
         ):
         if boiler_efficiency_basis is None: boiler_efficiency_basis = 'LHV'
         if boiler_efficiency is None: boiler_efficiency = 0.80
         if turbogenerator_efficiency is None: turbogenerator_efficiency = 0.85
         if satisfy_system_electricity_demand is None: satisfy_system_electricity_demand = True
+        if fuel_source is None: fuel_source = 'CH4'
         bst.Facility.__init__(self, ID, ins, outs, thermo)
         settings = bst.settings
         self.boiler_efficiency_basis = boiler_efficiency_basis
         self.agent = agent = agent or settings.get_heating_agent('low_pressure_steam')
-        self.define_utility('Natural gas', self.natural_gas)
+        self.fuel_source = fuel_source
+        self.define_utility('Fuel', self.fuel)
         self.define_utility('Ash disposal', self.ash_disposal)
         self.boiler_efficiency = boiler_efficiency
         self.turbogenerator_efficiency = turbogenerator_efficiency
@@ -183,7 +189,10 @@ class BoilerTurbogenerator(bst.Facility):
         self.side_steam = side_steam
         self.other_agents = [i for i in settings.heating_agents if i is not agent] if other_agents is None else other_agents
         self.T_emissions = self.agent.T if T_emissions is None else T_emissions # Assume no heat integration
-        if natural_gas_price is not None: self.natural_gas_price = natural_gas_price
+        if natural_gas_price is not None: 
+            self.fuel_price = natural_gas_price
+        elif fuel_price is not None: 
+            self.fuel_price = fuel_price
         if ash_disposal_price is not None: self.ash_disposal_price = ash_disposal_price
         self.satisfy_system_electricity_demand = satisfy_system_electricity_demand
       
@@ -226,9 +235,10 @@ class BoilerTurbogenerator(bst.Facility):
         return self.ins[2]
     
     @property
-    def natural_gas(self):
-        """[Stream] Natural gas to satisfy steam and electricity requirements."""
+    def fuel(self):
+        """[Stream] Fuel used to satisfy steam and electricity requirements."""
         return self.ins[3]
+    natural_gas = fuel
     
     @property
     def ash_disposal(self):
@@ -236,13 +246,13 @@ class BoilerTurbogenerator(bst.Facility):
         return self.outs[2]
     
     @property
-    def natural_gas_price(self):
+    def fuel_price(self):
         """[Float] Price of natural gas, same as `bst.stream_utility_prices['Natural gas']`."""
-        return bst.stream_utility_prices['Natural gas']
-    
-    @natural_gas_price.setter
-    def natural_gas_price(self, new_price):
-        bst.stream_utility_prices['Natural gas'] = new_price
+        return bst.stream_utility_prices['Fuel']
+    @fuel_price.setter
+    def fuel_price(self, new_price):
+        bst.stream_utility_prices['Fuel'] = new_price
+    natural_gas_price = fuel_price
     
     @property
     def ash_disposal_price(self):
@@ -277,10 +287,11 @@ class BoilerTurbogenerator(bst.Facility):
         chemicals = self.chemicals
         self._load_utility_agents()
         mol_steam = sum([i.flow for i in self.steam_utilities])
-        feed_solids, feed_gas, makeup_water, feed_CH4, lime, chems = self.ins
-        feed_CH4.phase = 'g'
-        feed_CH4.set_property('T', 60, 'degF')
-        feed_CH4.set_property('P', 14.73, 'psi')
+        feed_solids, feed_gas, makeup_water, fuel, lime, chems = self.ins
+        if self.fuel_source == 'CH4':
+            fuel.phase = 'g'
+            fuel.set_property('T', 60, 'degF')
+            fuel.set_property('P', 14.73, 'psi')
         emissions, blowdown_water, ash_disposal = self.outs
         if not lime.price:
             lime.price = 0.19937504680689402
@@ -300,21 +311,22 @@ class BoilerTurbogenerator(bst.Facility):
         self.combustion_reactions = combustion_rxns = chemicals.get_combustion_reactions()
         non_empty_feeds = [i for i in (feed_solids, feed_gas) if not i.isempty()]
         boiler_efficiency_basis = self.boiler_efficiency_basis
-        def calculate_excess_electricity_at_natual_gas_flow(natural_gas_flow):
-            if natural_gas_flow:
-                natural_gas_flow = abs(natural_gas_flow)
-                feed_CH4.imol['CH4'] = natural_gas_flow
+        fuel_source = self.fuel_source
+        def calculate_excess_electricity_at_natual_gas_flow(fuel_flow):
+            if fuel_flow:
+                fuel_flow = abs(fuel_flow)
+                fuel.imol[fuel_source] = fuel_flow
             else:
-                feed_CH4.empty()
-            emissions_mol[:] = feed_CH4.mol
+                fuel.empty()
+            emissions_mol[:] = fuel.mol
             for feed in non_empty_feeds: emissions_mol[:] += feed.mol
             combustion_rxns.force_reaction(emissions_mol)
             emissions.imol['O2'] = 0
             if boiler_efficiency_basis == 'LHV':
-                H_combustion = feed_CH4.LHV
+                H_combustion = fuel.LHV
                 for feed in non_empty_feeds: H_combustion += feed.LHV
             elif boiler_efficiency_basis == 'HHV':
-                H_combustion = feed_CH4.HHV
+                H_combustion = fuel.HHV
                 for feed in non_empty_feeds: H_combustion += feed.HHV
             else:
                 raise ValueError(
@@ -339,11 +351,12 @@ class BoilerTurbogenerator(bst.Facility):
             else:
                 return work
         
-        self._excess_electricity_without_natural_gas = excess_electricity = calculate_excess_electricity_at_natual_gas_flow(0)
+        self._excess_electricity_without_fuel = excess_electricity = calculate_excess_electricity_at_natual_gas_flow(0)
         if excess_electricity < 0:
             f = calculate_excess_electricity_at_natual_gas_flow
             lb = 0.
-            ub = - excess_electricity * 3600 / feed_CH4.chemicals.CH4.LHV
+            fuel.imol[fuel_source] = 1
+            ub = - excess_electricity * 3600 / fuel.LHV
             while f(ub) < 0.: 
                 lb = ub
                 ub *= 2
