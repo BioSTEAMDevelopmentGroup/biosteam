@@ -662,7 +662,8 @@ def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
          Spearman's rank correlation coefficients to be plotted.
     top=None : float, optional
         Number of parameters to plot (from highest values).
-    
+    color_wheel=None: list, optional
+        Iterable, either (A) of color objects with attribute 'RGBn' giving tuples of RGBn values, or (B) of tuples of RGBn values.
     Returns
     -------
     fig : matplotlib Figure

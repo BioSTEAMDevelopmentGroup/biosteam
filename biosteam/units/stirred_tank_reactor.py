@@ -65,7 +65,8 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
         Defaults to `continuous`.
     tau_0 : 
         Cleaning and unloading time (if batch mode). Defaults to 3 hr.
-    
+    N_reactors :
+        Number of reactors.
     Notes
     -----
     The recirculation loop takes into account the required flow rate needed to
