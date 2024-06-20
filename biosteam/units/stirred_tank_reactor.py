@@ -171,6 +171,8 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
     Total purchase cost                                          USD             2.05e+06
     Utility cost                                              USD/hr                  152
     
+    >>> R1.results()
+    4
     '''
     auxiliary_unit_names = (
         'heat_exchanger', 
