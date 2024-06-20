@@ -687,8 +687,12 @@ def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
     if not color_wheel: color_wheel = CABBI_colors.wheel()
     fig, ax = plt.subplots()
     for i, rho in enumerate(rhos):
-        plot_spearman_1d(rho, color=color_wheel[N - i - 1].RGBn, s=s, offset=i,
-                         fig=fig, ax=ax, style=False, sort=False, top=None)
+        if isinstance(color_wheel[N - i - 1], tuple):
+            plot_spearman_1d(rho, color=color_wheel[N - i - 1], s=s, offset=i,
+                             fig=fig, ax=ax, style=False, sort=False, top=None)
+        else:
+            plot_spearman_1d(rho, color=color_wheel[N - i - 1].RGBn, s=s, offset=i,
+                             fig=fig, ax=ax, style=False, sort=False, top=None)
     # Plot central line
     yranges = [(s/2 + s*i - 1., 1.) for i in range(len(rhos[0]))]
     format_spearman_plot(ax, index, name, yranges, xlabel)
