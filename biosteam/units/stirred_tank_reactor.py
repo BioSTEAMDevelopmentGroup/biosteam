@@ -275,6 +275,7 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
         P_psi = P_pascal * 0.000145038 # Pa to psi
         length_to_diameter = self.length_to_diameter
         
+        N = 0
         if self.batch:
             v_0 = ins_F_vol
             tau = self.tau
@@ -297,7 +298,8 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
             else:
                 V_reactor = V_total / N
             Design['Reactor volume'] = V_reactor
-            
+        self.N_reactors = N
+        
         D = cylinder_diameter_from_volume(V_reactor, self.length_to_diameter)
         D *= 3.28084 # Convert from m to ft
         L = D * length_to_diameter
