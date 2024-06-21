@@ -171,8 +171,6 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
     Total purchase cost                                          USD             2.05e+06
     Utility cost                                              USD/hr                  152
     
-    >>> R1.results()
-    4
     '''
     auxiliary_unit_names = (
         'heat_exchanger', 
@@ -277,8 +275,6 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
         P_pascal = (self.P if self.P else self.outs[0].P)
         P_psi = P_pascal * 0.000145038 # Pa to psi
         length_to_diameter = self.length_to_diameter
-        
-        N = 0
         if self.batch:
             v_0 = ins_F_vol
             tau = self.tau
@@ -302,7 +298,6 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
                 V_reactor = V_total / N
             Design['Reactor volume'] = V_reactor
         self.N_reactors = N
-        
         D = cylinder_diameter_from_volume(V_reactor, self.length_to_diameter)
         D *= 3.28084 # Convert from m to ft
         L = D * length_to_diameter
