@@ -662,6 +662,8 @@ def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
          Spearman's rank correlation coefficients to be plotted.
     top=None : float, optional
         Number of parameters to plot (from highest values).
+    color_wheel=None: Iterable, optional
+        Iterable of colorpalette.Color objects or RGBn values.
     
     Returns
     -------
@@ -687,7 +689,9 @@ def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
     if not color_wheel: color_wheel = CABBI_colors.wheel()
     fig, ax = plt.subplots()
     for i, rho in enumerate(rhos):
-        plot_spearman_1d(rho, color=color_wheel[N - i - 1].RGBn, s=s, offset=i,
+        color = color_wheel[N - i - 1]
+        if hasattr(color, 'RGBn'): color = color.RGBn
+        plot_spearman_1d(rho, color=color, s=s, offset=i,
                          fig=fig, ax=ax, style=False, sort=False, top=None)
     # Plot central line
     yranges = [(s/2 + s*i - 1., 1.) for i in range(len(rhos[0]))]
