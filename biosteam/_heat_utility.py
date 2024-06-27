@@ -298,6 +298,12 @@ class HeatUtility:
     #: Used for BioSTEAM refrigeration utility.
     thermo_propane: Thermo = Thermo(['Propane'])
 
+    #: Used for BioSTEAM refrigeration utility.
+    thermo_propylene: Thermo = Thermo(['Propylene'])
+    
+    #: Used for BioSTEAM refrigeration utility.
+    thermo_ethylene: Thermo = Thermo(['Ethylene'])
+
     #: Characterization factor data (value and units) by agent ID and impact key.
     characterization_factors: dict[tuple[str, str], tuple[float, AbsoluteUnitsOfMeasure]] = {}
     
@@ -573,10 +579,30 @@ class HeatUtility:
             heat_transfer_price = 13.17e-6,
             phase='l',
         )
+        propylene = UtilityAgent(
+            'propane',
+            Propylene=1,
+            thermo=cls.thermo_propylene,
+            T=227.59,
+            P=cls.thermo_propylene.chemicals.Propylene.Psat(227.59),
+            heat_transfer_price = 16.54e-6, # Lever rule with -30 and -90 F prices
+            phase='l',
+        )
+        ethylene = UtilityAgent(
+            'ethylene',
+            Ethylene=1,
+            thermo=cls.thermo_ethylene,
+            T=172.04,
+            P=cls.thermo_ethylene.chemicals.Ethylene.Psat(172.04),
+            heat_transfer_price = 33.2e-06,
+            phase='l',
+        )
         cls.cooling_agents = [cooling_water, 
                               chilled_water, 
                               chilled_brine,
-                              propane]
+                              propane,
+                              propylene,
+                              ethylene]
 
     def copy(self) -> HeatUtility:
         hu = HeatUtility()
