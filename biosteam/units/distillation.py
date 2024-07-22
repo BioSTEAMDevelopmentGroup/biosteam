@@ -714,7 +714,10 @@ class Distillation(Unit, isabstract=True):
         LNK_mol = mol[LNK_index]
         HNK_mol = mol[HNK_index]
         gases_mol = mol[gases_index]
-        solids_mol = mol[solids_index]
+        try:
+            solids_mol = mol[solids_index]
+        except:
+            breakpoint()
         
         # Mass balance for non-keys
         distillate, bottoms_product = self.outs

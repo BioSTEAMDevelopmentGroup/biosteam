@@ -351,9 +351,9 @@ class AnMBR(bst.Unit):
         insolubles = tuple(i.ID for i in self.chemicals if i.ID in default_insolubles)
         m_insolubles = sludge.imass[insolubles].sum()
         if m_insolubles/sludge.F_vol <= sludge_conc:
-            diff = sludge.ivol['Water'] - m_insolubles/sludge_conc
-            sludge.ivol['Water'] = m_insolubles/sludge_conc
-            perm.ivol['Water'] += diff
+            old = sludge.ivol['Water']
+            sludge.ivol['Water'] = new = min(m_insolubles/sludge_conc, sludge.ivol['Water'] + perm.ivol['Water'])
+            perm.ivol['Water'] += old - new
         if perm.imass['Water'] < 0:
             raise ValueError('Not enough moisture in the influent for waste sludge '
                              f'with {sludge_conc} g/L sludge concentration.')

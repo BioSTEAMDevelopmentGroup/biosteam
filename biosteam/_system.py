@@ -60,7 +60,6 @@ def _reformat(name):
     if name.islower(): name= name.capitalize()
     return name
 
-
 # %% System specification
 
 class SystemSpecification:
@@ -371,6 +370,25 @@ def set_recycle_data(stream, arr):
     
    
 # %% System creation tools
+
+def get_units(sys, units=None):
+    if units is None: units = []
+    isa = isinstance
+    for i in sys._path:
+        if isa(i, Unit):
+            units.append(i)
+        elif isa(i, System):
+            get_units(i, units)
+    return units
+
+def get_missing_units(facility, units, path):
+    isa = isinstance
+    path.append(facility)
+    for i in facility.outs:
+        sink = i.sink
+        if sink is None or isa(sink, Facility) or sink in units: continue
+        units.add(sink)
+        get_missing_units(sink, units, path)
 
 def facilities_from_units(units):
     isa = isinstance
@@ -1592,8 +1610,12 @@ class System:
         self._path = path = tuple(path)
 
     def _set_facilities(self, facilities):
+        facilities_path = []
+        units = set(get_units(self))
+        for i in facilities: get_missing_units(i, units, facilities_path)
+        
         #: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the path simulation.
-        self._facilities = tuple(facilities)
+        self._facilities = tuple(facilities_path)
         self._load_facilities()
 
     def _load_facilities(self):

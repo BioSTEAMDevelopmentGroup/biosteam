@@ -278,7 +278,7 @@ def test_convergence(systems=None):
                     print(f'- Multiple steady stages for {s_sm}: sm-{actual} po-{value}')
                     break
 
-def plot_benchmark(systems=None, N=100, load=True, save=True):
+def plot_benchmark(systems=None, N=3, load=True, save=True):
     if systems is None: systems = list(all_systems)
     keys = (
         'Time',
@@ -299,8 +299,8 @@ def plot_benchmark(systems=None, N=100, load=True, save=True):
                 with open(file, 'rb') as f: pos = pickle.load(f)
             except:
                 for i in range(N):
-                    sm = benchmark_sequential_modular(sys, 1000)
-                    po = benchmark_phenomena_oriented(sys, 1000)
+                    sm = benchmark_sequential_modular(sys, 100)
+                    po = benchmark_phenomena_oriented(sys, 100)
                     sms.append(sm)
                     pos.append(po)
                 if save:
@@ -343,7 +343,7 @@ def plot_benchmark(systems=None, N=100, load=True, save=True):
     yticklabels = [f'{i}%' for i in yticks]
     xticks = list(range(n_systems))
     xticklabels = [system_labels[sys] for sys in systems]
-    plt.errorbar(xticks, results[:, 0], yerr=results[:, 1], color=cpo,
+    plt.errorbar(xticks, results[:, 0], yerr=0, color=cpo,
                  marker='s', linestyle='', capsize=5, capthick=1.5, ecolor=csm)
     plt.axhline(y=100, color='grey', ls='--', zorder=-1)
     plt.ylabel('Simulation time [%]')

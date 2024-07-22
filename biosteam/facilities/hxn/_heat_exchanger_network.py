@@ -100,7 +100,7 @@ class HeatExchangerNetwork(bst.Facility):
     ticket_name = 'HXN'
     acceptable_energy_balance_error = 0.02
     raise_energy_balance_error = False
-    network_priority = -1
+    network_priority = -2
     _N_ins = 0
     _N_outs = 0
     _units= {'Flow rate': 'kg/hr',
