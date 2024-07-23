@@ -228,7 +228,7 @@ class BoilerTurbogenerator(bst.Facility):
         if satisfy_system_electricity_demand is None: satisfy_system_electricity_demand = True
         if fuel_source is None: fuel_source = 'CH4'
         if oxygen_rich_gas_composition is None: oxygen_rich_gas_composition = dict(O2=21, N2=79, phase='g', units='kg/hr')
-        if CO2_emissions_concentration is None: CO2_emissions_concentration = 0.055  # Usually between 4 - 7 for biomass and natural gas
+        if CO2_emissions_concentration is None: CO2_emissions_concentration = 0.055  # Usually between 4 - 7 for biomass and natural gas (https://www.sciencedirect.com/science/article/pii/S0957582021005127)
         bst.Facility.__init__(self, ID, ins, outs, thermo)
         settings = bst.settings
         self.boiler_efficiency_basis = boiler_efficiency_basis
