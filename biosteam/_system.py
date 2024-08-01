@@ -74,17 +74,64 @@ class SystemSpecification:
 
 # %% Reconfiguration for phenomena oriented simulation and convergence
 
+ObjectType = np.dtype('O')
+
 class Configuration:
-    __slots__ = ('stages', 'nodes', 'streams', 'stream_ref', 'connections')
+    __slots__ = ('path', 'stages', 'nodes', 'streams',
+                 'stream_ref', 'connections', 'aggregated',
+                 'composition_sensitive_path', '_has_dynamic_coefficients')
     
-    def __init__(self, stages, nodes, streams, stream_ref, connections):
+    def __init__(self, path, stages, nodes, streams, stream_ref, connections, aggregated):
+        self.path = path
         self.stages = stages
         self.nodes = nodes
         self.streams = streams
         self.stream_ref = stream_ref
         self.connections = connections
-        
+        self.aggregated = aggregated
+        self.composition_sensitive_path = [i for i in path if getattr(i, 'composition_sensitive', False)]
+    
+    def solve_nonlinearities(self):
+        if self.aggregated:
+            for i in self.path: 
+                if hasattr(i, '_update_aggretated_nonlinearities'):
+                    i._update_aggretated_nonlinearities()
+                else:
+                    i._update_nonlinearities()
+        else:
+            for i in self.path: 
+                if getattr(i, 'decoupled', False): i.run()
+                i._update_nonlinearities()
+    
     def solve_material_flows(self):
+        if self.composition_sensitive_path:
+            for i in self.composition_sensitive_path: i._update_composition_parameters()
+            flows = self._solve_material_flows()
+            
+            def update_inner_material_balance_parameters(flows):
+                self.solve_nonlinearities
+                for i in self.composition_sensitive_path: i._update_composition_parameters()
+                return self._solve_material_flows()
+            
+            flx.fixed_point(
+                update_inner_material_balance_parameters,
+                flows, xtol=1e-6 + 1e-6 * flows.max(), maxiter=3, checkiter=False,
+                checkconvergence=False,
+            )
+            for i in self.composition_sensitive_path: i._update_net_flow_parameters()
+        self._solve_material_flows()
+    
+    def dynamic_coefficients(self, b):
+        try:
+            if not self._has_dynamic_coefficients: return None
+        except:
+            delayed = [(i, j) for i, j in enumerate(b) if j.dtype is ObjectType]
+            self._has_dynamic_coefficients = bool(delayed)
+        else:
+            delayed = [(i, j) for i, j in enumerate(b) if j.dtype is ObjectType]
+        return delayed
+    
+    def _solve_material_flows(self):
         nodes = self.nodes
         streams = self.stream_ref
         A = []
@@ -98,8 +145,7 @@ class Configuration:
                 }
                 A.append(coefficients)
                 b.append(value)
-        ObjectType = np.dtype('O')
-        delayed = [(i, j) for i, j in enumerate(b) if j.dtype is ObjectType]
+        delayed = self.dynamic_coefficients(b)
         if delayed:
             delayed_index = []
             for _, t in delayed:
@@ -111,6 +157,7 @@ class Configuration:
             A_ready, objs = dictionaries2array(A_ready)
             b_ready = np.array([i[ready_index] for i in b], float)
             values = solve(A_ready, b_ready.T).T
+            values[values < 0] = 0
             for obj, value in zip(objs, values): 
                 obj._update_material_flows(value, ready_index)
             A_delayed = [{i: j[delayed_index] for i, j in dct.items()} for dct in A]
@@ -120,20 +167,18 @@ class Configuration:
                 for bi in b
             ], float)
             values = solve(A_delayed, b_delayed.T).T
+            values[values < 0] = 0
             for obj, value in zip(objs, values): 
                 obj._update_material_flows(value, delayed_index)
         else:
             A, objs = dictionaries2array(A)
             values = solve(A, np.array(b).T).T
+            values[values < 0] = 0
             for obj, value in zip(objs, values): 
                 obj._update_material_flows(value)
         for i in nodes: 
-            if hasattr(i, '_update_auxiliaries'):
-                i._update_auxiliaries()
-            elif hasattr(i, 'stages'):
-                for i in i.stages:
-                    if hasattr(i, '_update_auxiliaries'):
-                        i._update_auxiliaries()
+            if hasattr(i, '_update_auxiliaries'): i._update_auxiliaries()
+        return values
         
     def solve_energy_departures(self):
         nodes = self.nodes
@@ -158,10 +203,13 @@ class Configuration:
         sinks = {}
         sources = {}
         for u in units:
-            for i in u.ins: 
+            ins = u.ins
+            outs = u.outs
+            for i in ins: 
                 i._sink = u
                 sinks[i.imol] = u
-            for i in u.outs: 
+            if getattr(u, 'decoupled', False): u = None
+            for i in outs: 
                 i._source = u
                 sources[i.imol] = u
         units_set = set(units)
@@ -398,6 +446,16 @@ def find_blowdown_recycle(facilities):
     isa = isinstance
     for i in facilities:
         if isa(i, bst.BlowdownMixer): return i.outs[0]
+
+def find_recycles(path):
+    past_outlets = set()
+    recycles = []
+    for i in path:
+        for s in i.ins:
+            if s in past_outlets or s.isfeed(): continue
+            recycles.append(s)
+        past_outlets.update(i.outs)
+    return recycles
 
 # %% LCA
 
@@ -1597,8 +1655,20 @@ class System:
         recycles = []
         path = []
         self._extend_flattend_path_and_recycles(path, recycles, stacklevel=2)
+        N = len(path)
+        for i in range(N * N):
+            stop = True
+            for n, i in enumerate(path[:-1]):
+                j = path[n+1]
+                switched = [s.sink is i for s in j.outs if s.sink]
+                if switched and all(switched):
+                    path.remove(i)
+                    path.insert(n+1, i)
+                    stop = False
+                    break
+            if stop: break
         self._path = tuple(path)
-        self._recycle = tuple(recycles)
+        self._recycle = find_recycles(self._path)
 
     def to_unit_group(self, name: Optional[str]=None):
         """Return a UnitGroup object of all units within the system."""
@@ -2297,49 +2367,50 @@ class System:
                 nodes = stages + feeds
                 streams = [i for u in stages for i in u.ins + u.outs]
                 stream_ref = {i.imol: i for u in stages for i in (*u.ins, *u.outs)}
+                nodes = [i for i in nodes if not getattr(i, 'decoupled', False)]
                 self._aggregated_stage_configuration = conf = Configuration(
-                    stages, nodes, streams, stream_ref, connections
+                    self.path, stages, nodes, streams, stream_ref, connections, aggregated
                 )
             else:
                 nodes = stages + feeds
                 stream_ref = {i.imol: i for i in streams}
+                nodes = [i for i in nodes if not getattr(i, 'decoupled', False)]
                 self._stage_configuration = conf = Configuration(
-                    stages, nodes, streams, stream_ref, connections
+                    self.path, stages, nodes, streams, stream_ref, connections, aggregated
                 )
             return conf
 
     def run_phenomena(self):
         """Decouple and linearize material, equilibrium, summation, enthalpy,
         and reaction phenomena and iteratively solve them."""
-        *path, last = self.unit_path
-        try:
-            for n, i in enumerate(path):
-                i.run()
-                with self.stage_configuration(aggregated=False) as conf:
-                    conf.solve_material_flows()
+        path = self.unit_path
+        n = -1
+        with self.stage_configuration(aggregated=False) as conf:
+            try:
+                for n, i in enumerate(path):
+                    i.run()
                     conf.solve_energy_departures()
-        except:
-            for i in path[n+1:]: i.run()
-        last.run()
-        try:
-            with self.stage_configuration(aggregated=False) as conf:
-                for i in conf.stages: 
-                    if hasattr(i, '_update_equilibrium_variables'):
-                        i._update_equilibrium_variables()
-                    if hasattr(i, '_update_reaction_conversion'): 
-                        i._update_reaction_conversion()
+                    conf.solve_material_flows()
+            except: 
+                for i in path[n+1:]: i.run()
+            else:
+                conf.solve_nonlinearities()
                 conf.solve_energy_departures()
                 conf.solve_material_flows()
-        except: 
-            with self.stage_configuration(aggregated=True) as conf:
-                for i in conf.stages: 
-                    if hasattr(i, '_update_equilibrium_variables'):
-                        i._update_equilibrium_variables()
-                    if hasattr(i, '_update_reaction_conversion'): 
-                        i._update_reaction_conversion()
-                conf.solve_energy_departures()
-                conf.solve_material_flows()
-        
+        # try:
+        #     with self.stage_configuration(aggregated=True) as conf:
+        #         conf.solve_nonlinearities()
+        #         conf.solve_energy_departures()
+        #         conf.solve_material_flows()
+        # except:
+        #     for i in path: i.run()
+        # else:
+        #     with self.stage_configuration(aggregated=False) as conf:
+        #         for n, i in enumerate(path):
+        #             i.run()
+        #             conf.solve_energy_departures()
+        #             conf.solve_material_flows()
+            
     def _solve(self):
         """Solve the system recycle iteratively."""
         self._reset_iter()

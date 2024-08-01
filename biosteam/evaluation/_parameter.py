@@ -12,6 +12,7 @@ __all__ = ('Parameter',)
 from ._feature import Feature
 from ..utils import format_title
 import biosteam as bst
+from chaospy import distributions as shape
 from inspect import signature
 
 class Parameter(Feature):
@@ -58,11 +59,13 @@ class Parameter(Feature):
         if kind is None: kind = 'isolated'
         self.setter = setter.setter if isinstance(setter, Parameter) else setter
         self.system = system
-        self.distribution = distribution
         if not bounds:
             if distribution: bounds = (distribution.lower[0], distribution.upper[0])
+        elif not distribution:
+            distribution = shape.Uniform(*bounds)
         if bounds and baseline is None:
             baseline = 0.5 * (bounds[0] + bounds[1])
+        self.distribution = distribution
         self.baseline = baseline
         self.bounds = bounds
         self.kind = kind
@@ -77,6 +80,7 @@ class Parameter(Feature):
             system, = set([i.system for i in parameters])
         except:
             raise ValueError('all parameters must have the same system to sort')
+        if system is None: return
         unit_path = system.units
         length = len(unit_path)
         def key(parameter):

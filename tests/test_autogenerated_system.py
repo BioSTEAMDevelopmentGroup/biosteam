@@ -499,6 +499,7 @@ def test_feed_forward_recycle_loop():
              P3])
     )
     assert network == actual_network 
+    recycle_loop_sys.set_tolerance(mol=1e-6, rmol=1e-6, subsystems=True)
     recycle_loop_sys.simulate()
     x_nested_solution = np.vstack([recycle.mol, inner_recycle.mol])
     recycle_loop_sys.flatten()

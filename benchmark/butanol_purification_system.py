@@ -17,7 +17,7 @@ __all__ = (
 
 @register(
     'butanol_purification', 'Butanol purification',
-    2, [0.5, 1, 1.5, 2], 'BtOH\nsep.'
+    4, [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4], 'BtOH\nsep.'
 )
 def create_system_butanol_purification(alg):
     bst.settings.set_thermo(['Water', 'Butanol'], cache=True)
@@ -37,12 +37,15 @@ def create_system_butanol_purification(alg):
         ins=(feed, water_rich), outs=(distillate_0, 'water'),
         x_bot=0.0001, y_top=0.2, k=1.2, Rmin=0.01,
         LHK=('Butanol', 'Water'),
+        partial_condenser=False,
     )
+    # water_distiller.decoupled = True
     
     # Decanter
+    mixer = bst.Mixer('mixer', ins=(distillate_0, distillate_1))
     settler = bst.StageEquilibrium(
         'settler',
-        ins=(distillate_0, distillate_1), 
+        ins=mixer-0, 
         outs=('butanol_rich', water_rich),
         phases=('L', 'l'),
         top_chemical='Butanol',
@@ -53,9 +56,21 @@ def create_system_butanol_purification(alg):
     butanol_distiller = bst.BinaryDistillation(
         ins=settler-0,
         outs=(distillate_1, 'butanol'),
-        x_bot=0.0001, y_top=0.6, k=1.2, Rmin=0.01,
+        x_bot=0.0001, y_top=0.6, 
+        k=1.2, Rmin=0.01,
         LHK=('Water', 'Butanol'),
+        partial_condenser=False,
     )
+    # butanol_distiller.decoupled = True
     
-    sys = bst.System.from_units(units=[water_distiller, settler, butanol_distiller], algorithm=alg)
+    sys = bst.System.from_units(units=[water_distiller, mixer, settler, butanol_distiller], algorithm=alg)
     return sys
+
+def test_butanol_purification_system():
+    po = create_system_butanol_purification('phenomena-oriented')
+    po.flatten()
+    po.set_tolerance(mol=1e-3, rmol=1e-3, maxiter=20)
+    sm = create_system_butanol_purification('sequential modular')
+    sm.flatten()
+    sm.set_tolerance(mol=1e-3, rmol=1e-3, maxiter=20)
+    po.simulate()

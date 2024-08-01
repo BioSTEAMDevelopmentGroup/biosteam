@@ -87,6 +87,13 @@ class Mixer(Unit):
         s_out, = self.outs
         s_out.mix_from(self.ins, vle=self.rigorous,
                        conserve_phases=getattr(self, 'conserve_phases', None))
+        V = s_out.vapor_fraction
+        if V == 0:
+            self._B = 0
+        elif V == 1:
+            self._B = np.inf
+        else:
+            self._B = V / (1 - V)
     
     def _get_energy_departure_coefficient(self, stream):
         if stream.phases == ('g', 'l'):
@@ -150,16 +157,7 @@ class Mixer(Unit):
             )
             
             # Top to bottom flows
-            try:
-                B = self._B
-            except:
-                V = outlet.vapor_fraction
-                if V == 0:
-                    B = 0
-                elif V == 1:
-                    B = np.inf
-                else:
-                    B = V / (1 - V)
+            B = self._B
             eq_outs = {}
             if B == np.inf:
                 eq_outs[bottom] = ones
@@ -174,14 +172,16 @@ class Mixer(Unit):
             equations.append(
                 (eq_outs, zeros)
             )
-            return equations
+        return equations
     
     def _update_energy_variable(self, departure):
-        phases = self.phases
+        phases = self.outs[0].phases
         if phases == ('g', 'l'):
             self._B += departure
         else:
             self.outs[0].T += departure
+
+    def _update_nonlinearities(self): pass
 
 
 class SteamMixer(Unit):

@@ -57,6 +57,7 @@ from math import inf, sqrt, exp, pi
 from .heat_exchange import HXutility
 from ._flash import Flash
 from .stage import MultiStageEquilibrium
+from thermosteam import separations as sep
 
 __all__ = (
     'Distillation', 
@@ -410,8 +411,10 @@ class Distillation(Unit, isabstract=True):
     def product_specification_format(self, spec):
         if spec == 'Composition':
             self._Lr = self._Hr = None
+            self.composition_sensitive = True
         elif spec == 'Recovery':
             self._y_top = self._x_bot = None
+            self.composition_sensitive = False
         else:
             raise AttributeError("product specification format must be either "
                                  "'Composition' or 'Recovery'")
@@ -1037,6 +1040,25 @@ class Distillation(Unit, isabstract=True):
             
             dimensions = [(H, Di)]
         self._cost_vacuum(dimensions)
+    
+    def _update_equilibrium_variables(self):
+        top, bottom = self.outs
+        if bottom.isempty():
+            self.B = np.inf
+            self.K = 1e16 * np.ones(self.chemicals.size)
+        elif top.isempty():
+            self.K = np.zeros(self.chemicals.size)
+            self.B = 0
+        else:
+            top_mol = top.mol.to_array()
+            bottom_mol = bottom.mol.to_array()
+            F_top = top_mol.sum()
+            F_bottom = bottom_mol.sum()
+            y = top_mol / F_top
+            x = bottom_mol / F_bottom
+            x[x <= 0] = 1e-16
+            self.K = y / x
+            self.B = F_top / F_bottom
 
 
 # %% McCabe-Thiele distillation model utilities
@@ -1293,6 +1315,8 @@ class BinaryDistillation(Distillation, new_graphics=False):
     def _run(self):
         self._run_binary_distillation_mass_balance()
         self._update_distillate_and_bottoms_temperature()
+        if self.system and self.system.algorithm == 'Phenomena oriented':
+            self._update_equilibrium_variables()
 
     def reset_cache(self, isdynamic=None):
         self._McCabeThiele_args = np.zeros(6)
@@ -1485,25 +1509,21 @@ class BinaryDistillation(Distillation, new_graphics=False):
         plt.show()
         return plt
 
+    def _update_composition_parameters(self):
+        pass
+    
+    def _update_net_flow_parameters(self):
+        top, bottom = self.outs
+        phi = sep.partition(
+            self.ins[0], top, bottom, top.chemicals.IDs, self.K, 0.5, 
+            None, None, True,
+        )
+        self.B = phi / (1 - phi)
+
     def _create_material_balance_equations(self):
         top, bottom = self.outs
-        if bottom.isempty():
-            B = np.inf
-            K = 1e16 * np.ones(self.chemicals.size)
-        elif top.isempty():
-            K = np.zeros(self.chemicals.size)
-            B = 0
-        else:
-            top_mol = top.mol.to_array()
-            bottom_mol = bottom.mol.to_array()
-            F_top = top_mol.sum()
-            F_bottom = bottom_mol.sum()
-            y = top_mol / F_top
-            x = bottom_mol / F_bottom
-            x[x <= 0] = 1e-16
-            K = y / x
-            B = F_top / F_bottom
-        
+        B = self.B
+        K = self.K
         inlets = self.ins
         fresh_inlets = [i for i in inlets if i.isfeed() and not i.material_equations]
         process_inlets = [i for i in inlets if not i.isfeed()]
@@ -1542,14 +1562,8 @@ class BinaryDistillation(Distillation, new_graphics=False):
     def _create_energy_departure_equations(self):
         return []
     
-    def _update_equilibrium_variables(self):
-        outs = top, bottom = self.outs
-        data = [i.get_data() for i in outs]
+    def _update_nonlinearities(self):
         self.run()
-        Ts = [i.T for i in outs]
-        for i, j, T in zip(outs, data, Ts): 
-            i.set_data(j)
-            i.T = T
 
 
 # %% Fenske-Underwook-Gilliland distillation model utilities
@@ -1837,6 +1851,8 @@ class ShortcutColumn(Distillation, new_graphics=False):
         
         # Remove temporary data
         if composition_spec: self._Lr = self._Hr = None
+        if self.system and self.system.algorithm == 'Phenomena oriented':
+            self._update_equilibrium_variables()
 
     def plot_stages(self):
         raise TypeError('cannot plot stages for shortcut column')
@@ -1971,7 +1987,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
     _get_energy_departure_coefficient = BinaryDistillation._get_energy_departure_coefficient
     _create_energy_departure_equations = BinaryDistillation._create_energy_departure_equations
     _create_material_balance_equations = BinaryDistillation._create_material_balance_equations
-    _update_equilibrium_variables = BinaryDistillation._update_equilibrium_variables
+    _update_nonlinearities = BinaryDistillation._update_nonlinearities
 
 
 # %% Rigorous absorption/stripping column

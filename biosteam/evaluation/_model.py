@@ -393,9 +393,7 @@ class Model:
         if convergence_model:
             with convergence_model.practice(sample, parameters):
                 self._specification() if self._specification else self._system.simulate(**kwargs)
-        value = loss()
-        print(sample, value)
-        return value
+        return loss()
     
     def _update_state(self, sample, convergence_model=None, **kwargs):
         for f, s in zip(self._parameters, sample): 
@@ -431,7 +429,7 @@ class Model:
             return self._failed_evaluation()
     
     def __init__(self, system, metrics=None, specification=None, 
-                 parameters=None, retry_evaluation=True, exception_hook=None):
+                 parameters=None, retry_evaluation=None, exception_hook=None):
         self.specification = specification
         if parameters:
             self.set_parameters(parameters)
@@ -442,7 +440,7 @@ class Model:
         self._specification = specification
         self.metrics = metrics or ()
         self.exception_hook = 'warn' if exception_hook is None else exception_hook 
-        self.retry_evaluation = retry_evaluation
+        self.retry_evaluation = bool(system) if retry_evaluation is None else retry_evaluation
         self.table = None
         self._erase()
         
@@ -824,12 +822,6 @@ class Model:
                 predictors=self.parameters,
                 model_type=convergence_model,
             )
-        elif convergence_model is None:
-            convergence_model = ConvergenceModel(
-                system=self.system,
-                predictors=self.parameters,
-                model_type=self.default_convergence_model,
-            )
         if notify:
             timer = TicToc()
             timer.tic()
@@ -880,6 +872,7 @@ class Model:
             table[var_indices(self._metrics)] = replace_nones(values, [np.nan] * len(self.metrics))
     
     def _reset_system(self):
+        if self._system is None: return 
         self._system.empty_recycles()
         self._system.reset_cache()
     

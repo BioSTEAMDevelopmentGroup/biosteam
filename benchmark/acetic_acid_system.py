@@ -60,8 +60,13 @@ def create_acetic_acid_simple_system(alg):
         def fresh_solvent_flow_rate():
             broth = feed.F_mass
             EtAc_recycle = recycle.imass['EthylAcetate']
+            EtAc_required = broth * solvent_feed_ratio
+            if EtAc_required < EtAc_recycle:
+                recycle.F_mass *= EtAc_required / EtAc_recycle
+                EtAc_recycle = recycle.imass['EthylAcetate']
+            EtAc_fresh = EtAc_required - EtAc_recycle
             solvent.imass['EthylAcetate'] = max(
-                0, broth * solvent_feed_ratio - EtAc_recycle
+                0, EtAc_fresh
             )
 
         @solvent.material_balance
@@ -81,7 +86,7 @@ def create_acetic_acid_simple_system(alg):
 
 @register(
     'acetic_acid_complex', 'Glacial acetic acid\npurification',
-    60, [0, 10, 20, 30, 40, 50, 60], 'AcOH\nsep.'
+    210, [0, 30, 60, 90, 120, 150, 180, 210], 'AcOH\nsep.'
 )
 def create_acetic_acid_complex_system(alg):
     thermo = bst.Thermo(['Water', 'AceticAcid', 'EthylAcetate'], cache=True)
@@ -154,9 +159,15 @@ def create_acetic_acid_complex_system(alg):
         def adjust_fresh_solvent_flow_rate():
             broth = acetic_acid_broth.F_mass
             EtAc_recycle = solvent_recycle.imass['EthylAcetate']
+            EtAc_required = broth * solvent_feed_ratio
+            if EtAc_required < EtAc_recycle:
+                solvent_recycle.F_mass *= EtAc_required / EtAc_recycle
+                EtAc_recycle = solvent_recycle.imass['EthylAcetate']
+            EtAc_fresh = EtAc_required - EtAc_recycle
             ethyl_acetate.imass['EthylAcetate'] = max(
-                0, broth * solvent_feed_ratio - EtAc_recycle
+                0, EtAc_fresh
             )
+            
         HX = bst.StageEquilibrium(
             'HX_extract',
             ins=[extractor.extract], 
@@ -173,11 +184,11 @@ def create_acetic_acid_complex_system(alg):
             reflux=None,
             boilup=3,
             use_cache=True,
-            maxiter=10,
         )
+        mixer = bst.Mixer('distillation_recycle', ins=[ED-0, distillate_2])
         settler = bst.StageEquilibrium(
             'settler',
-            ins=(ED-0, distillate, distillate_2), 
+            ins=(mixer-0, distillate), 
             outs=(solvent_recycle, water_rich, ''),
             phases=('L', 'l'),
             top_chemical='EthylAcetate',
@@ -231,7 +242,18 @@ def create_acetic_acid_complex_system(alg):
             feed_stages=(1, 2),
             reflux=1,
             boilup=2,
-            maxiter=10,
         )
     return sys
 
+def test_simple_acetic_acid_purification_system():
+    pass
+
+def test_complex_acetic_acid_purification_system():
+    po = create_acetic_acid_complex_system('phenomena-oriented')
+    po.flatten()
+    po.set_tolerance(mol=1e-3, rmol=1e-3, maxiter=20)
+    sm = create_acetic_acid_complex_system('sequential modular')
+    sm.flatten()
+    sm.set_tolerance(mol=1e-3, rmol=1e-3, maxiter=20)
+    po.simulate()
+    
