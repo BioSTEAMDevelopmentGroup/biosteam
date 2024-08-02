@@ -17,7 +17,7 @@ __all__ = (
 
 @register(
     'butanol_purification', 'Butanol purification',
-    4, [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4], 'BtOH\nsep.'
+    0.5, [0.1, 0.2, 0.3, 0.4, 0.5], 'BtOH\nsep.'
 )
 def create_system_butanol_purification(alg):
     bst.settings.set_thermo(['Water', 'Butanol'], cache=True)

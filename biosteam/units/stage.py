@@ -602,7 +602,8 @@ class StageEquilibrium(Unit):
             T = partition.T
             for i in (partition.outs, self.outs): i.T = T
         elif phases == ('L', 'l'):
-            self.partition._run_lle(single_loop=True)
+            # self.partition._run_lle(single_loop=True)
+            pass
         else:
             raise NotImplementedError(f'K for phases {phases} is not yet implemented')
         
@@ -649,7 +650,7 @@ class PhasePartition(Unit):
     strict_infeasibility_check = False
     dmol_relaxation_factor = 0.9
     S_relaxation_factor = 0
-    B_relaxation_factor = 0.6
+    B_relaxation_factor = 0.5
     
     def _init(self, phases, partition_data, top_chemical=None, reaction=None):
         self.partition_data = partition_data
@@ -1528,7 +1529,8 @@ class MultiStageEquilibrium(Unit):
         if self._has_vle:
             for i in self.stages: i._update_nonlinearities()
         elif self._has_lle:
-            self.update_lle_variables()
+            pass
+            # self.update_lle_variables()
     
     def _update_aggretated_nonlinearities(self):
         top_flow_rates = self.get_top_flow_rates()

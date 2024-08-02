@@ -253,29 +253,47 @@ class Unit(AbstractUnit):
     
     def _begin_equations(self, composition_sensitive):
         inlets = self.ins
-        if composition_sensitive:
-            material_equations = [f() for i in inlets for f in i.material_equations]
+        fresh_inlets = []
+        process_inlets = []
+        material_equations = [f() for i in inlets for f in i.material_equations]
+        if not material_equations:
+            if composition_sensitive:
+                for i in inlets: 
+                    if i.isfeed() or not getattr(i.source, 'composition_sensitive', False):
+                        fresh_inlets.append(i)
+                    else:
+                        process_inlets.append(i)                    
+            else:
+                for i in inlets: 
+                    if i.isfeed():
+                        fresh_inlets.append(i)
+                    else:
+                        process_inlets.append(i)
+            equations = material_equations
+        elif composition_sensitive:
             equations = []
             dependent_streams = []
-            independent_streams = []
             for eq in material_equations:
                 dct, value = eq 
                 for i in dct:
-                    exclude = i.source and not getattr(i.source, 'composition_sensitive', False)
-                    if exclude: 
-                        independent_streams.append(i.imol)
-                        break
+                    if i.source and not getattr(i.source, 'composition_sensitive', False): break
                 else:
                     dependent_streams.append(i.imol)
                     equations.append(eq)
-            independent_streams = set(independent_streams)
             dependent_streams = set(dependent_streams)
-            fresh_inlets = [i for i in inlets if i.imol in independent_streams or i.isfeed() and not i.imol in dependent_streams]
-            process_inlets = [i for i in inlets if (not i.isfeed() and i.imol not in independent_streams) or i.imol in dependent_streams]
+            for i in inlets: 
+                isfeed = i.isfeed() or not getattr(i.source, 'composition_sensitive', False)
+                if i.imol not in dependent_streams and isfeed:
+                    fresh_inlets.append(i)
+                else:
+                    process_inlets.append(i) 
         else:
-            fresh_inlets = [i for i in inlets if i.isfeed() and not i.material_equations]
-            process_inlets = [i for i in inlets if not i.isfeed() or i.material_equations]
-            equations = [f() for i in inlets for f in i.material_equations]
+            for i in inlets: 
+                if i.isfeed() and not i.material_equations:
+                    fresh_inlets.append(i)
+                else:
+                    process_inlets.append(i)
+            equations = material_equations
         return fresh_inlets, process_inlets, equations
     
     Inlets = piping.Inlets

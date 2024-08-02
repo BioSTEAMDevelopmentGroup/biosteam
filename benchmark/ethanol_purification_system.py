@@ -13,7 +13,7 @@ __all__ = (
 
 @register(
     'ethanol_purification', 'Ethanol purification',
-    0.1, [0.02, 0.04, 0.06, 0.08, 0.01], 'EtOH\nsep.',
+    0.15, [0.03, 0.06, 0.09, 0.12, 0.15], 'EtOH\nsep.',
 )
 def create_system_ethanol_purification(alg):
     bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)

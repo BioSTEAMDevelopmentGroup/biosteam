@@ -142,8 +142,6 @@ class Configuration:
         A = []
         b = []
         for node in nodes:
-            if not node._create_material_balance_equations: 
-                raise NotImplementedError(f'{node!r} has no method `_create_material_balance_equations`')
             for coefficients, value in node._create_material_balance_equations(composition_sensitive):
                 coefficients = {
                     streams[i.imol]: j for i, j in coefficients.items()
@@ -190,17 +188,19 @@ class Configuration:
         A = []
         b = []
         for node in nodes:
-            if not node._create_energy_departure_equations: 
-                raise NotImplementedError(f'{node!r} has no method `_create_energy_departure_equations`')
             for coefficients, value in node._create_energy_departure_equations():
                 A.append(coefficients)
                 b.append(value)
         A, objs = dictionaries2array(A)
         departures = solve(A, np.array(b).T).T
-        for obj, departure in zip(objs, departures): 
-            if not obj._update_energy_variable:
+        try:
+            for obj, departure in zip(objs, departures): 
+                obj._update_energy_variable(departure)
+        except AttributeError as e:
+            if obj._update_energy_variable:
+                raise e
+            else:
                 raise NotImplementedError(f'{obj!r} has no method `_update_energy_variable`')
-            obj._update_energy_variable(departure)
         
     def __enter__(self):
         units = self.stages
@@ -2363,7 +2363,6 @@ class System:
             else:
                 return self._stage_configuration
         except:
-            feeds = [i for i in self.feeds if i.material_equations]
             stages = self.stages
             streams = list(set([i for s in stages for i in s.ins + s.outs]))
             connections = [(i, i.source, i.sink) for i in streams]
@@ -2387,21 +2386,19 @@ class System:
         """Decouple and linearize material, equilibrium, summation, enthalpy,
         and reaction phenomena and iteratively solve them."""
         path = self.unit_path
-        n = -1
         with self.stage_configuration(aggregated=False) as conf:
             try:
                 conf.solve_nonlinearities()
                 conf.solve_energy_departures()
                 conf.solve_material_flows()
-                for n, i in enumerate(path):
+                for i in path:
                     i.run()
                     conf.solve_energy_departures()
                     conf.solve_material_flows()
-            except Exception as e: 
-                if self._iter > 0: 
-                    raise e
-                    breakpoint() 
-                for i in path[n+1:]: i.run()
+            except NotImplementedError as error:
+                raise error
+            except:
+                for i in path: i.run()
                 
         # try:
         #     with self.stage_configuration(aggregated=True) as conf:
