@@ -36,7 +36,11 @@ def create_system_haber_bosch_process(alg='sequential modular'):
             phase='g'
         )
         preheater = bst.HXutility(ins=feed, T=450 + 273.15)
-        reactor = bst.
+        reactor = bst.ReactivePhaseStage(
+            ins=preheater-0, T=450 + 273.15, P=300e5,
+            reaction=bst.Reaction('N2 + H2 -> NH4', reactant='N2', X=0.15, correct_atomic_balance=True),
+        )
+        
         makeup_butanol = bst.Stream('makeup_butanol', Butanol=1)
         makeup_butanol.T = makeup_butanol.bubble_point_at_P().T
         recycle_butanol = bst.Stream('recycle_butanol')

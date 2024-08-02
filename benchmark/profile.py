@@ -291,6 +291,7 @@ class Tracker:
             time.tic()
             f()
             net_time += time.toc()
+            print('material error', sum([abs(i.mass_balance_error()) for i in stages]))
             new_temperatures = np.array([i.T for i in streams])
             new_flows = np.array([i.mol for i in streams])
             dF = np.abs(flows - new_flows)

@@ -177,8 +177,7 @@ class Configuration:
             A, objs = dictionaries2array(A)
             values = solve(A, np.array(b).T).T
             values[values < 0] = 0
-            for obj, value in zip(objs, values): 
-                obj._update_material_flows(value)
+            for obj, value in zip(objs, values): obj._update_material_flows(value)
         for i in nodes: 
             if hasattr(i, '_update_auxiliaries'): i._update_auxiliaries()
         return values
@@ -2381,7 +2380,7 @@ class System:
                     self.path, stages, nodes, streams, stream_ref, connections, aggregated
                 )
             return conf
-
+    failure = 0
     def run_phenomena(self):
         """Decouple and linearize material, equilibrium, summation, enthalpy,
         and reaction phenomena and iteratively solve them."""
@@ -2395,7 +2394,7 @@ class System:
                     i.run()
                     conf.solve_energy_departures()
                     conf.solve_material_flows()
-            except NotImplementedError as error:
+            except (NotImplementedError, UnboundLocalError) as error:
                 raise error
             except:
                 for i in path: i.run()

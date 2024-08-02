@@ -156,7 +156,7 @@ class ReactivePhaseStage(bst.Unit): # Does not include VLE
         if self.T is None: 
             self.reaction.adiabatic_reaction(outlet, Q=self.Q)
         else:
-            self.reaction(outlet, Q=self.Q)
+            self.reaction(outlet)
             outlet.T = self.T
         
     def _create_material_balance_equations(self, composition_sensitive=False):

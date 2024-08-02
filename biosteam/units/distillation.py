@@ -1520,15 +1520,12 @@ class BinaryDistillation(Distillation, new_graphics=False):
         )
         self.B = phi / (1 - phi)
 
-    def _create_material_balance_equations(self):
+    def _create_material_balance_equations(self, composition_sensitive):
         top, bottom = self.outs
         B = self.B
         K = self.K
-        inlets = self.ins
-        fresh_inlets = [i for i in inlets if i.isfeed() and not i.material_equations]
-        process_inlets = [i for i in inlets if not i.isfeed()]
+        fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
         top, bottom, *_ = self.outs
-        equations = []
         ones = np.ones(self.chemicals.size)
         minus_ones = -ones
         zeros = np.zeros(self.chemicals.size)

@@ -278,7 +278,7 @@ class Unit(AbstractUnit):
                 for i in dct:
                     if i.source and not getattr(i.source, 'composition_sensitive', False): break
                 else:
-                    dependent_streams.append(i.imol)
+                    dependent_streams.extend([i.imol for i in dct])
                     equations.append(eq)
             dependent_streams = set(dependent_streams)
             for i in inlets: 
