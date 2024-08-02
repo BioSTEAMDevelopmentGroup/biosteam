@@ -79,7 +79,9 @@ ObjectType = np.dtype('O')
 class Configuration:
     __slots__ = ('path', 'stages', 'nodes', 'streams',
                  'stream_ref', 'connections', 'aggregated',
-                 'composition_sensitive_path', '_has_dynamic_coefficients')
+                 'composition_sensitive_path', 
+                 'composition_sensitive_nodes',
+                 '_has_dynamic_coefficients')
     
     def __init__(self, path, stages, nodes, streams, stream_ref, connections, aggregated):
         self.path = path
@@ -90,6 +92,7 @@ class Configuration:
         self.connections = connections
         self.aggregated = aggregated
         self.composition_sensitive_path = [i for i in path if getattr(i, 'composition_sensitive', False)]
+        self.composition_sensitive_nodes =  [i for i in nodes if getattr(i, 'composition_sensitive', False) or isinstance(i, Stream)]
     
     def solve_nonlinearities(self):
         if self.aggregated:
@@ -106,12 +109,11 @@ class Configuration:
     def solve_material_flows(self):
         if self.composition_sensitive_path:
             for i in self.composition_sensitive_path: i._update_composition_parameters()
-            flows = self._solve_material_flows()
+            flows = self._solve_material_flows(composition_sensitive=True)
             
             def update_inner_material_balance_parameters(flows):
-                self.solve_nonlinearities
                 for i in self.composition_sensitive_path: i._update_composition_parameters()
-                return self._solve_material_flows()
+                return self._solve_material_flows(composition_sensitive=True)
             
             flx.fixed_point(
                 update_inner_material_balance_parameters,
@@ -119,7 +121,7 @@ class Configuration:
                 checkconvergence=False,
             )
             for i in self.composition_sensitive_path: i._update_net_flow_parameters()
-        self._solve_material_flows()
+        self._solve_material_flows(composition_sensitive=False)
     
     def dynamic_coefficients(self, b):
         try:
@@ -131,15 +133,18 @@ class Configuration:
             delayed = [(i, j) for i, j in enumerate(b) if j.dtype is ObjectType]
         return delayed
     
-    def _solve_material_flows(self):
-        nodes = self.nodes
+    def _solve_material_flows(self, composition_sensitive):
+        if composition_sensitive:
+            nodes = self.composition_sensitive_nodes
+        else:
+            nodes = self.nodes
         streams = self.stream_ref
         A = []
         b = []
         for node in nodes:
             if not node._create_material_balance_equations: 
                 raise NotImplementedError(f'{node!r} has no method `_create_material_balance_equations`')
-            for coefficients, value in node._create_material_balance_equations():
+            for coefficients, value in node._create_material_balance_equations(composition_sensitive):
                 coefficients = {
                     streams[i.imol]: j for i, j in coefficients.items()
                 }
@@ -2364,17 +2369,15 @@ class System:
             connections = [(i, i.source, i.sink) for i in streams]
             if aggregated:
                 stages = self.aggregated_stages
-                nodes = stages + feeds
                 streams = [i for u in stages for i in u.ins + u.outs]
                 stream_ref = {i.imol: i for u in stages for i in (*u.ins, *u.outs)}
-                nodes = [i for i in nodes if not getattr(i, 'decoupled', False)]
+                nodes = [i for i in stages if not getattr(i, 'decoupled', False)]
                 self._aggregated_stage_configuration = conf = Configuration(
                     self.path, stages, nodes, streams, stream_ref, connections, aggregated
                 )
             else:
-                nodes = stages + feeds
                 stream_ref = {i.imol: i for i in streams}
-                nodes = [i for i in nodes if not getattr(i, 'decoupled', False)]
+                nodes = [i for i in stages if not getattr(i, 'decoupled', False)]
                 self._stage_configuration = conf = Configuration(
                     self.path, stages, nodes, streams, stream_ref, connections, aggregated
                 )
@@ -2387,16 +2390,19 @@ class System:
         n = -1
         with self.stage_configuration(aggregated=False) as conf:
             try:
+                conf.solve_nonlinearities()
+                conf.solve_energy_departures()
+                conf.solve_material_flows()
                 for n, i in enumerate(path):
                     i.run()
                     conf.solve_energy_departures()
                     conf.solve_material_flows()
-            except: 
+            except Exception as e: 
+                if self._iter > 0: 
+                    raise e
+                    breakpoint() 
                 for i in path[n+1:]: i.run()
-            else:
-                conf.solve_nonlinearities()
-                conf.solve_energy_departures()
-                conf.solve_material_flows()
+                
         # try:
         #     with self.stage_configuration(aggregated=True) as conf:
         #         conf.solve_nonlinearities()

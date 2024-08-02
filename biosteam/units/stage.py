@@ -110,11 +110,9 @@ class SinglePhaseStage(Unit):
         for i in self.ins: i._update_energy_departure_coefficient(coeff)
         return [(coeff, outlet.H - sum([i.H for i in self.ins]))]
         
-    def _create_material_balance_equations(self):
+    def _create_material_balance_equations(self, composition_sensitive):
         outlet = self.outs[0]
-        inlets = self.ins
-        fresh_inlets = [i for i in inlets if i.isfeed() and not i.material_equations]
-        process_inlets = [i for i in inlets if not i.isfeed() or i.material_equations]
+        fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
         ones = np.ones(self.chemicals.size)
         minus_ones = -ones
         zeros = np.zeros(self.chemicals.size)
@@ -126,9 +124,10 @@ class SinglePhaseStage(Unit):
                 del eq_overall[i]
             else:
                 eq_overall[i] = minus_ones
-        return [
+        equations.append(
             (eq_overall, sum([i.mol for i in fresh_inlets], zeros))
-        ]
+        )
+        return equations
 
     def _update_energy_variable(self, value):
         if self.T is None: return
@@ -160,15 +159,12 @@ class ReactivePhaseStage(bst.Unit): # Does not include VLE
             self.reaction(outlet, Q=self.Q)
             outlet.T = self.T
         
-    def _create_material_balance_equations(self):
-        inlets = self.ins
+    def _create_material_balance_equations(self, composition_sensitive=False):
         product, = self.outs
-        equations = []
         n = self.chemicals.size
         ones = np.ones(n)
         minus_ones = -ones
-        fresh_inlets = [i for i in inlets if i.isfeed() and not i.material_equations]
-        process_inlets = [i for i in inlets if not i.isfeed() or i.material_equations]
+        fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
         reaction = self.reaction
         if isinstance(reaction, bst.KRxn):
             # Overall flows
@@ -236,8 +232,6 @@ class StageEquilibrium(Unit):
     _ins_size_is_fixed = False
     _outs_size_is_fixed = False
     auxiliary_unit_names = ('partition', 'mixer', 'splitters')
-    S_relaxation_factor = 0
-    B_relaxation_factor = 0.5
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
             phases, partition_data=None, top_split=0, bottom_split=0,
@@ -460,7 +454,7 @@ class StageEquilibrium(Unit):
             dH = self.Q + self.H_in - self.H_out
         return [(coeff, dH)]
     
-    def _create_material_balance_equations(self):
+    def _create_material_balance_equations(self, composition_sensitive):
         phases = self.phases
         partition = self.partition
         chemicals = self.chemicals
@@ -484,13 +478,10 @@ class StageEquilibrium(Unit):
         self._update_separation_factors()
         top_split = self.top_split
         bottom_split = self.bottom_split
-        inlets = self.ins
-        fresh_inlets = [i for i in inlets if i.isfeed() and not i.material_equations]
-        process_inlets = [i for i in inlets if not i.isfeed() or i.material_equations]
+        fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
         top, bottom, *_ = self.outs
         top_side_draw = self.top_side_draw
         bottom_side_draw = self.bottom_side_draw
-        equations = []
         N = self.chemicals.size
         ones = np.ones(N)
         minus_ones = -ones
@@ -586,7 +577,7 @@ class StageEquilibrium(Unit):
             top, bottom = partition.outs
             IDs = partition.IDs
             B = top.imol[IDs].sum() / bottom.imol[IDs].sum()
-            self.B = B + (1 - self.B_relaxation_factor) * departure
+            self.B = B + (1 - self.partition.B_relaxation_factor) * departure
         elif phases == ('L', 'l'):
             self.T = T = self.T + departure
             for i in self.outs: i.T = T
@@ -646,8 +637,8 @@ class StageEquilibrium(Unit):
         if self.phases == ('L', 'l'):
             self.Sb = Sb
         else:
-            if f is None: f = self.S_relaxation_factor
-            self.Sb = (1 - f) * Sb + f * self.Sb
+            if f is None: f = self.partition.S_relaxation_factor
+            self.Sb = (1 - f) * Sb + f * self.Sb if f else Sb
     
     
 # %%
@@ -657,6 +648,8 @@ class PhasePartition(Unit):
     _N_outs = 2
     strict_infeasibility_check = False
     dmol_relaxation_factor = 0.9
+    S_relaxation_factor = 0
+    B_relaxation_factor = 0.6
     
     def _init(self, phases, partition_data, top_chemical=None, reaction=None):
         self.partition_data = partition_data
@@ -1101,7 +1094,7 @@ class MultiStageEquilibrium(Unit):
     _N_ins = 2
     _N_outs = 2
     max_attempts = 10
-    default_maxiter = 30
+    default_maxiter = 20
     default_fallback = None
     default_molar_tolerance = 1e-3
     default_relative_molar_tolerance = 1e-6
@@ -1460,7 +1453,7 @@ class MultiStageEquilibrium(Unit):
         else:
             return [(coeff, self.H_in - self.H_out + sum([i.Q for i in self.stages]))]
     
-    def _create_material_balance_equations(self):
+    def _create_material_balance_equations(self, composition_sensitive):
         top, bottom = self.outs
         try:
             B = self.B
@@ -1483,11 +1476,8 @@ class MultiStageEquilibrium(Unit):
                 self.K = K = y / x
                 self.B = B = F_top / F_bottom
         
-        inlets = self.ins
-        fresh_inlets = [i for i in inlets if i.isfeed() and not i.material_equations]
-        process_inlets = [i for i in inlets if not i.isfeed() or i.material_equations]
+        fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
         top, bottom, *_ = self.outs
-        equations = []
         ones = np.ones(self.chemicals.size)
         minus_ones = -ones
         zeros = np.zeros(self.chemicals.size)
@@ -1700,16 +1690,19 @@ class MultiStageEquilibrium(Unit):
                 method = self.method
                 solver, conditional, options = self.root_options[method]
                 if not conditional: raise NotImplementedError(f'method {self.method!r} not implemented in BioSTEAM (yet)')
-                for i in range(self.max_attempts-1):
+                for n in range(self.max_attempts-1):
                     self.iter = 0
-                    self.attempt = i
+                    self.attempt = n
                     top_flow_rates = solver(self._conditional_iter, top_flow_rates)
                     if self.iter == self.maxiter:
                         for i in self.stages: i._run()
                         for i in reversed(self.stages): i._run()
                         top_flow_rates = self.get_top_flow_rates()
+                        # for i in self.partitions: i.B_relaxation_factor += (0.9 - i.B_relaxation_factor) * 0.5
                     else:
                         break
+                # if n:
+                #     for i in self.partitions: del i.B_relaxation_factor
                 if self.iter == self.maxiter:
                     top_flow_rates = solver(self._conditional_iter, top_flow_rates)
                 if self.iter == self.maxiter and self.fallback and self.fallback != (self.algorithm, self.method):
@@ -2173,9 +2166,8 @@ class MultiStageEquilibrium(Unit):
         
     def update_energy_balance_phase_ratio_departures(self):
         dBs = self.get_energy_balance_phase_ratio_departures()
-        g = (1 - StageEquilibrium.B_relaxation_factor)
         for i, dB in zip(self.partitions, dBs):
-            if i.B_specification is None: i.B += g * dB
+            if i.B_specification is None: i.B += (1 - i.B_relaxation_factor) * dB
     
     def update_energy_balance_temperatures(self):
         dTs = self.get_energy_balance_temperature_departures()

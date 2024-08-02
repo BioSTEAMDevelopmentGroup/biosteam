@@ -251,6 +251,33 @@ class Unit(AbstractUnit):
     #: Update reaction conversion for phenomena-oriented simulation.
     _update_reaction_conversion = AbstractMethod
     
+    def _begin_equations(self, composition_sensitive):
+        inlets = self.ins
+        if composition_sensitive:
+            material_equations = [f() for i in inlets for f in i.material_equations]
+            equations = []
+            dependent_streams = []
+            independent_streams = []
+            for eq in material_equations:
+                dct, value = eq 
+                for i in dct:
+                    exclude = i.source and not getattr(i.source, 'composition_sensitive', False)
+                    if exclude: 
+                        independent_streams.append(i.imol)
+                        break
+                else:
+                    dependent_streams.append(i.imol)
+                    equations.append(eq)
+            independent_streams = set(independent_streams)
+            dependent_streams = set(dependent_streams)
+            fresh_inlets = [i for i in inlets if i.imol in independent_streams or i.isfeed() and not i.imol in dependent_streams]
+            process_inlets = [i for i in inlets if (not i.isfeed() and i.imol not in independent_streams) or i.imol in dependent_streams]
+        else:
+            fresh_inlets = [i for i in inlets if i.isfeed() and not i.material_equations]
+            process_inlets = [i for i in inlets if not i.isfeed() or i.material_equations]
+            equations = [f() for i in inlets for f in i.material_equations]
+        return fresh_inlets, process_inlets, equations
+    
     Inlets = piping.Inlets
     Outlets = piping.Outlets
     

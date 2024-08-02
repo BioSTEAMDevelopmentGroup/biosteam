@@ -123,11 +123,9 @@ class Mixer(Unit):
         for i in self.ins: i._update_energy_departure_coefficient(coeff)
         return [(coeff, self.H_in - self.H_out)]
     
-    def _create_material_balance_equations(self):
-        inlets = self.ins
+    def _create_material_balance_equations(self, composition_sensitive):
+        fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
         outlet, = self.outs
-        fresh_inlets = [i for i in inlets if i.isfeed() and not i.material_equations]
-        process_inlets = [i for i in inlets if not i.isfeed() or i.material_equations]
         if len(outlet) == 1:
             ones = np.ones(self.chemicals.size)
             minus_ones = -ones
@@ -136,12 +134,11 @@ class Mixer(Unit):
             # Overall flows
             eq_overall = {outlet: ones}
             for i in process_inlets: eq_overall[i] = minus_ones
-            equations = [
+            equations.append(
                 (eq_overall, sum([i.mol for i in fresh_inlets], zeros))
-            ]
+            )
         else:
             top, bottom = outlet
-            equations = []
             ones = np.ones(self.chemicals.size)
             minus_ones = -ones
             zeros = np.zeros(self.chemicals.size)
