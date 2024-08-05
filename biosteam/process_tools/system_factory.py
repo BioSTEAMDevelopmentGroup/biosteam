@@ -226,7 +226,7 @@ class SystemFactory:
             relative_molar_tolerance=None,
             temperature_tolerance=None,
             relative_temperature_tolerance=None,
-            box=False, priority=None,
+            box=False, network_priority=None,
             **kwargs
         ):
         fthermo = self.fthermo
@@ -253,17 +253,17 @@ class SystemFactory:
             temperature_tolerance=temperature_tolerance,
             relative_temperature_tolerance=relative_temperature_tolerance,
         )
-        if priority is not None: box = True
+        if network_priority is not None: box = True
         if box:
             if rename: 
                 unit_registry = bst.main_flowsheet.unit
                 irrelevant_units = tuple(unit_registry)
                 unit_registry.untrack(irrelevant_units)
-            if priority is None:
+            if network_priority is None:
                 module = bst.Module(ins=ins, outs=outs)
             else:
                 module = bst.FacilityModule(ins=ins, outs=outs)
-                module.network_priority = priority
+                module.network_priority = network_priority
             ins = tuple([module.auxin(i) for i in module.ins])
             outs = tuple([module.auxout(i) for i in module.outs])
             with bst.Flowsheet(ID), (bst.MockSystem() if mockup else bst.System(**options)) as system:
