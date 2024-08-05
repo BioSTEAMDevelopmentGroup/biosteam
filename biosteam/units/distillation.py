@@ -863,8 +863,13 @@ class Distillation(Unit, isabstract=True):
         if Q_boiler < Q_overall_boiler:
             liquid = reboiler.ins[0]
             H_out_boiler = reboiler.outs[0].H
-            liquid.H = H_out_boiler - Q_overall_boiler
-            boiler_kwargs = dict(duty=Q_overall_boiler)
+            try:
+                liquid.H = H_out_boiler - Q_overall_boiler
+            except:
+                liquid.phase = 'l'
+                boiler_kwargs = dict(duty=Q_boiler)                
+            else:
+                boiler_kwargs = dict(duty=Q_overall_boiler)
             condenser_kwargs = dict(duty=Q_condenser)
         else:
             boiler_kwargs = dict(duty=Q_boiler)
