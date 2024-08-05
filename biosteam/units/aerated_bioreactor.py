@@ -433,8 +433,10 @@ class GasFedBioreactor(StirredTankReactor):
             theta=0.5, Q_consumption=None,
             optimize_power=None, 
             mixins=None,
+            fed_gas_hook=None,
             **kwargs,
         ):
+        self.fed_gas_hook = fed_gas_hook
         self.reactions = reactions
         self.backward_reactions = backward_reactions
         self.theta = theta # Average concentration of gas substrate in the liquid as a fraction of saturation.
@@ -488,7 +490,7 @@ class GasFedBioreactor(StirredTankReactor):
     
     @property
     def variable_gas_feeds(self):
-        return [self.ins[i] for i in self.feed_gas_compositions]
+        return [(i if isinstance(i, bst.Stream) else self.ins[i]) for i in self.feed_gas_compositions]
     
     @property
     def normal_gas_feeds(self):
@@ -540,6 +542,13 @@ class GasFedBioreactor(StirredTankReactor):
         self.backward_reactions.force_reaction(consumed)
         return consumed.get_flow('mol/s', self.gas_substrates), consumed, produced
     
+    def _load_gas_feeds(self):
+        if self.fed_gas_hook is not None: self.fed_gas_hook()
+        for i in self.mixers: i.simulate()
+        for i in self.compressors: i.simulate()
+        for i in self.gas_coolers: i.simulate()
+        self.sparger.simulate()
+    
     def _run(self):
         variable_gas_feeds = self.variable_gas_feeds
         for i in variable_gas_feeds: i.phase = 'g'
@@ -567,17 +576,11 @@ class GasFedBioreactor(StirredTankReactor):
             x_substrates.append(gas.get_molar_fraction(ID))
         index = range(len(self.gas_substrates))
         
-        def run_auxiliaries():
-            for i in self.mixers: i.simulate()
-            for i in self.compressors: i.simulate()
-            for i in self.gas_coolers: i.simulate()
-            self.sparger.simulate()
-        
         def load_flow_rates(F_feeds):
             for i in index:
                 gas = variable_gas_feeds[i]
                 gas.set_total_flow(F_feeds[i], 'mol/s')
-            run_auxiliaries()
+            self._load_gas_feeds()
             effluent.set_data(effluent_liquid_data)
             effluent.mix_from([self.sparged_gas, -s_consumed, s_produced, *liquid_feeds], energy_balance=False)
             if (effluent.mol < 0).any(): breakpoint()

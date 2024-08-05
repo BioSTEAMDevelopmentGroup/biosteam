@@ -2297,7 +2297,7 @@ class System:
                 if u.prioritize: self.prioritize_unit(u)
                 prioritized_units.add(u)
                 
-    def _setup(self, update_configuration=False, units=None):
+    def _setup(self, update_configuration=False, units=None, load_configuration=True):
         """Setup each element of the system."""
         if units is None: units = self.units
         if update_configuration:
@@ -2310,7 +2310,7 @@ class System:
             self._save_configuration()
             self._load_stream_links()
         else:
-            self._load_configuration()
+            if load_configuration: self._load_configuration()
             self._create_temporary_connections()
             if temporary_units_dump:
                 self._update_configuration(units=[*units, *temporary_units_dump])
@@ -2398,20 +2398,6 @@ class System:
                 raise error
             except:
                 for i in path: i.run()
-                
-        # try:
-        #     with self.stage_configuration(aggregated=True) as conf:
-        #         conf.solve_nonlinearities()
-        #         conf.solve_energy_departures()
-        #         conf.solve_material_flows()
-        # except:
-        #     for i in path: i.run()
-        # else:
-        #     with self.stage_configuration(aggregated=False) as conf:
-        #         for n, i in enumerate(path):
-        #             i.run()
-        #             conf.solve_energy_departures()
-        #             conf.solve_material_flows()
             
     def _solve(self):
         """Solve the system recycle iteratively."""
@@ -2723,7 +2709,7 @@ class System:
             the system will be replaced.
             
         """
-        with self.flowsheet.temporary():
+        with self.flowsheet:
             specifications = self._specifications
             if specifications and not self._running_specifications:
                 self._running_specifications = True

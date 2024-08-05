@@ -258,7 +258,7 @@ class Tracker:
     __slots__ = ('system', 'run', 'streams', 
                  'adiabatic_stages', 'stages',
                  'profile_time', 'rtol', 'atol')
-    cutoff_time = 200
+    cutoff_time = 300
     
     def __init__(self, name, algorithm, rtol=1e-16, atol=1e-6):
         sys = all_systems[name](algorithm)
@@ -291,7 +291,6 @@ class Tracker:
             time.tic()
             f()
             net_time += time.toc()
-            print('material error', sum([abs(i.mass_balance_error()) for i in stages]))
             new_temperatures = np.array([i.T for i in streams])
             new_flows = np.array([i.mol for i in streams])
             dF = np.abs(flows - new_flows)
@@ -453,11 +452,9 @@ def plot_benchmark(systems=None, exclude=None, N=3, load=True, save=True):
                     file = os.path.join(simulations_folder, po_name)
                     with open(file, 'wb') as f: pickle.dump(pos, f)
         else:
-            sm = Tracker(sys, 'sequential modular').benchmark()
             for i in range(N):
                 sm = Tracker(sys, 'sequential modular').benchmark()
                 sms.append(sm)
-            po = Tracker(sys, 'phenomena oriented').benchmark()
             for i in range(N):
                 po = Tracker(sys, 'phenomena oriented').benchmark()
                 pos.append(po)
@@ -468,7 +465,7 @@ def plot_benchmark(systems=None, exclude=None, N=3, load=True, save=True):
                 po_name = f'po_{time}_{sys}_benchmark_{N}.npy'
                 file = os.path.join(simulations_folder, po_name)
                 with open(file, 'wb') as f: pickle.dump(pos, f)
-        data = np.array([j['Time'] / i['Time'] for i, j in zip(sms, pos)])[1:]
+        data = np.array([j['Time'] / i['Time'] for i, j in zip(sms, pos)])
         mean = np.mean(data)
         sm_better = mean > 1
         if sm_better:

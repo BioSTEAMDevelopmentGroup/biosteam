@@ -66,6 +66,8 @@ from . import utils
 from . import units
 from .units import *
 from ._facility import Facility
+from . import _module
+from ._module import *
 from . import facilities
 from .facilities import *
 from . import wastewater
@@ -82,7 +84,7 @@ __all__ = (
     'MultiStream', 'settings', 'exceptions', 'report',
     'process_tools', 'preferences', *_system.__all__, *_flowsheet.__all__, 
     *_tea.__all__, *units.__all__, *facilities.__all__, *wastewater.__all__,
-    *evaluation.__all__, *process_tools.__all__, 
+    *evaluation.__all__, *process_tools.__all__, *_module.__all__,
 )
 
 def nbtutorial():

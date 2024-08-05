@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2024, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -826,10 +826,6 @@ class Unit(AbstractUnit):
                 heat_utilities.extend(N * unit.heat_utilities)
                 power_utility.consumption += N * unit.power_utility.consumption
                 power_utility.production += N * unit.power_utility.production
-            F_BM_auxiliary = unit.F_BM
-            F_D_auxiliary = unit.F_D
-            F_P_auxiliary = unit.F_P
-            F_M_auxiliary = unit.F_M
             bpc_auxiliary = unit.baseline_purchase_costs
             pc_auxiliary = unit.purchase_costs
             ic_auxiliary = unit.installed_costs
@@ -840,24 +836,14 @@ class Unit(AbstractUnit):
                         f"'{j}' already in `baseline_purchase_cost` "
                         f"dictionary of {repr(self)}; try using a different key"
                     )
+                elif N == 1:
+                    baseline_purchase_costs[j] = bpc_auxiliary[i]
+                    purchase_costs[j] = pc_auxiliary[i]
+                    installed_costs[j] = ic_auxiliary[i]
                 else:
-                    F_D[j] = fd = F_D_auxiliary.get(i, 1.)
-                    F_P[j] = fp = F_P_auxiliary.get(i, 1.)
-                    F_M[j] = fm = F_M_auxiliary.get(i, 1.)
-                    if N == 1:
-                        baseline_purchase_costs[j] = Cpb = bpc_auxiliary[i]
-                        purchase_costs[j] = pc_auxiliary[i]
-                        installed_costs[j] = Cbm = ic_auxiliary[i]
-                    else:
-                        baseline_purchase_costs[j] = Cpb = N * bpc_auxiliary[i]
-                        purchase_costs[j] = N * pc_auxiliary[i]
-                        installed_costs[j] = Cbm = N * ic_auxiliary[i]
-                    try:
-                        F_BM[j] = F_BM_auxiliary[i]
-                    except KeyError:
-                        # Assume costs already added elsewhere using another method.
-                        # Calculate BM as an estimate.
-                        F_BM[j] = Cbm / Cpb + 1 - fd * fp * fm
+                    baseline_purchase_costs[j] = N * bpc_auxiliary[i]
+                    purchase_costs[j] = N * pc_auxiliary[i]
+                    installed_costs[j] = N * ic_auxiliary[i]
             
         self._costs_loaded = True
     
