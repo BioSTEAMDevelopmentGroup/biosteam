@@ -9,20 +9,11 @@ import biosteam as bst
 import numpy as np
 from thermosteam.constants import R
 from math import exp
-try:
-    from .profile import register
-except:
-    def register(*args, **kwargs):
-        return lambda f: f
 
 __all__ = (
     'create_system_haber_bosch_process',
 )
 
-@register(
-    'haber_bosch_process', 'Haber-Bosch process',
-    10, [2, 4, 6, 8, 10], 'HB\nprocess.'
-)
 def create_system_haber_bosch_process(alg='sequential modular'):
     bst.settings.set_thermo(['N2', 'H2', 'NH3'], cache=True)
     bst.settings.mixture.include_excess_energies = True

@@ -95,8 +95,9 @@ class Mixer(Unit):
         else:
             self._B = V / (1 - V)
     
-    def _get_energy_departure_coefficient(self, stream):
+    def _get_energy_departure_coefficient(self, stream, temperature_only):
         if stream.phases == ('g', 'l'):
+            if temperature_only: return None
             vapor, liquid = stream
             if vapor.isempty():
                 with liquid.temporary_phase('g'): coeff = liquid.H
@@ -106,12 +107,13 @@ class Mixer(Unit):
             coeff = -stream.C
         return (self, coeff)
     
-    def _create_energy_departure_equations(self):
+    def _create_energy_departure_equations(self, temperature_only):
         # Ll: C1dT1 - Ce2*dT2 - Cr0*dT0 - hv2*L2*dB2 = Q1 - H_out + H_in
         # gl: hV1*L1*dB1 - hv2*L2*dB2 - Ce2*dT2 - Cr0*dT0 = Q1 + H_in - H_out
         outlet = self.outs[0]
         phases = outlet.phases
         if phases == ('g', 'l'):
+            if temperature_only: return []
             vapor, liquid = outlet
             coeff = {}
             if vapor.isempty():
@@ -120,7 +122,7 @@ class Mixer(Unit):
                 coeff[self] = vapor.h * liquid.F_mol
         else:
             coeff = {self: outlet.C}
-        for i in self.ins: i._update_energy_departure_coefficient(coeff)
+        for i in self.ins: i._update_energy_departure_coefficient(coeff, temperature_only)
         return [(coeff, self.H_in - self.H_out)]
     
     def _create_material_balance_equations(self, composition_sensitive):

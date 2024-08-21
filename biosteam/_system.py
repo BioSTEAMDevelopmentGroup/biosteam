@@ -182,12 +182,12 @@ class Configuration:
             if hasattr(i, '_update_auxiliaries'): i._update_auxiliaries()
         return values
         
-    def solve_energy_departures(self):
+    def solve_energy_departures(self, temperature_only=False):
         nodes = self.nodes
         A = []
         b = []
         for node in nodes:
-            for coefficients, value in node._create_energy_departure_equations():
+            for coefficients, value in node._create_energy_departure_equations(temperature_only):
                 A.append(coefficients)
                 b.append(value)
         A, objs = dictionaries2array(A)
@@ -2390,10 +2390,13 @@ class System:
                 conf.solve_nonlinearities()
                 conf.solve_energy_departures()
                 conf.solve_material_flows()
-                for i in path:
+                for i in path: 
                     i.run()
                     conf.solve_energy_departures()
                     conf.solve_material_flows()
+                conf.solve_nonlinearities()
+                conf.solve_energy_departures()
+                conf.solve_material_flows()
             except (NotImplementedError, UnboundLocalError) as error:
                 raise error
             except:

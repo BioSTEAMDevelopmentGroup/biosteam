@@ -4,28 +4,20 @@ Created on Sat Mar 16 13:38:11 2024
 
 @author: cortespea
 """
+import thermosteam as tmo
 import biosteam as bst
+import numpy as np
 from thermosteam.constants import R
 from math import exp
-try:
-    from .profile import register
-except:
-    def register(*args, **kwargs):
-        return lambda f: f
 
 __all__ = (
-    'create_system_lactic_acid_purification',
+    'create_system_acetic_acid_reactive_purification',
 )
 
-@register(
-    'lactic_acid_purification', 'Lactic acid purification',
-    10, [2, 4, 6, 8, 10], 'LA\nsep.'
-)
-def create_system_lactic_acid_purification(alg='sequential modular'):
-    bst.settings.set_thermo(['Water', 'LacticAcid', 'ButylLactate', 'Butanol'], cache=True)
-    
+def create_system_acetic_acid_reactive_purification(alg='sequential modular'):
+    bst.settings.set_thermo(['Water', 'AceticAcid', 'MethylAcetate', 'Methanol'], cache=True)
+    Gamma = tmo.equilibrium.DortmundActivityCoefficients(bst.settings.chemicals)
     class Esterification(bst.KineticReaction):
-        
         def volume(self, stream): # kg of catalyst
             rho_cat = 770 # kg / m3
             liquid_volume = self.liquid_volume
@@ -34,12 +26,29 @@ def create_system_lactic_acid_purification(alg='sequential modular'):
             return catalyst_mass
         
         def rate(self, stream): # kmol/kg-catalyst/hr
+            K_AcOH = 3.15
+            K_MeOH = 5.64
+            K_MeOAc = 4.15
+            K_H2O = 5.24
+            K_adsorption = np.array([K_H2O, K_AcOH, K_MeOAc, K_MeOH])
+            MWs = stream.chemicals.MW
+            k0f = 8.497e6
+            EAf = 60.47
+            k0r = 6.127e5
+            EAr = 63.73
             T = stream.T
-            # if T > 370: return 0 # Prevents multiple steady states
-            kf = 2.59e4 * exp(-5.340e4 / (R * T))
-            kr = 3.80e3 * exp(-5.224e4 / (R * T))
-            H2O, LA, BuLA, BuOH = stream.mol / stream.F_mol
-            return 3600 * (kf * LA * BuOH - kr * BuLA * H2O) # kmol / kg-catalyst / hr
+            mol = stream.mol.to_array()
+            F_mol = stream.F_mol
+            if not F_mol: return 0
+            x = mol / F_mol
+            gamma = Gamma(x, T)
+            activity = gamma * x
+            a = K_adsorption * activity / MWs
+            H2O, LA, BuLA, BuOH = activity
+            kf = k0f * exp(-EAf / (R * T))
+            kr = k0r * exp(-EAr / (R * T))
+            a_sum = sum(a)
+            return 3600 * (kf * LA * BuOH - kr * BuLA * H2O) / (a_sum * a_sum) # kmol / kg-catalyst / hr
     
     with bst.System(algorithm=alg) as sys:
         feed = bst.Stream(
@@ -154,7 +163,7 @@ def create_system_lactic_acid_purification(alg='sequential modular'):
     return sys
 
 if __name__ == '__main__':
-    sys = create_system_lactic_acid_purification()
+    sys = create_system_acetic_acid_reactive_purification()
     sys.flatten()
     sys.diagram()
     sys.simulate()

@@ -1558,10 +1558,10 @@ class BinaryDistillation(Distillation, new_graphics=False):
         )
         return equations
     
-    def _get_energy_departure_coefficient(self, stream):
+    def _get_energy_departure_coefficient(self, stream, temperature_only):
         return None
     
-    def _create_energy_departure_equations(self):
+    def _create_energy_departure_equations(self, temperature_only):
         return []
     
     def _update_nonlinearities(self):

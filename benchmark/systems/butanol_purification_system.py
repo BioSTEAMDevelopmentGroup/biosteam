@@ -5,20 +5,11 @@ Created on Sat Mar 16 13:38:11 2024
 @author: cortespea
 """
 import biosteam as bst
-try:
-    from .profile import register
-except:
-    def register(*args, **kwargs):
-        return lambda f: f
 
 __all__ = (
     'create_system_butanol_purification',
 )
 
-@register(
-    'butanol_purification', 'Butanol purification',
-    0.5, [0.1, 0.2, 0.3, 0.4, 0.5], 'BtOH\nsep.'
-)
 def create_system_butanol_purification(alg):
     bst.settings.set_thermo(['Water', 'Butanol'], cache=True)
     feed = bst.Stream(

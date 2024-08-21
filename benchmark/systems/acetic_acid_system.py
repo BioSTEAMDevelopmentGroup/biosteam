@@ -6,21 +6,12 @@ Created on Sat Mar 16 13:38:11 2024
 """
 import biosteam as bst
 import numpy as np
-try:
-    from .profile import register
-except:
-    def register(*args, **kwargs):
-        return lambda f: f
 
 __all__ = (
     'create_acetic_acid_simple_system',
     'create_acetic_acid_complex_system',
 )
 
-@register(
-    'acetic_acid_simple', 'Acetic acid\ndistillation & liquid extraction',
-    10, [0, 2, 4, 6, 8, 10], 'Liq. ext. &\ndistillation'
-)
 def create_acetic_acid_simple_system(alg):
     solvent_feed_ratio = 1
     thermo = bst.Thermo(['Water', 'AceticAcid', 'EthylAcetate'], cache=True)
@@ -84,20 +75,23 @@ def create_acetic_acid_simple_system(alg):
             )
     return sys
 
-@register(
-    'acetic_acid_complex', 'Glacial acetic acid\npurification',
-    210, [0, 30, 60, 90, 120, 150, 180, 210], 'AcOH\nsep.'
-)
-def create_acetic_acid_complex_system(alg):
+def create_acetic_acid_complex_system(
+        alg, 
+        extractor_stages=15, 
+        raffinate_distillation_stages=10,
+        extract_distillation_stages=15,
+    ):
     thermo = bst.Thermo(['Water', 'AceticAcid', 'EthylAcetate'], cache=True)
     bst.settings.set_thermo(thermo)
     solvent_feed_ratio = 1.5
     chemicals = bst.settings.chemicals
     acetic_acid_broth = bst.Stream(
         ID='acetic_acid_broth', AceticAcid=6660, Water=43600, units='kg/hr',
+        # T=310,
     )
     ethyl_acetate = bst.Stream(
-        ID='fresh_solvent', EthylAcetate=15000, units='kg/hr',
+        ID='fresh_solvent', EthylAcetate=15000, units='kg/hr', 
+        # T=310,
     )
     glacial_acetic_acid = bst.Stream(
         'glacial_acetic_acid', 
@@ -112,6 +106,10 @@ def create_acetic_acid_complex_system(alg):
     water_rich = bst.Stream('water_rich')
     distillate = bst.Stream('distillate')
     distillate_2 = bst.Stream('distillate_2')
+    # bst.units.MultiStageEquilibrium.default_maxiter = 30
+    # bst.units.MultiStageEquilibrium.default_attempts = 5
+    # bst.units.MultiStageEquilibrium.default_molar_tolerance = 1e-9
+    # bst.units.MultiStageEquilibrium.default_relative_molar_tolerance = 1e-9
     with bst.System(algorithm=alg) as sys:
         # @ethyl_acetate.material_balance
         # def fresh_solvent_flow_rate():
@@ -147,7 +145,7 @@ def create_acetic_acid_complex_system(alg):
             outs=('extract', 'raffinate'),
             top_chemical='EthylAcetate',
             feed_stages=(0, -1, -1),
-            N_stages=15,
+            N_stages=extractor_stages,
             collapsed_init=False,
             use_cache=True,
             thermo=thermo,
@@ -174,13 +172,15 @@ def create_acetic_acid_complex_system(alg):
             phases=('g', 'l'),
             B=1,
         )
+        extract_feed_stage = int(extract_distillation_stages / 2)
         ED = bst.MESHDistillation(
-            'extract_distiller',
+            'extract_distillation',
             ins=[HX-0, HX-1, reflux],
             outs=['vapor', ''],
             LHK=('EthylAcetate', 'AceticAcid'),
-            N_stages=15,
-            feed_stages=(7, 7, 0),
+            N_stages=extract_distillation_stages,
+            feed_stages=(extract_feed_stage, extract_feed_stage, 0),
+            
             reflux=None,
             boilup=3,
             use_cache=True,
@@ -216,7 +216,7 @@ def create_acetic_acid_complex_system(alg):
         #     )
         # settler.coupled_KL = True
         AD = bst.ShortcutColumn(
-            'acetic_acid_distiller',
+            'acetic_acid_distillation',
             LHK=('EthylAcetate', 'AceticAcid'),
             ins=ED-1,
             outs=[distillate_2, glacial_acetic_acid],
@@ -233,15 +233,16 @@ def create_acetic_acid_complex_system(alg):
         )
         AD.check_LHK = False
         RD = bst.MESHDistillation(
-            'raffinate_distiller',
+            'raffinate_distillation',
             LHK=('EthylAcetate', 'Water'),
             ins=[HX-0, HX-1],
             outs=['', wastewater, distillate],
             full_condenser=True,
-            N_stages=10,
+            N_stages=raffinate_distillation_stages,
             feed_stages=(1, 2),
             reflux=1,
             boilup=2,
+            use_cache=True,
         )
     return sys
 

@@ -15,9 +15,13 @@ from scipy import interpolate
 from scipy.ndimage import gaussian_filter
 from math import sqrt
 from warnings import catch_warnings, filterwarnings
+from typing import NamedTuple
+from . import systems
 import os
 import pickle
 import thermosteam as tmo
+from scipy.integrate import romb
+from scipy.optimize import minimize
 
 __all__ = (
     'BenchmarkModel',
@@ -29,31 +33,91 @@ __all__ = (
     'test_convergence'
 )
 
+# %% Make simulation rigorous to achieve lower tolerances
+
+bst.MultiStageEquilibrium.default_maxiter = 10
+bst.MultiStageEquilibrium.default_max_attempts = 20
+bst.MultiStageEquilibrium.default_fallback_maxiter = 1
+bst.MultiStageEquilibrium.default_molar_tolerance = 1e-6
+bst.MultiStageEquilibrium.default_relative_molar_tolerance = 1e-9
+bst.MultiStageMixerSettlers.default_maxiter = 50
+tmo.BubblePoint.maxiter = 200 # -> 50 [-]
+tmo.DewPoint.maxiter = 200 # -> 50 [-]
+tmo.BubblePoint.T_tol = 1e-12 # -> 1e-9 [K]
+tmo.DewPoint.T_tol = 1e-12 # -> 1e-9 [K]
+tmo.BubblePoint.P_tol = 1e-6 # -> 1e-3 [Pa]
+tmo.DewPoint.P_tol = 1e-6 # -> 1e-3 [Pa]
+tmo.VLE.T_tol = 1e-9 # -> 5e-8 [K]
+tmo.VLE.P_tol = 1e-3 # -> 1. [Pa]
+tmo.VLE.maxiter = 100 # -> 20 [-]
+tmo.VLE.T_tol = 1e-9 # -> 5e-8 [K]
+tmo.VLE.P_tol = 1e-3 # -> 1. [Pa]
+tmo.VLE.H_hat_tol = 1e-9 # -> 1e-6 [J/g]
+tmo.VLE.S_hat_tol = 1e-9 # -> 1e-6 [J/g/K]
+tmo.VLE.V_tol = 1e-9 # -> 1e-6 [mol %]
+tmo.VLE.x_tol = 1e-12 # -> 1e-9 [mol %]
+tmo.VLE.y_tol = 1e-12 # -> 1e-9 [mol %]
+tmo.LLE.shgo_options = dict(f_tol=1e-9, minimizer_kwargs=dict(f_tol=1e-9))
+tmo.LLE.differential_evolution_options = {'seed': 0, 'popsize': 12, 'tol': 1e-9}
+tmo.LLE.pseudo_equilibrium_outer_loop_options = dict(
+    xtol=1e-12, maxiter=200, checkiter=False, 
+    checkconvergence=False, convergenceiter=20,
+)
+tmo.LLE.pseudo_equilibrium_inner_loop_options = dict(
+    xtol=1e-16, maxiter=200, checkiter=False,
+    checkconvergence=False, convergenceiter=20,
+)
+tmo.LLE.default_composition_cache_tolerance = 1e-12
+tmo.LLE.default_temperature_cache_tolerance = 1e-9
+# bst.units.stage.PhasePartition.S_relaxation_factor = 0
+# bst.units.stage.PhasePartition.B_relaxation_factor = 0
+# bst.units.stage.PhasePartition.K_relaxation_factor = 0
+# bst.units.stage.PhasePartition.T_relaxation_factor = 0
+
 # %% Uncertainty analysis
 
 class BenchmarkModel:
     
-    def __init__(self, system):
+    def __init__(self):
         model = bst.Model(None, specification=lambda: None)
         parameter = model.parameter
-        tracker = Tracker(system, 'phenomena oriented')
-        benchmark = tracker.benchmark()
-        recycles = tracker.system.get_all_recycles()
-        self.material_flows = np.array([i.mol for i in recycles])
-        self.Ts = np.array([i.T for i in recycles])
-        chemicals = [i.ID for i in bst.settings.chemicals]
         self.model = model
-        @parameter(units='-', name="log absolute tolerance", bounds=[-9, -1])
-        def set_tolerance(atol):
-            atol = 10 ** atol
-            # atol = 1e-12
-            self.sm_tracker = Tracker(system, 'sequential modular', atol=atol)
+        
+        def load_trackers():
+            system = 'acetic_acid_complex'
+            self.sm_tracker = Tracker(
+                system, 'sequential modular',
+                extraction_stages=self.extraction_stages, 
+                raffinate_distillation_stages=self.raffinate_distillation_stages,
+                extract_distillation_stages=self.raffinate_distillation_stages,
+                atol=1e-10
+            )
             self.sm_system = self.sm_tracker.system
             self.sm_recycles = self.sm_system.get_all_recycles()
-            self.po_tracker = Tracker(system, 'phenomena oriented', atol=atol)
+            self.po_tracker = Tracker(
+                system, 'phenomena oriented', 
+                extraction_stages=self.extraction_stages, 
+                raffinate_distillation_stages=self.raffinate_distillation_stages,
+                extract_distillation_stages=self.raffinate_distillation_stages,
+                atol=1e-10
+            )
             self.po_system = self.po_tracker.system
             self.po_recycles = self.po_system.get_all_recycles()
         
+        @parameter(units='-', bounds=[1, 12], hook=lambda x: int(round(x)))
+        def set_extraction_stages(extraction_stages):
+            self.extraction_stages = extraction_stages
+        
+        @parameter(units='-', bounds=[1, 12], hook=lambda x: int(round(x)))
+        def set_raffinate_distillation_stages(raffinate_distillation_stages):
+            self.raffinate_distillation_stages = raffinate_distillation_stages
+            
+        @parameter(units='-', bounds=[1, 12], hook=lambda x: int(round(x)))
+        def set_extract_distillation_stages(extract_distillation_stages):
+            self.extract_distillation_stages = extract_distillation_stages
+        
+        # benchmark = tracker.benchmark()
+        # chemicals = [i.ID for i in bst.settings.chemicals]
         # for i, (flows, T) in enumerate(zip(self.material_flows, self.Ts)):
         #     @parameter(units='K', name=f"Recycle {i}", element='temperature', bounds=[T - 15, T + 15])
         #     def set_temperature(T, index=i):
@@ -68,23 +132,50 @@ class BenchmarkModel:
         #             self.sm_recycles[index].imol[chemical] = flow
         #             self.po_recycles[index].imol[chemical] = flow
         
+        @model.metric(units='%', element='Sequential modular')
+        def distance_from_steady_state():
+            sm_b = self.sm_tracker.benchmark()
+            po_b = self.po_tracker.benchmark()
+            sm_e = sm_b['Error history']
+            po_e = po_b['Error history']
+            t_lb = max(po_e[0].time, sm_e[0].time)
+            t_ub = min(po_e[0].time, sm_e[0].time)
+            x, y = zip(*sm_e)
+            t = np.linspace(t_lb, t_ub, 2**10 + 1)
+            sm_y = interpolate.interp1d(x, y, bounds_error=False)(t)
+            x, y = zip(*sm_e)
+            po_y = interpolate.interp1d(x, y, bounds_error=False)(t)
+            return romb(po_y / sm_y, t[1] - t[0]) / (t_ub - t_lb)
+          
+        @model.metric(units='%', element='Phenomena-oriented')
+        def distance_from_steady_state():
+            sm_b = self.sm_tracker.benchmark()
+            po_b = self.po_tracker.benchmark()
+            sm_e = sm_b['Error history']
+            po_e = po_b['Error history']
+            t_lb = max(po_e[0].time, sm_e[0].time)
+            t_ub = min(po_e[0].time, sm_e[0].time)
+            x, y = zip(*sm_e)
+            t = np.linspace(t_lb, t_ub, 2**10 + 1)
+            sm_y = interpolate.interp1d(x, y, bounds_error=False)(t)
+            x, y = zip(*sm_e)
+            po_y = interpolate.interp1d(x, y, bounds_error=False)(t)
+            return romb(po_y / sm_y, t[1] - t[0]) / (t_ub - t_lb)
+        
         @model.metric(units='%')
-        def relative_simulation_time():
-            recycles = self.sm_recycles
-            material_flows = np.array([i.mol for i in recycles])
-            Ts = np.array([i.T for i in recycles])
-            sm_b = np.mean([self.sm_tracker.benchmark()['Time'] for i in range(5)])
-            po_b = np.mean([self.po_tracker.benchmark()['Time'] for i in range(5)])
-            T_diff = (self.Ts - Ts)
-            material_diff = (self.material_flows - material_flows)
-            nmd = 0.5 * np.log((material_diff * material_diff).sum())
-            ntd = 0.5 * np.log((T_diff * T_diff).sum())
-            self._distance = (
-                 nmd + ntd
-            ) / 2
-            self._time_po = po_b
-            self._time_sm = sm_b
-            return 100 * self._time_po / self._time_sm
+        def average_relative_distance_from_steady_state():
+            sm_b = self.sm_tracker.benchmark()
+            po_b = self.po_tracker.benchmark()
+            sm_e = sm_b['Error history']
+            po_e = po_b['Error history']
+            t_lb = max(po_e[0].time, sm_e[0].time)
+            t_ub = min(po_e[0].time, sm_e[0].time)
+            x, y = zip(*sm_e)
+            t = np.linspace(t_lb, t_ub, 2**10 + 1)
+            sm_y = interpolate.interp1d(x, y, bounds_error=False)(t)
+            x, y = zip(*sm_e)
+            po_y = interpolate.interp1d(x, y, bounds_error=False)(t)
+            return romb(po_y / sm_y, t[1] - t[0]) / (t_ub - t_lb)
         
         @model.metric(units='s')
         def sequential_modular_simulation_time():
@@ -116,7 +207,7 @@ def plot_monte_carlo(system='alcohol_wide_flash'):
     plt.scatter(df.iloc[:, 0], df.iloc[:, -4])
     plt.show()
 
-# %% System creation and testing
+# %% System creation
 
 try:
     images_folder = os.path.join(os.path.dirname(__file__), 'images')
@@ -131,97 +222,59 @@ system_convergence_times = {}
 system_tickmarks = {}
 system_labels = {}
 
-def _register(f, name, title, time, tickmarks, label):
+def register(name, title, time, tickmarks, label):
+    f = getattr(systems, 'create_system_' + name, None) or getattr(systems, 'create_' + name + '_system')
     all_systems[name] = f
     system_titles[name] = title
     system_convergence_times[name] = time
     system_tickmarks[name] = tickmarks
     system_labels[name] = label
-    return f
 
-def register(name, title, time, tickmarks, label):
-    return lambda f: _register(f, name, title, time, tickmarks, label)
-
-def high_precision(f):
-    def g(*args, **kwargs):
-        m = (
-            bst.MultiStageEquilibrium.default_maxiter,
-            bst.MultiStageEquilibrium.default_max_attempts,
-            bst.MultiStageEquilibrium.default_fallback_maxiter,
-            bst.MultiStageEquilibrium.default_molar_tolerance,
-            bst.MultiStageEquilibrium.default_relative_molar_tolerance,
-            bst.MultiStageEquilibrium.default_molar_tolerance,
-            bst.MultiStageEquilibrium.default_relative_molar_tolerance,
-            bst.MultiStageMixerSettlers.default_maxiter,
-            tmo.VLE.maxiter,
-            tmo.VLE.T_tol,
-            tmo.VLE.P_tol,
-            tmo.VLE.H_hat_tol,
-            tmo.VLE.S_hat_tol ,
-            tmo.VLE.V_tol,
-            tmo.VLE.x_tol,
-            tmo.VLE.y_tol,
-            tmo.LLE.shgo_options,
-            tmo.LLE.differential_evolution_options,
-            tmo.LLE.pseudo_equilibrium_outer_loop_options,
-            tmo.LLE.pseudo_equilibrium_inner_loop_options,
-            tmo.LLE.default_composition_cache_tolerance,
-            tmo.LLE.default_temperature_cache_tolerance,
-        )
-        bst.MultiStageEquilibrium.default_maxiter = 10
-        bst.MultiStageEquilibrium.default_max_attempts = 20
-        bst.MultiStageEquilibrium.default_fallback_maxiter = 1
-        bst.MultiStageEquilibrium.default_molar_tolerance = 1e-6
-        bst.MultiStageEquilibrium.default_relative_molar_tolerance = 1e-9
-        bst.MultiStageEquilibrium.default_molar_tolerance = 1e-6
-        bst.MultiStageEquilibrium.default_relative_molar_tolerance = 1e-9
-        bst.MultiStageMixerSettlers.default_maxiter = 50
-        tmo.VLE.maxiter = 50 # -> 20 [-]
-        tmo.VLE.T_tol = 1e-9 # -> 5e-8 [K]
-        tmo.VLE.P_tol = 1e-3 # -> 1. [Pa]
-        tmo.VLE.H_hat_tol = 1e-9 # -> 1e-6 [J/g]
-        tmo.VLE.S_hat_tol = 1e-9 # -> 1e-6 [J/g/K]
-        tmo.VLE.V_tol = 1e-9 # -> 1e-6 [mol %]
-        tmo.VLE.x_tol = 1e-12 # -> 1e-9 [mol %]
-        tmo.VLE.y_tol = 1e-12 # -> 1e-9 [mol %]
-        tmo.LLE.shgo_options = dict(f_tol=1e-9, minimizer_kwargs=dict(f_tol=1e-9))
-        tmo.LLE.differential_evolution_options = {'seed': 0, 'popsize': 12, 'tol': 1e-9}
-        tmo.LLE.pseudo_equilibrium_outer_loop_options = dict(
-            xtol=1e-12, maxiter=200, checkiter=False, 
-            checkconvergence=False, convergenceiter=20,
-        )
-        tmo.LLE.pseudo_equilibrium_inner_loop_options = dict(
-            xtol=1e-16, maxiter=200, checkiter=False,
-            checkconvergence=False, convergenceiter=20,
-        )
-        tmo.LLE.default_composition_cache_tolerance = 1e-12
-        tmo.LLE.default_temperature_cache_tolerance = 1e-9
-        try:
-            return f(*args, **kwargs)
-        finally:
-            (bst.MultiStageEquilibrium.default_maxiter,
-             bst.MultiStageEquilibrium.default_max_attempts,
-             bst.MultiStageEquilibrium.default_fallback_maxiter,
-             bst.MultiStageEquilibrium.default_molar_tolerance,
-             bst.MultiStageEquilibrium.default_relative_molar_tolerance,
-             bst.MultiStageEquilibrium.default_molar_tolerance,
-             bst.MultiStageEquilibrium.default_relative_molar_tolerance,
-             bst.MultiStageMixerSettlers.default_maxiter,
-             tmo.VLE.maxiter,
-             tmo.VLE.T_tol,
-             tmo.VLE.P_tol,
-             tmo.VLE.H_hat_tol,
-             tmo.VLE.S_hat_tol ,
-             tmo.VLE.V_tol,
-             tmo.VLE.x_tol,
-             tmo.VLE.y_tol,
-             tmo.LLE.shgo_options,
-             tmo.LLE.differential_evolution_options,
-             tmo.LLE.pseudo_equilibrium_outer_loop_options,
-             tmo.LLE.pseudo_equilibrium_inner_loop_options,
-             tmo.LLE.default_composition_cache_tolerance,
-             tmo.LLE.default_temperature_cache_tolerance) = m
-    return g
+register(
+    'acetic_acid_reactive_purification', 'Acetic acid reactive purification',
+    10, [2, 4, 6, 8, 10], 'AA\nr. sep.'
+)
+register(
+    'acetic_acid_simple', 'Acetic acid\ndistillation & liquid extraction',
+    20, [0, 5, 10, 15, 20], 'Liq. ext. &\ndistillation'
+)
+register(
+    'acetic_acid_complex', 'Glacial acetic acid purification',
+    250, [0, 50, 100, 150, 200], 'AcOH\nsep.'
+)
+register(
+    'alcohol_narrow_flash', 'Alcohol flash narrow',
+    0.05, [0.01, 0.02, 0.03, 0.04, 0.05], 'Alcohol\nflash\nnarrow'
+)
+register(
+    'alcohol_wide_flash', 'Alcohol flash wide',
+    0.05, [0.01, 0.02, 0.03, 0.04, 0.05], 'Alcohol\nflash\nwide'
+)
+register(
+    'butanol_purification', 'Butanol purification',
+    1, [0.2, 0.4, 0.6, 0.8, 1], 'BtOH\nsep.'
+)
+register(
+    'ethanol_purification', 'Ethanol purification',
+    0.25, [0.05, 0.1, 0.15, 0.20, 0.25], 'EtOH\nsep.',
+)
+register(
+    'haber_bosch_process', 'Haber-Bosch process',
+    10, [2, 4, 6, 8, 10], 'HB\nprocess.'
+)
+register(
+    'hydrocarbon_narrow_flash', 'Hydrocarbon flash narrow',
+    0.05, [0.01, 0.02, 0.03, 0.04, 0.05], 'Alkane\nflash\nnarrow'
+)
+register(
+    'hydrocarbon_wide_flash', 'Hydrocarbon flash wide',
+    0.1, [0.02, 0.04, 0.06, 0.08, 0.10], 'Alkane\nflash\nwide'
+)
+register(
+    'lactic_acid_purification', 'Lactic acid purification',
+    10, [2, 4, 6, 8, 10], 'LA\nsep.'
+)
+# %% Testing
 
 def test_convergence(systems=None):
     if systems is None: systems = list(all_systems)
@@ -254,18 +307,24 @@ def test_convergence(systems=None):
 
 # %% Profiling and benchmarking utilities
 
+class ErrorPoint(NamedTuple):
+    time: float; error: float
+
 class Tracker:
     __slots__ = ('system', 'run', 'streams', 
                  'adiabatic_stages', 'stages',
-                 'profile_time', 'rtol', 'atol')
+                 'profile_time', 'rtol', 'atol',
+                 'kwargs', 'name')
     cutoff_time = 300
     
-    def __init__(self, name, algorithm, rtol=1e-16, atol=1e-6):
-        sys = all_systems[name](algorithm)
+    def __init__(self, name, algorithm, rtol=1e-16, atol=1e-6, **kwargs):
+        sys = all_systems[name](algorithm, **kwargs)
         sys.flatten()
         sys._setup_units()
-        bst.F.clear()
+        sys.flowsheet.clear()
         self.system = sys
+        self.name = name
+        self.kwargs = kwargs
         if sys.algorithm == 'Sequential modular':
             self.run = sys.run_sequential_modular
         elif sys.algorithm == 'Phenomena oriented':
@@ -277,6 +336,173 @@ class Tracker:
         self.profile_time = system_convergence_times[name]
         self.streams, self.adiabatic_stages, self.stages, = streams_and_stages(sys)
         
+    def estimate_steady_state(self): # Uses optimization to estimate steady state
+        options = '_'.join(['{i}_{j}' for i, j in self.kwargs.items()])
+        if options:
+            file_name = f"{self.name}_{options}_steady_state"
+        else:
+            file_name = f"{self.name}_steady_state"
+        file = os.path.join(simulations_folder, file_name)
+        try:
+            with open(file, 'rb') as f: return pickle.load(f)
+        except: pass
+        sys = all_systems[self.name]('phenomena-oriented', **self.kwargs)
+        sys.flatten()
+        sys._setup_units()
+        sys.set_tolerance(mol=1e-15, rmol=1e-15, maxiter=50)
+        sys.flowsheet.clear()
+        try:
+            sys.simulate()
+        except:
+            pass
+        p = bst.units.stage.PhasePartition
+        settings = (
+            p.S_relaxation_factor, p.B_relaxation_factor, 
+            p.K_relaxation_factor, p.T_relaxation_factor
+        )
+        p.S_relaxation_factor = 0
+        p.B_relaxation_factor = 0
+        p.K_relaxation_factor = 0
+        p.T_relaxation_factor = 0
+        try:
+            results = self._estimate_steady_state(sys)
+            with open(file, 'wb') as f: pickle.dump(results, f)
+        finally:
+            (p.S_relaxation_factor, p.B_relaxation_factor, 
+             p.K_relaxation_factor, p.T_relaxation_factor) = settings
+        return results
+        
+    def _estimate_steady_state(self, system):
+        po = system
+        streams, adiabatic_stages, all_stages = streams_and_stages(po)
+        flows = np.array([i.mol for i in streams])
+        Ts = np.array([i.T for i in streams])
+        stages = []
+        shortcuts = []
+        for i in po.units:
+            if hasattr(i, 'stages'):
+                stages.extend(i.stages)
+            elif isinstance(i, bst.StageEquilibrium):
+                stages.append(i)
+            elif isinstance(i, bst.Distillation):
+                shortcuts.append(i)
+                i._update_equilibrium_variables()
+            elif not isinstance(i, (bst.Mixer, bst.Separator, bst.SinglePhaseStage)):
+                raise ValueError(f'cannot optimize {i!r}')
+        all_stages = stages + shortcuts
+        N_chemicals = po.units[0].chemicals.size
+        S = np.array([i.B * i.K for i in all_stages])
+        S_full = S
+        S_index = S_index = [
+            i for i, j in enumerate(all_stages)
+            if not (getattr(j, 'B_specification', None) == 0 or getattr(j, 'B_specification', None) == np.inf)
+        ]
+        lle_stages = []
+        vle_stages = []
+        for i in S_index:
+            s = all_stages[i]
+            if not isinstance(i, bst.StageEquilibrium): continue
+            phases = getattr(s, 'phases', None)
+            if phases == ('g', 'l'):
+                vle_stages.append(s)
+            elif phases == ('L', 'l'):
+                lle_stages.append(s)
+        S = S[S_index]
+        N_S_index = len(S_index)
+        lnS = np.log(S).flatten()
+        count = [0]
+        def lnS_objective(lnS):
+            S_original = np.exp(lnS)
+            S = S_full
+            S[S_index] = S_original.reshape([N_S_index, N_chemicals])
+            for i in S_index:
+                s = all_stages[i]
+                if getattr(s, 'B_specification', None) is not None:
+                    s.K = S[i] / s.B_specification
+                else:
+                    s.B = 1 # Work around S = K * B
+                    s.K = S[i]
+            with po.stage_configuration(aggregated=False) as conf:
+                conf._solve_material_flows(composition_sensitive=False)
+            for i in vle_stages:
+                partition = i.partition
+                partition._run_decoupled_KTvle()
+                if s.B_specification is None: partition._run_decoupled_B()
+                T = partition.T
+                for i in (partition.outs + i.outs): i.T = T
+            for i in shortcuts:
+                for s in i.outs:
+                    if s.phase == 'l': 
+                        bp = s.bubble_point_at_P()
+                        s.T = bp.T
+                    elif s.phase == 'g': 
+                        dp = s.dew_point_at_P()
+                        s.T = dp.T
+            Ts = np.array([i.T for i in lle_stages])
+            for i in range(10):
+                Ts_new = np.array([i.T for i in lle_stages])
+                with po.stage_configuration(aggregated=False) as conf:
+                    conf.solve_energy_departures(temperature_only=True)
+                for i in lle_stages:
+                    for j in i.outs: j.T = i.T
+                if np.abs(Ts_new - Ts).sum() < 1e-9: break
+                Ts = Ts_new
+            for i in lle_stages:
+                i.partition._run_lle(update=False)
+            energy_error = lambda stage: abs(
+                (sum([i.H for i in stage.outs]) - sum([i.H for i in stage.ins])) / sum([i.C for i in stage.outs])
+            )
+            total_energy_error = sum([energy_error(stage) for stage in stages if stage.B_specification is None and stage.T_specification is None])
+            
+            def B_error(stage):
+                B = getattr(stage, 'B_specification', None)
+                if B is not None:
+                    top, bottom = stage.partition.outs
+                    return 1000 * (top.F_mol / bottom.F_mol - B)
+                else:
+                    return 0
+            
+            def T_equilibrium_error(stage):
+                if len(stage.outs) == 2:
+                    top, bottom = stage.outs
+                else:
+                    top, bottom = stage.partition.outs
+                return (top.dew_point_at_P().T - bottom.T)
+            
+            specification_errors = np.array([B_error(all_stages[i]) for i in S_index])
+            temperature_errors = np.array([T_equilibrium_error(i) for i in vle_stages])
+            for i in shortcuts: i._run()
+            S_new = np.array([(all_stages[i].K * all_stages[i].B) for i in S_index]).flatten()
+            splits_new = S_new / (S_new + 1)
+            splits = S_original / (S_original + 1)
+            diff = splits_new - splits
+            total_split_error = (diff * diff).sum()
+            total_specification_error = (specification_errors * specification_errors).sum()
+            total_temperature_error = (temperature_errors * temperature_errors).sum()
+            total_error = total_split_error + total_energy_error + total_specification_error + total_temperature_error
+            err = np.sqrt(total_error)
+            if not count[0] % 100:
+                print(err)
+                po.show()
+            count[0] += 1
+            return err
+        benchmark = lnS_objective(lnS)
+        result = minimize(
+            lnS_objective, 
+            lnS,
+            tol=0.5, 
+            method='CG',
+            options=dict(maxiter=80),
+        )
+        optimization = lnS_objective(result.x)
+        if benchmark > optimization:
+            streams, adiabatic_stages, all_stages = streams_and_stages(po)
+            flows = np.array([i.mol for i in streams])
+            Ts = np.array([i.T for i in streams])
+            return flows, Ts, optimization
+        else:
+            return flows, Ts, benchmark
+        
     def benchmark(self):
         f = self.run
         streams = self.streams
@@ -287,10 +513,12 @@ class Tracker:
         net_time = 0
         temperatures = np.array([i.T for i in streams])
         flows = np.array([i.mol for i in streams])
+        history = [(net_time, flows, temperatures)]
         while net_time < total_time:
             time.tic()
             f()
-            net_time += time.toc()
+            step = time.toc()
+            net_time += step
             new_temperatures = np.array([i.T for i in streams])
             new_flows = np.array([i.mol for i in streams])
             dF = np.abs(flows - new_flows)
@@ -300,26 +528,40 @@ class Tracker:
                 F_max = np.maximum.reduce([abs(flows[nonzero_index]), abs(new_flows[nonzero_index])])
                 rdF = dF / F_max
                 rdF_max = rdF.max()
-                dF_max = dF.max()
+                dF_mean = dF.mean()
             else:
-                dF_max = rdF_max = 0
+                dF_mean = rdF_max = 0
             dT = np.abs(temperatures - new_temperatures)
+            history.append((net_time, flows, temperatures))
             T_max = np.maximum.reduce([abs(temperatures), abs(new_temperatures)])
-            dT_max = dT.max()
+            dT_mean = dT.mean()
             rdT = dT / T_max
             rdT_max = rdT.max()
-            if (rdF_max < self.rtol or dF_max < self.atol) and (rdT_max < self.rtol or dT_max < self.atol): break
+            if (rdF_max < self.rtol or dF_mean < self.atol) and (rdT_max < self.rtol or dT_mean < self.atol): break
             flows = new_flows
             temperatures = new_temperatures
-        dM = max([abs(i.mass_balance_error()) for i in stages])
+        converged_flows = flows
+        converged_temperatures = temperatures
+        error_history = [
+            ErrorPoint(
+                net_time, 
+                np.sqrt(
+                    (np.abs(converged_flows - flows)).sum()
+                    + (np.abs(converged_temperatures - temperatures)).sum()
+                ),
+            )
+            for net_time, flows, temperatures in history
+        ]
+        dM = np.mean([abs(i.mass_balance_error()) for i in stages])
         dEs = [abs(dT_error(i)) for i in adiabatic_stages]
-        dE = max(dEs) if dEs else 0
+        dE = np.mean(dEs) if dEs else 0
         return {
             'Time': net_time, 
+            'Error history': error_history,
             'Stream temperature': rdT_max,
             'Component flow rate': rdF_max, 
-            'Absolute stream temperature': dT_max,
-            'Absolute component flow rate': dF_max, 
+            'Absolute stream temperature': dT_mean,
+            'Absolute component flow rate': dF_mean, 
             'Energy balance': dE, 
             'Material balance': dM,
             'Steady state flows': flows,
@@ -337,10 +579,13 @@ class Tracker:
         energy_error = []
         material_error = []
         temperature_error = []
-        record = []
         net_time = 0
         temperatures = np.array([i.T for i in streams])
         flows = np.array([i.mol for i in streams])
+        temperature_history = []
+        flow_history = []
+        record = []
+        steady_state_flows, steady_state_temperatures, _ = self.estimate_steady_state()
         while net_time < total_time:
             time.tic()
             f()
@@ -348,24 +593,30 @@ class Tracker:
             new_temperatures = np.array([i.T for i in streams])
             new_flows = np.array([i.mol for i in streams])
             record.append(net_time)
+            flow_history.append(new_flows)
+            temperature_history.append(new_temperatures)
             dF = np.abs(flows - new_flows).sum()
             dT = np.abs(temperatures - new_temperatures).sum()
             flow_error.append(
-                np.log10(dF + 1e-15)
+                np.log10(dF + 1e-25)
             )
             temperature_error.append(
-                np.log10(dT + 1e-15)
+                np.log10(dT + 1e-25)
             )
             energy_error.append(
-                np.log10(sum([abs(dT_error(i)) for i in adiabatic_stages]) + 1e-15)
+                np.log10(sum([abs(dT_error(i)) for i in adiabatic_stages]) + 1e-25)
             )
             material_error.append(
-                np.log10(sum([abs(i.mass_balance_error()) for i in stages]) + 1e-15)
+                np.log10(sum([abs(i.mass_balance_error()) for i in stages]) + 1e-25)
             )
             flows = new_flows
             temperatures = new_temperatures
+        cfe = np.log10([np.abs(steady_state_flows - i).sum() + 1e-25 for i in flow_history])
+        te = np.log10([np.abs(steady_state_temperatures - i).sum() + 1e-25 for i in temperature_history])
         return {
             'Time': record, 
+            'Component flow rate error': cfe,
+            'Temperature error': te,
             'Stream temperature': temperature_error,
             'Component flow rate': flow_error, 
             'Energy balance': energy_error, 
@@ -376,11 +627,16 @@ def streams_and_stages(sys):
     all_stages = []
     adiabatic_stages = []
     streams = []
-    for i in sys.units:
+    past_streams = set()
+    print(f'----{sys.algorithm}----')
+    for i in sorted(sys.unit_path, key=lambda x: x.ID):
+        print(i)
         if hasattr(i, 'stages'):
             all_stages.extend(i.stages)
             for j in i.stages:
-                streams.extend(j.outs + j.ins)
+                new_streams = [i for i in (j.outs + j.ins) if i.imol not in past_streams]
+                streams.extend(new_streams)
+                past_streams.update([i.imol for i in new_streams])
                 if j.B_specification is None and j.T_specification is None:
                     adiabatic_stages.append(j)
         else:
@@ -390,7 +646,9 @@ def streams_and_stages(sys):
             except:
                 pass
             all_stages.append(i)
-            streams.extend(i.outs + i.ins)
+            new_streams = [j for j in (i.outs + i.ins) if j.imol not in past_streams]
+            streams.extend(new_streams)
+            past_streams.update([i.imol for i in new_streams])
     return (streams, adiabatic_stages, all_stages)
 
 def dT_error(stage):
@@ -438,6 +696,9 @@ def plot_benchmark(systems=None, exclude=None, N=3, load=True, save=True):
                 file = os.path.join(simulations_folder, po_name)
                 with open(file, 'rb') as f: pos = pickle.load(f)
             except:
+                # sm_name = f'sm_{time}_{sys}_benchmark_{N}.npy'
+                # file = os.path.join(simulations_folder, sm_name)
+                # with open(file, 'rb') as f: sms = pickle.load(f)
                 for i in range(N):
                     sm = Tracker(sys, 'sequential modular').benchmark()
                     sms.append(sm)
@@ -527,7 +788,7 @@ def dct_mean_profile(dcts: list[dict], keys: list[str], ub: float, n=50):
             x = dct['Time']
             mean['Time'] = t
             y = dct[i]
-            values = interpolate.interp1d(x[:len(y)], y, bounds_error=False)(t)
+            values = interpolate.interp1d(x, y, bounds_error=False)(t)
             mask = ~np.isnan(values)
             mean[i][mask] += values[mask]
             mean[i][t < tmin] = np.nan
@@ -546,34 +807,37 @@ def plot_profile(
         systems=None, N=3, load=True, save=True
     ):
     if systems is None: systems = list(all_systems)
-    fs = 9
+    fs = 10
     bst.set_font(fs)
     keys = (
-        'Component flow rate',
-        'Stream temperature',
+        'Component flow rate error',
+        'Temperature error',
+        # 'Component flow rate',
+        # 'Stream temperature',
         # 'Stripping factor',
-        'Material balance',
-        'Energy balance',
+        # 'Material balance',
+        # 'Energy balance',
     )
     units = (
         r'$[\mathrm{mol} \cdot \mathrm{hr}^{\mathrm{-1}}]$',
         r'$[\mathrm{K}]$',
+        # r'$[\mathrm{mol} \cdot \mathrm{hr}^{\mathrm{-1}}]$',
+        # r'$[\mathrm{K}]$',
         # r'$[-]$',
-        r'$[\mathrm{mol} \cdot \mathrm{hr}^{\mathrm{-1}}]$',
-        r'$[\mathrm{K}]$',
+        # r'$[\mathrm{mol} \cdot \mathrm{hr}^{\mathrm{-1}}]$',
+        # r'$[\mathrm{K}]$',
     )
     n_rows = len(units)
     n_cols = len(systems)
     if n_rows == 4:
         bst.set_figure_size(aspect_ratio=1.1)
     elif n_rows == 2:
-        bst.set_figure_size(aspect_ratio=0.6)
+        bst.set_figure_size(aspect_ratio=1.5, width='half')
     else:
-        bst.set_figure_size(aspect_ratio=1)
+        bst.set_figure_size(aspect_ratio=0.52, width='half')
     fig, all_axes = plt.subplots(n_rows, n_cols)
     if n_cols == 1:
         all_axes = np.reshape(all_axes, [n_rows, n_cols]) 
-    yticks = [-15, -10, -5, 0, 5, 10]
     for m, sys in enumerate(systems):
         time = system_convergence_times[sys]
         axes = all_axes[:, m]
@@ -590,6 +854,9 @@ def plot_profile(
             for i in range(N):
                 sm = Tracker(sys, 'sequential modular').profile()
                 sms.append(sm)
+            # sm_name = f'sm_{time}_{sys}_profile.npy'
+            # file = os.path.join(simulations_folder, sm_name)
+            # with open(file, 'rb') as f: sms = pickle.load(f)
             for i in range(N):
                 po = Tracker(sys, 'phenomena oriented').profile()
                 pos.append(po)
@@ -606,10 +873,9 @@ def plot_profile(
         po = dct_mean_profile(pos, keys, tub)
         csm = Color(fg='#33BBEE').RGBn
         cpo = Color(fg='#EE7733').RGBn
-        yticklabels = m == 0
-        if yticklabels:
-            yticklabels = [r'$\mathrm{10}^{' f'{i}' '}$' for i in yticks]
         labels = {
+            'Component flow rate error': 'Flow rate error',
+            'Temperature error': 'Temperature error',
             'Stripping factor': 'Stripping factor\nconvergence error',
             'Component flow rate': 'Flow rate\nconvergence error',
             'Stream temperature': 'Temperature\nconvergence error',
@@ -621,33 +887,44 @@ def plot_profile(
             if n == n_rows-1: plt.xlabel('Time [s]')
             label = labels[i]
             if m == 0: plt.ylabel(f'{label}\n{u}')
-            ysm = gaussian_filter(np.array(sm[i]), 0.2)
-            ypo = gaussian_filter(np.array(po[i]), 0.2)
+            ysm = np.array(sm[i])
+            ypo = np.array(po[i])
+            ysm = gaussian_filter(ysm, 0.2)
+            ypo = gaussian_filter(ypo, 0.2)
             tsm = np.array(sm['Time'])
             tpo = np.array(po['Time'])
-            ysm[ysm < -14] = -14
-            ypo[ypo < -14] = -14
             # plt.plot(xsm, ysm, lw=0, marker='s', color=csm, markersize=2.5)
             plt.plot(tsm, ysm, '--', color=csm, lw=1.5)
             # plt.plot(xpo, ypo, lw=0, marker='d', color=cpo, markersize=2.5)
             plt.plot(tpo, ypo, '-', color=cpo, lw=1.5)
+            ypo_finite = ypo[~np.isnan(ypo)]
+            lb = int(np.floor(ypo_finite.min() / 5) * 5)
+            ub = int(np.ceil(ypo_finite.max() / 5) * 5)
+            yticklabels = m == 0
+            if yticklabels:
+                if (ub - lb) < 20:
+                    step = 5
+                else:
+                    step = 10
+                yticks = [i for i in range(lb, ub+step, step)]
+                yticklabels = [r'$\mathrm{10}^{' f'{i}' '}$' for i in yticks]
             if m == 0 and n == 0:
-                index = int(len(tsm) * 0.55)
+                index = int(len(tsm) * 0.5)
                 xy = x, y = (tsm[index], ysm[index])
                 ax.annotate('Sequential\nmodular',
                     xy=xy, 
-                    xytext=(x+0.1*tub, y+1),
-                    arrowprops=dict(arrowstyle="->", color=csm),
+                    xytext=(x+0.01*tub, y+1),
+                    # arrowprops=dict(arrowstyle="->", color=csm),
                     color=csm,
                     fontsize=fs,
                     fontweight='bold',
                 )
-                index = int(len(tpo) * 0.45)
+                index = int(len(tpo) * 0.5)
                 xy = x, y = (tpo[index], ypo[index])
                 ax.annotate('Phenomena\noriented',
                     xy=xy, 
-                    xytext=(x-0.1*tub, y-5),
-                    arrowprops=dict(arrowstyle="->", color=cpo),
+                    xytext=(x-0.02*tub, y-3),
+                    # arrowprops=dict(arrowstyle="->", color=cpo),
                     ha='right',
                     color=cpo,
                     fontsize=fs,
@@ -659,14 +936,14 @@ def plot_profile(
             ytick0 = n == n_rows-1
             ytickf = n == 0
             plt.xlim(0, xticks[-1])
-            plt.ylim(-15, 10)
+            plt.ylim(lb, ub)
             bst.utils.style_axis(
                 ax, xticks=xticks, yticks=yticks, 
                 xtick0=xtick0, xtickf=xtickf, ytick0=ytick0, ytickf=ytickf,
                 xticklabels=xticklabels,
                 yticklabels=yticklabels,
             )
-    plt.subplots_adjust(right=0.96, left=0.2, hspace=0, wspace=0)
+    plt.subplots_adjust(right=0.96, left=0.35, bottom=0.25, top=0.95, hspace=0, wspace=0)
     letter_color = c.neutral.shade(25).RGBn
     titles = [system_titles[i] for i in systems]
     for ax, letter in zip(all_axes[0], titles):
@@ -675,7 +952,7 @@ def plot_profile(
         xlb, xub = plt.xlim()
         plt.text((xlb + xub) * 0.5, ylb + (yub - ylb) * 1.2, letter, color=letter_color,
                   horizontalalignment='center',verticalalignment='center',
-                  fontsize=10, fontweight='bold')
+                  fontsize=fs, fontweight='bold')
     for i in ('svg', 'png'):
         name = f'PO_SM_profile.{i}'
         file = os.path.join(images_folder, name)
