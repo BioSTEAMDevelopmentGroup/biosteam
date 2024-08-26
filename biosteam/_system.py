@@ -2380,17 +2380,15 @@ class System:
                     self.path, stages, nodes, streams, stream_ref, connections, aggregated
                 )
             return conf
-    failure = 0
+    
     def run_phenomena(self):
         """Decouple and linearize material, equilibrium, summation, enthalpy,
         and reaction phenomena and iteratively solve them."""
         path = self.unit_path
         with self.stage_configuration(aggregated=False) as conf:
             try:
-                conf.solve_nonlinearities()
-                conf.solve_energy_departures()
-                conf.solve_material_flows()
                 for i in path: 
+                    if isinstance(i, (bst.Mixer, bst.Splitter)) and not i.specifications: continue
                     i.run()
                     conf.solve_energy_departures()
                     conf.solve_material_flows()
@@ -2399,8 +2397,15 @@ class System:
                 conf.solve_material_flows()
             except (NotImplementedError, UnboundLocalError) as error:
                 raise error
-            except:
+            # except AttributeError:
+            #     for i in path: i.run()
+            except Exception as e:
+                print('Failed!')
+                print(e)
                 for i in path: i.run()
+                # conf.solve_nonlinearities()
+                # conf.solve_energy_departures()
+                # conf.solve_material_flows()
             
     def _solve(self):
         """Solve the system recycle iteratively."""

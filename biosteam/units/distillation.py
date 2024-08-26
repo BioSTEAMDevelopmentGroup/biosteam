@@ -279,20 +279,22 @@ class Distillation(Unit, isabstract=True):
         'Weight',
     )
     _F_BM_default = {'Rectifier tower': 4.3,
-                      'Stripper tower': 4.3,
-                      'Rectifier trays': 4.3,
-                      'Stripper trays': 4.3,
-                      'Platform and ladders': 1.,
-                      'Rectifier platform and ladders': 1.,
-                      'Stripper platform and ladders': 1.,
-                      'Tower': 4.3,
-                      'Trays': 4.3,
-                      'Vacuum system': 1.}
+                     'Stripper tower': 4.3,
+                     'Rectifier trays': 4.3,
+                     'Stripper trays': 4.3,
+                     'Platform and ladders': 1.,
+                     'Rectifier platform and ladders': 1.,
+                     'Stripper platform and ladders': 1.,
+                     'Tower': 4.3,
+                     'Trays': 4.3,
+                     'Vacuum system': 1.}
     
     # [dict] Bounds for results
     _bounds = {'Diameter': (3., 24.),
                'Height': (27., 170.),
                'Weight': (9000., 2.5e6)}
+    
+    composition_sensitive = False
     
     def _init(self, 
             LHK, k,
@@ -411,10 +413,8 @@ class Distillation(Unit, isabstract=True):
     def product_specification_format(self, spec):
         if spec == 'Composition':
             self._Lr = self._Hr = None
-            self.composition_sensitive = True
         elif spec == 'Recovery':
             self._y_top = self._x_bot = None
-            self.composition_sensitive = False
         else:
             raise AttributeError("product specification format must be either "
                                  "'Composition' or 'Recovery'")
@@ -1048,22 +1048,12 @@ class Distillation(Unit, isabstract=True):
     
     def _update_equilibrium_variables(self):
         top, bottom = self.outs
-        if bottom.isempty():
-            self.B = np.inf
-            self.K = 1e16 * np.ones(self.chemicals.size)
-        elif top.isempty():
-            self.K = np.zeros(self.chemicals.size)
-            self.B = 0
-        else:
-            top_mol = top.mol.to_array()
-            bottom_mol = bottom.mol.to_array()
-            F_top = top_mol.sum()
-            F_bottom = bottom_mol.sum()
-            y = top_mol / F_top
-            x = bottom_mol / F_bottom
-            x[x <= 0] = 1e-16
-            self.K = y / x
-            self.B = F_top / F_bottom
+        top = top.mol.to_array()
+        bottom = bottom.mol.to_array()
+        bottom_dummy = bottom.copy()
+        bottom_dummy[bottom == 0] = 1e-16
+        self.B = B = top.sum() / bottom.sum()
+        self.K = top / bottom_dummy / B
 
 
 # %% McCabe-Thiele distillation model utilities
@@ -1513,17 +1503,27 @@ class BinaryDistillation(Distillation, new_graphics=False):
         plt.title(f'McCabe Thiele Diagram (Rmin = {Rmin:.2f}, R = {R:.2f})')
         plt.show()
         return plt
-
-    def _update_composition_parameters(self):
-        pass
     
-    def _update_net_flow_parameters(self):
-        top, bottom = self.outs
-        phi = sep.partition(
-            self.ins[0], top, bottom, top.chemicals.IDs, self.K, 0.5, 
-            None, None, True,
-        )
-        self.B = phi / (1 - phi)
+    # def _update_net_flow_parameters(self):
+    #     top, bottom = self.outs
+    #     phi = sep.partition(
+    #         self.ins[0], top, bottom, top.chemicals.IDs, self.K, 0.5, 
+    #         None, None, True,
+    #     )
+    #     if phi == 1: 
+    #         B = np.inf
+    #     else:
+    #         B = phi / (1 - phi)
+    #     self.B = B 
+    #     if self.product_specification_format == 'Recovery':
+    #         LK, HK = self._LHK_index
+    #         Lr = self._Lr
+    #         Hr = self._Hr
+    #         self.K[LK] = Lr / ((1 - Lr) * B)
+    #         self.K[HK] = (1 - Hr) / (Hr * B)
+
+    # def _update_composition_parameters(self):
+    #     pass
 
     def _create_material_balance_equations(self, composition_sensitive):
         top, bottom = self.outs
@@ -1565,8 +1565,9 @@ class BinaryDistillation(Distillation, new_graphics=False):
         return []
     
     def _update_nonlinearities(self):
+        # pass
         self.run()
-
+        
 
 # %% Fenske-Underwook-Gilliland distillation model utilities
 
@@ -1962,7 +1963,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
         return compute_distillate_recoveries_Hengsteback_and_Gaddes(self.Lr, self.Hr,
                                                                     alpha_mean,
                                                                     self._LHK_vle_index)
-        
+    
     def _update_distillate_recoveries(self, distillate_recoveries):
         feed = self.mixed_feed
         distillate, bottoms = self.outs
@@ -1989,7 +1990,71 @@ class ShortcutColumn(Distillation, new_graphics=False):
     _get_energy_departure_coefficient = BinaryDistillation._get_energy_departure_coefficient
     _create_energy_departure_equations = BinaryDistillation._create_energy_departure_equations
     _create_material_balance_equations = BinaryDistillation._create_material_balance_equations
-    _update_nonlinearities = BinaryDistillation._update_nonlinearities
+    # _update_net_flow_parameters = BinaryDistillation._update_net_flow_parameters
+
+    # def _update_composition_parameters(self):
+    #     mol = sum([i.mol for i in self.ins]).to_array()
+    #     LHK_index = self._LHK_index
+    #     LHK_mol = mol[LHK_index]
+    #     light, heavy = LHK_mol
+    #     F_mol_LHK = light + heavy
+    #     zf = light / F_mol_LHK
+    #     y_top, y_bot = self._y
+    #     x_bot = self._x_bot
+    #     distillate_fraction = (zf - x_bot)/(y_top - x_bot)
+    #     if distillate_fraction < 1e-16: distillate_fraction = 1e-16
+    #     if distillate_fraction > 1 - 1e-16: distillate_fraction = 1 - 1e-16   
+    #     F_mol_LHK_distillate = F_mol_LHK * distillate_fraction
+    #     distillate_LHK_mol = F_mol_LHK_distillate * self._y
+    #     max_flows = (1 - 1e-16) * LHK_mol
+    #     mask = distillate_LHK_mol > (1 - 1e-16) * max_flows
+    #     distillate_LHK_mol[mask] = max_flows[mask]
+    #     self._Lr = distillate_LHK_mol[0] / LHK_mol[0]
+    #     self._Hr = distillate_LHK_mol[1] / LHK_mol[1]
+    #     self._distillate_recoveries = split = self._estimate_distillate_recoveries()
+    #     top = mol * split
+    #     bottom = mol - top
+    #     y = top / top.sum()
+    #     x = bottom / bottom.sum()
+    #     x[x == 0] = 1e-16
+    #     bottom[bottom == 0] = 1e-16
+    #     self.K = y / x
+
+    def _update_nonlinearities(self):
+        # pass
+        # self.run()
+        mol = sum([i.mol for i in self.ins]).to_array()
+        if self.product_specification_format == 'Composition':
+            LHK_index = self._LHK_index
+            LHK_mol = mol[LHK_index]
+            light, heavy = LHK_mol
+            F_mol_LHK = light + heavy
+            zf = light / F_mol_LHK
+            y_top, y_bot = self._y
+            x_bot = self._x_bot
+            distillate_fraction = (zf - x_bot)/(y_top - x_bot)
+            if distillate_fraction < 1e-16: distillate_fraction = 1e-16
+            if distillate_fraction > 1 - 1e-16: distillate_fraction = 1 - 1e-16   
+            F_mol_LHK_distillate = F_mol_LHK * distillate_fraction
+            distillate_LHK_mol = F_mol_LHK_distillate * self._y
+            max_flows = (1 - 1e-16) * LHK_mol
+            mask = distillate_LHK_mol > (1 - 1e-16) * max_flows
+            distillate_LHK_mol[mask] = max_flows[mask]
+            self._Lr = distillate_LHK_mol[0] / LHK_mol[0]
+            self._Hr = distillate_LHK_mol[1] / LHK_mol[1]
+        self._distillate_recoveries = split = self._estimate_distillate_recoveries()
+        top = mol * split
+        bottom = mol - top
+        bottom_dummy = bottom.copy()
+        bottom_dummy[bottom_dummy == 0] = 1e-16
+        self.B = B = top.sum() / bottom.sum()
+        self.K = top / bottom_dummy / B
+        # s_top, s_bottom = self.outs
+        # s_dummy = s_top.copy()
+        # s_dummy.mol = top
+        # s_top.T = (s_dummy.dew_point_at_P() if self._partial_condenser else s_dummy.bubble_point_at_P()).T
+        # s_dummy.mol = bottom
+        # s_bottom.T = s_dummy.bubble_point_at_P().T
 
 
 # %% Rigorous absorption/stripping column
