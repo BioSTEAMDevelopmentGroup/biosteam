@@ -1,5 +1,5 @@
-sphinx>=7.2.6
-pydata_sphinx_theme==0.14.1
+sphinx>=7.3.7
+pydata_sphinx_theme==0.15.4
 sphinxcontrib-jquery
 sphinx_multitoc_numbering
 sphinx_autodoc_typehints
