@@ -14,6 +14,9 @@
 #
 import os
 import sys
+from docutils import nodes
+
+nodes.reprunicode = lambda x: x # Workaround for bug in nbsphinx-link
 
 new_path = ['..\\', '..\\thermosteam\\', '..\\Bioindustrial-Park\\', '..\\How2STEAM\\']
 for p in new_path:
