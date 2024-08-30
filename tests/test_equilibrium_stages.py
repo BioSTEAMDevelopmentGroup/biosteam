@@ -349,9 +349,9 @@ def test_distillation():
     )
     distillation.simulate()
     flows = [
-        [0.0, 0.0, 0.0]
-        [0.11220194378011927, 4.351310579539389, 22.35906337238964]
-        [22.06172189576452, 0.14410640814689596, 87.14686571087641]
+        [0.0, 0.0, 0.0],
+        [0.11207752199115673, 4.350500752869734, 22.358527526458815],
+        [22.055922478008846, 0.14389924713026384, 87.15247247354125],
     ]
     for i, j in zip(distillation.outs, flows):    
         assert_allclose(i.mol, j, rtol=1e-5, atol=1e-3)
@@ -360,7 +360,6 @@ def test_distillation():
 if __name__ == '__main__':
     test_multi_stage_adiabatic_vle()
     test_distillation()
-    test_lactic_acid_ethanol_reactive_distillation()
 
 
 

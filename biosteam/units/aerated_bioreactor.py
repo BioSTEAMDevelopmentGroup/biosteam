@@ -381,13 +381,13 @@ class GasFedBioreactor(StirredTankReactor):
         flow (kmol/hr): H2O  555
     [1] H2  
         phase: 'g', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): H2  4.02
+        flow (kmol/hr): H2  18.1
     [2] fluegas  
         phase: 'g', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): CO2  2.01
-                        N2   8.83
-                        O2   0.221
-                        H2O  0.589
+        flow (kmol/hr): CO2  1.65
+                        N2   7.27
+                        O2   0.182
+                        H2O  0.485
     [3] recycle  
         phase: 'g', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): CO2  0.0523
@@ -397,15 +397,15 @@ class GasFedBioreactor(StirredTankReactor):
     outs...
     [0] vent  
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): H2          0.669
-                        CO2         0.387
-                        N2          9.08
-                        O2          0.233
-                        H2O         0.478
-                        AceticAcid  0.000463
+        flow (kmol/hr): H2          14.8
+                        CO2         0.0324
+                        N2          7.52
+                        O2          0.194
+                        H2O         1.02
+                        AceticAcid  0.000984
     [1] product  
         phase: 'l', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): H2O         557
+        flow (kmol/hr): H2O         556
                         AceticAcid  0.836
     
     """

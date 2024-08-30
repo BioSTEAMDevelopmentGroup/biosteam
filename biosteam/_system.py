@@ -2397,15 +2397,8 @@ class System:
                 conf.solve_material_flows()
             except (NotImplementedError, UnboundLocalError) as error:
                 raise error
-            # except AttributeError:
-            #     for i in path: i.run()
-            except Exception as e:
-                print('Failed!')
-                print(e)
+            except:
                 for i in path: i.run()
-                # conf.solve_nonlinearities()
-                # conf.solve_energy_departures()
-                # conf.solve_material_flows()
             
     def _solve(self):
         """Solve the system recycle iteratively."""

@@ -105,18 +105,16 @@ class BoilerTurbogenerator(bst.Facility):
     ins...
     [0] bagasse  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        composition (%): Water          40
-                         Cellulose      28.2
-                         Hemicellulose  16.7
-                         Lignin         15.1
-                         -------------  8e+04 kg/hr
+        flow (kmol/hr): Water          1.78e+03
+                        Cellulose      139
+                        Hemicellulose  101
+                        Lignin         79.5
     [1] -  
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow: 0
     [2] -  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        composition (%): Water  100
-                         -----  8.8e+03 kg/hr
+        flow (kmol/hr): Water  488
     [3] -  
         phase: 'g', T: 288.71 K, P: 101560 Pa
         flow: 0
@@ -125,30 +123,25 @@ class BoilerTurbogenerator(bst.Facility):
         flow: 0
     [5] -  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        composition (%): Ash  100
-                         ---  0.567 kg/hr
+        flow (kmol/hr): Ash  0.567
     [6] -  
         phase: 'g', T: 298.15 K, P: 101325 Pa
-        composition (%): O2  21
-                         N2  79
-                         --  1.5e+06 kg/hr
+        flow (kmol/hr): O2  9.85e+03
+                        N2  4.23e+04
     outs...
     [0] emissions  
         phase: 'g', T: 394.15 K, P: 101325 Pa
-        composition (%): Water  3.64
-                         CO2    5.5
-                         O2     15.9
-                         N2     75
-                         -----  1.58e+06 kg/hr
+        flow (kmol/hr): Water  3.19e+03
+                        CO2    1.98e+03
+                        O2     7.84e+03
+                        N2     4.23e+04
     [1] rejected_water_and_blowdown  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        composition (%): Water  100
-                         -----  8.8e+03 kg/hr
+        flow (kmol/hr): Water  488
     [2] ash_disposal  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        composition (%): Water  23.1
-                         Ash    76.9
-                         -----  0.737 kg/hr
+        flow (kmol/hr): Water  0.00944
+                        Ash    0.567
     
     >>> BT.results() # Steam and electricity are produced, so costs are negative
     Boiler turbogenerator                                      Units        BT
@@ -160,12 +153,12 @@ class BoilerTurbogenerator(bst.Facility):
     Cooling water         Duty                                 kJ/hr -8.42e+07
                           Flow                               kmol/hr  5.75e+04
                           Cost                                USD/hr      28.1
-    Natural gas (inlet)   Flow                                 kg/hr         0
+    Fuel (inlet)          Flow                                 kg/hr         0
                           Cost                                USD/hr         0
     Ash disposal (outlet) Flow                                 kg/hr     0.737
                           Cost                                USD/hr    0.0234
-    Design                Flow rate                            kg/hr  2.93e+05
-                          Work                                    kW  1.33e+05
+    Design                Work                                    kW  1.33e+05
+                          Flow rate                            kg/hr  2.93e+05
                           Ash disposal                         kg/hr     0.737
     Purchase cost         Baghouse bags                          USD      81.1
                           Boiler                                 USD  3.33e+07

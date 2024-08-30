@@ -580,7 +580,7 @@ class HeatUtility:
             phase='l',
         )
         propylene = UtilityAgent(
-            'propane',
+            'propylene',
             Propylene=1,
             thermo=cls.thermo_propylene,
             T=227.59,

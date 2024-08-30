@@ -873,11 +873,13 @@ class PhasePartition(Unit):
             if B is None: 
                 if self.reaction: Q += ms.Hf
                 kwargs['H'] = ms.H + Q
-            else:
+            elif B == np.inf:
+                kwargs['V'] = 1.
                 # B = V / (1 - V)
                 # B(1 - V) = V
                 # B - BV - V = 0
                 # -V(1 + B) + B = 0
+            else:
                 kwargs['V'] = B / (1 + B)
         else:
             kwargs['T'] = T
@@ -912,7 +914,7 @@ class PhasePartition(Unit):
     
     def _run(self):
         if self.phases == ('g', 'l'):
-            self._run_vle()    
+            self._run_vle()
         else:
             self._run_lle()
 
