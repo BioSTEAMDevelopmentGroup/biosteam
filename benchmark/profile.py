@@ -30,7 +30,8 @@ __all__ = (
     'plot_benchmark',
     'plot_profile',
     'register',
-    'test_convergence'
+    'test_convergence',
+    'Tracker'
 )
 
 # %% Make simulation rigorous to achieve lower tolerances
@@ -292,6 +293,7 @@ def test_convergence(systems=None):
         time = bst.TicToc()
         for sys in systems:
             f_sys = all_systems[sys]
+            bst.F.set_flowsheet('SM')
             sm = f_sys('sequential modular')
             sm.flatten()
             sm.set_tolerance(rmol=1e-5, mol=1e-5, subsystems=True, method='fixed-point', maxiter=500)
@@ -299,6 +301,7 @@ def test_convergence(systems=None):
             sm.simulate()
             print(sys)
             print('- Sequential modular', time.toc())
+            bst.F.set_flowsheet('PO')
             po = f_sys('phenomena oriented')
             po.flatten()
             po.set_tolerance(rmol=1e-5, mol=1e-5, subsystems=True, method='fixed-point', maxiter=500)
@@ -311,8 +314,10 @@ def test_convergence(systems=None):
                 try:
                     assert_allclose(actual, value, rtol=0.01, atol=0.01)
                 except:
-                    print(f'- Multiple steady stages for {s_sm}: sm-{actual} po-{value}')
-                    break
+                    if s_sm.source:
+                        print(f'- Multiple steady stages for {s_sm}, {s_sm.source}-{s_sm.source.outs.index(s_sm)}: sm-{actual} po-{value}')
+                    else:
+                        print(f'- Multiple steady stages for {s_sm}, {s_sm.sink.ins.index(s_sm)}-{s_sm.sink}: sm-{actual} po-{value}')
 
 # %% Profiling and benchmarking utilities
 
@@ -337,7 +342,7 @@ class Tracker:
     __slots__ = ('system', 'run', 'streams', 
                  'adiabatic_stages', 'stages',
                  'profile_time', 'rtol', 'atol',
-                 'kwargs', 'name')
+                 'kwargs', 'name', 'algorithm')
     
     def __init__(self, name, algorithm, rtol=1e-16, atol=1e-6, **kwargs):
         sys = all_systems[name](algorithm, **kwargs)
@@ -353,30 +358,31 @@ class Tracker:
             self.run = sys.run_phenomena
         else:
             raise ValueError('invalid algorithm')
+        self.algorithm = algorithm
         self.rtol = rtol
         self.atol = atol
         self.profile_time = system_convergence_times[name]
         self.streams, self.adiabatic_stages, self.stages, = streams_and_stages(sys)
         
-    def estimate_steady_state(self): # Uses optimization to estimate steady state
+    def estimate_steady_state(self, load=True): # Uses optimization to estimate steady state
         options = '_'.join(['{i}_{j}' for i, j in self.kwargs.items()])
         if options:
             file_name = f"{self.name}_{options}_steady_state"
         else:
             file_name = f"{self.name}_steady_state"
         file = os.path.join(simulations_folder, file_name)
-        try:
-            with open(file, 'rb') as f: return pickle.load(f)
-        except: pass
+        if load:
+            try:
+                with open(file, 'rb') as f: return pickle.load(f)
+            except: pass
         sys = all_systems[self.name]('phenomena-oriented', **self.kwargs)
         sys.flatten()
-        sys._setup_units()
-        for i in range(20): sys.run()
+        try: sys.simulate()
+        except: pass
+        for i in range(100): sys.run()
         sys.flowsheet.clear()
-        try:
-            sys.simulate()
-        except:
-            pass
+        try: sys.simulate()
+        except: pass
         p = bst.units.stage.PhasePartition
         settings = (
             p.S_relaxation_factor, p.B_relaxation_factor, 
@@ -423,7 +429,7 @@ class Tracker:
         vle_stages = []
         for i in S_index:
             s = all_stages[i]
-            if not isinstance(i, bst.StageEquilibrium): continue
+            if not isinstance(s, bst.StageEquilibrium): continue
             phases = getattr(s, 'phases', None)
             if phases == ('g', 'l'):
                 vle_stages.append(s)
@@ -433,6 +439,26 @@ class Tracker:
         N_S_index = len(S_index)
         lnS = np.log(S).flatten()
         count = [0]
+        
+        energy_error = lambda stage: abs(
+            (sum([i.H for i in stage.outs]) - sum([i.H for i in stage.ins])) / sum([i.C for i in stage.outs])
+        )
+        
+        def B_error(stage):
+            B = getattr(stage, 'B_specification', None)
+            if B is not None:
+                top, bottom = stage.partition.outs
+                return 100 * (top.F_mol / bottom.F_mol - B)
+            else:
+                return 0
+        
+        def T_equilibrium_error(stage):
+            if len(stage.outs) == 2:
+                top, bottom = stage.outs
+            else:
+                top, bottom = stage.partition.outs
+            return (top.dew_point_at_P().T - bottom.T)
+        
         def lnS_objective(lnS):
             S_original = np.exp(lnS)
             S = S_full
@@ -446,10 +472,14 @@ class Tracker:
                     s.K = S[i]
             with po.stage_configuration(aggregated=False) as conf:
                 conf._solve_material_flows(composition_sensitive=False)
+            # breakpoint()
             for i in vle_stages:
                 partition = i.partition
+                # print('----')
+                # print(i.K * i.B)
                 partition._run_decoupled_KTvle()
-                if s.B_specification is None: partition._run_decoupled_B()
+                if i.B_specification is None: partition._run_decoupled_B()
+                # print(i.K * i.B)
                 T = partition.T
                 for i in (partition.outs + i.outs): i.T = T
             for i in shortcuts:
@@ -460,51 +490,34 @@ class Tracker:
                     elif s.phase == 'g': 
                         dp = s.dew_point_at_P()
                         s.T = dp.T
-            Ts = np.array([i.T for i in lle_stages])
-            for i in range(10):
-                Ts_new = np.array([i.T for i in lle_stages])
-                with po.stage_configuration(aggregated=False) as conf:
-                    conf.solve_energy_departures(temperature_only=True)
-                for i in lle_stages:
-                    for j in i.outs: j.T = i.T
-                if np.abs(Ts_new - Ts).sum() < 1e-9: break
-                Ts = Ts_new
+            # Ts = np.array([i.T for i in lle_stages])
+            # for i in range(10):
+            #     Ts_new = np.array([i.T for i in lle_stages])
+            #     with po.stage_configuration(aggregated=False) as conf:
+            #         conf.solve_energy_departures(temperature_only=True)
+            #     for i in lle_stages:
+            #         for j in i.outs: j.T = i.T
+            #     print(np.abs(Ts_new - Ts).sum())   
+            #     if np.abs(Ts_new - Ts).sum() < 1e-9: break
+            #     Ts = Ts_new
             for i in lle_stages:
                 i.partition._run_lle(update=False)
-            energy_error = lambda stage: abs(
-                (sum([i.H for i in stage.outs]) - sum([i.H for i in stage.ins])) / sum([i.C for i in stage.outs])
-            )
             total_energy_error = sum([energy_error(stage) for stage in stages if stage.B_specification is None and stage.T_specification is None])
-            
-            def B_error(stage):
-                B = getattr(stage, 'B_specification', None)
-                if B is not None:
-                    top, bottom = stage.partition.outs
-                    return 1000 * (top.F_mol / bottom.F_mol - B)
-                else:
-                    return 0
-            
-            def T_equilibrium_error(stage):
-                if len(stage.outs) == 2:
-                    top, bottom = stage.outs
-                else:
-                    top, bottom = stage.partition.outs
-                return (top.dew_point_at_P().T - bottom.T)
-            
             specification_errors = np.array([B_error(all_stages[i]) for i in S_index])
-            temperature_errors = np.array([T_equilibrium_error(i) for i in vle_stages])
+            # temperature_errors = np.array([T_equilibrium_error(i) for i in vle_stages])
             for i in shortcuts: i._run()
             S_new = np.array([(all_stages[i].K * all_stages[i].B) for i in S_index]).flatten()
             splits_new = S_new / (S_new + 1)
             splits = S_original / (S_original + 1)
-            diff = splits_new - splits
+            diff = (splits_new - splits)
             total_split_error = (diff * diff).sum()
             total_specification_error = (specification_errors * specification_errors).sum()
-            total_temperature_error = (temperature_errors * temperature_errors).sum()
-            total_error = total_split_error + total_energy_error + total_specification_error + total_temperature_error
+            # total_temperature_error = (temperature_errors * temperature_errors).sum()
+            total_error = total_split_error + total_energy_error + total_specification_error #+ total_temperature_error
             err = np.sqrt(total_error)
             if not count[0] % 100:
                 print(err)
+                print(total_split_error, total_energy_error, total_specification_error)
                 po.show()
             count[0] += 1
             return err
@@ -770,7 +783,7 @@ def plot_profile(
     bst.set_font(fs)
     keys = (
         'Component flow rate error',
-        'Temperature error',
+        # 'Temperature error',
         # 'Component flow rate',
         # 'Stream temperature',
         # 'Stripping factor',
@@ -779,7 +792,7 @@ def plot_profile(
     )
     units = (
         r'$[\mathrm{mol} \cdot \mathrm{hr}^{\mathrm{-1}}]$',
-        r'$[\mathrm{K}]$',
+        # r'$[\mathrm{K}]$',
         # r'$[\mathrm{mol} \cdot \mathrm{hr}^{\mathrm{-1}}]$',
         # r'$[\mathrm{K}]$',
         # r'$[-]$',
@@ -801,8 +814,14 @@ def plot_profile(
             aspect_ratio = 1.5
         bst.set_figure_size(aspect_ratio=aspect_ratio, width=width)
     else:
-        bst.set_figure_size(aspect_ratio=0.52 / n_cols, width=width)
+        if n_cols >= 2:
+            aspect_ratio = 0.75 / 2
+        else:
+            aspect_ratio = 1.5 / 2
+        bst.set_figure_size(aspect_ratio=aspect_ratio, width=width)
     fig, all_axes = plt.subplots(n_rows, n_cols)
+    if n_rows == 1:
+        all_axes = all_axes.reshape([n_rows, n_cols])
     if n_cols == 1:
         all_axes = np.reshape(all_axes, [n_rows, n_cols]) 
     for m, sys in enumerate(systems):
@@ -810,33 +829,32 @@ def plot_profile(
         axes = all_axes[:, m]
         sms = []
         pos = []
-        if load:
-            sm_name = f'sm_{time}_{sys}_profile.npy'
+        for i in range(N):
+            sm_name = f'sm_{time}_{sys}_profile_{i}.npy'
             file = os.path.join(simulations_folder, sm_name)
-            with open(file, 'rb') as f: sms = pickle.load(f)
-            po_name = f'po_{time}_{sys}_profile.npy'
-            file = os.path.join(simulations_folder, po_name)
-            with open(file, 'rb') as f: pos = pickle.load(f)
-        else:
-            for i in range(N):
-                sm = Tracker(sys, 'sequential modular').profile()
-                sms.append(sm)
-            # sm_name = f'sm_{time}_{sys}_profile.npy'
-            # file = os.path.join(simulations_folder, sm_name)
-            # with open(file, 'rb') as f: sms = pickle.load(f)
-            for i in range(N):
+            if load:
                 try:
-                    po = Tracker(sys, 'phenomena oriented').profile()
+                    with open(file, 'rb') as f: sm = pickle.load(f)
+                except:
+                    sm = Tracker(sys, 'sequential modular').profile()
+            if save:
+                sm_name = f'sm_{time}_{sys}_profile_{i}.npy'
+                file = os.path.join(simulations_folder, sm_name)
+                with open(file, 'wb') as f: pickle.dump(sm, f)
+            sms.append(sm)
+        for i in range(N):
+            po_name = f'po_{time}_{sys}_profile_{i}.npy'
+            file = os.path.join(simulations_folder, po_name)
+            if load:
+                try:
+                    with open(file, 'rb') as f: po = pickle.load(f)
                 except:
                     po = Tracker(sys, 'phenomena oriented').profile()
-                pos.append(po)
             if save:
-                sm_name = f'sm_{time}_{sys}_profile.npy'
-                file = os.path.join(simulations_folder, sm_name)
-                with open(file, 'wb') as f: pickle.dump(sms, f)
-                po_name = f'po_{time}_{sys}_profile.npy'
+                po_name = f'po_{time}_{sys}_profile_{i}.npy'
                 file = os.path.join(simulations_folder, po_name)
-                with open(file, 'wb') as f: pickle.dump(pos, f)
+                with open(file, 'wb') as f: pickle.dump(po, f)
+            pos.append(po)
         tub = system_tickmarks[sys][-1]
         tub = min(tub, min([dct['Time'][-1] for dct in sms]), min([dct['Time'][-1] for dct in pos]))
         sm = dct_mean_profile(sms, keys, tub)
@@ -926,10 +944,16 @@ def plot_profile(
         plt.sca(ax)
         ylb, yub = plt.ylim()
         xlb, xub = plt.xlim()
-        plt.text((xlb + xub) * 0.5, ylb + (yub - ylb) * 1.2, letter, color=letter_color,
+        plt.text((xlb + xub) * 0.5, ylb + (yub - ylb) * 1.1, letter, color=letter_color,
                   horizontalalignment='center',verticalalignment='center',
                   fontsize=fs, fontweight='bold')
-    plt.subplots_adjust(right=0.96, left=0.1, bottom=0.10, top=0.85, hspace=0, wspace=0)
+    if n_rows == 2:
+        bottom = 0.1
+    elif n_rows == 1:
+        bottom = 0.15
+    else:
+        bottom = 0.08
+    plt.subplots_adjust(right=0.96, left=0.1, bottom=bottom, top=0.85, hspace=0, wspace=0)
     for i in ('svg', 'png'):
         name = f'PO_SM_profile.{i}'
         file = os.path.join(images_folder, name)

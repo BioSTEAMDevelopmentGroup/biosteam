@@ -2023,7 +2023,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
     def _update_nonlinearities(self):
         # pass
         # self.run()
-        mol = sum([i.mol for i in self.ins]).to_array()
+        mol = sum([i.mol for i in self.outs]).to_array()
         if self.product_specification_format == 'Composition':
             LHK_index = self._LHK_index
             LHK_mol = mol[LHK_index]
@@ -2584,8 +2584,11 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         if full_condenser: 
             if liquid_side_draws is None:
                 liquid_side_draws = {}
-            if reflux is not None and 0 not in liquid_side_draws: 
-                liquid_side_draws[0] = reflux / (1 + reflux)
+            if 0 not in liquid_side_draws:
+                if reflux is None:
+                    liquid_side_draws[0] = 1.
+                else:
+                    liquid_side_draws[0] = reflux / (1 + reflux)
             reflux = inf # Boil-up is 0
         self.LHK = LHK
         if stage_specifications is None: stage_specifications = {}

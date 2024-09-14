@@ -554,19 +554,29 @@ class StageEquilibrium(Unit):
         )
         # Top split flows
         if top_side_draw:
-            eq_top_split = {
-                top_side_draw: ones,
-                top: -top_split / (1 - top_split),
-            }
+            if top_split == 1:
+                eq_top_split = {
+                    top: ones,
+                }
+            else:
+                eq_top_split = {
+                    top_side_draw: ones,
+                    top: -top_split / (1 - top_split),
+                }
             equations.append(
                 (eq_top_split, zeros)
             )
         # Bottom split flows
         if bottom_side_draw:
-            eq_bottom_split = {
-                bottom_side_draw: ones,
-                bottom: -bottom_split / (1 - bottom_split),
-            }
+            if bottom_split == 1:
+                eq_bottom_split = {
+                    bottom: ones,
+                }
+            else:
+                eq_bottom_split = {
+                    bottom_side_draw: ones,
+                    bottom: -bottom_split / (1 - bottom_split),
+                }
             equations.append(
                 (eq_bottom_split, zeros)
             )
@@ -604,8 +614,8 @@ class StageEquilibrium(Unit):
             T = partition.T
             for i in (partition.outs, self.outs): i.T = T
         elif phases == ('L', 'l'):
-            # self.partition._run_lle(single_loop=True)
-            pass
+            self.partition._run_lle(single_loop=True)
+            # pass
         else:
             raise NotImplementedError(f'K for phases {phases} is not yet implemented')
         
@@ -1546,8 +1556,8 @@ class MultiStageEquilibrium(Unit):
         if self._has_vle:
             for i in self.stages: i._update_nonlinearities()
         elif self._has_lle:
-            pass
-            # self.update_lle_variables()
+            # pass
+            self.update_lle_variables()
     
     def _update_aggretated_nonlinearities(self):
         top_flow_rates = self.get_top_flow_rates()
@@ -2451,6 +2461,7 @@ class MultiStageEquilibrium(Unit):
                             mixer.ins, energy_balance=False,
                         )
                         partition._run_decoupled_Kgamma(P=P)
+                        i._update_separation_factors()
                     # self.interpolate_missing_variables()
                     return self.run_mass_balance()
             self.set_flow_rates(

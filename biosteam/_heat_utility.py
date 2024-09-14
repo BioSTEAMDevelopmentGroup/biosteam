@@ -67,12 +67,14 @@ class UtilityAgent(Stream):
         Price of regenerating the fluid for reuse [USD/kmol]. Defaults to 0.
     heat_transfer_efficiency :
         Fraction of heat transferred accounting for losses to the environment (must be between 0 to 1). Defaults to 1.
+    isfuel :
+        Whether to burn the agent as a isfuel for heat.
     **chemical_flows : float
         ID - flow pairs.
         
     """
     __slots__ = ('T_limit', '_heat_transfer_price', 'utility_stream_dump',
-                 '_regeneration_price', 'heat_transfer_efficiency')
+                 '_regeneration_price', 'heat_transfer_efficiency', 'isfuel')
     def __init__(self, 
                  ID: Optional[str]='',
                  phase: Optional[str]='l',
@@ -83,7 +85,8 @@ class UtilityAgent(Stream):
                  T_limit: Optional[float]=None,
                  heat_transfer_price: float=0.,
                  regeneration_price: float=0.,
-                 heat_transfer_efficiency: float=1.,                  
+                 heat_transfer_efficiency: float=1.,
+                 isfuel: bool=False,
                  **chemical_flows: float):
         self._thermal_condition = ThermalCondition(T, P)
         thermo = self._load_thermo(thermo)
@@ -101,6 +104,7 @@ class UtilityAgent(Stream):
         self.heat_transfer_price = heat_transfer_price
         self.regeneration_price = regeneration_price
         self.heat_transfer_efficiency = heat_transfer_efficiency
+        self.isfuel = isfuel
         self.utility_stream_dump = []
     
     def _get_property(self, name, flow=False, nophase=False, T=None, P=None):
@@ -282,9 +286,12 @@ class HeatUtility:
     ('low_pressure_steam', 1052.6315789473686, 0.02721274387089031, 0.006471190492497716)
            
     """
-    __slots__ = ('inlet_utility_stream', 'outlet_utility_stream', 'duty',
-                 'flow', 'cost', 'heat_transfer_efficiency', 
-                 'unit', 'hxn_ok', 'agent', 'unit_duty')
+    __slots__ = (
+        'inlet_utility_stream', 'outlet_utility_stream', 'agent', 
+        'duty', 'flow', 'cost', 'heat_transfer_efficiency', 
+        'unit', 'hxn_ok', 'unit_duty',
+        'oxygen_rich_inlet', # Only for fuels
+    )
     #: Minimum approach temperature difference. Used to assign
     #: the pinch temperature of the utility stream.
     dT: float = 5  
@@ -292,17 +299,20 @@ class HeatUtility:
     #: Units of measure for IPython display.
     display_units: DisplayUnits = DisplayUnits(duty='kJ/hr', flow='kmol/hr', cost='USD/hr')
 
-    #: Used broadly throughout BioSTEAM utilities.
+    #: Used broadly throughout utilities.
     thermo_water: Thermo = Thermo(['Water'])
     
-    #: Used for BioSTEAM refrigeration utility.
+    #: Used for refrigeration utility.
     thermo_propane: Thermo = Thermo(['Propane'])
 
-    #: Used for BioSTEAM refrigeration utility.
+    #: Used for refrigeration utility.
     thermo_propylene: Thermo = Thermo(['Propylene'])
     
-    #: Used for BioSTEAM refrigeration utility.
+    #: Used for refrigeration utility.
     thermo_ethylene: Thermo = Thermo(['Ethylene'])
+
+    #: Used exclusively for furnaces.
+    thermo_natural_gas: Thermo = Thermo(['Methane', 'N2', 'CO2', 'O2', 'H2O'])
 
     #: Characterization factor data (value and units) by agent ID and impact key.
     characterization_factors: dict[tuple[str, str], tuple[float, AbsoluteUnitsOfMeasure]] = {}
@@ -541,9 +551,19 @@ class HeatUtility:
             regeneration_price = 0.3171,
             heat_transfer_efficiency = 0.85,
         ) 
+        natural_gas = UtilityAgent(
+            'natural_gas',
+            Methane=1, T=298.15, P=200 * 101325, phase='g', 
+            thermo=cls.thermo_natural_gas,
+            heat_transfer_efficiency = 0.90, # Heat loss to environment
+            regeneration_price=3.49672,
+            T_limit=405, # Must be reasonably higher than the emission's dew point at 500 psig (401 K)
+            isfuel=True,
+        ) 
         cls.heating_agents = [low_pressure_steam, 
                               medium_pressure_steam, 
-                              high_pressure_steam]
+                              high_pressure_steam,
+                              natural_gas]
         
     @classmethod
     def default_cooling_agents(cls):
@@ -627,6 +647,9 @@ class HeatUtility:
         self.duty *= factor
         self.cost *= factor
         self.inlet_utility_stream.mol *= factor
+        if self.agent.isfuel: 
+            self.outlet_utility_stream.mol *= factor
+            self.oxygen_rich_inlet.mol *= factor
         # No need to factor the outlet utility stream
         # because it shares the same flow rate data as the inlet
 
@@ -636,9 +659,14 @@ class HeatUtility:
             agent = self.agent
             dump = agent.utility_stream_dump
             if len(dump) < 1000:
-                dump.append(
-                    (self.inlet_utility_stream, self.outlet_utility_stream)
-                )
+                if agent.isfuel:
+                    dump.append(
+                        (self.inlet_utility_stream, self.outlet_utility_stream, self.oxygen_rich_inlet)
+                    )
+                else:
+                    dump.append(
+                        (self.inlet_utility_stream, self.outlet_utility_stream)
+                    )
         self.cost = self.flow = self.duty = self.unit_duty = 0
         self.outlet_utility_stream = self.inlet_utility_stream = self.agent = None
         
@@ -648,7 +676,7 @@ class HeatUtility:
             return
         self.load_agent(agent)
         heat_transfer_efficiency = self.heat_transfer_efficiency or agent.heat_transfer_efficiency
-        if agent.T_limit: raise ValueError('agent must work by latent heat to set by flow rate')
+        if agent.T_limit or agent.isfuel: raise ValueError('agent must work by latent heat to set by flow rate')
         if self.inlet_utility_stream.phase == 'l' :
             self.outlet_utility_stream.phase = 'g'
             dh = -agent._get_property('Hvap', nophase=True)
@@ -705,7 +733,32 @@ class HeatUtility:
         ## Calculate utility requirement ##
         heat_transfer_efficiency = self.heat_transfer_efficiency or agent.heat_transfer_efficiency
         duty = unit_duty / heat_transfer_efficiency
-        if agent.T_limit:
+        if agent.isfuel:
+            T_emissions = self.get_outlet_temperature(
+                T_pinch_out, agent.T_limit, iscooling
+            )
+            feed = self.inlet_utility_stream
+            emissions = self.outlet_utility_stream
+            emissions.copy_like(feed)
+            emissions.P = 101325
+            reactions = agent.chemicals.get_combustion_reactions()
+            reactions.force_reaction(emissions)
+            O2_consumption = -emissions.imol['O2']
+            oxygen_rich_gas = self.oxygen_rich_inlet
+            z_O2 = oxygen_rich_gas.imol['O2'] / oxygen_rich_gas.F_mol
+            oxygen_rich_gas.F_mol = O2_consumption / z_O2
+            emissions.mol += oxygen_rich_gas.mol
+            F_emissions = emissions.F_mass
+            z_CO2 = emissions.imass['CO2'] / F_emissions
+            z_CO2_target = 0.055 # Usually between 4 - 7 for biomass and natural gas (https://www.sciencedirect.com/science/article/pii/S0957582021005127)
+            F_emissions_new = z_CO2 * F_emissions / z_CO2_target
+            dF_emissions = F_emissions_new - F_emissions
+            oxygen_rich_gas.F_mass = F_mass_O2_new = oxygen_rich_gas.F_mass + dF_emissions
+            emissions.mol += oxygen_rich_gas.mol * (dF_emissions / F_mass_O2_new)
+            emissions.T = T_emissions
+            emissions.P = 3548325.0 # 500 psig
+            dh = feed.Hnet - emissions.Hnet
+        elif agent.T_limit:
             # Temperature change
             self.outlet_utility_stream.T = T_outlet = self.get_outlet_temperature(
                 T_pinch_out, agent.T_limit, iscooling
@@ -721,7 +774,11 @@ class HeatUtility:
                 self.outlet_utility_stream.phase = 'l'
         
         # Update utility flow
-        self.outlet_utility_stream.mol[:] = F_mol = duty / dh
+        F_mol = duty / dh
+        self.inlet_utility_stream.mol[:] *= F_mol
+        if agent.isfuel: 
+            emissions.mol[:] *= F_mol
+            oxygen_rich_gas.mol[:] *= F_mol
         
         # Update results
         self.unit_duty = unit_duty
@@ -808,7 +865,7 @@ class HeatUtility:
         
         """
         for agent in cls.heating_agents:
-            if T_pinch < agent.T: return agent
+            if T_pinch < agent.T or agent.isfuel: return agent
         raise RuntimeError(f'no heating agent that can heat over {T_pinch} K')    
 
     @classmethod
@@ -828,17 +885,27 @@ class HeatUtility:
     def load_agent(self, agent: UtilityAgent):
         """Initialize utility streams with given agent."""
         if self.agent is agent: 
+            self.inlet_utility_stream.copy_like(agent)
+            if not agent.T_limit: self.outlet_utility_stream.copy_thermal_condition(agent)
             return
         elif self.agent: 
             self.empty()
         if agent.utility_stream_dump:
-            self.inlet_utility_stream, self.outlet_utility_stream = agent.utility_stream_dump.pop()
+            if agent.isfuel:
+                self.inlet_utility_stream, self.outlet_utility_stream, self.oxygen_rich_inlet = agent.utility_stream_dump.pop()
+                self.oxygen_rich_inlet.reset_flow(O2=21, N2=79, phase='g', units='kg/hr')
+            else:
+                self.inlet_utility_stream, self.outlet_utility_stream = agent.utility_stream_dump.pop()
             # Prevent errors where utility streams are altered
             self.inlet_utility_stream.copy_like(agent) 
-            self.outlet_utility_stream.copy_thermal_condition(agent)
+            if not agent.T_limit: self.outlet_utility_stream.copy_thermal_condition(agent)
         else:
             self.inlet_utility_stream = agent.to_stream()
-            self.outlet_utility_stream = self.inlet_utility_stream.flow_proxy()
+            if agent.isfuel:
+                self.outlet_utility_stream = agent.to_stream()
+                self.oxygen_rich_inlet = Stream(O2=21, N2=79, phase='g', units='kg/hr', thermo=agent.thermo)
+            else:
+                self.outlet_utility_stream = self.inlet_utility_stream.flow_proxy()
         self.agent = agent
 
     def mix_from(self, heat_utilities: Iterable[HeatUtility]):

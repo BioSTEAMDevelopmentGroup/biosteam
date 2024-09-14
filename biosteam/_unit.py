@@ -992,7 +992,34 @@ class Unit(AbstractUnit):
         1000.0
         
         """
-        self.design_results[key] = convert(value, units, self._units[key])
+        self.design_results[key] = value = convert(value, units, self._units[key])
+        return value
+    
+    def convert_design_result(self, key, units, value):
+        """
+        Convert design result in given units to the stored units of measure.
+            
+        Parameters
+        ----------
+        key :
+            Name of design result.
+        units :
+            Units of measure.
+        value:
+            Value of the design result.
+        
+        Examples
+        --------
+        >>> import biosteam as bst
+        >>> bst.settings.set_thermo(['Water'], cache=True)
+        >>> feed = bst.Stream(None, Water=100)
+        >>> tank = bst.StorageTank(None, feed)
+        >>> tank.simulate()
+        >>> tank.convert_design_result('Total volume', 'ft3', 1000)
+        28.31
+        
+        """
+        return convert(value, units, self._units[key])
     
     def reset_cache(self, isdynamic=None):
         pass

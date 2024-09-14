@@ -166,47 +166,31 @@ def create_acetic_acid_complex_system(
             ethyl_acetate.imass['EthylAcetate'] = max(
                 0, EtAc_fresh
             )
-            
-        HX = bst.StageEquilibrium(
-            'HX_extract',
-            ins=[extractor.extract], 
-            phases=('g', 'l'),
-            B=1,
-        )
         extract_feed_stage = int(extract_distillation_stages / 2)
         ED = bst.MESHDistillation(
             'extract_distillation',
-            ins=[HX-0, HX-1, reflux],
-            outs=['vapor', ''],
+            ins=[extractor.extract, reflux],
+            outs=['', '', ''],
             LHK=('EthylAcetate', 'AceticAcid'),
             N_stages=extract_distillation_stages,
-            feed_stages=(extract_feed_stage, extract_feed_stage, 0),
-            
-            reflux=None,
+            feed_stages=(extract_feed_stage, 1),
+            full_condenser=True,
             boilup=3,
             use_cache=True,
         )
-        mixer = bst.Mixer('distillation_recycle', ins=[ED-0, distillate_2])
+        mixer = bst.Mixer('distillation_recycle', ins=[ED-2, distillate_2])
         settler = bst.StageEquilibrium(
             'settler',
             ins=(mixer-0, distillate), 
-            outs=(solvent_recycle, water_rich, ''),
+            outs=(solvent_recycle, water_rich, reflux),
             phases=('L', 'l'),
             top_chemical='EthylAcetate',
             top_split=0.4,
-            T=310,
             # partition_data={
             #     'K': np.array([ 0.253,  2.26 , 40.816]),
             #     'IDs': ('Water', 'AceticAcid', 'EthylAcetate'),
             # },
             thermo=thermo,
-        )
-        HX = bst.StageEquilibrium(
-            'HX_reflux',
-            ins=[settler-2], 
-            outs=['', reflux],
-            phases=('g', 'l'),
-            B=0,
         )
         # @settler.add_specification(run=True)
         # def adjust_fresh_solvent_flow_rate():
@@ -232,15 +216,16 @@ def create_acetic_acid_complex_system(
             phases=('g', 'l'),
             B=0,
         )
+        
         AD.check_LHK = False
         RD = bst.MESHDistillation(
             'raffinate_distillation',
             LHK=('EthylAcetate', 'Water'),
-            ins=[HX-0, HX-1],
+            ins=[HX-1],
             outs=['', wastewater, distillate],
             full_condenser=True,
             N_stages=raffinate_distillation_stages,
-            feed_stages=(1, 2),
+            feed_stages=(2,),
             reflux=1,
             boilup=2,
             use_cache=True,
@@ -335,14 +320,7 @@ def create_acetic_acid_complex_decoupled_system(
             ethyl_acetate.imass['EthylAcetate'] = max(
                 0, EtAc_fresh
             )
-            
-        HX = bst.StageEquilibrium(
-            'HX_extract',
-            ins=[extractor.extract], 
-            phases=('g', 'l'),
-            B=1,
-        )
-        mixer = bst.Mixer(ins=[HX-0, HX-1, reflux])
+        mixer = bst.Mixer(ins=[extractor.extract, reflux])
         ED = bst.ShortcutColumn(
             'extract_distillation',
             ins=mixer-0,
@@ -358,7 +336,7 @@ def create_acetic_acid_complex_decoupled_system(
         settler = bst.StageEquilibrium(
             'settler',
             ins=(mixer-0, distillate), 
-            outs=(solvent_recycle, water_rich, ''),
+            outs=(solvent_recycle, water_rich, reflux),
             phases=('L', 'l'),
             top_chemical='EthylAcetate',
             top_split=0.4,
@@ -369,13 +347,7 @@ def create_acetic_acid_complex_decoupled_system(
             # },
             thermo=thermo,
         )
-        HX = bst.StageEquilibrium(
-            'HX_reflux',
-            ins=[settler-2], 
-            outs=['', reflux],
-            phases=('g', 'l'),
-            B=0,
-        )
+        
         # @settler.add_specification(run=True)
         # def adjust_fresh_solvent_flow_rate():
         #     broth = acetic_acid_broth.F_mass
@@ -384,13 +356,7 @@ def create_acetic_acid_complex_decoupled_system(
         #         0, broth * solvent_feed_ratio - EtAc_recycle
         #     )
         # settler.coupled_KL = True
-        HX = bst.StageEquilibrium(
-            'HX',
-            ins=[water_rich, extractor.raffinate], 
-            phases=('g', 'l'),
-            B=0,
-        )
-        mixer = bst.Mixer(ins=[HX-0, HX-1])
+        mixer = bst.Mixer(ins=[water_rich, extractor.raffinate])
         RD = bst.ShortcutColumn(
             'raffinate_distillation',
             LHK=('EthylAcetate', 'Water'),

@@ -47,6 +47,7 @@ from . import report
 from thermosteam.network import temporary_units_dump, TemporaryUnit
 import os
 import openpyxl
+import thermosteam as tmo
 if TYPE_CHECKING: 
     from ._tea import TEA
     from .evaluation import Response
@@ -107,20 +108,23 @@ class Configuration:
                 i._update_nonlinearities()
     
     def solve_material_flows(self):
-        if self.composition_sensitive_path:
-            for i in self.composition_sensitive_path: i._update_composition_parameters()
-            flows = self._solve_material_flows(composition_sensitive=True)
+        # if self.composition_sensitive_path:
+        #     for i in self.composition_sensitive_path: i._update_composition_parameters()
+        #     flows = self._solve_material_flows(composition_sensitive=True)
+        #     # for i in range(20):
+        #     #     for i in self.composition_sensitive_path: i._update_composition_parameters()
+        #     #     self._solve_material_flows(composition_sensitive=True)
+        #     def update_inner_material_balance_parameters(flows):
+        #         for i in self.composition_sensitive_path: i._update_composition_parameters()
+        #         return self._solve_material_flows(composition_sensitive=True)
             
-            def update_inner_material_balance_parameters(flows):
-                for i in self.composition_sensitive_path: i._update_composition_parameters()
-                return self._solve_material_flows(composition_sensitive=True)
-            
-            flx.fixed_point(
-                update_inner_material_balance_parameters,
-                flows, xtol=1e-6 + 1e-6 * flows.max(), maxiter=3, checkiter=False,
-                checkconvergence=False,
-            )
-            for i in self.composition_sensitive_path: i._update_net_flow_parameters()
+        #     flx.fixed_point(
+        #         update_inner_material_balance_parameters,
+        #         flows, xtol=tmo.LLE.pseudo_equilibrium_inner_loop_options['xtol'] * flows.max(), 
+        #         maxiter=20, checkiter=False,
+        #         checkconvergence=False,
+        #     )
+        #     for i in self.composition_sensitive_path: i._update_net_flow_parameters()
         self._solve_material_flows(composition_sensitive=False)
     
     def dynamic_coefficients(self, b):
