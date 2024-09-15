@@ -562,6 +562,9 @@ def plot_single_point_sensitivity(baseline, lb, ub,
         if index is None: index = ub.index
         if name is None: name = ub.name
         ub = ub.values
+    mask = np.isnan(lb) | np.isnan(ub)
+    lb[mask] = baseline
+    ub[mask] = baseline
     if index is None:
         raise ValueError('must pass index if lb or ub is not a pandas Series object')
     # Sort parameters for plot
