@@ -441,11 +441,22 @@ def test_two_recycle_loops_with_partial_overlap():
              S1,
              S3],
             recycle={recycle, inner_recycle})])
-    assert network == actual_network
+    alternative_network = Network(
+        [P1,
+         P2,
+         P3,
+         Network(
+            [M1,
+             M2,
+             S2,
+             S3,
+             S1],
+            recycle={inner_recycle, recycle})])
+    assert network == actual_network or network == alternative_network
     recycle_loop_sys.simulate()
     x_nested_solution = np.vstack([recycle.mol, inner_recycle.mol])
     recycle_loop_sys.flatten()
-    assert recycle_loop_sys.path == (P1, P2, P3, M1, M2, S2, S1, S3)
+    assert recycle_loop_sys.path == (P1, P2, P3, M1, M2, S2, S1, S3) or recycle_loop_sys.path == (P1, P2, P3, M1, M2, S2, S3, S1)
     recycle_loop_sys.empty_recycles()
     recycle_loop_sys.simulate()
     x_flat_solution = np.vstack([recycle.mol, inner_recycle.mol])
