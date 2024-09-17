@@ -456,14 +456,15 @@ def find_blowdown_recycle(facilities):
         if isa(i, bst.BlowdownMixer): return i.outs[0]
 
 def find_recycles(path):
+    all_units = set(path)
     past_outlets = set()
-    recycles = []
+    recycles = set()
     for i in path:
         for s in i.ins:
-            if s in past_outlets or s.isfeed(): continue
-            recycles.append(s)
+            if s in past_outlets or s.source not in all_units: continue
+            recycles.add(s)
         past_outlets.update(i.outs)
-    return recycles
+    return list(recycles)
 
 # %% LCA
 
@@ -1676,7 +1677,7 @@ class System:
                     break
             if stop: break
         self._path = tuple(path)
-        self._recycle = find_recycles(self._path)
+        self._recycle = find_recycles(path)
 
     def to_unit_group(self, name: Optional[str]=None):
         """Return a UnitGroup object of all units within the system."""
@@ -3309,7 +3310,8 @@ class System:
         path = [(i._to_network() if isa(i, System) else i) for i in self._path]
         network = Network.__new__(Network)
         network.path = path
-        network.recycle = self._recycle
+        recycle = self._recycle
+        network.recycle = set(recycle) if isinstance(recycle, list) else recycle
         network.units = set(self.unit_path)
         return network
 

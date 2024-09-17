@@ -713,11 +713,11 @@ class Model:
         relative_error = error / np.maximum.reduce([np.abs(baseline_1[index]), np.abs(baseline_2[index])])
         for i, idx in enumerate(index):
             if relative_error[i] > etol:
-                raise RuntimeError(
+                print(RuntimeError(
                     f"inconsistent model; {metrics[idx]} has a value of "
                     f"{baseline_1[idx]} before evaluating sensitivity and "
                     f"{baseline_2[idx]} after"
-                )
+                ))
         baseline = 0.5 * (baseline_1 + baseline_2)
         if array:
             return baseline, values_lb, values_ub

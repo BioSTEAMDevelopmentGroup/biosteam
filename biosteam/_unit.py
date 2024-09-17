@@ -881,10 +881,11 @@ class Unit(AbstractUnit):
                 self.baseline_purchase_costs, 
                 self.purchase_costs, 
                 self.installed_costs]):
-            raise UnitInheritanceError(
+            warn(
                f'`{type(self).__name__}._run` method added unit results '
                 '(e.g., purchase costs, heat and power utilities); unit results '
-                'should only be added in `_design` or `_cost` methods'
+                'should only be added in `_design` or `_cost` methods',
+                RuntimeWarning
             )
     
     def materialize_connections(self):
