@@ -568,7 +568,7 @@ def inject_javascript(img:bytes):
 def display_digraph(digraph, format, height=None): # pragma: no coverage
     if format is None: format = preferences.graphviz_format
     if height is None: height = '400px'
-    if format == 'svg' or format=='html':
+    if format == 'svg':
         img = digraph.pipe(format='svg')
         img = fix_valve_symbol_in_svg_output(img)
         x = display.SVG(img)
