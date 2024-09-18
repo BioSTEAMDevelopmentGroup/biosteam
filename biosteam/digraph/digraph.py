@@ -316,7 +316,11 @@ def get_unit_names(f: Digraph, path, with_auxiliaries):
     fill_info_from_path(path, [0], info_by_unit)
     for u, (index, time) in info_by_unit.items():
         node = u.get_node()
-        label = node['label']
+        if 'xlabel' in node:
+            key = 'xlabel'
+        else:
+            key = 'label'
+        label = node[key]
         info = ', '.join(index) 
         if time is not None:
             if info:
@@ -324,7 +328,7 @@ def get_unit_names(f: Digraph, path, with_auxiliaries):
             else:
                 info = time
         if info: label = f"[{info}] {label}"
-        node['label'] = label
+        node[key] = label
         unit_names[u] = node['name']
         if (with_auxiliaries and all([i in info_by_unit for i in u.auxiliary_units])
             and u._assembled_from_auxiliary_units()): continue
@@ -490,10 +494,10 @@ def fix_valve_symbol_in_svg_output(
         p.attrib["fill"] = unit_color.split(':')[-1] # In case of gradiant color (white:#CDCDCD)
         p.attrib["stroke"] = unit_periphery_color
     # fix label text color and position
-    label_image = [(c,i) for i in images for c in getchildren(parent_map[parent_map[parent_map[i]]]) if 'text' in c.tag]
+    label_image = [(c, i) for i in images for c in getchildren(parent_map[parent_map[parent_map[i]]]) if 'text' in c.tag]
     for l,i in label_image:
         l.attrib["fill"] = label_color
-        width = int(i.attrib['width'].replace('px',''))
+        width = float(i.attrib['width'].replace('px',''))
         x = float(i.attrib["x"])
         l.attrib["x"] = f"{x+width/2}"
     # delete image tags
@@ -564,19 +568,19 @@ def inject_javascript(img:bytes):
 def display_digraph(digraph, format, height=None): # pragma: no coverage
     if format is None: format = preferences.graphviz_format
     if height is None: height = '400px'
-    if format == 'svg':
-        img = digraph.pipe(format=format)
-        # TODO: Output is not displayed if this line is uncommented
-        # img = fix_valve_symbol_in_svg_output(img)
+    if format == 'svg' or format=='html':
+        img = digraph.pipe(format='svg')
+        img = fix_valve_symbol_in_svg_output(img)
         x = display.SVG(img)
         display.display(x)
+    # TODO: Consult about this complicated Javascript injection
     elif format == 'html':
         img = digraph.pipe(format='svg')
         img = fix_valve_symbol_in_svg_output(img)
         img = inject_javascript(img)
         data_uri = 'data:text/html;charset=utf-8,' + urllib.parse.quote(img)
         x = display.IFrame(src=data_uri, width='100%', height=height,
-                           extras=['allowtransparency="true"'])
+                            extras=['allowtransparency="true"'])
         display.display(x)
     else:
         x = display.Image(digraph.pipe(format='png'))

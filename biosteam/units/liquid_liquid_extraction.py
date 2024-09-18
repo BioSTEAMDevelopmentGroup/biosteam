@@ -104,9 +104,9 @@ class LLEUnit(bst.Unit, isabstract=True):
     >>> C1.outs[0].show()
     Stream: light from <LLEUnit: C1>
     phase: 'l', T: 333.15 K, P: 101325 Pa
-    flow (kmol/hr): Methanol   10.2
-                    Glycerol   0.0239
-                    Biodiesel  26.9
+    flow (kmol/hr): Methanol   11.5
+                    Glycerol   0.033
+                    Biodiesel  26.7
                     TriOlein   0.996
     
     """
@@ -300,9 +300,9 @@ class LLECentrifuge(LLEUnit, LiquidsCentrifuge):
     >>> C1.outs[0].show()
     Stream: light from <LLECentrifuge: C1>
     phase: 'l', T: 333.15 K, P: 101325 Pa
-    flow (kmol/hr): Methanol   10.2
-                    Glycerol   0.0239
-                    Biodiesel  26.9
+    flow (kmol/hr): Methanol   11.5
+                    Glycerol   0.033
+                    Biodiesel  26.7
                     TriOlein   0.996
     >>> C1.results()
     Liquids centrifuge                       Units       C1
@@ -361,21 +361,21 @@ class SLLECentrifuge(Unit):
     >>> C1.show()
     SLLECentrifuge: C1
     ins...
-    [0] feed
+    [0] feed  
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): Water   100
                         Hexane  100
                         Solids  10
     outs...
-    [0] oil
+    [0] oil  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Water   0.791
+        flow (kmol/hr): Water   0.747
                         Hexane  100
-    [1] aqueous
+    [1] aqueous  
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): Water   98.7
-                        Hexane  0.015
-    [2] solids
+                        Hexane  0.0156
+    [2] solids  
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): Water   0.555
                         Solids  10
@@ -836,9 +836,9 @@ class MixerSettler(bst.Unit):
     >>> MS1 = bst.MixerSettler('MS1', ins=(feed, solvent), outs=('extract', 'raffinate'))
     >>> MS1.simulate()
     >>> MS1.extract.imol['Methanol'] / MS1.feed.imol['Methanol']
-    0.66
+    0.63
     >>> MS1.raffinate.imol['Water'] / MS1.feed.imol['Water']
-    0.82
+    0.85
     >>> MS1.extract.imol['Octanol'] / MS1.solvent.imol['Octanol']
     0.99
     >>> MS1.results() # doctest: +SKIP

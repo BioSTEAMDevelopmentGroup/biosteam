@@ -1224,12 +1224,12 @@ class BinaryDistillation(Distillation, new_graphics=False):
     Divided Distillation Column                                Units        D1
     Electricity         Power                                     kW     0.644
                         Cost                                  USD/hr    0.0504
-    Low pressure steam  Duty                                   kJ/hr  1.02e+07
-                        Flow                                 kmol/hr       263
-                        Cost                                  USD/hr      62.6
     Cooling water       Duty                                   kJ/hr -4.88e+06
                         Flow                                 kmol/hr  3.33e+03
                         Cost                                  USD/hr      1.63
+    Low pressure steam  Duty                                   kJ/hr  1.02e+07
+                        Flow                                 kmol/hr       263
+                        Cost                                  USD/hr      62.6
     Design              Theoretical feed stage                               9
                         Theoretical stages                                  13
                         Minimum reflux                         Ratio     0.687
@@ -1250,12 +1250,12 @@ class BinaryDistillation(Distillation, new_graphics=False):
                         Stripper platform and ladders            USD  1.39e+04
                         Stripper tower                           USD  3.83e+04
                         Rectifier platform and ladders           USD  1.14e+04
-                        Pump - Pump                              USD  4.37e+03
-                        Pump - Motor                             USD       368
+                        Condenser - Floating head                USD  3.33e+04
                         Reflux drum - Horizontal pressur...      USD  1.02e+04
                         Reflux drum - Platform and ladders       USD  3.02e+03
+                        Pump - Pump                              USD  4.37e+03
+                        Pump - Motor                             USD       368
                         Reboiler - Floating head                 USD  2.71e+04
-                        Condenser - Floating head                USD  3.33e+04
     Total purchase cost                                          USD  2.15e+05
     Utility cost                                              USD/hr      64.3
     
@@ -1743,12 +1743,12 @@ class ShortcutColumn(Distillation, new_graphics=False):
     Divided Distillation Column                                Units        D1
     Electricity         Power                                     kW     0.761
                         Cost                                  USD/hr    0.0595
-    Low pressure steam  Duty                                   kJ/hr  1.34e+07
-                        Flow                                 kmol/hr       346
-                        Cost                                  USD/hr      82.4
     Cooling water       Duty                                   kJ/hr -7.54e+06
                         Flow                                 kmol/hr  5.15e+03
                         Cost                                  USD/hr      2.51
+    Low pressure steam  Duty                                   kJ/hr  1.34e+07
+                        Flow                                 kmol/hr       346
+                        Cost                                  USD/hr      82.4
     Design              Theoretical feed stage                               8
                         Theoretical stages                                  16
                         Minimum reflux                         Ratio      1.06
@@ -1769,12 +1769,12 @@ class ShortcutColumn(Distillation, new_graphics=False):
                         Stripper platform and ladders            USD  1.42e+04
                         Stripper tower                           USD  5.38e+04
                         Rectifier platform and ladders           USD  1.81e+04
-                        Pump - Pump                              USD  4.37e+03
-                        Pump - Motor                             USD       379
+                        Condenser - Floating head                USD  4.07e+04
                         Reflux drum - Horizontal pressur...      USD  1.03e+04
                         Reflux drum - Platform and ladders       USD  3.02e+03
+                        Pump - Pump                              USD  4.37e+03
+                        Pump - Motor                             USD       379
                         Reboiler - Floating head                 USD  2.98e+04
-                        Condenser - Floating head                USD  4.07e+04
     Total purchase cost                                          USD  2.57e+05
     Utility cost                                              USD/hr      84.9
     
@@ -2431,12 +2431,12 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     Distillation                                               Units          
     Electricity         Power                                     kW     0.574
                         Cost                                  USD/hr    0.0449
-    Low pressure steam  Duty                                   kJ/hr   7.8e+06
-                        Flow                                 kmol/hr       202
-                        Cost                                  USD/hr        48
     Cooling water       Duty                                   kJ/hr -2.98e+06
                         Flow                                 kmol/hr  2.03e+03
                         Cost                                  USD/hr     0.992
+    Low pressure steam  Duty                                   kJ/hr   7.8e+06
+                        Flow                                 kmol/hr       202
+                        Cost                                  USD/hr        48
     Design              Theoretical stages                                   5
                         Actual stages                                        7
                         Height                                    ft      24.3
@@ -2446,12 +2446,12 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     Purchase cost       Trays                                    USD  8.11e+03
                         Tower                                    USD  3.43e+04
                         Platform and ladders                     USD  9.43e+03
-                        Pump - Pump                              USD  4.35e+03
-                        Pump - Motor                             USD       358
+                        Condenser - Floating head                USD  2.36e+04
                         Reflux drum - Vertical pressure ...      USD  1.29e+04
                         Reflux drum - Platform and ladders       USD  3.89e+03
+                        Pump - Pump                              USD  4.35e+03
+                        Pump - Motor                             USD       358
                         Reboiler - Floating head                 USD  2.34e+04
-                        Condenser - Floating head                USD  2.36e+04
     Total purchase cost                                          USD   1.2e+05
     Utility cost                                              USD/hr        49
     
@@ -2478,12 +2478,12 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     Distillation                                     Units          
     Electricity         Power                           kW     0.918
                         Cost                        USD/hr    0.0718
-    Low pressure steam  Duty                         kJ/hr  9.62e+06
-                        Flow                       kmol/hr       249
-                        Cost                        USD/hr      59.2
     Cooling water       Duty                         kJ/hr -9.13e+06
                         Flow                       kmol/hr  6.24e+03
                         Cost                        USD/hr      3.04
+    Low pressure steam  Duty                         kJ/hr  9.62e+06
+                        Flow                       kmol/hr       249
+                        Cost                        USD/hr      59.2
     Design              Theoretical stages                         5
                         Actual stages                              6
                         Height                          ft      22.9
@@ -2493,10 +2493,10 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     Purchase cost       Trays                          USD  7.58e+03
                         Tower                          USD  3.62e+04
                         Platform and ladders           USD   9.8e+03
+                        Condenser - Floating head      USD   3.5e+04
                         Pump - Pump                    USD  4.33e+03
                         Pump - Motor                   USD       390
                         Reboiler - Floating head       USD  2.41e+04
-                        Condenser - Floating head      USD   3.5e+04
     Total purchase cost                                USD  1.17e+05
     Utility cost                                    USD/hr      62.3
     

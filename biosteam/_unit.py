@@ -989,6 +989,7 @@ class Unit(AbstractUnit):
         >>> tank = bst.StorageTank(None, feed)
         >>> tank.simulate()
         >>> tank.set_design_result('Total volume', 'm3', 1000)
+        1000
         >>> tank.get_design_result('Total volume', 'm3')
         1000.0
         
