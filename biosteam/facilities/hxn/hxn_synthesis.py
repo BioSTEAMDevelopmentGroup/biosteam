@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # HXN: The automated Heat Exchanger Network design package.
-# Copyright (C) 2020-2023, Sarang Bhagwat <sarangb2@illinois.edu>
+# Copyright (C) 2020-2025, Sarang Bhagwat <sarangb2@illinois.edu>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/sarangbhagwat/hxn/blob/master/LICENSE.txt
@@ -34,14 +34,37 @@ class LifeStage:
     @property
     def H_out(self): return self.s_out.H
     
+    @property
+    def T_in(self): return self.s_in.T
+    
+    @property
+    def T_out(self): return self.s_out.T
+    
     def _info(self, N_tabs=1):
         tabs = N_tabs*'\t'
         return (f"{type(self).__name__}: {self.unit.ID}\n"
-                + tabs + f"H_in = {self.H_in:.3g} kJ\n"
-                + tabs + f"H_out = {self.H_out:.3g} kJ")
+                + tabs + f"H_in = {self.H_in:#.2e} kJ/h\n"
+                + tabs + f"H_out = {self.H_out:#.2e} kJ/h")
                 
     def __repr__(self):
-        return (f"<{type(self).__name__}: {repr(self.unit)}, H_in = {round(self.H_in, 4):.3g} kJ, H_out = {round(self.H_out, 4):.3g} kJ>")
+        degree_sign = u'\N{DEGREE SIGN}'
+        unit = self.unit
+        is_util = 'util' in unit.ID.lower()
+        H_in = self.H_in
+        H_out = self.H_out
+        dH = H_out - H_in
+        is_heating = dH>0
+        
+        _red_highlight_white_text = '\033[1;47;41m'
+        _blue_highlight_white_text = '\033[1;47;44m'
+        _reset_text = '\033[1;0m'
+        
+        if not is_util:
+            return (f"<{type(self).__name__}: {repr(self.unit)} | H_in = {round(self.H_in, 4):#.2e} kJ/h, T_in = {round(self.T_in-273.15, 4):#.4g}{degree_sign}C | H_out = {round(self.H_out, 4):#.2e} kJ/h, T_out = {round(self.T_out-273.15, 4):#.4g}{degree_sign}C> | dH = {round(self.H_out-self.H_in, 4):#.2e} kJ/h")
+        elif is_util and is_heating:
+            return (f"<{type(self).__name__}: {repr(self.unit)} | H_in = {round(self.H_in, 4):#.2e} kJ/h, T_in = {round(self.T_in-273.15, 4):#.4g}{degree_sign}C | H_out = {round(self.H_out, 4):#.2e} kJ/h, T_out = {round(self.T_out-273.15, 4):#.4g}{degree_sign}C> | "+_red_highlight_white_text+f"dH = {round(self.H_out-self.H_in, 4):#.2e} kJ/h"+_reset_text)
+        elif is_util and (not is_heating):
+            return (f"<{type(self).__name__}: {repr(self.unit)} | H_in = {round(self.H_in, 4):#.2e} kJ/h, T_in = {round(self.T_in-273.15, 4):#.4g}{degree_sign}C | H_out = {round(self.H_out, 4):#.2e} kJ/h, T_out = {round(self.T_out-273.15, 4):#.4g}{degree_sign}C> | "+_blue_highlight_white_text+f"dH = {round(self.H_out-self.H_in, 4):#.2e} kJ/h"+_reset_text)
         
     def show(self):
         print(self._info())
@@ -50,11 +73,12 @@ class LifeStage:
         
 class StreamLifeCycle:
     
-    def __init__(self, index, cold):
+    def __init__(self, index, cold, original_hx_ID):
         self.index = index
         self.name = 's_%s'%index
         self.cold = cold
         self.life_cycle = None
+        self.original_hx_ID = original_hx_ID
         
     def get_relevant_units(self, index, new_HXs, new_HX_utils):
         new_HXs_relevant = [hx for hx in new_HXs if '_%s_'%index in hx.ID]
@@ -90,7 +114,7 @@ class StreamLifeCycle:
             for LifeStage in life_cycle:
                 line = '\t\t' + repr(LifeStage) + '\n'
                 rep += line
-            rep = '<StreamLifeCycle: ' + name + ', ' + strtype  + '\n\tlife_cycle = [\n' +  rep[:-1] + '\n\t]>'
+            rep = '<StreamLifeCycle: ' + name + ', ' + strtype  + ', ' + self.original_hx_ID + '\n\tlife_cycle = [\n' +  rep[:-1] + '\n\t]>'
             return rep
         
     def show(self):
@@ -118,6 +142,7 @@ class Working_Life_Cycle:
         reverse = not self.cold
         life_cycle['cold_side'].sort(key = lambda stage: stage.H, reverse = reverse)
         life_cycle['cold_side'].sort(key = lambda stage: stage.H, reverse = reverse)
+        hs_life_cycle = life_cycle['hot_side']
     
     def get_sorted_life_cycle(self):
         self.sort_stages()
@@ -127,7 +152,9 @@ class Working_Life_Cycle:
 def temperature_interval_pinch_analysis(hus, T_min_app = 10, force_ideal_thermo=False):
     hx_utils = hus
     hus_heating = [hu for hu in hx_utils if hu.duty > 0]
+    hus_heating.sort(key=lambda i: i.unit.ins[0].T)
     hus_cooling = [hu for hu in hx_utils if hu.duty < 0]
+    hus_cooling.sort(key=lambda i: i.unit.ins[0].T)
     hx_utils_rearranged = hus_heating + hus_cooling
     hxs = [hu.unit for hu in hx_utils_rearranged]
     if force_ideal_thermo:
@@ -215,11 +242,12 @@ def temperature_interval_pinch_analysis(hus, T_min_app = 10, force_ideal_thermo=
             pinch_T_arr.append(pinch_hot_stream_T)
     pinch_T_arr = np.array(pinch_T_arr)
     # print(pinch_T_arr, hot_util_load, cold_util_load,)
+    
     return pinch_T_arr, hot_util_load, cold_util_load, T_in_arr, T_out_arr,\
            hxs, hot_indices, cold_indices, indices, streams_inlet, hx_utils_rearranged, \
-           streams_quenched
+           streams_quenched, H_for_T_intervals
             
-        
+
 def load_duties(streams, streams_quenched, pinch_T_arr, T_out_arr, indices, is_cold, Q_hot_side, Q_cold_side):
     for index in indices:
         stream = streams[index].copy()
@@ -248,11 +276,57 @@ def get_T_transient(pinch_T_arr, indices, T_in_arr):
     T_transient[indices] = T_in_arr[indices]
     return T_transient
 
+def get_C_flows_transient(coldstream, hotstream, cs_T, hs_T, T_min_app):
+    try:
+        cs = coldstream.copy()
+        hs = hotstream.copy()
+        cs.vle(T=cs_T, P=cs.P)
+        hs.vle(T=hs_T, P=hs.P)
+        
+        cs_out_T = hs_T - T_min_app
+        cs_out = cs.copy()
+        cs_out.vle(T=cs_out_T, P=hs.P)
+    
+        Q = cs_out.H - cs.H
+        
+        cs_T_diff = cs_out_T-cs_T
+        Cc = np.inf if cs_T_diff == 0 else Q/(cs_out_T-cs_T)
+
+        hs_H = hs.H
+        hs.vle(H=hs_H+Q, P=hs.P)
+        
+        hs_T_diff = hs_T-hs.T
+        Ch = np.inf if hs_T_diff == 0 else (hs_H-hs.H)/hs_T_diff
+        
+        return Cc, Ch
+    except:
+        return 0, 0
+
+    # hs_out = hs.copy()
+        
+    # def objective_fn_original(hs_out_T):
+    #     hs_out.vle(T=hs_out_T, P=hs.P)
+    #     # print(cs_out.H - cs.H, hs.H-hs_out.H)
+    #     Ch = (hs.H-hs_out.H)/(hs_T-hs_out_T)
+    #     return - hs_out_T + cs_T + T_min_app - Q*(Cc-Ch)/(Cc*Ch)
+    
+    # def objective_fn_simplified(hs_out_T):
+    #     hs_out.vle(T=hs_out_T, P=hs.P)
+    #     # print(cs_out.H - cs.H, hs.H-hs_out.H)
+    #     return Q - hs.H + hs_out.H
+    
+    # hs_out_T =\
+    # flx.IQ_interpolation(objective_fn_simplified, cs_T, hs_T-1e-3, ytol=1e-2)
+    # Ch = (hs.H-hs_out.H)/(hs_T-hs_out_T)
+    # return Cc, Ch
+
 def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False,
-                       avoid_recycle=False):  
+                       avoid_recycle=False, transient_C_flows=False,
+                       sort_potential_matches_by_T=False,
+                       heat_transfer_efficiency=None):  
     pinch_T_arr, hot_util_load, cold_util_load, T_in_arr, T_out_arr,\
         hxs, hot_indices, cold_indices, indices, streams_inlet, hx_utils_rearranged, \
-        streams_quenched = temperature_interval_pinch_analysis(hus, T_min_app, force_ideal_thermo)        
+        streams_quenched, H_for_T_intervals = temperature_interval_pinch_analysis(hus, T_min_app, force_ideal_thermo)        
     H_out_arr = [i.H for i in streams_quenched]
     duties = np.array([abs(hx.Q)  for hx in hxs])
     dTs = np.abs(T_in_arr - T_out_arr)
@@ -296,26 +370,65 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False,
     
     attempts = set()
     success = set()
+    
     # ------------- Cold side design ------------- # 
     unavailables = set([i for i in hot_indices if T_out_arr[i] >= pinch_T_arr[i]])
     unavailables.update([i for i in cold_indices if T_in_arr[i] >= pinch_T_arr[i]])
+    
+    # loop over all hot streams
     for hot in hot_indices:
         stream_quenched = False
         potential_matches = []
+        # generate a list of potential cold stream matches for this hot stream that all satisfy Ch>=Cc
         for cold in cold_indices:
-            if (C_flow_vector[hot]>= C_flow_vector[cold] and
-                    get_T_transient_cold_side(hot) > get_T_transient_cold_side(cold) + T_min_app and
+            C_flows_potential_match = [None, None]
+            if not transient_C_flows:
+                C_flows_potential_match[0] = C_flow_vector[cold]
+                C_flows_potential_match[1] = C_flow_vector[hot]
+            else:
+                coldstream = streams_transient_cold_side[cold]
+                hotstream = streams_transient_cold_side[hot]
+                C_flows_potential_match = get_C_flows_transient(coldstream,
+                                                                hotstream,
+                                                                coldstream.T,
+                                                                hotstream.T,
+                                                                T_min_app)
+
+            if (    (C_flows_potential_match[1] and C_flows_potential_match[0]) and # confirm get_C_flows_transient did not return (0,0)) 
+                    C_flows_potential_match[1]>= C_flows_potential_match[0] and
+                    get_T_transient_cold_side(hot) >= get_T_transient_cold_side(cold) + T_min_app and
                     (hot not in unavailables) and (cold not in unavailables) and
-                    (cold not in matches_cs[hot]) and (cold in cold_indices)): 
+                    (cold not in matches_cs[hot]) and (cold in cold_indices)
+                    ): 
                 potential_matches.append(cold)
-        potential_matches = sorted(
-            potential_matches, 
-            key = lambda pot_cold: min(C_flow_vector[hot], C_flow_vector[pot_cold])
-                                    * (get_T_transient_cold_side(hot) 
-                                       - get_T_transient_cold_side(pot_cold)
-                                       - T_min_app),
-            reverse = True
-        )
+                
+      
+        # rank potential cold stream matches by descending Cc, transient Cc, or T
+        if not sort_potential_matches_by_T:
+            if not transient_C_flows:
+                potential_matches.sort(key = lambda pot_cold: min(C_flow_vector[hot], C_flow_vector[pot_cold])
+                                            * (get_T_transient_cold_side(hot) 
+                                               - get_T_transient_cold_side(pot_cold)
+                                               - T_min_app),
+                    reverse = True
+                )
+            else:
+                potential_matches.sort(key = lambda pot_cold: min(get_C_flows_transient(streams_transient_cold_side[pot_cold],
+                                                                                        streams_transient_cold_side[hot],
+                                                                                        streams_transient_cold_side[pot_cold].T,
+                                                                                        streams_transient_cold_side[hot].T,
+                                                                                        T_min_app))
+                                            * (get_T_transient_cold_side(hot) 
+                                               - get_T_transient_cold_side(pot_cold)
+                                               - T_min_app),
+                    reverse = True
+                )
+        else:
+            potential_matches.sort(key = lambda pot_cold: streams_transient_cold_side[pot_cold].T,
+                reverse = True
+            )
+        
+        # loop over the potential cold stream matches; add matches until this hot stream is quenched
         for cold in potential_matches:
             match = (hot, cold)
             ID = 'HX_%s_%s_cs' % match
@@ -335,7 +448,7 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False,
                      thermo = hot_stream.thermo)
             try: new_HX._run()
             except: continue
-            if abs(new_HX.Q )< Qmin: continue
+            if abs(new_HX.Q) < Qmin: continue
             success.add(match)
             HXs_cold_side.append(new_HX)
             stream_HXs_dict[hot].append(new_HX)
@@ -355,24 +468,62 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False,
     unavailables = set([i for i in hot_indices if T_in_arr[i] <= pinch_T_arr[i]])
     unavailables.update([i for i in cold_indices if T_out_arr[i] <= pinch_T_arr[i]])
     
+    # loop over all cold streams
     for cold in cold_indices:
         potential_matches = []
+        # generate a list of potential hot stream matches for this cold stream that all satisfy Cc>=Ch
         for hot in hot_indices:
+            #!!!
             if ((cold in matches_cs and hot in matches_cs[cold])
                 or (cold in matches_hs and hot in matches_hs[cold])):
                 break
-            if (C_flow_vector[cold]>= C_flow_vector[hot] and
-                    get_T_transient_hot_side(hot) > get_T_transient_hot_side(cold) + T_min_app and
+            C_flows_potential_match = [None, None]
+            if not transient_C_flows:
+                C_flows_potential_match[0] = C_flow_vector[cold]
+                C_flows_potential_match[1] = C_flow_vector[hot]
+            else:
+                coldstream = streams_transient_cold_side[cold]
+                hotstream = streams_transient_cold_side[hot]
+                C_flows_potential_match = get_C_flows_transient(coldstream,
+                                                                hotstream,
+                                                                coldstream.T,
+                                                                hotstream.T,
+                                                                T_min_app)
+            if (    (C_flows_potential_match[0] and C_flows_potential_match[1]) and # confirm get_C_flows_transient did not return (0,0)) 
+                    C_flows_potential_match[0]>= C_flows_potential_match[1] and
+                    get_T_transient_hot_side(hot) >= get_T_transient_hot_side(cold) + T_min_app and
                     (hot not in unavailables) and (cold not in unavailables) and
-                    (hot not in matches_hs[cold]) and (hot in hot_indices)):
+                    (hot not in matches_hs[cold]) and (hot in hot_indices)
+                    ):
                 potential_matches.append(hot)
+        
+        # rank potential hot stream matches by descending Ch, transient Ch, or ascending T
+        if not sort_potential_matches_by_T:
+            if not transient_C_flows:
+                potential_matches.sort(key = lambda x:
+                                            (min(C_flow_vector[cold], C_flow_vector[x])
+                                                * ( get_T_transient_hot_side(x)
+                                                  - get_T_transient_hot_side(cold) - T_min_app)),
+                                            reverse = True)
                 
-        potential_matches = sorted(potential_matches, key = lambda x:
-                                    (min(C_flow_vector[cold], C_flow_vector[x])
-                                        * ( get_T_transient_hot_side(x)
-                                          - get_T_transient_hot_side(cold) - T_min_app)),
-                                    reverse = True)
+            else:
+                potential_matches.sort(key = lambda x:
+                                            (min(get_C_flows_transient(streams_transient_hot_side[cold],
+                                                                       streams_transient_hot_side[x],
+                                                                       streams_transient_hot_side[cold].T,
+                                                                       streams_transient_hot_side[x].T,
+                                                                        T_min_app))
+                                                * ( get_T_transient_hot_side(x)
+                                                  - get_T_transient_hot_side(cold) - T_min_app)),
+                                            reverse = True)
+        else:
+            potential_matches.sort(key = lambda x: streams_transient_hot_side[x].T,
+                reverse = False
+            )
+            
         stream_quenched = False
+        
+        # loop over the potential hot stream matches; add matches until this cold stream is quenched
         for hot in potential_matches:
             match = (hot, cold)
             ID = 'HX_%s_%s_hs' % (cold, hot)
@@ -418,7 +569,7 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False,
                 T_cold_in = get_T_transient_cold_side(cold)
                 T_hot_in = get_T_transient_cold_side(hot)
                 if (Q_cold_side[hot][0]=='cool' and Q_cold_side[hot][1]>0 and
-                        T_hot_in - T_cold_in >= T_min_app):
+                        T_hot_in - T_cold_in >= T_min_app): 
                     hot_stream = streams_transient_cold_side[hot].copy()
                     cold_stream = streams_transient_cold_side[cold].copy()
                     hot_stream.ID = 's_%s__%s'%(hot,ID)
@@ -442,7 +593,7 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False,
                     streams_transient_cold_side[cold] = new_HX.outs[1]
                     matches_cs[hot].append(cold)
                  
-    # Offset cooling requirement on hot side  
+    # Offset cooling requirement on hot side
     for hot in hot_indices:
         stream_quenched = False
         if Q_hot_side[hot][0]=='cool' and Q_hot_side[hot][1]>0:
@@ -455,7 +606,7 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False,
                 T_cold_in = original_cold_stream.T
                 T_hot_in = get_T_transient_hot_side(hot)
                 if (Q_hot_side[cold][0]=='heat' and Q_hot_side[cold][1]>0 and
-                        T_hot_in - T_cold_in>= T_min_app):    
+                        T_hot_in - T_cold_in>= T_min_app): 
                     cold_stream = original_cold_stream
                     hot_stream = streams_transient_hot_side[hot].copy()
                     cold_stream.ID = 's_%s__%s'%(cold,ID)
@@ -519,12 +670,14 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False,
         outlet = hot_stream.copy('%s__s_%s'%(ID,hot))
         new_HX_util = bst.units.HXutility(ID = ID, ins = hot_stream, outs = outlet,
                                           H = H_out_arr[hot], rigorous = True,
-                                          thermo = hot_stream.thermo)
+                                          thermo = hot_stream.thermo,
+                                          heat_transfer_efficiency=heat_transfer_efficiency)
         new_HX_util._run()
-        s_out = new_HX_util-0
+        s_out = new_HX_util.outs[0]
         np.testing.assert_allclose(s_out.H, H_out_arr[hot], rtol=5e-3, atol=1.)
         atol_T = 5. if 's' in hxs[hot].outs[0].phases else 0.001
         np.testing.assert_allclose(s_out.T, T_out_arr[hot], rtol=5e-3, atol=atol_T)
+        # if hot_stream.H-s_out.H > 1e-2:
         new_HX_utils.append(new_HX_util)
         stream_HXs_dict[hot].append(new_HX_util)
             
@@ -535,16 +688,18 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False,
         outlet = cold_stream.copy('%s__s_%s'%(ID,cold))
         new_HX_util = bst.units.HXutility(ID = ID, ins = cold_stream, outs = outlet,
                                           H = H_out_arr[cold], rigorous = True,
-                                          thermo = cold_stream.thermo)
+                                          thermo = cold_stream.thermo,
+                                          heat_transfer_efficiency=heat_transfer_efficiency)
         new_HX_util._run()
         s_out = new_HX_util.outs[0]
         np.testing.assert_allclose(s_out.H, H_out_arr[cold], rtol=1e-2, atol=1.)
         atol_T = 5. if 's' in hxs[cold].outs[0].phases else 0.001
         np.testing.assert_allclose(s_out.T, T_out_arr[cold], rtol=5e-2, atol=atol_T)
+        # if s_out.H-cold_stream.H > 1e-2:
         new_HX_utils.append(new_HX_util)
         stream_HXs_dict[cold].append(new_HX_util)
     
     return HXs_hot_side, HXs_cold_side, new_HX_utils, hxs, T_in_arr,\
            T_out_arr, pinch_T_arr, C_flow_vector, hx_utils_rearranged, streams_inlet, stream_HXs_dict,\
-           hot_indices, cold_indices
+           hot_indices, cold_indices, hot_util_load, cold_util_load, H_for_T_intervals
 
