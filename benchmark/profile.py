@@ -816,12 +816,17 @@ def plot_profile(
     else:
         if n_cols >= 2:
             aspect_ratio = 0.75 / 2
+        elif n_rows == 1:
+            aspect_ratio = 1.8 / 2
         else:
             aspect_ratio = 1.5 / 2
         bst.set_figure_size(aspect_ratio=aspect_ratio, width=width)
     fig, all_axes = plt.subplots(n_rows, n_cols)
     if n_rows == 1:
-        all_axes = all_axes.reshape([n_rows, n_cols])
+        if n_cols == 1:
+            all_axes = np.array([[all_axes]])
+        else:
+            all_axes = all_axes.reshape([n_rows, n_cols])
     if n_cols == 1:
         all_axes = np.reshape(all_axes, [n_rows, n_cols]) 
     for m, sys in enumerate(systems):
@@ -914,7 +919,7 @@ def plot_profile(
                     fontsize=fs,
                     fontweight='bold',
                 )
-                index = int(len(tpo) * 0.5)
+                index = int(len(tpo) * 0.3)
                 xy = x, y = (tpo[index], ypo[index])
                 ax.annotate('Phenomena\noriented',
                     xy=xy, 
@@ -940,20 +945,23 @@ def plot_profile(
             )
     letter_color = c.neutral.shade(25).RGBn
     titles = [system_titles[i] for i in systems]
-    for ax, letter in zip(all_axes[0], titles):
-        plt.sca(ax)
-        ylb, yub = plt.ylim()
-        xlb, xub = plt.xlim()
-        plt.text((xlb + xub) * 0.5, ylb + (yub - ylb) * 1.1, letter, color=letter_color,
-                  horizontalalignment='center',verticalalignment='center',
-                  fontsize=fs, fontweight='bold')
+    # for ax, letter in zip(all_axes[0], titles):
+    #     plt.sca(ax)
+    #     ylb, yub = plt.ylim()
+    #     xlb, xub = plt.xlim()
+    #     plt.text((xlb + xub) * 0.5, ylb + (yub - ylb) * 1.1, letter, color=letter_color,
+    #               horizontalalignment='center',verticalalignment='center',
+    #               fontsize=fs, fontweight='bold')
+    left = 0.1
     if n_rows == 2:
         bottom = 0.1
     elif n_rows == 1:
         bottom = 0.15
+        if n_cols == 1:
+            left = 0.2
     else:
         bottom = 0.08
-    plt.subplots_adjust(right=0.96, left=0.1, bottom=bottom, top=0.85, hspace=0, wspace=0)
+    plt.subplots_adjust(right=0.96, left=left, bottom=bottom, top=0.85, hspace=0, wspace=0)
     for i in ('svg', 'png'):
         name = f'PO_SM_profile.{i}'
         file = os.path.join(images_folder, name)
