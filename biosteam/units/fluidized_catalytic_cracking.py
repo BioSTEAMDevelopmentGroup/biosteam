@@ -46,8 +46,10 @@ class FluidizedCatalyticCracking(bst.Unit):
     def _init(
             self,
             reaction,
+            bulk_reactant=None,
             vessel_material=None,
             feed_pressure=None,
+            feed_vapor_fraction=None,
             catalyst_to_feed_ratio=None,
             spent_catalyst_to_feed_ratio=None,
             product_loss=None,
@@ -69,10 +71,13 @@ class FluidizedCatalyticCracking(bst.Unit):
             vessel_material = 'Stainless steel 316'
         if feed_pressure is None:
             feed_pressure = 2 * 101325 # Can operate at a low pressure, but must accomodate pressure drop
+        if feed_vapor_fraction is None:
+            feed_vapor_fraction = 0
         if catalyst_to_feed_ratio is None:
             catalyst_to_feed_ratio = 5 # by weight
         if spent_catalyst_to_feed_ratio is None:
             # TODO: Find value
+            # Mitias recommends (rule of thumb) 
             spent_catalyst_to_feed_ratio = 1e-6 # by weight; Value is abitrary for now 
         if product_loss is None:
             product_loss = 0.5e-2
@@ -103,6 +108,7 @@ class FluidizedCatalyticCracking(bst.Unit):
         if regenerator_pressure is None:
             regenerator_pressure = 282685 # 40 psig
         self.reaction = reaction
+        self.bulk_reactant = bulk_reactant
         self.vessel_material = vessel_material
         self.feed_pressure = feed_pressure
         self.catalyst_to_feed_ratio = catalyst_to_feed_ratio
@@ -121,6 +127,7 @@ class FluidizedCatalyticCracking(bst.Unit):
         self.regenerator_catalyst_residence_time = regenerator_catalyst_residence_time
         self.regenerator_length_to_diameter = regenerator_length_to_diameter
         self.regenerator_pressure = regenerator_pressure
+        self.feed_vapor_fraction = feed_vapor_fraction
         
     @property
     def feed(self): return self.ins[0]
@@ -148,7 +155,7 @@ class FluidizedCatalyticCracking(bst.Unit):
             'pump', bst.Pump, ins=self.feed, P=self.feed_pressure,
         )
         self.auxiliary(
-            'feed_preheater', bst.HXutility, ins=pump-0, V=0, rigorous=True,
+            'feed_preheater', bst.HXutility, ins=pump-0, V=self.feed_vapor_fraction, rigorous=True,
         )
         self.auxiliary(
             'air_compressor', bst.IsentropicCompressor, ins=self.air, P=self.regenerator_pressure,
@@ -173,10 +180,16 @@ class FluidizedCatalyticCracking(bst.Unit):
         product.P = self.feed_pressure - self._estimate_reactor_pressure_drop()
         flue_gas.P = discarded_catalyst.P = self.regenerator_pressure - self._estimate_regenerator_pressure_drop()
         product.mol = feed.mol + steam.mol
+        if self.bulk_reactant:
+            if self.reaction.X != 1:
+                raise RuntimeError('reaction extent must be 100% with bulk reactants')
+            model_reactant, reactants = self.bulk_reactant
+            F_reactant_mass = product.imass[reactants].sum()
+            product.imol[reactants] = 0
+            product.imass[model_reactant] = F_reactant_mass
         product.phase = 'g'
         flue_gas.phase = 'g'
         self.reaction(product)
-        
         # Product loss will dictate temperature of recirculated catalyst
         product.split_to(flue_gas, product, self.product_loss, energy_balance=False)
         product_loss = flue_gas.mol.copy()
