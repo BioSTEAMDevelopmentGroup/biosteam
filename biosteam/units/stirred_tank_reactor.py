@@ -8,7 +8,7 @@
 """
 .. contents:: :local:
 
-.. autoclass:: biosteam.units.stirred_tank_reactor.StirredTankReactor
+.. autoclass:: biosteam.units.stirred_tank_reactor.AbstractStirredTankReactor
 
 References
 ----------
