@@ -1399,6 +1399,14 @@ class BinaryDistillation(Distillation, new_graphics=False):
         else:
             Design['Theoretical feed stage'] = '?'
             Design['Theoretical stages'] = '100+'
+            Design['Minimum reflux'] = Rmin
+            Design['Reflux'] = R 
+            y_stages = np.array(y_stages)
+            x_stages = np.array(x_stages)
+            mask = (x_stages >= 0)  & (x_stages <= 1) & (y_stages >= 0)  & (y_stages <= 1)
+            self._y_stages = y_stages[mask]
+            self._x_stages = x_stages[mask]
+            self._T_stages = np.array(T_stages)[mask[:len(T_stages)]]
             raise error[0] from None
         Design['Minimum reflux'] = Rmin
         Design['Reflux'] = R 
@@ -1464,8 +1472,11 @@ class BinaryDistillation(Distillation, new_graphics=False):
         for y in y_stages:
             y_stairs.append(y)
             y_stairs.append(y)
-        x_stairs.pop(-1)
-        x_stairs.insert(0, y_stairs[0])
+        try:
+            x_stairs.pop(-1)
+            x_stairs.insert(0, y_stairs[0])
+        except:
+            pass
         plt.plot(x_stairs, y_stairs, '--')
         
         # Graphical aid line

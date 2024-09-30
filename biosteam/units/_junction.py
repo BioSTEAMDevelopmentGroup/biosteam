@@ -66,6 +66,7 @@ class Junction(Unit):
     installed_cost = 0.
     installed_costs = {}
     utility_cost = 0.
+    prioritize = False
     
     def __init__(self, ID="", upstream=None, downstream=None, thermo=None):
         self._register(ID)

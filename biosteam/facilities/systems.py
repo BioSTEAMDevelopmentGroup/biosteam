@@ -184,6 +184,7 @@ def create_coheat_and_power_system(
         autopopulate=None, **kwargs
     ):
     makeup_water, natural_gas, lime, boiler_chemicals, air = ins
+    if 'fuel_source' in kwargs: natural_gas.ID = kwargs['fuel_source'].lower()
     if autopopulate or combustible_slurries:
         slurry_mixer = bst.Mixer('slurry_mixer', ins=combustible_slurries or [])
         slurry = slurry_mixer-0

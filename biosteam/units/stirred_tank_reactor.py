@@ -26,12 +26,13 @@ from biosteam.units.design_tools import (
 )
 
 __all__ = (
+    'AbstractStirredTankReactor', 
     'StirredTankReactor', 'STR',
     'ContinuousStirredTankReactor', 'CSTR',
 )
 
 
-class StirredTankReactor(PressureVessel, Unit, isabstract=True):
+class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
     '''    
     Abstract class for a stirred tank reactor, modeled as a pressure vessel with 
     a given aspect ratio and residence time. A pump-heat exchanger recirculation 
@@ -83,7 +84,7 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
     
     Examples
     --------
-    Inherit from StirredTankReactor to create a new class that
+    Inherit from AbstractStirredTankReactor to create a new class that
     simulates the continuous fermentative production of ethanol from sugarcane
     juice:
         
@@ -352,7 +353,6 @@ class StirredTankReactor(PressureVessel, Unit, isabstract=True):
                 )
             )
             kW = self.kW_per_m3 * volume * self.V_wf
-            if kW > 0: self.agitator = bst.Agitator(kW)
-    
-ContinuousStirredTankReactor = CSTR = STR = StirredTankReactor
-    
+            if kW > 0: self.agitator = bst.Agitator(kW)        
+
+ContinuousStirredTankReactor = CSTR = STR = StirredTankReactor = AbstractStirredTankReactor

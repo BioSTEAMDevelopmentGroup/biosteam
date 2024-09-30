@@ -255,6 +255,7 @@ class SystemFactory:
         )
         if network_priority is not None: box = True
         if box:
+            if mockup: raise ValueError('cannot box mockup system')
             if rename: 
                 unit_registry = bst.main_flowsheet.unit
                 irrelevant_units = tuple(unit_registry)
@@ -266,7 +267,7 @@ class SystemFactory:
                 module.network_priority = network_priority
             ins = tuple([module.auxin(i) for i in module.ins])
             outs = tuple([module.auxout(i) for i in module.outs])
-            with bst.Flowsheet(ID), (bst.MockSystem() if mockup else bst.System(**options)) as system:
+            with bst.Flowsheet(ID), bst.System(**options) as system:
                 self.f(ins, outs, **kwargs)
             module.register_auxiliary(system, 'auxiliary_system')     
         else:        

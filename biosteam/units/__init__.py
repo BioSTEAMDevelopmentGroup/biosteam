@@ -49,6 +49,7 @@ from .stirred_tank_reactor import *
 from .aerated_bioreactor import *
 from .auxiliary_pressure_vessel import *
 from .fluidized_catalytic_cracking import *
+from .single_phase_reactor import *
 
 from . import (
     _flash, 
@@ -94,6 +95,7 @@ from . import (
     agitator,
     auxiliary_pressure_vessel,
     fluidized_catalytic_cracking,
+    single_phase_reactor,
 )
 
 
@@ -139,6 +141,7 @@ __all__ = ('Unit',
            *agitator.__all__,
            *auxiliary_pressure_vessel.__all__,
            *fluidized_catalytic_cracking.__all__,
+           *single_phase_reactor.__all__,
            'adsorption',
            'drying',
            'tank',

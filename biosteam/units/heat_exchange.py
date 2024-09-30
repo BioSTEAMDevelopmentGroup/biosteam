@@ -29,7 +29,7 @@ from typing import Optional
 from numba import njit
 from .._heat_utility import UtilityAgent
 
-__all__ = ('HX', 'HXutility', 'HXprocess')
+__all__ = ('HX', 'HXutility', 'HXutilities', 'HXprocess')
 
 # Length factor
 x = np.array((8, 13, 16, 20))
@@ -239,7 +239,7 @@ class HX(Unit, isabstract=True):
         self.F_P[heat_exchanger_type] = F_p
         self.F_D[heat_exchanger_type] = F_l
         self.baseline_purchase_costs[heat_exchanger_type] = C_b
-
+        
 
 class HXutility(HX):
     """
@@ -426,19 +426,19 @@ class HXutility(HX):
     _graphics = utility_heat_exchanger_graphics
 
     def _init(self,
-              T=None, V=None, rigorous=False, U=None, H=None,
-              heat_exchanger_type="Floating head",
-              material="Carbon steel/carbon steel",
-              N_shells=2,
-              ft=None,
-              heat_only=None,
-              cool_only=None,
-              heat_transfer_efficiency=None,
-              inner_fluid_pressure_drop=None,
-              outer_fluid_pressure_drop=None,
-              neglect_pressure_drop=True,
-              furnace_pressure=None,  # [Pa] equivalent to 500 psig
-              ):
+            T=None, V=None, rigorous=False, U=None, H=None,
+            heat_exchanger_type="Floating head",
+            material="Carbon steel/carbon steel",
+            N_shells=2,
+            ft=None,
+            heat_only=None,
+            cool_only=None,
+            heat_transfer_efficiency=None,
+            inner_fluid_pressure_drop=None,
+            outer_fluid_pressure_drop=None,
+            neglect_pressure_drop=True,
+            furnace_pressure=None,  # [Pa] equivalent to 500 psig
+        ):
         self.T = T  # : [float] Temperature of outlet stream (K).
         self.V = V  # : [float] Vapor fraction of outlet stream.
         self.H = H  # : [float] Enthalpy of outlet stream.
@@ -712,6 +712,48 @@ class HXutility(HX):
                               hxn_ok=True)
         super()._design()
 
+class HXutilities(Unit):
+    auxiliary_unit_names = ('heat_exchangers',)
+    line = 'Heat exchanger'
+    _graphics = utility_heat_exchanger_graphics
+    _N_ins = _N_outs = 1
+    _init = HXutility._init
+    _run = HXutility._run
+    
+    def _design(self):
+        feed = self.ins[0]
+        product = self.outs[0]
+        T_in = feed.T
+        T_out = product.T
+        H_out = product.H
+        H_in = feed.H
+        total_duty = H_out - H_in
+        self.heat_exchangers = []
+        if total_duty == 0: return
+        heating = total_duty > 0
+        agents = bst.settings.heating_agents if heating else bst.settings.cooling_agents 
+        intermediate = feed
+        for i in agents:
+            T_intermediate = i.T - 10 if heating else i.T + 10
+            if T_in < T_intermediate if heating else T_in > T_intermediate:
+                T_in = T_intermediate
+                if T_in < T_out if heating else T_in > T_out:
+                    hx = self.auxiliary(
+                        'heat_exchangers', bst.HXutility,
+                        ins=intermediate, T=T_intermediate,
+                        rigorous=True
+                    )
+                    intermediate = hx.outs[0]
+                    hx.simulate()
+                elif T_out <= T_in if heating else T_out > T_in:
+                    hx = self.auxiliary(
+                        'heat_exchangers', bst.HXutility,
+                        ins=intermediate, outs=product, T=T_out,
+                        rigorous=True
+                    )
+                    hx.simulate()
+                    break
+
 
 class HXprocess(HX):
     """
@@ -955,9 +997,3 @@ class HXprocess(HX):
             *self._ins, *self._outs, self.dT, self.T_lim0, self.T_lim1,
             self.phase0, self.phase1, self.H_lim0, self.H_lim1
         )
-
-
-class HXutilities(bst.Unit):
-    auxiliary_unit_names = ('heat_exchangers',)
-    _N_ins = 1
-    _N_outs = 1
