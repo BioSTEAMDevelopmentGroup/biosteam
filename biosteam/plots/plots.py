@@ -661,7 +661,7 @@ def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
     
     Parameters
     ----------
-    rhos : list[pandas.Series]
+    rhos : list[pandas.Series]|array
          Spearman's rank correlation coefficients to be plotted.
     top=None : float, optional
         Number of parameters to plot (from highest values).
@@ -676,7 +676,7 @@ def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
     rhos = list(reversed(rhos))
     if name is None: name = rhos[0].name
     if index is None: index = rhos[0].index
-    values = np.array([i.values for i in rhos])
+    values = np.array([i.values if hasattr(i, 'values') else i for i in rhos])
     indices = list(range(values.shape[-1]))
     if cutoff:
         cutoff_index, = np.where(np.any(np.abs(rhos) > cutoff, axis=0))
@@ -931,10 +931,12 @@ def plot_kde(x, y, nbins=100, ax=None, fig=None,
             y0 = yticks[0]
             yf = yticks[-1]
         plt.sca(ax_empty); plt.axis('off')
-        plt.sca(xbox.axis); plt.axis('off')
-        plt.xlim([x0, xf])
-        plt.sca(ybox.axis); plt.axis('off')
-        plt.ylim([y0, yf])
+        if xbox:
+            plt.sca(xbox.axis); plt.axis('off')
+            plt.xlim([x0, xf])
+        if ybox:
+            plt.sca(ybox.axis); plt.axis('off')
+            plt.ylim([y0, yf])
         plt.subplots_adjust(
             hspace=0.05, wspace=0.05,
             top=0.95, bottom=0.12,
@@ -1285,6 +1287,7 @@ def color_quadrants(color=None, x=None, y=None, xlim=None, ylim=None,
     
 def label_quadrants(
         x=None, y=None, xr=None, yr=None, text=None, color=None,
+        fs=None,
     ):
     if xr is None: 
         xrlb = 0
@@ -1323,7 +1326,7 @@ def label_quadrants(
             top_left = f"{p:.0%} {top_left.strip('()')}"
         plt.text(xpos(xleft), ypos(ytop), top_left, color=top_left_color,
                  horizontalalignment='left', verticalalignment='top',
-                 fontsize=8, fontweight='bold', zorder=10)
+                 fontsize=fs, fontweight='bold', zorder=10)
         labeled[0] = True
     if yub > yrub and xub > xrub and top_right:
         if data_given and top_right.endswith('()'):
@@ -1331,7 +1334,7 @@ def label_quadrants(
             top_right = f"{p:.0%} {top_right.strip('()')}"
         plt.text(xpos(xright), ypos(ytop), top_right, color=top_right_color,
                  horizontalalignment='right', verticalalignment='top',
-                 fontsize=8, fontweight='bold', zorder=10)
+                 fontsize=fs, fontweight='bold', zorder=10)
         labeled[1] = True
     if ylb < yrlb and xlb < xrlb and bottom_left:
         if data_given and bottom_left.endswith('()'):
@@ -1339,7 +1342,7 @@ def label_quadrants(
             bottom_left = f"{p:.0%} {bottom_left.strip('()')}"
         plt.text(xpos(xleft), ypos(ybottom), bottom_left, color=bottom_left_color,
                  horizontalalignment='left', verticalalignment='bottom',
-                 fontsize=8, fontweight='bold', zorder=10)
+                 fontsize=fs, fontweight='bold', zorder=10)
         labeled[2] = True
     if ylb < yrlb and xub > xrub and bottom_right:
         if data_given and bottom_right.endswith('()'):
@@ -1347,12 +1350,12 @@ def label_quadrants(
             bottom_right = f"{p:.0%} {bottom_right.strip('()')}"
         plt.text(xpos(xright), ypos(ybottom), bottom_right, color=bottom_right_color,
                  horizontalalignment='right', verticalalignment='bottom',
-                 fontsize=8, fontweight='bold', zorder=10)
+                 fontsize=fs, fontweight='bold', zorder=10)
         labeled[3] = True
     return labeled
 
 def plot_quadrants(
-        text, data=None, x=None, y=None, rotate=0,
+        text, data=None, x=None, y=None, rotate=0, fs=None,
     ):
     quadrant_color = deque([
         (*c.CABBI_teal.tint(90).RGBn, 0.9), None,
@@ -1365,7 +1368,7 @@ def plot_quadrants(
     quadrant_color.rotate(rotate)
     text_color.rotate(rotate)
     labeled_quadrants = format_quadrants(
-        data, x, y, text, text_color, quadrant_color,
+        data, x, y, text, text_color, quadrant_color, fs
     )
     for i, labeled in enumerate(labeled_quadrants):
         if labeled: text[i] = '()' if text[i].endswith('()') else None
@@ -1379,11 +1382,12 @@ def format_quadrants(
         text_color=None,
         quadrant_color=None,
         xlim=None, ylim=None,
+        fs=None,
     ):
     if data is None: data = (None, None) 
     color_quadrants(quadrant_color, x, y, xlim, ylim)
     return label_quadrants(
-        *data, x, y, text, text_color,
+        *data, x, y, text, text_color, fs
     )
     
 def add_titles(axes, titles, color):

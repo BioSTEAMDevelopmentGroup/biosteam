@@ -873,7 +873,7 @@ class Model:
     
     def _reset_system(self):
         if self._system is None: return 
-        self._system.empty_recycles()
+        self._system.empty_outlet_streams()
         self._system.reset_cache()
     
     def _failed_evaluation(self):

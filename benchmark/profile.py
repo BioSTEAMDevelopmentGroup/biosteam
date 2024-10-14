@@ -779,7 +779,7 @@ def plot_profile(
         systems=None, N=3, load=True, save=True
     ):
     if systems is None: systems = list(all_systems)
-    fs = 10
+    fs = 12
     bst.set_font(fs)
     keys = (
         'Component flow rate error',
@@ -817,7 +817,7 @@ def plot_profile(
         if n_cols >= 2:
             aspect_ratio = 0.75 / 2
         elif n_rows == 1:
-            aspect_ratio = 1.8 / 2
+            aspect_ratio = 1.4 / 2
         else:
             aspect_ratio = 1.5 / 2
         bst.set_figure_size(aspect_ratio=aspect_ratio, width=width)
@@ -919,7 +919,7 @@ def plot_profile(
                     fontsize=fs,
                     fontweight='bold',
                 )
-                index = int(len(tpo) * 0.3)
+                index = int(len(tpo) * 0.5)
                 xy = x, y = (tpo[index], ypo[index])
                 ax.annotate('Phenomena\noriented',
                     xy=xy, 
@@ -953,15 +953,18 @@ def plot_profile(
     #               horizontalalignment='center',verticalalignment='center',
     #               fontsize=fs, fontweight='bold')
     left = 0.1
+    top = 0.85
     if n_rows == 2:
         bottom = 0.1
     elif n_rows == 1:
         bottom = 0.15
         if n_cols == 1:
-            left = 0.2
+            left = 0.25
+            top = 0.90
+            bottom = 0.2
     else:
         bottom = 0.08
-    plt.subplots_adjust(right=0.96, left=left, bottom=bottom, top=0.85, hspace=0, wspace=0)
+    plt.subplots_adjust(right=0.96, left=left, bottom=bottom, top=top, hspace=0, wspace=0)
     for i in ('svg', 'png'):
         name = f'PO_SM_profile.{i}'
         file = os.path.join(images_folder, name)
