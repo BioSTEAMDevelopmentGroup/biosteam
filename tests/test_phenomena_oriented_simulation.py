@@ -163,8 +163,13 @@ def test_simple_acetic_acid_separation_with_recycle():
         def fresh_solvent_flow_rate():
             broth = feed.F_mass
             EtAc_recycle = recycle.imass['EthylAcetate']
+            EtAc_required = broth * solvent_feed_ratio
+            if EtAc_required < EtAc_recycle:
+                recycle.F_mass *= EtAc_required / EtAc_recycle
+                EtAc_recycle = recycle.imass['EthylAcetate']
+            EtAc_fresh = EtAc_required - EtAc_recycle
             solvent.imass['EthylAcetate'] = max(
-                0, broth * solvent_feed_ratio - EtAc_recycle
+                0, EtAc_fresh
             )
         
         @solvent.material_balance
@@ -186,6 +191,7 @@ def test_simple_acetic_acid_separation_with_recycle():
     po = system(algorithm='phenomena oriented', 
                     molar_tolerance=1e-9,
                     relative_molar_tolerance=1e-9,
+                    maxiter=2000,
                     method='fixed-point')
     sm = system(algorithm='sequential modular',
                     molar_tolerance=1e-9,

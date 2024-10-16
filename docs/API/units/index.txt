@@ -18,6 +18,7 @@ units
    solids_separation
    splitting
    stirred_tank_reactor
+   single_phase_reactor
    vacuum_system
    valve
    Pump

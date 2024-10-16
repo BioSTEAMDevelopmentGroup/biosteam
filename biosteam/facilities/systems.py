@@ -175,7 +175,7 @@ def create_facilities(
 
 @bst.SystemFactory(
     ID='CHP_sys',
-    ins=['makeup_water', 'natural_gas', 'FGD_lime', 'boiler_chemicals'],
+    ins=['makeup_water', 'natural_gas', 'FGD_lime', 'boiler_chemicals', 'air'],
     outs=['emissions', 'blowdown', 'ash'],
     fixed_ins_size=False,
 )
@@ -183,7 +183,8 @@ def create_coheat_and_power_system(
         ins, outs, combustible_slurries=None, combustible_gases=None, 
         autopopulate=None, **kwargs
     ):
-    makeup_water, natural_gas, lime, boiler_chemicals, = ins
+    makeup_water, natural_gas, lime, boiler_chemicals, air = ins
+    if 'fuel_source' in kwargs: natural_gas.ID = kwargs['fuel_source'].lower()
     if autopopulate or combustible_slurries:
         slurry_mixer = bst.Mixer('slurry_mixer', ins=combustible_slurries or [])
         slurry = slurry_mixer-0
@@ -197,7 +198,7 @@ def create_coheat_and_power_system(
     BT = bst.BoilerTurbogenerator(
         ins=[slurry, gas, 
              makeup_water, natural_gas, 
-             lime, boiler_chemicals],
+             lime, boiler_chemicals, air],
         outs=outs,
         **kwargs,
     )

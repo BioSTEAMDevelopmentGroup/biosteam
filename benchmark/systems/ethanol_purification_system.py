@@ -5,16 +5,11 @@ Created on Sat Mar 16 13:38:11 2024
 @author: cortespea
 """
 import biosteam as bst
-from .profile import register
 
 __all__ = (
     'create_system_ethanol_purification',
 )
 
-@register(
-    'ethanol_purification', 'Ethanol purification',
-    0.1, [0.02, 0.04, 0.06, 0.08, 0.01], 'EtOH\nsep.',
-)
 def create_system_ethanol_purification(alg):
     bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
     distilled_beer = bst.Stream(

@@ -87,9 +87,17 @@ class Mixer(Unit):
         s_out, = self.outs
         s_out.mix_from(self.ins, vle=self.rigorous,
                        conserve_phases=getattr(self, 'conserve_phases', None))
+        V = s_out.vapor_fraction
+        if V == 0:
+            self._B = 0
+        elif V == 1:
+            self._B = np.inf
+        else:
+            self._B = V / (1 - V)
     
-    def _get_energy_departure_coefficient(self, stream):
+    def _get_energy_departure_coefficient(self, stream, temperature_only):
         if stream.phases == ('g', 'l'):
+            if temperature_only: return None
             vapor, liquid = stream
             if vapor.isempty():
                 with liquid.temporary_phase('g'): coeff = liquid.H
@@ -99,12 +107,13 @@ class Mixer(Unit):
             coeff = -stream.C
         return (self, coeff)
     
-    def _create_energy_departure_equations(self):
+    def _create_energy_departure_equations(self, temperature_only):
         # Ll: C1dT1 - Ce2*dT2 - Cr0*dT0 - hv2*L2*dB2 = Q1 - H_out + H_in
         # gl: hV1*L1*dB1 - hv2*L2*dB2 - Ce2*dT2 - Cr0*dT0 = Q1 + H_in - H_out
         outlet = self.outs[0]
         phases = outlet.phases
         if phases == ('g', 'l'):
+            if temperature_only: return []
             vapor, liquid = outlet
             coeff = {}
             if vapor.isempty():
@@ -113,14 +122,12 @@ class Mixer(Unit):
                 coeff[self] = vapor.h * liquid.F_mol
         else:
             coeff = {self: outlet.C}
-        for i in self.ins: i._update_energy_departure_coefficient(coeff)
+        for i in self.ins: i._update_energy_departure_coefficient(coeff, temperature_only)
         return [(coeff, self.H_in - self.H_out)]
     
-    def _create_material_balance_equations(self):
-        inlets = self.ins
+    def _create_material_balance_equations(self, composition_sensitive):
+        fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
         outlet, = self.outs
-        fresh_inlets = [i for i in inlets if i.isfeed() and not i.material_equations]
-        process_inlets = [i for i in inlets if not i.isfeed() or i.material_equations]
         if len(outlet) == 1:
             ones = np.ones(self.chemicals.size)
             minus_ones = -ones
@@ -129,12 +136,11 @@ class Mixer(Unit):
             # Overall flows
             eq_overall = {outlet: ones}
             for i in process_inlets: eq_overall[i] = minus_ones
-            equations = [
+            equations.append(
                 (eq_overall, sum([i.mol for i in fresh_inlets], zeros))
-            ]
+            )
         else:
             top, bottom = outlet
-            equations = []
             ones = np.ones(self.chemicals.size)
             minus_ones = -ones
             zeros = np.zeros(self.chemicals.size)
@@ -150,16 +156,7 @@ class Mixer(Unit):
             )
             
             # Top to bottom flows
-            try:
-                B = self._B
-            except:
-                V = outlet.vapor_fraction
-                if V == 0:
-                    B = 0
-                elif V == 1:
-                    B = np.inf
-                else:
-                    B = V / (1 - V)
+            B = self._B
             eq_outs = {}
             if B == np.inf:
                 eq_outs[bottom] = ones
@@ -174,14 +171,16 @@ class Mixer(Unit):
             equations.append(
                 (eq_outs, zeros)
             )
-            return equations
+        return equations
     
     def _update_energy_variable(self, departure):
-        phases = self.phases
+        phases = self.outs[0].phases
         if phases == ('g', 'l'):
             self._B += departure
         else:
             self.outs[0].T += departure
+
+    def _update_nonlinearities(self): pass
 
 
 class SteamMixer(Unit):

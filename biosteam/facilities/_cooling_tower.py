@@ -39,7 +39,7 @@ class CoolingTower(bst.Facility):
     
     """
     ticket_name = 'CT'
-    network_priority = 1
+    network_priority = 0
     _units = {'Flow rate': 'kmol/hr'}
     _N_ins = 3
     _N_outs = 3

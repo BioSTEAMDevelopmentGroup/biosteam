@@ -97,7 +97,7 @@ class MultiEffectEvaporator(Unit):
     >>> E1.show()
     MultiEffectEvaporator: E1
     ins...
-    [0] feed
+    [0] feed  
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): Water       55.5
                         AceticAcid  0.00833
@@ -105,18 +105,18 @@ class MultiEffectEvaporator(Unit):
                         HMF         0.000793
                         Glucose     0.555
     outs...
-    [0] solids
+    [0] solids  
         phase: 'l', T: 333.21 K, P: 20000 Pa
         flow (kmol/hr): Water       20.5
-                        AceticAcid  0.00183
-                        Furfural    5.96e-05
+                        AceticAcid  0.00181
+                        Furfural    5.29e-05
                         HMF         0.000793
                         Glucose     0.555
-    [1] liquid
+    [1] liquid  
         phase: 'l', T: 352.11 K, P: 20000 Pa
         flow (kmol/hr): Water       35
-                        AceticAcid  0.0065
-                        Furfural    0.000981
+                        AceticAcid  0.00651
+                        Furfural    0.000988
     
     >>> E1.results()
     Multi-effect evaporator                                    Units       E1
@@ -151,7 +151,7 @@ class MultiEffectEvaporator(Unit):
     >>> E1.show()
     MultiEffectEvaporator: E1
     ins...
-    [0] feed
+    [0] feed  
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): Water       55.5
                         AceticAcid  0.00833
@@ -159,18 +159,18 @@ class MultiEffectEvaporator(Unit):
                         HMF         0.000793
                         Glucose     0.555
     outs...
-    [0] solids
+    [0] solids  
         phase: 'l', T: 354.91 K, P: 50892 Pa
         flow (kmol/hr): Water       50
-                        AceticAcid  0.00683
-                        Furfural    0.000535
+                        AceticAcid  0.0069
+                        Furfural    0.000577
                         HMF         0.000793
                         Glucose     0.555
-    [1] liquid
-        phase: 'l', T: 361.13 K, P: 50892 Pa
+    [1] liquid  
+        phase: 'l', T: 361.12 K, P: 50892 Pa
         flow (kmol/hr): Water       5.55
-                        AceticAcid  0.0015
-                        Furfural    0.000506
+                        AceticAcid  0.00143
+                        Furfural    0.000464
     
     >>> E1.results()
     Multi-effect evaporator                                    Units        E1
@@ -205,7 +205,7 @@ class MultiEffectEvaporator(Unit):
     >>> E1.show()
     MultiEffectEvaporator: E1
     ins...
-    [0] feed
+    [0] feed  
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): Water       55.5
                         AceticAcid  0.00833
@@ -213,18 +213,18 @@ class MultiEffectEvaporator(Unit):
                         HMF         0.000793
                         Glucose     0.555
     outs...
-    [0] solids
+    [0] solids  
         phase: 'l', T: 354.91 K, P: 50892 Pa
         flow (kmol/hr): Water       50
-                        AceticAcid  0.00683
-                        Furfural    0.000535
+                        AceticAcid  0.0069
+                        Furfural    0.000577
                         HMF         0.000793
                         Glucose     0.555
-    [1] liquid
-        phase: 'l', T: 361.13 K, P: 50892 Pa
+    [1] liquid  
+        phase: 'l', T: 361.12 K, P: 50892 Pa
         flow (kmol/hr): Water       5.55
-                        AceticAcid  0.0015
-                        Furfural    0.000506
+                        AceticAcid  0.00143
+                        Furfural    0.000464
     
     >>> E1.results()
     Multi-effect evaporator                                    Units        E1

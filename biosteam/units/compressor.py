@@ -568,36 +568,33 @@ class IsentropicCompressor(Compressor, new_graphics=False):
         super()._design()
         self._set_power(self.design_results['Ideal power'] / self.eta)
     
-    def _create_energy_departure_equations(self):
+    def _create_energy_departure_equations(self, temperature_only):
         # Ll: C1dT1 - Ce2*dT2 - Cr0*dT0 - hv2*L2*dB2 = Q1 - H_out + H_in
         # gl: hV1*L1*dB1 - hv2*L2*dB2 - Ce2*dT2 - Cr0*dT0 = Q1 + H_in - H_out
         feed = self.ins[0]
         product = self.outs[0]
         if len(product.phases) > 1:
             raise NotImplementedError('energy departure equation with multiple phase not yet implemented for isentropic compressors')
-        else:
-            J = R / (2. * product.Cn * self.eta) * log(feed.P / self.P)
-            coeff = {self: (1 - J) / (1 + J) * product.Cn}
-            for i in self.ins: i._update_energy_departure_coefficient(coeff)
-        return [(coeff, 0)]
+        J = R / (2. * product.Cn * self.eta) * log(feed.P / self.P)
+        coeff = {self: (1 - J) / (1 + J) * product.Cn}
+        for i in self.ins: i._update_energy_departure_coefficient(coeff, temperature_only)
+        return [(coeff, self.H_in - self.H_out)]
     
-    def _create_material_balance_equations(self):
-        inlets = self.ins
-        fresh_inlets = [i for i in inlets if i.isfeed() and not i.equations]
-        process_inlets = [i for i in inlets if not i.isfeed() or i.equations]
-        product, = self.outs
+    def _create_material_balance_equations(self, composition_sensitive):
+        fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
+        outlet, = self.outs
+        if len(outlet.phases) > 1:
+            raise NotImplementedError('energy departure equation with multiple phase not yet implemented for isentropic compressors')
         ones = np.ones(self.chemicals.size)
         minus_ones = -ones
         zeros = np.zeros(self.chemicals.size)
         
         # Overall flows
-        eq_overall = {}
-        for i in self.outs: eq_overall[i] = ones
+        eq_overall = {outlet: ones}
         for i in process_inlets: eq_overall[i] = minus_ones
-        equations = [
+        equations.append(
             (eq_overall, sum([i.mol for i in fresh_inlets], zeros))
-        ]
-        
+        )
         return equations
     
     def _update_energy_variable(self, departure):

@@ -35,7 +35,7 @@ class ChilledWaterPackage(bst.Facility):
     
     """
     ticket_name = 'CWP'
-    network_priority = 0
+    network_priority = -1
     _units = {'Duty': 'kJ/hr'}
     def __init__(self, ID='', agent=None):
         self.agent = chilled_water = agent or bst.settings.get_cooling_agent('chilled_water')

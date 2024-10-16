@@ -57,6 +57,7 @@ from math import inf, sqrt, exp, pi
 from .heat_exchange import HXutility
 from ._flash import Flash
 from .stage import MultiStageEquilibrium
+from thermosteam import separations as sep
 
 __all__ = (
     'Distillation', 
@@ -278,20 +279,22 @@ class Distillation(Unit, isabstract=True):
         'Weight',
     )
     _F_BM_default = {'Rectifier tower': 4.3,
-                      'Stripper tower': 4.3,
-                      'Rectifier trays': 4.3,
-                      'Stripper trays': 4.3,
-                      'Platform and ladders': 1.,
-                      'Rectifier platform and ladders': 1.,
-                      'Stripper platform and ladders': 1.,
-                      'Tower': 4.3,
-                      'Trays': 4.3,
-                      'Vacuum system': 1.}
+                     'Stripper tower': 4.3,
+                     'Rectifier trays': 4.3,
+                     'Stripper trays': 4.3,
+                     'Platform and ladders': 1.,
+                     'Rectifier platform and ladders': 1.,
+                     'Stripper platform and ladders': 1.,
+                     'Tower': 4.3,
+                     'Trays': 4.3,
+                     'Vacuum system': 1.}
     
     # [dict] Bounds for results
     _bounds = {'Diameter': (3., 24.),
                'Height': (27., 170.),
                'Weight': (9000., 2.5e6)}
+    
+    composition_sensitive = False
     
     def _init(self, 
             LHK, k,
@@ -714,7 +717,10 @@ class Distillation(Unit, isabstract=True):
         LNK_mol = mol[LNK_index]
         HNK_mol = mol[HNK_index]
         gases_mol = mol[gases_index]
-        solids_mol = mol[solids_index]
+        try:
+            solids_mol = mol[solids_index]
+        except:
+            breakpoint()
         
         # Mass balance for non-keys
         distillate, bottoms_product = self.outs
@@ -857,8 +863,13 @@ class Distillation(Unit, isabstract=True):
         if Q_boiler < Q_overall_boiler:
             liquid = reboiler.ins[0]
             H_out_boiler = reboiler.outs[0].H
-            liquid.H = H_out_boiler - Q_overall_boiler
-            boiler_kwargs = dict(duty=Q_overall_boiler)
+            try:
+                liquid.H = H_out_boiler - Q_overall_boiler
+            except:
+                liquid.phase = 'l'
+                boiler_kwargs = dict(duty=Q_boiler)                
+            else:
+                boiler_kwargs = dict(duty=Q_overall_boiler)
             condenser_kwargs = dict(duty=Q_condenser)
         else:
             boiler_kwargs = dict(duty=Q_boiler)
@@ -1034,6 +1045,15 @@ class Distillation(Unit, isabstract=True):
             
             dimensions = [(H, Di)]
         self._cost_vacuum(dimensions)
+    
+    def _update_equilibrium_variables(self):
+        top, bottom = self.outs
+        top = top.mol.to_array()
+        bottom = bottom.mol.to_array()
+        bottom_dummy = bottom.copy()
+        bottom_dummy[bottom == 0] = 1e-16
+        self.B = B = top.sum() / bottom.sum()
+        self.K = top / bottom_dummy / B
 
 
 # %% McCabe-Thiele distillation model utilities
@@ -1290,6 +1310,8 @@ class BinaryDistillation(Distillation, new_graphics=False):
     def _run(self):
         self._run_binary_distillation_mass_balance()
         self._update_distillate_and_bottoms_temperature()
+        if self.system and self.system.algorithm == 'Phenomena oriented':
+            self._update_equilibrium_variables()
 
     def reset_cache(self, isdynamic=None):
         self._McCabeThiele_args = np.zeros(6)
@@ -1377,6 +1399,14 @@ class BinaryDistillation(Distillation, new_graphics=False):
         else:
             Design['Theoretical feed stage'] = '?'
             Design['Theoretical stages'] = '100+'
+            Design['Minimum reflux'] = Rmin
+            Design['Reflux'] = R 
+            y_stages = np.array(y_stages)
+            x_stages = np.array(x_stages)
+            mask = (x_stages >= 0)  & (x_stages <= 1) & (y_stages >= 0)  & (y_stages <= 1)
+            self._y_stages = y_stages[mask]
+            self._x_stages = x_stages[mask]
+            self._T_stages = np.array(T_stages)[mask[:len(T_stages)]]
             raise error[0] from None
         Design['Minimum reflux'] = Rmin
         Design['Reflux'] = R 
@@ -1442,8 +1472,11 @@ class BinaryDistillation(Distillation, new_graphics=False):
         for y in y_stages:
             y_stairs.append(y)
             y_stairs.append(y)
-        x_stairs.pop(-1)
-        x_stairs.insert(0, y_stairs[0])
+        try:
+            x_stairs.pop(-1)
+            x_stairs.insert(0, y_stairs[0])
+        except:
+            pass
         plt.plot(x_stairs, y_stairs, '--')
         
         # Graphical aid line
@@ -1481,31 +1514,34 @@ class BinaryDistillation(Distillation, new_graphics=False):
         plt.title(f'McCabe Thiele Diagram (Rmin = {Rmin:.2f}, R = {R:.2f})')
         plt.show()
         return plt
+    
+    # def _update_net_flow_parameters(self):
+    #     top, bottom = self.outs
+    #     phi = sep.partition(
+    #         self.ins[0], top, bottom, top.chemicals.IDs, self.K, 0.5, 
+    #         None, None, True,
+    #     )
+    #     if phi == 1: 
+    #         B = np.inf
+    #     else:
+    #         B = phi / (1 - phi)
+    #     self.B = B 
+    #     if self.product_specification_format == 'Recovery':
+    #         LK, HK = self._LHK_index
+    #         Lr = self._Lr
+    #         Hr = self._Hr
+    #         self.K[LK] = Lr / ((1 - Lr) * B)
+    #         self.K[HK] = (1 - Hr) / (Hr * B)
 
-    def _create_material_balance_equations(self):
+    # def _update_composition_parameters(self):
+    #     pass
+
+    def _create_material_balance_equations(self, composition_sensitive):
         top, bottom = self.outs
-        if bottom.isempty():
-            B = np.inf
-            K = 1e16 * np.ones(self.chemicals.size)
-        elif top.isempty():
-            K = np.zeros(self.chemicals.size)
-            B = 0
-        else:
-            top_mol = top.mol.to_array()
-            bottom_mol = bottom.mol.to_array()
-            F_top = top_mol.sum()
-            F_bottom = bottom_mol.sum()
-            y = top_mol / F_top
-            x = bottom_mol / F_bottom
-            x[x <= 0] = 1e-16
-            K = y / x
-            B = F_top / F_bottom
-        
-        inlets = self.ins
-        fresh_inlets = [i for i in inlets if i.isfeed() and not i.material_equations]
-        process_inlets = [i for i in inlets if not i.isfeed()]
+        B = self.B
+        K = self.K
+        fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
         top, bottom, *_ = self.outs
-        equations = []
         ones = np.ones(self.chemicals.size)
         minus_ones = -ones
         zeros = np.zeros(self.chemicals.size)
@@ -1533,21 +1569,16 @@ class BinaryDistillation(Distillation, new_graphics=False):
         )
         return equations
     
-    def _get_energy_departure_coefficient(self, stream):
+    def _get_energy_departure_coefficient(self, stream, temperature_only):
         return None
     
-    def _create_energy_departure_equations(self):
+    def _create_energy_departure_equations(self, temperature_only):
         return []
     
-    def _update_equilibrium_variables(self):
-        outs = top, bottom = self.outs
-        data = [i.get_data() for i in outs]
+    def _update_nonlinearities(self):
+        # pass
         self.run()
-        Ts = [i.T for i in outs]
-        for i, j, T in zip(outs, data, Ts): 
-            i.set_data(j)
-            i.T = T
-
+        
 
 # %% Fenske-Underwook-Gilliland distillation model utilities
 
@@ -1834,6 +1865,8 @@ class ShortcutColumn(Distillation, new_graphics=False):
         
         # Remove temporary data
         if composition_spec: self._Lr = self._Hr = None
+        if self.system and self.system.algorithm == 'Phenomena oriented':
+            self._update_equilibrium_variables()
 
     def plot_stages(self):
         raise TypeError('cannot plot stages for shortcut column')
@@ -1941,7 +1974,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
         return compute_distillate_recoveries_Hengsteback_and_Gaddes(self.Lr, self.Hr,
                                                                     alpha_mean,
                                                                     self._LHK_vle_index)
-        
+    
     def _update_distillate_recoveries(self, distillate_recoveries):
         feed = self.mixed_feed
         distillate, bottoms = self.outs
@@ -1968,7 +2001,71 @@ class ShortcutColumn(Distillation, new_graphics=False):
     _get_energy_departure_coefficient = BinaryDistillation._get_energy_departure_coefficient
     _create_energy_departure_equations = BinaryDistillation._create_energy_departure_equations
     _create_material_balance_equations = BinaryDistillation._create_material_balance_equations
-    _update_equilibrium_variables = BinaryDistillation._update_equilibrium_variables
+    # _update_net_flow_parameters = BinaryDistillation._update_net_flow_parameters
+
+    # def _update_composition_parameters(self):
+    #     mol = sum([i.mol for i in self.ins]).to_array()
+    #     LHK_index = self._LHK_index
+    #     LHK_mol = mol[LHK_index]
+    #     light, heavy = LHK_mol
+    #     F_mol_LHK = light + heavy
+    #     zf = light / F_mol_LHK
+    #     y_top, y_bot = self._y
+    #     x_bot = self._x_bot
+    #     distillate_fraction = (zf - x_bot)/(y_top - x_bot)
+    #     if distillate_fraction < 1e-16: distillate_fraction = 1e-16
+    #     if distillate_fraction > 1 - 1e-16: distillate_fraction = 1 - 1e-16   
+    #     F_mol_LHK_distillate = F_mol_LHK * distillate_fraction
+    #     distillate_LHK_mol = F_mol_LHK_distillate * self._y
+    #     max_flows = (1 - 1e-16) * LHK_mol
+    #     mask = distillate_LHK_mol > (1 - 1e-16) * max_flows
+    #     distillate_LHK_mol[mask] = max_flows[mask]
+    #     self._Lr = distillate_LHK_mol[0] / LHK_mol[0]
+    #     self._Hr = distillate_LHK_mol[1] / LHK_mol[1]
+    #     self._distillate_recoveries = split = self._estimate_distillate_recoveries()
+    #     top = mol * split
+    #     bottom = mol - top
+    #     y = top / top.sum()
+    #     x = bottom / bottom.sum()
+    #     x[x == 0] = 1e-16
+    #     bottom[bottom == 0] = 1e-16
+    #     self.K = y / x
+
+    def _update_nonlinearities(self):
+        # pass
+        # self.run()
+        mol = sum([i.mol for i in self.outs]).to_array()
+        if self.product_specification_format == 'Composition':
+            LHK_index = self._LHK_index
+            LHK_mol = mol[LHK_index]
+            light, heavy = LHK_mol
+            F_mol_LHK = light + heavy
+            zf = light / F_mol_LHK
+            y_top, y_bot = self._y
+            x_bot = self._x_bot
+            distillate_fraction = (zf - x_bot)/(y_top - x_bot)
+            if distillate_fraction < 1e-16: distillate_fraction = 1e-16
+            if distillate_fraction > 1 - 1e-16: distillate_fraction = 1 - 1e-16   
+            F_mol_LHK_distillate = F_mol_LHK * distillate_fraction
+            distillate_LHK_mol = F_mol_LHK_distillate * self._y
+            max_flows = (1 - 1e-16) * LHK_mol
+            mask = distillate_LHK_mol > (1 - 1e-16) * max_flows
+            distillate_LHK_mol[mask] = max_flows[mask]
+            self._Lr = distillate_LHK_mol[0] / LHK_mol[0]
+            self._Hr = distillate_LHK_mol[1] / LHK_mol[1]
+        self._distillate_recoveries = split = self._estimate_distillate_recoveries()
+        top = mol * split
+        bottom = mol - top
+        bottom_dummy = bottom.copy()
+        bottom_dummy[bottom_dummy == 0] = 1e-16
+        self.B = B = top.sum() / bottom.sum()
+        self.K = top / bottom_dummy / B
+        # s_top, s_bottom = self.outs
+        # s_dummy = s_top.copy()
+        # s_dummy.mol = top
+        # s_top.T = (s_dummy.dew_point_at_P() if self._partial_condenser else s_dummy.bubble_point_at_P()).T
+        # s_dummy.mol = bottom
+        # s_bottom.T = s_dummy.bubble_point_at_P().T
 
 
 # %% Rigorous absorption/stripping column
@@ -2498,8 +2595,11 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         if full_condenser: 
             if liquid_side_draws is None:
                 liquid_side_draws = {}
-            if reflux is not None and 0 not in liquid_side_draws: 
-                liquid_side_draws[0] = reflux / (1 + reflux)
+            if 0 not in liquid_side_draws:
+                if reflux is None:
+                    liquid_side_draws[0] = 1.
+                else:
+                    liquid_side_draws[0] = reflux / (1 + reflux)
             reflux = inf # Boil-up is 0
         self.LHK = LHK
         if stage_specifications is None: stage_specifications = {}

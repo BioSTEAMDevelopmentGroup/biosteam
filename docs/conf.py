@@ -14,6 +14,11 @@
 #
 import os
 import sys
+try:
+    from docutils import nodes
+    nodes.reprunicode = lambda x: x # Workaround for bug in nbsphinx-link
+except:
+    pass # docutils may not be installed for test suit
 
 new_path = ['..\\', '..\\thermosteam\\', '..\\Bioindustrial-Park\\', '..\\How2STEAM\\']
 for p in new_path:
@@ -263,10 +268,10 @@ html_theme_options = {
         'image_dark': 'logo_dark.png'
     },
     "show_toc_level": 2,
-    # "announcement": (
-    #     "<p>Join us on Feb 20, 10:15-11:15am CST, for a BioSTEAM workshop! "
-    #     "<a href='mailto: biosteamdevelopmentgroup@gmail.com'>Email us for details</a></p>"
-    # ),
+    "announcement": (
+        "<p>Join us on September 20, 10:15-11:45am CST, for a BioSTEAM workshop! "
+        "<a href='https://docs.google.com/spreadsheets/d/1KbIXqUR_IHyyECxkTNxHH5o_lH8jVAHRIOLzJE649b4/edit?usp=sharing'>Sign-up by 9/13 for details</a></p>"
+    ),
     "external_links": [
       {"name": "Bioindustrial-Park", "url": "https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park"},
       {"name": "How2STEAM", "url": "https://mybinder.org/v2/gh/BioSTEAMDevelopmentGroup/How2STEAM/HEAD"},

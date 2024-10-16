@@ -11,6 +11,7 @@ biosteam/benchmark/simulations/*
 *.svg
 *.png
 *.npy
+*.xlsx
 .gitignore
 .pypirc
 dist

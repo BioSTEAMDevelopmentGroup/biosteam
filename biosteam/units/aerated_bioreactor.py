@@ -15,7 +15,7 @@ References
 
 """
 import biosteam as bst
-from .stirred_tank_reactor import StirredTankReactor
+from .stirred_tank_reactor import AbstractStirredTankReactor
 from math import pi
 import numpy as np
 from scipy.constants import g
@@ -29,7 +29,7 @@ __all__ = (
     'GasFedBioreactor', 'GFB',
 )
 
-class AeratedBioreactor(StirredTankReactor):
+class AeratedBioreactor(AbstractStirredTankReactor):
     """
     Same as StirredTankReactor but includes aeration. The agitator power may
     vary to minimize the total power requirement of both the compressor and agitator
@@ -82,7 +82,7 @@ class AeratedBioreactor(StirredTankReactor):
     auxiliary_unit_names = (
         'compressor',
         'air_cooler',
-        *StirredTankReactor.auxiliary_unit_names
+        *AbstractStirredTankReactor.auxiliary_unit_names
     )
     T_default = 273.15 + 32 
     P_default = 101325
@@ -97,7 +97,7 @@ class AeratedBioreactor(StirredTankReactor):
             optimize_power=None, design=None, method=None, kLa_kwargs=None,
             **kwargs,
         ):
-        StirredTankReactor._init(self, **kwargs)
+        AbstractStirredTankReactor._init(self, **kwargs)
         self.reactions = reactions
         self.theta_O2 = theta_O2 # Average concentration of O2 in the liquid as a fraction of saturation.
         self.Q_O2_consumption = Q_O2_consumption # Forced duty per O2 consummed [kJ/kmol].
@@ -313,7 +313,7 @@ class AeratedBioreactor(StirredTankReactor):
         return OTR
         
     def _inlet_air_pressure(self):
-        StirredTankReactor._design(self)
+        AbstractStirredTankReactor._design(self)
         liquid = bst.Stream(None, thermo=self.thermo)
         liquid.mix_from([i for i in self.ins if i.phase != 'g'], energy_balance=False)
         liquid.copy_thermal_condition(self.outs[0])
@@ -322,7 +322,7 @@ class AeratedBioreactor(StirredTankReactor):
         return g * rho * length + 101325 # Pa
     
     def _design(self):
-        StirredTankReactor._design(self)
+        AbstractStirredTankReactor._design(self)
         if self.air.isempty(): return
         liquid = bst.Stream(None, thermo=self.thermo)
         liquid.mix_from([i for i in self.ins if i.phase != 'g'], energy_balance=False)
@@ -342,9 +342,9 @@ class AeratedBioreactor(StirredTankReactor):
             for hu in unit.heat_utilities: hu.hxn_ok = False
 
 
-class GasFedBioreactor(StirredTankReactor):
+class GasFedBioreactor(AbstractStirredTankReactor):
     """
-    Same as StirredTankReactor but includes multiple gas feeds. The agitator power may
+    Same as AbstractStirredTankReactor but includes multiple gas feeds. The agitator power may
     vary to minimize the total power requirement of both the compressor and agitator
     yet achieve the required oxygen transfer rate.
     
@@ -381,13 +381,13 @@ class GasFedBioreactor(StirredTankReactor):
         flow (kmol/hr): H2O  555
     [1] H2  
         phase: 'g', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): H2  4.02
+        flow (kmol/hr): H2  18.1
     [2] fluegas  
         phase: 'g', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): CO2  2.01
-                        N2   8.83
-                        O2   0.221
-                        H2O  0.589
+        flow (kmol/hr): CO2  1.65
+                        N2   7.27
+                        O2   0.182
+                        H2O  0.485
     [3] recycle  
         phase: 'g', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): CO2  0.0523
@@ -397,15 +397,15 @@ class GasFedBioreactor(StirredTankReactor):
     outs...
     [0] vent  
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): H2          0.669
-                        CO2         0.387
-                        N2          9.08
-                        O2          0.233
-                        H2O         0.478
-                        AceticAcid  0.000463
+        flow (kmol/hr): H2          14.8
+                        CO2         0.0324
+                        N2          7.52
+                        O2          0.194
+                        H2O         1.02
+                        AceticAcid  0.000984
     [1] product  
         phase: 'l', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): H2O         557
+        flow (kmol/hr): H2O         556
                         AceticAcid  0.836
     
     """
@@ -417,7 +417,7 @@ class GasFedBioreactor(StirredTankReactor):
         'sparger',
         'compressors',
         'gas_coolers',
-        *StirredTankReactor.auxiliary_unit_names
+        *AbstractStirredTankReactor.auxiliary_unit_names
     )
     T_default = 273.15 + 32 
     P_default = 101325
@@ -433,8 +433,10 @@ class GasFedBioreactor(StirredTankReactor):
             theta=0.5, Q_consumption=None,
             optimize_power=None, 
             mixins=None,
+            fed_gas_hook=None,
             **kwargs,
         ):
+        self.fed_gas_hook = fed_gas_hook
         self.reactions = reactions
         self.backward_reactions = backward_reactions
         self.theta = theta # Average concentration of gas substrate in the liquid as a fraction of saturation.
@@ -445,7 +447,7 @@ class GasFedBioreactor(StirredTankReactor):
         self.gas_substrates = gas_substrates
         self.titer = titer # dict[str, float] g / L
         self.mixins = {} if mixins is None else mixins # dict[int, tuple[int]] Pairs of variable feed gas index and inlets that will be mixed.
-        StirredTankReactor._init(self, **kwargs)
+        AbstractStirredTankReactor._init(self, **kwargs)
         if design is None: 
             if self.kW_per_m3 == 0:
                 design = 'Bubble column'
@@ -488,7 +490,7 @@ class GasFedBioreactor(StirredTankReactor):
     
     @property
     def variable_gas_feeds(self):
-        return [self.ins[i] for i in self.feed_gas_compositions]
+        return [(i if isinstance(i, bst.Stream) else self.ins[i]) for i in self.feed_gas_compositions]
     
     @property
     def normal_gas_feeds(self):
@@ -540,6 +542,13 @@ class GasFedBioreactor(StirredTankReactor):
         self.backward_reactions.force_reaction(consumed)
         return consumed.get_flow('mol/s', self.gas_substrates), consumed, produced
     
+    def _load_gas_feeds(self):
+        if self.fed_gas_hook is not None: self.fed_gas_hook()
+        for i in self.mixers: i.simulate()
+        for i in self.compressors: i.simulate()
+        for i in self.gas_coolers: i.simulate()
+        self.sparger.simulate()
+    
     def _run(self):
         variable_gas_feeds = self.variable_gas_feeds
         for i in variable_gas_feeds: i.phase = 'g'
@@ -567,17 +576,11 @@ class GasFedBioreactor(StirredTankReactor):
             x_substrates.append(gas.get_molar_fraction(ID))
         index = range(len(self.gas_substrates))
         
-        def run_auxiliaries():
-            for i in self.mixers: i.simulate()
-            for i in self.compressors: i.simulate()
-            for i in self.gas_coolers: i.simulate()
-            self.sparger.simulate()
-        
         def load_flow_rates(F_feeds):
             for i in index:
                 gas = variable_gas_feeds[i]
                 gas.set_total_flow(F_feeds[i], 'mol/s')
-            run_auxiliaries()
+            self._load_gas_feeds()
             effluent.set_data(effluent_liquid_data)
             effluent.mix_from([self.sparged_gas, -s_consumed, s_produced, *liquid_feeds], energy_balance=False)
             if (effluent.mol < 0).any(): breakpoint()
@@ -683,7 +686,7 @@ class GasFedBioreactor(StirredTankReactor):
         return np.array(STRs)
         
     def _inlet_gas_pressure(self):
-        StirredTankReactor._design(self)
+        AbstractStirredTankReactor._design(self)
         liquid = bst.Stream(None, thermo=self.thermo)
         liquid.mix_from([i for i in self.ins if i.phase != 'g'], energy_balance=False)
         liquid.copy_thermal_condition(self.outs[0])
@@ -692,7 +695,7 @@ class GasFedBioreactor(StirredTankReactor):
         return g * rho * length + 101325 # Pa
     
     def _design(self):
-        StirredTankReactor._design(self)
+        AbstractStirredTankReactor._design(self)
         self.parallel['sparger'] = 1
         self.parallel['mixers'] = 1
         self.parallel['compressors'] = 1

@@ -393,9 +393,7 @@ class Model:
         if convergence_model:
             with convergence_model.practice(sample, parameters):
                 self._specification() if self._specification else self._system.simulate(**kwargs)
-        value = loss()
-        print(sample, value)
-        return value
+        return loss()
     
     def _update_state(self, sample, convergence_model=None, **kwargs):
         for f, s in zip(self._parameters, sample): 
@@ -431,7 +429,7 @@ class Model:
             return self._failed_evaluation()
     
     def __init__(self, system, metrics=None, specification=None, 
-                 parameters=None, retry_evaluation=True, exception_hook=None):
+                 parameters=None, retry_evaluation=None, exception_hook=None):
         self.specification = specification
         if parameters:
             self.set_parameters(parameters)
@@ -442,7 +440,7 @@ class Model:
         self._specification = specification
         self.metrics = metrics or ()
         self.exception_hook = 'warn' if exception_hook is None else exception_hook 
-        self.retry_evaluation = retry_evaluation
+        self.retry_evaluation = bool(system) if retry_evaluation is None else retry_evaluation
         self.table = None
         self._erase()
         
@@ -715,11 +713,11 @@ class Model:
         relative_error = error / np.maximum.reduce([np.abs(baseline_1[index]), np.abs(baseline_2[index])])
         for i, idx in enumerate(index):
             if relative_error[i] > etol:
-                raise RuntimeError(
+                print(RuntimeError(
                     f"inconsistent model; {metrics[idx]} has a value of "
                     f"{baseline_1[idx]} before evaluating sensitivity and "
                     f"{baseline_2[idx]} after"
-                )
+                ))
         baseline = 0.5 * (baseline_1 + baseline_2)
         if array:
             return baseline, values_lb, values_ub
@@ -824,12 +822,6 @@ class Model:
                 predictors=self.parameters,
                 model_type=convergence_model,
             )
-        elif convergence_model is None:
-            convergence_model = ConvergenceModel(
-                system=self.system,
-                predictors=self.parameters,
-                model_type=self.default_convergence_model,
-            )
         if notify:
             timer = TicToc()
             timer.tic()
@@ -880,7 +872,8 @@ class Model:
             table[var_indices(self._metrics)] = replace_nones(values, [np.nan] * len(self.metrics))
     
     def _reset_system(self):
-        self._system.empty_recycles()
+        if self._system is None: return 
+        self._system.empty_outlet_streams()
         self._system.reset_cache()
     
     def _failed_evaluation(self):

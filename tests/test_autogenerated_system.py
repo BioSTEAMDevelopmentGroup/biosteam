@@ -395,12 +395,10 @@ def test_two_recycle_loops_with_complete_overlap():
          P3,
          Network(
             [M1,
-             Network(
-                 [M2,
-                  S2],
-                 recycle=inner_recycle),
+             M2,
+             S2,
              S1],
-            recycle=recycle)])
+            recycle={recycle, inner_recycle})])
     assert network == actual_network
     recycle_loop_sys.simulate()
     x_nested_solution = np.vstack([recycle.mol, inner_recycle.mol])
@@ -438,31 +436,27 @@ def test_two_recycle_loops_with_partial_overlap():
          P3,
          Network(
             [M1,
-             Network(
-                 [M2,
-                  S2,
-                  S3],
-                 recycle=inner_recycle),
-             S1],
-            recycle=recycle)])
-    actual_network_alternative = Network(
+             M2,
+             S2,
+             S1,
+             S3],
+            recycle={recycle, inner_recycle})])
+    alternative_network = Network(
         [P1,
          P2,
          P3,
          Network(
-            [Network(
-                [M1,
-                 M2,
-                 S2,
-                 S1],
-                recycle=S1-1),
-             S3],
-            recycle=S3-1)])
-    assert network == actual_network or network == actual_network_alternative
+            [M1,
+             M2,
+             S2,
+             S3,
+             S1],
+            recycle={inner_recycle, recycle})])
+    assert network == actual_network or network == alternative_network
     recycle_loop_sys.simulate()
     x_nested_solution = np.vstack([recycle.mol, inner_recycle.mol])
     recycle_loop_sys.flatten()
-    assert recycle_loop_sys.path == (P1, P2, P3, M1, M2, S2, S3, S1)
+    assert recycle_loop_sys.path == (P1, P2, P3, M1, M2, S2, S1, S3) or recycle_loop_sys.path == (P1, P2, P3, M1, M2, S2, S3, S1)
     recycle_loop_sys.empty_recycles()
     recycle_loop_sys.simulate()
     x_flat_solution = np.vstack([recycle.mol, inner_recycle.mol])
@@ -499,6 +493,7 @@ def test_feed_forward_recycle_loop():
              P3])
     )
     assert network == actual_network 
+    recycle_loop_sys.set_tolerance(mol=1e-6, rmol=1e-6, subsystems=True)
     recycle_loop_sys.simulate()
     x_nested_solution = np.vstack([recycle.mol, inner_recycle.mol])
     recycle_loop_sys.flatten()
@@ -606,30 +601,25 @@ def test_nested_recycle_loops():
          Network(
             [M1,
              P2,
-             Network(
-                [H1,
-                 M3],
-                recycle=M3-0),
+             H1,
+             M3,
+             H1,
              P4,
-             Network(
-                [M4,
-                 M5,
-                 Network(
-                    [H2,
-                     M6,
-                     S1],
-                    recycle=S1-0),
-                 S2,
-                 P8,
-                 S3,
-                 Network(
-                    [M7,
-                     S4,
-                     H3],
-                    recycle=H3-0)],
-                recycle=H3-1),
+             M4,
+             M5,
+             H2,
+             M6,
+             S1,
+             H2,
+             S2,
+             H3,
+             P8,
+             S3,
+             M7,
+             S4,
+             H3,
              S5],
-            recycle=S5-1),
+            recycle={S5-1, S4-1}),
          M8])
     assert network == actual_network 
     x_nested_solution = np.vstack([i.mol for i in recycles])

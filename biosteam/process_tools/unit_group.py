@@ -101,14 +101,14 @@ class UnitGroup:
     >>> ugroup.show()
     UnitGroup: Example group
      units: P1, T1, H1
-     metrics: Installed equipment cost [MM$]
-              Cooling duty [GJ/hr]
-              Heating duty [GJ/hr]
-              Electricity consumption [MW]
-              Electricity production [MW]
-              Material cost [USD/hr]
+     metrics: Installed equipment cost
+              Cooling duty
+              Heating duty
+              Electricity consumption
+              Electricity production
+              Material cost
               Moisture content
-              Sucrose flow rate [kg/hr]
+              Sucrose flow rate
     
     >>> ugroup.to_dict()
     {'Installed equipment cost [MM$]': 0.05, 'Cooling duty [GJ/hr]': 0.37, 'Heating duty [GJ/hr]': 0.0, 'Electricity consumption [MW]': 0.0, 'Electricity production [MW]': 0.0, 'Material cost [USD/hr]': 0.0, 'Moisture content': 0.63, 'Sucrose flow rate [kg/hr]': 1026.8}

@@ -301,15 +301,12 @@ class Separator(Unit):
         if self.P:
             top.P = bottom.P = self.P
         
-    def _create_material_balance_equations(self):
-        inlets = self.ins
+    def _create_material_balance_equations(self, composition_sensitive):
+        fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
         top, bottom = self.outs
-        equations = []
         ones = np.ones(self.chemicals.size)
         minus_ones = -ones
         zeros = np.zeros(self.chemicals.size)
-        fresh_inlets = [i for i in inlets if i.isfeed() and not i.material_equations]
-        process_inlets = [i for i in inlets if not i.isfeed() or i.material_equations]
         
         # Overall flows
         eq_overall = {}
@@ -337,9 +334,9 @@ class Separator(Unit):
         coeff = -stream.C
         return (self, coeff)
     
-    def _create_energy_departure_equations(self, temperature_only=False):
+    def _create_energy_departure_equations(self, temperature_only):
         coeff = {self: self.ins[0].C}
-        self.ins[0]._update_energy_departure_coefficient(coeff)
+        self.ins[0]._update_energy_departure_coefficient(coeff, temperature_only)
         return [(coeff, self.H_in - self.H_out)]
     
     def _update_energy_variable(self, departure):

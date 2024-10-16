@@ -9,63 +9,29 @@ import biosteam as bst
 import numpy as np
 from thermosteam.constants import R
 from math import exp
-try:
-    from .profile import register
-except:
-    def register(*args, **kwargs):
-        return lambda f: f
 
 __all__ = (
-    'create_system_acetic_acid_reactive_purification',
+    'create_system_haber_bosch_process',
 )
 
-@register(
-    'acetic_acid_reactive_purification', 'Acetic acid reactive purification',
-    10, [2, 4, 6, 8, 10], 'AA\nr. sep.'
-)
-def create_system_acetic_acid_reactive_purification(alg='sequential modular'):
-    bst.settings.set_thermo(['Water', 'AceticAcid', 'MethylAcetate', 'Methanol'], cache=True)
-    Gamma = tmo.equilibrium.DortmundActivityCoefficients(bst.settings.chemicals)
-    class Esterification(bst.KineticReaction):
-        def volume(self, stream): # kg of catalyst
-            rho_cat = 770 # kg / m3
-            liquid_volume = self.liquid_volume
-            catalyst_volume = 0.5 * liquid_volume
-            catalyst_mass = catalyst_volume * rho_cat
-            return catalyst_mass
-        
-        def rate(self, stream): # kmol/kg-catalyst/hr
-            K_AcOH = 3.15
-            K_MeOH = 5.64
-            K_MeOAc = 4.15
-            K_H2O = 5.24
-            K_adsorption = np.array([K_H2O, K_AcOH, K_MeOAc, K_MeOH])
-            MWs = stream.chemicals.MW
-            k0f = 8.497e6
-            EAf = 60.47
-            k0r = 6.127e5
-            EAr = 63.73
-            T = stream.T
-            mol = stream.mol.to_array()
-            F_mol = stream.F_mol
-            if not F_mol: return 0
-            x = mol / F_mol
-            gamma = Gamma(x, T)
-            activity = gamma * x
-            a = K_adsorption * activity / MWs
-            H2O, LA, BuLA, BuOH = activity
-            kf = k0f * exp(-EAf / (R * T))
-            kr = k0r * exp(-EAr / (R * T))
-            a_sum = sum(a)
-            return 3600 * (kf * LA * BuOH - kr * BuLA * H2O) / (a_sum * a_sum) # kmol / kg-catalyst / hr
+def create_system_haber_bosch_process(alg='sequential modular'):
+    bst.settings.set_thermo(['N2', 'H2', 'NH3'], cache=True)
+    bst.settings.mixture.include_excess_energies = True
     
     with bst.System(algorithm=alg) as sys:
         feed = bst.Stream(
             'feed',
-            LacticAcid=4.174,
-            Water=5.470,
+            H2=3,
+            N2=1,
+            P=300e5,
+            phase='g'
         )
-        feed.vle(V=0.5, P=101325)
+        preheater = bst.HXutility(ins=feed, T=450 + 273.15)
+        reactor = bst.ReactivePhaseStage(
+            ins=preheater-0, T=450 + 273.15, P=300e5,
+            reaction=bst.Reaction('N2 + H2 -> NH4', reactant='N2', X=0.15, correct_atomic_balance=True),
+        )
+        
         makeup_butanol = bst.Stream('makeup_butanol', Butanol=1)
         makeup_butanol.T = makeup_butanol.bubble_point_at_P().T
         recycle_butanol = bst.Stream('recycle_butanol')

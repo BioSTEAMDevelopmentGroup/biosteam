@@ -5,17 +5,12 @@ Created on Sat Mar 16 13:38:11 2024
 @author: cortespea
 """
 import biosteam as bst
-from .profile import register
 
 __all__ = (
     'create_system_alcohol_narrow_flash',
     'create_system_alcohol_wide_flash',
 )
 
-@register(
-    'alcohol_narrow_flash', 'Alcohol flash narrow',
-    0.02, [0.004, 0.008, 0.012, 0.016, 0.02], 'Alcohol\nflash\nnarrow'
-)
 def create_system_alcohol_narrow_flash(alg):
     bst.settings.set_thermo(['heptanol', 'octanol'], cache=True, Gamma=bst.IdealActivityCoefficients)
     feed = bst.Stream('feed', heptanol=100, octanol=100)
@@ -29,10 +24,6 @@ def create_system_alcohol_narrow_flash(alg):
     sys = bst.System.from_units('sys', [stage])
     return sys
 
-@register(
-    'alcohol_wide_flash', 'Alcohol flash wide',
-    0.02, [0.004, 0.008, 0.012, 0.016, 0.02], 'Alcohol\nflash\nwide'
-)
 def create_system_alcohol_wide_flash(alg):
     bst.settings.set_thermo(['propanol', 'octanol'], cache=True, Gamma=bst.IdealActivityCoefficients)
     feed = bst.Stream('feed', propanol=100, octanol=100)

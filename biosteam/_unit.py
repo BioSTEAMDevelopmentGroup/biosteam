@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2024, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -251,6 +251,51 @@ class Unit(AbstractUnit):
     #: Update reaction conversion for phenomena-oriented simulation.
     _update_reaction_conversion = AbstractMethod
     
+    def _begin_equations(self, composition_sensitive):
+        inlets = self.ins
+        fresh_inlets = []
+        process_inlets = []
+        material_equations = [f() for i in inlets for f in i.material_equations]
+        if not material_equations:
+            if composition_sensitive:
+                for i in inlets: 
+                    if i.isfeed() or not getattr(i.source, 'composition_sensitive', False):
+                        fresh_inlets.append(i)
+                    else:
+                        process_inlets.append(i)                    
+            else:
+                for i in inlets: 
+                    if i.isfeed():
+                        fresh_inlets.append(i)
+                    else:
+                        process_inlets.append(i)
+            equations = material_equations
+        elif composition_sensitive:
+            equations = []
+            dependent_streams = []
+            for eq in material_equations:
+                dct, value = eq 
+                for i in dct:
+                    if i.source and not getattr(i.source, 'composition_sensitive', False): break
+                else:
+                    dependent_streams.extend([i.imol for i in dct])
+                    equations.append(eq)
+            dependent_streams = set(dependent_streams)
+            for i in inlets: 
+                isfeed = i.isfeed() or not getattr(i.source, 'composition_sensitive', False)
+                if i.imol not in dependent_streams and isfeed:
+                    fresh_inlets.append(i)
+                else:
+                    process_inlets.append(i) 
+        else:
+            for i in inlets: 
+                if i.isfeed() and not i.material_equations:
+                    fresh_inlets.append(i)
+                else:
+                    process_inlets.append(i)
+            equations = material_equations
+        return fresh_inlets, process_inlets, equations
+    
     Inlets = piping.Inlets
     Outlets = piping.Outlets
     
@@ -435,7 +480,7 @@ class Unit(AbstractUnit):
     
     @property
     def feed(self) -> Stream:
-        """Equivalent to :attr:`~Unit.ins`\[0] when the number of inlets is 1."""
+        """Equivalent to :attr:`~Unit.ins`[0] when the number of inlets is 1."""
         streams = self._ins._streams
         size = len(streams)
         if size == 1: return streams[0]
@@ -453,7 +498,7 @@ class Unit(AbstractUnit):
     
     @property
     def product(self) -> Stream:
-        """Equivalent to :attr:`~Unit.outs`\[0] when the number of outlets is 1."""
+        """Equivalent to :attr:`~Unit.outs`[0] when the number of outlets is 1."""
         streams = self._outs._streams
         size = len(streams)
         if size == 1: return streams[0]
@@ -781,10 +826,6 @@ class Unit(AbstractUnit):
                 heat_utilities.extend(N * unit.heat_utilities)
                 power_utility.consumption += N * unit.power_utility.consumption
                 power_utility.production += N * unit.power_utility.production
-            F_BM_auxiliary = unit.F_BM
-            F_D_auxiliary = unit.F_D
-            F_P_auxiliary = unit.F_P
-            F_M_auxiliary = unit.F_M
             bpc_auxiliary = unit.baseline_purchase_costs
             pc_auxiliary = unit.purchase_costs
             ic_auxiliary = unit.installed_costs
@@ -795,24 +836,14 @@ class Unit(AbstractUnit):
                         f"'{j}' already in `baseline_purchase_cost` "
                         f"dictionary of {repr(self)}; try using a different key"
                     )
+                elif N == 1:
+                    baseline_purchase_costs[j] = bpc_auxiliary[i]
+                    purchase_costs[j] = pc_auxiliary[i]
+                    installed_costs[j] = ic_auxiliary[i]
                 else:
-                    F_D[j] = fd = F_D_auxiliary.get(i, 1.)
-                    F_P[j] = fp = F_P_auxiliary.get(i, 1.)
-                    F_M[j] = fm = F_M_auxiliary.get(i, 1.)
-                    if N == 1:
-                        baseline_purchase_costs[j] = Cpb = bpc_auxiliary[i]
-                        purchase_costs[j] = pc_auxiliary[i]
-                        installed_costs[j] = Cbm = ic_auxiliary[i]
-                    else:
-                        baseline_purchase_costs[j] = Cpb = N * bpc_auxiliary[i]
-                        purchase_costs[j] = N * pc_auxiliary[i]
-                        installed_costs[j] = Cbm = N * ic_auxiliary[i]
-                    try:
-                        F_BM[j] = F_BM_auxiliary[i]
-                    except KeyError:
-                        # Assume costs already added elsewhere using another method.
-                        # Calculate BM as an estimate.
-                        F_BM[j] = Cbm / Cpb + 1 - fd * fp * fm
+                    baseline_purchase_costs[j] = N * bpc_auxiliary[i]
+                    purchase_costs[j] = N * pc_auxiliary[i]
+                    installed_costs[j] = N * ic_auxiliary[i]
             
         self._costs_loaded = True
     
@@ -850,10 +881,11 @@ class Unit(AbstractUnit):
                 self.baseline_purchase_costs, 
                 self.purchase_costs, 
                 self.installed_costs]):
-            raise UnitInheritanceError(
+            warn(
                f'`{type(self).__name__}._run` method added unit results '
                 '(e.g., purchase costs, heat and power utilities); unit results '
-                'should only be added in `_design` or `_cost` methods'
+                'should only be added in `_design` or `_cost` methods',
+                RuntimeWarning
             )
     
     def materialize_connections(self):
@@ -934,6 +966,62 @@ class Unit(AbstractUnit):
         
         """
         return convert(self.design_results[key], self._units[key], units)
+    
+    
+    def set_design_result(self, key: str, units: str, value: float):
+        """
+        Set design result in given the units of measure.
+            
+        Parameters
+        ----------
+        key :
+            Name of design result.
+        units :
+            Units of measure.
+        value:
+            Value of the design result.
+        
+        Examples
+        --------
+        >>> import biosteam as bst
+        >>> bst.settings.set_thermo(['Water'], cache=True)
+        >>> feed = bst.Stream(None, Water=100)
+        >>> tank = bst.StorageTank(None, feed)
+        >>> tank.simulate()
+        >>> tank.set_design_result('Total volume', 'm3', 1000)
+        1000
+        >>> tank.get_design_result('Total volume', 'm3')
+        1000.0
+        
+        """
+        self.design_results[key] = value = convert(value, units, self._units[key])
+        return value
+    
+    def convert_design_result(self, key, units, value):
+        """
+        Convert design result in given units to the stored units of measure.
+            
+        Parameters
+        ----------
+        key :
+            Name of design result.
+        units :
+            Units of measure.
+        value:
+            Value of the design result.
+        
+        Examples
+        --------
+        >>> import biosteam as bst
+        >>> bst.settings.set_thermo(['Water'], cache=True)
+        >>> feed = bst.Stream(None, Water=100)
+        >>> tank = bst.StorageTank(None, feed)
+        >>> tank.simulate()
+        >>> tank.convert_design_result('Total volume', 'ft3', 1000)
+        28.31
+        
+        """
+        return convert(value, units, self._units[key])
     
     def reset_cache(self, isdynamic=None):
         pass

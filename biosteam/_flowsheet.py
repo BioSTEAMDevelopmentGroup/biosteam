@@ -22,22 +22,6 @@ __all__ = ('main_flowsheet', 'Flowsheet', 'F')
 
 # %% Flowsheet search      
 
-class TemporaryFlowsheet:
-    __slots__ = ('original', 'temporary')
-    
-    def __init__(self, temporary):
-        self.temporary = temporary
-    
-    def __enter__(self):
-        self.original = main_flowsheet.get_flowsheet()
-        main_flowsheet.set_flowsheet(self.temporary)
-        return self.temporary
-    
-    def __exit__(self, type, exception, traceback):
-        main_flowsheet.set_flowsheet(self.original)
-        if exception: raise exception
-
-
 class FlowsheetRegistry:
     __getitem__ = object.__getattribute__
     
@@ -87,8 +71,9 @@ class Flowsheet:
     #: All flowsheets.
     flowsheet: FlowsheetRegistry = FlowsheetRegistry()
     
-    def __new__(cls, ID):        
+    def __new__(cls, ID=None):        
         self = super().__new__(cls)
+        if ID is None: ID = ''
         
         #: Contains all System objects as attributes.
         self.system: Registry = Registry()
@@ -101,13 +86,16 @@ class Flowsheet:
         
         #: ID of flowsheet.
         self._ID: str = ID
+        
+        #: Temporary flowsheet stack.
+        self._temporary_stack = []
+        
         self.flowsheet.__dict__[ID] = self
         return self
     
-    def temporary(self):
+    def __enter__(self):
         """
-        Return a TemporaryFlowsheet object that, through context management,
-        will temporarily register all objects in this flowsheet instead of 
+        Temporarily register all objects in this flowsheet instead of 
         the main flowsheet.
         
         Examples
@@ -115,7 +103,7 @@ class Flowsheet:
         >>> import biosteam as bst
         >>> bst.settings.set_thermo(['Water'], cache=True)
         >>> f = bst.Flowsheet('f')
-        >>> with f.temporary():
+        >>> with f:
         ...     M1 = bst.Mixer('M1')
         >>> M1 in bst.main_flowsheet.unit
         False
@@ -123,7 +111,15 @@ class Flowsheet:
         True
         
         """
-        return TemporaryFlowsheet(self)
+        self._temporary_stack.append(main_flowsheet.get_flowsheet())
+        main_flowsheet.set_flowsheet(self)
+        return self
+    
+    def __exit__(self, type, exception, traceback):
+        main_flowsheet.set_flowsheet(self._temporary_stack.pop())
+        if exception: raise exception
+    
+    def temporary(self): return self # for backwards compatibility
     
     def __reduce__(self):
         return self.from_registries, self.registries
@@ -152,6 +148,7 @@ class Flowsheet:
         flowsheet.unit = unit
         flowsheet.system = system
         flowsheet._ID = ID
+        flowsheet._temporary_stack = []
         flowsheet.flowsheet.__dict__[ID] = flowsheet
         return flowsheet
     

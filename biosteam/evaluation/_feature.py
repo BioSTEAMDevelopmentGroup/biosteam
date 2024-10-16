@@ -99,11 +99,7 @@ class Feature:
         name = self.name
         if self.element:
             name = self.element_name + ' - ' + name
-        if self.units:
-            units = (' [' + str(self.units) + ']')
-        else:
-            units = ''
-        description = name + units
+        description = name
         if distribution:
             if getattr(self, 'distribution', None):
                 dist_name = type(self.distribution).__name__
@@ -119,11 +115,17 @@ class Feature:
                 lb, ub = bounds
                 values = ', '.join([format(i, number_format)
                                     for i in (lb, baseline, ub)])
-                description += f' ({values})'
+                if self.units:
+                    description += f' ({values} {str(self.units)})'
+                else:
+                    description += f' ({values})'
         if description:
             first_letter = description[0]
             if first_letter.islower(): 
                 description = first_letter.upper() + description[1:]
+        if not bounds and self.units:
+            units = (' [' + str(self.units) + ']')
+            description += units
         return description
     
     

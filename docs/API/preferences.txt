@@ -1,8 +1,8 @@
 preferences
 -----------
 
-.. autodata:: biosteam._preferences.preferences
+.. autodata:: thermosteam._preferences.preferences
 
-.. autoclass:: biosteam._preferences.DisplayPreferences
+.. autoclass:: thermosteam._preferences.DisplayPreferences
    :members:
    

@@ -100,7 +100,7 @@ class HeatExchangerNetwork(bst.Facility):
     ticket_name = 'HXN'
     acceptable_energy_balance_error = 0.02
     raise_energy_balance_error = False
-    network_priority = -1
+    network_priority = -2
     _N_ins = 0
     _N_outs = 0
     _units= {'Flow rate': 'kg/hr',
@@ -215,7 +215,7 @@ class HeatExchangerNetwork(bst.Facility):
                         unit = i.unit
                         if s_out: unit.ins[i.index] = s_out
                         s_out = unit.outs[i.index]
-                self.HXN_sys = sys = bst.System.from_units(None, all_units)
+                self.HXN_sys = sys = bst.System(ID=None, path=all_units)
                 sys.set_tolerance(method='fixedpoint', subsystems=True)
             
             original_purchase_costs = [hx.purchase_cost for hx in hxs]
