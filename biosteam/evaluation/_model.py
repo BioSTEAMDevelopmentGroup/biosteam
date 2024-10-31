@@ -1300,7 +1300,7 @@ def create_function(code, namespace_dict):
 class EasyInputModel(Model):
     """
     Create an EasyInputModel object that allows for evaluation over a sample space
-    using the Model class, with input parameter distributions and load functions
+    using the Model class, with input parameter distributions and load statements
     entered using a spreadsheet file or DataFrame object.
     
     Parameters
@@ -1360,7 +1360,8 @@ class EasyInputModel(Model):
                                 initialization may be accessed. 
                                 E.g., to load a value into an example distillation unit D101's light key recovery, 
                                 ensure 'D101' is a key pointing to the D101 unit object in namespace_dict, then 
-                                simply include the load statement: 'D101.Lr = x'.
+                                simply include the load statement: 'D101.Lr = x'. New lines in the statement
+                                may be represented by '\n' or ';'.
                         
         """
         
