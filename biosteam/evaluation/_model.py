@@ -217,7 +217,7 @@ class Model:
                                 The midpoint value defining the shape of a 'Triangular' parameter distribution.
                             'Upper': float or int
                                 The upper value defining the shape of the parameter distribution.
-                            'Load Statements': String
+                            'Load statement': String
                                 A statement executed to load the value of the parameter. The value is stored in 
                                 the variable x. A namespace defined in the namespace during EasyInputModel 
                                 initialization may be accessed. 
@@ -253,7 +253,7 @@ class Model:
             baseline = row['Baseline']
             shape_data = row['Shape']
             lower, midpoint, upper = row['Lower'], row['Midpoint'], row['Upper']
-            load_statements = row['Load Statements']
+            load_statements = row['Load statement']
             
             D = None
             if shape_data.lower() in ['triangular', 'triangle',]:

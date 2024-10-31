@@ -112,7 +112,7 @@ def test_parameters_from_df(cache=[None]):
                'Lower': [5, 8, 26],
                'Midpoint': [None, 22, 52],
                'Upper': [25, 35, 75],
-               'Load Statements': ['U101.example_param = x',
+               'Load statement': ['U101.example_param = x',
                                    'U102.example_param = x; U102.test_checker=example_namespace_var1',
                                    'U103.example_param = x\nU103.test_checker=example_namespace_var2'],
     }
