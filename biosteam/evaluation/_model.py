@@ -11,6 +11,7 @@
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
+
 from scipy.spatial.distance import cdist
 from scipy.optimize import shgo, differential_evolution
 import numpy as np
@@ -1370,106 +1371,3 @@ class Model:
         """Return information on p-parameters and m-metrics."""
         print(self._info(p, m))
     _ipython_display_ = show
-
-#%% Easier input parameter distributions and load statements for Model objects
-
-class EasyInputModel(Model):
-    """
-    Create an EasyInputModel object that allows for evaluation over a sample space
-    using the Model class, with input parameter distributions and load statements
-    entered using a spreadsheet file or DataFrame object.
-    
-    Parameters
-    ----------
-    system : System
-        Should reflect the model state.
-    metrics : tuple[Metric]
-        Metrics to be evaluated by model.
-    specification=None : Function, optional
-        Loads specifications once all parameters are set. Specification should 
-        simulate the system as well.
-    params=None : Iterable[Parameter], optional
-        Parameters to sample from.
-    exception_hook : callable(exception, sample)
-        Function called after a failed evaluation. The exception hook should 
-        return either None or metric values given the exception and sample.
-    namespace : dict, optional
-        Dictionary used to update the namespace accessed when executing
-        statements to load values into model parameters.
-        
-    """
-    def __init__(self, system, metrics=None, specification=None, 
-                 parameters=None, retry_evaluation=True, exception_hook='warn',
-                 namespace={}):
-        Model.__init__(self, system=system, metrics=metrics, specification=specification, 
-                     parameters=parameters, retry_evaluation=retry_evaluation, exception_hook=exception_hook)
-        self.namespace = namespace
-        # globals().update(namespace)
-    
-    def load_parameter_distributions(self, distributions,):
-        """
-        Load a list of distributions and statements to load values for user-selected
-        parameters.
-        
-        Parameters
-        ----------
-        distributions : pandas.DataFrame or file path to a spreadsheet of the following format:
-                        Column titles (these must be included, but others may be added for convenience):
-                            'Parameter name': String
-                                Name of the parameter.
-                            'Element': String, optional
-                            'Kind': String, optional
-                            'Units': String, optional
-                            'Baseline': float or int
-                                The baseline value of the parameter.
-                            'Shape': String, one of ['Uniform', 'Triangular']
-                                The shape of the parameter distribution.
-                            'Lower': float or int
-                                The lower value defining the shape of the parameter distribution.
-                            'Midpoint': float or int
-                                The midpoint value defining the shape of a 'Triangular' parameter distribution.
-                            'Upper': float or int
-                                The upper value defining the shape of the parameter distribution.
-                            'Load Statements': String
-                                A statement executed to load the value of the parameter. The value is stored in 
-                                the variable x. A namespace defined in the namespace during EasyInputModel 
-                                initialization may be accessed. 
-                                E.g., to load a value into an example distillation unit D101's light key recovery, 
-                                ensure 'D101' is a key pointing to the D101 unit object in namespace, then 
-                                simply include the load statement: 'D101.Lr = x'. New lines in the statement
-                                may be represented by '\n' or ';'.
-                        
-        """
-        
-        df = distributions
-        if type(df) is not DataFrame:
-            df = read_excel(distributions)
-            
-        namespace = self.namespace
-        param = self.parameter
-        
-        for i, row in df.iterrows():
-            name = row['Parameter name']
-            element = row['Element'] # currently only compatible with String elements
-            kind = row['Kind']
-            units = row['Units']
-            baseline = row['Baseline']
-            shape_data = row['Shape']
-            lower, midpoint, upper = row['Lower'], row['Midpoint'], row['Upper']
-            load_statements = row['Load Statements']
-            
-            D = None
-            if shape_data.lower() in ['triangular', 'triangle',]:
-                D = shape.Triangle(lower, midpoint, upper)
-            elif shape_data.lower() in ['uniform',]:
-                if not str(midpoint)=='nan':
-                    raise ValueError(f"The parameter distribution for {name} ({element}) is 'Uniform' but was associated with a given midpoint value.")
-                D = shape.Uniform(lower, upper)
-                
-            param(name=name, 
-                  setter=create_function(load_statements, namespace), 
-                  element=element, 
-                  kind=kind, 
-                  units=units,
-                  baseline=baseline, 
-                  distribution=D)
