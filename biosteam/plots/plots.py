@@ -853,7 +853,7 @@ def plot_kde(x, y, nbins=100, ax=None, fig=None,
              xtick0=True, ytick0=True, xtickf=True, ytickf=True,
              xbox=None, ybox=None, xbox_kwargs=None, ybox_kwargs=None, 
              aspect_ratio=1.25, cmaps=None, xbox_width=None,
-             ybox_width=None, **kwargs):
+             ybox_width=None, zorders=None, **kwargs):
     axis_not_given = ax is None
     xs = x if isinstance(x, (tuple, list)) else (x,)
     ys = y if isinstance(y, (tuple, list)) else (y,)
@@ -892,7 +892,8 @@ def plot_kde(x, y, nbins=100, ax=None, fig=None,
     else:
         yboxes = ybox
     if cmaps is None: cmaps = len(xs) * [None]
-    for x, y, cmap, xbox, ybox in zip(xs, ys, cmaps, xboxes, yboxes):
+    if zorders is None: zorders = len(xs) * [5]
+    for x, y, cmap, zorder, xbox, ybox in zip(xs, ys, cmaps, zorders, xboxes, yboxes):
         # Evaluate a gaussian kde on a regular grid of nbins x nbins over data extents
         k = kde.gaussian_kde([x, y])
         z = k(np.vstack([x, y]))
@@ -906,7 +907,7 @@ def plot_kde(x, y, nbins=100, ax=None, fig=None,
         # 2D Density with shading
         plt.sca(ax)
         
-        plt.scatter(x, y, c=z, s=1., cmap=cmap, **kwargs)
+        plt.scatter(x, y, c=z, s=1., cmap=cmap, zorder=zorder, **kwargs)
         if xbox:
             plt.sca(xbox.axis)
             plot_montecarlo(x, xbox.light, xbox.dark, positions=(xbox.get_position(-1),), vertical=False, outliers=False, width=xbox_width, bounds=True)
