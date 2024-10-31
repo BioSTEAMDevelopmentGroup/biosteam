@@ -30,13 +30,34 @@ from ._parameter import Parameter
 from .evaluation_tools import load_default_parameters
 import pickle
 
-__all__ = ('Model', 'EasyInputModel')
+__all__ = ('Model',)
 
 def replace_nones(values, replacement):
     for i, j in enumerate(values):
         if j is None: values[i] = replacement
     return values
 
+def codify(statement):
+    statement = replace_apostrophes(statement)
+    statement = replace_newline(statement)
+    return statement
+
+def replace_newline(statement):
+    statement = statement.replace('\n', ';')
+    return statement
+
+def replace_apostrophes(statement):
+    statement = statement.replace('’', "'").replace('‘', "'").replace('“', '"').replace('”', '"')
+    return statement
+
+def create_function(code, namespace):
+    def wrapper_fn(statement):
+        def f(x):
+            namespace['x'] = x
+            exec(codify(statement), namespace)
+        return f
+    function = wrapper_fn(code)
+    return function
 
 # %% Fix compatibility with new chaospy version
 
@@ -173,6 +194,81 @@ class Model:
             assert isa(i, Parameter), 'all elements must be Parameter objects'
         Parameter.check_indices_unique(self.features)
     
+    def parameters_from_df(self, df_or_filename, namespace=None):
+        """
+        Load a list (from a DataFrame or spreadsheet) of distributions and statements
+        to load values for user-selected parameters.
+        
+        Parameters
+        ----------
+        df_or_filename : pandas.DataFrame or file path to a spreadsheet of the following format:
+                         Column titles (these must be included, but others may be added for convenience):
+                            'Parameter name': String
+                                Name of the parameter.
+                            'Element': String, optional
+                            'Kind': String, optional
+                            'Units': String, optional
+                            'Baseline': float or int
+                                The baseline value of the parameter.
+                            'Shape': String, one of ['Uniform', 'Triangular']
+                                The shape of the parameter distribution.
+                            'Lower': float or int
+                                The lower value defining the shape of the parameter distribution.
+                            'Midpoint': float or int
+                                The midpoint value defining the shape of a 'Triangular' parameter distribution.
+                            'Upper': float or int
+                                The upper value defining the shape of the parameter distribution.
+                            'Load Statements': String
+                                A statement executed to load the value of the parameter. The value is stored in 
+                                the variable x. A namespace defined in the namespace during EasyInputModel 
+                                initialization may be accessed. 
+                                E.g., to load a value into an example distillation unit D101's light key recovery, 
+                                ensure 'D101' is a key pointing to the D101 unit object in namespace, then 
+                                simply include the load statement: 'D101.Lr = x'. New lines in the statement
+                                may be represented by '\n' or ';'.
+        
+        namespace : dict, optional
+            Dictionary used to update the namespace accessed when executing
+            statements to load values into model parameters. Defaults to the
+            system's flowsheet dict.
+                        
+        """
+        
+        df = df_or_filename
+        if type(df) is not DataFrame:
+            df = read_excel(df_or_filename)
+        
+        if namespace is None: namespace = {}
+        namespace = self.system.flowsheet.to_dict() | namespace
+        
+        param = self.parameter
+        
+        for i, row in df.iterrows():
+            name = row['Parameter name']
+            element = row['Element'] # currently only compatible with String elements
+            kind = row['Kind']
+            units = row['Units']
+            baseline = row['Baseline']
+            shape_data = row['Shape']
+            lower, midpoint, upper = row['Lower'], row['Midpoint'], row['Upper']
+            load_statements = row['Load Statements']
+            
+            D = None
+            if shape_data.lower() in ['triangular', 'triangle',]:
+                D = shape.Triangle(lower, midpoint, upper)
+            elif shape_data.lower() in ['uniform',]:
+                if not str(midpoint)=='nan':
+                    raise ValueError(f"The parameter distribution for {name} ({element}) is 'Uniform' but was associated with a given midpoint value.")
+                D = shape.Uniform(lower, upper)
+                
+            param(name=name, 
+                  setter=create_function(load_statements, namespace), 
+                  element=element, 
+                  kind=kind, 
+                  units=units,
+                  baseline=baseline, 
+                  distribution=D)
+            
     def get_parameters(self):
         """Return parameters."""
         return tuple(self._parameters)
@@ -1275,28 +1371,6 @@ class Model:
 
 #%% Easier input parameter distributions and load statements for Model objects
 
-def codify(statement):
-    statement = replace_apostrophes(statement)
-    statement = replace_newline(statement)
-    return statement
-
-def replace_newline(statement):
-    statement = statement.replace('\n', ';')
-    return statement
-
-def replace_apostrophes(statement):
-    statement = statement.replace('’', "'").replace('‘', "'").replace('“', '"').replace('”', '"')
-    return statement
-
-def create_function(code, namespace_dict):
-    def wrapper_fn(statement):
-        def f(x):
-            namespace_dict['x'] = x
-            exec(codify(statement), namespace_dict)
-        return f
-    function = wrapper_fn(code)
-    return function
-
 class EasyInputModel(Model):
     """
     Create an EasyInputModel object that allows for evaluation over a sample space
@@ -1317,18 +1391,18 @@ class EasyInputModel(Model):
     exception_hook : callable(exception, sample)
         Function called after a failed evaluation. The exception hook should 
         return either None or metric values given the exception and sample.
-    namespace_dict : dict, optional
+    namespace : dict, optional
         Dictionary used to update the namespace accessed when executing
         statements to load values into model parameters.
         
     """
     def __init__(self, system, metrics=None, specification=None, 
                  parameters=None, retry_evaluation=True, exception_hook='warn',
-                 namespace_dict={}):
+                 namespace={}):
         Model.__init__(self, system=system, metrics=metrics, specification=specification, 
                      parameters=parameters, retry_evaluation=retry_evaluation, exception_hook=exception_hook)
-        self.namespace_dict = namespace_dict
-        # globals().update(namespace_dict)
+        self.namespace = namespace
+        # globals().update(namespace)
     
     def load_parameter_distributions(self, distributions,):
         """
@@ -1356,10 +1430,10 @@ class EasyInputModel(Model):
                                 The upper value defining the shape of the parameter distribution.
                             'Load Statements': String
                                 A statement executed to load the value of the parameter. The value is stored in 
-                                the variable x. A namespace defined in the namespace_dict during EasyInputModel 
+                                the variable x. A namespace defined in the namespace during EasyInputModel 
                                 initialization may be accessed. 
                                 E.g., to load a value into an example distillation unit D101's light key recovery, 
-                                ensure 'D101' is a key pointing to the D101 unit object in namespace_dict, then 
+                                ensure 'D101' is a key pointing to the D101 unit object in namespace, then 
                                 simply include the load statement: 'D101.Lr = x'. New lines in the statement
                                 may be represented by '\n' or ';'.
                         
@@ -1369,7 +1443,7 @@ class EasyInputModel(Model):
         if type(df) is not DataFrame:
             df = read_excel(distributions)
             
-        namespace_dict = self.namespace_dict
+        namespace = self.namespace
         param = self.parameter
         
         for i, row in df.iterrows():
@@ -1391,7 +1465,7 @@ class EasyInputModel(Model):
                 D = shape.Uniform(lower, upper)
                 
             param(name=name, 
-                  setter=create_function(load_statements, namespace_dict), 
+                  setter=create_function(load_statements, namespace), 
                   element=element, 
                   kind=kind, 
                   units=units,
