@@ -113,8 +113,8 @@ def test_parameters_from_df(cache=[None]):
                'Midpoint': [None, 22, 52],
                'Upper': [25, 35, 75],
                'Load Statements': ['U101.example_param = x',
-                                   'U102.example_parameter = x; U102.test_checker=example_namespace_var1',
-                                   'U103.example_parameter = x; U103.test_checker=example_namespace_var2'],
+                                   'U102.example_param = x; U102.test_checker=example_namespace_var1',
+                                   'U103.example_param = x\nU103.test_checker=example_namespace_var2'],
     }
     
     model.parameters_from_df(DataFrame.from_dict(df_dict), 
@@ -129,6 +129,7 @@ def test_parameters_from_df(cache=[None]):
     
     model.metrics_at_baseline()
     assert U101.example_param == 10
+    assert U102.example_param == 20
     assert U102.test_checker == example_namespace_var1
     assert U103.test_checker == example_namespace_var2
     
