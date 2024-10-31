@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>, Yalin Li <zoe.yalin.li@gmail.com>
+# Copyright (C) 2020-, Yoel Cortes-Pena <yoelcortes@gmail.com>, 
+#                      Yalin Li <zoe.yalin.li@gmail.com>,
+#                      Sarang Bhagwat <sarangb2@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -76,6 +78,59 @@ def create_evaluation_model(cache=[None]):
     model.evaluate()
     cache[0] = model
     return model
+
+def test_parameters_from_df(cache=[None]):
+    if cache[0] is not None: return cache[0]
+    import biosteam as bst
+    from pandas import DataFrame
+    from chaospy.distributions import Uniform, Triangle
+    bst.settings.set_thermo(['Water', 'Ethanol'])
+    
+    U101 = bst.Unit('U101')
+    U102 = bst.Unit('U102')
+    U103 = bst.Unit('U103')
+    U101.example_param = 5
+    U102.example_param = 8
+    U102.test_checker = 0
+    U103.example_param = 40
+    U103.test_checker = 0
+    
+    sys = bst.System.from_units(units=[U101])
+    model = bst.Model(sys)
+    
+    example_namespace_var1 = 2
+    example_namespace_var2 = 3
+    
+    df_dict = {'Parameter name': ['U101 example parameter',
+                                  'U102 example parameter',
+                                  'U103 example parameter'],
+               'Element': ['TEA', 'Fermentation', 'LCA'],
+               'Kind': ['isolated', 'coupled', 'isolated'],
+               'Units': ['g/g', 'g/L', '%theoretical'],
+               'Baseline': [10, 20, 50],
+               'Shape': ['Uniform', 'Triangular', 'Triangular'],
+               'Lower': [5, 8, 26],
+               'Midpoint': [None, 22, 52],
+               'Upper': [25, 35, 75],
+               'Load Statements': ['U101.example_param = x',
+                                   'U102.example_parameter = x; U102.test_checker=example_namespace_var1',
+                                   'U103.example_parameter = x; U103.test_checker=example_namespace_var2'],
+    }
+    
+    model.parameters_from_df(DataFrame.from_dict(df_dict), 
+                             namespace={'example_namespace_var1':example_namespace_var1,
+                                        'example_namespace_var2':example_namespace_var2})
+    
+    assert model.parameters[1].baseline == 20
+    assert isinstance(model.parameters[0].distribution, Uniform)
+    assert isinstance(model.parameters[2].distribution, Triangle)
+    assert model.parameters[0].distribution.lower == 5
+    assert model.parameters[0].distribution.upper == 25
+    
+    model.metrics_at_baseline()
+    assert U101.example_param == 10
+    assert U102.test_checker == example_namespace_var1
+    assert U103.test_checker == example_namespace_var2
     
 def test_pearson_r():
     model = create_evaluation_model()

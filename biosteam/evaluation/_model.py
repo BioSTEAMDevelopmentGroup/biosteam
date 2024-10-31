@@ -15,7 +15,6 @@ from scipy.spatial.distance import cdist
 from scipy.optimize import shgo, differential_evolution
 import numpy as np
 import pandas as pd
-from pandas import DataFrame, read_excel
 from chaospy import distributions as shape
 from ._metric import Metric
 from ._feature import MockFeature
@@ -235,9 +234,12 @@ class Model:
         """
         
         df = df_or_filename
-        if type(df) is not DataFrame:
-            df = read_excel(df_or_filename)
-        
+        if type(df) is not pd.DataFrame:
+            try: 
+                df = pd.read_excel(df_or_filename)
+            except:
+                df = pd.read_csv(df_or_filename)
+                
         if namespace is None: namespace = {}
         namespace = self.system.flowsheet.to_dict() | namespace
         
