@@ -130,6 +130,7 @@ def test_parameters_from_df(cache=[None]):
     model.metrics_at_baseline()
     assert U101.example_param == 10
     assert U102.example_param == 20
+    assert U103.example_param == 50
     assert U102.test_checker == example_namespace_var1
     assert U103.test_checker == example_namespace_var2
     
