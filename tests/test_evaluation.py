@@ -79,12 +79,11 @@ def create_evaluation_model(cache=[None]):
     cache[0] = model
     return model
 
-def test_parameters_from_df(cache=[None]):
-    if cache[0] is not None: return cache[0]
+def test_parameters_from_df():
     import biosteam as bst
     from pandas import DataFrame
     from chaospy.distributions import Uniform, Triangle
-    bst.settings.set_thermo(['Water', 'Ethanol'])
+    bst.settings.set_thermo(['Water'], cache=True)
     
     U101 = bst.Unit('U101')
     U102 = bst.Unit('U102')
@@ -184,7 +183,7 @@ def test_kendall_tau():
     
 def test_model_index():
     import biosteam as bst
-    bst.settings.set_thermo(['Water'])
+    bst.settings.set_thermo(['Water'], cache=True)
     with bst.System() as sys:
         H1 = bst.HXutility('H1', ins=bst.Stream('feed', Water=1000), T=310)
     
@@ -349,4 +348,5 @@ if __name__ == '__main__':
     test_model_sample()
     test_copy()
     test_model_exception_hook()
+    test_parameters_from_df()
     test_kolmogorov_smirnov_d()
