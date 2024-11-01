@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>,
-#                          Yalin Li <mailto.yalin.li@gmail.com>
+# Copyright (C) 2020-, Yoel Cortes-Pena <yoelcortes@gmail.com>,
+#                      Yalin Li <mailto.yalin.li@gmail.com>,
+#                      Sarang Bhagwat <sarangb2@gmail.com>
 #
 # This module implements a filtering feature from the stats module of the QSDsan library:
 # QSDsan: Quantitative Sustainable Design for sanitation and resource recovery systems
@@ -10,10 +11,12 @@
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
+
 from scipy.spatial.distance import cdist
 from scipy.optimize import shgo, differential_evolution
 import numpy as np
 import pandas as pd
+from chaospy import distributions as shape
 from ._metric import Metric
 from ._feature import MockFeature
 from ._utils import var_indices, var_columns, indices_to_multiindex
@@ -27,13 +30,34 @@ from ._parameter import Parameter
 from .evaluation_tools import load_default_parameters
 import pickle
 
-__all__ = ('Model',)
+__all__ = ('Model', 'EasyInputModel')
 
 def replace_nones(values, replacement):
     for i, j in enumerate(values):
         if j is None: values[i] = replacement
     return values
 
+def codify(statement):
+    statement = replace_apostrophes(statement)
+    statement = replace_newline(statement)
+    return statement
+
+def replace_newline(statement):
+    statement = statement.replace('\n', ';')
+    return statement
+
+def replace_apostrophes(statement):
+    statement = statement.replace('’', "'").replace('‘', "'").replace('“', '"').replace('”', '"')
+    return statement
+
+def create_function(code, namespace):
+    def wrapper_fn(statement):
+        def f(x):
+            namespace['x'] = x
+            exec(codify(statement), namespace)
+        return f
+    function = wrapper_fn(code)
+    return function
 
 # %% Fix compatibility with new chaospy version
 
@@ -170,6 +194,84 @@ class Model:
             assert isa(i, Parameter), 'all elements must be Parameter objects'
         Parameter.check_indices_unique(self.features)
     
+    def parameters_from_df(self, df_or_filename, namespace=None):
+        """
+        Load a list (from a DataFrame or spreadsheet) of distributions and statements
+        to load values for user-selected parameters.
+        
+        Parameters
+        ----------
+        df_or_filename : pandas.DataFrame or file path to a spreadsheet of the following format:
+                         Column titles (these must be included, but others may be added for convenience):
+                            'Parameter name': String
+                                Name of the parameter.
+                            'Element': String, optional
+                            'Kind': String, optional
+                            'Units': String, optional
+                            'Baseline': float or int
+                                The baseline value of the parameter.
+                            'Shape': String, one of ['Uniform', 'Triangular']
+                                The shape of the parameter distribution.
+                            'Lower': float or int
+                                The lower value defining the shape of the parameter distribution.
+                            'Midpoint': float or int
+                                The midpoint value defining the shape of a 'Triangular' parameter distribution.
+                            'Upper': float or int
+                                The upper value defining the shape of the parameter distribution.
+                            'Load statement': String
+                                A statement executed to load the value of the parameter. The value is stored in 
+                                the variable x. A namespace defined in the namespace during EasyInputModel 
+                                initialization may be accessed. 
+                                E.g., to load a value into an example distillation unit D101's light key recovery, 
+                                ensure 'D101' is a key pointing to the D101 unit object in namespace, then 
+                                simply include the load statement: 'D101.Lr = x'. New lines in the statement
+                                may be represented by '\n' or ';'.
+        
+        namespace : dict, optional
+            Dictionary used to update the namespace accessed when executing
+            statements to load values into model parameters. Defaults to the
+            system's flowsheet dict.
+                        
+        """
+        
+        df = df_or_filename
+        if type(df) is not pd.DataFrame:
+            try: 
+                df = pd.read_excel(df_or_filename)
+            except:
+                df = pd.read_csv(df_or_filename)
+                
+        if namespace is None: namespace = {}
+        namespace = self.system.flowsheet.to_dict() | namespace
+        
+        param = self.parameter
+        
+        for i, row in df.iterrows():
+            name = row['Parameter name']
+            element = row['Element'] # currently only compatible with String elements
+            kind = row['Kind']
+            units = row['Units']
+            baseline = row['Baseline']
+            shape_data = row['Shape']
+            lower, midpoint, upper = row['Lower'], row['Midpoint'], row['Upper']
+            load_statements = row['Load statement']
+            
+            D = None
+            if shape_data.lower() in ['triangular', 'triangle',]:
+                D = shape.Triangle(lower, midpoint, upper)
+            elif shape_data.lower() in ['uniform',]:
+                if not str(midpoint)=='nan':
+                    raise ValueError(f"The parameter distribution for {name} ({element}) is 'Uniform' but was associated with a given midpoint value.")
+                D = shape.Uniform(lower, upper)
+                
+            param(name=name, 
+                  setter=create_function(load_statements, namespace), 
+                  element=element, 
+                  kind=kind, 
+                  units=units,
+                  baseline=baseline, 
+                  distribution=D)
+            
     def get_parameters(self):
         """Return parameters."""
         return tuple(self._parameters)
@@ -1269,3 +1371,6 @@ class Model:
         """Return information on p-parameters and m-metrics."""
         print(self._info(p, m))
     _ipython_display_ = show
+    
+EasyInputModel = Model
+Model.load_parameter_distributions = Model.parameters_from_df
