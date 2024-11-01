@@ -125,7 +125,7 @@ class Working_Life_Cycle:
     
 
 def temperature_interval_pinch_analysis(hus, 
-                                        T_min_app = 10, 
+                                        T_min_app=10, 
                                         force_ideal_thermo=False,
                                         sort_hus_by_T=False):
     hx_utils = hus
