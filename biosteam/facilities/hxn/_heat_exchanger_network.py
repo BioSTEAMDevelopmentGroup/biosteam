@@ -108,7 +108,8 @@ class HeatExchangerNetwork(bst.Facility):
     
     def __init__(self, ID='', T_min_app=5., units=None, ignored=None, Qmin=1e-3,
                  force_ideal_thermo=False, cache_network=False, avoid_recycle=False,
-                 acceptable_energy_balance_error=None, replace_unit_heat_utilities=False):
+                 acceptable_energy_balance_error=None, replace_unit_heat_utilities=False,
+                 sort_hus_by_T=False):
         bst.Facility.__init__(self, ID, None, None)
         self.T_min_app = T_min_app
         self.units = units
@@ -118,6 +119,7 @@ class HeatExchangerNetwork(bst.Facility):
         self.cache_network = cache_network
         self.avoid_recycle = avoid_recycle
         self.replace_unit_heat_utilities = replace_unit_heat_utilities
+        self.sort_hus_by_T = sort_hus_by_T
         if acceptable_energy_balance_error is not None:
             self.acceptable_energy_balance_error = acceptable_energy_balance_error
         
@@ -189,7 +191,8 @@ class HeatExchangerNetwork(bst.Facility):
                 T_out_arr, pinch_T_arr, C_flow_vector, hx_heat_utils_rearranged, streams_inlet, stream_HXs_dict,\
                 hot_indices, cold_indices = \
                 synthesize_network(hx_utils, self.T_min_app, self.Qmin, 
-                                   self.force_ideal_thermo, self.avoid_recycle)
+                                   self.force_ideal_thermo, self.avoid_recycle,
+                                   self.sort_hus_by_T)
                 new_HXs = HXs_hot_side + HXs_cold_side
                 self.cold_indices = cold_indices
                 self.original_heat_exchangers = hxs
