@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # HXN: The automated Heat Exchanger Network design package.
-# Copyright (C) 2020-2023, Sarang Bhagwat <sarangb2@illinois.edu>
+# Copyright (C) 2020-, Sarang Bhagwat <sarangb2@illinois.edu>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/sarangbhagwat/hxn/blob/master/LICENSE.txt
