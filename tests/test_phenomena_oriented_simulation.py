@@ -58,8 +58,8 @@ def test_trivial_liquid_extraction_case():
     sys.run_phenomena()
     value = extract.imol['Methanol'] / feed.imol['Methanol']
     T = extract.T
-    assert_allclose(actual, value, rtol=0.01, atol=1e-3)
-    assert_allclose(T_actual, T, rtol=0.01, atol=1e-3)
+    assert_allclose(actual, value, rtol=1e-3, atol=1e-6)
+    assert_allclose(T_actual, T, rtol=1e-3, atol=1e-6)
 
 def test_trivial_distillation_case():    
     # distillation
@@ -104,12 +104,12 @@ def test_simple_acetic_acid_separation_no_recycle():
     init_sys = system()
     init_sys.simulate()
     po = system(algorithm='phenomena oriented', 
-                    molar_tolerance=1e-6,
-                    relative_molar_tolerance=1e-6,
+                    molar_tolerance=1e-9,
+                    relative_molar_tolerance=1e-9,
                     method='fixed-point')
     sm = system(algorithm='sequential modular',
-                    molar_tolerance=1e-6,
-                    relative_molar_tolerance=1e-6,
+                    molar_tolerance=1e-9,
+                    relative_molar_tolerance=1e-9,
                     method='fixed-point')
     
     for i in range(2): 
@@ -121,7 +121,7 @@ def test_simple_acetic_acid_separation_no_recycle():
     for s_sm, s_dp in zip(sm.streams, po.streams):
         actual = s_sm.mol
         value = s_dp.mol
-        assert_allclose(actual, value, rtol=1e-3, atol=1e-3)
+        assert_allclose(actual, value, rtol=1e-6, atol=1e-6)
 
 def test_simple_acetic_acid_separation_with_recycle():
     import biosteam as bst
@@ -213,7 +213,7 @@ def test_simple_acetic_acid_separation_with_recycle():
     for s_sm, s_dp in zip(sm.streams, po.streams):
         actual = s_sm.mol
         value = s_dp.mol
-        assert_allclose(actual, value, rtol=1e-5, atol=1e-3)
+        assert_allclose(actual, value, rtol=1e-6, atol=1e-6)
 
 if __name__ == '__main__':
     test_trivial_lle_case()

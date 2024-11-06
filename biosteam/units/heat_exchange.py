@@ -589,9 +589,9 @@ class HXutility(HX):
                     self._run()
                 finally:
                     self.neglect_pressure_drop = False
-                outlet.P = feed.P - 6894.76 * \
-                    ht.heuristic_pressure_drop(
-                        feed.vapor_fraction, outlet.vapor_fraction)
+                outlet.P = feed.P - 6894.76 * ht.heuristic_pressure_drop(
+                    feed.vapor_fraction, outlet.vapor_fraction
+                )
         if self.rigorous:
             if N_given > 1:
                 raise RuntimeError("may only specify either temperature, 'T', "

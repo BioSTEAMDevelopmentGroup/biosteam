@@ -121,59 +121,57 @@ def test_multi_stage_adiabatic_vle():
         rtol=0.01,
     )
    
-# def test_lactic_acid_ethanol_reactive_distillation():
-#     import biosteam as bst
-#     from thermosteam.constants import R
-#     from math import exp
-#     from numpy.testing import assert_allclose
-#     bst.settings.set_thermo(['EthylLactate', 'LacticAcid', 'H2O', 'Ethanol'], cache=True)
+def test_lactic_acid_ethanol_reactive_distillation():
+    import biosteam as bst
+    from thermosteam.constants import R
+    from math import exp
+    from numpy.testing import assert_allclose
+    bst.settings.set_thermo(['EthylLactate', 'LacticAcid', 'H2O', 'Ethanol'], cache=True)
     
-#     class Esterification(bst.KineticReaction):
+    class Esterification(bst.KineticReaction):
         
-#         def volume(self, stream):
-#             return 0.01 # Kg of catalyst
+        def volume(self, stream):
+            return 0.01 # Kg of catalyst
         
-#         def rate(self, stream):
-#             T = stream.T
-#             if T > 365: return 0 # Prevents multiple steady states.
-#             kf = 6.52e3 * exp(-4.8e4 / (R * T))
-#             kr = 2.72e3 * exp(-4.8e4 / (R * T))
-#             LaEt, La, H2O, EtOH = stream.mol / stream.F_mol
-#             return 3600 * (kf * La * EtOH - kr * LaEt * H2O) # kmol / kg-catalyst / hr
+        def rate(self, stream):
+            T = stream.T
+            if T > 365: return 0 # Prevents multiple steady states.
+            kf = 6.52e3 * exp(-4.8e4 / (R * T))
+            kr = 2.72e3 * exp(-4.8e4 / (R * T))
+            LaEt, La, H2O, EtOH = stream.mol / stream.F_mol
+            return 3600 * (kf * La * EtOH - kr * LaEt * H2O) # kmol / kg-catalyst / hr
     
-#     rxn = Esterification('LacticAcid + Ethanol -> H2O + EthylLactate', reactant='LacticAcid')
-#     stream = bst.Stream(
-#         H2O=10, Ethanol=10, LacticAcid=2, T=355,
-#     )
-#     stream.vle(V=0, P=101325, liquid_conversion=rxn)
-#     distillation = bst.MESHDistillation(
-#         N_stages=5,
-#         ins=[stream],
-#         feed_stages=[2],
-#         outs=['distillate', 'bottoms_product'],
-#         full_condenser=False,
-#         reflux=1.0,
-#         boilup=2.0,
-#         use_cache=True,
-#         LHK=('H2O', 'EthylLactate'),
-#         stage_reactions={i: rxn for i in range(2)},
-#         method='fixed-point',
-#         maxiter=100,
-#     )
-#     distillation.simulate()
-#     flows = [
-#         [6.585111268569887e-06, 3.6465771244802687e-09,
-#          3.110437134095077, 8.015523262914513],
-#         [0.019007540635984595, 1.9809858706061696,
-#          6.908576991652181, 1.9654626113382356],
-#     ]
-#     for i, j in zip(distillation.outs, flows):    
-#         assert_allclose(i.mol, j, rtol=1e-5, atol=1e-3)
-#     sys = bst.System.from_units(units=[distillation])
-#     sys._setup()
-#     sys.run_phenomena()
-#     for i, j in zip(distillation.outs, flows):    
-#         assert_allclose(i.mol, j, rtol=1e-5, atol=1e-3)
+    rxn = Esterification('LacticAcid + Ethanol -> H2O + EthylLactate', reactant='LacticAcid')
+    stream = bst.Stream(
+        H2O=10, Ethanol=10, LacticAcid=2, T=355,
+    )
+    stream.vle(V=0, P=101325, liquid_conversion=rxn)
+    distillation = bst.MESHDistillation(
+        N_stages=5,
+        ins=[stream],
+        feed_stages=[2],
+        outs=['distillate', 'bottoms_product'],
+        full_condenser=False,
+        reflux=1.0,
+        boilup=2.0,
+        use_cache=True,
+        LHK=('H2O', 'EthylLactate'),
+        stage_reactions={i: rxn for i in range(1,3)},
+        method='fixed-point',
+        maxiter=100,
+    )
+    distillation.simulate()
+    flows = [
+        [6.779963298101173e-06, 3.6172767647177665e-09, 3.1106893353339236, 8.015420206297735],
+        [0.01955718389933403, 1.9804360325200911, 6.908874628528711, 1.9650158298396327],
+    ]
+    for i, j in zip(distillation.outs, flows):    
+        assert_allclose(i.mol, j, rtol=1e-5, atol=1e-3)
+    sys = bst.System.from_units(units=[distillation])
+    sys._setup()
+    sys.run_phenomena()
+    for i, j in zip(distillation.outs, flows):    
+        assert_allclose(i.mol, j, rtol=1e-5, atol=1e-3)
     
 # def test_acetic_acid_reactive_distillation():
 #     import biosteam as bst
@@ -360,6 +358,7 @@ def test_distillation():
 if __name__ == '__main__':
     test_multi_stage_adiabatic_vle()
     test_distillation()
+    test_lactic_acid_ethanol_reactive_distillation()
 
 
 

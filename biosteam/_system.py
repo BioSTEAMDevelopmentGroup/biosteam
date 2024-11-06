@@ -146,7 +146,12 @@ class Configuration:
         A = []
         b = []
         for node in nodes:
-            for coefficients, value in node._create_material_balance_equations(composition_sensitive):
+            f = node._create_material_balance_equations
+            try: eqs = f(composition_sensitive)
+            except TypeError as e: 
+                try: eqs = f()
+                except: raise e from None
+            for coefficients, value in eqs:
                 coefficients = {
                     streams[i.imol]: j for i, j in coefficients.items()
                 }
@@ -180,25 +185,31 @@ class Configuration:
         else:
             A, objs = dictionaries2array(A)
             values = solve(A, np.array(b).T).T
-            values[values < 0] = 0
+            mask = (values < 0) & (values > -1e-9)
+            values[mask] = 0
+            if (values < 0).any(): raise RuntimeError('material balance could not be solved')
             for obj, value in zip(objs, values): obj._update_material_flows(value)
         for i in nodes: 
             if hasattr(i, '_update_auxiliaries'): i._update_auxiliaries()
         return values
         
-    def solve_energy_departures(self, temperature_only=False):
+    def solve_energy_departures(self):
         nodes = self.nodes
         A = []
         b = []
         for node in nodes:
-            for coefficients, value in node._create_energy_departure_equations(temperature_only):
+            for coefficients, value in node._create_energy_departure_equations():
                 A.append(coefficients)
                 b.append(value)
         A, objs = dictionaries2array(A)
         departures = solve(A, np.array(b).T).T
         try:
             for obj, departure in zip(objs, departures): 
-                obj._update_energy_variable(departure)
+                try:
+                    obj._update_energy_variable(departure)
+                except:
+                    print(repr(obj))
+                    breakpoint()
         except AttributeError as e:
             if obj._update_energy_variable:
                 raise e
@@ -222,8 +233,8 @@ class Configuration:
                 sources[i.imol] = u
         units_set = set(units)
         for i in streams:
-            if i.source and i.source not in units_set: i._source = sources[i.imol]
-            if i.sink and i.sink not in units_set: i._sink = sinks[i.imol]
+            if i.source and i.source not in units_set and i.imol in sources: i._source = sources[i.imol]
+            if i.sink and i.sink not in units_set and i.imol in sinks: i._sink = sinks[i.imol]
         return self
     
     def __exit__(self, type, exception, traceback):
@@ -1202,7 +1213,16 @@ class System:
     @ignore_docking_warnings
     def _load_configuration(self):
         for i in self._connections: i.reconnect()
-        for i in self.units: i._system = self
+        if self.recycle:
+            for i in self.units: 
+                i._system = i._recycle_system = self
+        else:
+            for i in self.units: 
+                i._system = self
+                i._recycle_system = None
+            for sys in self.subsystems: 
+                if sys.recycle: 
+                    for i in sys.units: i._recycle_system = sys
 
     @ignore_docking_warnings
     def interface_property_packages(self):
@@ -2400,7 +2420,7 @@ class System:
                 conf.solve_nonlinearities()
                 conf.solve_energy_departures()
                 conf.solve_material_flows()
-            except (NotImplementedError, UnboundLocalError) as error:
+            except (NotImplementedError, UnboundLocalError, TypeError) as error:
                 raise error
             except:
                 for i in path: i.run()

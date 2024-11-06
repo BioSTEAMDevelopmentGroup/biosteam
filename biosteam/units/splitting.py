@@ -162,6 +162,49 @@ class Splitter(Unit):
         isplit = self._isplit
         if isplit.chemicals is not feed.chemicals: self._reset_thermo(feed._thermo)
         feed.split_to(*self.outs, isplit.data)
+        
+    # def _create_material_balance_equations(self, composition_sensitive):
+    #     fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
+    #     top, bottom = self.outs
+    #     ones = np.ones(self.chemicals.size)
+    #     minus_ones = -ones
+    #     zeros = np.zeros(self.chemicals.size)
+        
+    #     # Overall flows
+    #     eq_overall = {}
+    #     for i in self.outs: 
+    #         eq_overall[i] = ones
+    #     for i in process_inlets:
+    #         if i in eq_overall: del eq_overall[i]
+    #         else: eq_overall[i] = minus_ones
+    #     equations.append(
+    #         (eq_overall, sum([i.mol for i in fresh_inlets], zeros))
+    #     )
+        
+    #     # Top and bottom flows
+    #     eq_outs = {}
+    #     split = self.split
+    #     minus_split = -split
+    #     for i in process_inlets: eq_outs[i] = minus_split
+    #     rhs = split * sum([i.mol for i in fresh_inlets], zeros)
+    #     eq_outs[top] = ones
+    #     equations.append(
+    #         (eq_outs, rhs)
+    #     )
+    #     return equations
+    
+    # def _get_energy_departure_coefficient(self, stream):
+    #     coeff = -stream.C
+    #     return (self, coeff)
+    
+    # def _create_energy_departure_equations(self):
+    #     coeff = {self: self.ins[0].C}
+    #     self.ins[0]._update_energy_departure_coefficient(coeff)
+    #     return [(coeff, self.H_in - self.H_out)]
+    
+    # def _update_energy_variable(self, departure):
+    #     for i in self.outs: i.T += departure
+
 
 class PhaseSplitter(Unit):
     """
@@ -322,24 +365,28 @@ class Separator(Unit):
         # Top and bottom flows
         eq_outs = {}
         split = self.split
-        for i in process_inlets: eq_outs[i] = split
-        rhs = sum([split * i.mol for i in fresh_inlets], zeros)
-        eq_outs[top] = minus_ones
+        minus_split = -split
+        for i in process_inlets: eq_outs[i] = minus_split
+        rhs = split * sum([i.mol for i in fresh_inlets], zeros)
+        eq_outs[top] = ones
         equations.append(
             (eq_outs, rhs)
         )
         return equations
     
     def _get_energy_departure_coefficient(self, stream):
+        if self.T_specification is not None: return
         coeff = -stream.C
         return (self, coeff)
     
-    def _create_energy_departure_equations(self, temperature_only):
+    def _create_energy_departure_equations(self):
+        if self.T_specification is not None: return []
         coeff = {self: self.ins[0].C}
-        self.ins[0]._update_energy_departure_coefficient(coeff, temperature_only)
+        self.ins[0]._update_energy_departure_coefficient(coeff)
         return [(coeff, self.H_in - self.H_out)]
     
     def _update_energy_variable(self, departure):
+        if self.T is None: self.T = self.outs[0].T
         self.T = T = self.T + departure
         for i in self.outs: i.T = T
     

@@ -544,6 +544,7 @@ class IsentropicCompressor(Compressor, new_graphics=False):
     Utility cost                                  USD/hr       9.66e-05
 
     """
+    _energy_variable = 'T'
 
     def _run(self):
         feed = self.ins[0]
@@ -563,22 +564,45 @@ class IsentropicCompressor(Compressor, new_graphics=False):
         dH_actual = dH_isentropic / self.eta
         out.H = feed.H + dH_actual        
         if self.vle is True: out.vle(H=out.H, P=out.P)
+        if self.system and self.system.algorithm == 'Phenomena oriented':
+            self._coeffs = {self: feed.T, feed.source: out.T} # dT_out = (T_out/T_in) * dT_in
         
     def _design(self):
         super()._design()
         self._set_power(self.design_results['Ideal power'] / self.eta)
     
-    def _create_energy_departure_equations(self, temperature_only):
-        # Ll: C1dT1 - Ce2*dT2 - Cr0*dT0 - hv2*L2*dB2 = Q1 - H_out + H_in
-        # gl: hV1*L1*dB1 - hv2*L2*dB2 - Ce2*dT2 - Cr0*dT0 = Q1 + H_in - H_out
+    def _get_energy_departure_coefficient(self, stream):
+        feed = self.ins[0]
+        source = feed.source
+        if source is None or source._energy_variable != 'T': return None
+        return (self, -stream.C)
+    
+    def _update_nonlinearities(self):
         feed = self.ins[0]
         product = self.outs[0]
         if len(product.phases) > 1:
             raise NotImplementedError('energy departure equation with multiple phase not yet implemented for isentropic compressors')
-        J = R / (2. * product.Cn * self.eta) * log(feed.P / self.P)
-        coeff = {self: (1 - J) / (1 + J) * product.Cn}
-        for i in self.ins: i._update_energy_departure_coefficient(coeff, temperature_only)
-        return [(coeff, self.H_in - self.H_out)]
+        source = feed.source
+        if source is None or source._energy_variable != 'T': return []
+        data = product.get_data()
+        self._run()
+        self._coeffs = {self: feed.T, source: product.T} # dT_out = (T_out/T_in) * dT_in
+        product.set_data(data)
+    
+    def _create_energy_departure_equations(self): 
+        # Special case where T_out = f(T_in)
+        # 0 = Cp * log(T/T0) - R * log(P/P0)
+        # log(T/T0) = R / Cp * log(P/P0)
+        # T = T0 * exp(R / Cp * log(P/P0))
+        # T = T0 * P/P0 * exp(R/Cp)
+        feed = self.ins[0]
+        product = self.outs[0]
+        if len(product.phases) > 1:
+            raise NotImplementedError('energy departure equation with multiple phase not yet implemented for isentropic compressors')
+        source = feed.source
+        # TODO: add method <Stream>.energy_variable -> 'T'|'B'
+        if source is None or source._energy_variable != 'T': return []
+        return [(self._coeffs, 0)]
     
     def _create_material_balance_equations(self, composition_sensitive):
         fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)

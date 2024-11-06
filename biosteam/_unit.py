@@ -21,10 +21,11 @@ import biosteam as bst
 from thermosteam import Stream, AbstractUnit, ProcessSpecification
 from numpy.typing import NDArray
 from typing import Callable, Optional, TYPE_CHECKING, Sequence, Iterable
-from inspect import signature
+from thermosteam.base.sparse import SparseVector, sum_sparse_vectors
+import numpy as np
 import thermosteam as tmo
 if TYPE_CHECKING: 
-    System = bst.System
+    System = bst._recycle_system
     HXutility = bst.HXutility
     UtilityAgent = bst.UtilityAgent
 
@@ -41,6 +42,29 @@ __all__ = ('Unit',)
 
 
 # %% Unit Operation
+
+def phenomena_oriented_run(self):
+    if not (self._recycle_system and self._system.algorithm == 'Phenomena oriented'):
+        Unit.run(self)
+        return
+    ins = self.ins
+    outs = self.outs
+    Ts = [i.T for i in outs]
+    Q = self.Hnet
+    Unit.run(self)
+    self._dmol = sum(
+        [i.mol for i in outs],
+        -sum([i.mol for i in ins], 0)
+    )
+    self._dmol[np.abs(self._dmol) < 1e-9] = 0.
+    self._duty = self.Hnet
+    Ts_new = [i.T for i in outs]
+    if all([i == j for i, j in zip(Ts_new, Ts)]): # T constant
+        self._energy_variable = None
+    elif self.Hnet == Q: # Q constant    
+        self._energy_variable = 'T'
+    else:
+        self._energy_variable = None
 
 class Unit(AbstractUnit):
     """
@@ -115,18 +139,38 @@ class Unit(AbstractUnit):
     def __init_subclass__(cls,
                           isabstract=False,
                           new_graphics=True,
-                          does_nothing=None):
+                          does_nothing=None,
+                          default_phenomena=None):
         super().__init_subclass__()
         if does_nothing: return 
         dct = cls.__dict__
-        if '_N_heat_utilities' in dct:
-            warn("'_N_heat_utilities' class attribute is scheduled for deprecation; "
-                 "use the `add_heat_utility` method instead",
-                 DeprecationWarning, stacklevel=2)
         if 'run' in dct:
             raise UnitInheritanceError(
                  "the 'run' method cannot be overridden; implement `_run` instead"
             )
+        if default_phenomena is None:
+            methods = (
+                '_update_nonlinearities',
+                '_get_energy_departure_coefficient',
+                '_create_material_balance_equations',
+                '_create_energy_departure_equations',
+                '_update_energy_variable',
+                '_energy_variable',
+            )
+            if all([getattr(cls, i) is getattr(Unit, i) for i in methods]):
+                cls.run = phenomena_oriented_run
+            else:
+                for i in methods: 
+                    if getattr(cls, i) is not getattr(Unit, i): continue
+                    setattr(cls, i, AbstractMethod)
+                cls.run = Unit.run
+        elif default_phenomena:
+            cls.run = phenomena_oriented_run
+            for i in methods: setattr(cls, i, getattr(Unit, i))
+        if '_N_heat_utilities' in dct:
+            warn("'_N_heat_utilities' class attribute is scheduled for deprecation; "
+                 "use the `add_heat_utility` method instead",
+                 DeprecationWarning, stacklevel=2)
         if 'line' not in dct:
             cls.line = format_title(cls.__name__)
         if 'ticket_name' not in dct:
@@ -219,6 +263,9 @@ class Unit(AbstractUnit):
     #: lifetime of each purchase cost item.
     _default_equipment_lifetime: int|dict[str, int] = {}
 
+    #: [str] The energy variable for phenomena-oriented simulation.
+    _energy_variable: str = None
+
     ### Abstract methods ###
     
     #: Create auxiliary components.
@@ -233,39 +280,106 @@ class Unit(AbstractUnit):
     #: Add embodied emissions (e.g., unit construction) in LCA
     _lca = AbstractMethod
     
-    #: Create material balance equations for phenomena-oriented simulation.
-    _create_material_balance_equations = AbstractMethod
+    def _update_nonlinearities(self):
+        """
+        Update phenomenological variables for phenomena-oriented simulation.
+        """
+        ins = self.ins
+        outs = self.outs
+        data = [i.get_data() for i in outs]
+        Ts = [i.T for i in outs]
+        Q = self.Hnet
+        self._run()
+        f = bst.PhasePartition.dmol_relaxation_factor
+        old = self.dmol
+        new = sum(
+            [i.mol for i in outs],
+            -sum([i.mol for i in ins], 0)
+        )
+        self._dmol = dmol = f * old + (1 - f) * new
+        self._dmol[np.abs(dmol) < 1e-9] = 0.
+        self._duty = self.Hnet
+        Ts_new = [i.T for i in outs]
+        if all([i == j for i, j in zip(Ts_new, Ts)]): # T constant
+            self._energy_variable = None
+        elif self.Hnet == Q: # Q constant    
+            self._energy_variable = 'T'
+        else:
+            self._energy_variable = None
+        for i, j in zip(outs, data): i.set_data(j)
     
-    #: Create energy departure equations for phenomena-oriented simulation.
-    _create_energy_departure_equations = AbstractMethod
+    def _get_energy_departure_coefficient(self, stream):
+        """
+        tuple[object, float] Return energy departure coefficient of a stream 
+        for phenomena-oriented simulation.
+        """
+        return (self, stream.C)
     
-    #: Return energy departure coefficient of a stream for phenomena-oriented simulation.
-    _get_energy_departure_coefficient = AbstractMethod
+    def _create_material_balance_equations(self, composition_sensitive):
+        """
+        list[tuple[dict, array]] Create material balance equations for 
+        phenomena-oriented simulation.
+        """
+        fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
+        outs = self.outs
+        N = self.chemicals.size
+        ones = np.ones(N)
+        predetermined_flow = SparseVector.from_dict(sum_sparse_vectors([i.mol for i in fresh_inlets]), size=N)
+        rhs = predetermined_flow + self._dmol
+        mol_total = sum([i.mol for i in outs])
+        for i in range(len(outs)):
+            s = outs[i]
+            split = s.mol / mol_total
+            minus_split = -split
+            eq_outs = {}
+            for i in process_inlets: eq_outs[i] = minus_split
+            eq_outs[s] = ones
+            equations.append(
+                (eq_outs, split * rhs)
+            )
+        return equations
     
-    #: Update energy variable being solved in energy departure equations for phenomena-oriented simulation.
-    _update_energy_variable = AbstractMethod
+    def _create_energy_departure_equations(self):
+        """
+        list[tuple[dict, float]] Create energy departure equations for 
+        phenomena-oriented simulation.
+        """
+        if self._energy_variable == 'T':
+            coeff = {self: sum([i.C for i in self.outs])}
+            for i in self.ins: i._update_energy_departure_coefficient(coeff)
+            if self._dmol.any():
+                dH = self._duty - self.Hnet
+            else:
+                dH = self._duty + self.H_in - self.H_out
+            return [(coeff, dH)]
+        else:
+            return []
     
-    #: Update equilibrium variables for phenomena-oriented simulation.
-    _update_equilibrium_variables = AbstractMethod
-    
-    #: Update reaction conversion for phenomena-oriented simulation.
-    _update_reaction_conversion = AbstractMethod
+    def _update_energy_variable(self, departure):
+        """
+        Update energy variable being solved in energy departure equations for 
+        phenomena-oriented simulation.
+        """
+        if self._energy_variable == 'T':
+            for i in self.outs: i.T += departure
     
     def _begin_equations(self, composition_sensitive):
         inlets = self.ins
         fresh_inlets = []
         process_inlets = []
         material_equations = [f() for i in inlets for f in i.material_equations]
+        isfeed = lambda s: s.isfeed() or i.source._recycle_system is not self._recycle_system
         if not material_equations:
             if composition_sensitive:
                 for i in inlets: 
-                    if i.isfeed() or not getattr(i.source, 'composition_sensitive', False):
+                    if (isfeed(i) or
+                        not getattr(i.source, 'composition_sensitive', False)):
                         fresh_inlets.append(i)
                     else:
                         process_inlets.append(i)                    
             else:
                 for i in inlets: 
-                    if i.isfeed():
+                    if isfeed(i):
                         fresh_inlets.append(i)
                     else:
                         process_inlets.append(i)
@@ -276,20 +390,24 @@ class Unit(AbstractUnit):
             for eq in material_equations:
                 dct, value = eq 
                 for i in dct:
-                    if i.source and not getattr(i.source, 'composition_sensitive', False): break
+                    if (i.source and
+                        i.source._recycle_system is self._recycle_system and 
+                        not getattr(i.source, 'composition_sensitive', False)):
+                        break
                 else:
                     dependent_streams.extend([i.imol for i in dct])
                     equations.append(eq)
             dependent_streams = set(dependent_streams)
             for i in inlets: 
-                isfeed = i.isfeed() or not getattr(i.source, 'composition_sensitive', False)
-                if i.imol not in dependent_streams and isfeed:
+                if (i.imol not in dependent_streams and isfeed(i) or
+                    not getattr(i.source, 'composition_sensitive', False)):
                     fresh_inlets.append(i)
                 else:
                     process_inlets.append(i) 
         else:
             for i in inlets: 
-                if i.isfeed() and not i.material_equations:
+                if (isfeed(i) and 
+                    not i.material_equations):
                     fresh_inlets.append(i)
                 else:
                     process_inlets.append(i)
@@ -386,6 +504,8 @@ class Unit(AbstractUnit):
         self.responses: set[bst.GenericResponse] = set()
         
         self._utility_cost = None
+        
+        self._recycle_system = None
         
         super().__init__(ID, ins, outs, thermo, **kwargs)
     

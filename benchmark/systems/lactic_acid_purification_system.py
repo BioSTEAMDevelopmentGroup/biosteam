@@ -13,67 +13,87 @@ __all__ = (
 )
 
 def create_system_lactic_acid_purification(alg='sequential modular'):
-    bst.settings.set_thermo(['Water', 'LacticAcid', 'ButylLactate', 'Butanol'], cache=True)
+    bst.settings.set_thermo(['Water', 'LacticAcid', 'EthylLactate', 'Ethanol', 'SuccinicAcid'], cache=True)
     
     class Esterification(bst.KineticReaction):
+        catalyst_fraction = 0.5 
         
         def volume(self, stream): # kg of catalyst
             rho_cat = 770 # kg / m3
             liquid_volume = self.liquid_volume
-            catalyst_volume = 0.5 * liquid_volume
+            catalyst_volume = self.catalyst_fraction * liquid_volume
             catalyst_mass = catalyst_volume * rho_cat
             return catalyst_mass
         
-        def rate(self, stream): # kmol/kg-catalyst/hr
+        def rate(self, stream):
             T = stream.T
-            # if T > 370: return 0 # Prevents multiple steady states
-            kf = 2.59e4 * exp(-5.340e4 / (R * T))
-            kr = 3.80e3 * exp(-5.224e4 / (R * T))
-            H2O, LA, BuLA, BuOH = stream.mol / stream.F_mol
-            return 3600 * (kf * LA * BuOH - kr * BuLA * H2O) # kmol / kg-catalyst / hr
+            if T > 365: return 0 # Prevents multiple steady states.
+            kf = 6.52e3 * exp(-4.8e4 / (R * T))
+            kr = 2.72e3 * exp(-4.8e4 / (R * T))
+            LaEt, La, H2O, EtOH, _ = stream.mol / stream.F_mol
+            return 3600 * (kf * La * EtOH - kr * LaEt * H2O) # kmol / kg-catalyst / hr
+    
     
     with bst.System(algorithm=alg) as sys:
         feed = bst.Stream(
             'feed',
             LacticAcid=4.174,
-            Water=5.470,
+            Water=5.460,
+            SuccinicAcid=0.531,
+            EthylLactate=1e-6,
+            total_flow=10.165,
+            P=0.106 * 101325,
+            T=72.5 + 273.15
         )
-        feed.vle(V=0.5, P=101325)
-        makeup_butanol = bst.Stream('makeup_butanol', Butanol=1)
-        makeup_butanol.T = makeup_butanol.bubble_point_at_P().T
-        recycle_butanol = bst.Stream('recycle_butanol')
-        esterification_reflux = bst.Stream('esterification_reflux')
+        feed.T = feed.bubble_point_at_P(P=0.2 * 101325).T
+        makeup_ethanol = bst.Stream('makeup_ethanol', Ethanol=0.035, P=2 * 101325, phase='g')
+        makeup_ethanol.T = makeup_ethanol.dew_point_at_P(P=0.2 * 101325).T
+        recycle_ethanol = bst.Stream('recycle_ethanol')
         esterification = bst.MESHDistillation(
             'esterification',
-            ins=(feed, makeup_butanol, recycle_butanol, esterification_reflux), 
-            outs=('empty', 'bottoms', 'esterification_distillate'),
-            N_stages=6,
-            feed_stages=(3, 3, 3, 0),
+            ins=(feed, makeup_ethanol, recycle_ethanol), 
+            outs=('empty', 'bottoms', 'esterification_disti2llate'),
+            N_stages=29,
+            feed_stages=(1, 27, 27),
             stage_specifications={
-                5: ('Boilup', 1),
-                0: ('Boilup', 0),
+                0: ('Reflux', 1),
+                28: ('Boilup', 1),
+                # 0: ('Temperature', 46.8 + 273.15),
+                # 28: ('Temperature', 229.6 + 273.15),
             },
-            liquid_side_draws={
-                0: 1,
-            },
+            full_condenser=True,
             stage_reactions={
-                i: Esterification('LacticAcid + Butanol -> Water + ButylLactate', reactant='LacticAcid')
-                for i in range(1, 5)
+                i: Esterification('LacticAcid + Ethanol -> Water + EthylLactate', reactant='LacticAcid')
+                for i in range(1, 28)
             },
-            maxiter=10,
-            # LHK=('LacticAcid', 'Butanol'),
-            LHK=('Butanol', 'ButylLactate'),
-            P=0.3 * 101325,
+            maxiter=50,
+            LHK=('Ethanol', 'EthylLactate'),
+            P=0.2 * 101325,
+            use_cache=True
         )
         @esterification.add_specification(run=True)
         def adjust_flow():
-            target = 5.85
-            makeup_butanol.imol['Butanol'] = max(target - recycle_butanol.imol['Butanol'], 0)
+            target = 0.035 + 16.653
+            makeup_ethanol.imol['Ethanol'] = max(target - recycle_ethanol.imol['Ethanol'], 0)
+        bst.PhasePartition.B_relaxation_factor = 0.9
+        bst.PhasePartition.K_relaxation_factor = 0
+        catalyst_fraction = 0
+        dc = 1e-6
+        while catalyst_fraction < 0.5:
+            dc *= 1.5
+            if dc > 5e-3: dc = 1e-3
+            if dc < 1e-4: dc = 1e-4
+            catalyst_fraction += dc
+            if catalyst_fraction > 0.5:
+                catalyst_fraction = 0.5
+            print('----')
+            print(catalyst_fraction)
+            print('----')
+            Esterification.catalyst_fraction = catalyst_fraction
+            esterification.simulate()
+            for i in esterification.stages: print(i.Hnet) 
+            esterification.show()
         
-        esterification.simulate()
-        for i in esterification.stages: print(i.Hnet) 
-        esterification.show()
-        breakpoint()
         # esterification.simulate()
         # for i in esterification.stages: print(i.Hnet) 
         # esterification.stage_reactions={
