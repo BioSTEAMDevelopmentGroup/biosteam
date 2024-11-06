@@ -30,7 +30,7 @@ from ._parameter import Parameter
 from .evaluation_tools import load_default_parameters
 import pickle
 
-__all__ = ('Model',)
+__all__ = ('Model', 'EasyInputModel')
 
 def replace_nones(values, replacement):
     for i, j in enumerate(values):
@@ -1371,3 +1371,6 @@ class Model:
         """Return information on p-parameters and m-metrics."""
         print(self._info(p, m))
     _ipython_display_ = show
+    
+EasyInputModel = Model
+Model.load_parameter_distributions = Model.parameters_from_df
