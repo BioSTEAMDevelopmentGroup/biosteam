@@ -137,12 +137,20 @@ class Configuration:
             delayed = [(i, j) for i, j in enumerate(b) if j.dtype is ObjectType]
         return delayed
     
+    def _get_stream(self, stream):
+        streams = self.stream_ref
+        ind = stream.imol
+        if ind in streams:
+            return streams[ind]
+        else:
+            streams[ind] = stream
+            return stream
+    
     def _solve_material_flows(self, composition_sensitive):
         if composition_sensitive:
             nodes = self.composition_sensitive_nodes
         else:
             nodes = self.nodes
-        streams = self.stream_ref
         A = []
         b = []
         for node in nodes:
@@ -152,8 +160,12 @@ class Configuration:
                 try: eqs = f()
                 except: raise e from None
             for coefficients, value in eqs:
+                for i in coefficients:
+                    if i.imol not in self.stream_ref:
+                        print(repr(node))
+                        breakpoint()
                 coefficients = {
-                    streams[i.imol]: j for i, j in coefficients.items()
+                    self._get_stream(i): j for i, j in coefficients.items()
                 }
                 A.append(coefficients)
                 b.append(value)
@@ -222,8 +234,8 @@ class Configuration:
         sinks = {}
         sources = {}
         for u in units:
-            ins = u.ins
-            outs = u.outs
+            ins = u.flat_ins
+            outs = u.flat_outs
             for i in ins: 
                 i._sink = u
                 sinks[i.imol] = u
@@ -1050,7 +1062,6 @@ class System:
         self._set_facility_recycle(facility_recycle)
         self._register(ID)
         self._save_configuration()
-        self._load_stream_links()
         self._state = None
         self._state_idx = None
         self._state_header = None
@@ -1196,7 +1207,6 @@ class System:
             raise RuntimeError('system cannot be modified before exiting `with` statement')
         else:
             self.update_configuration(dump)
-            self._load_stream_links()
             self.set_tolerance(
                 algorithm=self._algorithm,
                 method=self._method,
@@ -1341,9 +1351,6 @@ class System:
     set_inlet = MockSystem.set_inlet
     set_outlet = MockSystem.set_outlet
     _load_flowsheet  = MockSystem._load_flowsheet
-
-    def _load_stream_links(self):
-        for u in self.units: u._load_stream_links()
 
     @property
     def TEA(self) -> TEA:
@@ -2333,7 +2340,6 @@ class System:
             self._setup_units()
             self._remove_temporary_units()
             self._save_configuration()
-            self._load_stream_links()
         else:
             if load_configuration: self._load_configuration()
             self._create_temporary_connections()
@@ -2343,7 +2349,6 @@ class System:
                 self._setup_units()
                 self._remove_temporary_units()
                 self._save_configuration()
-                self._load_stream_links()
             else:
                 self._setup_units()
         self._load_facilities()
@@ -2388,12 +2393,12 @@ class System:
                 return self._stage_configuration
         except:
             stages = self.stages
-            streams = list(set([i for s in stages for i in s.ins + s.outs]))
+            streams = list(set([i for s in stages for i in (*s.flat_ins, *s.flat_outs)]))
             connections = [(i, i.source, i.sink) for i in streams]
             if aggregated:
                 stages = self.aggregated_stages
-                streams = [i for u in stages for i in u.ins + u.outs]
-                stream_ref = {i.imol: i for u in stages for i in (*u.ins, *u.outs)}
+                streams = [i for u in stages for i in u.flat_ins + u.flat_outs]
+                stream_ref = {i.imol: i for u in stages for i in (*u.flat_ins, *u.flat_outs)}
                 nodes = [i for i in stages if not getattr(i, 'decoupled', False)]
                 self._aggregated_stage_configuration = conf = Configuration(
                     self.path, stages, nodes, streams, stream_ref, connections, aggregated
@@ -2412,6 +2417,7 @@ class System:
         path = self.unit_path
         with self.stage_configuration(aggregated=False) as conf:
             try:
+                breakpoint()
                 for i in path: 
                     if isinstance(i, (bst.Mixer, bst.Splitter)) and not i.specifications: continue
                     i.run()
@@ -2420,9 +2426,10 @@ class System:
                 conf.solve_nonlinearities()
                 conf.solve_energy_departures()
                 conf.solve_material_flows()
-            except (NotImplementedError, UnboundLocalError, TypeError) as error:
-                raise error
+            # except (NotImplementedError, UnboundLocalError, TypeError, AttributeError, KeyError) as error:
+            #     raise error
             except:
+                # del self._stage_configuration
                 for i in path: i.run()
             
     def _solve(self):

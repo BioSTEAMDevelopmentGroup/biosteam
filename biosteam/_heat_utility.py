@@ -119,7 +119,7 @@ class UtilityAgent(Stream):
         if nophase:
             literal = (T, P)
         else:
-            phase = imol._phase._phase
+            phase = imol._phase
             literal = (phase, T, P)
         key = (name, literal)
         if key in property_cache: return property_cache[key]

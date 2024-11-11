@@ -12,7 +12,7 @@ import pandas as pd
 from warnings import warn
 from thermosteam._graphics import UnitGraphics
 from ._heat_utility import HeatUtility
-from .utils import AbstractMethod, format_title, static, piping, StreamLinkOptions
+from .utils import AbstractMethod, format_title, static, piping
 from ._power_utility import PowerUtility
 from .exceptions import UnitInheritanceError
 from thermosteam.units_of_measure import convert
@@ -253,9 +253,6 @@ class Unit(AbstractUnit):
     #: **class-attribute** Cost items that need to be summed across operation modes for 
     #: flexible operation (e.g., filtration membranes).
     _materials_and_maintenance: frozenset[str] = frozenset()
-    
-    #: **class-attribute** Options for linking streams
-    _stream_link_options: StreamLinkOptions = None
 
     #: **class-attribute** Lifetime of equipment. Defaults to lifetime of
     #: production venture. Use an integer to specify the lifetime for all
@@ -313,7 +310,7 @@ class Unit(AbstractUnit):
         tuple[object, float] Return energy departure coefficient of a stream 
         for phenomena-oriented simulation.
         """
-        return (self, stream.C)
+        if self._energy_variable == 'T': return (self, stream.C)
     
     def _create_material_balance_equations(self, composition_sensitive):
         """
@@ -321,14 +318,13 @@ class Unit(AbstractUnit):
         phenomena-oriented simulation.
         """
         fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
-        outs = self.outs
+        outs = self.flat_outs
         N = self.chemicals.size
         ones = np.ones(N)
         predetermined_flow = SparseVector.from_dict(sum_sparse_vectors([i.mol for i in fresh_inlets]), size=N)
         rhs = predetermined_flow + self._dmol
         mol_total = sum([i.mol for i in outs])
-        for i in range(len(outs)):
-            s = outs[i]
+        for i, s in enumerate(outs):
             split = s.mol / mol_total
             minus_split = -split
             eq_outs = {}
@@ -375,14 +371,18 @@ class Unit(AbstractUnit):
                     if (isfeed(i) or
                         not getattr(i.source, 'composition_sensitive', False)):
                         fresh_inlets.append(i)
+                    elif len(i) > 1:
+                        process_inlets.extend(i)
                     else:
                         process_inlets.append(i)                    
             else:
                 for i in inlets: 
                     if isfeed(i):
                         fresh_inlets.append(i)
+                    elif len(i) > 1:
+                        process_inlets.extend(i)
                     else:
-                        process_inlets.append(i)
+                        process_inlets.append(i)   
             equations = material_equations
         elif composition_sensitive:
             equations = []
@@ -402,15 +402,19 @@ class Unit(AbstractUnit):
                 if (i.imol not in dependent_streams and isfeed(i) or
                     not getattr(i.source, 'composition_sensitive', False)):
                     fresh_inlets.append(i)
+                elif len(i) > 1:
+                    process_inlets.extend(i)
                 else:
-                    process_inlets.append(i) 
+                    process_inlets.append(i)   
         else:
             for i in inlets: 
                 if (isfeed(i) and 
                     not i.material_equations):
                     fresh_inlets.append(i)
+                elif len(i) > 1:
+                    process_inlets.extend(i)
                 else:
-                    process_inlets.append(i)
+                    process_inlets.append(i)   
             equations = material_equations
         return fresh_inlets, process_inlets, equations
     
@@ -1148,16 +1152,6 @@ class Unit(AbstractUnit):
     
     def _get_design_info(self): 
         return ()
-        
-    def _load_stream_links(self):
-        options = self._stream_link_options
-        if options:
-            s_in = self._ins[0]
-            s_out = self._outs[0]
-            try:
-                s_out.link_with(s_in, options.flow, options.phase, options.TP)
-            except:
-                pass
     
     def _reevaluate(self):
         """Reevaluate design/cost/LCA results."""
@@ -1300,7 +1294,6 @@ class Unit(AbstractUnit):
         self._check_setup()
         if run is None or run:
             for ps in self._specifications: ps.compile_path(self)
-            self._load_stream_links()
             self.run()
         self._summary(design_kwargs, cost_kwargs)
 

@@ -216,9 +216,9 @@ def test_simple_acetic_acid_separation_with_recycle():
         assert_allclose(actual, value, rtol=1e-6, atol=1e-6)
 
 if __name__ == '__main__':
-    test_trivial_lle_case()
-    test_trivial_vle_case()
-    test_trivial_liquid_extraction_case()
-    test_trivial_distillation_case()
-    test_simple_acetic_acid_separation_no_recycle()
+    # test_trivial_lle_case()
+    # test_trivial_vle_case()
+    # test_trivial_liquid_extraction_case()
+    # test_trivial_distillation_case()
+    # test_simple_acetic_acid_separation_no_recycle()
     test_simple_acetic_acid_separation_with_recycle()

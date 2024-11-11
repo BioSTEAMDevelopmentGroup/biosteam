@@ -460,6 +460,7 @@ class StageEquilibrium(Unit):
         if energy_variable == 'B':
             vapor, liquid = self.partition.outs
             if vapor.isempty():
+                if liquid.isempty(): raise RuntimeError('empty stage or tray')
                 with liquid.temporary_phase('g'): hV = liquid.h
             else:
                 hV = vapor.h
