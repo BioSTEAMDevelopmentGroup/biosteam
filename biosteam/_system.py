@@ -137,15 +137,6 @@ class Configuration:
             delayed = [(i, j) for i, j in enumerate(b) if j.dtype is ObjectType]
         return delayed
     
-    def _get_stream(self, stream):
-        streams = self.stream_ref
-        ind = stream.imol
-        if ind in streams:
-            return streams[ind]
-        else:
-            streams[ind] = stream
-            return stream
-    
     def _solve_material_flows(self, composition_sensitive):
         if composition_sensitive:
             nodes = self.composition_sensitive_nodes
@@ -160,12 +151,8 @@ class Configuration:
                 try: eqs = f()
                 except: raise e from None
             for coefficients, value in eqs:
-                for i in coefficients:
-                    if i.imol not in self.stream_ref:
-                        print(repr(node))
-                        breakpoint()
                 coefficients = {
-                    self._get_stream(i): j for i, j in coefficients.items()
+                    i.material_reference: j for i, j in coefficients.items()
                 }
                 A.append(coefficients)
                 b.append(value)
@@ -182,8 +169,11 @@ class Configuration:
             b_ready = np.array([i[ready_index] for i in b], float)
             values = solve(A_ready, b_ready.T).T
             values[values < 0] = 0
-            for obj, value in zip(objs, values): 
-                obj._update_material_flows(value, ready_index)
+            for obj, value in zip(objs, values): # update material flows
+                indexer, phase = obj
+                index = indexer._phase_indexer(phase)
+                mol = indexer.data.rows[index]
+                mol[ready_index] = value
             A_delayed = [{i: j[delayed_index] for i, j in dct.items()} for dct in A]
             A_delayed, objs = dictionaries2array(A_delayed)
             b_delayed = np.array([
@@ -200,7 +190,11 @@ class Configuration:
             mask = (values < 0) & (values > -1e-9)
             values[mask] = 0
             if (values < 0).any(): raise RuntimeError('material balance could not be solved')
-            for obj, value in zip(objs, values): obj._update_material_flows(value)
+            for obj, value in zip(objs, values): # update material flows
+                indexer, phase = obj
+                index = indexer._phase_indexer(phase)
+                mol = indexer.data.rows[index]
+                mol[:] = value
         for i in nodes: 
             if hasattr(i, '_update_auxiliaries'): i._update_auxiliaries()
         return values
@@ -2398,13 +2392,13 @@ class System:
             if aggregated:
                 stages = self.aggregated_stages
                 streams = [i for u in stages for i in u.flat_ins + u.flat_outs]
-                stream_ref = {i.imol: i for u in stages for i in (*u.flat_ins, *u.flat_outs)}
+                stream_ref = {i.material_reference: i for u in stages for i in (*u.flat_ins, *u.flat_outs)}
                 nodes = [i for i in stages if not getattr(i, 'decoupled', False)]
                 self._aggregated_stage_configuration = conf = Configuration(
                     self.path, stages, nodes, streams, stream_ref, connections, aggregated
                 )
             else:
-                stream_ref = {i.imol: i for i in streams}
+                stream_ref = {i.material_reference: i for i in streams}
                 nodes = [i for i in stages if not getattr(i, 'decoupled', False)]
                 self._stage_configuration = conf = Configuration(
                     self.path, stages, nodes, streams, stream_ref, connections, aggregated
@@ -2417,7 +2411,6 @@ class System:
         path = self.unit_path
         with self.stage_configuration(aggregated=False) as conf:
             try:
-                breakpoint()
                 for i in path: 
                     if isinstance(i, (bst.Mixer, bst.Splitter)) and not i.specifications: continue
                     i.run()
@@ -2426,9 +2419,11 @@ class System:
                 conf.solve_nonlinearities()
                 conf.solve_energy_departures()
                 conf.solve_material_flows()
+                print('GOOD!')
             # except (NotImplementedError, UnboundLocalError, TypeError, AttributeError, KeyError) as error:
             #     raise error
             except:
+                print('FAILED X')
                 # del self._stage_configuration
                 for i in path: i.run()
             

@@ -288,7 +288,7 @@ class Unit(AbstractUnit):
         Q = self.Hnet
         self._run()
         f = bst.PhasePartition.dmol_relaxation_factor
-        old = self.dmol
+        old = self._dmol
         new = sum(
             [i.mol for i in outs],
             -sum([i.mol for i in ins], 0)

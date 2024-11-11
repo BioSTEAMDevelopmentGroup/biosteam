@@ -770,8 +770,13 @@ class PhasePartition(Unit):
         self._set_arrays(IDs, gamma_y=gamma_y, K=K)
         
     def _run_decoupled_B(self, stacklevel=1): # Flash Rashford-Rice
-        ms = self.feed.copy()
-        ms.phases = self.phases
+        try:
+            ms = self.feed.copy()
+            ms.phases = self.phases
+        except:
+            ms = self.feed.copy()
+            breakpoint()
+            ms.phases = self.phases
         top, bottom = ms
         data = self.partition_data
         try:
