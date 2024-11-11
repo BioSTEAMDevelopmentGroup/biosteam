@@ -1056,6 +1056,7 @@ class System:
         self._set_facility_recycle(facility_recycle)
         self._register(ID)
         self._save_configuration()
+        self._load_stream_links()
         self._state = None
         self._state_idx = None
         self._state_header = None
@@ -1201,6 +1202,7 @@ class System:
             raise RuntimeError('system cannot be modified before exiting `with` statement')
         else:
             self.update_configuration(dump)
+            self._load_stream_links()
             self.set_tolerance(
                 algorithm=self._algorithm,
                 method=self._method,
@@ -1345,6 +1347,9 @@ class System:
     set_inlet = MockSystem.set_inlet
     set_outlet = MockSystem.set_outlet
     _load_flowsheet  = MockSystem._load_flowsheet
+
+    def _load_stream_links(self):
+        for u in self.units: u._load_stream_links()
 
     @property
     def TEA(self) -> TEA:
@@ -2334,6 +2339,7 @@ class System:
             self._setup_units()
             self._remove_temporary_units()
             self._save_configuration()
+            self._load_stream_links()
         else:
             if load_configuration: self._load_configuration()
             self._create_temporary_connections()

@@ -490,9 +490,9 @@ class HXutility(HX):
     Q = total_heat_transfer  # Alias for backward compatibility
 
     def simulate_as_auxiliary_exchanger(self,
-                                        ins, outs=None, duty=None, vle=True, scale=None, hxn_ok=True,
-                                        P_in=None, P_out=None, update=False,
-                                        ):
+            ins, outs=None, duty=None, vle=True, scale=None, hxn_ok=True,
+            P_in=None, P_out=None, update=False,
+        ):
         inlet = self.ins[0]
         outlet = self.outs[0]
         if not inlet:

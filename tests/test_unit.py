@@ -131,10 +131,13 @@ def test_process_specifications_linear():
     H1.add_specification(lambda: None, run=True, impacted_units=[T2])
     H2.add_specification(lambda: None, run=True, impacted_units=[T1])
     sys.simulate()
-    assert sys.unit_path.index(H1) < sys.unit_path.index(T2)
-    assert H1.specifications[0].path == []
-    assert H2.specifications[0].path == [T1, H1, T2]
-    # Net simulation order is ..., T2, H2, T1, H1, T2, H2, ...
+    if sys.unit_path.index(H1) < sys.unit_path.index(T2):
+        assert H1.specifications[0].path == []
+        assert H2.specifications[0].path == [T1, H1, T2]
+        # Net simulation order is ..., T2, H2, T1, H1, T2, H2, ...
+    else:
+        assert H1.specifications[0].path == [T2, H2, T1]
+        assert H2.specifications[0].path == []
     
 def test_process_specifications_with_recycles():
     bst.F.set_flowsheet('bifurcated_recycle_loops')

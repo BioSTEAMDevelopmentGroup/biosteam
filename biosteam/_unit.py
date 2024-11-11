@@ -254,6 +254,9 @@ class Unit(AbstractUnit):
     #: flexible operation (e.g., filtration membranes).
     _materials_and_maintenance: frozenset[str] = frozenset()
 
+    #: **class-attribute** Wether to link inlet and outlet streams.
+    _link_streams: bool = False
+
     #: **class-attribute** Lifetime of equipment. Defaults to lifetime of
     #: production venture. Use an integer to specify the lifetime for all
     #: items in the unit purchase costs. Use a dictionary to specify the 
@@ -317,6 +320,7 @@ class Unit(AbstractUnit):
         list[tuple[dict, array]] Create material balance equations for 
         phenomena-oriented simulation.
         """
+        if self._link_streams: return []
         fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
         outs = self.flat_outs
         N = self.chemicals.size
@@ -1153,6 +1157,9 @@ class Unit(AbstractUnit):
     def _get_design_info(self): 
         return ()
     
+    def _load_stream_links(self):
+        if self._link_streams: self._outs[0].link_with(self._ins[0])
+    
     def _reevaluate(self):
         """Reevaluate design/cost/LCA results."""
         self._setup()
@@ -1294,6 +1301,7 @@ class Unit(AbstractUnit):
         self._check_setup()
         if run is None or run:
             for ps in self._specifications: ps.compile_path(self)
+            self._load_stream_links()
             self.run()
         self._summary(design_kwargs, cost_kwargs)
 

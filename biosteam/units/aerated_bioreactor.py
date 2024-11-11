@@ -587,11 +587,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             vent.empty()
             self._run_vent(vent, effluent)
         
-        try:
-            baseline_feed = bst.Stream.sum(self.normal_gas_feeds, energy_balance=False)
-        except:
-            breakpoint()
-            bst.Stream.sum(self.normal_gas_feeds, energy_balance=False)
+        baseline_feed = bst.Stream.sum(self.normal_gas_feeds, energy_balance=False)
         baseline_flows = baseline_feed.get_flow('mol/s', self.gas_substrates)
         bounds = np.array([[max(1.01 * SURs[i] - baseline_flows[i], 0), 10 * SURs[i]] for i in index])
         if self.optimize_power:
@@ -614,8 +610,9 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                 mask = STRs - F_ins > 0
                 STRs[mask] = F_ins[mask]
                 diff = SURs - STRs
-                diff[diff > 0] *= 1e6 # Force transfer rate to meet uptake rate
-                return (diff * diff).sum()
+                diff[diff > 0] *= 1e3 # Force transfer rate to meet uptake rate
+                SE = (diff * diff).sum()
+                return SE
             
             f = gas_flow_rate_objective
             with catch_warnings():
