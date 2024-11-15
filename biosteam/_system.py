@@ -2607,7 +2607,7 @@ class System:
         nr = self._n_rotate
         units = self.units[nr:] + self.units[:nr]
         if self._state is None:
-            for ws in self.feeds:
+            for ws in [*self.feeds, *self.recycle]:
                 if not ws.state.all(): ws._init_state()
             for inf in units[0].ins:
                 if not inf.state.all(): inf._init_state()
