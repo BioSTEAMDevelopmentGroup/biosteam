@@ -211,11 +211,7 @@ class Configuration:
         departures = solve(A, np.array(b).T).T
         try:
             for obj, departure in zip(objs, departures): 
-                try:
-                    obj._update_energy_variable(departure)
-                except:
-                    print(repr(obj))
-                    breakpoint()
+                obj._update_energy_variable(departure)
         except AttributeError as e:
             if obj._update_energy_variable:
                 raise e
@@ -2425,12 +2421,9 @@ class System:
                 conf.solve_nonlinearities()
                 conf.solve_energy_departures()
                 conf.solve_material_flows()
-                print('GOOD!')
-            # except (NotImplementedError, UnboundLocalError, TypeError, AttributeError, KeyError) as error:
-            #     raise error
+            except (NotImplementedError, UnboundLocalError, TypeError, KeyError) as error:
+                raise error
             except:
-                print('FAILED X')
-                # del self._stage_configuration
                 for i in path: i.run()
             
     def _solve(self):

@@ -201,32 +201,28 @@ class Model:
         
         Parameters
         ----------
-        df_or_filename : pandas.DataFrame or file path to a spreadsheet of the following format:
-                         Column titles (these must be included, but others may be added for convenience):
-                            'Parameter name': String
-                                Name of the parameter.
-                            'Element': String, optional
-                            'Kind': String, optional
-                            'Units': String, optional
-                            'Baseline': float or int
-                                The baseline value of the parameter.
-                            'Shape': String, one of ['Uniform', 'Triangular']
-                                The shape of the parameter distribution.
-                            'Lower': float or int
-                                The lower value defining the shape of the parameter distribution.
-                            'Midpoint': float or int
-                                The midpoint value defining the shape of a 'Triangular' parameter distribution.
-                            'Upper': float or int
-                                The upper value defining the shape of the parameter distribution.
-                            'Load statement': String
-                                A statement executed to load the value of the parameter. The value is stored in 
-                                the variable x. A namespace defined in the namespace during EasyInputModel 
-                                initialization may be accessed. 
-                                E.g., to load a value into an example distillation unit D101's light key recovery, 
-                                ensure 'D101' is a key pointing to the D101 unit object in namespace, then 
-                                simply include the load statement: 'D101.Lr = x'. New lines in the statement
-                                may be represented by '\n' or ';'.
-        
+        df_or_filename : pandas.DataFrame or file path to a spreadsheet with the following column titles.
+                         
+            * 'Parameter name' [String] Name of the parameter.
+            
+            * 'Element' [String] 
+                        
+            * 'Kind' [String] 
+                        
+            * 'Units' [String] 
+                        
+            * 'Baseline' [float] The baseline value of the parameter.
+                        
+            * 'Shape' {'Uniform', 'Triangular'} The shape of the parameter distribution.
+                        
+            * 'Lower' [float] The lower value defining the shape of the parameter distribution.
+                        
+            * 'Midpoint' [float] The midpoint value defining the shape of a 'Triangular' parameter distribution.
+                        
+            * 'Upper' [float] The upper value defining the shape of the parameter distribution.
+                        
+            * 'Load statement' [String] A statement executed to load the value of the parameter. 
+            
         namespace : dict, optional
             Dictionary used to update the namespace accessed when executing
             statements to load values into model parameters. Defaults to the
@@ -327,7 +323,7 @@ class Model:
         Define and register parameter.
         
         Parameters
-        ----------    
+        ---------*    
         setter : function
                  Should set parameter in the element.
         element : Unit or :class:`~thermosteam.Stream`

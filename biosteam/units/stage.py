@@ -1551,7 +1551,6 @@ class MultiStageEquilibrium(Unit):
         if self._has_vle:
             for i in self.stages: i._update_nonlinearities()
         elif self._has_lle:
-            # pass
             self.update_lle_variables()
     
     def _update_aggretated_nonlinearities(self):
