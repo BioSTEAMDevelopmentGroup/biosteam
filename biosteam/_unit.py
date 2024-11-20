@@ -52,11 +52,17 @@ def phenomena_oriented_run(self):
     Ts = [i.T for i in outs]
     Q = self.Hnet
     Unit.run(self)
-    self._dmol = sum(
+    new = sum(
         [i.mol for i in outs],
         -sum([i.mol for i in ins], 0)
     )
-    self._dmol[np.abs(self._dmol) < 1e-9] = 0.
+    if hasattr(self, '_dmol'):
+        old = self._dmol
+        f = bst.PhasePartition.dmol_relaxation_factor
+        self._dmol = dmol = f * old + (1 - f) * new
+    else:
+        self._dmol = dmol = new
+    self._dmol[np.abs(dmol) < 1e-9] = 0.
     self._duty = self.Hnet
     Ts_new = [i.T for i in outs]
     if all([i == j for i, j in zip(Ts_new, Ts)]): # T constant

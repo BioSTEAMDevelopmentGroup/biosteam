@@ -1043,7 +1043,7 @@ def generate_contour_data(
         if filterwarnings:
             from warnings import filterwarnings
             filterwarnings('ignore')
-        data0 = z_at_xy(x0, y0, *args)
+        data0 = np.asarray(z_at_xy(x0, y0, *args))
         shape = data0.shape
         if len(shape) == 1:
             shape = f"({shape[0]})"
