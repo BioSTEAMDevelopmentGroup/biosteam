@@ -48,7 +48,7 @@ def test_unit_convinience_properties():
 def test_unit_inheritance_setup_method():
     class NewUnit(bst.Unit):
         def _setup(self):
-            pass
+            super()._setup()
     
     bst.settings.set_thermo(['Water'], cache=True)
     U1 = NewUnit()
