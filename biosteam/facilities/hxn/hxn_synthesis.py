@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # HXN: The automated Heat Exchanger Network design package.
-# Copyright (C) 2020-2023, Sarang Bhagwat <sarangb2@illinois.edu>
+# Copyright (C) 2020-, Sarang Bhagwat <sarangb2@illinois.edu>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/sarangbhagwat/hxn/blob/master/LICENSE.txt
@@ -124,10 +124,16 @@ class Working_Life_Cycle:
         return self.life_cycle
     
 
-def temperature_interval_pinch_analysis(hus, T_min_app = 10, force_ideal_thermo=False):
+def temperature_interval_pinch_analysis(hus, 
+                                        T_min_app=10, 
+                                        force_ideal_thermo=False,
+                                        sort_hus_by_T=False):
     hx_utils = hus
     hus_heating = [hu for hu in hx_utils if hu.duty > 0]
     hus_cooling = [hu for hu in hx_utils if hu.duty < 0]
+    if sort_hus_by_T:
+        hus_heating.sort(key=lambda i: i.unit.ins[0].T, reverse=True)
+        hus_cooling.sort(key=lambda i: i.unit.ins[0].T)
     hx_utils_rearranged = hus_heating + hus_cooling
     hxs = [hu.unit for hu in hx_utils_rearranged]
     if force_ideal_thermo:
@@ -249,10 +255,11 @@ def get_T_transient(pinch_T_arr, indices, T_in_arr):
     return T_transient
 
 def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False,
-                       avoid_recycle=False):  
+                       avoid_recycle=False, sort_hus_by_T=False):  
     pinch_T_arr, hot_util_load, cold_util_load, T_in_arr, T_out_arr,\
         hxs, hot_indices, cold_indices, indices, streams_inlet, hx_utils_rearranged, \
-        streams_quenched = temperature_interval_pinch_analysis(hus, T_min_app, force_ideal_thermo)        
+        streams_quenched = temperature_interval_pinch_analysis(hus, T_min_app, force_ideal_thermo,
+                                                               sort_hus_by_T)        
     H_out_arr = [i.H for i in streams_quenched]
     duties = np.array([abs(hx.Q)  for hx in hxs])
     dTs = np.abs(T_in_arr - T_out_arr)
