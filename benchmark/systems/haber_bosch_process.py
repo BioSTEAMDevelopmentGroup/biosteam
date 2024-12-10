@@ -15,7 +15,13 @@ __all__ = (
 )
 
 def create_system_haber_bosch_process(alg='sequential modular'):
-    bst.settings.set_thermo(['N2', 'H2', 'NH3'], cache=True)
+    chemicals = bst.Chemicals(['N2', 'H2', 'NH3'], cache=True)
+    bst.settings.set_thermo(
+        chemicals, 
+        # mixture=bst.PRMixture.from_chemicals(chemicals),
+        # Phi=bst.PRFugacityCoefficients,
+        # Gamma=bst.PRActivityCoefficients,
+    )
     bst.settings.mixture.include_excess_energies = True
     
     with bst.System(algorithm=alg) as sys:
@@ -26,119 +32,49 @@ def create_system_haber_bosch_process(alg='sequential modular'):
             P=300e5,
             phase='g'
         )
-        preheater = bst.HXutility(ins=feed, T=450 + 273.15)
+        recycle = bst.Stream()
+        P_rxn = 300e5
+        P_condenser_drop = 2e5
+        P_preheater_drop = 2e5
+        preheater = bst.SinglePhaseStage(ins=[feed, recycle], T=450 + 273.15, P=P_rxn)
+        @preheater.add_specification(run=True)
+        def adjust_fresh_feed():
+            feed.imol['N2'] = 1 - recycle.imol['N2']
+            feed.imol['H2'] = 3 - recycle.imol['H2']
+            # if sys.algorithm[0].lower() == 'p': breakpoint()
+            
+        @feed.material_balance
+        def fresh_feed_flow_rate():
+            f = np.ones(chemicals.size)
+            r = np.zeros(chemicals.size)
+            v = np.zeros(chemicals.size)
+            index = chemicals.indices(['N2', 'H2'])
+            v[index] = [1, 3]
+            r[index] = [1, 1]
+            return (
+                {feed: f,
+                 recycle: r},
+                 v
+            )
+            
         reactor = bst.ReactivePhaseStage(
-            ins=preheater-0, T=450 + 273.15, P=300e5,
-            reaction=bst.Reaction('N2 + H2 -> NH4', reactant='N2', X=0.15, correct_atomic_balance=True),
+            ins=preheater-0, T=450 + 273.15, P=P_rxn,
+            reaction=bst.Reaction('N2 + H2 -> NH3', reactant='N2', X=0.15, correct_atomic_balance=True),
         )
-        
-        makeup_butanol = bst.Stream('makeup_butanol', Butanol=1)
-        makeup_butanol.T = makeup_butanol.bubble_point_at_P().T
-        recycle_butanol = bst.Stream('recycle_butanol')
-        esterification_reflux = bst.Stream('esterification_reflux')
-        esterification = bst.MESHDistillation(
-            'esterification',
-            ins=(feed, makeup_butanol, recycle_butanol, esterification_reflux), 
-            outs=('empty', 'bottoms', 'esterification_distillate'),
-            N_stages=6,
-            feed_stages=(3, 3, 3, 0),
-            stage_specifications={
-                5: ('Boilup', 1),
-                0: ('Boilup', 0),
-            },
-            liquid_side_draws={
-                0: 1,
-            },
-            stage_reactions={
-                i: Esterification('LacticAcid + Butanol -> Water + ButylLactate', reactant='LacticAcid')
-                for i in range(1, 5)
-            },
-            maxiter=10,
-            # LHK=('LacticAcid', 'Butanol'),
-            LHK=('Butanol', 'ButylLactate'),
-            P=0.3 * 101325,
-        )
-        @esterification.add_specification(run=True)
-        def adjust_flow():
-            target = 5.85
-            makeup_butanol.imol['Butanol'] = max(target - recycle_butanol.imol['Butanol'], 0)
-        
-        esterification.simulate()
-        for i in esterification.stages: print(i.Hnet) 
-        esterification.show()
-        breakpoint()
-        # esterification.simulate()
-        # for i in esterification.stages: print(i.Hnet) 
-        # esterification.stage_reactions={
-        #         i: Esterification('LacticAcid + Butanol -> Water + ButylLactate', reactant='LacticAcid')
-        #         for i in range(1, 17)
-        #     }
-        # esterification.LHK=('Butanol', 'ButylLactate')
-        # breakpoint()
-        # esterification.simulate()
-        esterification_settler = bst.StageEquilibrium(
-            'esterification_settler',
-            ins=(esterification-2), 
-            outs=(esterification_reflux, 'water_rich'),
-            phases=('L', 'l'),
-            top_chemical='Butanol',
-        )
-        water_distiller = bst.BinaryDistillation(
-            ins=esterification_settler-1, outs=('water_rich_azeotrope', 'water'),
-            x_bot=0.0001, y_top=0.2, k=1.2, Rmin=0.01,
-            LHK=('Butanol', 'Water'),
-        )
-        splitter = bst.Splitter(ins=water_distiller-1, split=0.5) # TODO: optimize split
-        hydrolysis_reflux = bst.Stream('hydrolysis_reflux')
-        hydrolysis = bst.MESHDistillation(
-            'hydrolysis',
-            ins=(esterification-1, splitter-0, hydrolysis_reflux),
-            outs=('empty', 'lactic_acid', 'hydrolysis_distillate'),
-            N_stages=53,
-            feed_stages=(27, 50, 0),
-            stage_specifications={
-                0: ('Boilup', 0),
-                52: ('Boilup', 1),
-            },
-            liquid_side_draws={
-                0: 1.0,
-            },
-            stage_reactions={
-                i: Esterification('LacticAcid + Butanol -> Water + ButylLactate', reactant='LacticAcid')
-                for i in range(1, 52) # It will run in reverse
-            },
-            P=101325,
-            LHK=('Butanol', 'LacticAcid'),
-        )
-        
-        # @esterification.add_specification(run=True)
-        # def adjust_flow():
-        #     target = 5.85
-        #     makeup_butanol.imol['Butanol'] = max(target - recycle_butanol.imol['Butanol'], 0)
-        
-        # Decanter
-        butanol_rich_azeotrope = bst.Stream('butanol_rich_azeotrope')
-        hydrolysis_settler = bst.StageEquilibrium(
-            'settler',
-            ins=(hydrolysis-2, water_distiller-0, butanol_rich_azeotrope), 
-            outs=('butanol_rich_extract', hydrolysis_reflux),
-            phases=('L', 'l'),
-            top_chemical='Butanol',
-            T=310,
-        )
-        
-        # Butanol purification
-        butanol_distiller = bst.BinaryDistillation(
-            ins=(hydrolysis_settler-0),
-            outs=(butanol_rich_azeotrope, recycle_butanol),
-            x_bot=0.0001, y_top=0.6, k=1.2, Rmin=0.01,
-            LHK=('Water', 'Butanol'),
-        )
+        flash = bst.StageEquilibrium(ins=reactor-0, T=273.15 - 20, P=P_rxn - P_condenser_drop, phases=('g', 'l'))
+        compressor = bst.IsentropicCompressor(ins=flash-0, outs=recycle, P=P_rxn + P_preheater_drop)
         
     return sys
 
 if __name__ == '__main__':
-    sys = create_system_acetic_acid_reactive_purification()
-    sys.flatten()
-    sys.diagram()
-    sys.simulate()
+    sm = create_system_haber_bosch_process()
+    sm.diagram()
+    sm.set_tolerance(mol=1e-9, rmol=1e-9, method='fixed-point')
+    sm.simulate()
+    
+    print('-----------')
+    po = create_system_haber_bosch_process('Phenomena-oriented')
+    po.diagram()
+    po.set_tolerance(mol=1e-9, rmol=1e-9, method='fixed-point')
+    po.simulate()
+    

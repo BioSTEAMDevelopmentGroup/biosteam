@@ -370,14 +370,21 @@ def create_acetic_acid_complex_decoupled_system(
     return sys
 
 def test_simple_acetic_acid_purification_system():
-    pass
+    po = create_acetic_acid_simple_system('phenomena-oriented')
+    po.set_tolerance(mol=1e-3, rmol=1e-3, maxiter=20)
+    sm = create_acetic_acid_simple_system('sequential modular')
+    sm.set_tolerance(mol=1e-3, rmol=1e-3, maxiter=20)
+    po.simulate()
+    sm.simulate()
 
 def test_complex_acetic_acid_purification_system():
     po = create_acetic_acid_complex_system('phenomena-oriented')
-    po.flatten()
     po.set_tolerance(mol=1e-3, rmol=1e-3, maxiter=20)
     sm = create_acetic_acid_complex_system('sequential modular')
-    sm.flatten()
     sm.set_tolerance(mol=1e-3, rmol=1e-3, maxiter=20)
     po.simulate()
+    sm.simulate()
     
+if __name__ == "__main__":
+    test_simple_acetic_acid_purification_system()
+    test_complex_acetic_acid_purification_system()

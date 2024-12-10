@@ -770,16 +770,6 @@ class Distillation(Unit, isabstract=True):
             self._condenser_operation = p = condenser_distillate.bubble_point_at_P()
         self.condenser.T = self.condensate.T = condenser_distillate.T = distillate.T = p.T
         self.condenser.P = self.condensate.P = condenser_distillate.P = distillate.P = p.P
-            
-        # distillate, bottoms_product = self.outs
-        # self._boilup_bubble_point = bp = bottoms_product.bubble_point_at_P()
-        # bottoms_product.T = bp.T
-        # if self._partial_condenser: 
-        #     self._condenser_operation = p = distillate.dew_point_at_P()
-        # else:
-        #     self._condenser_operation = p = distillate.bubble_point_at_P()
-        # self.condenser.T = self.condensate.T = distillate.T = p.T
-        # self.condenser.P = self.condensate.P = distillate.P = p.P
         
     def _setup(self):
         super()._setup()
@@ -1045,15 +1035,16 @@ class Distillation(Unit, isabstract=True):
             
             dimensions = [(H, Di)]
         self._cost_vacuum(dimensions)
-    
+        
     def _update_equilibrium_variables(self):
         top, bottom = self.outs
         top = top.mol.to_array()
         bottom = bottom.mol.to_array()
         bottom_dummy = bottom.copy()
-        bottom_dummy[bottom == 0] = 1e-16
-        self.B = B = top.sum() / bottom.sum()
-        self.K = top / bottom_dummy / B
+        mask = bottom == 0
+        bottom_dummy[mask] = 1e-16
+        self.S = top / bottom_dummy
+        self.S[mask] = inf
 
 
 # %% McCabe-Thiele distillation model utilities
@@ -1306,6 +1297,7 @@ class BinaryDistillation(Distillation, new_graphics=False):
     
     """
     _cache_tolerance = np.array([50., 1e-5, 1e-6, 1e-6, 1e-2, 1e-6], float)
+    _energy_variable = None
     
     def _run(self):
         self._run_binary_distillation_mass_balance()
@@ -1538,8 +1530,7 @@ class BinaryDistillation(Distillation, new_graphics=False):
 
     def _create_material_balance_equations(self, composition_sensitive):
         top, bottom = self.outs
-        B = self.B
-        K = self.K
+        S = self.S.copy()
         fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
         top, bottom, *_ = self.outs
         ones = np.ones(self.chemicals.size)
@@ -1556,28 +1547,28 @@ class BinaryDistillation(Distillation, new_graphics=False):
         
         # Top to bottom flows
         eq_outs = {}
-        if B == np.inf:
-            eq_outs[bottom] = ones
-        elif B == 0:
-            eq_outs[top] = ones
-        else:
-            S = K * B
-            eq_outs[top] = ones
-            eq_outs[bottom] = -S
+        infmask = ~np.isfinite(S)
+        S[infmask] = 1
+        eq_outs[top] = coef = -ones
+        coef[infmask] = 0
+        eq_outs[bottom] = S
+        
         equations.append(
             (eq_outs, zeros)
         )
         return equations
     
-    def _get_energy_departure_coefficient(self, stream, temperature_only):
+    def _get_energy_departure_coefficient(self, stream):
         return None
     
-    def _create_energy_departure_equations(self, temperature_only):
+    def _create_energy_departure_equations(self):
         return []
     
     def _update_nonlinearities(self):
-        # pass
-        self.run()
+        outs = self.outs
+        data = [i.get_data() for i in outs]
+        self._run_binary_distillation_mass_balance()
+        for i, j in zip(outs, data): i.set_data(j)
         
 
 # %% Fenske-Underwook-Gilliland distillation model utilities
@@ -1794,6 +1785,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
     _ins_size_is_fixed = False
     _N_ins = 1
     _N_outs = 2
+    _energy_variable = None
     minimum_guess_distillate_recovery = 1e-11
     bounded_solver_kwargs = dict(
         checkiter=False,
@@ -2032,8 +2024,6 @@ class ShortcutColumn(Distillation, new_graphics=False):
     #     self.K = y / x
 
     def _update_nonlinearities(self):
-        # pass
-        # self.run()
         mol = sum([i.mol for i in self.outs]).to_array()
         if self.product_specification_format == 'Composition':
             LHK_index = self._LHK_index
@@ -2057,9 +2047,10 @@ class ShortcutColumn(Distillation, new_graphics=False):
         top = mol * split
         bottom = mol - top
         bottom_dummy = bottom.copy()
-        bottom_dummy[bottom_dummy == 0] = 1e-16
-        self.B = B = top.sum() / bottom.sum()
-        self.K = top / bottom_dummy / B
+        mask = bottom_dummy == 0
+        bottom_dummy[mask] = 1e-16
+        self.S = top / bottom_dummy
+        self.S[mask] = inf
         # s_top, s_bottom = self.outs
         # s_dummy = s_top.copy()
         # s_dummy.mol = top

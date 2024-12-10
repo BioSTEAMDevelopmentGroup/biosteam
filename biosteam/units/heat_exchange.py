@@ -490,9 +490,9 @@ class HXutility(HX):
     Q = total_heat_transfer  # Alias for backward compatibility
 
     def simulate_as_auxiliary_exchanger(self,
-                                        ins, outs=None, duty=None, vle=True, scale=None, hxn_ok=True,
-                                        P_in=None, P_out=None, update=False,
-                                        ):
+            ins, outs=None, duty=None, vle=True, scale=None, hxn_ok=True,
+            P_in=None, P_out=None, update=False,
+        ):
         inlet = self.ins[0]
         outlet = self.outs[0]
         if not inlet:
@@ -589,9 +589,9 @@ class HXutility(HX):
                     self._run()
                 finally:
                     self.neglect_pressure_drop = False
-                outlet.P = feed.P - 6894.76 * \
-                    ht.heuristic_pressure_drop(
-                        feed.vapor_fraction, outlet.vapor_fraction)
+                outlet.P = feed.P - 6894.76 * ht.heuristic_pressure_drop(
+                    feed.vapor_fraction, outlet.vapor_fraction
+                )
         if self.rigorous:
             if N_given > 1:
                 raise RuntimeError("may only specify either temperature, 'T', "
@@ -888,6 +888,100 @@ class HXprocess(HX):
     _graphics = process_heat_exchanger_graphics
     _N_ins = 2
     _N_outs = 2
+    _energy_variable = 'T'
+    
+    def _update_nonlinearities(self):
+        """
+        Update phenomenological variables for phenomena-oriented simulation.
+        """
+        pass
+    
+    def _get_energy_departure_coefficient(self, stream):
+        """
+        tuple[object, float] Return energy departure coefficient of a stream 
+        for phenomena-oriented simulation.
+        """
+        return (self, stream.C)
+    
+    def _create_energy_departure_equations(self):
+        """
+        list[tuple[dict, float]] Create energy departure equations for 
+        phenomena-oriented simulation.
+        """
+        coeff = {self: sum([i.C for i in self.outs])}
+        for i in self.ins: i._update_energy_departure_coefficient(coeff)
+        dH = self.H_in - self.H_out
+        return [(coeff, dH)]
+    
+    def _update_energy_variable(self, departure):
+        """
+        Update energy variable being solved in energy departure equations for 
+        phenomena-oriented simulation.
+        """
+        for i in self.outs: i.T += departure
+    
+    def _create_material_balance_equations(self, composition_sensitive):
+        fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
+        N = self.chemicals.size
+        ones = np.ones(N)
+        for i, j in zip(self.ins, self.outs):
+            if i in fresh_inlets:
+                rhs = i.mol
+                if len(j) > 1:
+                    mol_total = j.mol
+                    for n, s in enumerate(j):
+                        split = s.mol / mol_total
+                        eq_outs = {s: ones}
+                        equations.append(
+                            (eq_outs, split * rhs)
+                        )
+                else:
+                    eq_outs = {j: ones}
+                    equations.append(
+                        (eq_outs, rhs)
+                    )
+            elif len(i) > 1: # process inlet
+                N = self.chemicals.size
+                rhs = np.zeros(N)
+                if len(j) > 1:
+                    mol_total = j.mol
+                    for n, s in enumerate(j):
+                        split = s.mol / mol_total
+                        minus_split = -split
+                        eq_outs = {}
+                        for ix in i: eq_outs[ix] = minus_split
+                        eq_outs[s] = ones
+                        equations.append(
+                            (eq_outs, rhs)
+                        )
+                else:
+                    eq_outs = {j: ones}
+                    for ix in i: eq_outs[ix] = -ones
+                    equations.append(
+                        (eq_outs, rhs)
+                    )
+            else: # process inlet
+                N = self.chemicals.size
+                rhs = np.zeros(N)
+                if len(j) > 1:
+                    mol_total = j.mol
+                    for n, s in enumerate(j):
+                        split = s.mol / mol_total
+                        minus_split = -split
+                        eq_outs = {}
+                        eq_outs[i] = minus_split
+                        eq_outs[s] = ones
+                        equations.append(
+                            (eq_outs, rhs)
+                        )
+                else:
+                    eq_outs = {}
+                    eq_outs = {i: -ones,
+                               j: ones}
+                    equations.append(
+                        (eq_outs, rhs)
+                    )
+        return equations
 
     def _init(self,
               U=None, dT=5., T_lim0=None, T_lim1=None,

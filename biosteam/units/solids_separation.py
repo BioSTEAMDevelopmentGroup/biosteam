@@ -75,9 +75,8 @@ class SolidsSeparator(Splitter):
         self.moisture_content = moisture_content
         self.strict_moisture_content = strict_moisture_content
         if moisture_content is not None:
-            self.moisture_ID = moisture_ID
             if moisture_ID is None: moisture_ID = '7732-18-5'
-            self.isplit[moisture_ID] = 0.
+            self.moisture_ID = moisture_ID
     
     def _run(self):
         if self.moisture_content is None:
@@ -85,10 +84,24 @@ class SolidsSeparator(Splitter):
                 self.ins, *self.outs, self.split,
             )
         else:
+            moisture_ID = self.moisture_ID
+            self.isplit[moisture_ID] = 0.
             separations.mix_and_split_with_moisture_content(
                 self.ins, *self.outs, self.split, self.moisture_content, self.moisture_ID,
                 self.strict_moisture_content,
             )
+    #     if self._recycle_system and self._system.algorithm == 'Phenomena oriented':
+    #         ID = self.moisture_ID
+    #         if not ID: return
+    #         top, bottom = self.outs
+    #         top_mol = top.imol[ID]
+    #         self.isplit[ID] = top_mol / (top_mol + bottom.imol[ID])
+            
+    # def _update_nonlinearities(self):
+    #     outs = self.outs
+    #     data = [i.get_data() for i in outs]
+    #     self._run()
+    #     for i, j in zip(outs, data): i.set_data(j)
 
 
 class SolidsCentrifuge(SolidsSeparator):

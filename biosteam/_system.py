@@ -142,13 +142,17 @@ class Configuration:
             nodes = self.composition_sensitive_nodes
         else:
             nodes = self.nodes
-        streams = self.stream_ref
         A = []
         b = []
         for node in nodes:
-            for coefficients, value in node._create_material_balance_equations(composition_sensitive):
+            f = node._create_material_balance_equations
+            try: eqs = f(composition_sensitive)
+            except TypeError as e: 
+                try: eqs = f()
+                except: raise e from None
+            for coefficients, value in eqs:
                 coefficients = {
-                    streams[i.imol]: j for i, j in coefficients.items()
+                    i.material_reference: j for i, j in coefficients.items()
                 }
                 A.append(coefficients)
                 b.append(value)
@@ -165,8 +169,11 @@ class Configuration:
             b_ready = np.array([i[ready_index] for i in b], float)
             values = solve(A_ready, b_ready.T).T
             values[values < 0] = 0
-            for obj, value in zip(objs, values): 
-                obj._update_material_flows(value, ready_index)
+            for obj, value in zip(objs, values): # update material flows
+                indexer, phase = obj
+                index = indexer._phase_indexer(phase)
+                mol = indexer.data.rows[index]
+                mol[ready_index] = value
             A_delayed = [{i: j[delayed_index] for i, j in dct.items()} for dct in A]
             A_delayed, objs = dictionaries2array(A_delayed)
             b_delayed = np.array([
@@ -180,18 +187,24 @@ class Configuration:
         else:
             A, objs = dictionaries2array(A)
             values = solve(A, np.array(b).T).T
-            values[values < 0] = 0
-            for obj, value in zip(objs, values): obj._update_material_flows(value)
+            mask = (values < 0) & (values > -1e-9)
+            values[mask] = 0
+            if (values < 0).any(): raise RuntimeError('material balance could not be solved')
+            for obj, value in zip(objs, values): # update material flows
+                indexer, phase = obj
+                index = indexer._phase_indexer(phase)
+                mol = indexer.data.rows[index]
+                mol[:] = value
         for i in nodes: 
             if hasattr(i, '_update_auxiliaries'): i._update_auxiliaries()
         return values
         
-    def solve_energy_departures(self, temperature_only=False):
+    def solve_energy_departures(self):
         nodes = self.nodes
         A = []
         b = []
         for node in nodes:
-            for coefficients, value in node._create_energy_departure_equations(temperature_only):
+            for coefficients, value in node._create_energy_departure_equations():
                 A.append(coefficients)
                 b.append(value)
         A, objs = dictionaries2array(A)
@@ -211,8 +224,8 @@ class Configuration:
         sinks = {}
         sources = {}
         for u in units:
-            ins = u.ins
-            outs = u.outs
+            ins = u.flat_ins
+            outs = u.flat_outs
             for i in ins: 
                 i._sink = u
                 sinks[i.imol] = u
@@ -222,8 +235,8 @@ class Configuration:
                 sources[i.imol] = u
         units_set = set(units)
         for i in streams:
-            if i.source and i.source not in units_set: i._source = sources[i.imol]
-            if i.sink and i.sink not in units_set: i._sink = sinks[i.imol]
+            if i.source and i.source not in units_set and i.imol in sources: i._source = sources[i.imol]
+            if i.sink and i.sink not in units_set and i.imol in sinks: i._sink = sinks[i.imol]
         return self
     
     def __exit__(self, type, exception, traceback):
@@ -1202,7 +1215,16 @@ class System:
     @ignore_docking_warnings
     def _load_configuration(self):
         for i in self._connections: i.reconnect()
-        for i in self.units: i._system = self
+        if self.recycle:
+            for i in self.units: 
+                i._system = i._recycle_system = self
+        else:
+            for i in self.units: 
+                i._system = self
+                i._recycle_system = None
+            for sys in self.subsystems: 
+                if sys.recycle: 
+                    for i in sys.units: i._recycle_system = sys
 
     @ignore_docking_warnings
     def interface_property_packages(self):
@@ -2323,7 +2345,6 @@ class System:
                 self._setup_units()
                 self._remove_temporary_units()
                 self._save_configuration()
-                self._load_stream_links()
             else:
                 self._setup_units()
         self._load_facilities()
@@ -2368,18 +2389,18 @@ class System:
                 return self._stage_configuration
         except:
             stages = self.stages
-            streams = list(set([i for s in stages for i in s.ins + s.outs]))
+            streams = list(set([i for s in stages for i in (*s.flat_ins, *s.flat_outs)]))
             connections = [(i, i.source, i.sink) for i in streams]
             if aggregated:
                 stages = self.aggregated_stages
-                streams = [i for u in stages for i in u.ins + u.outs]
-                stream_ref = {i.imol: i for u in stages for i in (*u.ins, *u.outs)}
+                streams = [i for u in stages for i in u.flat_ins + u.flat_outs]
+                stream_ref = {i.material_reference: i for u in stages for i in (*u.flat_ins, *u.flat_outs)}
                 nodes = [i for i in stages if not getattr(i, 'decoupled', False)]
                 self._aggregated_stage_configuration = conf = Configuration(
                     self.path, stages, nodes, streams, stream_ref, connections, aggregated
                 )
             else:
-                stream_ref = {i.imol: i for i in streams}
+                stream_ref = {i.material_reference: i for i in streams}
                 nodes = [i for i in stages if not getattr(i, 'decoupled', False)]
                 self._stage_configuration = conf = Configuration(
                     self.path, stages, nodes, streams, stream_ref, connections, aggregated
@@ -2400,7 +2421,7 @@ class System:
                 conf.solve_nonlinearities()
                 conf.solve_energy_departures()
                 conf.solve_material_flows()
-            except (NotImplementedError, UnboundLocalError) as error:
+            except (NotImplementedError, UnboundLocalError, TypeError, KeyError) as error:
                 raise error
             except:
                 for i in path: i.run()

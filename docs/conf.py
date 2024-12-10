@@ -269,8 +269,8 @@ html_theme_options = {
     },
     "show_toc_level": 2,
     "announcement": (
-        "<p>Join us on September 20, 10:15-11:45am CST, for a BioSTEAM workshop! "
-        "<a href='https://docs.google.com/spreadsheets/d/1KbIXqUR_IHyyECxkTNxHH5o_lH8jVAHRIOLzJE649b4/edit?usp=sharing'>Sign-up by 9/13 for details</a></p>"
+        "<p>Join us in March 2025 for a virtual BioSTEAM workshop! "
+        "<a href='https://docs.google.com/spreadsheets/d/1QlP7iSZrLHkUxhk-2R8_QWomh3qHfkchJK1EvM5cpyo/edit?usp=sharing'>Sign-up for details</a></p>"
     ),
     "external_links": [
       {"name": "Bioindustrial-Park", "url": "https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park"},

@@ -11,11 +11,11 @@ __all__ = (
 )
 
 def create_system_ethanol_purification(alg):
-    bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
+    bst.settings.set_thermo(['Water', 'Ethanol', bst.Chemical('Solids', search_db=False, phase='l', default=True)], cache=True)
     distilled_beer = bst.Stream(
         'distilled_beer', 
         phase='g', T=386.16, P=212782, 
-        Water=1403, Ethanol=545.7, units='kmol/hr'
+        Water=1403, Ethanol=545.7, Solids=10, units='kmol/hr'
     )
     ethanol = bst.Stream(
         'ethanol'
@@ -40,5 +40,16 @@ def create_system_ethanol_purification(alg):
         order=('Ethanol', 'Water'),
         T=115+273.15,
     )
-    sys = bst.System.from_units(units=[D303, U301])
+    sys = bst.System.from_units(units=[D303, U301], algorithm=alg)
     return sys
+
+def test_ethanol_purification_system():
+    po = create_system_ethanol_purification('phenomena-oriented')
+    po.set_tolerance(mol=1e-3, rmol=1e-3, maxiter=20)
+    sm = create_system_ethanol_purification('sequential modular')
+    sm.set_tolerance(mol=1e-3, rmol=1e-3, maxiter=20)
+    po.simulate()
+    sm.simulate()
+    
+if __name__ == "__main__":
+    test_ethanol_purification_system()

@@ -856,7 +856,7 @@ def plot_kde(x, y, nbins=100, ax=None, fig=None,
              xtick0=True, ytick0=True, xtickf=True, ytickf=True,
              xbox=None, ybox=None, xbox_kwargs=None, ybox_kwargs=None, 
              aspect_ratio=1.25, cmaps=None, xbox_width=None,
-             ybox_width=None, **kwargs):
+             ybox_width=None, zorders=None, **kwargs):
     axis_not_given = ax is None
     xs = x if isinstance(x, (tuple, list)) else (x,)
     ys = y if isinstance(y, (tuple, list)) else (y,)
@@ -895,7 +895,8 @@ def plot_kde(x, y, nbins=100, ax=None, fig=None,
     else:
         yboxes = ybox
     if cmaps is None: cmaps = len(xs) * [None]
-    for x, y, cmap, xbox, ybox in zip(xs, ys, cmaps, xboxes, yboxes):
+    if zorders is None: zorders = len(xs) * [5]
+    for x, y, cmap, zorder, xbox, ybox in zip(xs, ys, cmaps, zorders, xboxes, yboxes):
         # Evaluate a gaussian kde on a regular grid of nbins x nbins over data extents
         k = kde.gaussian_kde([x, y])
         z = k(np.vstack([x, y]))
@@ -909,7 +910,7 @@ def plot_kde(x, y, nbins=100, ax=None, fig=None,
         # 2D Density with shading
         plt.sca(ax)
         
-        plt.scatter(x, y, c=z, s=1., cmap=cmap, **kwargs)
+        plt.scatter(x, y, c=z, s=1., cmap=cmap, zorder=zorder, **kwargs)
         if xbox:
             plt.sca(xbox.axis)
             plot_montecarlo(x, xbox.light, xbox.dark, positions=(xbox.get_position(-1),), vertical=False, outliers=False, width=xbox_width, bounds=True)
@@ -1042,7 +1043,7 @@ def generate_contour_data(
         if filterwarnings:
             from warnings import filterwarnings
             filterwarnings('ignore')
-        data0 = z_at_xy(x0, y0, *args)
+        data0 = np.asarray(z_at_xy(x0, y0, *args))
         shape = data0.shape
         if len(shape) == 1:
             shape = f"({shape[0]})"
@@ -1176,7 +1177,7 @@ def plot_contour_single_metric(
         "Z.shape must be (X, Y, M, N), where (X, Y) is the shape of both X and Y"
     )
     fig, axes, ax_colorbar = contour_subplots(nrows, ncols, single_colorbar=True)
-    if styleaxiskw is None: styleaxiskw = {}
+    if styleaxiskw is None: styleaxiskw = dict(xtick0=False, ytick0=False)
     cps = np.zeros([nrows, ncols], dtype=object)
     linecolor = np.array([*c.neutral_shade.RGBn, 0.1])
     other_axes = []
@@ -1206,7 +1207,16 @@ def plot_contour_single_metric(
                 )
                 for i in clabels: i.set_rotation(0)
             cps[row, col] = cp
-            dct = style_axis(ax, xticks, yticks, xticklabels, yticklabels, **styleaxiskw)
+            
+            if row == nrows - 1 and not styleaxiskw.get('ytick0', True):
+                sak = styleaxiskw.copy()
+                sak['ytick0'] = True
+            else:
+                sak = styleaxiskw
+            if col == 0 and not styleaxiskw.get('xtick0', True):
+                sak = sak.copy()
+                sak['xtick0'] = True
+            dct = style_axis(ax, xticks, yticks, xticklabels, yticklabels, **sak)
             other_axes.append(dct)
     cb = metric_bar.colorbar(fig, ax_colorbar, cp, fraction=0.5)
     plt.sca(ax_colorbar)

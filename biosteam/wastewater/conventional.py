@@ -399,12 +399,13 @@ class SludgeCentrifuge(bst.SolidsSeparator):
             self, split=split, order=order,
             moisture_content=moisture_content, strict_moisture_content=strict_moisture_content
         )
-        
+
     def _run(self):
         ins = self.ins
         retentate, permeate = self.outs # Filtrate, solids
         separations.mix_and_split(ins, retentate, permeate, self.split)
         separations.adjust_moisture_content(permeate, retentate, self.moisture_content, None, self.strict_moisture_content)
+            
         
 # TODO: Split values seem arbitrary in NREL 2011 model, perhaps work on a better model
 class MembraneBioreactor(bst.Splitter):

@@ -668,7 +668,11 @@ class Evaporator(Flash):
                 elif V > 1:
                     vapor.imol[chemical_ID] = f
                     liquid.imol[chemical_ID] = 0
-                    vapor.H = H
+                    try:
+                        vapor.H = H
+                    except RuntimeError: # Extrapolation failed
+                        vapor.phase = 'g'
+                        vapor.T = vapor.chemicals[chemical_ID].Tc
                 else:
                     vapor.imol[chemical_ID] = f * V
                     liquid.imol[chemical_ID] = (1 - V) * f
