@@ -107,25 +107,27 @@ class Configuration:
                 if getattr(i, 'decoupled', False): i.run()
                 i._update_nonlinearities()
     
-    def solve_material_flows(self):
-        # if self.composition_sensitive_path:
-        #     for i in self.composition_sensitive_path: i._update_composition_parameters()
-        #     flows = self._solve_material_flows(composition_sensitive=True)
-        #     # for i in range(20):
-        #     #     for i in self.composition_sensitive_path: i._update_composition_parameters()
-        #     #     self._solve_material_flows(composition_sensitive=True)
-        #     def update_inner_material_balance_parameters(flows):
-        #         for i in self.composition_sensitive_path: i._update_composition_parameters()
-        #         return self._solve_material_flows(composition_sensitive=True)
-            
-        #     flx.fixed_point(
-        #         update_inner_material_balance_parameters,
-        #         flows, xtol=tmo.LLE.pseudo_equilibrium_inner_loop_options['xtol'] * flows.max(), 
-        #         maxiter=20, checkiter=False,
-        #         checkconvergence=False,
-        #     )
-        #     for i in self.composition_sensitive_path: i._update_net_flow_parameters()
-        self._solve_material_flows(composition_sensitive=False)
+    def solve_material_flows(self, composition_sensitive=False):
+        if composition_sensitive:
+            if self.composition_sensitive_path:
+                for i in self.composition_sensitive_path: i._update_composition_parameters()
+                flows = self._solve_material_flows(composition_sensitive=True)
+                # for i in range(20):
+                #     for i in self.composition_sensitive_path: i._update_composition_parameters()
+                #     self._solve_material_flows(composition_sensitive=True)
+                def update_inner_material_balance_parameters(flows):
+                    for i in self.composition_sensitive_path: i._update_composition_parameters()
+                    return self._solve_material_flows(composition_sensitive=True)
+                
+                flx.fixed_point(
+                    update_inner_material_balance_parameters,
+                    flows, xtol=tmo.LLE.pseudo_equilibrium_inner_loop_options['xtol'] * flows.max(), 
+                    maxiter=10, checkiter=False,
+                    checkconvergence=False,
+                )
+                for i in self.composition_sensitive_path: i._update_net_flow_parameters()
+        else:
+            self._solve_material_flows(composition_sensitive=False)
     
     def dynamic_coefficients(self, b):
         try:
@@ -187,14 +189,50 @@ class Configuration:
         else:
             A, objs = dictionaries2array(A)
             values = solve(A, np.array(b).T).T
-            mask = (values < 0) & (values > -1e-9)
-            values[mask] = 0
-            if (values < 0).any(): raise RuntimeError('material balance could not be solved')
-            for obj, value in zip(objs, values): # update material flows
-                indexer, phase = obj
-                index = indexer._phase_indexer(phase)
-                mol = indexer.data.rows[index]
-                mol[:] = value
+            values[(values < 0) & (values > -1e-6)] = 0
+            masks = values < 0
+            if masks.any():
+                data_storage = []
+                for obj in objs:
+                    indexer, phase = obj
+                    index = indexer._phase_indexer(phase)
+                    data_storage.append(indexer.data.rows[index])
+                new_values = values[masks] 
+                old_values = SparseArray.from_rows(data_storage).to_array()
+                denominator = (old_values[masks] - new_values)
+                denominator[denominator == 0] = 1
+                weights = -new_values / denominator
+                relaxation_factor = weights.max()
+                values = relaxation_factor * old_values + (1 - relaxation_factor) * values
+                for mol, value in zip(data_storage, values): # update material flows
+                    mol[:] = value
+                # for obj, mask, value in zip(objs, masks, values): # update material flows
+                #     indexer, phase = obj
+                #     index = indexer._phase_indexer(phase)
+                #     mol = indexer.data.rows[index]
+                #     if mask.any():
+                #         new_mol = value[mask]
+                #         relaxation_factor = (-new_mol / (mol[mask] - new_mol)).max()
+                #         print(relaxation_factor)
+                #         mol[:] = relaxation_factor * mol + (1 - relaxation_factor) * value
+                #     else:
+                #         mol[:] = value
+            else:
+                for obj, value in zip(objs, values): # update material flows
+                    indexer, phase = obj
+                    index = indexer._phase_indexer(phase)
+                    mol = indexer.data.rows[index]
+                    mol[:] = value
+            # masks = values >= 0
+            # mask = (values < 0) & (values > -1e-9)
+            # if (values < 0).any(): 
+            #     raise RuntimeError('material balance could not be solved')
+            
+            # for obj, mask, value in zip(objs, masks, values): # update material flows
+            #     indexer, phase = obj
+            #     index = indexer._phase_indexer(phase)
+            #     mol = indexer.data.rows[index]
+            #     mol[mask] = value[mask]
         for i in nodes: 
             if hasattr(i, '_update_auxiliaries'): i._update_auxiliaries()
         return values
@@ -1218,13 +1256,23 @@ class System:
         if self.recycle:
             for i in self.units: 
                 i._system = i._recycle_system = self
+                if hasattr(i, 'stages'):
+                    for j in i.stages:
+                        j._system = j._recycle_system = self
         else:
             for i in self.units: 
                 i._system = self
                 i._recycle_system = None
+                if hasattr(i, 'stages'):
+                    for j in i.stages:
+                        j._system = self
+                        j._recycle_system = None
             for sys in self.subsystems: 
                 if sys.recycle: 
-                    for i in sys.units: i._recycle_system = sys
+                    for i in sys.units: 
+                        i._recycle_system = sys
+                        if hasattr(i, 'stages'):
+                            for j in i.stages: j._recycle_system = sys
 
     @ignore_docking_warnings
     def interface_property_packages(self):
@@ -2406,7 +2454,8 @@ class System:
                     self.path, stages, nodes, streams, stream_ref, connections, aggregated
                 )
             return conf
-    
+        
+    # c = [0]
     def run_phenomena(self):
         """Decouple and linearize material, equilibrium, summation, enthalpy,
         and reaction phenomena and iteratively solve them."""
@@ -2417,13 +2466,18 @@ class System:
                     if isinstance(i, (bst.Mixer, bst.Splitter)) and not i.specifications: continue
                     i.run()
                     conf.solve_energy_departures()
-                    conf.solve_material_flows()
+                    conf._solve_material_flows(composition_sensitive=False)
                 conf.solve_nonlinearities()
+                conf.solve_material_flows(composition_sensitive=True)
                 conf.solve_energy_departures()
-                conf.solve_material_flows()
+                conf._solve_material_flows(composition_sensitive=False)
             except (NotImplementedError, UnboundLocalError, TypeError, KeyError) as error:
                 raise error
             except:
+            # except Exception as e:
+                # if self.c[0] != 0: raise e
+                # self.c[0] += 1
+                # print('failed!')
                 for i in path: i.run()
             
     def _solve(self):

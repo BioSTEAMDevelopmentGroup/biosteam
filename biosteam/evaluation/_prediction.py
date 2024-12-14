@@ -298,7 +298,7 @@ class ConvergenceModel:
             interaction_pairs: Optional[bool] = None,
             normalization: Optional[bool] = None,
             load_responses: Optional[bool] = None,
-            save_prediction: Optional[bool] = False,
+            save_prediction: Optional[bool] = True,
         ):
         if system is None:
             systems = set([i.system for i in predictors])
@@ -432,9 +432,12 @@ class ConvergenceModel:
             name = str(response)
             y_actual = np.array(actual[response])
             y_predicted = np.array(predicted[response])
-            if last is None: last = len(y_predicted)
-            y_actual = y_actual[-last:]
-            y_predicted = y_predicted[-last:]
+            if last is None: 
+                index = len(y_predicted)
+            else:
+                index = last
+            y_actual = y_actual[-index:]
+            y_predicted = y_predicted[-index:]
             results[name] = R2(
                 y_actual,
                 y_predicted,

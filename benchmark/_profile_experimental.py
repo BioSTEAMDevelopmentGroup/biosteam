@@ -246,11 +246,11 @@ register(
 )
 register(
     'acetic_acid_complex_decoupled', 'Shortcut system',
-    10, [0, 2, 4, 6, 8, 10], 'AcOH sep.\nshortcut',
+    8, [0, 2, 4, 6, 8], 'AcOH sep.\nshortcut',
 )
 register(
     'acetic_acid_complex', 'Rigorous system',
-    500, [0, 100, 200, 300, 400, 500], 'AcOH sep.\nrigorous'
+    400, [0, 60, 120, 180, 240, 300], 'AcOH sep.\nrigorous'
 )
 register(
     'alcohol_narrow_flash', 'Alcohol flash narrow',
@@ -347,27 +347,6 @@ def benchmark(profile, steady_state_error=None):
     error = np.log10(10 ** profile['Component flow rate error'] + 10 ** profile['Temperature error'])
     return interpolate.interp1d(error, time, bounds_error=False)(steady_state_error)
         
-class Convergence:
-    
-    def __init__(self, system, file):
-        try:
-            with open(file, 'rb') as f: 
-                *results, benchmark = pickle.load(f)
-        except: 
-            try: system.simulate()
-            except: pass
-            for i in range(100): system.run()
-            system.flowsheet.clear()
-            streams, adiabatic_stages, all_stages = streams_and_stages(system)
-            flows = np.array(sum([i._imol._parent.data.rows for i in streams], []))
-            Ts = np.array([i.T for i in streams])
-            results = flows, Ts
-            cfe, te = zip(*[i._simulation_error() for i in all_stages])
-            benchmark = sum(cfe) + sum(te)
-            with open(file, 'wb') as f: pickle.dump((*results, benchmark), f)
-        self.results = results
-        self.benchmark = benchmark
-        
 
 class Tracker:
     __slots__ = ('system', 'run', 'streams', 
@@ -402,202 +381,193 @@ class Tracker:
         else:
             file_name = f"{self.name}_steady_state"
         file = os.path.join(simulations_folder, file_name)
-        po, sm = [
-            Convergence(
-                all_systems[self.name](i, **self.kwargs), file
-            )
-            for i in ('phenomena-oriented', 'sequential-modular')
-        ]
-        return po.results if po.benchmark < sm.benchmark else sm.results
+        if load:
+            try:
+                with open(file, 'rb') as f: return pickle.load(f)
+            except: pass
+        sys = all_systems[self.name]('phenomena-oriented', **self.kwargs)
+        sys.flatten()
+        try: sys.simulate()
+        except: pass
+        for i in range(100): sys.run()
+        sys.flowsheet.clear()
+        try: sys.simulate()
+        except: pass
+        p = bst.units.stage.PhasePartition
+        settings = (
+            p.S_relaxation_factor, p.B_relaxation_factor, 
+            p.K_relaxation_factor, p.T_relaxation_factor
+        )
+        p.S_relaxation_factor = 0
+        p.B_relaxation_factor = 0
+        p.K_relaxation_factor = 0
+        p.T_relaxation_factor = 0
+        try:
+            results = self._estimate_steady_state(sys)
+            with open(file, 'wb') as f: pickle.dump(results, f)
+        finally:
+            (p.S_relaxation_factor, p.B_relaxation_factor, 
+             p.K_relaxation_factor, p.T_relaxation_factor) = settings
+        return results
         
-    # def estimate_steady_state(self, load=True): # Uses optimization to estimate steady state
-    #     options = '_'.join(['{i}_{j}' for i, j in self.kwargs.items()])
-    #     if options:
-    #         file_name = f"{self.name}_{options}_steady_state"
-    #     else:
-    #         file_name = f"{self.name}_steady_state"
-    #     file = os.path.join(simulations_folder, file_name)
-    #     if load:
-    #         try:
-    #             with open(file, 'rb') as f: return pickle.load(f)
-    #         except: pass
-    #     sys = all_systems[self.name]('phenomena-oriented', **self.kwargs)
-    #     try: sys.simulate()
-    #     except: pass
-    #     for i in range(100): sys.run()
-    #     sys.flowsheet.clear()
-    #     p = bst.units.stage.PhasePartition
-    #     settings = (
-    #         p.S_relaxation_factor, p.B_relaxation_factor, 
-    #         p.K_relaxation_factor, p.T_relaxation_factor
-    #     )
-    #     p.S_relaxation_factor = 0
-    #     p.B_relaxation_factor = 0
-    #     p.K_relaxation_factor = 0
-    #     p.T_relaxation_factor = 0
-    #     try:
-    #         results = self._estimate_steady_state(sys)
-    #         with open(file, 'wb') as f: pickle.dump(results, f)
-    #     finally:
-    #         (p.S_relaxation_factor, p.B_relaxation_factor, 
-    #          p.K_relaxation_factor, p.T_relaxation_factor) = settings
-    #     return results
-    
-    # def _estimate_steady_state(self, system):
-    #     po = system
-    #     streams, adiabatic_stages, all_stages = streams_and_stages(po)
-    #     flows = np.array(sum([i._imol._parent.data.rows for i in streams], []))
-    #     Ts = np.array([i.T for i in streams])
-    #     stages = []
-    #     shortcuts = []
-    #     for i in po.units:
-    #         if hasattr(i, 'stages'):
-    #             stages.extend(i.stages)
-    #         elif isinstance(i, bst.StageEquilibrium):
-    #             stages.append(i)
-    #         elif isinstance(i, bst.Distillation):
-    #             shortcuts.append(i)
-    #             i._update_equilibrium_variables()
-    #         elif not isinstance(i, (bst.Mixer, bst.Separator, bst.SinglePhaseStage)):
-    #             pass
+    def _estimate_steady_state(self, system):
+        po = system
+        streams, adiabatic_stages, all_stages = streams_and_stages(po)
+        try:
+            flows = np.array(sum([i._imol._parent.data.rows for i in streams], []))
+        except:
+            breakpoint()
+        Ts = np.array([i.T for i in streams])
+        stages = []
+        shortcuts = []
+        for i in po.units:
+            if hasattr(i, 'stages'):
+                stages.extend(i.stages)
+            elif isinstance(i, bst.StageEquilibrium):
+                stages.append(i)
+            elif isinstance(i, bst.Distillation):
+                shortcuts.append(i)
+                i._update_equilibrium_variables()
+            elif not isinstance(i, (bst.Mixer, bst.Separator, bst.SinglePhaseStage)):
+                pass
             
-    #     def get_S(u): # Shortcut column
-    #         if hasattr(u, '_distillate_recoveries'):
-    #             d = u._distillate_recoveries
-    #             b = (1 - d)
-    #             # mask = b == 0
-    #             # b[mask] = 1
-    #             S = d / b
-    #         else:
-    #             S = u.K * u.B
-    #         # S[mask] = np.inf
-    #         return S
+        def get_S(u): # Shortcut column
+            if hasattr(u, '_distillate_recoveries'):
+                d = u._distillate_recoveries
+                b = (1 - d)
+                # mask = b == 0
+                # b[mask] = 1
+                S = d / b
+            else:
+                S = u.K * u.B
+            # S[mask] = np.inf
+            return S
         
-    #     def set_S(u, S):
-    #         u._distillate_recoveries = S / (1 + S)
+        def set_S(u, S):
+            u._distillate_recoveries = S / (1 + S)
         
-    #     all_stages = stages + shortcuts
-    #     N_chemicals = po.units[0].chemicals.size
-    #     S = np.array([get_S(i) for i in all_stages])
-    #     S_full = S
-    #     S_index = S_index = [
-    #         i for i, j in enumerate(all_stages)
-    #         if not (getattr(j, 'B_specification', None) == 0 or getattr(j, 'B_specification', None) == np.inf)
-    #     ]
-    #     lle_stages = []
-    #     vle_stages = []
-    #     for i in S_index:
-    #         s = all_stages[i]
-    #         if not isinstance(s, bst.StageEquilibrium): continue
-    #         phases = getattr(s, 'phases', None)
-    #         if phases == ('g', 'l'):
-    #             vle_stages.append(s)
-    #         elif phases == ('L', 'l'):
-    #             lle_stages.append(s)
-    #     S = S[S_index]
-    #     N_S_index = len(S_index)
-    #     lnS = np.log(S).flatten()
-    #     count = [0]
+        all_stages = stages + shortcuts
+        N_chemicals = po.units[0].chemicals.size
+        S = np.array([get_S(i) for i in all_stages])
+        S_full = S
+        S_index = S_index = [
+            i for i, j in enumerate(all_stages)
+            if not (getattr(j, 'B_specification', None) == 0 or getattr(j, 'B_specification', None) == np.inf)
+        ]
+        lle_stages = []
+        vle_stages = []
+        for i in S_index:
+            s = all_stages[i]
+            if not isinstance(s, bst.StageEquilibrium): continue
+            phases = getattr(s, 'phases', None)
+            if phases == ('g', 'l'):
+                vle_stages.append(s)
+            elif phases == ('L', 'l'):
+                lle_stages.append(s)
+        S = S[S_index]
+        N_S_index = len(S_index)
+        lnS = np.log(S).flatten()
+        count = [0]
         
-    #     energy_error = lambda stage: abs(
-    #         (sum([i.H for i in stage.outs]) - sum([i.H for i in stage.ins])) / sum([i.C for i in stage.outs])
-    #     )
+        energy_error = lambda stage: abs(
+            (sum([i.H for i in stage.outs]) - sum([i.H for i in stage.ins])) / sum([i.C for i in stage.outs])
+        )
         
-    #     def B_error(stage):
-    #         B = getattr(stage, 'B_specification', None)
-    #         if B is not None:
-    #             top, bottom = stage.partition.outs
-    #             return 100 * (top.F_mol / bottom.F_mol - B)
-    #         else:
-    #             return 0
+        def B_error(stage):
+            B = getattr(stage, 'B_specification', None)
+            if B is not None:
+                top, bottom = stage.partition.outs
+                return 100 * (top.F_mol / bottom.F_mol - B)
+            else:
+                return 0
         
-    #     def T_equilibrium_error(stage):
-    #         if len(stage.outs) == 2:
-    #             top, bottom = stage.outs
-    #         else:
-    #             top, bottom = stage.partition.outs
-    #         return (top.dew_point_at_P().T - bottom.T)
+        def T_equilibrium_error(stage):
+            if len(stage.outs) == 2:
+                top, bottom = stage.outs
+            else:
+                top, bottom = stage.partition.outs
+            return (top.dew_point_at_P().T - bottom.T)
         
-    #     def lnS_objective(lnS):
-    #         S_original = np.exp(lnS)
-    #         S = S_full
-    #         S[S_index] = S_original.reshape([N_S_index, N_chemicals])
-    #         for i in S_index:
-    #             s = all_stages[i]
-    #             if hasattr(s, '_distillate_recoveries'):
-    #                 set_S(s, S[i])
-    #             elif getattr(s, 'B_specification', None) is not None:
-    #                 s.K = S[i] / s.B_specification
-    #             else:
-    #                 s.B = 1 # Work around S = K * B
-    #                 s.K = S[i]
-    #         with po.stage_configuration(aggregated=False) as conf:
-    #             conf._solve_material_flows(composition_sensitive=False)
-    #         # breakpoint()
-    #         for i in vle_stages:
-    #             partition = i.partition
-    #             # print('----')
-    #             # print(i.K * i.B)
-    #             partition._run_decoupled_KTvle()
-    #             if i.B_specification is None: partition._run_decoupled_B()
-    #             # print(i.K * i.B)
-    #             T = partition.T
-    #             for i in (partition.outs + i.outs): i.T = T
-    #         for i in shortcuts:
-    #             for s in i.outs:
-    #                 if s.phase == 'l': 
-    #                     bp = s.bubble_point_at_P()
-    #                     s.T = bp.T
-    #                 elif s.phase == 'g': 
-    #                     dp = s.dew_point_at_P()
-    #                     s.T = dp.T
-    #         # Ts = np.array([i.T for i in lle_stages])
-    #         # for i in range(10):
-    #         #     Ts_new = np.array([i.T for i in lle_stages])
-    #         #     with po.stage_configuration(aggregated=False) as conf:
-    #         #         conf.solve_energy_departures(temperature_only=True)
-    #         #     for i in lle_stages:
-    #         #         for j in i.outs: j.T = i.T
-    #         #     print(np.abs(Ts_new - Ts).sum())   
-    #         #     if np.abs(Ts_new - Ts).sum() < 1e-9: break
-    #         #     Ts = Ts_new
-    #         for i in lle_stages:
-    #             i.partition._run_lle(update=False)
-    #         total_energy_error = sum([energy_error(stage) for stage in stages if stage.B_specification is None and stage.T_specification is None])
-    #         specification_errors = np.array([B_error(all_stages[i]) for i in S_index])
-    #         # temperature_errors = np.array([T_equilibrium_error(i) for i in vle_stages])
-    #         for i in shortcuts: i._run()
-    #         S_new = np.array([get_S(all_stages[i]) for i in S_index]).flatten()
-    #         splits_new = S_new / (S_new + 1)
-    #         splits = S_original / (S_original + 1)
-    #         diff = (splits_new - splits)
-    #         total_split_error = (diff * diff).sum()
-    #         total_specification_error = (specification_errors * specification_errors).sum()
-    #         # total_temperature_error = (temperature_errors * temperature_errors).sum()
-    #         total_error = total_split_error + total_energy_error + total_specification_error #+ total_temperature_error
-    #         err = np.sqrt(total_error)
-    #         # if not count[0] % 100:
-    #         #     print(err)
-    #         #     print(total_split_error, total_energy_error, total_specification_error)
-    #         #     po.show()
-    #         count[0] += 1
-    #         return err
-    #     benchmark = lnS_objective(lnS)
-    #     result = minimize(
-    #         lnS_objective, 
-    #         lnS,
-    #         tol=0.5, 
-    #         method='CG',
-    #         options=dict(maxiter=80),
-    #     )
-    #     optimization = lnS_objective(result.x)
-    #     if benchmark > optimization:
-    #         streams, adiabatic_stages, all_stages = streams_and_stages(po)
-    #         flows = np.array(sum([i._imol._parent.data.rows for i in streams], []))
-    #         Ts = np.array([i.T for i in streams])
-    #         return flows, Ts, optimization
-    #     else:
-    #         return flows, Ts, benchmark
+        def lnS_objective(lnS):
+            S_original = np.exp(lnS)
+            S = S_full
+            S[S_index] = S_original.reshape([N_S_index, N_chemicals])
+            for i in S_index:
+                s = all_stages[i]
+                if hasattr(s, '_distillate_recoveries'):
+                    set_S(s, S[i])
+                elif getattr(s, 'B_specification', None) is not None:
+                    s.K = S[i] / s.B_specification
+                else:
+                    s.B = 1 # Work around S = K * B
+                    s.K = S[i]
+            with po.stage_configuration(aggregated=False) as conf:
+                conf._solve_material_flows(composition_sensitive=False)
+            # breakpoint()
+            for i in vle_stages:
+                partition = i.partition
+                # print('----')
+                # print(i.K * i.B)
+                partition._run_decoupled_KTvle()
+                if i.B_specification is None: partition._run_decoupled_B()
+                # print(i.K * i.B)
+                T = partition.T
+                for i in (partition.outs + i.outs): i.T = T
+            for i in shortcuts:
+                for s in i.outs:
+                    if s.phase == 'l': 
+                        bp = s.bubble_point_at_P()
+                        s.T = bp.T
+                    elif s.phase == 'g': 
+                        dp = s.dew_point_at_P()
+                        s.T = dp.T
+            # Ts = np.array([i.T for i in lle_stages])
+            # for i in range(10):
+            #     Ts_new = np.array([i.T for i in lle_stages])
+            #     with po.stage_configuration(aggregated=False) as conf:
+            #         conf.solve_energy_departures(temperature_only=True)
+            #     for i in lle_stages:
+            #         for j in i.outs: j.T = i.T
+            #     print(np.abs(Ts_new - Ts).sum())   
+            #     if np.abs(Ts_new - Ts).sum() < 1e-9: break
+            #     Ts = Ts_new
+            for i in lle_stages:
+                i.partition._run_lle(update=False)
+            total_energy_error = sum([energy_error(stage) for stage in stages if stage.B_specification is None and stage.T_specification is None])
+            specification_errors = np.array([B_error(all_stages[i]) for i in S_index])
+            # temperature_errors = np.array([T_equilibrium_error(i) for i in vle_stages])
+            for i in shortcuts: i._run()
+            S_new = np.array([get_S(all_stages[i]) for i in S_index]).flatten()
+            splits_new = S_new / (S_new + 1)
+            splits = S_original / (S_original + 1)
+            diff = (splits_new - splits)
+            total_split_error = (diff * diff).sum()
+            total_specification_error = (specification_errors * specification_errors).sum()
+            # total_temperature_error = (temperature_errors * temperature_errors).sum()
+            total_error = total_split_error + total_energy_error + total_specification_error #+ total_temperature_error
+            err = np.sqrt(total_error)
+            # if not count[0] % 100:
+            #     print(err)
+            #     print(total_split_error, total_energy_error, total_specification_error)
+            #     po.show()
+            count[0] += 1
+            return err
+        benchmark = lnS_objective(lnS)
+        result = minimize(
+            lnS_objective, 
+            lnS,
+            tol=0.5, 
+            method='CG',
+            options=dict(maxiter=80),
+        )
+        optimization = lnS_objective(result.x)
+        if benchmark > optimization:
+            streams, adiabatic_stages, all_stages = streams_and_stages(po)
+            flows = np.array(sum([i._imol._parent.data.rows for i in streams], []))
+            Ts = np.array([i.T for i in streams])
+            return flows, Ts, optimization
+        else:
+            return flows, Ts, benchmark
         
     def profile(self):
         f = self.run
@@ -616,8 +586,11 @@ class Tracker:
         temperature_history = []
         flow_history = []
         record = []
-        steady_state_flows, steady_state_temperatures = self.estimate_steady_state()
+        cfes = []
+        tes = []
+        # print('total_time', total_time)
         while net_time < total_time:
+            # print('net_time', net_time)
             time.tic()
             f()
             net_time += time.toc()
@@ -640,14 +613,22 @@ class Tracker:
             material_error.append(
                 np.log10(sum([abs(i.mass_balance_error()) for i in stages]) + 1e-25)
             )
+            cfe, te = zip(*[i._simulation_error() for i in stages])
+            # breakpoint()
+            # print(cfe)
+            # breakpoint()
+            cfes.append(
+                np.log10(sum(cfe) + 1e-25)
+            )
+            tes.append(
+                np.log10(sum(te) + 1e-25)
+            )
             flows = new_flows
             temperatures = new_temperatures
-        cfe = np.log10([np.abs(steady_state_flows - i).sum() + 1e-25 for i in flow_history])
-        te = np.log10([np.abs(steady_state_temperatures - i).sum() + 1e-25 for i in temperature_history])
         return {
             'Time': record, 
-            'Component flow rate error': cfe,
-            'Temperature error': te,
+            'Component flow rate error': cfes,
+            'Temperature error': tes,
             'Stream temperature': temperature_error,
             'Component flow rate': flow_error, 
             'Energy balance': energy_error, 
@@ -709,7 +690,7 @@ def division_mean_std(xdx, ydy):
 
 # %% Benchmark plot
 
-def plot_benchmark(systems=None, exclude=None, N=1, load=True, save=True):
+def plot_benchmark(systems=None, exclude=None, N=5, load=True, save=True):
     if systems is None: systems = list(all_systems)
     if exclude is not None: systems = [i for i in systems if i not in exclude]
     n_systems = len(systems)

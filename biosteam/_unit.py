@@ -40,7 +40,6 @@ __all__ = ('Unit',)
 # stream = Union[Annotated[Union[Stream, str, None], 1], Union[Stream, str, None]]
 # stream_sequence = Collection[Union[Stream, str, None]]
 
-
 # %% Unit Operation
 
 def phenomena_oriented_run(self):
@@ -313,6 +312,23 @@ class Unit(AbstractUnit):
         else:
             self._energy_variable = None
         for i, j in zip(outs, data): i.set_data(j)
+    
+    def _simulation_error(self):
+        ins = self.ins
+        outs = self.outs
+        new_ins = [i.copy() for i in ins]
+        new_outs = [i.copy() for i in outs]
+        streams = new_ins + new_outs
+        Ts = np.array([i.T for i in streams])
+        flows = np.array([i.mol for i in streams])
+        self._ins = new_ins
+        self._outs = new_outs
+        self._run()
+        Ts_new = np.array([i.T for i in streams])
+        new_flows = np.array([i.mol for i in streams])
+        self._ins = ins
+        self._outs = outs
+        return np.abs(new_flows - flows).sum(), np.abs(Ts_new - Ts).sum()
     
     def _get_energy_departure_coefficient(self, stream):
         """

@@ -879,7 +879,7 @@ class Model:
             )
         else:
             raise ValueError(f'invalid optimization method {method!r}')
-        return result
+        return result, convergence_model
     
     def evaluate(self, notify=0, file=None, autosave=0, autoload=False,
                  convergence_model=None, **kwargs):

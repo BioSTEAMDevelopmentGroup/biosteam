@@ -1037,14 +1037,9 @@ class Distillation(Unit, isabstract=True):
         self._cost_vacuum(dimensions)
         
     def _update_equilibrium_variables(self):
-        top, bottom = self.outs
-        top = top.mol.to_array()
-        bottom = bottom.mol.to_array()
-        bottom_dummy = bottom.copy()
-        mask = bottom == 0
-        bottom_dummy[mask] = 1e-16
-        self.S = top / bottom_dummy
-        self.S[mask] = inf
+        feed = sum([i.mol for i in self.ins])
+        top = self.outs[0].mol
+        self._distillate_recoveries = (top / feed).to_array()
 
 
 # %% McCabe-Thiele distillation model utilities
@@ -1525,36 +1520,33 @@ class BinaryDistillation(Distillation, new_graphics=False):
     #         self.K[LK] = Lr / ((1 - Lr) * B)
     #         self.K[HK] = (1 - Hr) / (Hr * B)
 
-    # def _update_composition_parameters(self):
-    #     pass
-
     def _create_material_balance_equations(self, composition_sensitive):
-        top, bottom = self.outs
-        S = self.S.copy()
+        split = self._distillate_recoveries
         fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
-        top, bottom, *_ = self.outs
+        top, bottom = self.outs
         ones = np.ones(self.chemicals.size)
         minus_ones = -ones
         zeros = np.zeros(self.chemicals.size)
         
         # Overall flows
         eq_overall = {}
-        for i in self.outs: eq_overall[i] = ones
-        for i in process_inlets: eq_overall[i] = minus_ones
+        for i in self.outs: 
+            eq_overall[i] = ones
+        for i in process_inlets:
+            if i in eq_overall: del eq_overall[i]
+            else: eq_overall[i] = minus_ones
         equations.append(
             (eq_overall, sum([i.mol for i in fresh_inlets], zeros))
         )
         
-        # Top to bottom flows
+        # Top and bottom flows
         eq_outs = {}
-        infmask = ~np.isfinite(S)
-        S[infmask] = 1
-        eq_outs[top] = coef = -ones
-        coef[infmask] = 0
-        eq_outs[bottom] = S
-        
+        minus_split = -split
+        for i in process_inlets: eq_outs[i] = minus_split
+        rhs = split * sum([i.mol for i in fresh_inlets], zeros)
+        eq_outs[top] = ones
         equations.append(
-            (eq_outs, zeros)
+            (eq_outs, rhs)
         )
         return equations
     
@@ -1569,7 +1561,6 @@ class BinaryDistillation(Distillation, new_graphics=False):
         data = [i.get_data() for i in outs]
         self._run_binary_distillation_mass_balance()
         for i, j in zip(outs, data): i.set_data(j)
-        
 
 # %% Fenske-Underwook-Gilliland distillation model utilities
 
@@ -1857,8 +1848,6 @@ class ShortcutColumn(Distillation, new_graphics=False):
         
         # Remove temporary data
         if composition_spec: self._Lr = self._Hr = None
-        if self.system and self.system.algorithm == 'Phenomena oriented':
-            self._update_equilibrium_variables()
 
     def plot_stages(self):
         raise TypeError('cannot plot stages for shortcut column')
@@ -2023,6 +2012,12 @@ class ShortcutColumn(Distillation, new_graphics=False):
     #     bottom[bottom == 0] = 1e-16
     #     self.K = y / x
 
+    def _simulation_error(self):
+        cache = self._distillate_recoveries.copy()
+        error = super()._simulation_error()
+        self._distillate_recoveries = cache
+        return error
+
     def _update_nonlinearities(self):
         mol = sum([i.mol for i in self.outs]).to_array()
         if self.product_specification_format == 'Composition':
@@ -2043,14 +2038,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
             distillate_LHK_mol[mask] = max_flows[mask]
             self._Lr = distillate_LHK_mol[0] / LHK_mol[0]
             self._Hr = distillate_LHK_mol[1] / LHK_mol[1]
-        self._distillate_recoveries = split = self._estimate_distillate_recoveries()
-        top = mol * split
-        bottom = mol - top
-        bottom_dummy = bottom.copy()
-        mask = bottom_dummy == 0
-        bottom_dummy[mask] = 1e-16
-        self.S = top / bottom_dummy
-        self.S[mask] = inf
+        self._distillate_recoveries = self._estimate_distillate_recoveries()
         # s_top, s_bottom = self.outs
         # s_dummy = s_top.copy()
         # s_dummy.mol = top

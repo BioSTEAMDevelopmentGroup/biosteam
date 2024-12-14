@@ -473,9 +473,9 @@ class UnitGroup:
         ... )
              Net electricity production
         0                           100
-        100                       -2.97
-        200                        -3.5
-        300                      -0.907
+        100                       -2.96
+        200                       -3.49
+        300                      -0.906
         400                           0
         
         >>> bst.UnitGroup.df_from_groups(
