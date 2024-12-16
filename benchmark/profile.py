@@ -227,14 +227,17 @@ system_titles = {}
 system_convergence_times = {}
 system_tickmarks = {}
 system_labels = {}
+system_yticks = {}
 
-def register(name, title, time, tickmarks, label):
+def register(name, title, time, tickmarks, label, yticks=None):
     f = getattr(systems, 'create_system_' + name, None) or getattr(systems, 'create_' + name + '_system')
+    if yticks is None: yticks = [(-10, -5, 0, 5), (-10, -5, 0, 5)]
     all_systems[name] = f
     system_titles[name] = title
     system_convergence_times[name] = time
     system_tickmarks[name] = tickmarks
     system_labels[name] = label
+    system_yticks[name] = yticks
 
 # register(
 #     'acetic_acid_reactive_purification', 'Acetic acid reactive purification',
@@ -242,15 +245,18 @@ def register(name, title, time, tickmarks, label):
 # )
 register(
     'acetic_acid_simple', 'Subsystem',
-    40, [0, 6, 12, 18, 24], 'AcOH sep.\nsubsystem'
+    40, [0, 6, 12, 18, 24], 'AcOH sep.\nsubsystem',
+    [(-15, -10, -5, 0, 5, 10), (-15, -10, -5, 0, 5, 10)],
 )
 register(
     'acetic_acid_complex_decoupled', 'Shortcut system',
     10, [0, 2, 4, 6, 8, 10], 'AcOH sep.\nshortcut',
+    [(-15, -10, -5, 0, 5), (-15, -10, -5, 0, 5)],
 )
 register(
     'acetic_acid_complex', 'Rigorous system',
-    500, [0, 100, 200, 300, 400, 500], 'AcOH sep.\nrigorous'
+    500, [0, 100, 200, 300, 400, 500], 'AcOH sep.\nrigorous', 
+    [[-5, -2.5, 0, 2.5, 5], [-8, -5, -2, 1, 4]],
 )
 register(
     'alcohol_narrow_flash', 'Alcohol flash narrow',
@@ -282,7 +288,8 @@ register(
 # )
 register(
     'haber_bosch_process', 'Haber-Bosch',
-    0.05, [0.01, 0.02, 0.03, 0.04, 0.05], 'HB',
+    0.03, [0.005, 0.010, 0.015, 0.02, 0.025, 0.03], 'HB',
+    [[-10, -7.5, -5, -2.5, 0], [-10, -7.5, -5, -2.5, 0]],
 )
 
 # %% Testing
@@ -940,6 +947,7 @@ def plot_profile(
             'Material balance': 'Stage material\nbalance error',
             'Energy balance': 'Stage energy\nbalance error',
         }
+        yticks_list = system_yticks[sys]
         for n, (i, ax, u) in enumerate(zip(keys, axes, units)):
             plt.sca(ax)
             if n == n_rows-1: plt.xlabel('Time [s]')
@@ -955,23 +963,9 @@ def plot_profile(
             plt.plot(tsm, ysm, lw=0, marker='.', color=csm, markersize=2.5)
             plt.plot(tpo, ypo, lw=0, marker='.', color=cpo, markersize=2.5)
             plt.plot(tpo, ypo, '-', color=cpo, lw=1.5, alpha=0.5)
-            ypo_finite = ypo[~np.isnan(ypo)]
             yticklabels = m == 0
-            lb = -15
-            ub = 10
+            yticks = yticks_list[n]
             if yticklabels:
-                # lb = ypo_finite.min()
-                # ub = ypo_finite.max()
-                step = 5
-                # if (ub - lb) < 18:
-                #     step = 3    
-                # elif (ub - lb) < 20:
-                #     step = 5
-                # else:
-                #     step = 10
-                # lb = int(np.floor(ypo_finite.min() / step) * step)
-                # ub = int(np.ceil(ypo_finite.max() / step) * step)
-                yticks = [i for i in range(lb, ub+1, step)]
                 yticklabels = [r'$\mathrm{10}^{' f'{i}' '}$' for i in yticks]
             if m == 0 and n == 0:
                 index = int(len(tsm) * 0.5)
@@ -1001,7 +995,7 @@ def plot_profile(
             ytick0 = n == n_rows-1
             ytickf = n == 0
             plt.xlim(0, xticks[-1])
-            plt.ylim(lb, ub)
+            plt.ylim(yticks[0], yticks[-1])
             bst.utils.style_axis(
                 ax, xticks=xticks, yticks=yticks, 
                 xtick0=xtick0, xtickf=xtickf, ytick0=ytick0, ytickf=ytickf,

@@ -1275,6 +1275,7 @@ class MultiStageEquilibrium(Unit):
             feed_stages=None, 
             phases=None, 
             P=101325, 
+            T=None,
             stage_specifications=None, 
             stage_reactions=None,
             partition_data=None, 
@@ -1292,6 +1293,10 @@ class MultiStageEquilibrium(Unit):
         if feed_stages is None: feed_stages = (0, -1)
         if stage_specifications is None: stage_specifications = {}
         elif not isinstance(stage_specifications, dict): stage_specifications = dict(stage_specifications)
+        if T is not None: 
+            for i in range(N_stages):
+                if i in stage_specifications: continue
+                stage_specifications[i] = ('Temperature', T)
         if stage_reactions is None: stage_reactions = {}
         elif not isinstance(stage_reactions, dict): stage_reactions = dict(stage_reactions)
         if top_side_draws is None: top_side_draws = {}
@@ -1302,6 +1307,7 @@ class MultiStageEquilibrium(Unit):
         self.multi_stream = tmo.MultiStream(None, P=P, phases=phases, thermo=self.thermo)
         self.N_stages = N_stages
         self.P = P
+        self.T = T
         self.phases = phases = self.multi_stream.phases # Corrected order
         self._has_vle = 'g' in phases
         self._has_lle = 'L' in phases

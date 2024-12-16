@@ -2171,6 +2171,7 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
             vapor_side_draws=None,
             liquid_side_draws=None,
             P=101325,  
+            T=None,
             partition_data=None, 
             vessel_material='Carbon steel',
             tray_material='Carbon steel',
@@ -2191,7 +2192,7 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
                       bottom_side_draws=liquid_side_draws,
                       partition_data=partition_data,
                       phases=("g", "l"), collapsed_init=collapsed_init,
-                      P=P, use_cache=use_cache, method=method)
+                      P=P, T=T, use_cache=use_cache, method=method)
        
         # Construction specifications
         self.solute = solute
