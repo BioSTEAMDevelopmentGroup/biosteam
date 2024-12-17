@@ -2093,12 +2093,12 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
     >>> bst.settings.set_thermo(['AceticAcid', 'EthylAcetate', 'Water', 'MTBE'], cache=True)
     >>> feed = bst.Stream('feed', Water=75, AceticAcid=5, MTBE=20, T=320)
     >>> steam = bst.Stream('steam', Water=100, phase='g', T=390)
-    >>> absorber = bst.Absorber(None,
+    >>> stripper = bst.Stripper(None,
     ...     N_stages=2, ins=[feed, steam], 
     ...     solute="AceticAcid", outs=['vapor', 'liquid']
     ... )
-    >>> absorber.simulate()
-    >>> absorber.show()
+    >>> stripper.simulate()
+    >>> stripper.show()
     AdiabaticMultiStageVLEColumn
     ins...
     [0] feed  
@@ -2122,7 +2122,7 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
                         MTBE        0.00031
     
     >>> absorber.results()
-    Absorber                                   Units         
+    Stripper                                   Units         
     Design              Theoretical stages                  2
                         Actual stages                       4
                         Height                    ft     19.9
@@ -2276,10 +2276,10 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
         index = IDs.index(solute)
         K = gmean([i.partition.K[index] for i in stages])
         if self.liquid.imol[solute] > self.vapor.imol[solute]:
-            self.line = "Stripper"
+            self.line = "Absorber"
             alpha = 1 / K
         else:
-            self.line = "Absorber"
+            self.line = "Stripper"
             alpha = K
         return alpha
        
