@@ -245,7 +245,7 @@ def register(name, title, time, tickmarks, label, yticks=None):
 # )
 register(
     'acetic_acid_simple', 'Subsystem',
-    40, [0, 6, 12, 18, 24], 'AcOH sep.\nsubsystem',
+    40, [0, 8, 16, 24, 32], 'AcOH sep.\nsubsystem',
     [(-15, -10, -5, 0, 5, 10), (-15, -10, -5, 0, 5, 10)],
 )
 register(
@@ -716,7 +716,7 @@ def division_mean_std(xdx, ydy):
 
 # %% Benchmark plot
 
-def plot_benchmark(systems=None, exclude=None, N=1, load=True, save=True):
+def plot_benchmark(systems=None, exclude=None, N=2, load=True, save=True):
     if systems is None: systems = list(all_systems)
     if exclude is not None: systems = [i for i in systems if i not in exclude]
     n_systems = len(systems)
@@ -844,7 +844,7 @@ def dct_mean_std(dcts: list[dict], keys: list[str]):
     return {i: (values[i].mean(), values[i].std()) for i in keys}
 
 def plot_profile(
-        systems=None, N=5, load=True, save=True
+        systems=None, N=1, load=True, save=True
     ):
     if systems is None: systems = list(all_systems)
     fs = 12

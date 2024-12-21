@@ -121,7 +121,7 @@ try:
             role = "data"
         else:
             role = "class"
-        args_format = "\\[{}]"
+        args_format = r"\[{}]"
         formatted_args: str | None = ""
     
         # Some types require special handling
@@ -175,8 +175,8 @@ try:
         name = format_annotation(annotation, config)
         if name.startswith('Optional['):
             name = name.replace('Optional[', '')[:-1] + ', optional'
-        elif name.startswith(':py:data:`~typing.Optional`\['):
-            name = name.replace(':py:data:`~typing.Optional`\[', '')[:-1] + ', optional'
+        elif name.startswith(r':py:data:`~typing.Optional`\['):
+            name = name.replace(r':py:data:`~typing.Optional`\[', '')[:-1] + ', optional'
         if not name.startswith(':py:class:') and not name.startswith(':py:data:'):
             pyclass_added = False
             for i in ['Iterable', 'Sequence', 'Collection', 'str', 'list', 'tuple', 'dict', 'int',
@@ -190,7 +190,7 @@ try:
                 name = name.replace(i, f':py:class:`~thermosteam.{i}`')
                 pyclass_added = True
             if pyclass_added: 
-                name = name.replace('[', '\[').replace(':py:class::py:class:', ':py:class:')
+                name = name.replace('[', r'\[').replace(':py:class::py:class:', ':py:class:')
         name = name.replace('bst.', '').replace('tmo.', '').replace(
             '`biosteam', '`~biosteam').replace('._unit', '')
         # file = os.path.join(os.path.dirname(__file__), 'annotations.txt')
