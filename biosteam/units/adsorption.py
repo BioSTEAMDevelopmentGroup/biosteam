@@ -219,7 +219,7 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
     >>> bst.settings.set_thermo([
     ...    'Water', 
     ...    bst.Chemical('Adsorbate', search_db=False, default=True, phase='l'),
-    ...    bst.Chemical('ActivatedCarbon', search_db=False, default=True, phase='l')
+    ...    bst.Chemical('ActivatedCarbon', search_db=False, default=True, phase='s')
     ... ])
     >>> feed = bst.Stream(ID='feed', phase='l', T=298, P=1.01e+06,
     ...                   Water=1000, Adsorbate=0.001, units='kg/hr')
