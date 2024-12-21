@@ -1,4 +1,4 @@
 adsorption
 ==========
 
-.. autoclass:: biosteam.units.adsorption.SingleComponentAdsorptionColumn
+.. automodule:: biosteam.units.adsorption

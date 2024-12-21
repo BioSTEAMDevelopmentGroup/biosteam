@@ -236,12 +236,7 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
     ...     particle_diameter=0.004,
     ... )
     >>> A1.simulate()
-    >>> # A1.simulation_gif()
-    
-    .. image:: ../../images/adsorption_column.gif
-       :align: center
-       :alt: Adsorption column fluid concentration profile over time.
-    
+    >>> # A1.simulation_gif() # Create a gif of the fluid concentration profile over time.
     >>> A1.results()
     Single component adsorption column                  Units                   A1
     Electricity         Power                              kW                0.241
