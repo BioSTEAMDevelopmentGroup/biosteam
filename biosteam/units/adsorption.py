@@ -801,14 +801,14 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
             if method == 'Langmuir':
                 plt.plot(
                     *dct['linearized prediction'],
-                    label=f'R$^2$ = {round(dct['R2'], 2)}, K={round(dct['K'], 2)}, q$_{{max}}$={round(dct['qmax'], 2)}'
+                    label=f"R$^2$ = {round(dct['R2'], 2)}, K={round(dct['K'], 2)}, q$_{{max}}$={round(dct['qmax'], 2)}"
                 )
                 plt.xlabel('C [mg / L]')
                 plt.ylabel('C / q [g / L]')
             else:
                 plt.plot(
                     *dct['linearized prediction'],
-                    label=f'R$^2$ = {round(dct['R2'], 2)}, K={round(dct['K'], 2)}, n={round(dct['n'], 2)}'
+                    label=f"R$^2$ = {round(dct['R2'], 2)}, K={round(dct['K'], 2)}, n={round(dct['n'], 2)}"
                 )
                 plt.xlabel('log(C)')
                 plt.ylabel('log(q)')
@@ -836,10 +836,10 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
         R2 = dct['R2']
         plt.plot(
             *dct['linearized prediction'],
-            label=f'R$^2$ = {np.round(R2, 2)}, k={dct['k']:.2g}'
+            label=f"R$^2$ = {np.round(R2, 2)}, k={dct['k']:.2g}"
         )
-        plt.ylabel(f'log((qe - q) / q)')
-        plt.xlabel(f't')
+        plt.ylabel('log((qe - q) / q)')
+        plt.xlabel('t')
         plt.legend()
 
 AdsorptionColumn = SingleComponentAdsorptionColumn
