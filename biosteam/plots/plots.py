@@ -55,6 +55,7 @@ __all__ = (
 
 # %% Utilities
 
+plt.rcParams['figure.dpi'] = 300 # High DPI (default is 100; so low!)
 default_light_color = c.orange_tint.RGBn
 default_dark_color = c.orange_shade.RGBn
 title_color = c.neutral.shade(25).RGBn

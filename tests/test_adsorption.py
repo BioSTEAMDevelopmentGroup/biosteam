@@ -19,7 +19,7 @@ from numpy.testing import assert_allclose
 #         0.06013, 0.07133, 0.07133, 0.31769, 0.31769, 0.31769,
 #         0.63124, 0.64244, 0.63124, 2.03102, 2.03102, 2.03102,
 #         4.16988, 4.16988, 4.16988, 5.00974, 4.99854, 4.99854
-#     ])
+#     ]) / 1000
 #     qe = np.array([
 #         1.24, 1.24, 1.24, 1.87, 1.87, 1.87, 2.85, 2.84, 2.85,
 #         4.48, 4.48, 4.48, 5.5, 5.5, 5.5, 6.53, 6.56, 6.56
@@ -29,7 +29,7 @@ from numpy.testing import assert_allclose
 #     volume = 0.075
 #     adsorbent = 1
 #     bst.AdsorptionColumn.plot_isotherm_and_mass_transfer_coefficient_fit(
-#         Ce, qe, t, C, volume, adsorbent
+#         Ce, qe, t, C, volume, adsorbent, 'Langmuir'
 #     )
     
 # def test_adsorption():
@@ -50,14 +50,14 @@ from numpy.testing import assert_allclose
 #         'A1', ins=feed, outs='effluent',
 #         cycle_time=1000,
 #         superficial_velocity=4,
-#         # isotherm_model='Freundlich',
-#         # isotherm_args = (3.31e3, 2.58), 
-#         # k = 0.156, # [1 / hr]
+#         isotherm_model='Freundlich',
+#         isotherm_args = (48.4, 2.58), 
+#         k = 0.0093, # [1 / hr]
 #         # Equilibrium constant [L/g] for Langmuir isotherm (multiply by 1000 from L/mg)
 #         # Maximum equilibrium loading [mg/g] for Langmuir isotherm
-#         isotherm_model='Langmuir',
-#         isotherm_args = (1.27e3, 6.99), 
-#         k = 0.3, #[1 / hr]
+#         # isotherm_model='Langmuir',
+#         # isotherm_args = (1.27e3, 6.99), 
+#         # k = 0.13, #[1 / hr]
 #         void_fraction=1 - 0.38 / 0.8,  # Solid by wt [%]
 #         C_final_scaled=0.05,
 #         adsorbate='Ink',

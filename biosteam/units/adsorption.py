@@ -29,35 +29,49 @@ from numba import njit
 import flexsolve as flx
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
+from scipy.ndimage.filters import gaussian_filter
 
 __all__ = ('SingleComponentAdsorptionColumn', 'AdsorptionColumn',)
 
 @njit(cache=True)
+def odeint(f, x0, step, tf, args):
+    M = int(tf/step)
+    N = len(x0)
+    ts = np.linspace(0, tf, M)
+    xs = np.zeros((M, N))
+    xs[0] = x0
+    for i in range(1, M):
+        dx_dt = f(ts[i], x0, *args)
+        x0 += dx_dt * step
+        xs[i] = x0 
+    return (ts, xs)
+
+@njit(cache=True)
 def equilibrium_loading_Langmuir_isotherm(
-        C_feed,  # Solute concentration in the feed [g / L]
+        C,  # Solute concentration in the feed [g / L]
         KL,  # Equilibrium constant
         q_max,  # Maximum equilibrium loading mg/g
     ):
-    return C_feed * KL * q_max / (1 + KL * C_feed)  # g / kg
+    return C * KL * q_max / (1 + KL * C)  # g / kg
 
 @njit(cache=True)
 def equilibrium_loading_Freundlich_isotherm(
-        C_feed,  # Solute concentration in the feed [g / L]
+        C,  # Solute concentration in the feed [g / L]
         KL,  
         n,  
     ):
-    return KL * C_feed**(1/n) # g / kg
+    return KL * C**(1/n) # g / kg
 
 @njit(cache=True)
 def estimate_equilibrium_bed_length(
-        C_feed,  # Solute concentration in the feed [kg / m3]
+        C,  # Solute concentration in the feed [kg / m3]
         u,  # Superficial velocity [m / h]
         cycle_time,  # Cycle time [h]
         rho_adsorbent,  # Bulk density of the bed [kg / m3]
         q0,  # Equilibrium loading [g / kg]
     ):
     q_capacity = q0 * rho_adsorbent / 1000 # kg / m3
-    L = C_feed * u * cycle_time / q_capacity  # m
+    L = C * u * cycle_time / q_capacity  # m
     return L
 
 @njit(cache=True)
@@ -70,13 +84,16 @@ def dCdt_optimized_Langmuir(
     ):
     CL = C[:N_slices] 
     qt = C[N_slices:] # q-avg
-    qe = (CL * KL_qm)/(q0_over_C0 + q0_KL * CL)
-    dCL_dz = CL.copy()
+    CL_ = CL.copy()
+    CL_[CL < 0] = 0
+    qe = (CL_ * KL_qm)/(q0_over_C0 + q0_KL * CL_)
+    dCL_dz = CL_
     dCL_dz[1:] = (CL[1:] - CL[:-1]) / dz
     dCL_dz[0] = (CL[0] - 1) / dz
     dC_dt = C.copy()
     dq_dt = Da * (qe - qt)
-    dC_dt[:N_slices] = -dCL_dz - beta_q0_rho_over_C0 * dq_dt
+    dCL_dt = -dCL_dz - beta_q0_rho_over_C0 * dq_dt
+    dC_dt[:N_slices] = dCL_dt
     dC_dt[N_slices:] = dq_dt
     return dC_dt 
 
@@ -88,15 +105,17 @@ def dCdt(
     ):
     CL = C[:N_slices] 
     qt = C[N_slices:] # q-avg
-    qe = isotherm_model(CL * C0, *isotherm_args) / q0
-    # mask = CL <= 0
-    # qe[mask] = 0
+    CL_ = CL * C0
+    mask = CL_ < 0
+    CL_[mask] = 0
+    qe = isotherm_model(CL_, *isotherm_args) / q0
     dCL_dz = CL.copy()
     dCL_dz[1:] = (CL[1:] - CL[:-1]) / dz
     dCL_dz[0] = (CL[0] - 1) / dz
     dC_dt = C.copy()
     dq_dt = Da * (qe - qt)
-    dC_dt[:N_slices] = -dCL_dz - beta_q0_rho_over_C0 * dq_dt
+    dCL_dt = -dCL_dz - beta_q0_rho_over_C0 * dq_dt
+    dC_dt[:N_slices] = dCL_dt
     dC_dt[N_slices:] = dq_dt
     return dC_dt 
 
@@ -122,7 +141,7 @@ def adsorption_bed_pressure_drop(
 
 class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
     """
-    Create a adsorption column which can operate by temperature or pressure swing,
+    Create an adsorption column which can operate by temperature or pressure swing,
     or by disposing the adsorbent. Heats of adsorption are neglected but may become
     an option with future development in BioSTEAM. Default parameters are heuristic values 
     for adsorption of water and polar components using activated carbon. The
@@ -237,6 +256,11 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
     ... )
     >>> A1.simulate()
     >>> # A1.simulation_gif() # Create a gif of the fluid concentration profile over time.
+    
+    .. image:: ../../images/adsorption_column.gif
+       :align: center
+       :alt: Adsorption column fluid concentration profile over time.
+    
     >>> A1.results()
     Single component adsorption column                  Units                   A1
     Electricity         Power                              kW                0.241
@@ -442,15 +466,15 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
         slider = widgets.FloatSlider(min=0, max=tf, step=tf/100, value=0.5*tf)
         return interact(plot, time=slider)
 
-    def simulation_gif(self):
+    def simulation_gif(self, liquid=True):
         import matplotlib.animation as animation
         from scipy.interpolate import interp1d
         t = self.t_scaled
         z = np.arange(0, 1, 1/self.N_slices)
-        CL_scaled = self.CL_scaled
+        y = self.CL_scaled if liquid else self.q_scaled
         fig = plt.figure()
         N_frames = 120
-        f = interp1d(t, CL_scaled)
+        f = interp1d(t, y)
         x = np.linspace(0, t[-1], N_frames)
         y = f(x)
         def animate(frame):
@@ -510,25 +534,33 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
             args = (N_slices, Da, dz, KL_qm,
                     q0_over_C0, q0_KL, beta_q0_rho_over_C0)
             f = dCdt_optimized_Langmuir
+            sol = solve_ivp(
+                f, t_span=(0, cycle_time / t_scale), 
+                y0=C_init, 
+                method='BDF',
+                args=args,
+            ) 
+            CL = sol.y[:N_slices]
+            q = sol.y[N_slices:]
+            t = sol.t
         else:
             args = (N_slices, Da, dz, isotherm_model, isotherm_args,
                     beta_q0_rho_over_C0, C0, q0)
             f = dCdt
-        sol = solve_ivp(
-            f, t_span=(0, cycle_time / t_scale), 
-            y0=C_init, 
-            method='BDF',
-            args=args,
-        ) 
-        CL = sol.y[:N_slices]
-        q = sol.y[N_slices:]
+            t, Y = odeint(
+                f, C_init, 1e-2, cycle_time / t_scale, args
+            )
+            t = np.array(t)
+            Y = gaussian_filter(np.array(Y).T, 5, axes=1)
+            CL = Y[:N_slices]
+            q = Y[N_slices:]
         if regeneration:
-            self.rt_scaled = sol.t
+            self.rt_scaled = t
             self.rCL_scaled = CL
             self.rq_scaled = q
             self.rt_scale = t_scale
         else:
-            self.t_scaled = sol.t
+            self.t_scaled = t
             self.CL_scaled = CL
             self.q_scaled = q
             self.t_scale = t_scale
@@ -613,7 +645,7 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
         LUB_guess = getattr(self, 'LUB', 2/3) # 2/3 is a heuristic from AICHE adsorption basics part 1
         return flx.wegstein(
             self._estimate_length_of_unused_bed, LUB_guess,
-            xtol=self.LES * 1e-2,
+            xtol=self.LES * 1e-2, maxiter=3, checkiter=False,
         )
 
     def _size_columns(self):
@@ -789,21 +821,21 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
     
     @staticmethod
     def plot_isotherm_and_mass_transfer_coefficient_fit(
-            Ce, qe, t, C, volume, adsorbent
+            Ce, qe, t, C, volume, adsorbent, method=None,
         ):
         def plot_fit_isotherm(dct, method):
             plt.scatter(*dct['linearized data'])
             if method == 'Langmuir':
                 plt.plot(
                     *dct['linearized prediction'],
-                    label=f"R$^2$ = {round(dct['R2'], 2)}, K={round(dct['K'], 2)}, q$_{{max}}$={round(dct['qmax'], 2)}"
+                    label=f"R$^2$ = {dct['R2']:.3g}, K={dct['K']:.3g}, q$_{{max}}$={dct['qmax']:.3g}"
                 )
                 plt.xlabel('C [mg / L]')
                 plt.ylabel('C / q [g / L]')
             else:
                 plt.plot(
                     *dct['linearized prediction'],
-                    label=f"R$^2$ = {round(dct['R2'], 2)}, K={round(dct['K'], 2)}, n={round(dct['n'], 2)}"
+                    label=f"R$^2$ = {dct['R2']:.3g}, K={dct['K']:.3g}, n={dct['n']:.3g}"
                 )
                 plt.xlabel('log(C)')
                 plt.ylabel('log(q)')
@@ -811,9 +843,7 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
             return dct
         dct_L = bst.AdsorptionColumn.fit_Langmuir_isotherm(Ce, qe)
         dct_F = bst.AdsorptionColumn.fit_Freundlich_isotherm(Ce, qe)
-        # isotherm_model = 'Langmuir'
-        # dct = dct_L
-        if dct_L['R2'] > dct_F['R2']:
+        if method == 'Langmuir' or (method is None and dct_L['R2-q'] > dct_F['R2-q']):
             isotherm_model = 'Langmuir'
             dct = dct_L
         else:
