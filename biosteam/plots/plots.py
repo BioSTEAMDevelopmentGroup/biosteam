@@ -55,7 +55,7 @@ __all__ = (
 
 # %% Utilities
 
-plt.rcParams['figure.dpi'] = 300 # High DPI (default is 100; so low!)
+plt.rcParams['figure.dpi'] = 200 # High DPI (default is 100; so low!)
 default_light_color = c.orange_tint.RGBn
 default_dark_color = c.orange_shade.RGBn
 title_color = c.neutral.shade(25).RGBn
@@ -852,27 +852,32 @@ def plot_montecarlo_across_coordinate(xs, ys,
 
 # %% KDE
 
-def plot_kde(x, y, nbins=100, ax=None, fig=None,
+def plot_kde(x, y, nbins=100, axes=None, fig=None,
              xticks=None, yticks=None, xticklabels=None, yticklabels=None,
              xtick0=True, ytick0=True, xtickf=True, ytickf=True,
              xbox=None, ybox=None, xbox_kwargs=None, ybox_kwargs=None, 
              aspect_ratio=1.25, cmaps=None, xbox_width=None,
              ybox_width=None, zorders=None, **kwargs):
-    axis_not_given = ax is None
+    axis_not_given = axes is None
     xs = x if isinstance(x, (tuple, list)) else (x,)
     ys = y if isinstance(y, (tuple, list)) else (y,)
     N_xs = len(xs)
     N_ys = len(ys)
     if axis_not_given:
         grid_kw = dict(height_ratios=[1, 8], width_ratios=[8, aspect_ratio])
-        fig, all_axes = plt.subplots(
+        fig, axes = plt.subplots(
             ncols=2, nrows=2, 
             gridspec_kw=grid_kw,
         )
-        ax_empty = all_axes[0, 1]
-        ax = all_axes[1, 0]
-        xbox_ax = all_axes[0, 0]
-        ybox_ax = all_axes[1, 1]
+        ax_empty = axes[0, 1]
+        ax = axes[1, 0]
+        xbox_ax = axes[0, 0]
+        ybox_ax = axes[1, 1]
+    else:
+        ax_empty = axes[0, 1]
+        ax = axes[1, 0]
+        xbox_ax = axes[0, 0]
+        ybox_ax = axes[1, 1]
     if xbox is None: 
         if xbox_kwargs is None: xbox_kwargs = {}
         position = [0]
@@ -944,7 +949,7 @@ def plot_kde(x, y, nbins=100, ax=None, fig=None,
             top=0.95, bottom=0.12,
             left=0.1, right=0.96,
         )
-    return fig, ax
+    return fig, ax, axes
     
 def plot_kde_2d(xs, ys, nbins=100, axes=None, xboxes=None, yboxes=None,
                 xticks=None, yticks=None, xticklabels=None, yticklabels=None,
