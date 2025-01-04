@@ -30,6 +30,7 @@ import flexsolve as flx
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 from scipy.ndimage.filters import gaussian_filter
+from thermosteam.units_of_measure import format_units
 
 __all__ = ('SingleComponentAdsorptionColumn', 'AdsorptionColumn',)
 
@@ -310,6 +311,9 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
     _N_ins = 3
     _N_outs = 3
 
+    _units = {'Pressure drop': 'Pa',
+              **PressureVessel._units}
+
     # Cost of regeneration in $/m3
     adsorbent_cost = {
         'ActivatedAlumina': 72 * 0.0283168,
@@ -350,13 +354,13 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
             regeneration_isotherm_args=None,
             regeneration_isotherm_model=None,
             # Note that the columns are sized according to the limiting isotherm.
-            LUB=None, # Defaults to 1.219 m if no mass transfer coefficient is given.
+            LUB_forced=None, # Defaults to 0.6096 m if no mass transfer coefficient is given.
             void_fraction=1 - 0.38 / 0.8, # Solid by vol [%]
             rho_adsorbent=380, # kg/m3
             superficial_velocity=14.4,  # [m / h]
             P=101325,
             C_final_scaled=0.05, # Final outlet concentration at breakthrough relative to inlet.
-            N_slices=int(80), # Number of slices to model mass transfer.
+            N_slices=int(50), # Number of slices to model mass transfer.
             regeneration_fluid=None, # [dict] Regeneration fluid composition and thermal conditions.
             adsorbate=None, # [str] Name of adsorbate.
             vessel_material='Stainless steel 316',
@@ -391,8 +395,8 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
                     f'valid options are {list(self.isotherm_models)}'
                 )
         if k is None and k_regeneration is None:
-            if LUB is None: LUB = 1.219
-        elif LUB is not None:
+            if LUB_forced is None: LUB_forced = 0.6096
+        elif LUB_forced is not None:
             raise ValueError('length of unused bed given, but will be '
                              'estimated based on mass transfer modeling')
         if regeneration_isotherm_args is None: regeneration_isotherm_args = ()
@@ -417,6 +421,7 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
         self.N_slices = N_slices
         self.particle_diameter = particle_diameter
         self.adsorbent = adsorbent
+        self.LUB_forced = LUB_forced
         self.auxiliary('pump', bst.Pump, ins=self.ins[0])
         if regeneration_fluid:
             regeneration_pump = self.auxiliary('regeneration_pump', bst.Pump, ins=self.ins[1])
@@ -488,7 +493,7 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
         
         ani = animation.FuncAnimation(
             fig, animate, repeat=True,
-            frames=N_frames - 1, interval=200,
+            frames=N_frames - 1, interval=66,
         )
         
         # To save the animation using Pillow as a gif
@@ -496,7 +501,6 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
                                         metadata=dict(artist='Me'),
                                         bitrate=1800)
         ani.save('adsorption_column.gif', writer=writer)
-        plt.show()
         return ani
 
     def _simulate_adsorption_bed(
@@ -548,7 +552,7 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
                     beta_q0_rho_over_C0, C0, q0)
             f = dCdt
             t, Y = odeint(
-                f, C_init, 1e-2, cycle_time / t_scale, args
+                f, C_init, 5e-2, cycle_time / t_scale, args
             )
             t = np.array(t)
             Y = gaussian_filter(np.array(Y).T, 5, axes=1)
@@ -669,7 +673,10 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
         self.LES = LES = estimate_equilibrium_bed_length(
             C_feed, u, cycle_time, self.rho_adsorbent, q0
         )
-        self.LUB = LUB = self.estimate_length_of_unused_bed()
+        if self.LUB_forced is None:
+            self.LUB = LUB = self.estimate_length_of_unused_bed()
+        else:
+            self.LUB = LUB = self.LUB_forced
         self.total_length = total_length = LES + LUB
         if self.N_columns == 3: 
             column_length = total_length / 2
@@ -695,7 +702,7 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
                 self.design_results['Length']
             )
         )
-        self.pump.P = (self.P - feed.P) + adsorption_bed_pressure_drop(
+        dP = adsorption_bed_pressure_drop(
             D = self.particle_diameter,
             rho = feed.rho,
             mu = feed.get_property('mu', 'kg/m/s'), # viscosity [kg/m*s]
@@ -703,6 +710,8 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
             u = self.superficial_velocity / 3600, # superficial velosity [m/s]
             L = self.total_length, # length of bed [m]
         )
+        self.set_design_result('Pressure drop', 'Pa', dP)
+        self.pump.P = (self.P - feed.P) + dP
         self.pump.simulate()
         if self.regeneration_fluid:
             feed = self.ins[1]
@@ -821,8 +830,15 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
     
     @staticmethod
     def plot_isotherm_and_mass_transfer_coefficient_fit(
-            Ce, qe, t, C, volume, adsorbent, method=None,
+            Ce, qe, t, C, volume, adsorbent, method=None, 
+            C_units=None, q_units=None, t_units=None,
         ):
+        if C_units is None: C_units = ''
+        else: C_units = f' [{format_units(C_units)}]'
+        if q_units is None: q_units = ''
+        else: q_units = f' [{format_units(q_units)}]'
+        if t_units is None: t_units = ''
+        else: t_units = f' [{format_units(t_units)}]'
         def plot_fit_isotherm(dct, method):
             plt.scatter(*dct['linearized data'])
             if method == 'Langmuir':
@@ -830,15 +846,17 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
                     *dct['linearized prediction'],
                     label=f"R$^2$ = {dct['R2']:.3g}, K={dct['K']:.3g}, q$_{{max}}$={dct['qmax']:.3g}"
                 )
-                plt.xlabel('C [mg / L]')
-                plt.ylabel('C / q [g / L]')
+                xlabel = 'C {}'
+                ylabel = 'C / q {}'
             else:
                 plt.plot(
                     *dct['linearized prediction'],
                     label=f"R$^2$ = {dct['R2']:.3g}, K={dct['K']:.3g}, n={dct['n']:.3g}"
                 )
-                plt.xlabel('log(C)')
-                plt.ylabel('log(q)')
+                xlabel = 'log(C{})'.format(C_units)
+                ylabel = 'log(q{})'.format(q_units)
+            plt.xlabel(xlabel)
+            plt.ylabel(ylabel)
             plt.legend()
             return dct
         dct_L = bst.AdsorptionColumn.fit_Langmuir_isotherm(Ce, qe)
@@ -849,22 +867,30 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
         else:
             isotherm_model = 'Freundlich'
             dct = dct_F
-        plt.figure()
+        fig, axes = plt.subplots(2, 1)
+        ax1, ax2 = axes
+        plt.sca(ax1)
         plot_fit_isotherm(dct, isotherm_model)
         model = bst.AdsorptionColumn.isotherm_models[isotherm_model]
-        args = dct_F['parameters']
-        dct = bst.AdsorptionColumn.fit_solid_mass_transfer_coefficient(
+        args = dct['parameters']
+        dct_k = bst.AdsorptionColumn.fit_solid_mass_transfer_coefficient(
             t, C, volume, adsorbent, model, args
         )
-        plt.figure()
-        plt.scatter(*dct['linearized data'])
-        R2 = dct['R2']
+        plt.sca(ax2)
+        plt.scatter(*dct_k['linearized data'])
+        R2 = dct_k['R2']
         plt.plot(
-            *dct['linearized prediction'],
-            label=f"R$^2$ = {np.round(R2, 2)}, k={dct['k']:.2g}"
+            *dct_k['linearized prediction'],
+            label=f"R$^2$ = {R2:.2g}, k={dct_k['k']:.3g}"
         )
         plt.ylabel('log((qe - q) / q)')
-        plt.xlabel('t')
+        plt.xlabel(f't{t_units}')
         plt.legend()
+        plt.subplots_adjust(hspace=0.3, wspace=0.3)
+        return fig, axes, {
+            'isotherm_model': isotherm_model, 
+            'isotherm_args': args,
+            'k': dct_k['k'],
+        }
 
 AdsorptionColumn = SingleComponentAdsorptionColumn
