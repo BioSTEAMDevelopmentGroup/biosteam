@@ -1329,7 +1329,8 @@ class Unit(AbstractUnit):
 
     def results(self, with_units=True, include_utilities=True,
                 include_total_cost=True, include_installed_cost=False,
-                include_zeros=True, external_utilities=None, key_hook=None):
+                include_zeros=True, external_utilities=None, key_hook=None,
+                basis=None):
         """
         Return key results from simulation as a DataFrame if `with_units`
         is True or as a Series otherwise.
@@ -1401,12 +1402,35 @@ class Unit(AbstractUnit):
                         addval(('USD/hr', - flow * stream_prices[name]))
             units = self._units
             Cost = self.purchase_costs
-            for ki, vi in self.design_results.items():
-                addkey(('Design', ki))
-                addval((units.get(ki, ''), vi))
-            for ki, vi, ui in self._get_design_info():
-                addkey(('Design', ki))
-                addval((ui, vi))
+            if basis:
+                ureg = tmo.units_of_measure.ureg
+                ureg.default_system = basis
+                Quantity = ureg.Quantity
+                for ki, vi in self.design_results.items():
+                    addkey(('Design', ki))
+                    if ki in units:
+                        ui = units[ki]
+                        q = Quantity(vi, ui)
+                        q = q.to_base_units()
+                        vi = q.magnitude
+                        ui = q.units
+                    else:
+                        ui = ''
+                    addval((ui, vi))
+                for ki, vi, ui in self._get_design_info():
+                    addkey(('Design', ki))
+                    q = Quantity(vi, ui)
+                    q = q.to_base_units()
+                    vi = q.magnitude
+                    ui = q.units
+                    addval((ui, vi))
+            else:
+                for ki, vi in self.design_results.items():
+                    addkey(('Design', ki))
+                    addval((units.get(ki, ''), vi))
+                for ki, vi, ui in self._get_design_info():
+                    addkey(('Design', ki))
+                    addval((ui, vi))
             for ki, vi in Cost.items():
                 addcapex(('Purchase cost', ki))
                 addval(('USD', vi))
