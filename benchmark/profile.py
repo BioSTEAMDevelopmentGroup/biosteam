@@ -847,7 +847,7 @@ def plot_profile(
         systems=None, N=1, load=True, save=True
     ):
     if systems is None: systems = list(all_systems)
-    fs = 12
+    fs = 9
     bst.set_font(fs)
     keys = (
         'Component flow rate error',
@@ -879,7 +879,7 @@ def plot_profile(
         if n_cols >= 2:
             aspect_ratio = 0.75
         else:
-            aspect_ratio = 1.5
+            aspect_ratio = 1.4
         bst.set_figure_size(aspect_ratio=aspect_ratio, width=width)
     else:
         if n_cols >= 2:
@@ -982,7 +982,7 @@ def plot_profile(
                 xy = x, y = (tpo[index], ypo[index])
                 ax.annotate('Phenomena\noriented',
                     xy=xy, 
-                    xytext=(x+0.025*tub, y-5),
+                    xytext=(x+0.05*tub, y+5),
                     # arrowprops=dict(arrowstyle="->", color=cpo),
                     ha='right',
                     color=cpo,
@@ -1014,6 +1014,7 @@ def plot_profile(
     left = 0.1
     top = 0.85
     if n_rows == 2:
+        left = 0.25
         bottom = 0.1
     elif n_rows == 1:
         bottom = 0.15
