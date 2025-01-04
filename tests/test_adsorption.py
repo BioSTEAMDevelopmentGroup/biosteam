@@ -29,7 +29,7 @@ from numpy.testing import assert_allclose
 #     volume = 0.075
 #     adsorbent = 1
 #     bst.AdsorptionColumn.plot_isotherm_and_mass_transfer_coefficient_fit(
-#         Ce, qe, t, C, volume, adsorbent, 'Langmuir'
+#         Ce, qe, t, C, volume, adsorbent,
 #     )
     
 # def test_adsorption():
