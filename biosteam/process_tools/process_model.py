@@ -29,13 +29,15 @@ def scenario_info(scenario, add_metadata):
             except:
                 arg = f"{i}={j},"
         if add_metadata and i in metadata:
-            comment = grey(' # ' + metadata[i])
-            if len(comment) > 15:
+            comment = '# ' + metadata[i]
+            separate = len(arg + comment) > 50
+            comment = grey(comment)
+            if separate:
                 arguments.append(comment)
                 arguments.append(arg)
                 continue
             else:
-                arg += comment
+                arg += ' ' + comment
         arguments.append(
             arg
         )
