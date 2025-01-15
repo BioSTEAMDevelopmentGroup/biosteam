@@ -123,7 +123,7 @@ class Feature:
             first_letter = description[0]
             if first_letter.islower(): 
                 description = first_letter.upper() + description[1:]
-        if not bounds and self.units:
+        if not (bounds and  getattr(self, 'bounds', None)) and self.units:
             units = (' [' + str(self.units) + ']')
             description += units
         return description

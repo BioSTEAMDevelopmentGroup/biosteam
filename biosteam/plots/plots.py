@@ -908,10 +908,7 @@ def plot_kde(x, y, nbins=100, axes=None, fig=None,
         z = k(np.vstack([x, y]))
         # Sort the points by density, so that the densest points are plotted last
         idx = z.argsort()
-        try:
-            x, y, z = x[idx], y[idx], z[idx]
-        except:
-            breakpoint()
+        x, y, z = x[idx], y[idx], z[idx]
         
         # 2D Density with shading
         plt.sca(ax)

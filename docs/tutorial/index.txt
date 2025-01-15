@@ -29,7 +29,6 @@ User guide
           Process_specifications
           Inheriting_from_Unit
           Creating_a_System
-          Building_a_biorefinery
           Techno-economic_analysis
           Life_cycle_assessment
           Gotchas
@@ -55,8 +54,9 @@ User guide
           :numbered:
           :caption: Automation
           
-          Operational_flexibility
           Uncertainty_and_sensitivity
+          Process_models
+          Operational_flexibility
 
     .. grid-item::
     
@@ -65,5 +65,6 @@ User guide
           :numbered:
           :caption: Case studies
           
+          Sugarcane_ethanol_biorefinery
           Aerated_bioreactor_design
           Glacial_acetic_acid_separation

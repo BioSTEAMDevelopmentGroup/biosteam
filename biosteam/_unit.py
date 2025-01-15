@@ -259,7 +259,7 @@ class Unit(AbstractUnit):
     #: flexible operation (e.g., filtration membranes).
     _materials_and_maintenance: frozenset[str] = frozenset()
 
-    #: **class-attribute** Wether to link inlet and outlet streams.
+    #: **class-attribute** Whether to link inlet and outlet streams.
     _link_streams: bool = False
 
     #: **class-attribute** Lifetime of equipment. Defaults to lifetime of
