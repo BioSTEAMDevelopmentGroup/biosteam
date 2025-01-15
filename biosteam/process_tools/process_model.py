@@ -3,6 +3,7 @@
 """
 from dataclasses import dataclass
 from thermosteam.utils import AbstractMethod
+from colorpalette import Color
 import biosteam as bst
 
 __all__ = ('ProcessModel', 'ScenarioComparison')
@@ -12,9 +13,11 @@ def copy(scenario, **kwargs):
         if i not in kwargs: kwargs[i] = getattr(scenario, i)
     return scenario.__class__(**kwargs)
     
-def scenario_info(scenario):
+def scenario_info(scenario, add_metadata):
     slots = scenario.__slots__
-    metadata = scenario.metadata
+    if add_metadata: 
+        grey = Color(fg='#878787')
+        metadata = scenario.metadata
     arguments = []
     for i in slots:
         j = getattr(scenario, i)
@@ -25,8 +28,14 @@ def scenario_info(scenario):
                 arg = f"{i}={j:.3g},"
             except:
                 arg = f"{i}={j},"
-        if i in metadata:
-            arg += ' # ' + metadata[i]
+        if add_metadata and i in metadata:
+            comment = grey(' # ' + metadata[i])
+            if len(comment) > 15:
+                arguments.append(comment)
+                arguments.append(arg)
+                continue
+            else:
+                arg += comment
         arguments.append(
             arg
         )
@@ -53,8 +62,8 @@ def scenario_info(scenario):
             f"{type(scenario).__name__}()"
         )
     
-def display_scenario(scenario):
-    print(scenario_info(scenario))
+def display_scenario(scenario, metadata=True):
+    print(scenario_info(scenario, metadata))
     
 def iterate_scenario_data(scenario):
     for i in scenario.__slots__:
@@ -280,13 +289,13 @@ class ProcessModel:
         N = len(scenario_name)
         return process_name + repr(self.scenario)[N:]
     
-    def show(self):
+    def show(self, metadata=True):
         """Print representation of process model."""
         scenario = self.scenario
         scenario_name = type(scenario).__name__
         process_name = type(self).__name__
         N = len(scenario_name)
-        info = scenario_info(scenario)
+        info = scenario_info(scenario, metadata)
         print(process_name + info[N:])
     
     _ipython_display_ = show
