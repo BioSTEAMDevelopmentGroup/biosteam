@@ -93,44 +93,44 @@ class ProcessModel:
     
     It may help to look at how ProcessModel objects are created (approximately):
     
-    ```python
-    def __new__(cls, simulate=None, scenario=None, **kwargs):
-        if scenario is None:
-            self.scenario = cls.Scenario(**kwargs)
-        else:
-            # The Scenario object can be initialized through the `as_scenario` class method.
-            self.scenario = cls.as_scenario(scenario)
-        
-        # No need to recreate a process model for repeated scenarios.
-        if scenario in cls.cache: return cls.cache[scenario]
-        self = super().__new__()
-        
-        # The thermodynamic property package is given by the `create_thermo` method.
-        self.load_thermo(self.create_thermo())
-        
-        # If no system is returned by the `create_system` method, a new system is created from flowsheet units.
-        self.flowsheet = bst.Flowsheet()
-        system = self.create_system()
-        if system is None: system = self.flowsheet.create_system()
-        
-        # This saves the system as self.system and all units/streams as attributes by ID.
-        # For example, Stream('feedstock') will be stored as self.feestock.
-        self.load_system(system) 
-        
-        # A Model object is loaded from the `create_model` method.
-        # The model will be stored as self.model and all parameters and metrics as attributes by function name.
-        # For example: 
-        #
-        # @model.metric
-        # def MSP(): return self.tea.solve_price(self.product)
-        #
-        # ^ This becomes self.MSP.
-        self.load_model(self.create_model())
-        
-        if simulate: self.system.simulate()
-        self.cache[scenario] = self
-        return self
-    ```
+    .. code-block:: python
+    
+        def __new__(cls, simulate=None, scenario=None, **kwargs):
+            if scenario is None:
+                self.scenario = cls.Scenario(**kwargs)
+            else:
+                # The Scenario object can be initialized through the `as_scenario` class method.
+                self.scenario = cls.as_scenario(scenario)
+            
+            # No need to recreate a process model for repeated scenarios.
+            if scenario in cls.cache: return cls.cache[scenario]
+            self = super().__new__()
+            
+            # The thermodynamic property package is given by the `create_thermo` method.
+            self.load_thermo(self.create_thermo())
+            
+            # If no system is returned by the `create_system` method, a new system is created from flowsheet units.
+            self.flowsheet = bst.Flowsheet()
+            system = self.create_system()
+            if system is None: system = self.flowsheet.create_system()
+            
+            # This saves the system as self.system and all units/streams as attributes by ID.
+            # For example, Stream('feedstock') will be stored as self.feestock.
+            self.load_system(system) 
+            
+            # A Model object is loaded from the `create_model` method.
+            # The model will be stored as self.model and all parameters and metrics as attributes by function name.
+            # For example: 
+            #
+            # @model.metric
+            # def MSP(): return self.tea.solve_price(self.product)
+            #
+            # ^ This becomes self.MSP.
+            self.load_model(self.create_model())
+            
+            if simulate: self.system.simulate()
+            self.cache[scenario] = self
+            return self
     
     """
     #: **class-attribute** Class which defines arguments to the process model using
