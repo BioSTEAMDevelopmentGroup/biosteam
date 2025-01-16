@@ -96,10 +96,21 @@ class ScenarioComparison:
 
 class ProcessModel:
     """
-    ProcessModel is an abstract class which has missing (i.e., "abstract") 
-    attributes and methods. The user must define a `Scenario` dataclass which
-    determines all inputs to the process model. Additionally, the user must 
-    define the `as_scenario`, `create_thermo`, `create_system`, and 
+    ProcessModel objects allow us to write code for many related configurations
+    with ease. It streamlines the process of creating a model, including:
+
+    * Defining **scenarios** to compare.
+    * Creating the **thermodynamic property package**.
+    * Forming the **system** from unit operations.
+    * Setting up the evaluation **model**.
+    
+    Additionally, all objects created within the process model 
+    (e.g., chemicals, streams, units, systems) can be easily accessed as attributes.
+    
+    The first step is to inherit from the ProcessModel abstract class. 
+    An abstract class has missing (or "abstract") attributes/methods which 
+    the user must define to complete the class. The user must define a 
+    `Scenario` dataclass, and `as_scenario`, `create_thermo`, `create_system`,
     `create_model` methods for the process model to initialize its key components. 
     
     It may help to look at how ProcessModel objects are created (approximately):

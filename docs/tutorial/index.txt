@@ -55,7 +55,7 @@ User guide
           :caption: Automation
           
           Uncertainty_and_sensitivity
-          Process_models
+          Comparative_techno-economic_analysis
           Operational_flexibility
 
     .. grid-item::
