@@ -30,6 +30,7 @@ __all__ = (
     'plot_benchmark',
     'plot_profile',
     'register',
+    'all_systems',
     'test_convergence',
     'Tracker'
 )
@@ -245,50 +246,52 @@ def register(name, title, time, tickmarks, label, yticks=None):
 # )
 register(
     'acetic_acid_simple', 'Subsystem',
-    40, [0, 8, 16, 24, 32], 'AcOH sep.\nsubsystem',
+    40, [0, 8, 16, 24, 32], 'AcOH\npartial\ndewatering',
     [(-15, -10, -5, 0, 5, 10), (-15, -10, -5, 0, 5, 10)],
 )
 register(
     'acetic_acid_complex_decoupled', 'Shortcut system',
-    10, [0, 2, 4, 6, 8, 10], 'AcOH sep.\nshortcut',
+    10, [0, 2, 4, 6, 8], 'AcOH\nshortcut\ndewatering',
     [(-15, -10, -5, 0, 5), (-15, -10, -5, 0, 5)],
 )
 register(
     'acetic_acid_complex', 'Rigorous system',
-    500, [0, 100, 200, 300, 400, 500], 'AcOH sep.\nrigorous', 
-    [[-5, -2.5, 0, 2.5, 5], [-8, -5, -2, 1, 4]],
+    500, [0, 60, 120, 180, 240], 'AcOH\nindustrial\ndewatering', 
+    [(-5, -2.5, 0, 2.5, 5), (-8, -5, -2, 1, 4)],
 )
-register(
-    'alcohol_narrow_flash', 'Alcohol flash narrow',
-    0.05, [0.01, 0.02, 0.03, 0.04, 0.05], 'Alcohol\nflash\nnarrow'
-)
-register(
-    'alcohol_wide_flash', 'Alcohol flash wide',
-    0.05, [0.01, 0.02, 0.03, 0.04, 0.05], 'Alcohol\nflash\nwide'
-)
+# register(
+#     'alcohol_narrow_flash', 'Alcohol flash narrow',
+#     0.05, [0.01, 0.02, 0.03, 0.04, 0.05], 'Alcohol\nflash\nnarrow'
+# )
+# register(
+#     'alcohol_wide_flash', 'Alcohol flash wide',
+#     0.05, [0.01, 0.02, 0.03, 0.04, 0.05], 'Alcohol\nflash\nwide'
+# )
 register(
     'butanol_purification', 'Butanol purification',
-    0.4, [0.1, 0.2, 0.3, 0.4], 'BtOH\nsep.'
+    1, [0, 0.2, 0.4, 0.6, 0.8, 1], 'BtOH\nseparation',
+    [(-15, -10, -5, 0, 5), (-15, -10, -5, 0, 5)],
 )
 register(
     'ethanol_purification', 'Ethanol purification',
-    0.25, [0.05, 0.1, 0.15, 0.20, 0.25], 'EtOH\nsep.',
+    0.2, [0, 0.05, 0.1, 0.15, 0.2], 'EtOH\nseparation',
+    [(-15, -10, -5, 0, 5), (-15, -10, -5, 0, 5)],
 )
-register(
-    'hydrocarbon_narrow_flash', 'Hydrocarbon flash narrow',
-    0.05, [0.01, 0.02, 0.03, 0.04, 0.05], 'Alkane\nflash\nnarrow'
-)
-register(
-    'hydrocarbon_wide_flash', 'Hydrocarbon flash wide',
-    0.1, [0.02, 0.04, 0.06, 0.08, 0.10], 'Alkane\nflash\nwide'
-)
+# register(
+#     'hydrocarbon_narrow_flash', 'Hydrocarbon flash narrow',
+#     0.05, [0.01, 0.02, 0.03, 0.04, 0.05], 'Alkane\nflash\nnarrow'
+# )
+# register(
+#     'hydrocarbon_wide_flash', 'Hydrocarbon flash wide',
+#     0.1, [0.02, 0.04, 0.06, 0.08, 0.10], 'Alkane\nflash\nwide'
+# )
 # register(
 #     'lactic_acid_purification', 'Lactic acid purification',
 #     10, [2, 4, 6, 8, 10], 'LA\nsep.'
 # )
 register(
     'haber_bosch_process', 'Haber-Bosch',
-    0.03, [0.005, 0.010, 0.015, 0.02, 0.025, 0.03], 'HB',
+    0.03, [0, 0.007, 0.014, 0.021, 0.028], 'Haber-Bosch\nammonia\nproduction',
     [[-10, -7.5, -5, -2.5, 0], [-10, -7.5, -5, -2.5, 0]],
 )
 
@@ -352,11 +355,15 @@ def benchmark(profile, steady_state_error=None):
     if steady_state_error is None: steady_state_error = steady_state_error(profile)
     time = profile['Time']
     error = np.log10(10 ** profile['Component flow rate error'] + 10 ** profile['Temperature error'])
-    return interpolate.interp1d(error, time, bounds_error=False)(steady_state_error)
-        
+    if np.isnan(error).any(): breakpoint()
+    error = interpolate.interp1d(error, time, bounds_error=False)(steady_state_error)
+    if np.isnan(error).any(): breakpoint()
+    return error 
+    
 class Convergence:
     
     def __init__(self, system, file):
+        system.flowsheet.clear()
         try:
             with open(file, 'rb') as f: 
                 *results, benchmark = pickle.load(f)
@@ -364,8 +371,13 @@ class Convergence:
             try: system.simulate()
             except: pass
             for i in range(100): system.run()
-            system.flowsheet.clear()
             streams, adiabatic_stages, all_stages = streams_and_stages(system)
+            for stream in streams:
+                imol = stream._imol._parent
+                phases = stream.phases
+                for phase in imol.phases:
+                    if phase not in phases:
+                        imol[phase] = 0.
             flows = np.array(sum([i._imol._parent.data.rows for i in streams], []))
             Ts = np.array([i.T for i in streams])
             results = flows, Ts
@@ -384,7 +396,6 @@ class Tracker:
     
     def __init__(self, name, algorithm, rtol=1e-16, atol=1e-6, **kwargs):
         sys = all_systems[name](algorithm, **kwargs)
-        sys.flatten()
         sys._setup_units()
         sys.flowsheet.clear()
         self.system = sys
@@ -628,6 +639,12 @@ class Tracker:
             time.tic()
             f()
             net_time += time.toc()
+            for stream in streams:
+                imol = stream._imol._parent
+                phases = stream.phases
+                for phase in imol.phases:
+                    if phase not in phases:
+                        imol[phase] = 0.
             new_temperatures = np.array([i.T for i in streams])
             new_flows = np.array(sum([i._imol._parent.data.rows for i in streams], []))
             record.append(net_time)
@@ -716,7 +733,7 @@ def division_mean_std(xdx, ydy):
 
 # %% Benchmark plot
 
-def plot_benchmark(systems=None, exclude=None, N=2, load=True, save=True):
+def plot_benchmark(systems=None, exclude=None, N=5, load=True, save=True):
     if systems is None: systems = list(all_systems)
     if exclude is not None: systems = [i for i in systems if i not in exclude]
     n_systems = len(systems)
@@ -728,27 +745,51 @@ def plot_benchmark(systems=None, exclude=None, N=2, load=True, save=True):
         sms = []
         pos = []
         if load:
-            try:
-                sm_name = f'sm_{time}_{sys}_profile.npy'
+            # try:
+            for i in range(N):
+                sm_name = f'sm_{time}_{sys}_profile_{i}.npy'
                 file = os.path.join(simulations_folder, sm_name)
-                with open(file, 'rb') as f: sms = pickle.load(f)
-                po_name = f'po_{time}_{sys}_profile.npy'
-                file = os.path.join(simulations_folder, po_name)
-                with open(file, 'rb') as f: pos = pickle.load(f)
-            except:
-                for i in range(N):
+                if load:
+                    try:
+                        with open(file, 'rb') as f: sm = pickle.load(f)
+                    except:
+                        sm = Tracker(sys, 'sequential modular').profile()
+                else:
                     sm = Tracker(sys, 'sequential modular').profile()
-                    sms.append(sm)
-                for i in range(N):
-                    po = Tracker(sys, 'phenomena oriented').profile()
-                    pos.append(po)
                 if save:
-                    sm_name = f'sm_{time}_{sys}_benchmark_{N}.npy'
+                    sm_name = f'sm_{time}_{sys}_profile_{i}.npy'
                     file = os.path.join(simulations_folder, sm_name)
-                    with open(file, 'wb') as f: pickle.dump(sms, f)
-                    po_name = f'po_{time}_{sys}_benchmark_{N}.npy'
+                    with open(file, 'wb') as f: pickle.dump(sm, f)
+                sms.append(sm)
+            for i in range(N):
+                po_name = f'po_{time}_{sys}_profile_{i}.npy'
+                file = os.path.join(simulations_folder, po_name)
+                if load:
+                    try:
+                        with open(file, 'rb') as f: po = pickle.load(f)
+                    except:
+                        po = Tracker(sys, 'phenomena oriented').profile()
+                else:
+                    po = Tracker(sys, 'phenomena oriented').profile()
+                if save:
+                    po_name = f'po_{time}_{sys}_profile_{i}.npy'
                     file = os.path.join(simulations_folder, po_name)
-                    with open(file, 'wb') as f: pickle.dump(pos, f)
+                    with open(file, 'wb') as f: pickle.dump(po, f)
+                pos.append(po)
+            # except:
+            #     for i in range(N):
+            #         sm = Tracker(sys, 'sequential modular').profile()
+            #         sms.append(sm)
+            #     for i in range(N):
+            #         po = Tracker(sys, 'phenomena oriented').profile()
+            #         pos.append(po)
+            #     if save:
+            #         sm_name = f'sm_{time}_{sys}_benchmark_{N}.npy'
+            #         file = os.path.join(simulations_folder, sm_name)
+            #         with open(file, 'wb') as f: pickle.dump(sms, f)
+            #         po_name = f'po_{time}_{sys}_benchmark_{N}.npy'
+            #         file = os.path.join(simulations_folder, po_name)
+            #         with open(file, 'wb') as f: pickle.dump(pos, f)
         else:
             for i in range(N):
                 sm = Tracker(sys, 'sequential modular').profile()
@@ -763,16 +804,22 @@ def plot_benchmark(systems=None, exclude=None, N=2, load=True, save=True):
                 po_name = f'po_{time}_{sys}_profile.npy'
                 file = os.path.join(simulations_folder, po_name)
                 with open(file, 'wb') as f: pickle.dump(pos, f)
+        pos = pos[1:]
+        sms = sms[1:]
         cutoff = max([steady_state_error(i) for i in sms + pos])
         sms = np.array([benchmark(i, cutoff) for i in sms])
         pos = np.array([benchmark(i, cutoff) for i in pos])
         pos_mean_std = [np.mean(pos), np.std(pos)]
         sms_mean_std = [np.mean(sms), np.std(sms)]
         mean, std = division_mean_std(pos_mean_std, sms_mean_std)
-        sm_better = False
-        # sm_better = mean > 1
-        # if sm_better: mean = 1 / mean
+        # sm_better = False
+        sm_better = mean > 1
+        if sm_better: mean = 1 / mean
         results[m] = [100 * mean, 100 * std, sm_better]
+        # print(sms)
+        # print(pos)
+        # print([100 * mean, 100 * std, sm_better])
+        # breakpoint()
         # sm = dct_mean_std(sms, keys)
         # po = dct_mean_std(pos, keys)
         # system_results.append((sm, po))
@@ -783,11 +830,13 @@ def plot_benchmark(systems=None, exclude=None, N=2, load=True, save=True):
     n_cols = 1
     fs = 10
     bst.set_font(fs)
-    bst.set_figure_size(aspect_ratio=0.9, width='half')
+    bst.set_figure_size()
     fig, ax = plt.subplots(n_rows, n_cols)
-    red = Color(fg='#f1777f').RGBn
-    blue = Color(fg='#5fc1cf').RGBn
+    # red = Color(fg='#f1777f').RGBn
+    # blue = Color(fg='#5fc1cf').RGBn
     black = Color(fg='#7b8580').RGBn
+    csm = Color(fg='#33BBEE').RGBn
+    cpo = Color(fg='#EE7733').RGBn
     # csm = Color(fg='#33BBEE').RGBn
     # cpo = Color(fg='#EE7733').RGBn
     yticks = (0, 25, 50, 75, 100, 125)
@@ -797,9 +846,9 @@ def plot_benchmark(systems=None, exclude=None, N=2, load=True, save=True):
     sm_index, = np.where(results[:, -1])
     po_index, = np.where(~results[:, -1].astype(bool))
     plt.errorbar([xticks[i] for i in sm_index], results[sm_index, 0], 
-                 yerr=results[sm_index, 1], color=red, marker='x', linestyle='', ms=10,
+                 yerr=results[sm_index, 1], color=csm, marker='x', linestyle='', ms=10,
                  capsize=5, capthick=1.5, ecolor=black)
-    plt.errorbar([xticks[i] for i in po_index], results[po_index, 0], yerr=results[po_index, 1], color=blue,
+    plt.errorbar([xticks[i] for i in po_index], results[po_index, 0], yerr=results[po_index, 1], color=cpo,
                  marker='s', linestyle='', capsize=5, capthick=1.5, ecolor=black)
     plt.axhline(y=100, color='grey', ls='--', zorder=-1)
     plt.ylabel('Simulation time [%]')
@@ -808,7 +857,7 @@ def plot_benchmark(systems=None, exclude=None, N=2, load=True, save=True):
         xticklabels=xticklabels,
         yticklabels=yticklabels,
     )
-    plt.subplots_adjust(right=0.96, left=0.2, hspace=0, wspace=0)
+    plt.subplots_adjust(right=0.96, left=0.2, bottom=0.2, top=0.95, hspace=0, wspace=0)
     for i in ('svg', 'png'):
         name = f'PO_SM_{time}_benchmark_{N}.{i}'
         file = os.path.join(images_folder, name)
@@ -851,7 +900,7 @@ def plot_profile(
     bst.set_font(fs)
     keys = (
         'Component flow rate error',
-        'Temperature error',
+        # 'Temperature error',
         # 'Component flow rate',
         # 'Stream temperature',
         # 'Stripping factor',
@@ -860,7 +909,7 @@ def plot_profile(
     )
     units = (
         r'$[\mathrm{mol} \cdot \mathrm{hr}^{\mathrm{-1}}]$',
-        r'$[\mathrm{K}]$',
+        # r'$[\mathrm{K}]$',
         # r'$[\mathrm{mol} \cdot \mathrm{hr}^{\mathrm{-1}}]$',
         # r'$[\mathrm{K}]$',
         # r'$[-]$',
@@ -932,6 +981,8 @@ def plot_profile(
                 file = os.path.join(simulations_folder, po_name)
                 with open(file, 'wb') as f: pickle.dump(po, f)
             pos.append(po)
+        pos = pos[1:]
+        sms = sms[1:]
         tub = system_tickmarks[sys][-1]
         tub = min(tub, min([dct['Time'][-1] for dct in sms]), min([dct['Time'][-1] for dct in pos]))
         sm = dct_mean_profile(sms, keys, tub)
@@ -950,7 +1001,13 @@ def plot_profile(
         yticks_list = system_yticks[sys]
         for n, (i, ax, u) in enumerate(zip(keys, axes, units)):
             plt.sca(ax)
-            if n == n_rows-1: plt.xlabel('Time [s]')
+            xticks = system_tickmarks[sys]
+            ms = False # (np.array(xticks) < 1e-1).all()
+            if n == n_rows-1: 
+                if ms:
+                    plt.xlabel('Time [ms]')
+                else:
+                    plt.xlabel('Time [s]')
             label = labels[i]
             if m == 0: plt.ylabel(f'{label} {u}')
             ysm = np.array(sm[i])
@@ -959,6 +1016,10 @@ def plot_profile(
             ypo = gaussian_filter(ypo, 0.2)
             tsm = np.array(sm['Time'])
             tpo = np.array(po['Time'])
+            if ms: 
+                xticks = [int(i * 1e3) for i in xticks]
+                tsm *= 1e3
+                tpo *= 1e3
             plt.plot(tsm, ysm, '--', color=csm, lw=1.5, alpha=0.5)
             plt.plot(tsm, ysm, lw=0, marker='.', color=csm, markersize=2.5)
             plt.plot(tpo, ypo, lw=0, marker='.', color=cpo, markersize=2.5)
@@ -967,29 +1028,28 @@ def plot_profile(
             yticks = yticks_list[n]
             if yticklabels:
                 yticklabels = [r'$\mathrm{10}^{' f'{i}' '}$' for i in yticks]
-            if m == 0 and n == 0:
-                index = int(len(tsm) * 0.5)
-                xy = x, y = (tsm[index], ysm[index])
-                ax.annotate('Sequential\nmodular',
-                    xy=xy, 
-                    xytext=(x-0.01*tub, y+1),
-                    # arrowprops=dict(arrowstyle="->", color=csm),
-                    color=csm,
-                    fontsize=fs,
-                    fontweight='bold',
-                )
-                index = int(len(tpo) * 0.5)
-                xy = x, y = (tpo[index], ypo[index])
-                ax.annotate('Phenomena\noriented',
-                    xy=xy, 
-                    xytext=(x+0.05*tub, y+5),
-                    # arrowprops=dict(arrowstyle="->", color=cpo),
-                    ha='right',
-                    color=cpo,
-                    fontsize=fs,
-                    fontweight='bold',
-                )
-            xticks = system_tickmarks[sys]
+            # if m == 0 and n == 0:
+            #     index = int(len(tsm) * 0.5)
+            #     xy = x, y = (tsm[index], ysm[index])
+            #     ax.annotate('Sequential\nmodular',
+            #         xy=xy, 
+            #         xytext=(x-0.01*tub, y+1),
+            #         # arrowprops=dict(arrowstyle="->", color=csm),
+            #         color=csm,
+            #         fontsize=fs,
+            #         fontweight='bold',
+            #     )
+            #     index = int(len(tpo) * 0.5)
+            #     xy = x, y = (tpo[index], ypo[index])
+            #     ax.annotate('Phenomena\noriented',
+            #         xy=xy, 
+            #         xytext=(x+0.05*tub, y+5),
+            #         # arrowprops=dict(arrowstyle="->", color=cpo),
+            #         ha='right',
+            #         color=cpo,
+            #         fontsize=fs,
+            #         fontweight='bold',
+            #     )
             xticklabels = xtick0 = n == n_rows-1
             xtickf = m == n_cols-1
             ytick0 = n == n_rows-1

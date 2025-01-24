@@ -2,7 +2,7 @@
 """
 """
 from dataclasses import dataclass
-from thermosteam.utils import AbstractMethod
+from thermosteam.utils import AbstractMethod, AbstractClassMethod
 from colorpalette import Color
 import biosteam as bst
 
@@ -92,7 +92,7 @@ class ScenarioComparison:
             f')'
         )
     _ipython_display_ = show
-        
+
 
 class ProcessModel:
     """
@@ -163,9 +163,9 @@ class ProcessModel:
     #: It should return a Scenario object.
     default_scenario = AbstractMethod
     
-    #: **class method** This method allows the process model to interpret objects 
+    #: This method allows the process model to interpret objects 
     #: (e.g., strings, numbers) as a Scenario.
-    as_scenario = AbstractMethod
+    as_scenario = AbstractClassMethod
     
     #: This method should return a chemicals or thermo object.
     #: BioSTEAM will automatically set it as the thermodynmic property package.

@@ -1753,7 +1753,12 @@ class MultiStageEquilibrium(Unit):
                 for n in range(self.max_attempts-1):
                     self.iter = 0
                     self.attempt = n
-                    top_flow_rates = solver(self._conditional_iter, top_flow_rates)
+                    try:
+                        top_flow_rates = solver(self._conditional_iter, top_flow_rates)
+                    except:
+                        for i in self.stages: i._run()
+                        for i in reversed(self.stages): i._run()
+                        continue
                     if self.iter == self.maxiter:
                         for i in self.stages: i._run()
                         for i in reversed(self.stages): i._run()
@@ -1918,6 +1923,10 @@ class MultiStageEquilibrium(Unit):
             all_stages, feed_stages, stage_specifications,
             top_side_draws, bottom_side_draws,
         ):
+        last = 0
+        for i in sorted(all_stages):
+            if i == last + 1: continue
+            all_stages.add(i)
         N_stages = len(all_stages)
         stage_map = {j: i for i, j in enumerate(sorted(all_stages))}
         feed_stages = [stage_map[i] for i in feed_stages]
