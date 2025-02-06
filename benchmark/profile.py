@@ -22,6 +22,10 @@ import pickle
 import thermosteam as tmo
 from scipy.integrate import romb
 from scipy.optimize import minimize
+from warnings import warn
+from biosteam import report
+import openpyxl
+import json
 
 __all__ = (
     'BenchmarkModel',
@@ -32,6 +36,8 @@ __all__ = (
     'register',
     'all_systems',
     'test_convergence',
+    'save_stream_tables_and_specifications',
+    'save_simulation_errors',
     'Tracker'
 )
 
@@ -229,10 +235,17 @@ system_convergence_times = {}
 system_tickmarks = {}
 system_labels = {}
 system_yticks = {}
+try:
+    with open('system_stages.json') as f: system_stages = json.load(f)
+except:
+    system_stages = {}
 
 def register(name, title, time, tickmarks, label, yticks=None):
     f = getattr(systems, 'create_system_' + name, None) or getattr(systems, 'create_' + name + '_system')
     if yticks is None: yticks = [(-10, -5, 0, 5), (-10, -5, 0, 5)]
+    if name not in system_stages: 
+        sys = f(None)
+        system_stages[name] = len(sys.stages)
     all_systems[name] = f
     system_titles[name] = title
     system_convergence_times[name] = time
@@ -247,7 +260,8 @@ def register(name, title, time, tickmarks, label, yticks=None):
 register(
     'acetic_acid_simple', 'Subsystem',
     40, [0, 8, 16, 24, 32], 'AcOH\npartial\ndewatering',
-    [(-15, -10, -5, 0, 5, 10), (-15, -10, -5, 0, 5, 10)],
+    [(-15, -10, -5, 0, 5), (-15, -10, -5, 0, 5)],
+    # [(-15, -10, -5, 0, 5, 10), (-15, -10, -5, 0, 5, 10)],
 )
 register(
     'acetic_acid_complex_decoupled', 'Shortcut system',
@@ -256,8 +270,9 @@ register(
 )
 register(
     'acetic_acid_complex', 'Rigorous system',
-    500, [0, 60, 120, 180, 240], 'AcOH\nindustrial\ndewatering', 
-    [(-5, -2.5, 0, 2.5, 5), (-8, -5, -2, 1, 4)],
+    240, [0, 60, 120, 180, 240], 'AcOH\nindustrial\ndewatering', 
+    [(-15, -10, -5, 0, 5), (-15, -10, -5, 0, 5)],
+    # [(-5, -2.5, 0, 2.5, 5), (-8, -5, -2, 1, 4)],
 )
 # register(
 #     'alcohol_narrow_flash', 'Alcohol flash narrow',
@@ -269,12 +284,12 @@ register(
 # )
 register(
     'butanol_purification', 'Butanol purification',
-    1, [0, 0.2, 0.4, 0.6, 0.8, 1], 'BtOH\nseparation',
+    1, [0, 0.1, 0.2, 0.3, 0.4, 0.5], 'BtOH\nseparation',
     [(-15, -10, -5, 0, 5), (-15, -10, -5, 0, 5)],
 )
 register(
     'ethanol_purification', 'Ethanol purification',
-    0.2, [0, 0.05, 0.1, 0.15, 0.2], 'EtOH\nseparation',
+    0.2, [0, 0.03, 0.06, 0.09, 0.12], 'EtOH\nseparation',
     [(-15, -10, -5, 0, 5), (-15, -10, -5, 0, 5)],
 )
 # register(
@@ -291,9 +306,11 @@ register(
 # )
 register(
     'haber_bosch_process', 'Haber-Bosch',
-    0.03, [0, 0.007, 0.014, 0.021, 0.028], 'Haber-Bosch\nammonia\nproduction',
+    0.03, [0, 0.004, 0.010, 0.015, 0.020], 'Haber-Bosch\nammonia\nproduction',
     [[-10, -7.5, -5, -2.5, 0], [-10, -7.5, -5, -2.5, 0]],
 )
+
+with open('system_stages.json', 'w') as file: json.dump(system_stages, file)
 
 # %% Testing
 
@@ -339,16 +356,76 @@ def test_convergence(systems=None, alg=None, maxiter=None):
                             print(f'- Multiple steady stages for {s_sm}, {s_sm.sink.ins.index(s_sm)}-{s_sm.sink}: sm-{actual} po-{value}')
     return outs
 
+# %% Stream tables and specifications
+
+def save_stream_tables_and_specifications(systems=None):
+    if systems is None: systems = list(all_systems)
+    for sys in systems:
+        po = Tracker(sys, 'phenomena oriented')
+        for i in range(50): po.run()
+        with po.system.stage_configuration() as conf:
+            for i in conf.streams:
+                if i.ID == '': i.ID = ''
+        name = system_labels[sys].replace('\n', ' ')
+        file_name = f'{name}.xlsx'
+        file = os.path.join(simulations_folder, file_name)
+        po.system.save_report(
+            file=file,
+            sheets={
+                'Flowsheet',
+                'Stream table',
+                'Specifications',
+                'Reactions',
+            },
+            stage=True,
+        )
+
+# %% Simulation errors
+
+def save_simulation_errors(systems=None):
+    if systems is None: systems = list(all_systems)
+    values = []
+    for sys in systems:
+        file_name = f"{sys}_steady_state"
+        file = os.path.join(simulations_folder, file_name)
+        values.append([
+            Convergence(
+                all_systems[sys](i), file
+            ).benchmark
+            for i in ('phenomena-oriented', 'sequential-modular')
+        ])
+    df = pd.DataFrame(
+        values, 
+        [system_labels[i].replace('\n', ' ') for i in systems], 
+        ('Phenomena-based', 'Sequential modular')
+    )
+    file_name = 'Simulation times.xlsx'
+    file = os.path.join(simulations_folder, file_name)
+    df.to_excel(file)
+    return df
+
+
+# %% Convergence time
+
+def convergence_time(sm, po):
+    ysm = np.array(sm)
+    ypo = np.array(po)
+    cutoff = ysm.min() + 1
+    sm_index = sum(ysm > cutoff)
+    po_index = sum(ypo > cutoff)
+    return sm['Time'][sm_index], po['Time'][po_index]
+
+
 # %% Profiling and benchmarking utilities
 
 class ErrorPoint(NamedTuple):
     time: float; error: float
 
-default_steady_state_cutoff = 2
+default_steady_state_cutoff = 1
     
 def steady_state_error(profile, steady_state_cutoff=None):
     if steady_state_cutoff is None: steady_state_cutoff = default_steady_state_cutoff
-    minimum_error = np.log10(10 ** profile['Component flow rate error'][-1] + 10 ** profile['Temperature error'][-1])
+    minimum_error = np.log10(10 ** profile['Component flow rate error'][-1] + 10 ** profile['Temperature error'][-1]) 
     return minimum_error + steady_state_cutoff
     
 def benchmark(profile, steady_state_error=None):
@@ -356,9 +433,9 @@ def benchmark(profile, steady_state_error=None):
     time = profile['Time']
     error = np.log10(10 ** profile['Component flow rate error'] + 10 ** profile['Temperature error'])
     if np.isnan(error).any(): breakpoint()
-    error = interpolate.interp1d(error, time, bounds_error=False)(steady_state_error)
+    time = interpolate.interp1d(error, time, bounds_error=False)(steady_state_error)
     if np.isnan(error).any(): breakpoint()
-    return error 
+    return time 
     
 class Convergence:
     
@@ -381,6 +458,8 @@ class Convergence:
             flows = np.array(sum([i._imol._parent.data.rows for i in streams], []))
             Ts = np.array([i.T for i in streams])
             results = flows, Ts
+            # cfe, te = zip(*[i._simulation_error() for i in all_stages])
+            system.run()
             cfe, te = zip(*[i._simulation_error() for i in all_stages])
             benchmark = sum(cfe) + sum(te)
             with open(file, 'wb') as f: pickle.dump((*results, benchmark), f)
@@ -733,12 +812,15 @@ def division_mean_std(xdx, ydy):
 
 # %% Benchmark plot
 
-def plot_benchmark(systems=None, exclude=None, N=5, load=True, save=True):
+def plot_benchmark(systems=None, exclude=None, N=5, load=True, save=True, sort_by_stage=True, label_stages=True):
     if systems is None: systems = list(all_systems)
     if exclude is not None: systems = [i for i in systems if i not in exclude]
+    if sort_by_stage: systems = sorted(systems, key=lambda x: system_stages[x])
     n_systems = len(systems)
     results = np.zeros([n_systems, 3])
     Ns = N * np.ones(n_systems, int)
+    index = []
+    values = []
     for m, sys in enumerate(systems):
         N = Ns[m]
         time = system_convergence_times[sys]
@@ -804,11 +886,18 @@ def plot_benchmark(systems=None, exclude=None, N=5, load=True, save=True):
                 po_name = f'po_{time}_{sys}_profile.npy'
                 file = os.path.join(simulations_folder, po_name)
                 with open(file, 'wb') as f: pickle.dump(pos, f)
-        pos = pos[1:]
-        sms = sms[1:]
         cutoff = max([steady_state_error(i) for i in sms + pos])
         sms = np.array([benchmark(i, cutoff) for i in sms])
         pos = np.array([benchmark(i, cutoff) for i in pos])
+        values.append(pos)
+        name = system_labels[sys].replace('\n', ' ')
+        index.append(
+            (name, 'Phen.')
+        )
+        values.append(sms)
+        index.append(
+            (name, 'Seq. mod.')
+        )
         pos_mean_std = [np.mean(pos), np.std(pos)]
         sms_mean_std = [np.mean(sms), np.std(sms)]
         mean, std = division_mean_std(pos_mean_std, sms_mean_std)
@@ -826,9 +915,18 @@ def plot_benchmark(systems=None, exclude=None, N=5, load=True, save=True):
     # Assume only time matters from here on
     # for i, (sm, po) in enumerate(system_results):
     #     results[i] = uncertainty_percent(po['Time'], sm['Time'])
+    df = pd.DataFrame(
+        values, 
+        index=pd.MultiIndex.from_tuples(index),
+        columns=[str(i) for i in range(N)], 
+    )
+    file_name = 'Simulation times.xlsx'
+    file = os.path.join(simulations_folder, file_name)
+    df.to_excel(file)
+    
     n_rows = 1
     n_cols = 1
-    fs = 10
+    fs = 8
     bst.set_font(fs)
     bst.set_figure_size()
     fig, ax = plt.subplots(n_rows, n_cols)
@@ -842,7 +940,10 @@ def plot_benchmark(systems=None, exclude=None, N=5, load=True, save=True):
     yticks = (0, 25, 50, 75, 100, 125)
     yticklabels = [f'{i}%' for i in yticks]
     xticks = list(range(n_systems))
-    xticklabels = [system_labels[sys] for sys in systems]
+    if label_stages:
+        xticklabels = [system_labels[sys] + f'\n[{system_stages[sys]} stages]' for sys in systems]
+    else:
+        xticklabels = [system_labels[sys] for sys in systems]
     sm_index, = np.where(results[:, -1])
     po_index, = np.where(~results[:, -1].astype(bool))
     plt.errorbar([xticks[i] for i in sm_index], results[sm_index, 0], 
@@ -851,7 +952,7 @@ def plot_benchmark(systems=None, exclude=None, N=5, load=True, save=True):
     plt.errorbar([xticks[i] for i in po_index], results[po_index, 0], yerr=results[po_index, 1], color=cpo,
                  marker='s', linestyle='', capsize=5, capthick=1.5, ecolor=black)
     plt.axhline(y=100, color='grey', ls='--', zorder=-1)
-    plt.ylabel('Simulation time [%]')
+    plt.ylabel('Relative simulation time [%]')
     bst.utils.style_axis(
         ax, xticks=xticks, yticks=yticks,
         xticklabels=xticklabels,
@@ -867,11 +968,12 @@ def plot_benchmark(systems=None, exclude=None, N=5, load=True, save=True):
 
 # %%  Profile plot
 
-def dct_mean_profile(dcts: list[dict], keys: list[str], ub: float, n=50):
-    mean = {i: np.zeros(n) for i in keys}
-    tmin = np.min([np.min(i['Time']) for i in dcts])
-    t = np.linspace(0, ub, n)
-    goods = [np.zeros(n) for i in range(len(keys))]
+def dct_mean_profile(dcts: list[dict], keys: list[str], ub: float):
+    tmin = np.mean([np.min(i['Time']) for i in dcts])
+    size = np.min([len(i['Time']) for i in dcts])
+    t = np.array([i['Time'][:size] for i in dcts]).mean(axis=0)
+    mean = {i: np.zeros(size) for i in keys}
+    goods = [np.zeros(size) for i in range(len(keys))]
     for dct in dcts:
         for i, good in zip(keys, goods): 
             x = dct['Time']
@@ -893,29 +995,30 @@ def dct_mean_std(dcts: list[dict], keys: list[str]):
     return {i: (values[i].mean(), values[i].std()) for i in keys}
 
 def plot_profile(
-        systems=None, N=1, load=True, save=True
+        systems=None, N=1, load=True, save=True,
+        T=False,
     ):
     if systems is None: systems = list(all_systems)
     fs = 9
     bst.set_font(fs)
     keys = (
-        'Component flow rate error',
-        # 'Temperature error',
-        # 'Component flow rate',
-        # 'Stream temperature',
-        # 'Stripping factor',
-        # 'Material balance',
-        # 'Energy balance',
+        'Temperature error' if T else 'Component flow rate error' ,
     )
+    # 'Temperature error',
+    # 'Component flow rate',
+    # 'Stream temperature',
+    # 'Stripping factor',
+    # 'Material balance',
+    # 'Energy balance',
     units = (
-        r'$[\mathrm{mol} \cdot \mathrm{hr}^{\mathrm{-1}}]$',
-        # r'$[\mathrm{K}]$',
-        # r'$[\mathrm{mol} \cdot \mathrm{hr}^{\mathrm{-1}}]$',
-        # r'$[\mathrm{K}]$',
-        # r'$[-]$',
-        # r'$[\mathrm{mol} \cdot \mathrm{hr}^{\mathrm{-1}}]$',
-        # r'$[\mathrm{K}]$',
+        r'$[\mathrm{K}]$' if T else r'$[\mathrm{mol} \cdot \mathrm{hr}^{\mathrm{-1}}]$',
     )
+    # r'$[\mathrm{K}]$',
+    # r'$[\mathrm{mol} \cdot \mathrm{hr}^{\mathrm{-1}}]$',
+    # r'$[\mathrm{K}]$',
+    # r'$[-]$',
+    # r'$[\mathrm{mol} \cdot \mathrm{hr}^{\mathrm{-1}}]$',
+    # r'$[\mathrm{K}]$',
     n_rows = len(units)
     n_cols = len(systems)
     if n_cols >= 2: 
@@ -985,8 +1088,16 @@ def plot_profile(
         sms = sms[1:]
         tub = system_tickmarks[sys][-1]
         tub = min(tub, min([dct['Time'][-1] for dct in sms]), min([dct['Time'][-1] for dct in pos]))
+        for dct in sms + pos:
+            for key in dct:
+                if key == 'Time': continue
+                dct[key] = 10 ** np.array(dct[key])
         sm = dct_mean_profile(sms, keys, tub)
         po = dct_mean_profile(pos, keys, tub)
+        for dct in (sm, po):
+            for key in dct:
+                if key == 'Time': continue
+                dct[key] = np.log10(dct[key])
         csm = Color(fg='#33BBEE').RGBn
         cpo = Color(fg='#EE7733').RGBn
         labels = {
@@ -1014,6 +1125,9 @@ def plot_profile(
             ypo = np.array(po[i])
             ysm = gaussian_filter(ysm, 0.2)
             ypo = gaussian_filter(ypo, 0.2)
+            cutoff = ysm.min() + 1
+            sm_index = sum(ysm > cutoff)
+            po_index = sum(ypo > cutoff)
             tsm = np.array(sm['Time'])
             tpo = np.array(po['Time'])
             if ms: 
@@ -1024,6 +1138,11 @@ def plot_profile(
             plt.plot(tsm, ysm, lw=0, marker='.', color=csm, markersize=2.5)
             plt.plot(tpo, ypo, lw=0, marker='.', color=cpo, markersize=2.5)
             plt.plot(tpo, ypo, '-', color=cpo, lw=1.5, alpha=0.5)
+            plt.plot(tsm[sm_index], ysm[sm_index], lw=0, marker='x', color=csm, markersize=5)
+            plt.plot(tpo[po_index], ypo[po_index], lw=0, marker='x', color=cpo, markersize=5)
+            print(sm_index, po_index)
+            # plt.annotate(str(sm_index), (tsm[sm_index], ysm[sm_index]), (tsm[sm_index], ysm[sm_index] - 1.5), color=csm)
+            # plt.annotate(str(po_index), (tpo[po_index], ypo[po_index]), (tpo[po_index], ypo[po_index] + 0.5), color=cpo)
             yticklabels = m == 0
             yticks = yticks_list[n]
             if yticklabels:
@@ -1094,4 +1213,4 @@ def plot_profile(
         name = f'PO_SM_{system_names}_profile.{i}'
         file = os.path.join(images_folder, name)
         plt.savefig(file, dpi=900, transparent=True)
-    return fig, all_axes, sms, pos
+    # return fig, all_axes, sms, pos
