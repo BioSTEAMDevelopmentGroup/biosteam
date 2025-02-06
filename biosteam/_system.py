@@ -2149,6 +2149,10 @@ class System:
     def _cluster_digraph(self, graph_attrs):
         return digraph_from_system(self, **graph_attrs)
 
+    def _stage_digraph(self, graph_attrs):
+        with self.stage_configuration(aggregated=False) as conf:
+            return digraph_from_units(conf.stages, conf.streams, **graph_attrs)
+
     def diagram(self, kind: Optional[int|str]=None, file: Optional[str]=None, 
                 format: Optional[str]=None, display: Optional[bool]=True,
                 number: Optional[bool]=None, profile: Optional[bool]=None,
@@ -2163,9 +2167,10 @@ class System:
         ----------
         kind :
             * 0 or 'cluster': Display all units clustered by system.
-            * 1 or 'thorough': Display every unit within the path.
+            * 1 or 'thorough': Display every unit within the system.
             * 2 or 'surface': Display only elements listed in the path.
-            * 3 or 'minimal': Display a single box representing all units.
+            * 3 or 'minimal': Display a single box representing the system.
+            * 4 or 'stage': Display every stage within the system.
         file : 
             File name to save diagram. 
         format:
@@ -2203,6 +2208,8 @@ class System:
                 f = self._surface_digraph(graph_attrs)
             elif kind == 3 or kind == 'minimal':
                 f = self._minimal_digraph(graph_attrs)
+            elif kind == 4 or kind == 'stage':
+                f = self._stage_digraph(graph_attrs)
             else:
                 raise ValueError("kind must be one of the following: "
                                  "0 or 'cluster', 1 or 'thorough', 2 or 'surface', "
@@ -3486,7 +3493,14 @@ class System:
             return series
 
     # Report summary
-    def save_report(self, file: Optional[str]='report.xlsx', dpi: Optional[str]='900', **stream_properties): 
+    def save_report(
+            self, 
+            file: Optional[str]='report.xlsx', 
+            dpi: Optional[str]='900', 
+            sheets=None,
+            stage=False,
+            **stream_properties
+        ): 
         """
         Save a system report as an xlsx file.
         
@@ -3500,83 +3514,108 @@ class System:
             Additional stream properties and units as key-value pairs (e.g. T='degC', flow='gpm', H='kW', etc..)
             
         """
+        if sheets is None:
+            sheets = {
+                'Flowsheet',
+                'Itemized costs',
+                'Stream table',
+                'Utilities',
+                'Design requirements',
+                'Reactions',
+                # 'Specifications'
+            }
         writer = pd.ExcelWriter(file)
         units = sorted(self.units, key=lambda x: x.line)
         cost_units = [i for i in units if i._design or i._cost]
-        try:
-            with bst.preferences.temporary() as p:
-                p.reset()
-                p.light_mode()
-                self.diagram('thorough', file='flowsheet', dpi=str(dpi), format='png')
-        except:
-            diagram_completed = False
-            warn(RuntimeWarning('failed to generate diagram through graphviz'), stacklevel=2)
-        else:
-            import PIL.Image
+        if 'Flowsheet' in sheets:
             try:
-                # Assume openpyxl is used
-                worksheet = writer.book.create_sheet('Flowsheet')
-                flowsheet = openpyxl.drawing.image.Image('flowsheet.png')
-                worksheet.add_image(flowsheet, anchor='A1')
-            except PIL.Image.DecompressionBombError:
-                PIL.Image.MAX_IMAGE_PIXELS = int(1e9)
-                flowsheet = openpyxl.drawing.image.Image('flowsheet.png')
-                worksheet.add_image(flowsheet, anchor='A1')
+                with bst.preferences.temporary() as p:
+                    p.reset()
+                    p.light_mode()
+                    kind = 'stage' if stage else 'thorough'
+                    self.diagram(kind, file='flowsheet', dpi=str(dpi), format='png')
             except:
-                # Assume xlsx writer is used
-                try:
-                    worksheet = writer.book.add_worksheet('Flowsheet')
-                except:
-                    warn("problem in saving flowsheet; please submit issue to BioSTEAM with"
-                         "your current version of openpyxl and xlsx writer", RuntimeWarning)
-                worksheet.insert_image('A1', 'flowsheet.png')
-            diagram_completed = True
-        
-        tea = self.TEA
-        if tea:
-            tea = self.TEA
-            cost = report.cost_table(tea)
-            cost.to_excel(writer, 'Itemized costs')
-            tea.get_cashflow_table().to_excel(writer, 'Cash flow')
-        else:
-            warn(f'Cannot find TEA object in {repr(self)}. Ignoring TEA sheets.',
-                 RuntimeWarning, stacklevel=2)
-        
-        # Stream tables
-        # Organize streams by chemicals first
-        streams_by_chemicals = {}
-        for i in self.streams:
-            if not i: continue
-            chemicals = i.chemicals
-            if chemicals in streams_by_chemicals:
-                streams_by_chemicals[chemicals].append(i)
+                diagram_completed = False
+                warn(RuntimeWarning('failed to generate diagram through graphviz'), stacklevel=2)
             else:
-                streams_by_chemicals[chemicals] = [i]
-        stream_tables = []
-        for chemicals, streams in streams_by_chemicals.items():
-            stream_tables.append(report.stream_table(streams, chemicals=chemicals, T='K', **stream_properties))
-        report.tables_to_excel(stream_tables, writer, 'Stream table')
+                import PIL.Image
+                try:
+                    # Assume openpyxl is used
+                    worksheet = writer.book.create_sheet('Flowsheet')
+                    flowsheet = openpyxl.drawing.image.Image('flowsheet.png')
+                    worksheet.add_image(flowsheet, anchor='A1')
+                except PIL.Image.DecompressionBombError:
+                    PIL.Image.MAX_IMAGE_PIXELS = int(1e9)
+                    flowsheet = openpyxl.drawing.image.Image('flowsheet.png')
+                    worksheet.add_image(flowsheet, anchor='A1')
+                except:
+                    # Assume xlsx writer is used
+                    try:
+                        worksheet = writer.book.add_worksheet('Flowsheet')
+                    except:
+                        warn("problem in saving flowsheet; please submit issue to BioSTEAM with"
+                             "your current version of openpyxl and xlsx writer", RuntimeWarning)
+                    worksheet.insert_image('A1', 'flowsheet.png')
+                diagram_completed = True
         
-        # Heat utility tables
-        heat_utilities = report.heat_utility_tables(cost_units)
-        n_row = report.tables_to_excel(heat_utilities, writer, 'Utilities')
+        if 'Itemized costs' in sheets:
+            tea = self.TEA
+            if tea:
+                tea = self.TEA
+                cost = report.cost_table(tea)
+                cost.to_excel(writer, 'Itemized costs')
+                tea.get_cashflow_table().to_excel(writer, 'Cash flow')
+            else:
+                warn(f'Cannot find TEA object in {repr(self)}. Ignoring TEA sheets.',
+                     RuntimeWarning, stacklevel=2)
         
-        # Power utility table
-        power_utility = report.power_utility_table(cost_units)
-        n_row = report.tables_to_excel([power_utility], writer, 'Utilities', n_row=n_row)
+        if 'Stream table' in sheets:
+            if stage:
+                with self.stage_configuration() as conf:
+                    stream_tables = report.stream_tables(conf.streams, **stream_properties)
+            else:
+                stream_tables = report.stream_tables(self.streams, **stream_properties)
+            report.tables_to_excel(stream_tables, writer, 'Stream table')
         
-        # Fees table
-        other_utilities = report.other_utilities_table(cost_units)
-        n_row = report.tables_to_excel(other_utilities, writer, 'Utilities', n_row=n_row)
+        if 'Utilities' in sheets:
+            # Heat utility tables
+            heat_utilities = report.heat_utility_tables(cost_units)
+            n_row = report.tables_to_excel(heat_utilities, writer, 'Utilities')
         
-        # General desing requirements
-        results = report.unit_result_tables(cost_units)
-        report.tables_to_excel(results, writer, 'Design requirements')
+            # Power utility table
+            power_utility = report.power_utility_table(cost_units)
+            n_row = report.tables_to_excel([power_utility], writer, 'Utilities', n_row=n_row)
+            
+            # Fees table
+            other_utilities = report.other_utilities_table(cost_units)
+            n_row = report.tables_to_excel(other_utilities, writer, 'Utilities', n_row=n_row)
         
-        # Reaction tables
-        reactions = report.unit_reaction_tables(units)
-        report.tables_to_excel(reactions, writer, 'Reactions')
+        if 'Design requirements' in sheets:
+            # General desing requirements
+            results = report.unit_result_tables(cost_units)
+            report.tables_to_excel(results, writer, 'Design requirements')
         
+        if 'Reactions' in sheets:
+            # Reaction tables
+            reactions = report.unit_reaction_tables(units)
+            report.tables_to_excel(reactions, writer, 'Reactions')
+        
+        if 'Specifications' in sheets:
+            if stage:
+                with self.stage_configuration() as conf:
+                    specifications = [
+                        u._mass_and_energy_balance_specifications_table()
+                        for u in conf.stages
+                    ]
+            else:
+                specifications = [
+                    u._mass_and_energy_balance_specifications_table()
+                    for u in units
+                ]
+            report.tables_to_excel(
+                specifications, writer, 
+                'Specifications'
+            )
         writer.close()
         if diagram_completed: os.remove("flowsheet.png")
 

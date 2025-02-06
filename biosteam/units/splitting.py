@@ -332,6 +332,25 @@ class Separator(Unit):
         self.P = P
         self.phases = phases
         
+    def _mass_and_energy_balance_specifications(self):
+        isplit = self._isplit
+        specs = [
+            (i.ID + ' split', j * 100, '%') for i, j in zip(isplit.chemicals, isplit.data)
+        ]
+        if self.T is not None: 
+            specs.append(
+                ('T', self.T, 'K')
+            )
+        if self.phases is not None:
+            specs.append(
+                ('Phases', self.phases, '-')
+            )
+        if self.P is not None:
+            specs.append(
+                ('P', self.P, 'Pa')
+            )
+        return 'Separator', specs
+        
     def _run(self):
         ins = self._ins
         top, bottom = self._outs

@@ -84,6 +84,22 @@ class SinglePhaseStage(Unit):
         self.P = P
         self.phase = phase
         
+    def _mass_and_energy_balance_specifications(self):
+        specs = [('phase', self.phase, '-')]
+        if self.T is not None: 
+            specs.append(
+                ('T', self.T, 'K')
+            )
+        if self.Q is not None:
+            specs.append(
+                ('Q', self.Q, 'kJ/hr')
+            )
+        if self.P is not None:
+            specs.append(
+                ('P', self.P, 'Pa')
+            )
+        return self.line, specs
+        
     def _run(self):
         outlet = self.outs[0]
         outlet.mix_from(self.ins, energy_balance=False)
@@ -150,6 +166,8 @@ class ReactivePhaseStage(bst.Unit): # Does not include VLE
         self.P = P
         self.Q = Q
         self.phase = phase
+        
+    _mass_and_energy_balance_specifications = SinglePhaseStage._mass_and_energy_balance_specifications
         
     def _run(self):
         feed = self.ins[0]
@@ -280,6 +298,30 @@ class StageEquilibrium(Unit):
                 split=bottom_split, 
             )
         self.set_specification(B, Q, T, P)
+    
+    def _mass_and_energy_balance_specifications(self):
+        specs = []
+        if self.phases is not None:
+            specs.append(
+                ('Phases', self.phases, '-')
+            )
+        if self.T_specification is not None: 
+            specs.append(
+                ('T', self.T, 'K')
+            )
+        if self.B_specification is not None: 
+            specs.append(
+                ('Vapor to liquid ratio', self.B, 'by mol')
+            )
+        if self.Q is not None:
+            specs.append(
+                ('Q', self.Q, 'kJ/hr')
+            )
+        if self.P is not None:
+            specs.append(
+                ('P', self.P, 'Pa')
+            )
+        return self.line, specs
     
     @property
     def composition_sensitive(self):

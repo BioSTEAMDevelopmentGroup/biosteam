@@ -346,7 +346,36 @@ class Distillation(Unit, isabstract=True):
         self.vacuum_system_preference = vacuum_system_preference
         self._load_components(partial_condenser, condenser_thermo, reboiler_thermo)
         self.LHK = LHK
-        
+      
+    def _mass_and_energy_balance_specifications(self):
+        spec = self.product_specification_format
+        specs = []
+        if spec == 'Composition':
+            self._Lr = self._Hr = None
+        elif spec == 'Recovery':
+            self._y_top = self._x_bot = None
+        specs.append( 
+            ('Partial condenser', self._partial_condenser, '-'),
+        )
+        if spec == 'Composition':
+            specs.extend([
+                ('Distillate light key fraction', 100 * self._y_top, '%'),
+                ('Bottoms product heavy key fraction', 100 * self._x_bot, '%'),
+            ])
+        elif spec == 'Recovery':
+            specs.extend([
+                ('Light key recovery', 100 * self._Lr, '%'),
+                ('Heavy key recovery', 100 * self._Hr, '%'),
+            ])
+        else:
+            raise RuntimeError('invalid product specification format')
+        if isinstance(self, ShortcutColumn):
+            return 'Shortcut column', specs
+        elif isinstance(self, BinaryDistillation):
+            return 'Binary distillation', specs
+        else:
+            raise NotImplementedError('unknown name for distillation class')
+            
     def _reset_thermo(self, thermo):
         super()._reset_thermo(thermo)
         self.LHK = self._LHK
@@ -1947,6 +1976,8 @@ class ShortcutColumn(Distillation, new_graphics=False):
         alpha_mean = compute_mean_volatilities_relative_to_heavy_key(
             K_distillate, K_bottoms, HK_index
         )
+        distillate.T = dp.T
+        bottoms.T = bp.T
         return alpha_mean
         
     def _estimate_distillate_recoveries(self):

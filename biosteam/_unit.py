@@ -1327,6 +1327,22 @@ class Unit(AbstractUnit):
             self.run()
         self._summary(design_kwargs, cost_kwargs)
 
+    def _mass_and_energy_balance_specifications(self):
+        return (self.line, ())
+
+    def _mass_and_energy_balance_specifications_table(self):
+        title, specs = self._mass_and_energy_balance_specifications()
+        index = []
+        values = []
+        for name, value, units in specs:
+            index.append(name)
+            values.append([value, units])
+        df = pd.DataFrame(
+            values, index, ('Values', 'Units')
+        )
+        df.columns.name = f"{title} - {self.ID}"
+        return df
+
     def results(self, with_units=True, include_utilities=True,
                 include_total_cost=True, include_installed_cost=False,
                 include_zeros=True, external_utilities=None, key_hook=None,

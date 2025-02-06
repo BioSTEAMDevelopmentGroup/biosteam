@@ -16,7 +16,8 @@ from .._heat_utility import HeatUtility
 DataFrame = pd.DataFrame
 ExcelWriter = pd.ExcelWriter
 
-__all__ = ('stream_table', 'cost_table', 'unit_reaction_tables',
+__all__ = ('stream_table', 'stream_tables', 
+           'cost_table', 'unit_reaction_tables',
            'unit_result_tables', 'heat_utility_tables',
            'power_utility_table', 'tables_to_excel', 'voc_table',
            'other_utilities_table', 
@@ -699,6 +700,20 @@ def other_utilities_table(units):
 #         tables.append(df)
 
 # %% Streams
+
+def stream_tables(streams, **stream_properties):
+    streams_by_chemicals = {}
+    stream_tables = []
+    for i in streams:
+        if not i: continue
+        chemicals = i.chemicals
+        if chemicals in streams_by_chemicals:
+            streams_by_chemicals[chemicals].append(i)
+        else:
+            streams_by_chemicals[chemicals] = [i]
+    for chemicals, streams in streams_by_chemicals.items():
+        stream_tables.append(stream_table(streams, chemicals=chemicals, T='K', **stream_properties))
+    return stream_tables
 
 def stream_table(streams, flow='kg/hr', percent=True, chemicals=None, **props):
     """
