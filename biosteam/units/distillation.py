@@ -139,6 +139,8 @@ class RefluxDrum(design.PressureVessel, Unit):
         #: [bool] True if using a mist eliminator pad
         self.has_mist_eliminator = has_mist_eliminator
         
+        self.has_vapor_condenser = False
+        
     def _run(self):
         separations.phase_split(*self.ins, self.outs)
         
