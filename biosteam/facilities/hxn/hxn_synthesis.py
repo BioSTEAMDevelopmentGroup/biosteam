@@ -492,35 +492,10 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False,
                     if stream_quenched:
                         break
     
-    def get_hottest_stream_from_life_cycle(cold):
-        s_hottest = get_stream_at_H_max(cold)
-        H_max = s_hottest.H
-        chemicals = s_hottest.chemicals
-        for u in HXs_cold_side + HXs_hot_side:
-            for s in u.outs:
-                if '_%s_'%(cold) in s.ID and '__s_%s'%(cold) in s.ID and s.chemicals is chemicals and np.allclose(s.mol, s_hottest.mol):
-                    if s.H > H_max:
-                        H_max = s.H
-                        s_hottest = s
-        return s_hottest
-    
-    def get_coldest_stream_from_life_cycle(hot):
-        s_coldest = get_stream_at_H_min(hot)
-        H_min = s_coldest.H
-        chemicals = s_coldest.chemicals
-        for u in HXs_cold_side + HXs_hot_side:
-            for s in u.outs:
-                if '_%s_'%(hot) in s.ID and '__s_%s'%(hot) in s.ID and s.chemicals is chemicals and np.allclose(s.mol, s_coldest.mol):
-                    if s.H < H_min:
-                        H_min = s.H
-                        s_coldest = s
-        return s_coldest
-    
-    
     # Add final utility HXs
     new_HX_utils = []    
     for hot in hot_indices:
-        hot_stream = get_coldest_stream_from_life_cycle(hot)
+        hot_stream = get_stream_at_H_min(hot)
         ID = 'Util_%s_cs'%(hot)
         hot_stream.ID = 's_%s__%s'%(hot,ID)
         outlet = hot_stream.copy('%s__s_%s'%(ID,hot))
@@ -536,7 +511,7 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False,
         stream_HXs_dict[hot].append(new_HX_util)
             
     for cold in cold_indices:
-        cold_stream = get_hottest_stream_from_life_cycle(cold)
+        cold_stream = get_stream_at_H_max(cold)
         ID = 'Util_%s_hs'%(cold)
         cold_stream.ID = 's_%s__%s'%(cold,ID)
         outlet = cold_stream.copy('%s__s_%s'%(ID,cold))
