@@ -6,7 +6,7 @@ from thermosteam.utils import AbstractMethod, AbstractClassMethod
 from colorpalette import Color
 import biosteam as bst
 
-__all__ = ('ProcessModel', 'ScenarioComparison')
+__all__ = ('ProcessModel', 'ScenarioComparison', 'scenario')
 
 def copy(scenario, **kwargs):
     for i in scenario.__slots__:
@@ -73,6 +73,32 @@ def iterate_scenario_data(scenario):
 
 def scenario_comparison(left, right):
     return ScenarioComparison(left, right)
+
+def scenario(cls):
+    if hasattr(cls, 'metadata'): return cls
+    cls.metadata = metadata = {}
+    for i, j in tuple(cls.__dict__.items()):
+        if i.startswith('__'): continue
+        if isinstance(j, str):
+            if j[0] == '#':
+                delattr(cls, i)
+                metadata[i] = j.lstrip('# ')
+        if isinstance(j, tuple) and len(j) == 2 and isinstance(j[-1], str):
+            value, j = j
+            if j[0] == '#':
+                setattr(cls, i, value)
+                metadata[i] = j.lstrip('# ')
+            
+    # TODO: get defaults and separate units of measure
+    cls = dataclass(cls,
+        init=True, repr=True, eq=True, unsafe_hash=False, frozen=True,
+        match_args=True, slots=True,
+    )
+    cls.__iter__ = iterate_scenario_data
+    cls._ipython_display_ = cls.show = display_scenario
+    cls.copy = copy
+    cls.__sub__ = scenario_comparison
+    return cls
 
 @dataclass(
     init=True, repr=True, eq=True, 
@@ -206,33 +232,9 @@ class ProcessModel:
         cls.cache = {}
         if '__new__' in cls.__dict__: return
         if not hasattr(cls, 'Scenario'):
-            raise NotImplementedError(
-                "ProcessModel sublcass missing a 'Scenario' attribute"
-            )
+            cls.Scenario = type('Scenario', (), {})
         if 'Scenario' in cls.__dict__:
-            Scenario = cls.Scenario
-            Scenario.metadata = metadata = {}
-            for i, j in tuple(Scenario.__dict__.items()):
-                if i.startswith('__'): continue
-                if isinstance(j, str):
-                    if j[0] == '#':
-                        delattr(Scenario, i)
-                        metadata[i] = j.lstrip('# ')
-                if isinstance(j, tuple) and len(j) == 2 and isinstance(j[-1], str):
-                    value, j = j
-                    if j[0] == '#':
-                        setattr(Scenario, i, value)
-                        metadata[i] = j.lstrip('# ')
-                    
-            # TODO: get defaults and separate units of measure
-            cls.Scenario = Scenario = dataclass(cls.Scenario,
-                init=True, repr=True, eq=True, unsafe_hash=False, frozen=True,
-                match_args=True, slots=True,
-            )
-            Scenario.items = iterate_scenario_data
-            Scenario._ipython_display_ = Scenario.show = display_scenario
-            Scenario.copy = copy
-            Scenario.__sub__ = scenario_comparison
+            cls.Scenario = scenario(cls.Scenario)
     
     def __new__(cls, *, simulate=True, scenario=None, **kwargs):
         scenario = cls.scenario_hook(scenario, kwargs)
