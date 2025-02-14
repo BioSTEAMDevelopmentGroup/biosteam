@@ -1439,7 +1439,7 @@ class System:
         This method also works as a decorator.
 
         """
-        if not specification: return lambda specification: self.add_specification(specification, args)
+        if not specification: return lambda specification: self.add_specification(specification, args, simulate)
         if not callable(specification): raise ValueError('specification must be callable')
         self._specifications.append(SystemSpecification(specification, args))
         if simulate is not None: self.simulate_after_specifications = simulate
@@ -2816,9 +2816,14 @@ class System:
                             kwargs=kwargs,
                         )
                         for ss in specifications: ss()
-                        outputs = self._simulation_outputs
-                        del self._simulation_default_arguments
-                        del self._simulation_outputs
+                        try: 
+                            outputs = self._simulation_outputs
+                        except AttributeError:
+                            outputs = None
+                        else:
+                            del self._simulation_outputs
+                        finally:
+                            del self._simulation_default_arguments
                 finally:
                     self._running_specifications = False
             else:
