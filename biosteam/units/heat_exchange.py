@@ -741,7 +741,7 @@ class HXutilities(Unit):
                     hx = self.auxiliary(
                         'heat_exchangers', bst.HXutility,
                         ins=intermediate, T=T_intermediate,
-                        rigorous=True
+                        rigorous=self.rigorous,
                     )
                     intermediate = hx.outs[0]
                     hx.simulate()
@@ -749,7 +749,7 @@ class HXutilities(Unit):
                     hx = self.auxiliary(
                         'heat_exchangers', bst.HXutility,
                         ins=intermediate, outs=product, T=T_out,
-                        rigorous=True
+                        rigorous=self.rigorous,
                     )
                     hx.simulate()
                     break
