@@ -613,7 +613,13 @@ class Model:
                 raise ValueError(f"indicators must be '{Indicator.__name__}' "
                                  f"objects, not '{type(i).__name__}'")
         Indicator.check_indices_unique(self.features)
+    
+    # Backwards compatibility
     metrics = indicators
+    @property
+    def _metrics(self): return self._indicators
+    @_metrics.setter
+    def _metrics(self, metrics): self._indicators = metrics
     
     @property
     def features(self):
