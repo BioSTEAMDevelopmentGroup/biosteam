@@ -686,7 +686,6 @@ class Model:
         samples_max = samples.max(axis=0)
         samples_diff = samples_max - samples_min
         normalized_samples = (samples - samples_min) / samples_diff
-        breakpoint()
         nearest_arr = cdist(normalized_samples, normalized_samples, metric=distance)
         if algorithm is None: algorithm = 'nearest neighbor'
         if algorithm == 'nearest neighbor':
