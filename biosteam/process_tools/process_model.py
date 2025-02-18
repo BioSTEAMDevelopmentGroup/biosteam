@@ -167,10 +167,10 @@ class ProcessModel:
             self.load_system(system) 
             
             # A Model object is loaded from the `create_model` method.
-            # The model will be stored as self.model and all parameters and metrics as attributes by function name.
+            # The model will be stored as self.model and all parameters and indicators as attributes by function name.
             # For example: 
             #
-            # @model.metric
+            # @model.indicator
             # def MSP(): return self.tea.solve_price(self.product)
             #
             # ^ This becomes self.MSP.
@@ -206,7 +206,7 @@ class ProcessModel:
     
     #: This method should return a model object. 
     #: The model will be saved as a self.model attribute. 
-    #: All pareameters and metrics of the model object will also be saved as 
+    #: All parameters and indicators of the model object will also be saved as 
     #: attributes by their function names.
     create_model = AbstractMethod
     
@@ -273,7 +273,7 @@ class ProcessModel:
         self.thermo = thermo
     
     def baseline(self):
-        sample = self.model.get_baseline_sample()
+        sample = self.model.get_baseline_scenario()
         return sample, self.model(sample)
     
     def load_system(self, system):
@@ -285,8 +285,10 @@ class ProcessModel:
         self.model = model
         for i in model.parameters:
             setattr(self, i.setter.__name__, i)
-            if i.baseline is not None: i.setter(i.baseline)
-        for i in model.metrics:
+            if i.baseline is not None: 
+                i.setter(i.baseline)
+                i.last_value = i.baseline
+        for i in model.indicators:
             setattr(self, i.getter.__name__, i)
             
     @property
@@ -294,9 +296,10 @@ class ProcessModel:
         return self.model._parameters
         
     @property
-    def metrics(self):
-        return self.model._metrics
-            
+    def indicators(self):
+        return self.model._indicators
+    metrics = indicators
+    
     def __repr__(self):
         scenario = self.scenario
         scenario_name = type(scenario).__name__

@@ -348,7 +348,7 @@ class ConvergenceModel:
             if model_type in fast_fit_model_types:
                 recess = 0
             else:
-                recess = 5 * sum([i.kind == 'coupled' for i in predictors])
+                recess = 5 * sum([i.coupled for i in predictors])
         if interaction_pairs is None: interaction_pairs = False
         if local_weighted is None:
             if model_type in fast_fit_model_types:
@@ -545,9 +545,9 @@ class ConvergenceModel:
         
     def evaluate_system_convergence(self, sample, default=None, **kwargs):
         system = self.system
-        for p, value in zip(self.predictors, sample):
-            if p.scale is not None: value *= p.scale
+        for p, value in zip(self.predictors, sample): 
             p.setter(value)
+            p.last_value = value
         try:
             system.simulate(design_and_cost=False, **kwargs)
         except Exception as error:
@@ -564,7 +564,7 @@ class ConvergenceModel:
         return recycles_data
        
     def load_predictors(self, predictors):
-        predictor_index = np.array([i.kind == 'coupled' for i in predictors])
+        predictor_index = np.array([i.coupled for i in predictors])
         self.predictor_index = predictor_index = None if predictor_index.all() else np.where(predictor_index)[0]
         if predictor_index is not None: predictors = [predictors[i] for i in predictor_index]
         self.predictors = predictors

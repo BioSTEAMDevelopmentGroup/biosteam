@@ -533,7 +533,7 @@ def format_single_point_sensitivity_plot(center, diff, ax, index, name, yranges)
     ax3.zorder = 1000
 
 def plot_single_point_sensitivity(baseline, lb, ub, 
-        top=None, name=None, colors=None, w=1., s=1., offset=0., style=True, 
+        top=None, name=None, colors=None, w=0.8, s=1., offset=0., style=True, 
         fig=None, ax=None, sort=True, index=None
     ): # pragma: no coverage
     """
@@ -602,7 +602,7 @@ def plot_single_point_sensitivity(baseline, lb, ub,
     return fig, ax    
 
 def plot_spearman_1d(rhos, top=None, name=None, color=None, 
-                     w=1., s=1., offset=0., style=True, 
+                     w=0.8, s=1., offset=0., style=True, 
                      fig=None, ax=None, sort=True, index=None,
                      cutoff=None, xlabel=None, edgecolors=None): # pragma: no coverage
     """

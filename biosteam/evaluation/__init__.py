@@ -12,15 +12,15 @@ from ._feature import *
 from ._parameter import *
 from ._prediction import *
 from ._model import *
-from ._metric import *
+from ._indicator import *
 from . import (_parameter, _prediction, _model,
-              _metric, evaluation_tools, _feature,
+              _indicator, evaluation_tools, _feature,
               _utils)
 
 __all__ = ('evaluation_tools',
            *_feature.__all__,
            *_parameter.__all__,
            *_prediction.__all__,
-           *_metric.__all__,
+           *_indicator.__all__,
            *_model.__all__,
            *_utils.__all__)

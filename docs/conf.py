@@ -211,8 +211,9 @@ nbsphinx_execute = 'never'
 intersphinx_mapping = {
     'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None),
     'python': ('https://docs.python.org/3', None),
-    'qsdsan': ('https://qsdsan.readthedocs.io/en/latest/', None),
+    'qsdsan': ('https://qsdsan.readthedocs.io/', None),
     'thermo': ('https://thermo.readthedocs.io/', None),
+    'chaospy': ('https://chaospy.readthedocs.io/', None),
 }
 
 # Allow exceptions to occur in notebooks
