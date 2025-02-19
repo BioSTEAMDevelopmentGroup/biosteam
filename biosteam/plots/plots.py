@@ -620,6 +620,7 @@ def plot_spearman_1d(rhos, top=None, name=None, color=None,
     fig : matplotlib Figure
     ax : matplotlib AxesSubplot
     """
+    if edgecolors is None: edgecolors = 'k'
     # Sort parameters for plot
     abs_ = abs
     if isinstance(rhos, pd.Series):
@@ -857,7 +858,8 @@ def plot_kde(x, y, nbins=100, axes=None, fig=None,
              xtick0=True, ytick0=True, xtickf=True, ytickf=True,
              xbox=None, ybox=None, xbox_kwargs=None, ybox_kwargs=None, 
              aspect_ratio=1.25, cmaps=None, xbox_width=None,
-             ybox_width=None, zorders=None, **kwargs):
+             ybox_width=None, zorders=None, xlabel=None, ylabel=None,
+             **kwargs):
     axis_not_given = axes is None
     xs = x if isinstance(x, (tuple, list)) else (x,)
     ys = y if isinstance(y, (tuple, list)) else (y,)
@@ -923,6 +925,8 @@ def plot_kde(x, y, nbins=100, axes=None, fig=None,
     style_axis(ax, xticks, yticks, xticklabels, yticklabels, trim_to_limits=True,
                xtick0=xtick0, ytick0=ytick0, xtickf=xtickf, ytickf=ytickf)
     plt.sca(ax)
+    if xlabel is not None: plt.xlabel(xlabel)
+    if ylabel is not None: plt.ylabel(ylabel)
     if axis_not_given:
         if xticks is None:
             x0, xf = plt.xlim()
