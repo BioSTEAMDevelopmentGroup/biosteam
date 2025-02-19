@@ -1,6 +1,10 @@
 Metric
 ======
 
+.. autoclass:: biosteam.evaluation.Indicator
+   :members:
+   :special-members: __call__
+
 .. autoclass:: biosteam.evaluation.Metric
    :members:
    :special-members: __call__
