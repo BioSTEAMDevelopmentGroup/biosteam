@@ -1,5 +1,5 @@
-Metric
-======
+Indicator
+=========
 
 .. autoclass:: biosteam.evaluation.Indicator
    :members:
