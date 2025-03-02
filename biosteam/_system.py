@@ -1114,47 +1114,52 @@ class System:
             for unit in self.units: responses.extend(unit.responses)
             return responses
 
-    def parameter(self, setter=None, element=None, kind=None, name=None, 
-                  distribution=None, units=None, baseline=None, bounds=None, 
-                  hook=None, description=None, scale=None):
+    def parameter(self, 
+            setter: Optional[Callable]=None,
+            element: Optional[Unit]=None, 
+            coupled: Optional[bool]=None,
+            name: Optional[str]=None, 
+            distribution: Optional[str|object]=None, 
+            units: Optional[str]=None, 
+            baseline: Optional[float]=None, 
+            bounds: Optional[tuple[float, float]]=None, 
+            hook: Optional[Callable]=None, 
+            description: Optional[str]=None, 
+            optimized=False, 
+            kind=None, # For backwards compatibility
+        ):
         """
-        Define parameter.
+        Define and register parameter.
         
         Parameters
-        ----------    
-        setter : function
-                 Should set parameter in the element.
-        element : Unit or :class:`~thermosteam.Stream`
-                  Element in the system being altered.
-        kind : {'coupled', 'isolated', 'design', 'cost'}, optional
-            * 'coupled': parameter is coupled to the system.
-            * 'isolated': parameter does not affect the system but does affect the element (if any).
-            * 'design': parameter only affects design and/or cost of the element.
-        name : str, optional
-               Name of parameter. If None, default to argument name of setter.
-        distribution : chaospy.Dist
-                       Parameter distribution.
-        units : str, optional
-                Parameter units of measure
-        baseline : float, optional
+        ---------*    
+        setter : 
+            Should set parameter in the element.
+        element : 
+            Element in the system being altered.
+        coupled : 
+            Whether parameter is coupled to the system's mass and energy balances.
+            This allows a ConvergenceModel to predict it's impact on recycle loops.
+            Defaults to False.
+        name : 
+            Name of parameter. If None, default to argument name of setter.
+        distribution : 
+            Parameter distribution.
+        units : 
+            Parameter units of measure
+        baseline : 
             Baseline value of parameter.
-        bounds : tuple[float, float], optional
+        bounds : 
             Lower and upper bounds of parameter.
-        hook : Callable, optional
+        hook : 
             Should return the new parameter value given the sample.
-        scale : float, optional
-            The sample is multiplied by the scale before setting.
-        
-        Notes
-        -----
-        If kind is 'coupled', account for downstream operations. Otherwise,
-        only account for given element. If kind is 'design' or 'cost', 
-        element must be a Unit object.
         
         """
+        if kind == 'coupled': coupled = True
+        elif coupled is None: coupled = False
         if isinstance(setter, bst.Parameter):
             if element is None: element = setter.element
-            if kind is None: kind = setter.kind
+            if coupled is None: coupled = setter.coupled
             if name is None: name = setter.name
             if distribution is None: distribution = setter.distribution
             if units is None: units = setter.units
@@ -1162,19 +1167,19 @@ class System:
             if bounds is None: bounds = setter.bounds
             if hook is None: hook = setter.hook
             if description is None: description = setter.description
-            if scale is None: scale = setter.scale
             setter = setter.setter
         elif isinstance(setter, bst.MockFeature):
             if element is None: element = setter.element
             if name is None: name = setter.name
             if units is None: units = setter.units
         elif not setter:
-            return lambda setter: self.parameter(setter, element, kind, name,
+            return lambda setter: self.parameter(setter, element, coupled, name,
                                                  distribution, units, baseline,
-                                                 bounds, hook, description, scale)
-        return bst.Parameter(name, setter, element,
-                      self, distribution, units, 
-                      baseline, bounds, kind, hook, description, scale)
+                                                 bounds, hook, description, optimized)
+        p = bst.Parameter(name, setter, element,
+                          self, distribution, units, 
+                          baseline, bounds, coupled, hook, description)
+        return p
 
     def track_recycle(self, recycle: Stream, collector: list[Stream]=None):
         if not isinstance(recycle, Stream):
