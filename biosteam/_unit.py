@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     HXutility = bst.HXutility
     UtilityAgent = bst.UtilityAgent
 
-streams = Optional[Sequence[Stream]] # TODO: Replace with Stream|str and make it an explicit TypeAlias once BioSTEAM moves to Python 3.10
+streams = Optional[Sequence[Stream|str]]
 
 __all__ = ('Unit',)
 
