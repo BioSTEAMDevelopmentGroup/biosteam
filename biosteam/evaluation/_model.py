@@ -1003,10 +1003,13 @@ class Model:
         return self(baseline)
     metrics_at_baseline = indicators_at_baseline
     
-    def evaluate_across_coordinate(self, name, f_coordinate, coordinate,
-                                   *, xlfile=None, notify=0, notify_coordinate=True,
-                                   multi_coordinate=False, convergence_model=None,
-                                   f_evaluate=None):
+    def evaluate_across_coordinate(self,
+            name, f_coordinate, coordinate, *, 
+            xlfile=None, notify=0, notify_coordinate=True,
+            multi_coordinate=False, 
+            simulation_independent_coordinate=False,
+            f_evaluate=None
+        ):
         """
         Evaluate across coordinate and save sample indicators.
         
@@ -1022,8 +1025,10 @@ class Model:
             Name of file to save. File must end with ".xlsx"
         rule : str, optional
             Sampling rule. Defaults to 'L'.
-        notify : bool, optional
+        notify_coordinate : bool, optional
             If True, notify elapsed time after each coordinate evaluation. Defaults to True.
+        notify : int, optional
+            Notify elapsed time after given number of scenario evaluations.
         f_evaluate : callable, optional
             Function to evaluate model. Defaults to evaluate method.
         
@@ -1037,37 +1042,79 @@ class Model:
                 return self.evaluate_across_coordinate(
                     name, f_coordinate, coordinate,
                     xlfile=xlfile, notify=notify, notify_coordinate=notify_coordinate,
-                    multi_coordinate=multi_coordinate, convergence_model=convergence_model,
+                    multi_coordinate=multi_coordinate,
+                    simulation_independent_coordinate=simulation_independent_coordinate,
                     f_evaluate=f_evaluate
                 )
             finally:
                 f_coordinate.active = active
         N_points = len(coordinate)
-        if f_evaluate is None: f_evaluate = self.evaluate
-        
-        # Initialize timer
-        if notify_coordinate:
-            from biosteam.utils import TicToc
-            timer = TicToc()
-            timer.tic()
-            def evaluate(**kwargs):
-                f_evaluate(**kwargs)
-                print(f"[Coordinate {n}] Elapsed time: {timer.elapsed_time:.0f} sec")
+        if simulation_independent_coordinate:
+            if f_evaluate is not None: 
+                raise ValueError(
+                    'cannot pass `f_evaluate` if coordinate is '
+                    'independent from simulation'
+                )
+            f_evaluate = self.evaluate
+            samples = self._samples
+            if samples is None: raise RuntimeError('must load samples before evaluating')
+            evaluate_sample = self._evaluate_sample
+            table = self.table
+            if notify:
+                from biosteam.utils import TicToc
+                timer = TicToc()
+                timer.tic()
+                count = [0]
+                def evaluate(sample, count=count):
+                    count[0] += 1
+                    values = evaluate_sample(sample)
+                    if not count[0] % notify:
+                        print(f"{count} Elapsed time: {timer.elapsed_time:.0f} sec")
+                    return values
+            else:
+                evaluate = evaluate_sample
+            N_samples, _ = samples.shape
+            number = 0
+            index = self._index
+            N_samples, _ = self.table.shape
+            indicator_indices = var_indices(self.indicators)
+            shape = (N_samples, N_points)
+            indicator_data = {i: np.zeros(shape) for i in indicator_indices}
+            for number, i in enumerate(index, number + 1): 
+                evaluate(samples[i])
+                for j, x in enumerate(coordinate):
+                    f_coordinate(x)
+                    for key, indicator in zip(indicator_data, self.indicators):
+                        data = indicator_data[key]
+                        try:
+                            data[i, j] = indicator()
+                        except:
+                            data[i, j] = None
         else:
-            evaluate = f_evaluate
-        
-        indicator_data = None
-        for n, x in enumerate(coordinate):
-            f_coordinate(*x) if multi_coordinate else f_coordinate(x)
-            evaluate(notify=notify, convergence_model=convergence_model)
-            # Initialize data containers dynamically in case samples are loaded during evaluation
-            if indicator_data is None:
-                N_samples, _ = self.table.shape
-                indicator_indices = var_indices(self.indicators)
-                shape = (N_samples, N_points)
-                indicator_data = {i: np.zeros(shape) for i in indicator_indices}
-            for indicator in indicator_data:
-                indicator_data[indicator][:, n] = self.table[indicator]
+            if f_evaluate is None: f_evaluate = self.evaluate
+            
+            # Initialize timer
+            if notify_coordinate:
+                from biosteam.utils import TicToc
+                timer = TicToc()
+                timer.tic()
+                def evaluate(**kwargs):
+                    f_evaluate(**kwargs)
+                    print(f"[Coordinate {n}] Elapsed time: {timer.elapsed_time:.0f} sec")
+            else:
+                evaluate = f_evaluate
+            indicator_data = None
+            for n, x in enumerate(coordinate):
+                f_coordinate(*x) if multi_coordinate else f_coordinate(x)
+                evaluate(notify=notify)
+                if indicator_data is None:
+                    # Initialize data containers dynamically in case samples are loaded during evaluation
+                    N_samples, _ = self.table.shape
+                    indicator_indices = var_indices(self.indicators)
+                    shape = (N_samples, N_points)
+                    indicator_data = {i: np.zeros(shape) for i in indicator_indices}
+                for indicator in indicator_data:
+                    indicator_data[indicator][:, n] = self.table[indicator]
         
         if xlfile:
             if multi_coordinate:
