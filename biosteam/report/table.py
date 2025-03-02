@@ -71,6 +71,7 @@ def voc_table(systems, product_IDs, system_names=None, unit='MT', with_products=
     # Not ready for users yet
     isa = isinstance
     if isa(systems, bst.System): systems = [systems]
+    if isa(product_IDs, str): product_IDs = [product_IDs]
     inlet_cost_dct = {}
     outlet_revenue_dct = {}
     prices = bst.stream_prices
