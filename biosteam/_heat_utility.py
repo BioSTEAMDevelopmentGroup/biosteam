@@ -9,10 +9,10 @@
 """
 from __future__ import annotations
 from thermosteam.units_of_measure import (
-    convert, DisplayUnits, AbsoluteUnitsOfMeasure, get_dimensionality,
+    convert, DisplayUnits, UnitsOfMeasure, get_dimensionality,
     heat_utility_units_of_measure
 )
-from thermosteam.utils import unregistered, units_of_measure
+from thermosteam.utils import unregistered, define_units_of_measure
 from thermosteam import Thermo, Stream, ThermalCondition, settings
 from .exceptions import DimensionError
 from math import copysign
@@ -26,9 +26,9 @@ __all__ = ('HeatUtility', 'UtilityAgent')
 # ^This table was made using data from Busche, 1995
 # Entry temperature conditions of coolants taken from Table 12.1 in Warren, 2016
 
-mol_basis_units = AbsoluteUnitsOfMeasure('kmol')
-mass_basis_units = AbsoluteUnitsOfMeasure('kg')
-energy_basis_units = AbsoluteUnitsOfMeasure('kJ')
+mol_basis_units = UnitsOfMeasure('kmol')
+mass_basis_units = UnitsOfMeasure('kg')
+energy_basis_units = UnitsOfMeasure('kJ')
 
 # %% Utility agents
 
@@ -242,7 +242,7 @@ class UtilityAgent(Stream):
 
 # %%
 
-@units_of_measure(heat_utility_units_of_measure)
+@define_units_of_measure(heat_utility_units_of_measure)
 class HeatUtility:
     """
     Create an HeatUtility object that can choose a utility stream and 

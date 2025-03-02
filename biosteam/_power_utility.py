@@ -9,19 +9,19 @@
 """
 from __future__ import annotations
 from thermosteam import settings
-from thermosteam.utils import units_of_measure
+from thermosteam.utils import define_units_of_measure
 from thermosteam.units_of_measure import (
-    DisplayUnits, convert, power_utility_units_of_measure, AbsoluteUnitsOfMeasure
+    DisplayUnits, convert, power_utility_units_of_measure, UnitsOfMeasure
 )
 from typing import Optional
 
 __all__ = ('PowerUtility',)
 
 
-impact_indicator_basis = AbsoluteUnitsOfMeasure('kWhr')
+impact_indicator_basis = UnitsOfMeasure('kWhr')
 default_price = 0.0782
 
-@units_of_measure(power_utility_units_of_measure)
+@define_units_of_measure(power_utility_units_of_measure)
 class PowerUtility:
     """
     Create an PowerUtility object that stores data on consumption and production
@@ -315,4 +315,4 @@ class PowerUtility:
     
 PowerUtility.default_price()
 settings.__class__.set_electricity_CF = PowerUtility.set_CF
-del units_of_measure, AbsoluteUnitsOfMeasure
+del define_units_of_measure, UnitsOfMeasure
