@@ -214,14 +214,14 @@ def replace_forward_ref(annotation):
         return annotation
 
 def format_annotation(annotation, config):
-    original = str(annotation)
+    # original = str(annotation)
     annotation = replace_forward_ref(annotation)
     if type(annotation) is typing._UnionGenericAlias: # Optional
         rst = format_annotation_old(annotation.__args__[0], config) + ', optional'
     else:
         rst = format_annotation_old(annotation, config)
-    file = os.path.join(os.path.dirname(__file__), 'annotations.txt')
-    with open(file, 'a') as f: f.write(f"{rst}  ({original})\n")
+    # file = os.path.join(os.path.dirname(__file__), 'annotations.txt')
+    # with open(file, 'a') as f: f.write(f"{rst}  ({original})\n")
     return rst
 sat.format_annotation = format_annotation
 
