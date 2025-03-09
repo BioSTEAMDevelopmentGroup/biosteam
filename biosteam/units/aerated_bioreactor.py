@@ -13,6 +13,9 @@ References
 .. [2] Benz, G. T. Bioreactor Design for Chemical Engineers. Chem. Eng.\
     Progress 2011, 21–26.
 
+.. [3] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
+    & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
+
 """
 import biosteam as bst
 from .stirred_tank_reactor import AbstractStirredTankReactor
@@ -95,8 +98,14 @@ class AeratedBioreactor(AbstractStirredTankReactor):
     def _init(
             self, reactions, theta_O2=0.5, Q_O2_consumption=None,
             optimize_power=None, design=None, method=None, kLa_kwargs=None,
+            cooler_pressure_drop=None, compressor_isentropic_efficiency=None,
             **kwargs,
         ):
+        if compressor_isentropic_efficiency is None: compressor_isentropic_efficiency = 0.85
+        #: Isentropic efficiency of the compressor. Defaults to 0.85.
+        self.compressor_isentropic_efficiency = compressor_isentropic_efficiency 
+        #: Pressure drop at the cooler [Pa]. Defaults to 20684.28 Pa, a heuristic value for a gas.
+        self.cooler_pressure_drop = 20684.28 if cooler_pressure_drop is None else cooler_pressure_drop
         AbstractStirredTankReactor._init(self, **kwargs)
         self.reactions = reactions
         self.theta_O2 = theta_O2 # Average concentration of O2 in the liquid as a fraction of saturation.
@@ -196,10 +205,12 @@ class AeratedBioreactor(AbstractStirredTankReactor):
     def load_auxiliaries(self):
         super().load_auxiliaries()
         compressor = self.auxiliary(
-            'compressor', bst.IsentropicCompressor, self.air, eta=0.85, P=2 * 101325
+            'compressor', bst.IsentropicCompressor, 
+            self.air, eta=self.compressor_isentropic_efficiency, P=2 * 101325,
         )
         self.auxiliary(
-            'air_cooler', bst.HXutility, compressor-0, T=self.T
+            'air_cooler', bst.HXutility, compressor-0, T=self.T, 
+            dP=False, 
         )
         
     def _run_vent(self, vent, effluent):
@@ -319,7 +330,7 @@ class AeratedBioreactor(AbstractStirredTankReactor):
         liquid.copy_thermal_condition(self.outs[0])
         self.effluent_density = rho = liquid.rho
         length = self.get_design_result('Length', 'm') * self.V_wf
-        return g * rho * length + 101325 # Pa
+        return g * rho * length + 101325 + self.cooler_pressure_drop # Pa
     
     def _design(self):
         AbstractStirredTankReactor._design(self)
@@ -689,7 +700,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         liquid.copy_thermal_condition(self.outs[0])
         self.effluent_density = rho = liquid.rho
         length = self.get_design_result('Length', 'm') * self.V_wf
-        return g * rho * length + 101325 # Pa
+        return g * rho * length + 101325 + self.cooler_pressure_drop # Pa
     
     def _design(self):
         AbstractStirredTankReactor._design(self)

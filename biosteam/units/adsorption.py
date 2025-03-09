@@ -35,7 +35,7 @@ from thermosteam.units_of_measure import format_units
 __all__ = ('SingleComponentAdsorptionColumn', 'AdsorptionColumn',)
 
 @njit(cache=True)
-def odeint(f, x0, step, tf, args):
+def fixed_step_odeint(f, x0, step, tf, args):
     M = int(tf/step)
     N = len(x0)
     ts = np.linspace(0, tf, M)
@@ -110,6 +110,7 @@ def dCdt(
     mask = CL_ < 0
     CL_[mask] = 0
     qe = isotherm_model(CL_, *isotherm_args) / q0
+    qe[qe > q0] = q0
     dCL_dz = CL.copy()
     dCL_dz[1:] = (CL[1:] - CL[:-1]) / dz
     dCL_dz[0] = (CL[0] - 1) / dz
@@ -551,8 +552,9 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
             args = (N_slices, Da, dz, isotherm_model, isotherm_args,
                     beta_q0_rho_over_C0, C0, q0)
             f = dCdt
-            t, Y = odeint(
-                f, C_init, 5e-2, cycle_time / t_scale, args
+            time_step = 0.2 / N_slices
+            t, Y = fixed_step_odeint(
+                f, C_init, time_step, cycle_time / t_scale, args
             )
             t = np.array(t)
             Y = gaussian_filter(np.array(Y).T, 5, axes=1)

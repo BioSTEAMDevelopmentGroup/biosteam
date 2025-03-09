@@ -18,7 +18,8 @@ setup(
     install_requires=['IPython>=7.9.0',
                       'thermosteam>=0.51.0,<0.52.0', 
                       'graphviz>=0.17',
-                      'chaospy>=3.3.9',
+                      'numpoly==1.2.13',
+                      'chaospy==4.3.15',
                       'pyyaml'],
     extras_require={ 
         'dev': [

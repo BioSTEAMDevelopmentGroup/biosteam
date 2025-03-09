@@ -33,7 +33,7 @@ The Biorefinery Simulation and TEA Modules
         including the `Center for Advanced Bioenergy and Bioproducts Innovation <https://cabbi.bio/>`_.
 
 
-.. grid:: 1 2 3 4
+.. grid:: 1 2 2 4
    
    
     .. grid-item-card:: Getting Started
@@ -42,12 +42,17 @@ The Biorefinery Simulation and TEA Modules
        :link-type: url
        :padding: 1
 
-       .. figure:: images/aerobic_chamber.png
+       .. image:: images/phenomenode.png
           :height: 100
-          :class: dark-light
+          :class: only-light
           :align: center
           
-       Tutorial on BioSTEAM's features.
+       .. image:: images/phenomenode_dark_2.png
+          :height: 100
+          :class: only-dark
+          :align: center
+          
+       Tutorials on BioSTEAM.
 
 
     .. grid-item-card:: Bioindustrial-Park
@@ -56,12 +61,12 @@ The Biorefinery Simulation and TEA Modules
        :link-type: url
        :padding: 1
        
-       .. figure:: images/boiler.png
+       .. image:: images/process.png
           :height: 100
           :class: dark-light
           :align: center
        
-       Repository for biorefinery models.
+       Biorefinery models.
 
         
     .. grid-item-card:: API Reference
@@ -70,12 +75,12 @@ The Biorefinery Simulation and TEA Modules
        :link-type: url
        :padding: 1
        
-       .. figure:: images/fermenter.png
+       .. image:: images/fermenter.png
           :height: 100
           :class: dark-light
           :align: center
        
-       Documentation on all functionality. 
+       Detailed documentation. 
        
        
     .. grid-item-card:: QSDsan
@@ -84,12 +89,12 @@ The Biorefinery Simulation and TEA Modules
        :link-type: url
        :padding: 1
        
-       .. figure:: images/GG_logo.png
+       .. image:: images/GG_logo.png
           :height: 100
           :class: dark-light
           :align: center
        
-       Sanitation and resource recovery. 
+       Sanitation & resources. 
 
 Installation
 ------------

@@ -30,8 +30,34 @@ from .design_tools import (
 )
 from .decorators import cost
 from .._unit import Unit
+from math import exp, log
+from thermosteam import separations
 
-__all__ = ('DrumDryer', 'ThermalOxidizer')
+__all__ = ('SprayDryer', 'DrumDryer', 'ThermalOxidizer')
+
+@cost('Evaporation rate', CE=567, units='lb/hr', # lb=30, ub=3000, 
+      BM=2.06, f=lambda W: exp(8.5133 + 0.9847*(logW:=log(W)) - 0.0561 * logW * logW)
+)
+class SprayDryer(Unit):
+    _units = {'Evaporation rate': 'lb/hr'}
+    _N_ins = 1
+    _N_outs = 2
+    
+    def _init(self, moisture_content=0.90):
+        self.moisture_content = moisture_content
+        
+    def _run(self):
+        feed = self.ins[0]
+        water, solids = self.outs
+        solids.copy_like(feed)
+        water.copy_flow(solids, 'Water', remove=True)
+        separations.adjust_moisture_content(solids, water, self.moisture_content)
+        water.phase = 'g'
+        
+    def _design(self):
+        water, solids = self.outs
+        self.design_results['Evaporation rate'] = water.get_total_flow('lb/hr')
+
 
 # TODO: The drum dryer is carbon steel. Add material factors later
 @cost('Peripheral drum area', CE=CEPCI_by_year[2007], ub=7854.0, BM=2.06,

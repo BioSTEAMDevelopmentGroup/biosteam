@@ -55,7 +55,7 @@ User guide
           :caption: Automation
           
           Uncertainty_and_sensitivity
-          Comparative_techno-economic_analysis
+          Comparative analyses <Comparative_techno-economic_analysis>
           Operational_flexibility
 
     .. grid-item::
@@ -66,5 +66,6 @@ User guide
           :caption: Case studies
           
           Sugarcane_ethanol_biorefinery
-          Aerated_bioreactor_design
+          Aerated bioreactor design <Aerated_bioreactor_design>
           Glacial_acetic_acid_separation
+          Adsorption column design <Adsorption_column_design>

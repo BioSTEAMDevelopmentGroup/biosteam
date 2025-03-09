@@ -1201,7 +1201,8 @@ class System:
             units: Optional[Sequence[str]]=None,
             facility_recycle: Optional[Stream]=None,
         ):
-        # Warning: This method does not save the configuration
+        old_IDs = [i.ID for i in self.subsystems]
+        # Warning: This method does not save the configuration.
         if units is None: units = self.units
         self._delete_path_cache()
         isa = isinstance
@@ -1224,6 +1225,7 @@ class System:
             maxiter=self.maxiter,
             subsystems=True,
         )
+        for i, j in zip(self.subsystems, old_IDs): i.ID = j
 
     def __enter__(self):
         if self._path or self._recycle or self._facilities:
@@ -2141,18 +2143,25 @@ class System:
         system._ID = f'{type(unit).__name__}-{unit} and downstream'
         return system
 
-    def _minimal_digraph(self, graph_attrs):
+    def _minimal_digraph(self, facilities, graph_attrs):
         """Return digraph of the path as a box."""
-        return minimal_digraph(self.ID, self.units, self.streams, **graph_attrs)
+        units = self.units
+        if not facilities: units = [i for i in units if not isinstance(i, bst.Facility)]
+        return minimal_digraph(self.ID, units, self.streams, **graph_attrs)
 
-    def _surface_digraph(self, graph_attrs):
-        return surface_digraph(self._path, **graph_attrs)
+    def _surface_digraph(self, facilities, graph_attrs):
+        units = self._path
+        if not facilities: units = [i for i in units if not isinstance(i, bst.Facility)]
+        return surface_digraph(units, **graph_attrs)
 
-    def _thorough_digraph(self, graph_attrs):
-        return digraph_from_units(self.unit_path, self.streams, **graph_attrs)
+    def _thorough_digraph(self, facilities, graph_attrs):
+        units = self.unit_path
+        if not facilities: units = [i for i in units if not isinstance(i, bst.Facility)]
+        return digraph_from_units(units, self.streams, **graph_attrs)
 
-    def _cluster_digraph(self, graph_attrs):
-        return digraph_from_system(self, **graph_attrs)
+    def _cluster_digraph(self, facilities, graph_attrs):
+        path = (*self.path, *self.facilities) if facilities else self.path
+        return digraph_from_system(self, path, **graph_attrs)
 
     def _stage_digraph(self, graph_attrs):
         with self.stage_configuration(aggregated=False) as conf:
@@ -2162,7 +2171,7 @@ class System:
                 format: Optional[str]=None, display: Optional[bool]=True,
                 number: Optional[bool]=None, profile: Optional[bool]=None,
                 label: Optional[bool]=None, title: Optional[str]=None,
-                auxiliaries: Optional[bool]=None,
+                auxiliaries: Optional[bool]=None, facilities: Optional[bool]=True,
                 **graph_attrs):
         """
         Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of
@@ -2206,15 +2215,15 @@ class System:
             if profile is not None: preferences.profile = profile
             if format is not None: preferences.graphviz_format = format
             if kind == 0 or kind == 'cluster':
-                f = self._cluster_digraph(graph_attrs)
+                f = self._cluster_digraph(facilities, graph_attrs)
             elif kind == 1 or kind == 'thorough':
-                f = self._thorough_digraph(graph_attrs)
+                f = self._thorough_digraph(facilities, graph_attrs)
             elif kind == 2 or kind == 'surface':
-                f = self._surface_digraph(graph_attrs)
+                f = self._surface_digraph(facilities, graph_attrs)
             elif kind == 3 or kind == 'minimal':
-                f = self._minimal_digraph(graph_attrs)
+                f = self._minimal_digraph(facilities, graph_attrs)
             elif kind == 4 or kind == 'stage':
-                f = self._stage_digraph(graph_attrs)
+                f = self._stage_digraph(facilities, graph_attrs)
             else:
                 raise ValueError("kind must be one of the following: "
                                  "0 or 'cluster', 1 or 'thorough', 2 or 'surface', "
@@ -2227,9 +2236,10 @@ class System:
                         return 'unit'
                     elif N < 6:
                         return 'system'
-                    else:
+                    elif N < 9:
                         return 'big-system'
-                    return True
+                    else:
+                        return 'huge-system'
                 height = (
                     preferences.graphviz_html_height
                     [size_key(self.units)]

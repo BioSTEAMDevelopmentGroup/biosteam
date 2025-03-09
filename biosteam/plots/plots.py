@@ -419,7 +419,7 @@ def plot_unit_groups(unit_groups, colors=None,
         if format_total is None: format_total = lambda x: format(x, '.3g')
         if bold_label:
             bar_labels = [r"$\mathbf{" f"{format_total(i())}" "}$" "\n"
-                           "$\mathbf{[" f"{format_units(i.units, '', False)}" "]}$"
+                          r"$\mathbf{[" f"{format_units(i.units, '', False)}" "]}$"
                           for i in joint_group.metrics]
         else:
             bar_labels = [f"{format_total(i())}\n[{format_units(i.units)}]"
@@ -1333,8 +1333,7 @@ def plot_contour_single_metric(
                               levels=metric_bar.levels,
                               cmap=metric_bar.cmap,
                               norm=metric_bar.norm)
-            for i in cp.collections:
-                i.set_edgecolor('face') # For svg background
+            cp.set_edgecolors('face') # For svg background
             if label:
                 cs = plt.contour(cp, zorder=1, linewidths=0.8,
                                  levels=cp.levels, colors=[linecolor])
@@ -1364,8 +1363,10 @@ def plot_contour_single_metric(
         for col, title in enumerate(titles):
             ax = axes[0, col]
             ax.set_title(title, color=title_color, fontsize=10, fontweight='bold')
-    set_axes_labels(axes[:, :-1], xlabel, ylabel)
-    plt.subplots_adjust(hspace=0.1, wspace=0.1)
+    fig = plt.gcf()
+    fig.supxlabel(xlabel)
+    fig.supylabel(ylabel)
+    plt.subplots_adjust(hspace=0.1, wspace=0.1, bottom=0.2)
     return fig, axes, cps, cb, other_axes
             
 def color_quadrants(color=None, x=None, y=None, xlim=None, ylim=None, 

@@ -321,7 +321,7 @@ class HeatUtility:
     thermo_natural_gas: Thermo = Thermo(['Methane', 'N2', 'CO2', 'O2', 'H2O'])
 
     #: Characterization factor data (value and units) by agent ID and impact key.
-    characterization_factors: dict[tuple[str, str], tuple[float, AbsoluteUnitsOfMeasure]] = {}
+    characterization_factors: dict[tuple[str, str], tuple[float, UnitsOfMeasure]] = {}
     
     #: All cooling utilities available.
     cooling_agents: list[UtilityAgent]

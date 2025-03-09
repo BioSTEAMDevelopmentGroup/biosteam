@@ -92,10 +92,20 @@ def nbtutorial(dark=False):
     main_flowsheet.clear()
     preferences.reset()
     if dark: 
-        preferences.dark_mode()
+        preferences.dark_mode(bg='#111111')
     else:
         preferences.light_mode(bg='#ffffffaa')
     preferences.tooltips_full_results = False
     preferences.graphviz_format = 'html'
+    preferences.show_all_streams = False
     from warnings import filterwarnings
     filterwarnings('ignore')
+
+# %% 
+import pandas as pd
+from IPython.display import display
+
+def display_table_as_html(series):
+    return display(pd.DataFrame(series, columns=['']))
+
+pd.Series._ipython_display_ = display_table_as_html
