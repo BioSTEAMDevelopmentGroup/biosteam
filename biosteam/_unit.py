@@ -628,42 +628,6 @@ class Unit(AbstractUnit):
         """Net cooling duty including heat transfer losses [kJ/hr]."""
         return sum([i.duty for i in self.heat_utilities if i.duty > 0.])
     
-    @property
-    def feed(self) -> Stream:
-        """Equivalent to :attr:`~Unit.ins`[0] when the number of inlets is 1."""
-        streams = self._ins._streams
-        size = len(streams)
-        if size == 1: return streams[0]
-        elif size > 1: raise AttributeError(f"{repr(self)} has more than one inlet")
-        else: raise AttributeError(f"{repr(self)} has no inlet")
-    @feed.setter
-    def feed(self, feed): 
-        ins = self._ins
-        streams = ins._streams
-        size = len(streams)
-        if size == 1: ins[0] = feed
-        elif size > 1: raise AttributeError(f"{repr(self)} has more than one inlet")
-        else: raise AttributeError(f"{repr(self)} has no inlet")
-    inlet = influent = feed
-    
-    @property
-    def product(self) -> Stream:
-        """Equivalent to :attr:`~Unit.outs`[0] when the number of outlets is 1."""
-        streams = self._outs._streams
-        size = len(streams)
-        if size == 1: return streams[0]
-        elif size > 1: raise AttributeError(f"{repr(self)} has more than one outlet")
-        else: raise AttributeError(f"{repr(self)} has no outlet")
-    @product.setter
-    def product(self, product): 
-        outs = self._outs
-        streams = outs._streams
-        size = len(streams)
-        if size == 1: outs[0] = product
-        elif size > 1: raise AttributeError(f"{repr(self)} has more than one outlet")
-        else: raise AttributeError(f"{repr(self)} has no outlet")
-    outlet = effluent = product
-    
     def add_power_utility(self, power):
         """Add power utility [kW]. Use a positive value for consumption and 
         a negative for production."""
