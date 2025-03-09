@@ -33,7 +33,7 @@ The Biorefinery Simulation and TEA Modules
         including the `Center for Advanced Bioenergy and Bioproducts Innovation <https://cabbi.bio/>`_.
 
 
-.. grid:: 1 2 2 4
+.. grid:: 1 2 2 3
    
    
     .. grid-item-card:: Getting Started
@@ -82,19 +82,6 @@ The Biorefinery Simulation and TEA Modules
        
        Detailed documentation. 
        
-       
-    .. grid-item-card:: QSDsan
-       :text-align: center
-       :link: https://qsdsan.readthedocs.io/en/latest/
-       :link-type: url
-       :padding: 1
-       
-       .. image:: images/GG_logo.png
-          :height: 100
-          :class: dark-light
-          :align: center
-       
-       Sanitation & resources. 
 
 Installation
 ------------
