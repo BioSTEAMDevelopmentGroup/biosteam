@@ -63,7 +63,12 @@ The Biorefinery Simulation and TEA Modules
        
        .. image:: images/process.png
           :height: 100
-          :class: dark-light
+          :class: only-light
+          :align: center
+          
+       .. image:: images/process_dark.png
+          :height: 100
+          :class: only-dark
           :align: center
        
        Biorefinery models.
