@@ -9,7 +9,7 @@ The Biorefinery Simulation and TEA Modules
    API/index
    contributing/index
 
-.. grid:: 1 1 2 2
+.. grid:: 1 2 3 4
 
     .. grid-item::
     
@@ -33,7 +33,7 @@ The Biorefinery Simulation and TEA Modules
         including the `Center for Advanced Bioenergy and Bioproducts Innovation <https://cabbi.bio/>`_.
 
 
-.. grid:: 1 1 2 3
+.. grid:: 1 2 3 4
    
    
     .. grid-item-card:: Getting Started
@@ -52,7 +52,7 @@ The Biorefinery Simulation and TEA Modules
           :class: only-dark
           :align: center
           
-       Tutorials on BioSTEAM.
+       Tutorials on BioSTEAM
 
 
     .. grid-item-card:: Bioindustrial-Park
@@ -71,7 +71,7 @@ The Biorefinery Simulation and TEA Modules
           :class: only-dark
           :align: center
        
-       Biorefinery models.
+       Biorefinery models
 
         
     .. grid-item-card:: API Reference
@@ -85,8 +85,21 @@ The Biorefinery Simulation and TEA Modules
           :class: dark-light
           :align: center
        
-       Detailed documentation. 
+       Detailed documentation
        
+    .. grid-item-card:: QSDsan
+       :text-align: center
+       :link: https://qsdsan.readthedocs.io/en/latest/
+       :link-type: url
+       :padding: 1
+    
+       .. image:: images/GG_logo.png
+          :height: 100
+          :class: dark-light
+          :align: center
+    
+       Sanitation & resources
+
 
 Installation
 ------------
