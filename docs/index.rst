@@ -9,7 +9,7 @@ The Biorefinery Simulation and TEA Modules
    API/index
    contributing/index
 
-.. grid:: 1 2 3 4
+.. grid:: 1 1 2 2
 
     .. grid-item::
     
