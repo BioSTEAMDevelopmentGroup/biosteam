@@ -33,7 +33,7 @@ The Biorefinery Simulation and TEA Modules
         including the `Center for Advanced Bioenergy and Bioproducts Innovation <https://cabbi.bio/>`_.
 
 
-.. grid:: 1 2 2 3
+.. grid:: 1 1 2 3
    
    
     .. grid-item-card:: Getting Started
