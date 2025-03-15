@@ -761,16 +761,23 @@ def plot_montecarlo(data,
     
     """
     if isinstance(data, pd.DataFrame): data = data.values
-    if transpose is None and data.ndim == 2:
+    if transpose is None and hasattr(data, 'ndim') and data.ndim == 2:
         N_rows, N_cols = data.shape
         if N_cols > N_rows: data = data.transpose()
     elif transpose:
         data = data.transpose()
+    if hasattr(data, 'ndim'):
+        if data.ndim != 2: 
+            data = [data]
     if not positions:
-        if data.ndim == 1: 
-            positions = (0,)
+        if hasattr(data, 'ndim'):
+            if data.ndim != 2: 
+                positions = (0,)
+            else:
+                positions = list(range(data.shape[1]))
         else:
-            positions = list(range(data.shape[1]))
+            positions = list(range(len(data)))
+            
     if width is None: width = 0.8
     if light_color is None: light_color = default_light_color
     if dark_color is None: dark_color = default_dark_color
@@ -792,11 +799,14 @@ def plot_montecarlo(data,
                      flierprops=flierprops)
     if bounds:
         if vertical:
-            plt.scatter(x=positions, y=data.min(axis=0), marker='1', c=[dark_color])
-            plt.scatter(x=positions, y=data.max(axis=0), marker='2', c=[dark_color])
+            plt.scatter(x=positions, y=[i.min() for i in data], marker='1', c=[dark_color])
+            plt.scatter(x=positions, y=[i.max() for i in data], marker='2', c=[dark_color])
         else:
-            plt.scatter(x=data.min(axis=0), y=positions, marker='1', c=[dark_color])
-            plt.scatter(x=data.max(axis=0), y=positions, marker='2', c=[dark_color])
+            try: 
+                plt.scatter(x=[i.min() for i in data], y=positions, marker='1', c=[dark_color])
+                plt.scatter(x=[i.max() for i in data], y=positions, marker='2', c=[dark_color])
+            except:
+                breakpoint()
     if xmarks: plt.xticks(positions, xmarks)
     if hatch:
         for box in bx['boxes']: box.set(hatch = hatch)
@@ -961,15 +971,7 @@ def plot_kde_1d(xs, ys, nbins=100, axes=None, xboxes=None, yboxes=None,
                 xticks=None, yticks=None, xticklabels=None, yticklabels=None,
                 autobox=True, xbox_kwargs=None, ybox_kwargs=None, aspect_ratio=1.,
                 xlabel=None, ylabel=None, fs=None, **kwargs):
-    xs = np.asarray(xs)
-    ys = np.asarray(ys)
-    if xs.ndim == 2:
-        N, M = xs.shape
-        xs = xs.reshape([1, N, M])
-    if ys.ndim == 2:
-        N, M = ys.shape
-        ys = ys.reshape([1, N, M])
-    N_internal, N_cols, *_ = xs.shape
+    N_cols = len(xs)
     N_rows = 1
     if xticklabels and not hasattr(xticklabels, '__len__'):
         xticklabels = N_cols * [xticklabels]
@@ -977,7 +979,11 @@ def plot_kde_1d(xs, ys, nbins=100, axes=None, xboxes=None, yboxes=None,
         xticks = N_cols * [xticks]
     if axes is None:
         if autobox:
-            grid_kw = dict(height_ratios=[0.3 * N_internal, *N_rows*[4]], width_ratios=[*N_cols*[4], 0.3 * N_cols * N_internal])
+            N_internal_x = sum([(1 if x.ndim == 1 else x.shape[0])
+                                for x in xs]) / N_cols
+            N_internal_y = sum([(1 if y.ndim == 1 else y.shape[0])
+                                for y in ys])
+            grid_kw = dict(height_ratios=[0.4 * N_internal_x, *N_rows*[4]], width_ratios=[*N_cols*[4], 0.4 * N_internal_y])
             fig, all_axes = plt.subplots(
                 ncols=N_cols + 1, nrows=N_rows + 1, 
                 gridspec_kw=grid_kw,
@@ -1013,8 +1019,8 @@ def plot_kde_1d(xs, ys, nbins=100, axes=None, xboxes=None, yboxes=None,
             fig, axes = plt.subplots(ncols=N_cols, nrows=N_rows)
             axes = axes.reshape([N_rows, N_cols])
     for i in range(N_cols):
-        x = xs[:, i]
-        y = ys[:, i]
+        x = xs[i]
+        y = ys[i]
         ax = axes[0, i]
         xticksi = None if xticks is None else xticks[i]
         xticklabelsi = None if xticklabels is None else xticklabels[i]
@@ -1032,14 +1038,21 @@ def plot_kde_1d(xs, ys, nbins=100, axes=None, xboxes=None, yboxes=None,
                  **kwargs)
     if xboxes is not None:
         for i, xbox in enumerate(xboxes):
-            x = xs[:, i]
+            x = xs[i]
             plt.sca(xbox.axis)
             plot_montecarlo(x, xbox.light, xbox.dark,
-                            positions=[*range(0, -len(x), -1)],
+                            positions=[0] if x.ndim == 1 else [*range(0, -len(x), -1)],
                             vertical=False, outliers=False, 
                             bounds=True)
     if ybox is not None:
-        y = np.array([ys[i, j, :] for i in range(N_internal) for j in range(N_cols)])
+        y = []
+        for values in ys:
+            if values.ndim == 2:
+                y.extend(values)
+            elif values.ndim == 1:
+                y.append(values)
+            else:
+                raise ValueError('ys has too many dimensions')
         plt.sca(ybox.axis)
         plot_montecarlo(y, ybox.light, ybox.dark,
                         positions=[*range(len(y))],
