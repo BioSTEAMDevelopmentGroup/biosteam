@@ -1,7 +1,7 @@
 {
   "path": "../../How2STEAM/case_studies/Sugarcane_ethanol_biorefinery.ipynb",
   "extra-media": [
-      "../../How2STEAM/case_studies/sugarcane_light.png",
-      "../../How2STEAM/case_studies/sugarcane_dark.png",
+      "../../How2STEAM/case_studies/sugarcane_light.svg",
+      "../../How2STEAM/case_studies/sugarcane_dark.svg"
   ]
 }
