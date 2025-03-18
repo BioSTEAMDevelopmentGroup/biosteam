@@ -10,6 +10,7 @@
 __all__ = ('Feature', 'MockFeature', 'Variable', 'MockVariable')
 from ._name import element_name
 from ..utils import format_title
+from thermosteam import units_of_measure
 
 class Feature:
     """
@@ -94,20 +95,41 @@ class Feature:
         if len(name) > 31: name = name[:31]
         return name
     
-    def describe(self, number_format='.3g', distribution=True, bounds=True) -> str:
+    def label(self, element_dlim='\n', format_units=True):
+        return self.describe(
+            element_dlim, 
+            format_units,
+            False, 
+            False, 
+        )
+    
+    def describe(self, 
+            element_dlim=' - ',
+            format_units=False,
+            distribution=True, 
+            bounds=True, 
+            number_format='.3g', 
+        ) -> str:
         """Return description of feature."""
         name = self.name
         if self.element:
-            name = self.element_name + ' - ' + name
+            name = self.element_name + element_dlim + name
+        units = self.units
+        if format_units and units:
+            units = units_of_measure.format_units(units)
         description = name
+        units_added = False
         if distribution:
             if getattr(self, 'distribution', None):
                 dist_name = type(self.distribution).__name__
                 distribution_values = self.distribution._repr.values()
                 distribution = ', '.join([format(j, number_format)
                                           for j in distribution_values])
-                distribution = f' ({dist_name}; {distribution})'
-                description += distribution
+                if units:
+                    description += f' ({dist_name}; {distribution} {str(units)})'
+                else:
+                    description += f' ({dist_name}; {distribution})'
+                units_added = True
         elif bounds:
             baseline = getattr(self, 'baseline', None)
             bounds = getattr(self, 'bounds', None)
@@ -115,19 +137,18 @@ class Feature:
                 lb, ub = bounds
                 values = ', '.join([format(i, number_format)
                                     for i in (lb, baseline, ub)])
-                if self.units:
-                    description += f' ({values} {str(self.units)})'
+                if units:
+                    description += f' ({values} {str(units)})'
                 else:
                     description += f' ({values})'
+                units_added = True
         if description:
             first_letter = description[0]
             if first_letter.islower(): 
                 description = first_letter.upper() + description[1:]
-        if not (bounds and  getattr(self, 'bounds', None)) and self.units:
-            units = (' [' + str(self.units) + ']')
-            description += units
+        if units and not units_added: 
+            description += ' [' + str(units) + ']'
         return description
-    
     
     def __repr__(self):
         units = f" ({self.units})" if self.units else ""

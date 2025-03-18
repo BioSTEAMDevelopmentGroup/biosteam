@@ -298,8 +298,8 @@ html_theme_options = {
     },
     "show_toc_level": 2,
     "announcement": (
-        "<p>Join us in March 2025 for a virtual BioSTEAM workshop! "
-        "<a href='https://docs.google.com/spreadsheets/d/1QlP7iSZrLHkUxhk-2R8_QWomh3qHfkchJK1EvM5cpyo/edit?usp=sharing'>Sign-up for details</a></p>"
+        "<p>Full day BioSTEAM workshop, May 3 at the "
+        "<a href='https://www.simbhq.org/sbfc/workshop/'>SBFC conference</a>!</p>"
     ),
     "external_links": [
       {"name": "Bioindustrial-Park", "url": "https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park"},

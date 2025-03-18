@@ -189,7 +189,7 @@ def rounded_linspace(lb, ub, N, step_min=None, f=None, center=None, p=None):
         offset = min(values, key=lambda x: abs(center - x))
         values = [i - offset for i in values[0:-1]]
         values = [*values, values[-1] + step]
-    return [f(i) for i in values]
+    return values
         
 def default_colors_and_hatches(length, colors, hatches):
     if colors is None:

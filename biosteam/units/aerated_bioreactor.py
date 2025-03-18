@@ -445,8 +445,10 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             optimize_power=None, 
             mixins=None,
             fed_gas_hook=None,
+            cooler_pressure_drop=None,
             **kwargs,
         ):
+        self.cooler_pressure_drop = 20684.28 if cooler_pressure_drop is None else cooler_pressure_drop
         self.fed_gas_hook = fed_gas_hook
         self.reactions = reactions
         self.backward_reactions = backward_reactions

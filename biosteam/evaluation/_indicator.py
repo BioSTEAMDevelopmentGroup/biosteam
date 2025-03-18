@@ -50,7 +50,7 @@ class Indicator(Feature):
         """Return the difference between the current indicator value and the last one 
         evaluated by calling this object."""
         return self.getter() - self.last_value
-        
+    
     
 def indicator(getter=None, name=None, units=None, element='Biorefinery'):
     if not getter: return lambda getter: indicator(getter, name, units, element)
