@@ -95,12 +95,13 @@ class Feature:
         if len(name) > 31: name = name[:31]
         return name
     
-    def label(self, element_dlim='\n', format_units=True):
+    def label(self, element=True, element_dlim='\n', format_units=True):
         return self.describe(
             element_dlim, 
             format_units,
             False, 
             False, 
+            element=element,
         )
     
     def describe(self, 
@@ -109,10 +110,11 @@ class Feature:
             distribution=True, 
             bounds=True, 
             number_format='.3g', 
+            element=True,
         ) -> str:
         """Return description of feature."""
         name = self.name
-        if self.element:
+        if element and self.element:
             name = self.element_name + element_dlim + name
         units = self.units
         if format_units and units:

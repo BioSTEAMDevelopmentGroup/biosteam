@@ -238,7 +238,12 @@ class ProcessModel:
     
     def __new__(cls, *, simulate=True, scenario=None, **kwargs):
         scenario = cls.scenario_hook(scenario, kwargs)
-        if scenario in cls.cache: return cls.cache[scenario]
+        if scenario in cls.cache: 
+            process_model = cls.cache[scenario]
+            if simulate:
+                system = process_model.system
+                if all([i.isempty() for i in system.products]): system.simulate()
+            return process_model
         self = super().__new__(cls)
         self.scenario = scenario
         self.flowsheet = bst.Flowsheet(repr(self))
