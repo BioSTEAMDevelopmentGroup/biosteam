@@ -513,7 +513,10 @@ class Distillation(Unit, isabstract=True):
             "to set distillate composition")
         assert y_top == None or 0 < y_top < 1, "light key composition in the distillate must be a fraction" 
         self._y_top = y_top
-        self._y = np.array([y_top, 1-y_top])
+        if y_top:
+            self._y = np.array([1-y_top, y_top])
+        else:
+            self._y = np.array([None, None])
     
     @property
     def x_bot(self):
@@ -524,7 +527,7 @@ class Distillation(Unit, isabstract=True):
         assert self.product_specification_format == "Composition", (
             "product specification format must be 'Composition' to set bottoms "
             "product composition")
-        assert 0 < x_bot < 1, "light key composition in the bottoms product must be a fraction" 
+        assert x_bot == None or 0 < x_bot < 1, "light key composition in the bottoms product must be a fraction" 
         self._x_bot = x_bot
     
     @property
@@ -671,18 +674,23 @@ class Distillation(Unit, isabstract=True):
     
     def _set_distillation_product_specifications(self,
                                                  product_specification_format,
-                                                 x_bot, y_top, Lr, Hr):
+                                                 x_bot, y_top, Lr, Hr, N_stages):
         if not product_specification_format:
             if (x_bot and y_top) and not (Lr or Hr):
                 product_specification_format = 'Composition'
             elif (Lr and Hr) and not (x_bot or y_top):
                 product_specification_format = 'Recovery'
+            elif (N_stages and y_top and not x_bot):
+                product_specification_format = 'Composition'
+            elif (N_stages and not y_top and x_bot):
+                product_specification_format = 'Composition'
             else:
                 raise ValueError("must specify either x_top and y_top, or Lr and Hr")
         self._product_specification_format = product_specification_format
         if product_specification_format == 'Composition':
             self.y_top = y_top
             self.x_bot = x_bot
+            self.N_stages = N_stages
         elif product_specification_format == 'Recovery':
             self.Lr = Lr
             self.Hr = Hr
@@ -763,7 +771,7 @@ class Distillation(Unit, isabstract=True):
         
         # Mass balance for keys
         spec = self.product_specification_format
-        if spec == 'Composition':
+        if spec == 'Composition' and self.x_bot is not None and self.y_top is not None:
             # Use lever rule
             light, heavy = LHK_mol
             F_mol_LHK = light + heavy
