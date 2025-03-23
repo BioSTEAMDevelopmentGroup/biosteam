@@ -322,6 +322,7 @@ class Distillation(Unit, isabstract=True):
             reboiler_thermo=None,
             partial_condenser=True,
             weir_height=0.1,
+            N_stages=None,
         ):
         self.check_LHK = True
         
@@ -331,7 +332,7 @@ class Distillation(Unit, isabstract=True):
         self.Rmin = Rmin
         self._partial_condenser = partial_condenser
         self._set_distillation_product_specifications(product_specification_format,
-                                                      x_bot, y_top, Lr, Hr)
+                                                      x_bot, y_top, Lr, Hr, N_stages)
         
         # Construction specifications
         self.vessel_material = vessel_material
@@ -510,7 +511,7 @@ class Distillation(Unit, isabstract=True):
         assert self.product_specification_format == "Composition", (
             "product specification format must be 'Composition' "
             "to set distillate composition")
-        assert 0 < y_top < 1, "light key composition in the distillate must be a fraction" 
+        assert y_top == None or 0 < y_top < 1, "light key composition in the distillate must be a fraction" 
         self._y_top = y_top
         self._y = np.array([y_top, 1-y_top])
     
