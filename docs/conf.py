@@ -187,6 +187,9 @@ from types import UnionType, GenericAlias
 from thermosteam import units_of_measure 
 from numpy import typing as numpy_typing
 defs = numpy_typing.__dict__ | units_of_measure.__dict__ | bst.__dict__ | typing.__dict__ | types.__dict__
+# For documentation purposes, users do not need to know about abstract unit/stream
+defs['AbstractUnit'] = bst.Unit 
+defs['AbstractStream'] = bst.Stream
 format_annotation_old = sat.format_annotation
 
 def replace_forward_ref(annotation):
