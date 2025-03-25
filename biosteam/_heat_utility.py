@@ -469,11 +469,11 @@ class HeatUtility:
         agent = self.agent
         CF, basis_units = self.get_CF(agent.ID, key)
         if basis_units == 'kg':
-            return self.flow * agent.MW, basis_units
+            return self.flow * agent.MW, basis_units + '/hr'
         elif basis_units == 'mol':
-            return self.flow, basis_units
+            return self.flow, basis_units + '/hr'
         elif basis_units == 'kJ':
-            return self.duty, basis_units
+            return self.duty, basis_units + '/hr'
         else:
             raise RuntimeError("unknown error")
 
