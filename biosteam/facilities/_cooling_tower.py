@@ -56,7 +56,7 @@ class CoolingTower(bst.Facility):
         evaporation = makeup_water.copy('cooling_tower_evaporation')
         super().__init__(ID, (return_cooling_water, makeup_water, cooling_tower_chemicals),
                          (cooling_water, blowdown, evaporation), thermo=cooling_water.thermo)
-        self.cooling_water_utilities = set()
+        self.cooling_water_utilities = []
     
     @property
     def return_cooling_water(self):
@@ -81,10 +81,9 @@ class CoolingTower(bst.Facility):
         ID = self.agent.ID
         cwu.clear()
         for u in self.other_units:
-            if u is self: continue
             for hu in u.heat_utilities:
                 agent = hu.agent
-                if agent and agent.ID == ID: cwu.add(hu)
+                if agent and agent.ID == ID: cwu.append(hu)
         
     def _design(self):
         self._load_utility_agents()
