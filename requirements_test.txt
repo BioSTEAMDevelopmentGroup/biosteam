@@ -5,3 +5,4 @@ SALib
 pyglet
 ipykernel
 CoolProp
+sphinx_autodoc_typehints
