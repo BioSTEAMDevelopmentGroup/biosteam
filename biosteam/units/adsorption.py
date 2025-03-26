@@ -268,16 +268,17 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
     Electricity         Power                              kW                0.241
                         Cost                           USD/hr               0.0188
     Design              Diameter                           ft                 1.22
-                        Length                             ft                 11.9
+                        Length                             ft                 12.2
                         Vessel type                                       Vertical
-                        Weight                             lb                  511
+                        Weight                             lb                  521
                         Wall thickness                     in                 0.25
+                        Pressure drop                      Pa                  103
                         Vessel material                        Stainless steel 316
-    Purchase cost       Vertical pressure vessel (x3)     USD             6.06e+04
-                        Platform and ladders (x3)         USD             8.24e+03
+    Purchase cost       Vertical pressure vessel (x3)     USD             6.12e+04
+                        Platform and ladders (x3)         USD             8.37e+03
                         Pump - Pump (x3)                  USD             1.31e+04
                         Pump - Motor (x3)                 USD                  174
-    Total purchase cost                                   USD             8.21e+04
+    Total purchase cost                                   USD             8.28e+04
     Utility cost                                       USD/hr               0.0188
     
     >>> A1.show('wt')
@@ -292,7 +293,7 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
         flow: 0
     [2] -  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kg/hr): ActivatedCarbon  0.151
+        flow (kg/hr): ActivatedCarbon  0.154
     outs...
     [0] effluent  
         phase: 'l', T: 298 K, P: 101325 Pa
@@ -302,7 +303,7 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
         flow: 0
     [2] -  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kg/hr): ActivatedCarbon  0.151
+        flow (kg/hr): ActivatedCarbon  0.154
     
     """
     auxiliary_unit_names = (

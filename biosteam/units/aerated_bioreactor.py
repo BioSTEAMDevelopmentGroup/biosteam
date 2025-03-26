@@ -64,15 +64,15 @@ class AeratedBioreactor(AbstractStirredTankReactor):
                         Glucose  139
     [1] air  
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): O2  1.05e+03
-                        N2  3.93e+03
+        flow (kmol/hr): O2  1.02e+03
+                        N2  3.85e+03
     outs...
     [0] vent  
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water  136
+        flow (kmol/hr): Water  135
                         CO2    416
-                        O2     629
-                        N2     3.93e+03
+                        O2     606
+                        N2     3.85e+03
     [1] product  
         phase: 'l', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water    6.94e+03
@@ -392,13 +392,13 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         flow (kmol/hr): H2O  555
     [1] H2  
         phase: 'g', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): H2  18.1
+        flow (kmol/hr): H2  17.8
     [2] fluegas  
         phase: 'g', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): CO2  1.65
-                        N2   7.27
-                        O2   0.182
-                        H2O  0.485
+        flow (kmol/hr): CO2  1.66
+                        N2   7.31
+                        O2   0.183
+                        H2O  0.487
     [3] recycle  
         phase: 'g', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): CO2  0.0523
@@ -408,12 +408,12 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     outs...
     [0] vent  
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): H2          14.8
-                        CO2         0.0324
-                        N2          7.52
-                        O2          0.194
-                        H2O         1.02
-                        AceticAcid  0.000984
+        flow (kmol/hr): H2          14.5
+                        CO2         0.0413
+                        N2          7.56
+                        O2          0.195
+                        H2O         1
+                        AceticAcid  0.000973
     [1] product  
         phase: 'l', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): H2O         556

@@ -836,7 +836,7 @@ class MixerSettler(bst.Unit):
     >>> MS1 = bst.MixerSettler('MS1', ins=(feed, solvent), outs=('extract', 'raffinate'))
     >>> MS1.simulate()
     >>> MS1.extract.imol['Methanol'] / MS1.feed.imol['Methanol']
-    0.6651355326190243
+    0.6651355326190245
     >>> MS1.raffinate.imol['Water'] / MS1.feed.imol['Water']
     0.8273318482954151
     >>> MS1.extract.imol['Octanol'] / MS1.solvent.imol['Octanol']

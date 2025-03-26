@@ -2447,37 +2447,37 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     >>> D1.simulate()
     >>> vapor, liquid = D1.outs
     >>> vapor.imol['Ethanol'] / feed.imol['Ethanol']
-    0.96
+    0.9278704757058321
     >>> vapor.imol['Ethanol'] / vapor.F_mol
-    0.69
+    0.6755316231005729
     
     >>> D1.results()
     Distillation                                               Units          
-    Electricity         Power                                     kW     0.574
-                        Cost                                  USD/hr    0.0449
-    Cooling water       Duty                                   kJ/hr -2.98e+06
+    Electricity         Power                                     kW       0.6
+                        Cost                                  USD/hr    0.0469
+    Cooling water       Duty                                   kJ/hr -2.97e+06
                         Flow                                 kmol/hr  2.03e+03
-                        Cost                                  USD/hr     0.992
-    Low pressure steam  Duty                                   kJ/hr   7.8e+06
-                        Flow                                 kmol/hr       202
-                        Cost                                  USD/hr        48
+                        Cost                                  USD/hr     0.989
+    Low pressure steam  Duty                                   kJ/hr  7.76e+06
+                        Flow                                 kmol/hr       200
+                        Cost                                  USD/hr      47.7
     Design              Theoretical stages                                   5
                         Actual stages                                        7
                         Height                                    ft      24.3
-                        Diameter                                  ft      3.32
+                        Diameter                                  ft      3.35
                         Wall thickness                            in     0.312
-                        Weight                                    lb  3.63e+03
-    Purchase cost       Trays                                    USD  8.11e+03
-                        Tower                                    USD  3.43e+04
-                        Platform and ladders                     USD  9.43e+03
+                        Weight                                    lb  3.66e+03
+    Purchase cost       Trays                                    USD  8.14e+03
+                        Tower                                    USD  3.44e+04
+                        Platform and ladders                     USD  9.48e+03
                         Condenser - Floating head                USD  2.36e+04
-                        Reflux drum - Vertical pressure ...      USD  1.29e+04
-                        Reflux drum - Platform and ladders       USD  3.89e+03
-                        Pump - Pump                              USD  4.35e+03
-                        Pump - Motor                             USD       358
-                        Reboiler - Floating head                 USD  2.34e+04
-    Total purchase cost                                          USD   1.2e+05
-    Utility cost                                              USD/hr        49
+                        Reflux drum - Vertical pressure ...      USD  1.21e+04
+                        Reflux drum - Platform and ladders       USD  3.46e+03
+                        Pump - Pump                              USD  4.34e+03
+                        Pump - Motor                             USD       362
+                        Reboiler - Floating head                 USD  2.31e+04
+    Total purchase cost                                          USD  1.19e+05
+    Utility cost                                              USD/hr      48.7
     
     Simulate distillation column with a full condenser, 5 stages, a 0.673 reflux ratio, 
     2.57 boilup ratio, and feed at stage 2:
