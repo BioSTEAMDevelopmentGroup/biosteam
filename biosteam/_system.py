@@ -807,6 +807,11 @@ class System:
         # Phenomena oriented simulation
         '_aggregated_stage_configuration',
         '_stage_configuration',
+        '_track_variables',
+        '_tracked_variables',
+        '_equation_nodes',
+        '_variable_equation_connections',
+        '_variable_nodes',
         # Dynamic simulation
         '_isdynamic',
         '_state',
@@ -855,6 +860,9 @@ class System:
 
     #: Method definitions for convergence
     available_methods: Methods[str, tuple[Callable, bool, dict]] = Methods()
+
+    # TODO: Make this an instance variable
+    strict_phenomena_decomposition = False
 
     @classmethod
     def register_method(cls, name, solver, conditional=False, **kwargs):
@@ -1079,6 +1087,9 @@ class System:
 
         #: Whether to simulate system after running all specifications.
         self.simulate_after_specifications = False
+
+        #: Whether to track convergence variables at each iteration.
+        self._track_variables = False
 
         self._set_path(path)
         self._specifications = []
@@ -2477,29 +2488,96 @@ class System:
                 )
             return conf
         
-    # c = [0]
+    @property
+    def track_variables(self, track):
+        return self._tracking_variable
+    
+    @track_variables.setter
+    def track_variables(self, track):
+        if track:
+            self._track_variables = True
+            for i in self.stages: i.initialize_equation_nodes()
+            self._tracked_variables = {i: [] for i in self.variable_nodes}
+        else:
+            self._track_variables = False
+            self._tracked_variables = None
+    
+    @property
+    def variable_nodes(self):
+        try:
+            return self._variable_nodes
+        except:
+            self._variable_nodes = nodes = tuple(set(sum([i.nodes for i in self.equation_nodes], ())))
+            return nodes
+    
+    @property
+    def equation_nodes(self):
+        try:
+            return self._equation_nodes
+        except:
+            self._equation_nodes = nodes = tuple(set(sum([i.equation_nodes for i in self.stages], ())))
+            return nodes
+    
+    @property
+    def variable_equation_connections(self):
+        try:
+            return self._variable_equation_connections
+        except:
+            self._variable_equation_connections = connections = tuple(set(sum([i.get_connections() for i in self.equation_nodes], [])))
+            return connections
+    
+    def get_tracked_variables(self):
+        tracked_variables = self._tracked_variables
+        variable_nodes = tuple(tracked_variables)
+        names = [i.name for i in variable_nodes]
+        chemicals = [i.ID for i in bst.settings.get_chemicals()]
+        subnames = [('-' if np.ndim(i.value) == 0 else chemicals) for i in variable_nodes]
+        columns = [(name, i) for name, subname in zip(names, subnames) for i in subname]
+        M = len(tracked_variables[variable_nodes[0]])
+        N = len(columns)
+        values = np.zeros([M, N])
+        for i in range(M):
+            j = 0
+            for lst in tracked_variables.values():
+                values_i = lst[i]
+                if np.ndim(values_i):
+                    end = j + len(values_i)
+                else:
+                    end = j + 1
+                values[i, j:end] = values_i
+                j = end
+        return pd.DataFrame(values, columns=pd.MultiIndex.from_tuples(columns))
+    
     def run_phenomena(self):
         """Decouple and linearize material, equilibrium, summation, enthalpy,
         and reaction phenomena and iteratively solve them."""
         path = self.unit_path
+        tracking = self._track_variables
+        if tracking:
+            variables = self._tracked_variables
+            subgraphs = ('material_balance', 'energy_balance', 'phenomena')
         with self.stage_configuration(aggregated=False) as conf:
             try:
-                for i in path: 
-                    if isinstance(i, (bst.Mixer, bst.Splitter)) and not i.specifications: continue
-                    i.run()
-                    conf.solve_energy_departures()
-                    conf._solve_material_flows(composition_sensitive=False)
+                if not self.strict_phenomena_decomposition:    
+                    for i in path: 
+                        if isinstance(i, (bst.Mixer, bst.Splitter)) and not i.specifications: continue
+                        i.run()
+                        conf.solve_energy_departures()
+                        conf._solve_material_flows(composition_sensitive=False)
                 conf.solve_nonlinearities()
                 conf.solve_material_flows(composition_sensitive=True)
                 conf.solve_energy_departures()
                 conf._solve_material_flows(composition_sensitive=False)
+                if tracking:
+                    for subgraph in subgraphs:
+                        method_name = f'_collect_{subgraph}_variables'
+                        for i in conf.nodes:
+                            method = getattr(i, method_name)
+                            for variable, value in method():
+                                variables[variable].append(value)
             except (NotImplementedError, UnboundLocalError, TypeError, KeyError) as error:
                 raise error
             except:
-            # except Exception as e:
-                # if self.c[0] != 0: raise e
-                # self.c[0] += 1
-                # print('failed!')
                 for i in path: i.run()
             
     def _solve(self):

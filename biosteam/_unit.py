@@ -24,6 +24,7 @@ from typing import Callable, Optional, TYPE_CHECKING, Sequence, Iterable
 from thermosteam.base.sparse import SparseVector, sum_sparse_vectors
 import numpy as np
 import thermosteam as tmo
+from thermosteam import EquationNode
 if TYPE_CHECKING: 
     System = bst._recycle_system
     HXutility = bst.HXutility
@@ -285,6 +286,33 @@ class Unit(AbstractUnit):
     #: Add embodied emissions (e.g., unit construction) in LCA
     _lca = AbstractMethod
     
+    def initialize_equation_nodes(self):
+        eqs = self.equation_node_names
+        equation_nodes = []
+        for eq in eqs: 
+            node = EquationNode(f"{self.ID}.{eq}")
+            equation_nodes.append(node)
+            setattr(self, eq, node)
+        for eq in eqs: 
+            getattr(self, f'initialize_{eq}')()
+        self.equation_nodes = tuple(equation_nodes)
+    
+    @property
+    def variable_nodes(self):
+        try:
+            return self._variable_nodes
+        except:
+            self._variable_nodes = nodes = tuple(set(sum([i.nodes for i in self.equation_nodes])))
+            return nodes
+            
+    @property
+    def variable_equation_connections(self):
+        try:
+            return self._variable_equation_connections
+        except:
+            self._variable_equation_connections = connections = tuple(set(sum([i.get_connections() for i in self.equation_nodes])))
+            return connections
+        
     def _update_nonlinearities(self):
         """
         Update phenomenological variables for phenomena-oriented simulation.

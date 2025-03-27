@@ -25,6 +25,9 @@ from copy import copy
 from scipy.optimize import root
 from ..exceptions import Converged
 from .. import Unit
+from thermosteam import (
+    VariableNode,
+)
 
 __all__ = (
     'SinglePhaseStage',
@@ -260,6 +263,12 @@ class StageEquilibrium(Unit):
     _ins_size_is_fixed = False
     _outs_size_is_fixed = False
     auxiliary_unit_names = ('partition', 'mixer', 'splitters')
+    equation_node_names = (
+        'overall_material_balance_node', 
+        'separation_material_balance_node',
+        'energy_balance_node',
+        'phenomena_node',
+    )
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
             phases, partition_data=None, top_split=0, bottom_split=0,
@@ -460,7 +469,101 @@ class StageEquilibrium(Unit):
         self.partition._run()
         for i in self.splitters: i._run()
         self._update_separation_factors()
-            
+        
+    def initialize_overall_material_balance_node(self):
+        self.overall_material_balance_node.set_equations(
+            *[j for i in self.ins if (j:=i.F_node)],
+            *[i.F_node for i in self.outs],
+        )
+    
+    def initialize_separation_material_balance_node(self):
+        self.separation_material_balance_node.set_equations(
+            *[i.F_node for i in self.outs],
+        )
+        
+    def initialize_phenomena_node(self):
+        self.phenomena_node.set_equations(
+            self.outs[1].F_node,
+            self.T_node,
+            self.K_node,
+        )
+    def initialize_energy_balance_node(self):
+        self.energy_balance_node.set_equations(
+            *[i.F_node for i in self.outs],
+            *[j for i in self.ins if (j:=i.E_node)],
+            self.T_node,
+            *[j for i in self.outs if (j:=i.E_node)],
+        )
+        
+    @property
+    def K_node(self):
+        if hasattr(self, '_K_node'): 
+            self._K_node.value = self.K
+            return self._K_node
+        self._K_node = var = VariableNode(f"{self.ID}.K",
+            self.K,
+            self.separation_material_balance_node,
+            self.phenomena_node,
+        )
+        return var
+    
+    @property
+    def T_node(self):
+        if hasattr(self, '_T_node'): 
+            self._T_node.value = self.T
+            return self._T_node
+        self._T_node = var = VariableNode(f"{self.ID}.T",
+            self.T,
+            self.energy_balance_node,
+            self.phenomena_node,
+            *[i.sink.energy_balance_node for i in self.outs if i.sink],
+        )
+        return var 
+        
+    @property
+    def E_node(self):
+        if self._energy_variable is None:
+            return None
+        if hasattr(self, '_E_node'):
+            self._E_node.value = getattr(self, self._energy_variable)
+            return self._E_node
+        var = VariableNode(f"{self.ID}.E",
+            getattr(self, self._energy_variable),
+            self.energy_balance_node,
+            *[j for i in self.outs if i.sink and (j := i.sink.energy_balance_node)],
+        )
+        self._E_node = var
+        return var
+    
+    def get_connected_material_nodes(self, stream):
+        # TODO: Make this work for inlet streams and split streams
+        eqs = [self.separation_material_balance_node, 
+               self.overall_material_balance_node]
+        if stream.phase == 'l':
+            eqs.append(self.phenomena_node)
+        elif self._energy_variable is None and stream.phase == 'g':
+            eqs.append(self.energy_balance_node)
+        return eqs
+    
+    def _collect_material_balance_variables(self):
+        nodes = [i.F_node for i in self.outs]
+        return [
+            (i, i.value) for i in nodes
+        ]
+        # list[tuple[VariableNode, value]] of stage-name and material balance variable pairs
+    
+    def _collect_energy_balance_variables(self):
+        nodes = [j for i in self.outs if (j:=i.E_node)]
+        return [
+            (i, i.value) for i in nodes
+        ] # list[tuple[VariableNode, value]] of stage-name and energy balance variable pairs
+    
+    def _collect_phenomena_variables(self):
+        nodes = [self.T_node, self.K_node]
+        return [
+            (i, i.value) for i in nodes
+        ] # list[tuple[VariableNode, value]] of stage-name and nonlinear variable pairs
+    
     def _get_energy_departure_coefficient(self, stream):
         energy_variable = self._energy_variable
         if energy_variable is None: return None
@@ -648,7 +751,7 @@ class StageEquilibrium(Unit):
             for i in self.outs: i.T = T
         else:
             raise RuntimeError('invalid phases')
-    
+            
     def _update_composition_parameters(self):
         self.partition._run_decoupled_Kgamma()
     
@@ -665,7 +768,7 @@ class StageEquilibrium(Unit):
             partition = self.partition
             partition._run_decoupled_KTvle()
             T = partition.T
-            for i in (partition.outs, self.outs): i.T = T
+            for i in (*partition.outs, *self.outs): i.T = T
         elif phases == ('L', 'l'):
             pass
             # self.partition._run_lle(single_loop=True)
