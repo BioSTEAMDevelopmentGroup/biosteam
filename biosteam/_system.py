@@ -2533,7 +2533,7 @@ class System:
         chemicals = [i.ID for i in bst.settings.get_chemicals()]
         subnames = [('-' if np.ndim(i.value) == 0 else chemicals) for i in variable_nodes]
         columns = [(name, i) for name, subname in zip(names, subnames) for i in subname]
-        M = len(tracked_variables[variable_nodes[0]])
+        M = min([len(i) for i in tracked_variables.values()])
         N = len(columns)
         values = np.zeros([M, N])
         for i in range(M):
