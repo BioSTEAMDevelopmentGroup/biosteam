@@ -322,7 +322,10 @@ class Distillation(Unit, isabstract=True):
             reboiler_thermo=None,
             partial_condenser=True,
             weir_height=0.1,
+            N_stages=None,
         ):
+        self._x_bot = x_bot
+        self._y_top = y_top
         self.check_LHK = True
         
         # Operation specifications
@@ -331,7 +334,7 @@ class Distillation(Unit, isabstract=True):
         self.Rmin = Rmin
         self._partial_condenser = partial_condenser
         self._set_distillation_product_specifications(product_specification_format,
-                                                      x_bot, y_top, Lr, Hr)
+                                                      x_bot, y_top, Lr, Hr, N_stages)
         
         # Construction specifications
         self.vessel_material = vessel_material
@@ -510,9 +513,12 @@ class Distillation(Unit, isabstract=True):
         assert self.product_specification_format == "Composition", (
             "product specification format must be 'Composition' "
             "to set distillate composition")
-        assert 0 < y_top < 1, "light key composition in the distillate must be a fraction" 
+        assert y_top is None or 0 < y_top < 1, "light key composition in the distillate must be a fraction" 
         self._y_top = y_top
-        self._y = np.array([y_top, 1-y_top])
+        if y_top:
+            self._y = np.array([y_top, 1-y_top])
+        else:
+            self._y = np.array([None, None])
     
     @property
     def x_bot(self):
@@ -523,7 +529,7 @@ class Distillation(Unit, isabstract=True):
         assert self.product_specification_format == "Composition", (
             "product specification format must be 'Composition' to set bottoms "
             "product composition")
-        assert 0 < x_bot < 1, "light key composition in the bottoms product must be a fraction" 
+        assert x_bot is None or 0 < x_bot < 1, "light key composition in the bottoms product must be a fraction" 
         self._x_bot = x_bot
     
     @property
@@ -670,18 +676,23 @@ class Distillation(Unit, isabstract=True):
     
     def _set_distillation_product_specifications(self,
                                                  product_specification_format,
-                                                 x_bot, y_top, Lr, Hr):
+                                                 x_bot, y_top, Lr, Hr, N_stages):
         if not product_specification_format:
             if (x_bot and y_top) and not (Lr or Hr):
                 product_specification_format = 'Composition'
             elif (Lr and Hr) and not (x_bot or y_top):
                 product_specification_format = 'Recovery'
+            elif (N_stages and y_top and not x_bot):
+                product_specification_format = 'Composition'
+            elif (N_stages and not y_top and x_bot):
+                product_specification_format = 'Composition'
             else:
                 raise ValueError("must specify either x_top and y_top, or Lr and Hr")
         self._product_specification_format = product_specification_format
         if product_specification_format == 'Composition':
             self.y_top = y_top
             self.x_bot = x_bot
+            self.N_stages = N_stages
         elif product_specification_format == 'Recovery':
             self.Lr = Lr
             self.Hr = Hr
@@ -762,7 +773,7 @@ class Distillation(Unit, isabstract=True):
         
         # Mass balance for keys
         spec = self.product_specification_format
-        if spec == 'Composition':
+        if spec == 'Composition' and self.x_bot is not None and self.y_top is not None:
             # Use lever rule
             light, heavy = LHK_mol
             F_mol_LHK = light + heavy
@@ -777,15 +788,23 @@ class Distillation(Unit, isabstract=True):
             max_flows = (1 - 1e-9) * LHK_mol
             mask = distillate_LHK_mol > (1 - 1e-9) * max_flows
             distillate_LHK_mol[mask] = max_flows[mask]
+            
+            distillate.mol[LHK_index] = distillate_LHK_mol
+            bottoms_product.mol[LHK_index] = LHK_mol - distillate_LHK_mol
+            distillate.mol[intemediates_index] = \
+            bottoms_product.mol[intemediates_index] = mol[intemediates_index] / 2
+            self._check_mass_balance()
         elif spec == 'Recovery':
             distillate_LHK_mol = LHK_mol * [self.Lr, (1 - self.Hr)]
-        else:
+            
+            distillate.mol[LHK_index] = distillate_LHK_mol
+            bottoms_product.mol[LHK_index] = LHK_mol - distillate_LHK_mol
+            distillate.mol[intemediates_index] = \
+            bottoms_product.mol[intemediates_index] = mol[intemediates_index] / 2
+            self._check_mass_balance()
+
+        elif spec != 'Composition':
             raise ValueError("invalid specification '{spec}'")
-        distillate.mol[LHK_index] = distillate_LHK_mol
-        bottoms_product.mol[LHK_index] = LHK_mol - distillate_LHK_mol
-        distillate.mol[intemediates_index] = \
-        bottoms_product.mol[intemediates_index] = mol[intemediates_index] / 2
-        self._check_mass_balance()
     
     def _update_distillate_and_bottoms_temperature(self):
         distillate, bottoms_product = self.outs
@@ -1327,13 +1346,110 @@ class BinaryDistillation(Distillation, new_graphics=False):
     
     def _run(self):
         self._run_binary_distillation_mass_balance()
-        self._update_distillate_and_bottoms_temperature()
+        if (self.x_bot is not None and self.y_top is not None) or self.product_specification_format != 'Composition':
+            self._update_distillate_and_bottoms_temperature()
         if self.system and self.system.algorithm == 'Phenomena oriented':
             self._update_equilibrium_variables()
 
     def reset_cache(self, isdynamic=None):
         self._McCabeThiele_args = np.zeros(6)
         super().reset_cache()
+
+    def _calculate_stages(self, k, zf, LHK, bottoms,P, x_bot, y_top):
+        q = self.get_feed_quality()       
+
+        # Get R_min and the q_line 
+        if abs(q - 1) < 1e-4: q = 1 - 1e-4
+        q_line = lambda x: q*x/(q-1) - zf/(q-1)
+        self._q_line_args = dict(q=q, zf=zf)
+
+        solve_Ty = bottoms.get_bubble_point(LHK).solve_Ty
+        Rmin_intersection = lambda x: q_line(x) - solve_Ty(np.array((x, 1-x)), P)[1][0]
+        x_Rmin = brentq(Rmin_intersection, 0, 1)
+        y_Rmin = q_line(x_Rmin)
+        m = (y_Rmin-y_top)/(x_Rmin-y_top)
+        Rmin = m/(1-m)
+        if Rmin < self._Rmin:
+            Rmin = self._Rmin
+        R = k * Rmin
+
+        # Rectifying section: Inntersects q_line with slope given by R/(R+1)
+        m1 = R/(R+1)
+        b1 = y_top-m1*y_top
+        rs = lambda y: (y - b1)/m1 # -> x
+
+        # y_m is the solution to lambda y: y - q_line(rs(y))
+        self._y_m = y_m = (q*b1 + m1*zf)/(q - m1*(q-1))
+        self._x_m = x_m = rs(y_m)
+
+        # Stripping section: Intersects Rectifying section and q_line and beggins at bottoms liquid composition
+        m2 = (x_bot-y_m)/(x_bot-x_m)
+        b2 = y_m-m2*x_m
+        ss = lambda y: (y-b2)/m2 # -> x        
+
+        # Data for staircase
+        self._x_stages = x_stages = [x_bot]
+        self._y_stages = y_stages = [x_bot]
+        self._T_stages = T_stages = []
+        error = [None]
+        try: compute_stages_McCabeThiele(P, ss, x_stages, y_stages, T_stages, x_m, solve_Ty)
+        except RuntimeError as e: error[0] = e
+        yi = y_stages[-1]
+        xi = rs(yi)
+        x_stages[-1] = xi if xi < 1 else 0.99999
+        try: compute_stages_McCabeThiele(P, rs, x_stages, y_stages, T_stages, y_top, solve_Ty)
+        except RuntimeError as e: error[0] = e
+
+        # Find feed stage
+        N_stages = len(x_stages)
+        feed_stage = ceil(N_stages/2)
+        for i in range(len(y_stages)-1):
+            if y_stages[i] < y_m < y_stages[i+1]:
+                feed_stage = i+1
+
+        return N_stages, feed_stage, x_stages, y_stages, T_stages, R, Rmin, error
+
+    def _mccabe_thiele_find_X_bot(self, k, q, zf, y_top, bottoms, P, LHK, N_stages, precision = 0.00001,  MurEffMT=1):
+        if q == 1:
+            q += 0.0001
+        x_bot_low, x_bot_high = 0.001, zf
+        while x_bot_high - x_bot_low > precision:
+            x_bot_mid = (x_bot_low + x_bot_high) / 2
+            stages, _, _, _, _, _, _, _  = self._calculate_stages( k, zf, LHK, bottoms,P, x_bot_mid, y_top)
+            if abs(stages - N_stages) < precision:
+                break
+            elif stages > N_stages:
+                x_bot_low = x_bot_mid
+            else:
+                x_bot_high = x_bot_mid
+    
+        x_bot = (x_bot_low + x_bot_high) / 2
+    
+        return x_bot, self._calculate_stages(k, zf, LHK, bottoms,P, x_bot, y_top)
+
+    def _mccabe_thiele_find_y_top(self, k, q, zf, x_bot, bottoms, P, LHK, N_stages, precision = 0.00001,  MurEffMT=1):
+        if q == 1:
+            q += 0.0001
+        # Binary search to find y_top
+        y_top_low, y_top_high = zf + 1e-5, 1
+        iterations = 0
+        max_iterations = 100
+
+        while y_top_high - y_top_low > precision and iterations < max_iterations:
+            iterations += 1
+            y_top_mid = (y_top_low + y_top_high) / 2
+            stages, _, _, _, _, _, _, _ =  self._calculate_stages( k, zf, LHK, bottoms,P, x_bot, y_top_mid)
+
+            if abs(stages - N_stages) < precision:
+                break
+            elif stages > N_stages:
+                y_top_high = y_top_mid  # If too many stages, decrease y_top
+            else:
+                y_top_low = y_top_mid   # If too few stages, increase y_top
+
+        y_top = (y_top_low + y_top_high) / 2
+
+        return y_top, self._calculate_stages(k, zf, LHK, bottoms,P, x_bot, y_top)
 
     def _run_McCabeThiele(self):
         distillate, bottoms = self.outs
@@ -1353,61 +1469,26 @@ class BinaryDistillation(Distillation, new_graphics=False):
         # Main arguments
         P = self.P
         k = self.k
-        y_top, x_bot = self._get_y_top_and_x_bot()
-        
-        # Cache
-        args = np.array([P, k, y_top, x_bot, q, zf], float)
-        if hasattr(self, '_McCabeThiele_args') and (abs(self._McCabeThiele_args - args) < self._cache_tolerance).all(): return
-        self._McCabeThiele_args = args
-        
-        # Get R_min and the q_line 
-        if abs(q - 1) < 1e-4: q = 1 - 1e-4
-        q_line = lambda x: q*x/(q-1) - zf/(q-1)
-        self._q_line_args = dict(q=q, zf=zf)
-        
-        solve_Ty = bottoms.get_bubble_point(LHK).solve_Ty
-        Rmin_intersection = lambda x: q_line(x) - solve_Ty(np.array((x, 1-x)), P)[1][0]
-        x_Rmin = brentq(Rmin_intersection, 0, 1)
-        y_Rmin = q_line(x_Rmin)
-        m = (y_Rmin-y_top)/(x_Rmin-y_top)
-        Rmin = m/(1-m)
-        if Rmin < self._Rmin:
-            Rmin = self._Rmin
-        R = k * Rmin
 
-        # Rectifying section: Inntersects q_line with slope given by R/(R+1)
-        m1 = R/(R+1)
-        b1 = y_top-m1*y_top
-        rs = lambda y: (y - b1)/m1 # -> x
-        
-        # y_m is the solution to lambda y: y - q_line(rs(y))
-        self._y_m = y_m = (q*b1 + m1*zf)/(q - m1*(q-1))
-        self._x_m = x_m = rs(y_m)
-        
-        # Stripping section: Intersects Rectifying section and q_line and beggins at bottoms liquid composition
-        m2 = (x_bot-y_m)/(x_bot-x_m)
-        b2 = y_m-m2*x_m
-        ss = lambda y: (y-b2)/m2 # -> x        
-        
-        # Data for staircase
-        self._x_stages = x_stages = [x_bot]
-        self._y_stages = y_stages = [x_bot]
-        self._T_stages = T_stages = []
-        error = [None]
-        try: compute_stages_McCabeThiele(P, ss, x_stages, y_stages, T_stages, x_m, solve_Ty)
-        except RuntimeError as e: error[0] = e
-        yi = y_stages[-1]
-        xi = rs(yi)
-        x_stages[-1] = xi if xi < 1 else 0.99999
-        try: compute_stages_McCabeThiele(P, rs, x_stages, y_stages, T_stages, y_top, solve_Ty)
-        except RuntimeError as e: error[0] = e
-        
-        # Find feed stage
-        N_stages = len(x_stages)
-        feed_stage = ceil(N_stages/2)
-        for i in range(len(y_stages)-1):
-            if y_stages[i] < y_m < y_stages[i+1]:
-                feed_stage = i+1
+        if(not self.x_bot and self.product_specification_format == 'Composition'):
+            y_top = self.y_top
+            self.x_bot, (N_stages, feed_stage, x_stages, y_stages, T_stages, R, Rmin, error) = self._mccabe_thiele_find_X_bot(k, q, zf, y_top, bottoms, P, LHK, self.N_stages, precision = 1e-6,  MurEffMT=1)
+            print("x_bot", self.x_bot)
+            self._run_binary_distillation_mass_balance()
+            self._update_distillate_and_bottoms_temperature()
+        elif(not self.y_top and self.product_specification_format == 'Composition'):
+            x_bot = self.x_bot
+            self.y_top, (N_stages, feed_stage, x_stages, y_stages, T_stages, R, Rmin, error) = self._mccabe_thiele_find_y_top(k, q, zf, x_bot, bottoms, P, LHK, self.N_stages, precision = 1e-6,  MurEffMT=1)
+            print("y_top", self.y_top)
+            self._run_binary_distillation_mass_balance()
+            self._update_distillate_and_bottoms_temperature()
+        else:
+            y_top, x_bot = self._get_y_top_and_x_bot()
+            # Cache
+            args = np.array([P, k, y_top, x_bot, q, zf], float)
+            if hasattr(self, '_McCabeThiele_args') and (abs(self._McCabeThiele_args - args) < self._cache_tolerance).all(): return
+            self._McCabeThiele_args = args
+            N_stages, feed_stage, x_stages, y_stages, T_stages, R, Rmin, error = self._calculate_stages(k, zf, LHK, bottoms,P, x_bot, y_top)
         
         # Results
         Design = self.design_results
