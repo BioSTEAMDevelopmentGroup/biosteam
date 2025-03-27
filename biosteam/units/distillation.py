@@ -324,6 +324,8 @@ class Distillation(Unit, isabstract=True):
             weir_height=0.1,
             N_stages=None,
         ):
+        self._x_bot = x_bot
+        self._y_top = y_top
         self.check_LHK = True
         
         # Operation specifications
@@ -511,10 +513,10 @@ class Distillation(Unit, isabstract=True):
         assert self.product_specification_format == "Composition", (
             "product specification format must be 'Composition' "
             "to set distillate composition")
-        assert y_top == None or 0 < y_top < 1, "light key composition in the distillate must be a fraction" 
+        assert y_top is None or 0 < y_top < 1, "light key composition in the distillate must be a fraction" 
         self._y_top = y_top
         if y_top:
-            self._y = np.array([1-y_top, y_top])
+            self._y = np.array([y_top, 1-y_top])
         else:
             self._y = np.array([None, None])
     
@@ -527,7 +529,7 @@ class Distillation(Unit, isabstract=True):
         assert self.product_specification_format == "Composition", (
             "product specification format must be 'Composition' to set bottoms "
             "product composition")
-        assert x_bot == None or 0 < x_bot < 1, "light key composition in the bottoms product must be a fraction" 
+        assert x_bot is None or 0 < x_bot < 1, "light key composition in the bottoms product must be a fraction" 
         self._x_bot = x_bot
     
     @property
@@ -1344,8 +1346,7 @@ class BinaryDistillation(Distillation, new_graphics=False):
     
     def _run(self):
         self._run_binary_distillation_mass_balance()
-        
-        if(self.x_bot is not None and self.y_top is not None):
+        if (self.x_bot is not None and self.y_top is not None) or self.product_specification_format != 'Composition':
             self._update_distillate_and_bottoms_temperature()
         if self.system and self.system.algorithm == 'Phenomena oriented':
             self._update_equilibrium_variables()
@@ -1469,13 +1470,13 @@ class BinaryDistillation(Distillation, new_graphics=False):
         P = self.P
         k = self.k
 
-        if(not self.x_bot):
+        if(not self.x_bot and self.product_specification_format == 'Composition'):
             y_top = self.y_top
             self.x_bot, (N_stages, feed_stage, x_stages, y_stages, T_stages, R, Rmin, error) = self._mccabe_thiele_find_X_bot(k, q, zf, y_top, bottoms, P, LHK, self.N_stages, precision = 1e-6,  MurEffMT=1)
             print("x_bot", self.x_bot)
             self._run_binary_distillation_mass_balance()
             self._update_distillate_and_bottoms_temperature()
-        elif(not self.y_top):
+        elif(not self.y_top and self.product_specification_format == 'Composition'):
             x_bot = self.x_bot
             self.y_top, (N_stages, feed_stage, x_stages, y_stages, T_stages, R, Rmin, error) = self._mccabe_thiele_find_y_top(k, q, zf, x_bot, bottoms, P, LHK, self.N_stages, precision = 1e-6,  MurEffMT=1)
             print("y_top", self.y_top)
@@ -2527,37 +2528,37 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     >>> D1.simulate()
     >>> vapor, liquid = D1.outs
     >>> vapor.imol['Ethanol'] / feed.imol['Ethanol']
-    0.96
+    0.9278704757058321
     >>> vapor.imol['Ethanol'] / vapor.F_mol
-    0.69
+    0.6755316231005729
     
     >>> D1.results()
     Distillation                                               Units          
-    Electricity         Power                                     kW     0.574
-                        Cost                                  USD/hr    0.0449
-    Cooling water       Duty                                   kJ/hr -2.98e+06
+    Electricity         Power                                     kW       0.6
+                        Cost                                  USD/hr    0.0469
+    Cooling water       Duty                                   kJ/hr -2.97e+06
                         Flow                                 kmol/hr  2.03e+03
-                        Cost                                  USD/hr     0.992
-    Low pressure steam  Duty                                   kJ/hr   7.8e+06
-                        Flow                                 kmol/hr       202
-                        Cost                                  USD/hr        48
+                        Cost                                  USD/hr     0.989
+    Low pressure steam  Duty                                   kJ/hr  7.76e+06
+                        Flow                                 kmol/hr       200
+                        Cost                                  USD/hr      47.7
     Design              Theoretical stages                                   5
                         Actual stages                                        7
                         Height                                    ft      24.3
-                        Diameter                                  ft      3.32
+                        Diameter                                  ft      3.35
                         Wall thickness                            in     0.312
-                        Weight                                    lb  3.63e+03
-    Purchase cost       Trays                                    USD  8.11e+03
-                        Tower                                    USD  3.43e+04
-                        Platform and ladders                     USD  9.43e+03
+                        Weight                                    lb  3.66e+03
+    Purchase cost       Trays                                    USD  8.14e+03
+                        Tower                                    USD  3.44e+04
+                        Platform and ladders                     USD  9.48e+03
                         Condenser - Floating head                USD  2.36e+04
-                        Reflux drum - Vertical pressure ...      USD  1.29e+04
-                        Reflux drum - Platform and ladders       USD  3.89e+03
-                        Pump - Pump                              USD  4.35e+03
-                        Pump - Motor                             USD       358
-                        Reboiler - Floating head                 USD  2.34e+04
-    Total purchase cost                                          USD   1.2e+05
-    Utility cost                                              USD/hr        49
+                        Reflux drum - Vertical pressure ...      USD  1.21e+04
+                        Reflux drum - Platform and ladders       USD  3.46e+03
+                        Pump - Pump                              USD  4.34e+03
+                        Pump - Motor                             USD       362
+                        Reboiler - Floating head                 USD  2.31e+04
+    Total purchase cost                                          USD  1.19e+05
+    Utility cost                                              USD/hr      48.7
     
     Simulate distillation column with a full condenser, 5 stages, a 0.673 reflux ratio, 
     2.57 boilup ratio, and feed at stage 2:
