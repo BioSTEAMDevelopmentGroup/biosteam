@@ -263,12 +263,22 @@ class StageEquilibrium(Unit):
     _ins_size_is_fixed = False
     _outs_size_is_fixed = False
     auxiliary_unit_names = ('partition', 'mixer', 'splitters')
-    equation_node_names = (
-        'overall_material_balance_node', 
-        'separation_material_balance_node',
-        'energy_balance_node',
-        'phenomena_node',
-    )
+    
+    @property
+    def equation_node_names(self): 
+        if self._energy_variable is None:
+            return (
+                'overall_material_balance_node', 
+                'separation_material_balance_node',
+                'phenomena_node',
+            )
+        else:
+            return (
+                'overall_material_balance_node', 
+                'separation_material_balance_node',
+                'energy_balance_node',
+                'phenomena_node',
+            )
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
             phases, partition_data=None, top_split=0, bottom_split=0,
