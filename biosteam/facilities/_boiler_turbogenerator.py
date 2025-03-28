@@ -10,6 +10,7 @@
 import flexsolve as flx
 import biosteam as bst
 import thermosteam as tmo
+from numpy import ndarray
 cost = bst.decorators.cost
 
 __all__ = ('BoilerTurbogenerator',)
@@ -340,7 +341,7 @@ class BoilerTurbogenerator(bst.Facility):
                     agent = hu.agent
                     if agent and agent.ID == ID:
                         steam_utilities.add(hu)
-        self.electricity_demand = sum([u.power_utility.consumption for u in units])
+        self.electricity_demand = sum([float(u.power_utility.consumption) for u in units])
     
     def _design(self):
         B_eff = self.boiler_efficiency
@@ -374,6 +375,8 @@ class BoilerTurbogenerator(bst.Facility):
         def calculate_excess_electricity_at_natual_gas_flow(fuel_flow):
             if fuel_flow:
                 fuel_flow = abs(fuel_flow)
+                if isinstance(fuel_flow, ndarray) and len(fuel_flow)==1:
+                    fuel_flow = fuel_flow[0]
                 fuel.imol[fuel_source] = fuel_flow
             else:
                 fuel.empty()
@@ -412,7 +415,7 @@ class BoilerTurbogenerator(bst.Facility):
             fuel.imol[fuel_source] = 1
             ub = - excess_electricity * 3600 / fuel.LHV
             while f(ub) < 0.: 
-                lb = ub
+                lb = 1.*ub
                 ub *= 2
             flx.IQ_interpolation(f, lb, ub, xtol=1, ytol=1)
         

@@ -301,6 +301,7 @@ class MultiEffectEvaporator(Unit):
         self.chemical = chemical
         
     def reset_cache(self, isdynamic=None):
+        self._V_first_effect = None # !!! To remove bad initial guesses from previous simulations
         self._reload_components = True
         
     def _load_components(self):
@@ -389,6 +390,7 @@ class MultiEffectEvaporator(Unit):
                     break
             
             self.P = P
+
             self._V_first_effect = flx.IQ_interpolation(self._V_overall_objective_function,
                                                         0., 1., None, None, self._V_first_effect, 
                                                         xtol=1e-9, ytol=1e-6,
@@ -480,8 +482,27 @@ class MultiEffectEvaporator(Unit):
         for evap in evaporators:
             if evap.outs[0].isempty(): continue
             evap._size_flash_vessel()
+            # vapor_sep_design = None
+            # L = None
+            # try:
             vapor_sep_design = evap.design_results
             L = vapor_sep_design['Length']
+            # except:
+            #     if evap.V==1.: 
+            #         evap.V=1-1e-3
+            #     elif evap.V is None:
+            #         if evap.Q is not None:
+            #             evap.Q-=1e-3
+            #         else:
+            #             pass
+
+            #     try:
+            #         evap.simulate()
+            #     except:
+            #         pass
+            #     evap._size_flash_vessel()
+            #     vapor_sep_design = evap.design_results
+                # L = vapor_sep_design['Length']
             D = vapor_sep_design['Diameter']
             R = D / 2.
             total_volume += 0.0283168466 * np.pi * L * R * R # m3
