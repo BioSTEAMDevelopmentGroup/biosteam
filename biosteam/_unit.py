@@ -287,14 +287,15 @@ class Unit(AbstractUnit):
     _lca = AbstractMethod
     
     def initialize_equation_nodes(self):
+        for eq in self.equation_node_names: getattr(self, f'initialize_{eq}')()
+    
+    def create_equation_nodes(self):
         eqs = self.equation_node_names
         equation_nodes = []
         for eq in eqs: 
             node = EquationNode(f"{self.ID}.{eq}")
             equation_nodes.append(node)
             setattr(self, eq, node)
-        for eq in eqs: 
-            getattr(self, f'initialize_{eq}')()
         self.equation_nodes = tuple(equation_nodes)
     
     @property

@@ -2496,6 +2496,7 @@ class System:
     def track_variables(self, track):
         if track:
             self._track_variables = True
+            for i in self.stages: i.create_equation_nodes()
             for i in self.stages: i.initialize_equation_nodes()
             self._tracked_variables = {i: [] for i in self.variable_nodes}
         else:

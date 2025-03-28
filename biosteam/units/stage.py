@@ -480,7 +480,7 @@ class StageEquilibrium(Unit):
         self.separation_material_balance_node.set_equations(
             *[i.F_node for i in self.outs],
             self.K_node,
-            self.Phi_node,
+            self.E_node,
         )
         
     def initialize_phenomena_node(self):

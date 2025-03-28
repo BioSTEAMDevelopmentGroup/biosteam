@@ -1038,6 +1038,7 @@ class Model:
             and f_coordinate.active):
             active = f_coordinate.active
             f_coordinate.active = False
+            f_coordinate = f_coordinate.setter
             try:
                 return self.evaluate_across_coordinate(
                     name, f_coordinate, coordinate,
