@@ -297,6 +297,8 @@ class Unit(AbstractUnit):
             equation_nodes.append(node)
             setattr(self, eq, node)
         self.equation_nodes = tuple(equation_nodes)
+        if not hasattr(self, 'energy_balance_node'):
+            self.energy_balance_node = None
     
     @property
     def variable_nodes(self):

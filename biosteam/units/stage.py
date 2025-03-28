@@ -533,7 +533,7 @@ class StageEquilibrium(Unit):
             return self._T_node
         self._T_node = var = VariableNode(f"{self.ID}.T",
             self.T,
-            None if self._energy_variable is None else self.energy_balance_node,
+            self.energy_balance_node,
             self.phenomena_node,
             *[i.sink.energy_balance_node for i in self.outs if i.sink],
         )
@@ -547,8 +547,8 @@ class StageEquilibrium(Unit):
             self._E_node.value = getattr(self, self._energy_variable)
             return self._E_node
         var = VariableNode(f"{self.ID}.E",
-            getattr(self, self._energy_variable),
             self.energy_balance_node,
+            self.separation_material_balance_node,
             *[j for i in self.outs if i.sink and (j := i.sink.energy_balance_node)],
         )
         self._E_node = var
