@@ -477,11 +477,17 @@ class StageEquilibrium(Unit):
         )
     
     def initialize_separation_material_balance_node(self):
-        self.separation_material_balance_node.set_equations(
-            *[i.F_node for i in self.outs],
-            self.K_node,
-            self.E_node,
-        )
+        if self._energy_variable is None:
+            self.separation_material_balance_node.set_equations(
+                *[i.F_node for i in self.outs],
+                self.K_node,
+            )
+        else:
+            self.separation_material_balance_node.set_equations(
+                *[i.F_node for i in self.outs],
+                self.K_node,
+                self.E_node,
+            )
         
     def initialize_phenomena_node(self):
         self.phenomena_node.set_equations(
