@@ -216,13 +216,13 @@ def replace_forward_ref(annotation):
     else:
         return annotation
 
-def format_annotation(annotation, config):
+def format_annotation(annotation, config, *args, **kwargs):
     # original = str(annotation)
     annotation = replace_forward_ref(annotation)
     if type(annotation) is typing._UnionGenericAlias: # Optional
-        rst = format_annotation_old(annotation.__args__[0], config) + ', optional'
+        rst = format_annotation_old(annotation.__args__[0], config, *args, **kwargs) + ', optional'
     else:
-        rst = format_annotation_old(annotation, config)
+        rst = format_annotation_old(annotation, config, *args, **kwargs)
     # file = os.path.join(os.path.dirname(__file__), 'annotations.txt')
     # with open(file, 'a') as f: f.write(f"{rst}  ({original})\n")
     return rst

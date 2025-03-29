@@ -104,19 +104,41 @@ The Biorefinery Simulation and TEA Modules
 Installation
 ------------
 
-If you have an installation of Python with pip, simple install it with:
+#. If you have an installation of Python with pip, simple install it with:
 
-.. code-block:: bash
+   .. code-block:: bash
 
-   $ pip install biosteam
+      $ pip install biosteam
 
 
-To get the git version, run:
+   To get the git version, run:
 
-.. code-block:: bash
+   .. code-block:: bash
    
-   $ git clone --depth 10 git://github.com/BioSTEAMDevelopmentGroup/biosteam
+      $ git clone --depth 10 git://github.com/BioSTEAMDevelopmentGroup/biosteam
 
+#. BioSTEAM uses `Graphviz <http://www.graphviz.org/>`__ to make flowsheet diagrams. 
+   You will need to install Graphviz separately as follows:
+
+   * Windows: Download the installer and follow the instructions listed `in this link <https://forum.graphviz.org/t/new-simplified-installation-procedure-on-windows/224#format-svg-not-recognized-use-one-of>`__
+
+   * Ubuntu: 
+
+     .. code-block:: bash
+    
+       $ sudo apt-get install graphviz
+   
+   * MacOS: 
+
+     .. code-block:: bash
+    
+        $ brew install graphviz
+   
+#. To properly install Graphviz in an anaconda distribution, run the following line:
+
+   .. code-block:: bash
+    
+      $ conda install python-graphviz
 
 Common Issues
 -------------
@@ -137,13 +159,8 @@ Common Issues
 
 * **Unit and system diagrams are not displaying:**
 
-  BioSTEAM uses `Graphviz <http://www.graphviz.org/>`__ to make flowsheet diagrams. To properly install Graphviz in an anaconda distribution, please run the following line:
-  
-  .. code-block:: bash
-
-     $ conda install graphviz
-
-  Additionally, please follow the following instructions for `installing graphviz on windows <https://forum.graphviz.org/t/new-simplified-installation-procedure-on-windows/224#format-svg-not-recognized-use-one-of>`__.
+  Graphviz may not be properly installed or may be missing from your python path. 
+  Please follow the graphviz installation procedure outlined above.
 
 Scientific Papers
 -----------------
