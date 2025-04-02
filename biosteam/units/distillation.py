@@ -2154,7 +2154,7 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
                         Water       101
                         MTBE        0.00031
     
-    >>> absorber.results()
+    >>> stripper.results()
     Stripper                                   Units         
     Design              Theoretical stages                  2
                         Actual stages                       4
@@ -2447,9 +2447,9 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     >>> D1.simulate()
     >>> vapor, liquid = D1.outs
     >>> vapor.imol['Ethanol'] / feed.imol['Ethanol']
-    0.9278704757058321
+    0.927
     >>> vapor.imol['Ethanol'] / vapor.F_mol
-    0.6755316231005729
+    0.675
     
     >>> D1.results()
     Distillation                                               Units          

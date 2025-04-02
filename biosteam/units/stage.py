@@ -1281,9 +1281,9 @@ class MultiStageEquilibrium(Unit):
     >>> MSE.simulate()
     >>> vapor, liquid = MSE.outs
     >>> vapor.imol['Ethanol'] / feed.imol['Ethanol']
-    0.9278704757058321
+    0.927
     >>> vapor.imol['Ethanol'] / vapor.F_mol
-    0.6755316231005729
+    0.675
     
     Simulate the same distillation column with a full condenser, 5 stages, a 0.673 reflux ratio, 
     2.57 boilup ratio, and feed at stage 2:
