@@ -3,7 +3,7 @@ pydata_sphinx_theme==0.15.4
 sphinxcontrib-jquery
 sphinx_multitoc_numbering
 sphinx_autodoc_typehints
-biorefineries>=2.30.0
+biorefineries>=2.34.1
 sphinx_design
 pyyaml
 ipykernel
