@@ -2212,7 +2212,7 @@ class MultiStageEquilibrium(Unit):
                 for i in partitions: 
                     if i.B_specification is None: i.B = B
                     i.T = T
-                    
+                    i.K = K
             elif eq == 'lle':
                 lle = ms.lle
                 T = ms.T
@@ -2269,8 +2269,7 @@ class MultiStageEquilibrium(Unit):
                         partition.T = T
                         partition.B = B
                         for i in partition.outs: i.T = T
-                    for i in partitions: 
-                        i.K = K
+                        partition.K = K
                         for s in i.outs: s.empty()
             N_chemicals = len(index)
         if top_chemicals:
