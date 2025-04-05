@@ -11,7 +11,6 @@ import pytest
 import biosteam as bst
 from numpy.testing import assert_allclose
 
-
 # def test_fit():
 #     import biosteam as bst
 #     import numpy as np

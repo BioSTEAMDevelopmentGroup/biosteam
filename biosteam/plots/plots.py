@@ -782,7 +782,7 @@ def plot_uncertainty_boxes(
     if isinstance(data, pd.DataFrame): data = data.values
     if transpose is None and hasattr(data, 'ndim') and data.ndim == 2:
         N_rows, N_cols = data.shape
-        if N_cols > N_rows: data = data.transpose()
+        if N_cols < N_rows: data = data.transpose()
     elif transpose:
         data = data.transpose()
     if hasattr(data, 'ndim') and data.ndim == 1:
@@ -792,7 +792,7 @@ def plot_uncertainty_boxes(
             if data.ndim != 2: 
                 positions = (0,)
             else:
-                positions = list(range(data.shape[1]))
+                positions = list(range(data.shape[0]))
         else:
             positions = list(range(len(data)))
     N_positions = len(positions)

@@ -143,7 +143,7 @@ class ProcessModel:
     
     .. code-block:: python
     
-        def __new__(cls, simulate=None, scenario=None, **kwargs):
+        def __new__(cls, simulate=None, scenario=None, load=True, save=True, **kwargs):
             if scenario is None:
                 self.scenario = cls.Scenario(**kwargs)
             else:
@@ -151,7 +151,7 @@ class ProcessModel:
                 self.scenario = cls.as_scenario(scenario)
             
             # No need to recreate a process model for repeated scenarios.
-            if scenario in cls.cache: return cls.cache[scenario]
+            if load and scenario in cls.cache: return cls.cache[scenario]
             self = super().__new__()
             
             # The thermodynamic property package is given by the `create_thermo` method.
@@ -177,7 +177,7 @@ class ProcessModel:
             self.load_model(self.create_model())
             
             if simulate: self.system.simulate()
-            self.cache[scenario] = self
+            if save: self.cache[scenario] = self
             return self
     
     """
@@ -236,9 +236,9 @@ class ProcessModel:
         if 'Scenario' in cls.__dict__:
             cls.Scenario = scenario(cls.Scenario)
     
-    def __new__(cls, *, simulate=True, scenario=None, **kwargs):
+    def __new__(cls, *, simulate=True, scenario=True, load=True, save=None, **kwargs):
         scenario = cls.scenario_hook(scenario, kwargs)
-        if scenario in cls.cache: 
+        if load and scenario in cls.cache: 
             process_model = cls.cache[scenario]
             if simulate:
                 system = process_model.system
@@ -268,7 +268,7 @@ class ProcessModel:
             raise RuntimeError('`create_model` must return a biosteam.Model object')
         self.load_model(model)
         if simulate: system.simulate()
-        cls.cache[scenario] = self
+        if save: cls.cache[scenario] = self
         return self
     
     def load_thermo(self, thermo):

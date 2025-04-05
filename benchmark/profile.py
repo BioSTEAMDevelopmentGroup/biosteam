@@ -258,6 +258,12 @@ def register(name, title, time, tickmarks, label, yticks=None):
 #     10, [2, 4, 6, 8, 10], 'AA\nr. sep.'
 # )
 register(
+    'acetic_acid_complex', 'Rigorous system',
+    240, [0, 60, 120, 180, 240], 'AcOH\nindustrial\ndewatering', 
+    [(-15, -10, -5, 0, 5), (-15, -10, -5, 0, 5)],
+    # [(-5, -2.5, 0, 2.5, 5), (-8, -5, -2, 1, 4)],
+)
+register(
     'acetic_acid_simple', 'Subsystem',
     40, [0, 8, 16, 24, 32], 'AcOH\npartial\ndewatering',
     [(-15, -10, -5, 0, 5), (-15, -10, -5, 0, 5)],
@@ -267,12 +273,6 @@ register(
     'acetic_acid_complex_decoupled', 'Shortcut system',
     10, [0, 2, 4, 6, 8], 'AcOH\nshortcut\ndewatering',
     [(-15, -10, -5, 0, 5), (-15, -10, -5, 0, 5)],
-)
-register(
-    'acetic_acid_complex', 'Rigorous system',
-    240, [0, 60, 120, 180, 240], 'AcOH\nindustrial\ndewatering', 
-    [(-15, -10, -5, 0, 5), (-15, -10, -5, 0, 5)],
-    # [(-5, -2.5, 0, 2.5, 5), (-8, -5, -2, 1, 4)],
 )
 # register(
 #     'alcohol_narrow_flash', 'Alcohol flash narrow',
@@ -315,7 +315,7 @@ with open('system_stages.json', 'w') as file: json.dump(system_stages, file)
 # %% Testing
 
 def test_convergence(systems=None, alg=None, maxiter=None):
-    if maxiter is None: maxiter = 100
+    if maxiter is None: maxiter = 200
     if systems is None: systems = list(all_systems)
     elif isinstance(systems, str): systems = [systems]
     outs = []
@@ -326,14 +326,6 @@ def test_convergence(systems=None, alg=None, maxiter=None):
             f_sys = all_systems[sys]
             new = []
             print(sys)
-            if alg is None or alg == 'sm': 
-                bst.F.set_flowsheet('SM')
-                sm = f_sys('sequential modular')
-                sm.set_tolerance(rmol=1e-5, mol=1e-5, subsystems=True, method='fixed-point', maxiter=maxiter)
-                time.tic()
-                sm.simulate()
-                print('- Sequential modular', time.toc())
-                new.append(sm)
             if alg is None or alg == 'po': 
                 bst.F.set_flowsheet('PO')
                 po = f_sys('phenomena oriented')
@@ -342,6 +334,14 @@ def test_convergence(systems=None, alg=None, maxiter=None):
                 po.simulate()
                 print('- Phenomena oriented', time.toc())
                 new.append(po)
+            if alg is None or alg == 'sm': 
+                bst.F.set_flowsheet('SM')
+                sm = f_sys('sequential modular')
+                sm.set_tolerance(rmol=1e-5, mol=1e-5, subsystems=True, method='fixed-point', maxiter=maxiter)
+                time.tic()
+                sm.simulate()
+                print('- Sequential modular', time.toc())
+                new.append(sm)
             outs.append(new)
             if alg is None:
                 for s_sm, s_dp in zip(sm.streams, po.streams):

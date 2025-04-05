@@ -139,7 +139,7 @@ class Configuration:
             delayed = [(i, j) for i, j in enumerate(b) if j.dtype is ObjectType]
         return delayed
     
-    def _solve_material_flows(self, composition_sensitive):
+    def _solve_material_flows(self, composition_sensitive, update=True):
         if composition_sensitive:
             nodes = self.composition_sensitive_nodes
         else:
@@ -188,7 +188,10 @@ class Configuration:
                 obj._update_material_flows(value, delayed_index)
         else:
             A, objs = dictionaries2array(A)
+            if np.isnan(A).any(): raise RuntimeError('invalid number encountered')
             values = solve(A, np.array(b).T).T
+            if np.isnan(values).any(): raise RuntimeError('invalid number encountered')
+            if not update: return values
             values[(values < 0) & (values > -1e-6)] = 0
             masks = values < 0
             if masks.any():
@@ -805,6 +808,8 @@ class System:
         # Convergence prediction
         '_responses',
         # Phenomena oriented simulation
+        '_last_flows',
+        '_last_error',
         '_aggregated_stage_configuration',
         '_stage_configuration',
         '_track_variables',
@@ -1108,6 +1113,8 @@ class System:
         self._DAE = None
         self.dynsim_kwargs = {}
         self.tracked_recycles = {}
+        self._last_error = np.inf
+        self._last_flows = 0
         subsystems = self.subsystems
         algorithm = self._algorithm
         method = self._method
@@ -2557,29 +2564,44 @@ class System:
         if tracking:
             variables = self._tracked_variables
             subgraphs = ('material_balance', 'energy_balance', 'phenomena')
+        last_flows = self._last_flows
         with self.stage_configuration(aggregated=False) as conf:
             try:
-                if not self.strict_phenomena_decomposition:    
-                    for i in path: 
-                        if isinstance(i, (bst.Mixer, bst.Splitter)) and not i.specifications: continue
-                        i.run()
-                        conf.solve_energy_departures()
-                        conf._solve_material_flows(composition_sensitive=False)
                 conf.solve_nonlinearities()
                 conf.solve_material_flows(composition_sensitive=True)
                 conf.solve_energy_departures()
-                conf._solve_material_flows(composition_sensitive=False)
-                if tracking:
-                    for subgraph in subgraphs:
-                        method_name = f'_collect_{subgraph}_variables'
-                        for i in conf.nodes:
-                            method = getattr(i, method_name)
-                            for variable, value in method():
-                                variables[variable].append(value)
-            except (NotImplementedError, UnboundLocalError, TypeError, KeyError) as error:
+                flows = conf._solve_material_flows(composition_sensitive=False)
+            except (NotImplementedError, UnboundLocalError, KeyError) as error:
                 raise error
             except:
+                # print('FAILED!')
+                # print('-------')
                 for i in path: i.run()
+                flows = conf._solve_material_flows(composition_sensitive=False)
+                self._last_flows = flows
+            else:
+                error = np.abs(flows - last_flows).sum()
+                if error > self._last_error:
+                    # print('RETRY!')
+                    # print('------')
+                    # for i in path: 
+                    #     if isinstance(i, (bst.Mixer, bst.Splitter)): continue
+                    #     i.run()
+                    #     flows = conf._solve_material_flows(composition_sensitive=False)
+                    #     conf.solve_energy_departures()
+                    for i in path: i.run()
+                    flows = conf._solve_material_flows(composition_sensitive=False)
+                    self._last_flows = flows
+                else:
+                    self._last_flows = flows
+                    self._last_error = error
+            if tracking:
+                for subgraph in subgraphs:
+                    method_name = f'_collect_{subgraph}_variables'
+                    for i in conf.nodes:
+                        method = getattr(i, method_name)
+                        for variable, value in method():
+                            variables[variable].append(value)
             
     def _solve(self):
         """Solve the system recycle iteratively."""

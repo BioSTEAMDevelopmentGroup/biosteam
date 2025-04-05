@@ -61,15 +61,21 @@ def test_trivial_liquid_extraction_case():
     assert_allclose(actual, value, rtol=1e-3, atol=1e-6)
     assert_allclose(T_actual, T, rtol=1e-3, atol=1e-6)
 
-def test_trivial_distillation_case():    
+def test_trivial_distillation_case():   
+    import biosteam as bst
+    import thermosteam as tmo
+    import numpy as np
+    from numpy.testing import assert_allclose
     # distillation
     with bst.System(algorithm='phenomena oriented') as sys:
         bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
-        feed = bst.Stream(Ethanol=80, Water=100, T=80.215 + 273.15)
+        feed = bst.Stream(Ethanol=80, Water=100, T=353.455)
         MSE = bst.MultiStageEquilibrium(N_stages=5, ins=[feed], feed_stages=[2],
             outs=['vapor', 'liquid'],
             stage_specifications={0: ('Reflux', 0.673), -1: ('Boilup', 2.57)},
             phases=('g', 'l'),
+            use_cache=True,
+            maxiter=200,
         )
     sys.simulate()
     vapor, liquid = MSE.outs
@@ -207,18 +213,15 @@ def test_simple_acetic_acid_separation_with_recycle():
     for i in range(1): sm.simulate()
     t_sequential = time.toc()
     
-    print('SM', t_sequential)
-    print('PO', t_phenomena)
-    
     for s_sm, s_dp in zip(sm.streams, po.streams):
         actual = s_sm.mol
         value = s_dp.mol
         assert_allclose(actual, value, rtol=1e-6, atol=1e-6)
 
 if __name__ == '__main__':
-    # test_trivial_lle_case()
-    # test_trivial_vle_case()
-    # test_trivial_liquid_extraction_case()
-    # test_trivial_distillation_case()
-    # test_simple_acetic_acid_separation_no_recycle()
+    test_trivial_lle_case()
+    test_trivial_vle_case()
+    test_trivial_liquid_extraction_case()
+    test_trivial_distillation_case()
+    test_simple_acetic_acid_separation_no_recycle()
     test_simple_acetic_acid_separation_with_recycle()

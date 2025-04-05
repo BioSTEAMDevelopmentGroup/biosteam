@@ -1553,6 +1553,9 @@ class BinaryDistillation(Distillation, new_graphics=False):
 
     def _create_material_balance_equations(self, composition_sensitive):
         split = self._distillate_recoveries
+        IDs = self.chemicals.IDs
+        IDs_vle = tuple([i.ID for i in self._vle_chemicals])
+        if IDs != IDs_vle: split = self.chemicals.array(IDs_vle, split)
         fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
         top, bottom = self.outs
         ones = np.ones(self.chemicals.size)
@@ -1845,7 +1848,10 @@ class ShortcutColumn(Distillation, new_graphics=False):
         # Setup light and heavy keys
         LHK = [i.ID for i in self.chemicals[self.LHK]]
         IDs = self._IDs_vle
-        self._LHK_vle_index = np.array([IDs.index(i) for i in LHK], dtype=int)
+        try:
+            self._LHK_vle_index = np.array([IDs.index(i) for i in LHK], dtype=int)
+        except:
+            breakpoint()
         
         # Add temporary specification
         composition_spec = self.product_specification_format == 'Composition'

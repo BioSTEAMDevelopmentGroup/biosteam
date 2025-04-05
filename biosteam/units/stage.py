@@ -1672,7 +1672,7 @@ class MultiStageEquilibrium(Unit):
         if self.stage_reactions:
             return [(coeff, sum([i.Q for i in self.stages]) - self.Hnet)]
         else:
-            return [(coeff, self.H_in - self.H_out + sum([i.Q for i in self.stages]))]
+            return [(coeff, self.H_in - self.H_out + sum([(i.Hnet if i.Q is None else i.Q) for i in self.stages]))]
     
     def _create_material_balance_equations(self, composition_sensitive):
         top, bottom = self.outs
@@ -1914,25 +1914,27 @@ class MultiStageEquilibrium(Unit):
                 method = self.method
                 solver, conditional, options = self.root_options[method]
                 if not conditional: raise NotImplementedError(f'method {self.method!r} not implemented in BioSTEAM (yet)')
-                for n in range(self.max_attempts-1):
+                for n in range(self.max_attempts - 1):
                     self.iter = 0
                     self.attempt = n
+                    repeat = False
                     try:
                         top_flow_rates = solver(self._conditional_iter, top_flow_rates)
                     except:
-                        for i in self.stages: i._run()
-                        for i in reversed(self.stages): i._run()
-                        continue
-                    if self.iter == self.maxiter:
+                        repeat = True
+                    else:
+                        repeat = self.iter == self.maxiter
+                    if repeat: 
                         for i in self.stages: i._run()
                         for i in reversed(self.stages): i._run()
                         top_flow_rates = self.get_top_flow_rates()
-                        # for i in self.partitions: i.B_relaxation_factor += (0.9 - i.B_relaxation_factor) * 0.5
                     else:
                         break
+                self.set_flow_rates(top_flow_rates)
+                self.attempt += 1
                 # if n:
                 #     for i in self.partitions: del i.B_relaxation_factor
-                if self.iter == self.maxiter:
+                if repeat:
                     top_flow_rates = solver(self._conditional_iter, top_flow_rates)
                 if self.iter == self.maxiter and self.fallback and self.fallback != (self.algorithm, self.method):
                     algorithm, method = self.algorithm, self.method
@@ -2139,7 +2141,10 @@ class MultiStageEquilibrium(Unit):
         chemicals = self.chemicals
         top_phase, bottom_phase = ms.phases
         eq = 'vle' if top_phase == 'g' else 'lle'
-        ms.mix_from(feeds)
+        try:
+            ms.mix_from(feeds)
+        except:
+            breakpoint()
         ms.P = self.P
         if eq == 'lle':
             self.top_chemical = top_chemical = self.top_chemical or feeds[1].main_chemical
@@ -2222,6 +2227,7 @@ class MultiStageEquilibrium(Unit):
                 for i in partitions: 
                     i.B = B
                     i.T = T
+                    i.K = K
                     i.gamma_y = gamma_y
                     for j in i.outs: j.T = T
             else:
@@ -2235,11 +2241,16 @@ class MultiStageEquilibrium(Unit):
                     phase_ratios = self.hot_start_phase_ratios()
                     z = bp.z
                     z[z == 0] = 1.
-                    K = bp.y / bp.z
+                    x = dp.x
+                    x[x == 0] = 1.
+                    K_dew = dp.z / dp.x
+                    K_bubble = bp.y / bp.z
+                    dK_stage = (K_bubble - K_dew) / N_stages
                     for i, B in enumerate(phase_ratios):
                         partition = partitions[i]
                         if partition.B_specification is None: partition.B = B
                         partition.T = T = T_top + i * dT_stage
+                        partition.K = K_dew + i * dK_stage
                         for s in partition.outs: s.T = T
                 else:
                     vle = ms.vle
@@ -2258,9 +2269,9 @@ class MultiStageEquilibrium(Unit):
                         partition.T = T
                         partition.B = B
                         for i in partition.outs: i.T = T
-            for i in partitions: 
-                i.K = K
-                for s in i.outs: s.empty()
+                    for i in partitions: 
+                        i.K = K
+                        for s in i.outs: s.empty()
             N_chemicals = len(index)
         if top_chemicals:
             top_side_draws = self.top_side_draws
@@ -2796,7 +2807,7 @@ class MultiStageEquilibrium(Unit):
                 nonzero_index, = (mol_errors > 1e-12).nonzero()
                 mol_errors = mol_errors[nonzero_index]
                 max_errors = np.maximum.reduce([abs(mol[nonzero_index]), abs(mol_new[nonzero_index])])
-                rmol_error = (mol_errors / max_errors).max()
+                self._rmol_error = rmol_error = (mol_errors / max_errors).max()
                 not_converged = (
                     self.iter < self.maxiter and (mol_error > self.molar_tolerance
                      or rmol_error > self.relative_molar_tolerance)
