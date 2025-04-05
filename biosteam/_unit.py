@@ -301,20 +301,11 @@ class Unit(AbstractUnit):
             self.energy_balance_node = None
     
     @property
-    def variable_nodes(self):
-        try:
-            return self._variable_nodes
-        except:
-            self._variable_nodes = nodes = tuple(set(sum([i.nodes for i in self.equation_nodes])))
-            return nodes
-            
-    @property
-    def variable_equation_connections(self):
-        try:
-            return self._variable_equation_connections
-        except:
-            self._variable_equation_connections = connections = tuple(set(sum([i.get_connections() for i in self.equation_nodes])))
-            return connections
+    def node_tag(self):
+        if self.owner is self:
+            return self.ID
+        else:
+            return f"{self.owner.node_tag}.{self.ID}"
         
     def _update_nonlinearities(self):
         """

@@ -482,35 +482,36 @@ class StageEquilibrium(Unit):
         
     def initialize_overall_material_balance_node(self):
         self.overall_material_balance_node.set_equations(
-            *[j for i in self.ins if (j:=i.F_node)],
-            *[i.F_node for i in self.outs],
+            inputs=[j for i in self.ins if (j:=i.F_node)],
+            outputs=[i.F_node for i in self.outs],
         )
     
     def initialize_separation_material_balance_node(self):
         if self._energy_variable is None:
             self.separation_material_balance_node.set_equations(
-                *[i.F_node for i in self.outs],
-                self.K_node,
+                outputs=[i.F_node for i in self.outs],
+                inputs=[self.K_node],
             )
         else:
             self.separation_material_balance_node.set_equations(
-                *[i.F_node for i in self.outs],
-                self.K_node,
-                self.E_node,
+                outputs=[i.F_node for i in self.outs],
+                inputs=[self.K_node, self.E_node],
             )
         
     def initialize_phenomena_node(self):
         self.phenomena_node.set_equations(
-            self.outs[1].F_node,
-            self.T_node,
-            self.K_node,
+            inputs=[self.outs[1].F_node],
+            outputs=[self.T_node, self.K_node],
         )
     def initialize_energy_balance_node(self):
         self.energy_balance_node.set_equations(
-            *[i.F_node for i in self.outs],
-            *[j for i in self.ins if (j:=i.E_node)],
-            self.T_node,
-            *[j for i in self.outs if (j:=i.E_node)],
+            inputs=(
+                self.T_node, *[i.F_node for i in self.outs],
+                *[j for i in self.ins if (j:=i.E_node)],
+            ),
+            outputs=[
+                j for i in self.outs if (j:=i.E_node)
+            ],
         )
         
     @property
@@ -518,7 +519,7 @@ class StageEquilibrium(Unit):
         if hasattr(self, '_K_node'): 
             self._K_node.value = self.K
             return self._K_node
-        self._K_node = var = VariableNode(f"{self.ID}.K",
+        self._K_node = var = VariableNode(f"{self.node_tag}.K",
             self.K,
             self.separation_material_balance_node,
             None if self._energy_variable is None else self.energy_balance_node,
@@ -531,7 +532,7 @@ class StageEquilibrium(Unit):
         if hasattr(self, '_T_node'): 
             self._T_node.value = self.T
             return self._T_node
-        self._T_node = var = VariableNode(f"{self.ID}.T",
+        self._T_node = var = VariableNode(f"{self.node_tag}.T",
             self.T,
             self.energy_balance_node,
             self.phenomena_node,
@@ -546,7 +547,7 @@ class StageEquilibrium(Unit):
         if hasattr(self, '_E_node'):
             self._E_node.value = getattr(self, self._energy_variable)
             return self._E_node
-        var = VariableNode(f"{self.ID}.E",
+        var = VariableNode(f"{self.node_tag}.E",
             self.energy_balance_node,
             self.separation_material_balance_node,
             *[j for i in self.outs if i.sink and (j := i.sink.energy_balance_node)],
