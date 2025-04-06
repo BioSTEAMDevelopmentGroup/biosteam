@@ -2517,7 +2517,8 @@ class System:
         if track:
             self._track_convergence = True
             for i in self.stages: i.create_equation_nodes()
-            for i in self.stages: i.initialize_equation_nodes()
+            with self.stage_configuration(aggregated=False):
+                for i in self.stages: i.initialize_equation_nodes()
             equations = tuple(set(sum([i.equation_nodes for i in self.stages], ())))
             variables = tuple(set(sum([i.variables for i in equations], ())))
             self.variable_profiles = {i: [] for i in variables}
@@ -2641,7 +2642,9 @@ class System:
                 f'only {all_subgraphs!r} are valid'
             )
         for i in configuration.nodes:
-            for variable, value in getattr(i, f'_collect_{subgraph}_variables')():
+            method = getattr(i, f'_collect_{subgraph}_variables', None)
+            if method is None: continue
+            for variable, value in method():
                 if variable in collected_variables: continue
                 variables[variable].append(value)
                 collected_variables.add(variable)

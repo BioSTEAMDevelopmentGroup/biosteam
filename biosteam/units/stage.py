@@ -79,7 +79,11 @@ class SinglePhaseStage(Unit):
     _N_ins = 2
     _N_outs = 1
     _ins_size_is_fixed = False
-    _energy_variable = 'T'
+    
+    @property
+    def _energy_variable(self):
+        if self.T is None: return 'T'
+        else: return None
     
     def _init(self, T=None, P=None, Q=None, phase=None):
         self.T = T
@@ -156,7 +160,75 @@ class SinglePhaseStage(Unit):
         for i in self.outs: i.T += departure
         
     def _update_nonlinearities(self): pass
+    
+    @property
+    def equation_node_names(self): 
+        if self._energy_variable is None:
+            return (
+                'overall_material_balance_node', 
+            )
+        else:
+            return (
+                'overall_material_balance_node', 
+                'energy_balance_node',
+            )
+    
+    def initialize_overall_material_balance_node(self):
+        self.overall_material_balance_node.set_equations(
+            inputs=[j for i in self.ins if (j:=i.F_node)],
+            outputs=[i.F_node for i in self.outs],
+        )
+        
+    def initialize_energy_balance_node(self):
+        self.energy_balance_node.set_equations(
+            inputs=(
+                self.T_node, *[i.F_node for i in self.outs],
+                *[j for i in self.ins if (j:=i.E_node)],
+            ),
+            outputs=[
+                j for i in self.outs if (j:=i.E_node)
+            ],
+        )
+    
+    @property
+    def T_node(self):
+        if hasattr(self, '_T_node'): 
+            self._T_node.value = self.T
+            return self._T_node
+        self._T_node = var = VariableNode(f"{self.node_tag}.T",
+            self.T,
+            self.energy_balance_node,
+            *[i.sink.energy_balance_node for i in self.outs if i.sink],
+        )
+        return var 
+        
+    @property
+    def E_node(self):
+        if self._energy_variable is None:
+            return None
+        else:
+            return self.T_node
 
+    def get_connected_material_nodes(self, stream):
+        # TODO: Make this work for inlet streams and split streams
+        eqs = [self.overall_material_balance_node]
+        if self._energy_variable is not None:
+            eqs.append(self.energy_balance_node)
+        return eqs
+    
+    def _collect_material_balance_variables(self):
+        nodes = [i.F_node for i in self.outs]
+        return [
+            (i, i.value) for i in nodes
+        ]
+        # list[tuple[VariableNode, value]] of stage-name and material balance variable pairs
+    
+    def _collect_energy_balance_variables(self):
+        nodes = [j for i in self.outs if (j:=i.E_node)]
+        return [
+            (i, i.value) for i in nodes
+        ] # list[tuple[VariableNode, value]] of stage-name and energy balance variable pairs
+    
 
 class ReactivePhaseStage(bst.Unit): # Does not include VLE
     _N_outs = _N_ins = 1
@@ -253,7 +325,7 @@ class ReactivePhaseStage(bst.Unit): # Does not include VLE
         old = self.dmol
         new = self.reaction.conversion(self.ins[0])
         self.dmol = f * old + (1 - f) * new
-    
+
 
 # %% Two phases
 
@@ -479,7 +551,7 @@ class StageEquilibrium(Unit):
         self.partition._run()
         for i in self.splitters: i._run()
         self._update_separation_factors()
-        
+    
     def initialize_overall_material_balance_node(self):
         self.overall_material_balance_node.set_equations(
             inputs=[j for i in self.ins if (j:=i.F_node)],
@@ -561,7 +633,7 @@ class StageEquilibrium(Unit):
                self.overall_material_balance_node]
         if stream.phase == 'l':
             eqs.append(self.phenomena_node)
-        elif self._energy_variable is None and stream.phase == 'g':
+        elif self._energy_variable is not None and stream.phase == 'g':
             eqs.append(self.energy_balance_node)
         return eqs
     
