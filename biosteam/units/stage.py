@@ -2343,7 +2343,7 @@ class MultiStageEquilibrium(Unit):
                         partition.B = B
                         for i in partition.outs: i.T = T
                         partition.K = K
-                        for s in i.outs: s.empty()
+                        for s in partition.outs: s.empty()
             N_chemicals = len(index)
         if top_chemicals:
             top_side_draws = self.top_side_draws
