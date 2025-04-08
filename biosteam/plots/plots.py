@@ -21,6 +21,7 @@ from matplotlib.ticker import MultipleLocator
 from scipy.stats.kde import gaussian_kde
 from collections import deque
 from itertools import product
+import matplotlib.colors as clr
 
 __all__ = (
     'rounded_linspace',
@@ -62,7 +63,7 @@ __all__ = (
 
 # %% Utilities
 
-plt.rcParams['figure.dpi'] = 200 # High DPI (default is 100; so low!)
+plt.rcParams['figure.dpi'] = 300 # High DPI (default is 100; so low!)
 default_light_color = c.orange_tint.RGBn
 default_dark_color = c.orange_shade.RGBn
 title_color = c.neutral.shade(25).RGBn
@@ -985,7 +986,15 @@ def plot_uncertainty_pairs(
         yboxes = ybox
     if colors is None: 
         if kde:
-            colors = len(xs) * [None]
+            colors = [
+                clr.LinearSegmentedColormap.from_list(
+                    (c:=color_wheel[i]).ID,
+                    [*[c.shade(60 - 20 * j).RGBn for j in range(3)],
+                     *[c.tint(20 * j).RGBn for j in range(3)]],
+                    N=256
+                )
+                for i in range(len(xs))
+            ]
         else:
             if transparency is None: transparency = 1
             colors = [color_wheel[i].RGBn for i in range(len(xs))]

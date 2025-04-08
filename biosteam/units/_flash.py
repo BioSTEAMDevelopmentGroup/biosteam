@@ -331,7 +331,7 @@ class Flash(design.PressureVessel, Unit):
     def _design_parameters(self):
         # Retrieve run_args and properties
         vap, liq, *_ = self._outs
-        if self.has_vapor_condenser: vap = self.vapor_condenser.outs[0]
+        if self.has_vapor_condenser: vap = self.vapor_condenser.ins[0]
         rhov = vap.get_property('rho', 'lb/ft3')
         rhol = liq.get_property('rho', 'lb/ft3')
         P = liq.get_property('P', 'psi')  # Pressure (psi)
