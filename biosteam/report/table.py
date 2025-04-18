@@ -37,7 +37,7 @@ def _reformat(name):
     if name.islower(): name= name.capitalize()
     return name
 
-# %% Detailed TEA tables
+# %%
 
 class FOCTableBuilder:
     __slots__ = ('index', 'data', 'costs')
@@ -52,30 +52,37 @@ class FOCTableBuilder:
         self.data.append([notes, *costs])
         self.costs.append(costs)
     
-    def table(self, names):
+    def table(self, names, dataframe=True):
         data = self.data
         index = self.index.copy()
         index.append('Fixed operating cost (FOC)')
         data.append(("", *sum(self.costs)))
-        return pd.DataFrame(np.array(data), 
-                            index=index,
-                            columns=(
-                                'Notes',
-                                *[i + '\n[MM$ / yr]' for i in names],
-                            )
-        )
-
+        columns = ('Notes', *[i + '\n[MM$ / yr]' for i in names])
+        if dataframe:
+            return pd.DataFrame(
+                np.array(data), 
+                index=index,
+                columns=columns,
+            )
+        else:
+            return data, index, columns
+        
 # %% Multiple system tables
 
-def voc_table(systems, product_IDs, system_names=None, unit='MT', with_products=False):
+def voc_table(
+        systems, product_IDs, 
+        system_names=None, functional_unit='MT',
+        with_products=False, dataframe=True
+    ):
     # Not ready for users yet
     isa = isinstance
     if isa(systems, bst.System): systems = [systems]
     if isa(product_IDs, str): product_IDs = [product_IDs]
+    product_IDs = [(i.ID if hasattr(i, 'ID') else i) for i in product_IDs]
     inlet_cost_dct = {}
     outlet_revenue_dct = {}
     prices = bst.stream_prices
-    factor = 1 / tmo.units_of_measure.convert(1, 'kg', unit)
+    factor = 1 / tmo.units_of_measure.convert(1, 'kg', functional_unit)
     
     def getsubdct(dct, name):
         if name in dct:
@@ -166,11 +173,17 @@ def voc_table(systems, product_IDs, system_names=None, unit='MT', with_products=
     VOC_index = N_rows - N_products - 1
     data[VOC_index, 1:] = data[:N_consumed, 1:].sum(axis=0) - data[N_consumed:VOC_index, 1:].sum(axis=0)
     if system_names is None:
-        system_names = [i.ID for i in systems]
-    columns = [i + " [MM$/yr]" for i in system_names]
-    return pd.DataFrame(data, 
-                        index=pd.MultiIndex.from_tuples(table_index),
-                        columns=(f'Price [$/{unit}]', *columns))
+        if len(systems) == 1:
+            columns = ["Cost [MM$/yr]"]
+        else:
+            system_names = [i.ID for i in systems]
+            columns = [i + " [MM$/yr]" for i in system_names]
+    if dataframe:
+        return pd.DataFrame(data, 
+                            index=pd.MultiIndex.from_tuples(table_index),
+                            columns=(f'Price [$/{functional_unit}]', *columns))
+    else:
+        return data, table_index, (f'Price [$/{functional_unit}]', *columns)
 
 def lca_inventory_table(systems, key, items=(), system_names=None):
     isa = isinstance

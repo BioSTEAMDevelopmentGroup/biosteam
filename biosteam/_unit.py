@@ -1412,10 +1412,11 @@ class Unit(AbstractUnit):
                     addkey(('Design', ki))
                     if ki in units:
                         ui = units[ki]
-                        q = Quantity(vi, ui)
-                        q = q.to_base_units()
-                        vi = q.magnitude
-                        ui = q.units
+                        if ui != 'hr':
+                            q = Quantity(vi, ui)
+                            q = q.to_base_units()
+                            vi = q.magnitude
+                            ui = q.units
                     else:
                         ui = ''
                     addval((ui, vi))

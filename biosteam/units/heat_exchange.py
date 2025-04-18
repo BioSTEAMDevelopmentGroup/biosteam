@@ -110,7 +110,7 @@ class HX(Unit, isabstract=True):
 
     @property
     def material(self):
-        """Default 'Carbon steel/carbon steel'"""
+        """Default 'Carbon steel/carbon steel'."""
         return self._material
 
     @material.setter
