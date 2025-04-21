@@ -412,7 +412,7 @@ class TEA:
             return pd.DataFrame(
                 self.data, 
                 index=pd.MultiIndex.from_tuples(index) if isinstance(index[0], tuple) else index,
-                columns=('Notes', f'Cost [{units}]') if names is None else ('Notes', [f'{i}\n[{units}]' for i in names]),
+                columns=('Notes', f'Cost [{units}]') if names is None else ('Notes', *[f'{i}\n[{units}]' for i in names]),
             )
 
     def __init_subclass__(cls, isabstract=False):

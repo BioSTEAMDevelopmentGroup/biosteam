@@ -178,6 +178,8 @@ def voc_table(
         else:
             system_names = [i.ID for i in systems]
             columns = [i + " [MM$/yr]" for i in system_names]
+    else:
+        columns = [i + " [MM$/yr]" for i in system_names]
     if dataframe:
         return pd.DataFrame(data, 
                             index=pd.MultiIndex.from_tuples(table_index),

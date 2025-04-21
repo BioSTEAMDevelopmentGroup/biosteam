@@ -293,6 +293,8 @@ class ProcessModel:
             if i.baseline is not None: 
                 i.setter(i.baseline)
                 i.last_value = i.baseline
+        for i in model.optimized_parameters:
+            setattr(self, i.setter.__name__, i)
         for i in model.indicators:
             setattr(self, i.getter.__name__, i)
             
