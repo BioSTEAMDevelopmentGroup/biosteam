@@ -293,7 +293,7 @@ class Unit(AbstractUnit):
         eqs = self.equation_node_names
         equation_nodes = []
         for eq in eqs: 
-            node = EquationNode(f"{self.ID}.{eq}")
+            node = EquationNode(f"{self.node_tag}.{eq}")
             equation_nodes.append(node)
             setattr(self, eq, node)
         self.equation_nodes = tuple(equation_nodes)

@@ -77,8 +77,8 @@ class SystemSpecification:
 
 all_subgraphs = ('material_balance', 'energy_balance', 'phenomena')
 
-def get_node_connections(equation_nodes, inputs=True, outputs=True):
-    return tuple(set(sum([i.get_connections(inputs, outputs) for i in equation_nodes], [])))
+def get_node_edges(equation_nodes, inputs=True, outputs=True):
+    return tuple(set(sum([i.get_edges(inputs, outputs) for i in equation_nodes], [])))
 
 def get_variable_nodes(equation_nodes, inputs=True, outputs=True):
     if inputs:
@@ -835,6 +835,7 @@ class System:
         '_track_convergence',
         'variable_profiles',
         'equation_profiles',
+        'edge_profiles',
         # Dynamic simulation
         '_isdynamic',
         '_state',
@@ -2522,41 +2523,69 @@ class System:
             equations = tuple(set(sum([i.equation_nodes for i in self.stages], ())))
             variables = tuple(set(sum([i.variables for i in equations], ())))
             self.variable_profiles = {i: [] for i in variables}
-            self.equation_profiles = {i: [] for i in equations}
+            self.equation_profiles = {}
+            self.edge_profiles = {}
         else:
             self._track_convergence = False
             self.variable_profiles = None
             self.equation_profiles = None
+            self.edge_profiles = None
     
     def get_phenomena_graph(self):
         if not getattr(self, '_track_convergence', False):
             raise RuntimeError('convergence was not tracked')
         name = self.ID + '_graph'
         variable_profiles = self.get_variable_profiles()
-        # equation_profiles = self.get_equation_profiles() 
-        equation_profiles = None # TODO:
+        column_names = list(variable_profiles)
+        namespace = self.flowsheet.to_dict()
+        chemicals = bst.settings.get_chemicals()
+        directories = []
+        stages = []
+        variables = []
+        for name in column_names:
+            directory, chemical = name
+            if chemical == '-':
+                dot_index = directory.rindex('.')
+                stages.append(directory[:dot_index])
+                variables.append(directory[dot_index+1:])
+            else:
+                index = chemicals.index(chemical)
+                if directory[-1] == 'F':
+                    stages.append(directory[:directory.rindex('.outs[')])
+                    variables.append('F')
+                    directory = directory[:-1] + 'mol'
+                else:
+                    dot_index = directory.rindex('.')
+                    stages.append(directory[:dot_index])
+                    variables.append(directory[dot_index+1:])
+                directory += f"[{index}]"
+            directories.append(directory)
+        equation_profiles = self.get_equation_profiles(variable_profiles, directories, stages, variables, namespace) 
+        edge_profiles = self.get_edge_profiles(variable_profiles, directories, stages, variables, namespace) 
         variables = tuple(self.variable_profiles)
         equations = tuple(self.equation_profiles)
-        connections = get_node_connections(equations)
+        edges = tuple(self.edge_profiles)
+        edges = get_node_edges(equations)
         subgraphs = []
         for subgraph in all_subgraphs:
             subgraph_equations = [i for i in equations if subgraph in i.name]
-            subgraph_connections = get_node_connections(subgraph_equations, inputs=False)
+            subgraph_edges = get_node_edges(subgraph_equations, inputs=False)
             subgraph_variables = tuple(set(sum([i.outputs for i in subgraph_equations], ())))
             subgraph_name = '.'.join([name, subgraph])
             subgraph_variable_profiles = variable_profiles[[i.name for i in subgraph_variables]]
-            # subgraph_equation_profiles = equation_profiles[[i.name for i in subgraph_equations]]
-            subgraph_equation_profiles = None # TODO:
+            subgraph_equation_profiles = equation_profiles[[i.name for i in subgraph_equations]]
+            subgraph_edge_profiles = edge_profiles[[i.name for i in subgraph_edges]]
             subgraphs.append(
                 PhenomenaGraph(
                     subgraph_name, subgraph_equations, 
-                    subgraph_variables, subgraph_connections,
+                    subgraph_variables, subgraph_edges,
                     subgraph_equation_profiles,
                     subgraph_variable_profiles,
+                    subgraph_edge_profiles
                 )
             )
         return PhenomenaGraph(
-            name, equations, variables, connections, equation_profiles, variable_profiles, subgraphs
+            name, equations, variables, edges, equation_profiles, variable_profiles, subgraphs
         )
     
     def get_variable_profiles(self):
@@ -2566,7 +2595,7 @@ class System:
         chemicals = [i.ID for i in bst.settings.get_chemicals()]
         subnames = [('-' if np.ndim(i.value) == 0 else chemicals) for i in variable_nodes]
         columns = [(name, i) for name, subname in zip(names, subnames) for i in subname]
-        M = min([len(i) for i in variable_profiles.values()])
+        M = len(next(iter(variable_profiles.values())))
         N = len(columns)
         values = np.zeros([M, N])
         for i in range(M):
@@ -2581,8 +2610,52 @@ class System:
                 j = end
         return pd.DataFrame(values, columns=pd.MultiIndex.from_tuples(columns))
     
-    def get_equation_profiles(self):
-        return NotImplemented
+    def get_edge_profiles(self, variable_profiles_table, directories, stages, variables, namespace):
+        edge_profiles = self.edge_profiles
+        M = variable_profiles_table.shape[0]
+        steady_states = variable_profiles_table.iloc[-1]
+        for i in range(M):
+            row = variable_profiles_table.iloc[i]
+            for directory, stage, variable, value, steady_state in zip(directories, stages, variables, row, steady_states):
+                exec(f"{directory} = {value}", namespace)
+                unit = eval(stage, namespace)
+                for name, error in unit._collect_edge_errors():
+                    if name in edge_profiles:
+                        edge_profiles[name].append(error)
+                    else:
+                        edge_profiles[name] = [error]
+                exec(f"{directory} = {steady_state}", namespace)
+        columns = list(edge_profiles)
+        N = len(columns)
+        values = np.zeros([M, N])
+        for i in range(M):
+            for j, lst in enumerate(edge_profiles.values()):
+                values_i = lst[i]
+                values[i, j] = values_i
+        return pd.DataFrame(values, columns=pd.MultiIndex.from_tuples(columns))
+    
+    def get_equation_profiles(self, variable_profiles_table, directories, stages, variables, namespace):
+        equation_profiles = self.equation_profiles
+        M = variable_profiles_table.shape[0]
+        for i in range(M):
+            row = variable_profiles_table.iloc[i]
+            for directory, value in zip(directories, row):
+                exec(f"{directory} = {value}", namespace)
+            for stage in stages:
+                unit = eval(stage, namespace)
+                for name, error in unit._collect_equation_errors():
+                    if name in equation_profiles:
+                        equation_profiles[name].append(error)
+                    else:
+                        equation_profiles[name] = [error]
+        columns = list(equation_profiles)
+        N = len(columns)
+        values = np.zeros([M, N])
+        for i in range(M):
+            for j, lst in enumerate(equation_profiles.values()):
+                values_i = lst[i]
+                values[i, j] = values_i
+        return pd.DataFrame(values, columns=pd.MultiIndex.from_tuples(columns))
     
     def run_phenomena(self):
         """Decouple and linearize material, equilibrium, summation, enthalpy,
@@ -2615,11 +2688,6 @@ class System:
                     if error > self._last_error:
                         # print('RETRY!')
                         # print('------')
-                        # for i in path: 
-                        #     if isinstance(i, (bst.Mixer, bst.Splitter)): continue
-                        #     i.run()
-                        #     flows = conf._solve_material_flows(composition_sensitive=False)
-                        #     conf.solve_energy_departures()
                         for i in path:
                             i.run()
                             if tracking: self._collect_variables(conf)
@@ -2629,7 +2697,7 @@ class System:
                     else:
                         self._last_flows = flows
                         self._last_error = error
-            
+    
     def _collect_variables(self, configuration):
         for i in all_subgraphs: self._collect_subgraph_variables(configuration, i)
             

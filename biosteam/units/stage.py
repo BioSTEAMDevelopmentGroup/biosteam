@@ -209,6 +209,29 @@ class SinglePhaseStage(Unit):
         else:
             return self.T_node
 
+    def _collect_edge_errors(self):
+        equation_name = self.overall_material_balance_node.name
+        outs = self.outs
+        IDs = self.chemicals.IDs
+        results = []
+        error = sum([i.mol for i in outs]) - sum([i.mol for i in self.ins])
+        for i, outlet in enumerate(outs):
+            for j, ID in enumerate(IDs):
+                index = (equation_name, outlet.F_node.name, ID)
+                results.append((index, error[j]))
+        return results # list[tuple[tuple[equation_name, variable_name, chemical_name | '-'], value]]
+
+    def _collect_equation_errors(self):
+        equation_name = self.overall_material_balance_node.name
+        outs = self.outs
+        IDs = self.chemicals.IDs
+        results = []
+        error = sum([i.mol for i in outs]) - sum([i.mol for i in self.ins])
+        for j, ID in enumerate(IDs):
+            index = (equation_name, ID)
+            results.append((index, error[j]))
+        return results # list[tuple[tuple[equation_name, chemical_name | '-'], value]]
+
     def get_connected_material_nodes(self, stream):
         # TODO: Make this work for inlet streams and split streams
         eqs = [self.overall_material_balance_node]
@@ -221,13 +244,13 @@ class SinglePhaseStage(Unit):
         return [
             (i, i.value) for i in nodes
         ]
-        # list[tuple[VariableNode, value]] of stage-name and material balance variable pairs
+        # list[tuple[VariableNode, value]] 
     
     def _collect_energy_balance_variables(self):
         nodes = [j for i in self.outs if (j:=i.E_node)]
         return [
             (i, i.value) for i in nodes
-        ] # list[tuple[VariableNode, value]] of stage-name and energy balance variable pairs
+        ] # list[tuple[VariableNode, value]] 
     
 
 class ReactivePhaseStage(bst.Unit): # Does not include VLE
@@ -642,19 +665,42 @@ class StageEquilibrium(Unit):
         return [
             (i, i.value) for i in nodes
         ]
-        # list[tuple[VariableNode, value]] of stage-name and material balance variable pairs
+        # list[tuple[VariableNode, value]] 
     
     def _collect_energy_balance_variables(self):
         nodes = [j for i in self.outs if (j:=i.E_node)]
         return [
             (i, i.value) for i in nodes
-        ] # list[tuple[VariableNode, value]] of stage-name and energy balance variable pairs
+        ] # list[tuple[VariableNode, value]] 
     
     def _collect_phenomena_variables(self):
         nodes = [self.T_node, self.K_node]
         return [
             (i, i.value) for i in nodes
-        ] # list[tuple[VariableNode, value]] of stage-name and nonlinear variable pairs
+        ] # list[tuple[VariableNode, value]] 
+    
+    def _collect_edge_errors(self):
+        equation_name = self.overall_material_balance_node.name
+        outs = self.outs
+        IDs = self.chemicals.IDs
+        results = []
+        error = sum([i.mol for i in outs]) - sum([i.mol for i in self.ins])
+        for i, outlet in enumerate(outs):
+            for j, ID in enumerate(IDs):
+                index = (equation_name, outlet.F_node.name, ID)
+                results.append((index, error[j]))
+        return results # list[tuple[tuple[equation_name, variable_name, chemical_name | '-'], value]]
+
+    def _collect_equation_errors(self):
+        equation_name = self.overall_material_balance_node.name
+        outs = self.outs
+        IDs = self.chemicals.IDs
+        results = []
+        error = sum([i.mol for i in outs]) - sum([i.mol for i in self.ins])
+        for j, ID in enumerate(IDs):
+            index = (equation_name, ID)
+            results.append((index, error[j]))
+        return results # list[tuple[tuple[equation_name, chemical_name | '-'], value]]
     
     def _get_energy_departure_coefficient(self, stream):
         energy_variable = self._energy_variable

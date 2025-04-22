@@ -21,6 +21,7 @@ from matplotlib.ticker import MultipleLocator
 from scipy.stats.kde import gaussian_kde
 from collections import deque
 from itertools import product
+from matplotlib import colormaps
 import matplotlib.colors as clr
 
 __all__ = (
@@ -986,15 +987,18 @@ def plot_uncertainty_pairs(
         yboxes = ybox
     if colors is None: 
         if kde:
-            colors = [
-                clr.LinearSegmentedColormap.from_list(
-                    (c:=color_wheel[i]).ID,
-                    [*[c.shade(60 - 20 * j).RGBn for j in range(3)],
-                     *[c.tint(20 * j).RGBn for j in range(3)]],
-                    N=256
-                )
-                for i in range(len(xs))
-            ]
+            if N_xs == 1:
+                colors = [colormaps['viridis']]
+            else:
+                colors = [
+                    clr.LinearSegmentedColormap.from_list(
+                        (c:=color_wheel[i]).ID,
+                        [*[c.shade(60 - 20 * j).RGBn for j in range(3)],
+                         *[c.tint(20 * j).RGBn for j in range(3)]],
+                        N=256
+                    )
+                    for i in range(N_xs)
+                ]
         else:
             if transparency is None: transparency = 1
             colors = [color_wheel[i].RGBn for i in range(len(xs))]
