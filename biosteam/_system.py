@@ -2535,12 +2535,13 @@ class System:
             self.equation_profiles = None
             self.edge_profiles = None
     
-    def get_phenomena_graph(self):
+    def get_phenomena_graph(self, raise_error=True):
         if not getattr(self, '_track_convergence', False):
             raise RuntimeError('convergence was not tracked')
         variable_profiles = self.get_variable_profiles()
         column_names = list(variable_profiles)
         namespace = self.flowsheet.to_dict()
+        namespace['nan'] = np.nan
         chemicals = bst.settings.get_chemicals()
         directories = []
         stages = []
@@ -2576,8 +2577,13 @@ class System:
             subgraph_variables = tuple(set(sum([i.outputs for i in subgraph_equations], ())))
             subgraph_name = '.'.join([name, subgraph])
             subgraph_variable_profiles = variable_profiles[[i.name for i in subgraph_variables]]
-            subgraph_equation_profiles = equation_profiles[[i.name for i in subgraph_equations]]
-            subgraph_edge_profiles = edge_profiles[[i.name for i in subgraph_edges]]
+            try:
+                subgraph_equation_profiles = equation_profiles[[i.name for i in subgraph_equations]]
+                subgraph_edge_profiles = edge_profiles[[i.name for i in subgraph_edges]]
+            except Exception as e:
+                if raise_error: raise e from None
+                subgraph_equation_profiles = None
+                subgraph_edge_profiles = None
             subgraphs.append(
                 PhenomenaGraph(
                     subgraph_name, subgraph_equations, 

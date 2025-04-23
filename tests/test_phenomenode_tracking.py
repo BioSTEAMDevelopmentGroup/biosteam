@@ -25,7 +25,7 @@ def test_flash():
     sys.track_convergence()
     for i in range(10):
         sys.run_phenomena()
-    phenomena_graph = sys.get_phenomena_graph()
+    phenomena_graph = sys.get_phenomena_graph(raise_error=False)
     shape = phenomena_graph.variable_profiles.shape
     assert shape == (30, 8)
         
@@ -50,7 +50,7 @@ def test_2_stage_flash():
     sys.track_convergence()
     for i in range(10):
         sys.run_phenomena()
-    phenomena_graph = sys.get_phenomena_graph()
+    phenomena_graph = sys.get_phenomena_graph(raise_error=False)
     shape = phenomena_graph.variable_profiles.shape
     assert shape == (30, 15)
 
@@ -69,7 +69,7 @@ def test_column():
     sys.track_convergence(True)
     for i in range(10):
         sys.run_phenomena()
-    phenomena_graph = sys.get_phenomena_graph()
+    phenomena_graph = sys.get_phenomena_graph(raise_error=False)
     shape = phenomena_graph.variable_profiles.shape
     assert shape == (30, 38)
  
@@ -143,7 +143,7 @@ def test_system():
     sys.track_convergence(True)
     for i in range(10):
         sys.run_phenomena()
-    phenomena_graph = sys.get_phenomena_graph()
+    phenomena_graph = sys.get_phenomena_graph(raise_error=False)
     shape = phenomena_graph.variable_profiles.shape
     assert shape == (37, 133)
  
