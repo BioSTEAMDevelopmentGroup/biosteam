@@ -836,6 +836,8 @@ class System:
         'variable_profiles',
         'equation_profiles',
         'edge_profiles',
+        'variable_nodes',
+        'equation_nodes',
         # Dynamic simulation
         '_isdynamic',
         '_state',
@@ -2520,13 +2522,15 @@ class System:
             for i in self.stages: i.create_equation_nodes()
             with self.stage_configuration(aggregated=False):
                 for i in self.stages: i.initialize_equation_nodes()
-            equations = tuple(set(sum([i.equation_nodes for i in self.stages], ())))
-            variables = tuple(set(sum([i.variables for i in equations], ())))
+            self.equation_nodes = equations = tuple(set(sum([i.equation_nodes for i in self.stages], ())))
+            self.variable_nodes = variables = tuple(set(sum([i.variables for i in equations], ())))
             self.variable_profiles = {i: [] for i in variables}
             self.equation_profiles = {}
             self.edge_profiles = {}
         else:
             self._track_convergence = False
+            self.equation_nodes = None
+            self.variable_nodes = None
             self.variable_profiles = None
             self.equation_profiles = None
             self.edge_profiles = None
@@ -2534,7 +2538,6 @@ class System:
     def get_phenomena_graph(self):
         if not getattr(self, '_track_convergence', False):
             raise RuntimeError('convergence was not tracked')
-        name = self.ID + '_graph'
         variable_profiles = self.get_variable_profiles()
         column_names = list(variable_profiles)
         namespace = self.flowsheet.to_dict()
@@ -2562,11 +2565,11 @@ class System:
             directories.append(directory)
         equation_profiles = self.get_equation_profiles(variable_profiles, directories, stages, variables, namespace) 
         edge_profiles = self.get_edge_profiles(variable_profiles, directories, stages, variables, namespace) 
-        variables = tuple(self.variable_profiles)
-        equations = tuple(self.equation_profiles)
-        edges = tuple(self.edge_profiles)
-        edges = get_node_edges(equations)
+        variables = self.variable_nodes
+        equations = self.equation_nodes
+        edges = get_node_edges(equations, inputs=False)
         subgraphs = []
+        name = self.ID + '_graph'
         for subgraph in all_subgraphs:
             subgraph_equations = [i for i in equations if subgraph in i.name]
             subgraph_edges = get_node_edges(subgraph_equations, inputs=False)
@@ -2585,7 +2588,7 @@ class System:
                 )
             )
         return PhenomenaGraph(
-            name, equations, variables, edges, equation_profiles, variable_profiles, subgraphs
+            name, equations, variables, edges, equation_profiles, variable_profiles, edge_profiles, subgraphs
         )
     
     def get_variable_profiles(self):
