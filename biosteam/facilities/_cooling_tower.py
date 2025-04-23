@@ -92,8 +92,7 @@ class CoolingTower(bst.Facility):
         hu = self.create_heat_utility()
         self._load_utility_agents()
         hu.mix_from(cwu)            
-        return_cooling_water.imol['7732-18-5'] = \
-        self.design_results['Flow rate'] = \
+        return_cooling_water.imol['7732-18-5'] = self.design_results['Flow rate'] = hu.flow
         cooling_tower_chemicals.imass['Water'] = 2 * return_cooling_water.F_mol / 4.4e+05
         self.return_cooling_water.T = hu.inlet_utility_stream.T
         self.evaporation_water.mol[0] = evaporation = hu.flow  * self.evaporation
