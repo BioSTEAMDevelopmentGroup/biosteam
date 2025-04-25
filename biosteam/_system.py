@@ -3459,7 +3459,10 @@ class System:
         except:
             return 0.
         else:
-            return sum([item.impact() for item in process_impact_items[key]])
+            if key in process_impact_items:
+                return sum([item.impact() for item in process_impact_items[key]])
+            else:
+                return 0.
     
     def get_net_impact(self, key):
         """
@@ -3575,6 +3578,12 @@ class System:
         for i, j in zip(main_products, CFs_original): i.set_CF(key, j)
         total = sum(allocation_factors.values())
         return {i: j / total for i, j in allocation_factors.items()}
+    
+    def displacement_allocation_table(self, key, product):
+        return bst.report.lca_displacement_allocation_table(
+            [self], key, 
+            product if isinstance(product, list) else [product],
+        )
     
     @property
     def sales(self) -> float:

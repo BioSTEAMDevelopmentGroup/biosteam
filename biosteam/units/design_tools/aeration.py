@@ -78,6 +78,7 @@ from math import exp, log, sqrt
 H_coefficients = { # k_H, A
     'O2': (0.0013, 1500),
     'CO2': (0.035, 2400),
+    'CO': (0.00099, 1300),
     'H2': (0.00078, 500), 
 }
 

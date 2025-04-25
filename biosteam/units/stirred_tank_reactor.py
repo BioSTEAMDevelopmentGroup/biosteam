@@ -270,7 +270,7 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
     def _get_duty(self):
         return self.Hnet
 
-    def _design(self):
+    def _design(self, size_only=False):
         Design = self.design_results
         ins_F_vol = sum([i.F_vol for i in self.ins if i.phase != 'g'])
         P_pascal = (self.P if self.P else self.outs[0].P)
@@ -307,7 +307,7 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
         self.vacuum_system = bst.VacuumSystem(self) if P_pascal < 1e5 else None
         self.parallel['self'] = N
         self.parallel['vacuum_system'] = 1 # Not in parallel
-        if self.adiabatic: return
+        if self.adiabatic or size_only: return
         duty = self._get_duty()
         if duty:
             # Note: Flow and duty are rescaled to simulate an individual

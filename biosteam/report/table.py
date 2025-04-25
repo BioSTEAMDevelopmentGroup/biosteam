@@ -316,7 +316,7 @@ def lca_displacement_allocation_table(systems, key, items,
         for item in process_impact_items:
             if item.name not in process_inventory: process_inventory.append(item.name)
             CF = item.CF
-            value = item.impact() * CF
+            value = item.impact()
             basis = item.basis
             if basis != 'kg':
                 CF = f"{CF} [{impact_units}/{basis}"
