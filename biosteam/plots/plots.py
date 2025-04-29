@@ -1223,6 +1223,8 @@ def plot_uncertainty_pairs_1d(
         for values in ys:
             if hasattr(values, 'ndim') and values.ndim == 1:
                 y.append(values)
+                fill.append(xbox.fill)
+                edge.append(xbox.edge)
             else:
                 y.extend(values)
                 if ybox.fill is None and ybox.edge is None:

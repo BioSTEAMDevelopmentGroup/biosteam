@@ -64,7 +64,7 @@ class Parameter(Feature):
                     distribution = shape.Uniform(*bounds)
                 case _:
                     raise ValueError(f"invalid distribution {distribution!r}; distribution must be either 'triangular' or 'uniform'")
-        elif not bounds:
+        elif bounds is None:
             if distribution: bounds = (distribution.lower[0], distribution.upper[0])
         elif not distribution:
             distribution = shape.Uniform(*bounds)

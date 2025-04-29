@@ -3370,7 +3370,8 @@ class System:
 
     def get_net_heat_utility_impact(self, 
             agent: bst.UtilityAgent, key: str,
-            heat_utilities: Optional[tuple[bst.HeatUtility]]=None
+            heat_utilities: Optional[tuple[bst.HeatUtility]]=None,
+            displace=True
         ):
         if isinstance(agent, str): 
             ID = agent
@@ -3387,6 +3388,7 @@ class System:
         if heat_utilities is None: heat_utilities = self.heat_utilities
         for hu in heat_utilities:
             if hu.agent and hu.agent.ID == ID:
+                if not displace and hu.flow < 0: continue
                 if units == 'kg':
                     return hu.flow * CF * agent.MW * self.operating_hours
                 elif units == 'kmol':
@@ -3397,17 +3399,19 @@ class System:
                     raise RuntimeError("unknown error")
         return 0.
     
-    def get_net_electricity_impact(self, key):
+    def get_net_electricity_impact(self, key, displace=True):
+        power_utility = self.power_utility
+        if not displace and power_utility.power < 0: return 0.
         try:
             return self.power_utility.get_impact(key) * self.operating_hours
         except KeyError:
             return 0.
 
-    def get_net_utility_impact(self, key):
+    def get_net_utility_impact(self, key, displace=True):
         agents = (*bst.HeatUtility.cooling_agents,
                   *bst.HeatUtility.heating_agents)
         heat_utilities = self.heat_utilities
-        return sum([self.get_net_heat_utility_impact(i, key, heat_utilities) for i in agents]) + self.get_net_electricity_impact(key)
+        return sum([self.get_net_heat_utility_impact(i, key, heat_utilities, displace) for i in agents]) + self.get_net_electricity_impact(key, displace)
     
     def get_total_feeds_impact(self, key):
         """
@@ -3449,7 +3453,7 @@ class System:
             impact += power_utility.get_impact(key)
         return impact * self.operating_hours
     
-    def get_process_impact(self, key):
+    def get_process_impact(self, key, displace=True):
         """
         Return the annual process impact given the impact indicator key.
         
@@ -3460,21 +3464,32 @@ class System:
             return 0.
         else:
             if key in process_impact_items:
-                return sum([item.impact() for item in process_impact_items[key]])
+                if displace:
+                    return sum([item.impact() for item in process_impact_items[key]])
+                else:
+                    return sum([flow * item.CF for item in process_impact_items[key] if (flow:=item.inventory()) > 0])
             else:
                 return 0.
     
-    def get_net_impact(self, key):
+    def get_net_impact(self, key, displace=True):
         """
-        Return net annual impact, including displaced impacts, given the impact indicator key.
+        Return net annual impact, given the impact indicator key. If displace 
+        is True, impacts from coproducts will substracted. 
         
         """
-        return (
-            self.get_total_feeds_impact(key)
-            + self.get_process_impact(key)
-            + self.get_net_utility_impact(key)
-            - self.get_total_products_impact(key)
-        )
+        if displace:
+            return (
+                self.get_total_feeds_impact(key)
+                + self.get_process_impact(key)
+                + self.get_net_utility_impact(key)
+                - self.get_total_products_impact(key)
+            )
+        else:
+            return (
+                self.get_total_feeds_impact(key)
+                + self.get_process_impact(key, displace=displace)
+                + self.get_net_utility_impact(key, displace=displace)
+            )
     
     def get_property_allocated_impact(self, key, name, basis, ignored=None, products=None):
         if ignored is None: ignored = frozenset()
