@@ -332,6 +332,7 @@ class Model:
             description: Optional[str]=None, 
             optimized=False, 
             kind=None, # For backwards compatibility
+            safe=False,
         ):
         """
         Define and register parameter.
@@ -384,7 +385,24 @@ class Model:
         p = Parameter(name, setter, element,
                       self.system, distribution, units, 
                       baseline, bounds, coupled, hook, description)
-        Parameter.check_index_unique(p, self.features)
+        if safe:
+            Parameter.check_index_unique(p, self.features)
+        else:
+            key = (p.element_name, p.name)
+            dct = {(i.element_name, i.name): i for i in self.features}
+            if key in dct:
+                old_p = dct[key]
+                try:
+                    if optimized:
+                        self._optimized_parameters.remove(old_p)
+                    else:
+                        self._parameters.remove(old_p)
+                except:
+                    raise ValueError(
+                             "each feature must have a unique element and name; "
+                            f"feature with element {repr(p.element)} "
+                            f"and name {repr(p.name)} already present"
+                        )
         if optimized:
             self._optimized_parameters.append(p)
         else:
@@ -625,7 +643,7 @@ class Model:
     def features(self):
         return (*self._parameters, *self._optimized_parameters, *self._indicators)
     
-    def indicator(self, getter=None, name=None, units=None, element=None):
+    def indicator(self, getter=None, name=None, units=None, element=None, safe=False):
         """
         Define and register indicator.
         
@@ -658,7 +676,21 @@ class Model:
         elif not getter: 
             return lambda getter: self.indicator(getter, name, units, element)
         indicator = Indicator(name, getter, units, element)
-        Indicator.check_index_unique(indicator, self.features)
+        if safe:
+            Indicator.check_index_unique(indicator, self.features, safe)
+        else:
+            key = (indicator.element_name, indicator.name)
+            dct = {(i.element_name, i.name): i for i in self.features}
+            if key in dct:
+                old_indicator = dct[key]
+                try:
+                    self._indicators.remove(old_indicator)
+                except:
+                    raise ValueError(
+                             "each feature must have a unique element and name; "
+                            f"feature with element {repr(indicator.element)} "
+                            f"and name {repr(indicator.name)} already present"
+                        )
         self._indicators.append(indicator)
         return indicator 
     metric = indicator

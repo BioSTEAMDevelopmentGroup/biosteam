@@ -985,6 +985,7 @@ class PhasePartition(Unit):
                 ms = self._linked_multistream 
             except:
                 outs = self.outs
+                for i, j in zip(self.outs, self.phases): i.phase = j 
                 self._linked_multistream = ms = tmo.MultiStream.from_streams(outs)
             ms.copy_like(self.feed)
             if self.T_specification is not None: ms.T = self.T_specification

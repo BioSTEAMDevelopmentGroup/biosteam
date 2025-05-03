@@ -138,13 +138,22 @@ class Configuration:
                     for i in self.composition_sensitive_path: i._update_composition_parameters()
                     return self._solve_material_flows(composition_sensitive=True)
                 
-                flx.fixed_point(
-                    update_inner_material_balance_parameters,
+                def outer_loop(flows):
+                    flows = flx.fixed_point(
+                        update_inner_material_balance_parameters,
+                        flows, xtol=tmo.LLE.pseudo_equilibrium_inner_loop_options['xtol'] * flows.max(), 
+                        maxiter=20, checkiter=False,
+                        checkconvergence=False,
+                    )
+                    for i in self.composition_sensitive_path: i._update_net_flow_parameters()
+                    return flows
+                
+                flows = flx.fixed_point(
+                    outer_loop,
                     flows, xtol=tmo.LLE.pseudo_equilibrium_inner_loop_options['xtol'] * flows.max(), 
                     maxiter=10, checkiter=False,
                     checkconvergence=False,
                 )
-                for i in self.composition_sensitive_path: i._update_net_flow_parameters()
         else:
             self._solve_material_flows(composition_sensitive=False)
     
@@ -829,6 +838,7 @@ class System:
         # Phenomena oriented simulation
         '_last_flows',
         '_last_error',
+        '_diverged_count',
         '_aggregated_stage_configuration',
         'adaptive_phenomena_oriented_simulation',
         '_stage_configuration',
@@ -1136,6 +1146,7 @@ class System:
         self.tracked_recycles = {}
         self._last_error = np.inf
         self._last_flows = 0
+        self._diverged_count = 0
         subsystems = self.subsystems
         algorithm = self._algorithm
         method = self._method
@@ -2666,15 +2677,54 @@ class System:
                 values[i, j] = values_i
         return pd.DataFrame(values, columns=pd.MultiIndex.from_tuples(columns))
     
+    # def run_phenomena(self):
+    #     """Decouple and linearize material, equilibrium, summation, enthalpy,
+    #     and reaction phenomena and iteratively solve them."""
+    #     path = self.unit_path
+    #     tracking = self._track_convergence
+    #     with self.stage_configuration(aggregated=False) as conf:
+    #         try:
+    #             if self.adaptive_phenomena_oriented_simulation:
+    #                 for i in path: 
+    #                     if isinstance(i, (bst.Mixer, bst.Splitter)) and not i.specifications: continue
+    #                     i.run()
+    #                     if tracking: self._collect_variables(conf)
+    #                     conf.solve_energy_departures()
+    #                     if tracking: self._collect_subgraph_variables(conf, 'energy_balance')
+    #                     conf._solve_material_flows(composition_sensitive=False)
+    #                     if tracking: self._collect_subgraph_variables(conf, 'material_balance')
+    #             conf.solve_nonlinearities()
+    #             conf.solve_material_flows(composition_sensitive=True)
+    #             if tracking: self._collect_subgraph_variables(conf, 'phenomena')
+    #             conf.solve_energy_departures()
+    #             if tracking: self._collect_subgraph_variables(conf, 'energy_balance')
+    #             conf._solve_material_flows(composition_sensitive=False)
+    #             if tracking: self._collect_subgraph_variables(conf, 'material_balance')
+    #         except (NotImplementedError, UnboundLocalError, TypeError, KeyError) as error:
+    #             raise error
+    #         except:
+    #         # except Exception as e:
+    #             # if self.c[0] != 0: raise e
+    #             # self.c[0] += 1
+    #             # print('failed!')
+    #             for i in path: 
+    #                 i.run()
+    #                 if tracking: self._collect_variables(conf)
+    
     def run_phenomena(self):
         """Decouple and linearize material, equilibrium, summation, enthalpy,
         and reaction phenomena and iteratively solve them."""
         path = self.unit_path
         tracking = self._track_convergence
         with self.stage_configuration(aggregated=False) as conf:
+            # if self._diverged_count > 3:
+            #     for i in path: 
+            #         i.run()
+            #         if tracking: self._collect_variables(conf)
+            #     return True
             try:
-                conf.solve_nonlinearities()
                 conf.solve_material_flows(composition_sensitive=True)
+                conf.solve_nonlinearities()
                 if tracking: self._collect_subgraph_variables(conf, 'phenomena')
                 conf.solve_energy_departures()
                 if tracking: self._collect_subgraph_variables(conf, 'energy_balance')
@@ -2683,29 +2733,41 @@ class System:
             except (NotImplementedError, UnboundLocalError, KeyError) as error:
                 raise error
             except:
-                # print('FAILED!')
-                # print('-------')
+                print('FAILED!')
+                print('-------')
+                diverged = True
                 for i in path: 
                     i.run()
                     if tracking: self._collect_variables(conf)
-                flows = conf._solve_material_flows(composition_sensitive=False)
-                if tracking: self._collect_subgraph_variables(conf, 'material_balance')
-                if self.adaptive_phenomena_oriented_simulation: self._last_flows = flows
+                # flows = conf._solve_material_flows(composition_sensitive=False)
+                # if tracking: self._collect_subgraph_variables(conf, 'material_balance')
+                # if self.adaptive_phenomena_oriented_simulation: self._last_flows = flows
             else:
+                diverged = False
                 if self.adaptive_phenomena_oriented_simulation:
                     error = np.abs(flows - self._last_flows).sum()
-                    if error > self._last_error:
-                        # print('RETRY!')
-                        # print('------')
+                    diverged = error > 1.20 * self._last_error
+                    if diverged:
+                        print('RETRY!')
+                        print('------')
                         for i in path:
                             i.run()
                             if tracking: self._collect_variables(conf)
                         flows = conf._solve_material_flows(composition_sensitive=False)
                         if tracking: self._collect_subgraph_variables(conf, 'material_balance')
+                        error = np.abs(flows - self._last_flows).sum()
+                        # if error > self._last_error:
+                        #     diverged = False
+                        #     self.adaptive_phenomena_oriented_simulation = False
                         self._last_flows = flows
+                        self._last_error = error
                     else:
                         self._last_flows = flows
                         self._last_error = error
+                        print('SUCCESS!')
+                        print('-------')
+            # self._diverged_count += diverged
+        return diverged
     
     def _collect_variables(self, configuration):
         for i in all_subgraphs: self._collect_subgraph_variables(configuration, i)

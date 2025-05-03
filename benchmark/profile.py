@@ -38,7 +38,8 @@ __all__ = (
     'test_convergence',
     'save_stream_tables_and_specifications',
     'save_simulation_errors',
-    'Tracker'
+    'Tracker',
+    'test_convergence_rigorous',
 )
 
 # %% Make simulation rigorous to achieve lower tolerances
@@ -271,7 +272,7 @@ register(
 )
 register(
     'acetic_acid_complex_decoupled', 'Shortcut system',
-    10, [0, 2, 4, 6, 8], 'AcOH\nshortcut\ndewatering',
+    25, [5, 10, 15, 20, 25], 'AcOH\nshortcut\ndewatering',
     [(-15, -10, -5, 0, 5), (-15, -10, -5, 0, 5)],
 )
 # register(
@@ -423,6 +424,16 @@ class ErrorPoint(NamedTuple):
 
 default_steady_state_cutoff = 1
     
+def get_flows(streams, phases):
+    flows = []
+    for i, stream_phases in zip(streams, phases):
+        if len(stream_phases) == 1:
+            flows.append(i.mol)
+            continue
+        for j in stream_phases:
+            flows.append(i.imol[j])
+    return np.array(flows)
+
 def steady_state_error(profile, steady_state_cutoff=None):
     if steady_state_cutoff is None: steady_state_cutoff = default_steady_state_cutoff
     minimum_error = np.log10(10 ** profile['Component flow rate error'][-1] + 10 ** profile['Temperature error'][-1]) 
@@ -437,6 +448,20 @@ def benchmark(profile, steady_state_error=None):
     if np.isnan(error).any(): breakpoint()
     return time 
     
+def test_convergence_rigorous(system=None):
+    if system is None: system = 'acetic_acid_simple'
+    algorithm = 'Phenomena oriented'
+    file_name = f"{system}_{algorithm}_steady_state"
+    file = os.path.join(simulations_folder, file_name)
+    L, R = [
+        Convergence(
+            all_systems[system](algorithm), file
+        ).results[0]
+        for algorithm in ('Sequential modular', 'Phenomena oriented')
+    ]
+    print(np.abs(L - R))
+    breakpoint()
+
 class Convergence:
     
     def __init__(self, system, file):
@@ -447,33 +472,35 @@ class Convergence:
         except: 
             try: system.simulate()
             except: pass
-            for i in range(100): system.run()
+            if system.algorithm == 'Phenomena oriented':
+                N = 500
+            else:
+                N = 50
+            for i in range(N): system.run()
             streams, adiabatic_stages, all_stages = streams_and_stages(system)
-            for stream in streams:
-                imol = stream._imol._parent
-                phases = stream.phases
-                for phase in imol.phases:
-                    if phase not in phases:
-                        imol[phase] = 0.
-            flows = np.array(sum([i._imol._parent.data.rows for i in streams], []))
-            Ts = np.array([i.T for i in streams])
-            results = flows, Ts
-            # cfe, te = zip(*[i._simulation_error() for i in all_stages])
+            cfe, te = zip(*[i._simulation_error() for i in all_stages])
+            phases = [i.phases for i in streams]
+            flows = get_flows(streams, phases)
             system.run()
             cfe, te = zip(*[i._simulation_error() for i in all_stages])
-            benchmark = sum(cfe) + sum(te)
+            flows_new = get_flows(streams, phases)
+            benchmark = sum(cfe) + sum(te) + np.abs(flows_new - flows).sum()
+            Ts = np.array([i.T for i in streams])
+            results = flows_new, Ts, [i.node_tag for i in streams], phases
             with open(file, 'wb') as f: pickle.dump((*results, benchmark), f)
         self.results = results
         self.benchmark = benchmark
         
 
 class Tracker:
-    __slots__ = ('system', 'run', 'streams', 
-                 'adiabatic_stages', 'stages',
-                 'profile_time', 'rtol', 'atol',
-                 'kwargs', 'name', 'algorithm')
+    __slots__ = (
+        'system', 'run', 'streams', 
+        'adiabatic_stages', 'stages',
+        'profile_time', 'rtol', 'atol',
+        'kwargs', 'name', 'algorithm'
+    )
     
-    def __init__(self, name, algorithm, rtol=1e-16, atol=1e-6, **kwargs):
+    def __init__(self, name, algorithm, rtol=1e-16, atol=1e-9, **kwargs):
         sys = all_systems[name](algorithm, **kwargs)
         sys._setup_units()
         sys.flowsheet.clear()
@@ -494,18 +521,24 @@ class Tracker:
         
     def estimate_steady_state(self, load=True): # Uses optimization to estimate steady state
         options = '_'.join(['{i}_{j}' for i, j in self.kwargs.items()])
+        algorithm = self.algorithm
         if options:
-            file_name = f"{self.name}_{options}_steady_state"
+            file_name = f"{self.name}_{options}_{algorithm}_steady_state"
         else:
-            file_name = f"{self.name}_steady_state"
+            file_name = f"{self.name}_{algorithm}_steady_state"
         file = os.path.join(simulations_folder, file_name)
-        po, sm = [
-            Convergence(
-                all_systems[self.name](i, **self.kwargs), file
-            )
-            for i in ('phenomena-oriented', 'sequential-modular')
-        ]
-        return po.results if po.benchmark < sm.benchmark else sm.results
+        c = Convergence(
+            all_systems[self.name](algorithm, **self.kwargs), file
+        )
+        # L, R = [
+        #     Convergence(all_systems[self.name](algorithm, **self.kwargs), file).results[0]
+        #     for algorithm in ('Sequential modular', 'Phenomena oriented')
+        # ]
+        # print(np.abs(L - R))
+        # breakpoint()
+        print('Error', algorithm, c.benchmark)
+        print('-----------------')
+        return c.results
         
     # def estimate_steady_state(self, load=True): # Uses optimization to estimate steady state
     #     options = '_'.join(['{i}_{j}' for i, j in self.kwargs.items()])
@@ -709,23 +742,19 @@ class Tracker:
         temperature_error = []
         net_time = 0
         temperatures = np.array([i.T for i in streams])
-        flows = np.array(sum([i._imol._parent.data.rows for i in streams], []))
+        diverged_scenarios = []
         temperature_history = []
         flow_history = []
         record = []
-        steady_state_flows, steady_state_temperatures = self.estimate_steady_state()
+        steady_state_flows, steady_state_temperatures, node_tags, phases = self.estimate_steady_state()
+        assert node_tags == [i.node_tag for i in streams]
+        flows = get_flows(streams, phases)
         while net_time < total_time:
             time.tic()
-            f()
+            diverged_scenarios.append(f())
             net_time += time.toc()
-            for stream in streams:
-                imol = stream._imol._parent
-                phases = stream.phases
-                for phase in imol.phases:
-                    if phase not in phases:
-                        imol[phase] = 0.
             new_temperatures = np.array([i.T for i in streams])
-            new_flows = np.array(sum([i._imol._parent.data.rows for i in streams], []))
+            new_flows = get_flows(streams, phases)
             record.append(net_time)
             flow_history.append(new_flows)
             temperature_history.append(new_temperatures)
@@ -755,6 +784,7 @@ class Tracker:
             'Component flow rate': flow_error, 
             'Energy balance': energy_error, 
             'Material balance': material_error,
+            'Diverged scenarios': diverged_scenarios,
         }
 
 def streams_and_stages(sys):
@@ -763,7 +793,7 @@ def streams_and_stages(sys):
     streams = []
     past_streams = set()
     # print(f'----{sys.algorithm}----')
-    for i in sorted(sys.unit_path, key=lambda x: x.ID):
+    for i in sorted(sys.unit_path, key=lambda x: x.node_tag):
         # print(i)
         if hasattr(i, 'stages'):
             all_stages.extend(i.stages)
@@ -783,6 +813,7 @@ def streams_and_stages(sys):
             new_streams = [j for j in (i.outs + i.ins) if j.imol not in past_streams]
             streams.extend(new_streams)
             past_streams.update([i.imol for i in new_streams])
+    streams = sorted(streams, key=lambda x: x.node_tag) 
     return (streams, adiabatic_stages, all_stages)
 
 def dT_error(stage):
@@ -973,11 +1004,12 @@ def dct_mean_profile(dcts: list[dict], keys: list[str], ub: float):
     size = np.min([len(i['Time']) for i in dcts])
     t = np.array([i['Time'][:size] for i in dcts]).mean(axis=0)
     mean = {i: np.zeros(size) for i in keys}
+    mean['Time'] = t
+    mean['Diverged scenarios'] = np.array(dcts[-1]['Diverged scenarios'])[:size]
     goods = [np.zeros(size) for i in range(len(keys))]
     for dct in dcts:
         for i, good in zip(keys, goods): 
             x = dct['Time']
-            mean['Time'] = t
             y = dct[i]
             values = interpolate.interp1d(x, y, bounds_error=False)(t)
             mask = ~np.isnan(values)
@@ -1001,6 +1033,15 @@ def plot_profile(
     if systems is None: systems = list(all_systems)
     fs = 9
     bst.set_font(fs)
+    labels = {
+        'Component flow rate error': 'Flow rate error',
+        'Temperature error': 'Temperature error',
+        'Stripping factor': 'Stripping factor\nconvergence error',
+        'Component flow rate': 'Flow rate\nconvergence error',
+        'Stream temperature': 'Temperature\nconvergence error',
+        'Material balance': 'Stage material\nbalance error',
+        'Energy balance': 'Stage energy\nbalance error',
+    }
     keys = (
         'Temperature error' if T else 'Component flow rate error' ,
     )
@@ -1084,31 +1125,15 @@ def plot_profile(
                 file = os.path.join(simulations_folder, po_name)
                 with open(file, 'wb') as f: pickle.dump(po, f)
             pos.append(po)
-        pos = pos[1:]
-        sms = sms[1:]
         tub = system_tickmarks[sys][-1]
-        tub = min(tub, min([dct['Time'][-1] for dct in sms]), min([dct['Time'][-1] for dct in pos]))
-        for dct in sms + pos:
-            for key in dct:
-                if key == 'Time': continue
-                dct[key] = 10 ** np.array(dct[key])
+        if N > 1:
+            pos = pos[1:]
+            sms = sms[1:]
+            tub = min(tub, min([dct['Time'][-1] for dct in sms]), min([dct['Time'][-1] for dct in pos]))
         sm = dct_mean_profile(sms, keys, tub)
         po = dct_mean_profile(pos, keys, tub)
-        for dct in (sm, po):
-            for key in dct:
-                if key == 'Time': continue
-                dct[key] = np.log10(dct[key])
         csm = Color(fg='#33BBEE').RGBn
         cpo = Color(fg='#EE7733').RGBn
-        labels = {
-            'Component flow rate error': 'Flow rate error',
-            'Temperature error': 'Temperature error',
-            'Stripping factor': 'Stripping factor\nconvergence error',
-            'Component flow rate': 'Flow rate\nconvergence error',
-            'Stream temperature': 'Temperature\nconvergence error',
-            'Material balance': 'Stage material\nbalance error',
-            'Energy balance': 'Stage energy\nbalance error',
-        }
         yticks_list = system_yticks[sys]
         for n, (i, ax, u) in enumerate(zip(keys, axes, units)):
             plt.sca(ax)
@@ -1134,12 +1159,18 @@ def plot_profile(
                 xticks = [int(i * 1e3) for i in xticks]
                 tsm *= 1e3
                 tpo *= 1e3
+            size = len(tpo)
+            diverged = po['Diverged scenarios'][:size]
             plt.plot(tsm, ysm, '--', color=csm, lw=1.5, alpha=0.5)
             plt.plot(tsm, ysm, lw=0, marker='.', color=csm, markersize=2.5)
-            plt.plot(tpo, ypo, lw=0, marker='.', color=cpo, markersize=2.5)
+            plt.plot(tpo[~diverged], ypo[~diverged], lw=0, marker='.', color=cpo, markersize=2.5)
+            plt.plot(tpo[diverged], ypo[diverged], lw=0, marker='x', color=cpo, markersize=2.5)
             plt.plot(tpo, ypo, '-', color=cpo, lw=1.5, alpha=0.5)
-            plt.plot(tsm[sm_index], ysm[sm_index], lw=0, marker='x', color=csm, markersize=5)
-            plt.plot(tpo[po_index], ypo[po_index], lw=0, marker='x', color=cpo, markersize=5)
+            try:
+                plt.plot(tsm[sm_index], ysm[sm_index], lw=0, marker='*', color=csm, markersize=5)
+                plt.plot(tpo[po_index], ypo[po_index], lw=0, marker='*', color=cpo, markersize=5)
+            except:
+                pass
             print(sm_index, po_index)
             # plt.annotate(str(sm_index), (tsm[sm_index], ysm[sm_index]), (tsm[sm_index], ysm[sm_index] - 1.5), color=csm)
             # plt.annotate(str(po_index), (tpo[po_index], ypo[po_index]), (tpo[po_index], ypo[po_index] + 0.5), color=cpo)

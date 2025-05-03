@@ -535,7 +535,7 @@ class SolidLiquidsSplitCentrifuge(Unit):
         oil, aqueous, solids = self.outs
         self.ins[0].split_to(aqueous, oil, self.aqueous_split)
         aqueous.split_to(solids, aqueous, self.solids_split)
-        sep.adjust_moisture_content(solids, aqueous, self.moisture_content)
+        sep.adjust_moisture_content(solids, aqueous, self.moisture_content, strict=False)
         
         
 

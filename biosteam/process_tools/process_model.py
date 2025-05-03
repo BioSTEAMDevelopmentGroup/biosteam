@@ -30,14 +30,10 @@ def scenario_info(scenario, add_metadata):
                 arg = f"{i}={j},"
         if add_metadata and i in metadata:
             comment = '# ' + metadata[i]
-            separate = len(arg + comment) > 50
             comment = grey(comment)
-            if separate:
-                arguments.append(comment)
-                arguments.append(arg)
-                continue
-            else:
-                arg += ' ' + comment
+            arguments.append(comment)
+            arguments.append(arg)
+            continue
         arguments.append(
             arg
         )
@@ -193,6 +189,12 @@ class ProcessModel:
     #: (e.g., strings, numbers) as a Scenario.
     as_scenario = AbstractClassMethod
     
+    #: This method should return a model object. 
+    #: The model will be saved as a self.model attribute. 
+    #: All parameters and indicators of the model object will also be saved as 
+    #: attributes by their function names.
+    initialize = AbstractMethod
+    
     #: This method should return a chemicals or thermo object.
     #: BioSTEAM will automatically set it as the thermodynmic property package.
     create_thermo = AbstractMethod
@@ -230,7 +232,6 @@ class ProcessModel:
     
     def __init_subclass__(cls):
         cls.cache = {}
-        if '__new__' in cls.__dict__: return
         if not hasattr(cls, 'Scenario'):
             cls.Scenario = type('Scenario', (), {})
         if 'Scenario' in cls.__dict__:
