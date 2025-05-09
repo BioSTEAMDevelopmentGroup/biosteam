@@ -3242,9 +3242,9 @@ class System:
         # Load initial states
         self.converge()
         y0, idx, nr = self._load_state()
-        dk['y0'] = y0
-        # Integrate
+        self.dynsim_kwargs['y0'] = y0.copy()
         self.dynsim_kwargs['print_t'] = print_t # self.dynsim_kwargs might be reset by `state_reset_hook`
+        # Integrate
         self.scope.sol = sol = solve_ivp(fun=self.DAE, y0=y0, **dk_cp)
         if print_msg:
             if sol.status == 0:
