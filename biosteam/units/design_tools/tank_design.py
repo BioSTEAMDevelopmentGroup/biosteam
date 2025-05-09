@@ -22,7 +22,7 @@ References
 import biosteam as bst
 from math import ceil
 from warnings import warn
-from thermosteam.units_of_measure import AbsoluteUnitsOfMeasure
+from thermosteam.units_of_measure import UnitsOfMeasure
 from ...utils import ExponentialFunctor
 
 __all__ = ('TankPurchaseCostAlgorithm',
@@ -77,7 +77,7 @@ class TankPurchaseCostAlgorithm:
         self.f_Cp = f_Cp
         self.V_min = V_min
         self.V_max = V_max
-        self.V_units = AbsoluteUnitsOfMeasure(V_units)
+        self.V_units = UnitsOfMeasure(V_units)
         self.CE = CE
         self.material = material
 

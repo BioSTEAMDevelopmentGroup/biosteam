@@ -9,10 +9,10 @@
 """
 from __future__ import annotations
 from thermosteam.units_of_measure import (
-    convert, DisplayUnits, AbsoluteUnitsOfMeasure, get_dimensionality,
+    convert, DisplayUnits, UnitsOfMeasure, get_dimensionality,
     heat_utility_units_of_measure
 )
-from thermosteam.utils import unregistered, units_of_measure
+from thermosteam.utils import unregistered, define_units_of_measure
 from thermosteam import Thermo, Stream, ThermalCondition, settings
 from .exceptions import DimensionError
 from math import copysign
@@ -26,9 +26,9 @@ __all__ = ('HeatUtility', 'UtilityAgent')
 # ^This table was made using data from Busche, 1995
 # Entry temperature conditions of coolants taken from Table 12.1 in Warren, 2016
 
-mol_basis_units = AbsoluteUnitsOfMeasure('kmol')
-mass_basis_units = AbsoluteUnitsOfMeasure('kg')
-energy_basis_units = AbsoluteUnitsOfMeasure('kJ')
+mol_basis_units = UnitsOfMeasure('kmol')
+mass_basis_units = UnitsOfMeasure('kg')
+energy_basis_units = UnitsOfMeasure('kJ')
 
 # %% Utility agents
 
@@ -242,7 +242,7 @@ class UtilityAgent(Stream):
 
 # %%
 
-@units_of_measure(heat_utility_units_of_measure)
+@define_units_of_measure(heat_utility_units_of_measure)
 class HeatUtility:
     """
     Create an HeatUtility object that can choose a utility stream and 
@@ -321,7 +321,7 @@ class HeatUtility:
     thermo_natural_gas: Thermo = Thermo(['Methane', 'N2', 'CO2', 'O2', 'H2O'])
 
     #: Characterization factor data (value and units) by agent ID and impact key.
-    characterization_factors: dict[tuple[str, str], tuple[float, AbsoluteUnitsOfMeasure]] = {}
+    characterization_factors: dict[tuple[str, str], tuple[float, UnitsOfMeasure]] = {}
     
     #: All cooling utilities available.
     cooling_agents: list[UtilityAgent]
@@ -469,11 +469,11 @@ class HeatUtility:
         agent = self.agent
         CF, basis_units = self.get_CF(agent.ID, key)
         if basis_units == 'kg':
-            return self.flow * agent.MW, basis_units
+            return self.flow * agent.MW, basis_units + '/hr'
         elif basis_units == 'mol':
-            return self.flow, basis_units
+            return self.flow, basis_units + '/hr'
         elif basis_units == 'kJ':
-            return self.duty, basis_units
+            return self.duty, basis_units + '/hr'
         else:
             raise RuntimeError("unknown error")
 

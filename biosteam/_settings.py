@@ -9,7 +9,7 @@
 This module extends thermosteam's ProcessSettings object.
 """
 from thermosteam import settings
-from thermosteam.units_of_measure import AbsoluteUnitsOfMeasure
+from thermosteam.units_of_measure import UnitsOfMeasure
 from typing import Callable
 import biosteam as bst
 import numpy as np
@@ -64,7 +64,7 @@ def CEPCI(self, CEPCI):
     bst.CE = CEPCI
 
 @property
-def utility_characterization_factors(self) ->  dict[tuple[str, str], tuple[float, AbsoluteUnitsOfMeasure]]:
+def utility_characterization_factors(self) ->  dict[tuple[str, str], tuple[float, UnitsOfMeasure]]:
     """Utility characterization factor data (value and units) by agent ID 
     and impact key."""
     return bst.HeatUtility.characterization_factors

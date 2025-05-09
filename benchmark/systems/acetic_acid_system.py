@@ -216,7 +216,6 @@ def create_acetic_acid_complex_system(
             phases=('g', 'l'),
             B=0,
         )
-        
         AD.check_LHK = False
         RD = bst.MESHDistillation(
             'raffinate_distillation',
@@ -385,6 +384,14 @@ def test_complex_acetic_acid_purification_system():
     po.simulate()
     sm.simulate()
     
-if __name__ == "__main__":
-    test_simple_acetic_acid_purification_system()
-    test_complex_acetic_acid_purification_system()
+def test_complex_decoupled_acetic_acid_purification_system():
+    po = create_acetic_acid_complex_decoupled_system('phenomena-oriented')
+    po.set_tolerance(mol=1e-3, rmol=1e-3, maxiter=20)
+    sm = create_acetic_acid_complex_decoupled_system('sequential modular')
+    sm.set_tolerance(mol=1e-3, rmol=1e-3, maxiter=20)
+    po.simulate()
+    sm.simulate()
+    
+# if __name__ == "__main__":
+#     test_simple_acetic_acid_purification_system()
+#     test_complex_acetic_acid_purification_system()

@@ -231,8 +231,7 @@ class BoilerTurbogenerator(bst.Facility):
         self.define_utility('Ash disposal', self.ash_disposal)
         self.boiler_efficiency = boiler_efficiency
         self.turbogenerator_efficiency = turbogenerator_efficiency
-        self.steam_utilities = set()
-        self.power_utilities = set()
+        self.steam_utilities = []
         self.steam_demand = agent.to_stream()
         self.side_steam = side_steam
         self.other_agents = [i for i in settings.heating_agents if i is not agent] if other_agents is None else other_agents
@@ -339,7 +338,7 @@ class BoilerTurbogenerator(bst.Facility):
                 for hu in u.heat_utilities:
                     agent = hu.agent
                     if agent and agent.ID == ID:
-                        steam_utilities.add(hu)
+                        steam_utilities.append(hu)
         self.electricity_demand = sum([u.power_utility.consumption for u in units])
     
     def _design(self):
@@ -446,7 +445,7 @@ class BoilerTurbogenerator(bst.Facility):
         emissions.H += self.H_loss_to_emissions
         hu_cooling = bst.HeatUtility()
         hu_cooling(self.cooling_duty, steam_demand.T)
-        hus_heating = bst.HeatUtility.sum_by_agent(tuple(self.steam_utilities))
+        hus_heating = bst.HeatUtility.sum_by_agent(self.steam_utilities)
         for hu in hus_heating: hu.reverse()
         self.heat_utilities = [*hus_heating, hu_cooling]
         water_index = chemicals.index('7732-18-5')

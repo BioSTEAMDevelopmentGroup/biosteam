@@ -127,10 +127,10 @@ def aerobic_digestion_reactions(chemicals, MW_sludge, X_combustion=0.74, X_growt
     thermo = settings.get_default_thermo(thermo)
     parsable_name = thermo.chemicals.get_parsable_synonym
     def growth(chemical):
-        f = MW_sludge / chemical.MW
+        f = chemical.MW / MW_sludge
         reactant = chemical.ID
         if not isvalid(reactant): reactant = parsable_name(reactant)
-        return Rxn(f"{f}{reactant} -> WWTsludge", reactant, X_growth, chemicals=thermo.chemicals)
+        return Rxn(f"{reactant} -> {f}WWTsludge", reactant, X_growth, chemicals=thermo.chemicals)
     return PRxn([i.get_combustion_reaction(conversion=X_combustion) + growth(i)
                  for i in chemicals])
 
@@ -299,12 +299,12 @@ class AerobicDigestion(bst.Unit):
         water.copy_like(waste)
         water.mol[:] += caustic.mol
         self.reactions.force_reaction(water)
-        O2 = - water.imass['O2']
+        O2 = -water.imass['O2']
         N2 = 0.78 / 0.22 * O2
         air.empty()
-        air.imass['O2', 'N2'] += [1.5 * O2, 1.5 * N2]
-        water.imol['O2'] = 0.
-        water.imass['N2'] = N2
+        air.imass['O2', 'N2'] += [1.2 * O2, 1.2 * N2]
+        water.imass['O2'] += 1.2 * O2
+        water.imass['N2'] += 1.2 * N2
         vent.copy_flow(water, ('CO2', 'O2', 'N2'))
         water_index = self.chemicals.index('7732-18-5')
         vent.mol[water_index] = water.mol[water_index] * self.evaporation

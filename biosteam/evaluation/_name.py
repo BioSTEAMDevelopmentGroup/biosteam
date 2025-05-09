@@ -13,7 +13,7 @@ __all__ = ('element_name',)
 def element_name(element):
     if element:
         if isinstance(element, str):
-            return format_title(element)
+            return element
         elif hasattr(element, 'line'):
             return element.line + '-' + format_title(str(element))
         else:

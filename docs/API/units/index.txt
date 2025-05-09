@@ -6,6 +6,7 @@ units
 
    decorators
    design_tools/index
+   adsorption
    aerated_bioreactor
    compressor
    distillation

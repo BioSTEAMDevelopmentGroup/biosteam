@@ -71,7 +71,7 @@ class UnitGroup:
     
     >>> ugroup.autofill_metrics(electricity_production=True)
     >>> ugroup.metrics
-    [<Metric: Installed equipment cost (MM$)>, <Metric: Cooling duty (GJ/hr)>, <Metric: Heating duty (GJ/hr)>, <Metric: Electricity consumption (MW)>, <Metric: Electricity production (MW)>, <Metric: Material cost (USD/hr)>]
+    [<Indicator: Installed equipment cost (MM$)>, <Indicator: Cooling duty (GJ/hr)>, <Indicator: Heating duty (GJ/hr)>, <Indicator: Electricity consumption (MW)>, <Indicator: Electricity production (MW)>, <Indicator: Material cost (USD/hr)>]
     
     Get all metric results:
         
@@ -101,14 +101,14 @@ class UnitGroup:
     >>> ugroup.show()
     UnitGroup: Example group
      units: P1, T1, H1
-     metrics: Installed equipment cost
-              Cooling duty
-              Heating duty
-              Electricity consumption
-              Electricity production
-              Material cost
+     metrics: Installed equipment cost [MM$]
+              Cooling duty [GJ/hr]
+              Heating duty [GJ/hr]
+              Electricity consumption [MW]
+              Electricity production [MW]
+              Material cost [USD/hr]
               Moisture content
-              Sucrose flow rate
+              Sucrose flow rate [kg/hr]
     
     >>> ugroup.to_dict()
     {'Installed equipment cost [MM$]': 0.05, 'Cooling duty [GJ/hr]': 0.37, 'Heating duty [GJ/hr]': 0.0, 'Electricity consumption [MW]': 0.0, 'Electricity production [MW]': 0.0, 'Material cost [USD/hr]': 0.0, 'Moisture content': 0.63, 'Sucrose flow rate [kg/hr]': 1026.8}
@@ -473,9 +473,9 @@ class UnitGroup:
         ... )
              Net electricity production
         0                           100
-        100                       -2.97
-        200                        -3.5
-        300                      -0.907
+        100                       -2.96
+        200                       -3.49
+        300                      -0.906
         400                           0
         
         >>> bst.UnitGroup.df_from_groups(

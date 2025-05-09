@@ -6,5 +6,6 @@ process_tools
 
    UnitGroup
    SystemFactory
+   ProcessModel
    SystemMesh
    utils

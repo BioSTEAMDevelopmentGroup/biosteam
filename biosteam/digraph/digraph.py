@@ -104,16 +104,28 @@ def get_section_inlets_and_outlets(units, streams):
 @ignore_docking_warnings
 def minimal_digraph(ID, units, streams, auxiliaries=None, **graph_attrs):
     ins, outs = get_section_inlets_and_outlets(units, streams)
-    product = bst.Stream('.')
-    feed = bst.Stream('.')
+    thermo_water = bst.HeatUtility.thermo_water
+    product = bst.Stream('.', thermo=thermo_water, Water=sum([i.F_mass for i in outs]), units='kg/hr')
+    feed = bst.Stream('.', thermo=thermo_water, Water=sum([i.F_mass for i in ins]), units='kg/hr')
     ins = sort_streams(ins)
     outs = sort_streams(outs)
-    feed_box = bst.units.DiagramOnlyStreamUnit('\n'.join([i.ID for i in ins]) or '-',
-                                               None, feed)
-    product_box = bst.units.DiagramOnlyStreamUnit('\n'.join([i.ID for i in outs]) or '-',
-                                                  product, None)
     system_box = bst.units.DiagramOnlySystemUnit(ID, feed, product)
-    return digraph_from_units([feed_box, system_box, product_box], auxiliaries=False,
+    boxes = [system_box]
+    if preferences.show_all_streams:
+        name = '\n'.join([i.ID for i in ins])
+    else:
+        name = '\n'.join([i.ID for i in ins if not i.isempty()])
+    if name:
+        feed_box = bst.units.DiagramOnlyStreamUnit(name, None, feed)
+        boxes.append(feed_box)
+    if preferences.show_all_streams:
+        name = '\n'.join([i.ID for i in outs])
+    else:
+        name = '\n'.join([i.ID for i in outs if not i.isempty()])
+    if name:
+        product_box = bst.units.DiagramOnlyStreamUnit(name, product, None)
+        boxes.append(product_box)
+    return digraph_from_units(boxes, auxiliaries=False,
                               **graph_attrs)
 
 @ignore_docking_warnings
@@ -161,19 +173,35 @@ def extend_surface_units(ID, streams, units, surface_units, old_unit_connections
             old_unit_connections.add(u_io)
     
     if len(feeds) > 1:
-        feed = bst.Stream('.')
+        thermo_water = bst.HeatUtility.thermo_water
+        feed = bst.Stream('.', thermo=thermo_water, Water=sum([i.F_mass for i in feeds]), units='kg/hr')
         feeds = sort_streams(feeds)
-        feed_box = StreamUnit('\n'.join([i.ID for i in feeds]) or '-', None, feed)
-        ins.append(feed)
+        if preferences.show_all_streams:
+            name = '\n'.join([i.ID for i in feeds])
+        else:
+            name = '\n'.join([i.ID for i in feeds if not i.isempty()])
+        if name:
+            feed_box = bst.units.DiagramOnlyStreamUnit(name.replace('_', ' '), None, feed)
+            ins.append(feed)
+        else:
+            feed_box = None
     else: 
         feed_box = None
         ins += feeds
     
     if len(products) > 1:
-        product = bst.Stream('.')
+        thermo_water = bst.HeatUtility.thermo_water
+        product = bst.Stream('.', thermo=thermo_water, Water=sum([i.F_mass for i in products]), units='kg/hr')
         products = sort_streams(products)
-        product_box = StreamUnit('\n'.join([i.ID for i in products]) or '-', product, None)
-        outs.append(product)
+        if preferences.show_all_streams:
+            name = '\n'.join([i.ID for i in products])
+        else:
+            name = '\n'.join([i.ID for i in products if not i.isempty()])
+        if name:
+            product_box = bst.units.DiagramOnlyStreamUnit(name.replace('_', ' '), product, None)
+            outs.append(product)
+        else:
+            product_box = None
     else: 
         product_box = None
         outs += products
@@ -224,12 +252,13 @@ def digraph_from_units(units, streams=None, auxiliaries=None, **graph_attrs):
     digraph = digraph_from_units_and_connections(units, get_all_connections(streams), auxiliaries, **graph_attrs)
     return digraph
 
-def digraph_from_system(system, auxiliaries=None, **graph_attrs):
+def digraph_from_system(system, path=None, auxiliaries=None, **graph_attrs):
     f = blank_digraph(**graph_attrs) 
     other_streams = set()
     excluded_connections = set()
-    unit_names = get_unit_names(f, (*system.path, *system.facilities), with_auxiliaries=False)
-    update_digraph_from_path(f, (*system.path, *system.facilities), 
+    if not path: path = system.path
+    unit_names = get_unit_names(f, path, with_auxiliaries=False)
+    update_digraph_from_path(f, path, 
                              system.recycle, 0, unit_names, excluded_connections,
                              other_streams)
     connections = get_all_connections(other_streams, excluded_connections)
@@ -373,7 +402,11 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
     source, source_index, stream, sink_index, sink = connection
     has_source = source in unit_names
     has_sink = sink in unit_names
-    style = 'dashed' if (stream.isempty() and not isinstance(stream.source, bst.units.DiagramOnlyStreamUnit)) else 'solid'
+    style = 'dashed' if (
+        stream.isempty()
+        and not isinstance(stream.source, bst.units.DiagramOnlyStreamUnit)
+        and not isinstance(stream.sink, bst.units.DiagramOnlyStreamUnit)
+    ) else 'solid'
     f.attr('edge', label='', taillabel='', headlabel='', labeldistance='2',
            **edge_options)
     tooltip = stream._get_tooltip_string(bst.preferences.graphviz_format, bst.preferences.tooltips_full_results)
@@ -389,6 +422,8 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
                     line = ''
             if line: lines.append(line)
             ID = '\n'.join(lines)
+        else:
+            ID = ' '
         ref = str(hash(stream))
         penwidth = pen_width(stream) if pen_width else '1.0'
         # Make stream nodes / unit-stream edges / unit-unit edges
@@ -427,13 +462,13 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
             outlet_options = source._graphics.get_outlet_options(source, source_index)
             f.attr('edge', arrowtail='none', arrowhead='normal', style=style, 
                    **inlet_options, penwidth=penwidth, **outlet_options)
-            label = ID if preferences.label_streams else ''
+            label = ID if preferences.label_streams else ' '
             f.edge(unit_names[source], unit_names[sink], label=label, labeltooltip=tooltip)
     elif has_sink and has_source:
         # Missing process stream case
         inlet_options = sink._graphics.get_inlet_options(sink, sink_index)
         outlet_options = source._graphics.get_outlet_options(source, source_index)
-        f.attr('edge', arrowtail='none', arrowhead='normal',
+        f.attr('edge', arrowtail='none', arrowhead='normal', label=' ',
                **inlet_options, **outlet_options)
         f.edge(unit_names[source], unit_names[sink], style='dashed', labeltooltip=tooltip)
 

@@ -567,6 +567,12 @@ class IsentropicCompressor(Compressor, new_graphics=False):
         if self.system and self.system.algorithm == 'Phenomena oriented':
             self._coeffs = {self: feed.T, feed.source: out.T} # dT_out = (T_out/T_in) * dT_in
         
+    def _mass_and_energy_balance_specifications(self):
+        return 'Compressor', [
+            ('Isentropic efficiency', 100 * self.eta, '%'),
+            ('P', self.P, 'Pa'),
+        ]
+        
     def _design(self):
         super()._design()
         self._set_power(self.design_results['Ideal power'] / self.eta)
@@ -585,24 +591,27 @@ class IsentropicCompressor(Compressor, new_graphics=False):
         source = feed.source
         if source is None or source._energy_variable != 'T': return []
         data = product.get_data()
+        T_product = product.T
         self._run()
-        self._coeffs = {self: feed.T, source: product.T} # dT_out = (T_out/T_in) * dT_in
+        # self._coeffs = {self: feed.T, source: T_product} # dT_out = (T_out/T_in) * dT_in
         product.set_data(data)
+        product.T = T_product
     
     def _create_energy_departure_equations(self): 
+        return []
         # Special case where T_out = f(T_in)
         # 0 = Cp * log(T/T0) - R * log(P/P0)
         # log(T/T0) = R / Cp * log(P/P0)
         # T = T0 * exp(R / Cp * log(P/P0))
         # T = T0 * P/P0 * exp(R/Cp)
-        feed = self.ins[0]
-        product = self.outs[0]
-        if len(product.phases) > 1:
-            raise NotImplementedError('energy departure equation with multiple phase not yet implemented for isentropic compressors')
-        source = feed.source
-        # TODO: add method <Stream>.energy_variable -> 'T'|'B'
-        if source is None or source._energy_variable != 'T': return []
-        return [(self._coeffs, 0)]
+        # feed = self.ins[0]
+        # product = self.outs[0]
+        # if len(product.phases) > 1:
+        #     raise NotImplementedError('energy departure equation with multiple phase not yet implemented for isentropic compressors')
+        # source = feed.source
+        # # TODO: add method <Stream>.energy_variable -> 'T'|'B'
+        # if source is None or source._energy_variable != 'T': return []
+        # return [(self._coeffs, 0)]
     
     def _create_material_balance_equations(self, composition_sensitive):
         fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
@@ -621,8 +630,8 @@ class IsentropicCompressor(Compressor, new_graphics=False):
         )
         return equations
     
-    def _update_energy_variable(self, departure):
-        self.outs[0].T += departure
+    # def _update_energy_variable(self, departure):
+    #     self.outs[0].T += departure
 
 
 class PolytropicCompressor(Compressor, new_graphics=False):

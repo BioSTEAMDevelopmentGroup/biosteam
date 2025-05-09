@@ -13,7 +13,7 @@
 
 """
 from __future__ import annotations
-__version__ = '2.48.1'
+__version__ = '2.51.15'
 
 #: Chemical engineering plant cost index (defaults to 567.5 at 2017).
 CE: float = 567.5 
@@ -49,6 +49,7 @@ else:
 
 import thermosteam
 from thermosteam import *
+import thermosteam.units_of_measure # Import the units_of_measure module to override the units_of_measure decorator.
 from ._heat_utility import UtilityAgent, HeatUtility
 from ._power_utility import PowerUtility
 from . import plots
@@ -81,17 +82,30 @@ from . import _settings
 __all__ = (
     'Unit', 'PowerUtility', 'UtilityAgent', 'HeatUtility', 'Facility',
     'utils', 'units', 'facilities', 'wastewater', 'evaluation', 'Chemical', 'Chemicals', 'Stream',
-    'MultiStream', 'settings', 'exceptions', 'report',
+    'MultiStream', 'settings', 'exceptions', 'report', 'units_of_measure',
     'process_tools', 'preferences', *_system.__all__, *_flowsheet.__all__, 
     *_tea.__all__, *units.__all__, *facilities.__all__, *wastewater.__all__,
     *evaluation.__all__, *process_tools.__all__, *_module.__all__,
 )
 
-def nbtutorial():
+def nbtutorial(dark=False):
     main_flowsheet.clear()
     preferences.reset()
-    preferences.light_mode(bg='#ffffffaa')
+    if dark: 
+        preferences.dark_mode(bg='#111111')
+    else:
+        preferences.light_mode(bg='#ffffffaa')
     preferences.tooltips_full_results = False
     preferences.graphviz_format = 'html'
+    preferences.show_all_streams = True
     from warnings import filterwarnings
     filterwarnings('ignore')
+
+# %% 
+import pandas as pd
+from IPython.display import display
+
+def display_table_as_html(series):
+    return display(pd.DataFrame(series, columns=['']))
+
+pd.Series._ipython_display_ = display_table_as_html

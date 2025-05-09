@@ -24,12 +24,13 @@ from typing import Callable, Optional, TYPE_CHECKING, Sequence, Iterable
 from thermosteam.base.sparse import SparseVector, sum_sparse_vectors
 import numpy as np
 import thermosteam as tmo
+from thermosteam import EquationNode
 if TYPE_CHECKING: 
     System = bst._recycle_system
     HXutility = bst.HXutility
     UtilityAgent = bst.UtilityAgent
 
-streams = Optional[Sequence[Stream]] # TODO: Replace with Stream|str and make it an explicit TypeAlias once BioSTEAM moves to Python 3.10
+streams = Optional[Sequence[Stream|str]]
 
 __all__ = ('Unit',)
 
@@ -39,7 +40,6 @@ __all__ = ('Unit',)
 # streams = Union[Collection[Union[Stream, str, None]], Union[Stream, str, None]]
 # stream = Union[Annotated[Union[Stream, str, None], 1], Union[Stream, str, None]]
 # stream_sequence = Collection[Union[Stream, str, None]]
-
 
 # %% Unit Operation
 
@@ -260,7 +260,7 @@ class Unit(AbstractUnit):
     #: flexible operation (e.g., filtration membranes).
     _materials_and_maintenance: frozenset[str] = frozenset()
 
-    #: **class-attribute** Wether to link inlet and outlet streams.
+    #: **class-attribute** Whether to link inlet and outlet streams.
     _link_streams: bool = False
 
     #: **class-attribute** Lifetime of equipment. Defaults to lifetime of
@@ -286,6 +286,27 @@ class Unit(AbstractUnit):
     #: Add embodied emissions (e.g., unit construction) in LCA
     _lca = AbstractMethod
     
+    def initialize_equation_nodes(self):
+        for eq in self.equation_node_names: getattr(self, f'initialize_{eq}')()
+    
+    def create_equation_nodes(self):
+        eqs = self.equation_node_names
+        equation_nodes = []
+        for eq in eqs: 
+            node = EquationNode(f"{self.node_tag}.{eq}")
+            equation_nodes.append(node)
+            setattr(self, eq, node)
+        self.equation_nodes = tuple(equation_nodes)
+        if not hasattr(self, 'energy_balance_node'):
+            self.energy_balance_node = None
+    
+    @property
+    def node_tag(self):
+        if self.owner is self:
+            return self.ID
+        else:
+            return f"{self.owner.node_tag}.{self.ID}"
+        
     def _update_nonlinearities(self):
         """
         Update phenomenological variables for phenomena-oriented simulation.
@@ -313,6 +334,23 @@ class Unit(AbstractUnit):
         else:
             self._energy_variable = None
         for i, j in zip(outs, data): i.set_data(j)
+    
+    def _simulation_error(self):
+        ins = self.ins
+        outs = self.outs
+        new_ins = [i.copy() for i in ins]
+        new_outs = [i.copy() for i in outs]
+        streams = new_ins + new_outs
+        Ts = np.array([i.T for i in streams])
+        flows = np.array([i.mol for i in streams])
+        self._ins = new_ins
+        self._outs = new_outs
+        self._run()
+        Ts_new = np.array([i.T for i in streams])
+        new_flows = np.array([i.mol for i in streams])
+        self._ins = ins
+        self._outs = outs
+        return np.abs(new_flows - flows).sum(), np.abs(Ts_new - Ts).sum()
     
     def _get_energy_departure_coefficient(self, stream):
         """
@@ -611,42 +649,6 @@ class Unit(AbstractUnit):
     def net_heating_duty(self) -> float:
         """Net cooling duty including heat transfer losses [kJ/hr]."""
         return sum([i.duty for i in self.heat_utilities if i.duty > 0.])
-    
-    @property
-    def feed(self) -> Stream:
-        """Equivalent to :attr:`~Unit.ins`[0] when the number of inlets is 1."""
-        streams = self._ins._streams
-        size = len(streams)
-        if size == 1: return streams[0]
-        elif size > 1: raise AttributeError(f"{repr(self)} has more than one inlet")
-        else: raise AttributeError(f"{repr(self)} has no inlet")
-    @feed.setter
-    def feed(self, feed): 
-        ins = self._ins
-        streams = ins._streams
-        size = len(streams)
-        if size == 1: ins[0] = feed
-        elif size > 1: raise AttributeError(f"{repr(self)} has more than one inlet")
-        else: raise AttributeError(f"{repr(self)} has no inlet")
-    inlet = influent = feed
-    
-    @property
-    def product(self) -> Stream:
-        """Equivalent to :attr:`~Unit.outs`[0] when the number of outlets is 1."""
-        streams = self._outs._streams
-        size = len(streams)
-        if size == 1: return streams[0]
-        elif size > 1: raise AttributeError(f"{repr(self)} has more than one outlet")
-        else: raise AttributeError(f"{repr(self)} has no outlet")
-    @product.setter
-    def product(self, product): 
-        outs = self._outs
-        streams = outs._streams
-        size = len(streams)
-        if size == 1: outs[0] = product
-        elif size > 1: raise AttributeError(f"{repr(self)} has more than one outlet")
-        else: raise AttributeError(f"{repr(self)} has no outlet")
-    outlet = effluent = product
     
     def add_power_utility(self, power):
         """Add power utility [kW]. Use a positive value for consumption and 
@@ -1311,9 +1313,26 @@ class Unit(AbstractUnit):
             self.run()
         self._summary(design_kwargs, cost_kwargs)
 
+    def _mass_and_energy_balance_specifications(self):
+        return (self.line, ())
+
+    def _mass_and_energy_balance_specifications_table(self):
+        title, specs = self._mass_and_energy_balance_specifications()
+        index = []
+        values = []
+        for name, value, units in specs:
+            index.append(name)
+            values.append([value, units])
+        df = pd.DataFrame(
+            values, index, ('Values', 'Units')
+        )
+        df.columns.name = f"{title} - {self.ID}"
+        return df
+
     def results(self, with_units=True, include_utilities=True,
                 include_total_cost=True, include_installed_cost=False,
-                include_zeros=True, external_utilities=None, key_hook=None):
+                include_zeros=True, external_utilities=None, key_hook=None,
+                basis=None):
         """
         Return key results from simulation as a DataFrame if `with_units`
         is True or as a Series otherwise.
@@ -1385,12 +1404,36 @@ class Unit(AbstractUnit):
                         addval(('USD/hr', - flow * stream_prices[name]))
             units = self._units
             Cost = self.purchase_costs
-            for ki, vi in self.design_results.items():
-                addkey(('Design', ki))
-                addval((units.get(ki, ''), vi))
-            for ki, vi, ui in self._get_design_info():
-                addkey(('Design', ki))
-                addval((ui, vi))
+            if basis:
+                ureg = tmo.units_of_measure.ureg
+                ureg.default_system = basis
+                Quantity = ureg.Quantity
+                for ki, vi in self.design_results.items():
+                    addkey(('Design', ki))
+                    if ki in units:
+                        ui = units[ki]
+                        if ui != 'hr':
+                            q = Quantity(vi, ui)
+                            q = q.to_base_units()
+                            vi = q.magnitude
+                            ui = q.units
+                    else:
+                        ui = ''
+                    addval((ui, vi))
+                for ki, vi, ui in self._get_design_info():
+                    addkey(('Design', ki))
+                    q = Quantity(vi, ui)
+                    q = q.to_base_units()
+                    vi = q.magnitude
+                    ui = q.units
+                    addval((ui, vi))
+            else:
+                for ki, vi in self.design_results.items():
+                    addkey(('Design', ki))
+                    addval((units.get(ki, ''), vi))
+                for ki, vi, ui in self._get_design_info():
+                    addkey(('Design', ki))
+                    addval((ui, vi))
             for ki, vi in Cost.items():
                 addcapex(('Purchase cost', ki))
                 addval(('USD', vi))

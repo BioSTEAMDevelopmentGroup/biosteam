@@ -380,6 +380,41 @@ class TEA:
         'India': 0.85,
     }
 
+    class Accounting:
+        __slots__ = ('index', 'data', 'names', 'units')
+        
+        def __init__(self, units, names=None):
+            self.units = units
+            self.names = names
+            self.index = []
+            self.data =[]
+        
+        def entry(self, index: str, cost: list|float, notes: str = ''):
+            self.index.append(index)
+            if getattr(cost, 'ndim') == 0: cost = float(cost)
+            if isinstance(cost, (float, int, str)):
+                self.data.append([notes, cost])
+            else:
+                self.data.append([notes, *cost])
+
+        @property
+        def total_costs(self):
+            if self.names is None:
+                return sum([i[1] for i in self.data])
+            else:
+                N = len(self.data[0])
+                return [sum([i[index] for i in self.data]) for index in range(1, N)]
+        
+        def table(self):
+            names = self.names
+            units = self.units
+            index = self.index
+            return pd.DataFrame(
+                self.data, 
+                index=pd.MultiIndex.from_tuples(index) if isinstance(index[0], tuple) else index,
+                columns=('Notes', f'Cost [{units}]') if names is None else ('Notes', *[f'{i}\n[{units}]' for i in names]),
+            )
+
     def __init_subclass__(cls, isabstract=False):
         if isabstract: return
         for method in ('_DPI', '_TDC', '_FCI', '_FOC'):
@@ -995,6 +1030,21 @@ class TEA:
             current_price = sum([system.get_market_value(i) for i in streams]) / abs(price2cost)
         return current_price + sales / price2cost 
         
+    def VOC_table(
+            self, products, functional_unit='MT', with_products=False, 
+        ):
+        return bst.report.voc_table(
+            [self.system], products, 
+            system_names=None, functional_unit=functional_unit,
+            with_products=with_products, dataframe=True
+        )
+        
+    def CAPEX_table(self):
+        return NotImplemented
+    
+    def FOC_table(self):
+        return NotImplemented
+    
     def solve_sales(self):
         """
         Return the required additional sales [USD] to reach the breakeven 
