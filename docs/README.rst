@@ -7,5 +7,5 @@ Documentation for the BioSTEAM ecosystem
    :alt: Documentation
 
 This module contains all files for building the documentation on ReadTheDocs,
-including the the API and tutorials for BioSTEAM, thermosteam, and the Bio-Industrial Park.
+including the API and tutorials for BioSTEAM, thermosteam, and the Bio-Industrial Park.
 

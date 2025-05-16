@@ -62,7 +62,7 @@ class UtilityAgent(Stream):
         the maximum temperature. If utility agent cools down, `T_limit` is
         the minimum temperature. 
     heat_transfer_price :
-        Price of transferred heat [USD/kJ]. Defautls to 1.
+        Price of transferred heat [USD/kJ]. Defaults to 1.
     regeneration_price :
         Price of regenerating the fluid for reuse [USD/kmol]. Defaults to 0.
     heat_transfer_efficiency :

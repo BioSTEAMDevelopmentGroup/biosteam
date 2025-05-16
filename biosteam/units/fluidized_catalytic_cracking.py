@@ -82,7 +82,7 @@ class FluidizedCatalyticCracking(bst.Unit):
         if product_loss is None:
             product_loss = 0.5e-2
         if riser_product_residence_time is None:
-            riser_product_residence_time = 2.1 / 3600  # hr; 1.8 to 2.4 seconds prefered with VGO 
+            riser_product_residence_time = 2.1 / 3600  # hr; 1.8 to 2.4 seconds preferred with VGO 
         # if riser_entrance_superficial_velocity is None:
         #     riser_entrance_superficial_velocity = 21945.6 # m / h; minimally 15 to 20 ft / s
         if riser_length_to_diameter is None:

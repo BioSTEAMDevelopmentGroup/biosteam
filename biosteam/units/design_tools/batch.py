@@ -64,7 +64,7 @@ def size_batch(F_vol, tau_reaction, tau_cleaning, N_reactors, V_wf) -> dict:
 
         \tau_{loading} = \frac{V_{i,working}}{F_{vol}}
     
-    Note that the the actual volume of a reactor is:
+    Note that the actual volume of a reactor is:
         
     .. math::
 
