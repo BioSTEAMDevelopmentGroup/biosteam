@@ -172,7 +172,7 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
         * [1] Purge
         * [2] Spent adsorbent (if no regeneration fluid is used)
     k : float, optional
-        Mass transfer coefficient [1/h]. If not given, mass tranfer model is 
+        Mass transfer coefficient [1/h]. If not given, mass transfer model is 
         ignored.
     superficial_velocity : float, optional
         Superficial velocity of the feed. The diameter of the receiving vessel adjusts
@@ -340,7 +340,7 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
 
     def _init(self,
             cycle_time,
-            # If not given, mass tranfer model is ignored
+            # If not given, mass transfer model is ignored
             k=None,  # Mass transfer coefficient [1/h]
             # Langmuir:
             # - KL: Equilibrium constant [L/mg] for Langmuir isotherm
