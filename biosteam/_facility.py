@@ -19,6 +19,7 @@ class Facility(Unit, isabstract=True,
                new_graphics=False):
     """Abstract class for facilities that are run after simulation of all
     unit operations within a system path."""
+    _universal = True
     autonumber = False # Default ID will not include number
     _skip_simulation_when_inlets_are_empty = False # Should be false with most facilities.
     @staticmethod
@@ -38,8 +39,8 @@ class Facility(Unit, isabstract=True,
                 'other facilities'
             )
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None):
-        Unit.__init__(self, ID, ins, outs, thermo)
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, **kwargs):
+        Unit.__init__(self, ID, ins, outs, thermo, **kwargs)
         self._system = None
         self._other_units = None
     

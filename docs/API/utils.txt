@@ -1,5 +1,0 @@
-utils
------
-
-.. automodule:: biosteam.utils
-   :members:

@@ -65,17 +65,18 @@ class SolidsSeparator(Splitter):
     _N_ins = 1
     _ins_size_is_fixed = False
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 order=None, split, moisture_content=None, moisture_ID=None,
-                 strict_moisture_content=None):
-        Splitter.__init__(self, ID, ins, outs, thermo, order=order, split=split)
+    def _init(self, split, 
+            order=None, moisture_content=None, 
+            moisture_ID=None,
+            strict_moisture_content=None
+        ):
+        Splitter._init(self, order=order, split=split)
         #: Moisture content of retentate
         self.moisture_content = moisture_content
         self.strict_moisture_content = strict_moisture_content
         if moisture_content is not None:
-            self.moisture_ID = moisture_ID
             if moisture_ID is None: moisture_ID = '7732-18-5'
-            self.isplit[moisture_ID] = 0.
+            self.moisture_ID = moisture_ID
     
     def _run(self):
         if self.moisture_content is None:
@@ -83,10 +84,24 @@ class SolidsSeparator(Splitter):
                 self.ins, *self.outs, self.split,
             )
         else:
+            moisture_ID = self.moisture_ID
+            self.isplit[moisture_ID] = 0.
             separations.mix_and_split_with_moisture_content(
                 self.ins, *self.outs, self.split, self.moisture_content, self.moisture_ID,
                 self.strict_moisture_content,
             )
+    #     if self._recycle_system and self._system.algorithm == 'Phenomena oriented':
+    #         ID = self.moisture_ID
+    #         if not ID: return
+    #         top, bottom = self.outs
+    #         top_mol = top.imol[ID]
+    #         self.isplit[ID] = top_mol / (top_mol + bottom.imol[ID])
+            
+    # def _update_nonlinearities(self):
+    #     outs = self.outs
+    #     data = [i.get_data() for i in outs]
+    #     self._run()
+    #     for i, j in zip(outs, data): i.set_data(j)
 
 
 class SolidsCentrifuge(SolidsSeparator):
@@ -123,10 +138,16 @@ class SolidsCentrifuge(SolidsSeparator):
     kWhr_per_m3 = 1.40
 
 
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 split, order=None, solids=(), moisture_content=0.40,
-                 centrifuge_type='scroll_solid_bowl', moisture_ID=None):
-        SolidsSeparator.__init__(self, ID, ins, outs, thermo, moisture_content=moisture_content, split=split, order=order, moisture_ID=moisture_ID)
+    def _init(self, split, order=None, solids=None, moisture_content=0.40,
+              centrifuge_type='scroll_solid_bowl', moisture_ID=None,
+              strict_moisture_content=None):
+        SolidsSeparator._init(
+            self, moisture_content=moisture_content,
+            split=split, order=order, moisture_ID=moisture_ID,
+            strict_moisture_content=strict_moisture_content
+        )
+        if solids is None:
+            solids = [i.ID for i in self.chemicals if i.locked_state == 's']
         self.solids = solids
         self.centrifuge_type = centrifuge_type
     
@@ -316,9 +337,7 @@ class PressureFilter(SolidsSeparator):
     """
     _units = {'Retentate flow rate': 'kg/hr'}
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
-                 moisture_content=0.35, split=None):
-        self._load_thermo(thermo)
+    def _init(self, moisture_content=0.35, split=None):
         if split is None:
             chemicals = self.chemicals
             split = dict(
@@ -369,9 +388,7 @@ class PressureFilter(SolidsSeparator):
             )
             remove_undefined_chemicals(split, chemicals)
             default_chemical_dict(split, chemicals, 0.03714, 0.03714, 0.9811)
-        bst.SolidsSeparator.__init__(self, ID, ins, outs, thermo, 
-                                     moisture_content=moisture_content,
-                                     split=split)
+        bst.SolidsSeparator._init(self, moisture_content=moisture_content, split=split)
     
     def _design(self):
         self.design_results['Retentate flow rate'] = self.outs[0].F_mass

@@ -11,6 +11,8 @@
 .. autoclass:: biosteam.units.distillation.Distillation
 .. autoclass:: biosteam.units.distillation.BinaryDistillation 
 .. autoclass:: biosteam.units.distillation.ShortcutColumn
+.. autoclass:: biosteam.units.distillation.MESHDistillation
+.. autoclass:: biosteam.units.distillation.AdiabaticMultiStageVLEColumn
 
 References
 ----------
@@ -37,6 +39,7 @@ from numba import njit
 from thermosteam.exceptions import InfeasibleRegion
 from thermosteam.equilibrium import DewPoint, BubblePoint
 from math import ceil
+from scipy.stats import gmean
 from .design_tools.specification_factors import  (
     distillation_column_material_factors,
     tray_material_factor_functions,
@@ -45,16 +48,26 @@ from .design_tools.specification_factors import  (
 from . import design_tools as design
 from thermosteam import separations
 from .. import Unit
-from .splitting import FakeSplitter
-from .._graphics import vertical_column_graphics
+from .splitting import MockSplitter
+from thermosteam._graphics import vertical_column_graphics
 from scipy.optimize import brentq
 from warnings import warn
-from thermosteam import separations as sep
 import biosteam as bst
+from math import inf, sqrt, exp, pi
 from .heat_exchange import HXutility
 from ._flash import Flash
+from .stage import MultiStageEquilibrium
+from thermosteam import separations as sep
 
-__all__ = ('Distillation', 'BinaryDistillation', 'ShortcutColumn')
+__all__ = (
+    'Distillation', 
+    'BinaryDistillation', 
+    'ShortcutColumn',
+    'MESHDistillation',
+    'RigorousDistillation',
+    'AdiabaticMultiStageVLEColumn',
+    'Stripper', 'Absorber',
+)
 
 # %% Distillation-specific auxliary units
 
@@ -96,16 +109,15 @@ class RefluxDrum(design.PressureVessel, Unit):
     vapor  = Flash.vapor
     liquid  = Flash.liquid
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 vessel_material='Carbon steel',
-                 has_glycol_groups=False,
-                 has_amine_groups=False,
-                 vessel_type=None,
-                 holdup_time=3,
-                 surge_time=2,
-                 has_mist_eliminator=False):
-        Unit.__init__(self, ID, ins, outs, thermo)
-        
+    def _init(self, 
+             vessel_material='Carbon steel',
+             has_glycol_groups=False,
+             has_amine_groups=False,
+             vessel_type=None,
+             holdup_time=3,
+             surge_time=2,
+             has_mist_eliminator=False
+        ):
         #: [str] Vessel construction material
         self.vessel_material = vessel_material
         
@@ -126,6 +138,8 @@ class RefluxDrum(design.PressureVessel, Unit):
         
         #: [bool] True if using a mist eliminator pad
         self.has_mist_eliminator = has_mist_eliminator
+        
+        self.has_vapor_condenser = False
         
     def _run(self):
         separations.phase_split(*self.ins, self.outs)
@@ -207,8 +221,8 @@ class Distillation(Unit, isabstract=True):
         flooding.
     foaming_factor=1.0 : float
         Must be between 0 to 1.
-    open_tray_area_fraction=0.1 : float
-        Fraction of open area to active area of a tray.
+    open_tray_area=0.1 : float
+        Ratio of open area to active area of a tray.
     downcomer_area_fraction=None : float
         Enforced fraction of downcomer area to net (total) area of a tray.
         If None, estimate ratio based on Oliver's estimation [1]_.
@@ -267,45 +281,48 @@ class Distillation(Unit, isabstract=True):
         'Weight',
     )
     _F_BM_default = {'Rectifier tower': 4.3,
-                      'Stripper tower': 4.3,
-                      'Rectifier trays': 4.3,
-                      'Stripper trays': 4.3,
-                      'Platform and ladders': 1.,
-                      'Rectifier platform and ladders': 1.,
-                      'Stripper platform and ladders': 1.,
-                      'Tower': 4.3,
-                      'Trays': 4.3,
-                      'Vacuum system': 1.}
+                     'Stripper tower': 4.3,
+                     'Rectifier trays': 4.3,
+                     'Stripper trays': 4.3,
+                     'Platform and ladders': 1.,
+                     'Rectifier platform and ladders': 1.,
+                     'Stripper platform and ladders': 1.,
+                     'Tower': 4.3,
+                     'Trays': 4.3,
+                     'Vacuum system': 1.}
     
     # [dict] Bounds for results
     _bounds = {'Diameter': (3., 24.),
                'Height': (27., 170.),
                'Weight': (9000., 2.5e6)}
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None,
-                P=101325, *, LHK, k,
-                Rmin=0.01,
-                Lr=None,
-                Hr=None,
-                y_top=None,
-                x_bot=None, 
-                product_specification_format=None,
-                vessel_material='Carbon steel',
-                tray_material='Carbon steel',
-                tray_type='Sieve',
-                tray_spacing=450,
-                stage_efficiency=None,
-                velocity_fraction=0.8,
-                foaming_factor=1.0,
-                open_tray_area_fraction=0.1,
-                downcomer_area_fraction=None,
-                is_divided=False,
-                vacuum_system_preference='Liquid-ring pump',
-                condenser_thermo=None,
-                reboiler_thermo=None,
-                partial_condenser=True,
+    composition_sensitive = False
+    
+    def _init(self, 
+            LHK, k,
+            P=101325, 
+            Rmin=0.01,
+            Lr=None,
+            Hr=None,
+            y_top=None,
+            x_bot=None, 
+            product_specification_format=None,
+            vessel_material='Carbon steel',
+            tray_material='Carbon steel',
+            tray_type='Sieve',
+            tray_spacing=450,
+            stage_efficiency=None,
+            velocity_fraction=0.8,
+            foaming_factor=1.0,
+            open_tray_area=0.1,
+            downcomer_area_fraction=None,
+            is_divided=False,
+            vacuum_system_preference='Liquid-ring pump',
+            condenser_thermo=None,
+            reboiler_thermo=None,
+            partial_condenser=True,
+            weir_height=0.1,
         ):
-        Unit.__init__(self, ID, ins, outs, thermo)
         self.check_LHK = True
         
         # Operation specifications
@@ -321,20 +338,51 @@ class Distillation(Unit, isabstract=True):
         self.tray_type = tray_type
         self.tray_material = tray_material
         self.tray_spacing = tray_spacing
+        self.weir_height = weir_height
         self.stage_efficiency = stage_efficiency
         self.velocity_fraction = velocity_fraction
         self.foaming_factor = foaming_factor
-        self.open_tray_area_fraction = open_tray_area_fraction
+        self.open_tray_area = open_tray_area
         self.downcomer_area_fraction = downcomer_area_fraction
         self.is_divided = is_divided
         self.vacuum_system_preference = vacuum_system_preference
-        self._load_components(partial_condenser, condenser_thermo, reboiler_thermo, LHK)
-        
+        self._load_components(partial_condenser, condenser_thermo, reboiler_thermo)
+        self.LHK = LHK
+      
+    def _mass_and_energy_balance_specifications(self):
+        spec = self.product_specification_format
+        specs = []
+        if spec == 'Composition':
+            self._Lr = self._Hr = None
+        elif spec == 'Recovery':
+            self._y_top = self._x_bot = None
+        specs.append( 
+            ('Partial condenser', self._partial_condenser, '-'),
+        )
+        if spec == 'Composition':
+            specs.extend([
+                ('Distillate light key fraction', 100 * self._y_top, '%'),
+                ('Bottoms product heavy key fraction', 100 * self._x_bot, '%'),
+            ])
+        elif spec == 'Recovery':
+            specs.extend([
+                ('Light key recovery', 100 * self._Lr, '%'),
+                ('Heavy key recovery', 100 * self._Hr, '%'),
+            ])
+        else:
+            raise RuntimeError('invalid product specification format')
+        if isinstance(self, ShortcutColumn):
+            return 'Shortcut column', specs
+        elif isinstance(self, BinaryDistillation):
+            return 'Binary distillation', specs
+        else:
+            raise NotImplementedError('unknown name for distillation class')
+            
     def _reset_thermo(self, thermo):
         super()._reset_thermo(thermo)
         self.LHK = self._LHK
         
-    def _load_components(self, partial_condenser, condenser_thermo, reboiler_thermo, LHK):
+    def _load_components(self, partial_condenser, condenser_thermo, reboiler_thermo):
         # Setup components
         thermo = self.thermo
         
@@ -363,7 +411,7 @@ class Distillation(Unit, isabstract=True):
                 thermo=condenser_thermo
             )
             self.auxiliary(
-                'top_split', FakeSplitter,
+                'top_split', MockSplitter,
                 ins = self.condenser-0,
                 outs=(self-0, 'condensate'),
                 thermo=condenser_thermo
@@ -381,8 +429,6 @@ class Distillation(Unit, isabstract=True):
         self.auxiliary('bottoms_split', bst.PhaseSplitter,
             self.reboiler-0, ('boilup', self-1), thermo=reboiler_thermo,
         )
-        self.LHK = LHK
-        self.reset_cache() # Abstract method
     
     @property
     def distillate(self):
@@ -477,9 +523,8 @@ class Distillation(Unit, isabstract=True):
         assert self.product_specification_format == "Composition", (
             "product specification format must be 'Composition' to set bottoms "
             "product composition")
-        assert 0 < x_bot < 1, "heavy key composition in the bottoms product must be a fraction" 
+        assert 0 < x_bot < 1, "light key composition in the bottoms product must be a fraction" 
         self._x_bot = x_bot
-        self._x = np.array([x_bot, 1-x_bot])
     
     @property
     def Lr(self):
@@ -499,11 +544,28 @@ class Distillation(Unit, isabstract=True):
         return self._Hr
     @Hr.setter
     def Hr(self, Hr):
-        assert self.product_specification_format == "Recovery", (
-            "product specification format must be 'Recovery' "
-            "to set heavy key recovery")
-        assert 0 < Hr < 1, "heavy key recovery in the bottoms product must be a fraction" 
+        if not self.product_specification_format == "Recovery":
+            raise ValueError(
+                "product specification format must be 'Recovery' "
+                "to set heavy key recovery"
+            )
+        if not 0 < Hr < 1:
+            raise ValueError(
+                "heavy key recovery in the bottoms product must be a fraction" 
+            )
         self._Hr = Hr
+    
+    @property
+    def weir_height(self):
+        """Weir height as a fraction tray spacing."""
+        return self._WH
+    @weir_height.setter
+    def weir_height(self, WS):
+        if not 0 < WS < 1:
+            raise ValueError(
+                "weir height must be a fraction" 
+            )
+        self._WH = WS
     
     @property
     def tray_spacing(self):
@@ -540,11 +602,11 @@ class Distillation(Unit, isabstract=True):
         self._F_F = F_F
     
     @property
-    def open_tray_area_fraction(self):
-        """Fraction of open area, A_h, to active area, A_a."""
+    def open_tray_area(self):
+        """Ratio of open area, A_h, to active area, A_a."""
         return self._A_ha
-    @open_tray_area_fraction.setter
-    def open_tray_area_fraction(self, A_ha):
+    @open_tray_area.setter
+    def open_tray_area(self, A_ha):
         self._A_ha = A_ha
     
     @property
@@ -647,8 +709,8 @@ class Distillation(Unit, isabstract=True):
                 raise InfeasibleRegion(
                     region='light key molar fraction',
                     msg=('the molar fraction of the light key in the feed must be '
-                         'between the bottoms product and distillate compositions '
-                         '(i.e. z_bottoms_LK < z_feed_LK < z_distillate_LK)')
+                          'between the bottoms product and distillate compositions '
+                          '(i.e. z_bottoms_LK < z_feed_LK < z_distillate_LK)')
                 )
             if HK_distillate < 0. or HK_bottoms < 0.:
                 raise InfeasibleRegion(
@@ -686,7 +748,10 @@ class Distillation(Unit, isabstract=True):
         LNK_mol = mol[LNK_index]
         HNK_mol = mol[HNK_index]
         gases_mol = mol[gases_index]
-        solids_mol = mol[solids_index]
+        try:
+            solids_mol = mol[solids_index]
+        except:
+            breakpoint()
         
         # Mass balance for non-keys
         distillate, bottoms_product = self.outs
@@ -697,14 +762,21 @@ class Distillation(Unit, isabstract=True):
         
         # Mass balance for keys
         spec = self.product_specification_format
-        if  spec == 'Composition':
+        if spec == 'Composition':
             # Use lever rule
             light, heavy = LHK_mol
             F_mol_LHK = light + heavy
-            zf = light/F_mol_LHK
-            distillate_fraction = (zf-self.x_bot)/(self.y_top-self.x_bot)
+            zf = light / F_mol_LHK
+            y_top, y_bot = self._y
+            x_bot = self._x_bot
+            distillate_fraction = (zf - x_bot)/(y_top - x_bot)
+            if distillate_fraction < 1e-6: distillate_fraction = 1e-6
+            if distillate_fraction > 1 - 1e-6: distillate_fraction = 1 - 1e-6   
             F_mol_LHK_distillate = F_mol_LHK * distillate_fraction
             distillate_LHK_mol = F_mol_LHK_distillate * self._y
+            max_flows = (1 - 1e-9) * LHK_mol
+            mask = distillate_LHK_mol > (1 - 1e-9) * max_flows
+            distillate_LHK_mol[mask] = max_flows[mask]
         elif spec == 'Recovery':
             distillate_LHK_mol = LHK_mol * [self.Lr, (1 - self.Hr)]
         else:
@@ -729,16 +801,6 @@ class Distillation(Unit, isabstract=True):
             self._condenser_operation = p = condenser_distillate.bubble_point_at_P()
         self.condenser.T = self.condensate.T = condenser_distillate.T = distillate.T = p.T
         self.condenser.P = self.condensate.P = condenser_distillate.P = distillate.P = p.P
-            
-        # distillate, bottoms_product = self.outs
-        # self._boilup_bubble_point = bp = bottoms_product.bubble_point_at_P()
-        # bottoms_product.T = bp.T
-        # if self._partial_condenser: 
-        #     self._condenser_operation = p = distillate.dew_point_at_P()
-        # else:
-        #     self._condenser_operation = p = distillate.bubble_point_at_P()
-        # self.condenser.T = self.condensate.T = distillate.T = p.T
-        # self.condenser.P = self.condensate.P = distillate.P = p.P
         
     def _setup(self):
         super()._setup()
@@ -809,10 +871,7 @@ class Distillation(Unit, isabstract=True):
         self.pump.ins[0].copy_like(liq)
         self.pump.simulate()
         self.bottoms_split.simulate()
-        if self._partial_condenser:
-            self.reflux_drum.simulate()
-        else:
-            self.top_split.simulate()
+        if self._partial_condenser: self.reflux_drum.simulate()
     
     def _simulate_components(self): 
         reboiler = self.reboiler
@@ -825,8 +884,13 @@ class Distillation(Unit, isabstract=True):
         if Q_boiler < Q_overall_boiler:
             liquid = reboiler.ins[0]
             H_out_boiler = reboiler.outs[0].H
-            liquid.H = H_out_boiler - Q_overall_boiler
-            boiler_kwargs = dict(duty=Q_overall_boiler)
+            try:
+                liquid.H = H_out_boiler - Q_overall_boiler
+            except:
+                liquid.phase = 'l'
+                boiler_kwargs = dict(duty=Q_boiler)                
+            else:
+                boiler_kwargs = dict(duty=Q_overall_boiler)
             condenser_kwargs = dict(duty=Q_condenser)
         else:
             boiler_kwargs = dict(duty=Q_boiler)
@@ -902,7 +966,7 @@ class Distillation(Unit, isabstract=True):
         U_f = design.compute_max_vapor_velocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha)
         A_dn = self._A_dn
         if A_dn is None:
-           self._A_dn = A_dn = design.compute_downcomer_area_fraction(F_LV)
+           A_dn = design.compute_downcomer_area_fraction(F_LV)
         f = self._f
         R_diameter = design.compute_tower_diameter(V_vol, U_f, f, A_dn) * 3.28
         
@@ -1002,6 +1066,11 @@ class Distillation(Unit, isabstract=True):
             
             dimensions = [(H, Di)]
         self._cost_vacuum(dimensions)
+        
+    def _update_equilibrium_variables(self):
+        feed = sum([i.mol for i in self.ins])
+        top = self.outs[0].mol
+        self._distillate_recoveries = (top / feed).to_array()
 
 
 # %% McCabe-Thiele distillation model utilities
@@ -1122,7 +1191,7 @@ class BinaryDistillation(Distillation, new_graphics=False):
         flooding.
     foaming_factor=1.0 : float
         Must be between 0 to 1.
-    open_tray_area_fraction=0.1 : float
+    open_tray_area=0.1 : float
         Fraction of open area to active area of a tray.
     downcomer_area_fraction=None : float
         Enforced fraction of downcomer area to net (total) area of a tray.
@@ -1254,17 +1323,17 @@ class BinaryDistillation(Distillation, new_graphics=False):
     
     """
     _cache_tolerance = np.array([50., 1e-5, 1e-6, 1e-6, 1e-2, 1e-6], float)
+    _energy_variable = None
     
     def _run(self):
         self._run_binary_distillation_mass_balance()
         self._update_distillate_and_bottoms_temperature()
+        if self.system and self.system.algorithm == 'Phenomena oriented':
+            self._update_equilibrium_variables()
 
     def reset_cache(self, isdynamic=None):
-        if not hasattr(self, '_McCabeThiele_args'):
-            self._McCabeThiele_args = np.zeros(6)
-        else:
-            self._McCabeThiele_args = np.zeros(6)
-            for i in self.auxiliary_units: i.reset_cache()
+        self._McCabeThiele_args = np.zeros(6)
+        super().reset_cache()
 
     def _run_McCabeThiele(self):
         distillate, bottoms = self.outs
@@ -1287,14 +1356,12 @@ class BinaryDistillation(Distillation, new_graphics=False):
         y_top, x_bot = self._get_y_top_and_x_bot()
         
         # Cache
-        old_args = self._McCabeThiele_args
         args = np.array([P, k, y_top, x_bot, q, zf], float)
-        if (abs(old_args - args) < self._cache_tolerance).all(): return
+        if hasattr(self, '_McCabeThiele_args') and (abs(self._McCabeThiele_args - args) < self._cache_tolerance).all(): return
         self._McCabeThiele_args = args
         
         # Get R_min and the q_line 
-        if abs(q - 1) < 1e-4:
-            q = 1 - 1e-4
+        if abs(q - 1) < 1e-4: q = 1 - 1e-4
         q_line = lambda x: q*x/(q-1) - zf/(q-1)
         self._q_line_args = dict(q=q, zf=zf)
         
@@ -1326,14 +1393,14 @@ class BinaryDistillation(Distillation, new_graphics=False):
         self._x_stages = x_stages = [x_bot]
         self._y_stages = y_stages = [x_bot]
         self._T_stages = T_stages = []
-        error = None
+        error = [None]
         try: compute_stages_McCabeThiele(P, ss, x_stages, y_stages, T_stages, x_m, solve_Ty)
-        except RuntimeError as error: pass
+        except RuntimeError as e: error[0] = e
         yi = y_stages[-1]
         xi = rs(yi)
         x_stages[-1] = xi if xi < 1 else 0.99999
         try: compute_stages_McCabeThiele(P, rs, x_stages, y_stages, T_stages, y_top, solve_Ty)
-        except RuntimeError as error: pass
+        except RuntimeError as e: error[0] = e
         
         # Find feed stage
         N_stages = len(x_stages)
@@ -1344,13 +1411,21 @@ class BinaryDistillation(Distillation, new_graphics=False):
         
         # Results
         Design = self.design_results
-        if error is None:
+        if error[0] is None:
             Design['Theoretical feed stage'] = N_stages - feed_stage
             Design['Theoretical stages'] = N_stages
         else:
             Design['Theoretical feed stage'] = '?'
             Design['Theoretical stages'] = '100+'
-            raise error from None
+            Design['Minimum reflux'] = Rmin
+            Design['Reflux'] = R 
+            y_stages = np.array(y_stages)
+            x_stages = np.array(x_stages)
+            mask = (x_stages >= 0)  & (x_stages <= 1) & (y_stages >= 0)  & (y_stages <= 1)
+            self._y_stages = y_stages[mask]
+            self._x_stages = x_stages[mask]
+            self._T_stages = np.array(T_stages)[mask[:len(T_stages)]]
+            raise error[0] from None
         Design['Minimum reflux'] = Rmin
         Design['Reflux'] = R 
         
@@ -1415,8 +1490,11 @@ class BinaryDistillation(Distillation, new_graphics=False):
         for y in y_stages:
             y_stairs.append(y)
             y_stairs.append(y)
-        x_stairs.pop(-1)
-        x_stairs.insert(0, y_stairs[0])
+        try:
+            x_stairs.pop(-1)
+            x_stairs.insert(0, y_stairs[0])
+        except:
+            pass
         plt.plot(x_stairs, y_stairs, '--')
         
         # Graphical aid line
@@ -1454,8 +1532,69 @@ class BinaryDistillation(Distillation, new_graphics=False):
         plt.title(f'McCabe Thiele Diagram (Rmin = {Rmin:.2f}, R = {R:.2f})')
         plt.show()
         return plt
+    
+    # def _update_net_flow_parameters(self):
+    #     top, bottom = self.outs
+    #     phi = sep.partition(
+    #         self.ins[0], top, bottom, top.chemicals.IDs, self.K, 0.5, 
+    #         None, None, True,
+    #     )
+    #     if phi == 1: 
+    #         B = np.inf
+    #     else:
+    #         B = phi / (1 - phi)
+    #     self.B = B 
+    #     if self.product_specification_format == 'Recovery':
+    #         LK, HK = self._LHK_index
+    #         Lr = self._Lr
+    #         Hr = self._Hr
+    #         self.K[LK] = Lr / ((1 - Lr) * B)
+    #         self.K[HK] = (1 - Hr) / (Hr * B)
 
-
+    def _create_material_balance_equations(self, composition_sensitive):
+        split = self._distillate_recoveries
+        IDs = self.chemicals.IDs
+        IDs_vle = tuple([i.ID for i in self._vle_chemicals])
+        if IDs != IDs_vle: split = self.chemicals.array(IDs_vle, split)
+        fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
+        top, bottom = self.outs
+        ones = np.ones(self.chemicals.size)
+        minus_ones = -ones
+        zeros = np.zeros(self.chemicals.size)
+        
+        # Overall flows
+        eq_overall = {}
+        for i in self.outs: 
+            eq_overall[i] = ones
+        for i in process_inlets:
+            if i in eq_overall: del eq_overall[i]
+            else: eq_overall[i] = minus_ones
+        equations.append(
+            (eq_overall, sum([i.mol for i in fresh_inlets], zeros))
+        )
+        
+        # Top and bottom flows
+        eq_outs = {}
+        minus_split = -split
+        for i in process_inlets: eq_outs[i] = minus_split
+        rhs = split * sum([i.mol for i in fresh_inlets], zeros)
+        eq_outs[top] = ones
+        equations.append(
+            (eq_outs, rhs)
+        )
+        return equations
+    
+    def _get_energy_departure_coefficient(self, stream):
+        return None
+    
+    def _create_energy_departure_equations(self):
+        return []
+    
+    def _update_nonlinearities(self):
+        outs = self.outs
+        data = [i.get_data() for i in outs]
+        self._run_binary_distillation_mass_balance()
+        for i, j in zip(outs, data): i.set_data(j)
 
 # %% Fenske-Underwook-Gilliland distillation model utilities
 
@@ -1485,7 +1624,9 @@ def compute_distillate_recoveries_Hengsteback_and_Gaddes(d_Lr, b_Hr,
     A_dummy = (1. - b_Hr) / b_Hr
     A = np.log10(A_dummy)
     B = np.log10(d_Lr / (1. - d_Lr) / A_dummy) / np.log10(alpha_LK)
+    alpha_mean[alpha_mean < 1e-9] = 1e-9
     dummy = 10.**A * alpha_mean**B
+    dummy[dummy > 1e16] = 1e16
     distillate_recoveries = dummy / (1. + dummy)
     distillate_recoveries[LHK_index] = [d_Lr, 1. - b_Hr]
     distillate_recoveries[distillate_recoveries < 1e-12] = 0.
@@ -1581,7 +1722,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
         flooding.
     foaming_factor=1.0 : float
         Must be between 0 to 1.
-    open_tray_area_fraction=0.1 : float
+    open_tray_area=0.1 : float
         Fraction of open area to active area of a tray.
     downcomer_area_fraction=None : float
         Enforced fraction of downcomer area to net (total) area of a tray.
@@ -1669,6 +1810,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
     _ins_size_is_fixed = False
     _N_ins = 1
     _N_outs = 2
+    _energy_variable = None
     minimum_guess_distillate_recovery = 1e-11
     bounded_solver_kwargs = dict(
         checkiter=False,
@@ -1681,13 +1823,22 @@ class ShortcutColumn(Distillation, new_graphics=False):
         convergenceiter=3,
     )
     
+    def reset_cache(self, isdynamic=None):
+        self._vle_chemicals = None
+        super().reset_cache()
+    
     def _run(self):
+        for i in self.outs: i.empty()
+        if all([i.isempty() for i in self.ins]): return
         # Initial mass balance
         self._run_binary_distillation_mass_balance()
         
         # Initialize objects to calculate bubble and dew points
         vle_chemicals = self.mixed_feed.vle_chemicals
-        reset_cache = self._vle_chemicals != vle_chemicals
+        try:
+            reset_cache = self._vle_chemicals != vle_chemicals or np.isnan(self._distillate_recoveries).any()
+        except:
+            reset_cache = True
         if reset_cache:
             self._dew_point = DewPoint(vle_chemicals, self.thermo)
             self._bubble_point = BubblePoint(vle_chemicals, self.thermo)
@@ -1697,7 +1848,10 @@ class ShortcutColumn(Distillation, new_graphics=False):
         # Setup light and heavy keys
         LHK = [i.ID for i in self.chemicals[self.LHK]]
         IDs = self._IDs_vle
-        self._LHK_vle_index = np.array([IDs.index(i) for i in LHK], dtype=int)
+        try:
+            self._LHK_vle_index = np.array([IDs.index(i) for i in LHK], dtype=int)
+        except:
+            breakpoint()
         
         # Add temporary specification
         composition_spec = self.product_specification_format == 'Composition'
@@ -1721,14 +1875,16 @@ class ShortcutColumn(Distillation, new_graphics=False):
             distillate_recoveries[distillate_recoveries > ub] = ub
         
         # Solve for new recoveries
-        self._solve_distillate_recoveries()
+        try:
+            self._solve_distillate_recoveries()
+        except:
+            if not reset_cache:
+                self.reset_cache()
+                self._run()
         self._update_distillate_and_bottoms_temperature()
         
         # Remove temporary data
         if composition_spec: self._Lr = self._Hr = None
-        
-    def reset_cache(self, isdynamic=None):
-        self._vle_chemicals = None
 
     def plot_stages(self):
         raise TypeError('cannot plot stages for shortcut column')
@@ -1777,7 +1933,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
     def _get_relative_volatilities_LHK(self):
         distillate, bottoms = self.outs
         LHK = self.LHK
-        condensate = self.condenser.outs[0]['l']
+        condensate = self.condensate
         K_light, K_heavy = distillate.get_molar_composition(LHK) / condensate.get_molar_composition(LHK)
         alpha_LHK_distillate = K_light/K_heavy
         
@@ -1825,9 +1981,11 @@ class ShortcutColumn(Distillation, new_graphics=False):
         K_distillate = compute_partition_coefficients(dp.y, dp.x)
         K_bottoms = compute_partition_coefficients(bp.y, bp.x)
         HK_index = self._LHK_vle_index[1]
-        alpha_mean = compute_mean_volatilities_relative_to_heavy_key(K_distillate,
-                                                                     K_bottoms,
-                                                                     HK_index)
+        alpha_mean = compute_mean_volatilities_relative_to_heavy_key(
+            K_distillate, K_bottoms, HK_index
+        )
+        distillate.T = dp.T
+        bottoms.T = bp.T
         return alpha_mean
         
     def _estimate_distillate_recoveries(self):
@@ -1836,7 +1994,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
         return compute_distillate_recoveries_Hengsteback_and_Gaddes(self.Lr, self.Hr,
                                                                     alpha_mean,
                                                                     self._LHK_vle_index)
-        
+    
     def _update_distillate_recoveries(self, distillate_recoveries):
         feed = self.mixed_feed
         distillate, bottoms = self.outs
@@ -1859,20 +2017,376 @@ class ShortcutColumn(Distillation, new_graphics=False):
             self._distillate_recoveries_hook(self._IDs_vle, distillate_recoveries)
         self._distillate_recoveries = distillate_recoveries
         return distillate_recoveries
+    
+    _get_energy_departure_coefficient = BinaryDistillation._get_energy_departure_coefficient
+    _create_energy_departure_equations = BinaryDistillation._create_energy_departure_equations
+    _create_material_balance_equations = BinaryDistillation._create_material_balance_equations
+    # _update_net_flow_parameters = BinaryDistillation._update_net_flow_parameters
+
+    # def _update_composition_parameters(self):
+    #     mol = sum([i.mol for i in self.ins]).to_array()
+    #     LHK_index = self._LHK_index
+    #     LHK_mol = mol[LHK_index]
+    #     light, heavy = LHK_mol
+    #     F_mol_LHK = light + heavy
+    #     zf = light / F_mol_LHK
+    #     y_top, y_bot = self._y
+    #     x_bot = self._x_bot
+    #     distillate_fraction = (zf - x_bot)/(y_top - x_bot)
+    #     if distillate_fraction < 1e-16: distillate_fraction = 1e-16
+    #     if distillate_fraction > 1 - 1e-16: distillate_fraction = 1 - 1e-16   
+    #     F_mol_LHK_distillate = F_mol_LHK * distillate_fraction
+    #     distillate_LHK_mol = F_mol_LHK_distillate * self._y
+    #     max_flows = (1 - 1e-16) * LHK_mol
+    #     mask = distillate_LHK_mol > (1 - 1e-16) * max_flows
+    #     distillate_LHK_mol[mask] = max_flows[mask]
+    #     self._Lr = distillate_LHK_mol[0] / LHK_mol[0]
+    #     self._Hr = distillate_LHK_mol[1] / LHK_mol[1]
+    #     self._distillate_recoveries = split = self._estimate_distillate_recoveries()
+    #     top = mol * split
+    #     bottom = mol - top
+    #     y = top / top.sum()
+    #     x = bottom / bottom.sum()
+    #     x[x == 0] = 1e-16
+    #     bottom[bottom == 0] = 1e-16
+    #     self.K = y / x
+
+    def _simulation_error(self):
+        cache = self._distillate_recoveries.copy()
+        error = super()._simulation_error()
+        self._distillate_recoveries = cache
+        return error
+
+    def _update_nonlinearities(self):
+        mol = sum([i.mol for i in self.outs]).to_array()
+        if self.product_specification_format == 'Composition':
+            LHK_index = self._LHK_index
+            LHK_mol = mol[LHK_index]
+            light, heavy = LHK_mol
+            F_mol_LHK = light + heavy
+            zf = light / F_mol_LHK
+            y_top, y_bot = self._y
+            x_bot = self._x_bot
+            distillate_fraction = (zf - x_bot)/(y_top - x_bot)
+            if distillate_fraction < 1e-16: distillate_fraction = 1e-16
+            if distillate_fraction > 1 - 1e-16: distillate_fraction = 1 - 1e-16   
+            F_mol_LHK_distillate = F_mol_LHK * distillate_fraction
+            distillate_LHK_mol = F_mol_LHK_distillate * self._y
+            max_flows = (1 - 1e-16) * LHK_mol
+            mask = distillate_LHK_mol > (1 - 1e-16) * max_flows
+            distillate_LHK_mol[mask] = max_flows[mask]
+            self._Lr = distillate_LHK_mol[0] / LHK_mol[0]
+            self._Hr = distillate_LHK_mol[1] / LHK_mol[1]
+        self._distillate_recoveries = self._estimate_distillate_recoveries()
+        # s_top, s_bottom = self.outs
+        # s_dummy = s_top.copy()
+        # s_dummy.mol = top
+        # s_top.T = (s_dummy.dew_point_at_P() if self._partial_condenser else s_dummy.bubble_point_at_P()).T
+        # s_dummy.mol = bottom
+        # s_bottom.T = s_dummy.bubble_point_at_P().T
 
 
-# %% Rigorous MESH based distillation column 
+# %% Rigorous absorption/stripping column
 
-# NOT YET READY FOR USERS
-class MESHDistillation(Distillation, new_graphics=False):
+class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
     r"""
-    Create a distillation column that uses MESH (Mass, Equilibrium, 
-    Summation, and Enthalpy) based equations to converge. The Murphree
-    efficiency (i.e. column efficiency) is based on the modified O'Connell
-    correlation [2]_. The diameter is based on tray separation and flooding 
-    velocity [1]_ [3]_. Purchase costs are based on correlations compiled by
-    Warren et. al. [4]_.
+    Create an adsorption or stripping column without a reboiler/condenser. 
+    The diameter is based on tray separation and flooding velocity. 
+    Purchase costs are based on correlations compiled by Warren et. al.
 
+    Parameters
+    ----------
+    ins :
+        * [0] Liquid
+        * [1] Vapor
+    outs :
+        * [0] Vapor
+        * [1] Liquid
+    P : float
+        Operating pressure [Pa].
+    vessel_material : str, optional
+        Vessel construction material. Defaults to 'Carbon steel'.
+    tray_material : str, optional
+        Tray construction material. Defaults to 'Carbon steel'.
+    tray_type='Sieve' : 'Sieve', 'Valve', or 'Bubble cap'
+        Tray type.
+    tray_spacing=450 : float
+        Typically between 152 to 915 mm.
+    stage_efficiency=None :
+        User enforced stage efficiency. If None, stage efficiency is
+        calculated by the O'Connell correlation [2]_.
+    velocity_fraction=0.8 : float
+        Fraction of actual velocity to maximum velocity allowable before
+        flooding.
+    foaming_factor=1.0 : float
+        Must be between 0 to 1.
+    open_tray_area=0.1 : float
+        Fraction of open area to active area of a tray.
+    downcomer_area_fraction=None : float
+        Enforced fraction of downcomer area to net (total) area of a tray.
+        If None, estimate ratio based on Oliver's estimation [1]_.
+
+    Examples
+    --------
+    >>> import biosteam as bst
+    >>> bst.settings.set_thermo(['AceticAcid', 'EthylAcetate', 'Water', 'MTBE'], cache=True)
+    >>> feed = bst.Stream('feed', Water=75, AceticAcid=5, MTBE=20, T=320)
+    >>> steam = bst.Stream('steam', Water=100, phase='g', T=390)
+    >>> stripper = bst.Stripper(None,
+    ...     N_stages=2, ins=[feed, steam], 
+    ...     solute="AceticAcid", outs=['vapor', 'liquid']
+    ... )
+    >>> stripper.simulate()
+    >>> stripper.show()
+    AdiabaticMultiStageVLEColumn
+    ins...
+    [0] feed  
+        phase: 'l', T: 320 K, P: 101325 Pa
+        flow (kmol/hr): AceticAcid  5
+                        Water       75
+                        MTBE        20
+    [1] steam  
+        phase: 'g', T: 390 K, P: 101325 Pa
+        flow (kmol/hr): Water  100
+    outs...
+    [0] vapor  
+        phase: 'g', T: 366.33 K, P: 101325 Pa
+        flow (kmol/hr): AceticAcid  3.71
+                        Water       73.8
+                        MTBE        20
+    [1] liquid  
+        phase: 'l', T: 372.87 K, P: 101325 Pa
+        flow (kmol/hr): AceticAcid  1.29
+                        Water       101
+                        MTBE        0.00031
+    
+    >>> stripper.results()
+    Stripper                                   Units         
+    Design              Theoretical stages                  2
+                        Actual stages                       4
+                        Height                    ft     19.9
+                        Diameter                  ft        3
+                        Wall thickness            in    0.312
+                        Weight                    lb 2.71e+03
+    Purchase cost       Trays                    USD 5.59e+03
+                        Tower                    USD 2.91e+04
+                        Platform and ladders     USD 7.52e+03
+    Total purchase cost                          USD 4.23e+04
+    Utility cost                              USD/hr        0
+    
+    """
+    _graphics = vertical_column_graphics
+    _ins_size_is_fixed = False
+    _N_ins = 2
+    _N_outs = 2
+    _units = {'Height': 'ft',
+              'Diameter': 'ft',
+              'Wall thickness': 'in',
+              'Weight': 'lb'}
+    _max_agile_design = (
+        'Actual stages',       
+        'Height',
+        'Diameter',
+        'Wall thickness',
+        'Weight',
+    )
+    _F_BM_default = {
+        'Platform and ladders': 1,
+        'Tower': 4.3,
+        'Trays': 4.3,
+    }
+   
+    # [dict] Bounds for results
+    _bounds = {'Diameter': (3., 24.),
+               'Height': (27., 170.),
+               'Weight': (9000., 2.5e6)}
+   
+    _side_draw_names = ('vapor_side_draws', 'liquid_side_draws')
+    
+    def _init(self,
+            N_stages, 
+            solute, # Needed to compute the Murphree stage efficiency 
+            feed_stages=None, 
+            vapor_side_draws=None,
+            liquid_side_draws=None,
+            P=101325,  
+            T=None,
+            partition_data=None, 
+            vessel_material='Carbon steel',
+            tray_material='Carbon steel',
+            tray_type='Sieve',
+            tray_spacing=450,
+            stage_efficiency=None,
+            velocity_fraction=0.8,
+            foaming_factor=1.0,
+            open_tray_area=0.1,
+            downcomer_area_fraction=None,
+            weir_height=0.1,
+            use_cache=None,
+            collapsed_init=False,
+            method=None,
+        ):
+        super()._init(N_stages=N_stages, feed_stages=feed_stages,
+                      top_side_draws=vapor_side_draws, 
+                      bottom_side_draws=liquid_side_draws,
+                      partition_data=partition_data,
+                      phases=("g", "l"), collapsed_init=collapsed_init,
+                      P=P, T=T, use_cache=use_cache, method=method)
+       
+        # Construction specifications
+        self.solute = solute
+        self.vessel_material = vessel_material
+        self.tray_type = tray_type
+        self.tray_material = tray_material
+        self.tray_spacing = tray_spacing
+        self.stage_efficiency = stage_efficiency
+        self.velocity_fraction = velocity_fraction
+        self.foaming_factor = foaming_factor
+        self.open_tray_area = open_tray_area
+        self.downcomer_area_fraction = downcomer_area_fraction
+        self.weir_height = weir_height
+        self._last_args = (
+            self.N_stages, self.feed_stages, self.vapor_side_draws, 
+            self.liquid_side_draws, self.use_cache, *self._ins, 
+            self.partition_data, self.P, self.collapsed_init,
+        )
+        
+    def _setup(self):
+        super()._setup()
+        args = (self.N_stages, self.feed_stages, self.vapor_side_draws, 
+                self.liquid_side_draws, self.use_cache, *self._ins, 
+                self.partition_data, self.P, self.collapsed_init)
+        if args != self._last_args:
+            MultiStageEquilibrium._init(
+                self, N_stages=self.N_stages,
+                feed_stages=self.feed_stages,
+                phases=('g', 'l'), P=self.P,
+                top_side_draws=self.vapor_side_draws, 
+                bottom_side_draws=self.liquid_side_draws,
+                partition_data=self.partition_data, 
+                use_cache=self.use_cache, 
+                collapsed_init=self.collapsed_init,
+            )
+            self._last_args = args
+    
+    def reset_cache(self, isdynamic=None):
+        self._last_args = None
+        super().reset_cache()
+        
+    @property
+    def vapor(self):
+        return self.outs[0]
+    @property
+    def liquid(self):
+        return self.outs[1]   
+    
+    weir_height = Distillation.weir_height
+    tray_spacing = Distillation.tray_spacing
+    stage_efficiency = Distillation.stage_efficiency
+    velocity_fraction = Distillation.velocity_fraction
+    foaming_factor = Distillation.foaming_factor
+    open_tray_area = Distillation.open_tray_area
+    downcomer_area_fraction = Distillation.downcomer_area_fraction
+    tray_type = Distillation.tray_type
+    tray_material = Distillation.tray_material
+    vessel_material = Distillation.vessel_material
+    
+    def _actual_stages(self):
+        """Return a tuple with the actual number of stages for the rectifier and the stripper."""
+        eff = self.stage_efficiency
+        if eff is None:
+            # Calculate Murphree Efficiency
+            vapor, liquid = self.outs
+            mu = liquid.get_property('mu', 'mPa*s')
+            alpha = self._get_relative_volatilities()
+            L_Rmol = liquid.F_mol
+            V_Rmol = vapor.F_mol
+            eff = design.compute_murphree_stage_efficiency(
+                mu, alpha, L_Rmol, V_Rmol
+            )
+            
+        # Calculate actual number of stages
+        return np.ceil(self.N_stages / eff)
+       
+    def _get_relative_volatilities(self):
+        stages = self.stages
+        IDs = stages[0].partition.IDs
+        solute = self.solute
+        index = IDs.index(solute)
+        K = gmean([i.partition.K[index] for i in stages])
+        if self.liquid.imol[solute] > self.vapor.imol[solute]:
+            self.line = "Absorber"
+            alpha = 1 / K
+        else:
+            self.line = "Stripper"
+            alpha = K
+        return alpha
+       
+    def _design(self):
+        vapor_out, liquid_out = self.outs
+        Design = self.design_results
+        TS = self._TS
+        A_ha = self._A_ha
+        F_F = self._F_F
+        f = self._f
+       
+        ### Get diameter of column based on outlets (assuming they are comparable to each stages) ###
+        rho_L = liquid_out.rho
+        V = vapor_out.F_mass
+        V_vol = vapor_out.get_total_flow('m^3/s')
+        rho_V = vapor_out.rho
+        L = liquid_out.F_mass # To get liquid going down
+        F_LV = design.compute_flow_parameter(L, V, rho_V, rho_L)
+        C_sbf = design.compute_max_capacity_parameter(TS, F_LV)
+        sigma = liquid_out.get_property('sigma', 'dyn/cm')
+        U_f = design.compute_max_vapor_velocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha)
+        A_dn = self._A_dn
+        if A_dn is None:
+            A_dn = design.compute_downcomer_area_fraction(F_LV)
+        diameter = design.compute_tower_diameter(V_vol, U_f, f, A_dn) * 3.28
+        Po = self.P * 0.000145078 # to psi
+        rho_M = material_densities_lb_per_in3[self.vessel_material]
+       
+        if Po < 14.68:
+            warn('vacuum pressure vessel ASME codes not implemented yet; '
+                 'wall thickness may be inaccurate and stiffening rings may be '
+                 'required', category=RuntimeWarning)
+            
+        Design['Theoretical stages'] = self.N_stages
+        Design['Actual stages'] = actual_stages = self._actual_stages()
+        Design['Height'] = H = design.compute_tower_height(TS, actual_stages) * 3.28
+        Design['Diameter'] = Di = diameter
+        Design['Wall thickness'] = tv = design.compute_tower_wall_thickness(Po, Di, H)
+        Design['Weight'] = design.compute_tower_weight(Di, H, tv, rho_M)
+
+    def _cost(self):
+        Design = self.design_results
+        Cost = self.baseline_purchase_costs
+        F_M = self.F_M
+     
+        # Cost trays
+        N_T = Design['Actual stages']
+        Di = Design['Diameter']
+        F_M['Trays'] = self._F_TM_function(Di)
+        Cost['Trays'] = design.compute_purchase_cost_of_trays(N_T, Di)
+           
+        # Cost vessel assuming T < 800 F
+        W = Design['Weight'] # in lb
+        H = Design['Height'] # in ft
+        Cost['Tower'] = design.compute_empty_tower_cost(W)
+           
+        Cost['Platform and ladders'] = design.compute_plaform_ladder_cost(Di, H)
+       
+Stripper = Absorber = AdiabaticMultiStageVLEColumn
+
+
+# %% Rigorous distillation column based on MESH (Mass, Equilibrium, Summation, and Enthalpy) equations
+
+class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
+    r"""
+    Create a distillation column that rigorously converges MESH 
+    (Mass, Equilibrium, Summation, and Enthalpy) equations. 
+    
     Parameters
     ----------
     ins : 
@@ -1880,18 +2394,15 @@ class MESHDistillation(Distillation, new_graphics=False):
     outs : 
         * [0] Distillate
         * [1] Bottoms product
+        * [...] Vapor side draws
+        * [...] Liquid side draws
     LHK : tuple[str]
-        Light and heavy keys.
-    y_top : float
-        Estimated molar fraction of light key to the light and heavy keys in the
-        distillate.
-    x_bot : float
-        Estimated molar fraction of light key to the light and heavy keys in the bottoms
-        product.
-    Lr : float
-        Estimated recovery of the light key in the distillate.
-    Hr : float
-        Estimated recovery of the heavy key in the bottoms product.
+        IDs of light and heavy keys. The stage efficiency is estimated based on the
+        relative volatility of the light and heavy keys.
+    boilup : float
+        Vapor to liquid flow rate at the reboiler.
+    reflux : float
+        Liquid to vapor flow rate at the condenser.
     N_stages : int
         Number of stages.
     feed_stages : tuple[int]
@@ -1900,11 +2411,6 @@ class MESHDistillation(Distillation, new_graphics=False):
         Stage number and split fraction pairs.
     liquid_side_draws : tuple[tuple[int]]
         Stage number and split fraction pairs.
-    specifications : tuple[tuple(int, tuple(str, float))]
-        Stage number and both specification name and value pairs.
-    product_specification_format="Composition" : "Composition" or "Recovery"
-        If composition is used, `y_top` and `x_bot` must be specified.
-        If recovery is used, `Lr` and `Hr` must be specified.
     P=101325 : float
         Operating pressure [Pa].
     vessel_material : str, optional
@@ -1923,7 +2429,7 @@ class MESHDistillation(Distillation, new_graphics=False):
         flooding.
     foaming_factor=1.0 : float
         Must be between 0 to 1.
-    open_tray_area_fraction=0.1 : float
+    open_tray_area=0.1 : float
         Fraction of open area to active area of a tray.
     downcomer_area_fraction=None : float
         Enforced fraction of downcomer area to net (total) area of a tray.
@@ -1931,65 +2437,210 @@ class MESHDistillation(Distillation, new_graphics=False):
     is_divided=False : bool
         True if the stripper and rectifier are two separate columns.
 
+    Examples
+    --------
+    Simulate distillation column with 5 stages, a 0.673 reflux ratio, 
+    2.57 boilup ratio, and feed at stage 2:
+    
+    >>> import biosteam as bst
+    >>> bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
+    >>> feed = bst.Stream('feed', Ethanol=80, Water=100, T=80.215 + 273.15)
+    >>> D1 = bst.MESHDistillation(None, N_stages=5, ins=[feed], feed_stages=[2],
+    ...     outs=['vapor', 'liquid'],
+    ...     reflux=0.673, boilup=2.57,
+    ...     LHK=('Ethanol', 'Water'),
+    ... )
+    >>> D1.simulate()
+    >>> vapor, liquid = D1.outs
+    >>> vapor.imol['Ethanol'] / feed.imol['Ethanol']
+    0.927
+    >>> vapor.imol['Ethanol'] / vapor.F_mol
+    0.675
+    
+    >>> D1.results()
+    Distillation                                               Units          
+    Electricity         Power                                     kW       0.6
+                        Cost                                  USD/hr    0.0469
+    Cooling water       Duty                                   kJ/hr -2.97e+06
+                        Flow                                 kmol/hr  2.03e+03
+                        Cost                                  USD/hr     0.989
+    Low pressure steam  Duty                                   kJ/hr  7.76e+06
+                        Flow                                 kmol/hr       200
+                        Cost                                  USD/hr      47.7
+    Design              Theoretical stages                                   5
+                        Actual stages                                        7
+                        Height                                    ft      24.3
+                        Diameter                                  ft      3.35
+                        Wall thickness                            in     0.312
+                        Weight                                    lb  3.66e+03
+    Purchase cost       Trays                                    USD  8.14e+03
+                        Tower                                    USD  3.44e+04
+                        Platform and ladders                     USD  9.48e+03
+                        Condenser - Floating head                USD  2.36e+04
+                        Reflux drum - Vertical pressure ...      USD  1.21e+04
+                        Reflux drum - Platform and ladders       USD  3.46e+03
+                        Pump - Pump                              USD  4.34e+03
+                        Pump - Motor                             USD       362
+                        Reboiler - Floating head                 USD  2.31e+04
+    Total purchase cost                                          USD  1.19e+05
+    Utility cost                                              USD/hr      48.7
+    
+    Simulate distillation column with a full condenser, 5 stages, a 0.673 reflux ratio, 
+    2.57 boilup ratio, and feed at stage 2:
+    
+    >>> import biosteam as bst
+    >>> bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
+    >>> feed = bst.Stream('feed', Ethanol=80, Water=100, T=80.215 + 273.15)
+    >>> D1 = bst.MESHDistillation(None, N_stages=5, ins=[feed], feed_stages=[2],
+    ...     outs=['vapor', 'liquid', 'distillate'],
+    ...     reflux=0.673, boilup=2.57,
+    ...     LHK=('Ethanol', 'Water'),
+    ...     full_condenser=True,
+    ... )
+    >>> D1.simulate()
+    >>> vapor, liquid, distillate = D1.outs
+    >>> distillate.imol['Ethanol'] / feed.imol['Ethanol']
+    0.81
+    >>> distillate.imol['Ethanol'] / distillate.F_mol
+    0.70
+    
+    >>> D1.results()
+    Distillation                                     Units          
+    Electricity         Power                           kW     0.918
+                        Cost                        USD/hr    0.0718
+    Cooling water       Duty                         kJ/hr -9.13e+06
+                        Flow                       kmol/hr  6.24e+03
+                        Cost                        USD/hr      3.04
+    Low pressure steam  Duty                         kJ/hr  9.62e+06
+                        Flow                       kmol/hr       249
+                        Cost                        USD/hr      59.2
+    Design              Theoretical stages                         5
+                        Actual stages                              6
+                        Height                          ft      22.9
+                        Diameter                        ft      3.82
+                        Wall thickness                  in     0.312
+                        Weight                          lb     4e+03
+    Purchase cost       Trays                          USD  7.58e+03
+                        Tower                          USD  3.62e+04
+                        Platform and ladders           USD   9.8e+03
+                        Condenser - Floating head      USD   3.5e+04
+                        Pump - Pump                    USD  4.33e+03
+                        Pump - Motor                   USD       390
+                        Reboiler - Floating head       USD  2.41e+04
+    Total purchase cost                                USD  1.17e+05
+    Utility cost                                    USD/hr      62.3
+    
     Notes
     -----
-    Not yet ready for users.
+    The convergence algorithm decouples the equilibrium relationships, 
+    mass balances, and energy balances using a custom version of the Wang-Henke 
+    bubble point method. This algorithm is authored by Yoel Cortes-Pena, but is 
+    not yet peer reviewed. The main difference is that the tridiagonal matrix of 
+    mass balances across stages is used to solve for flow rates instead of mass 
+    fractions. 
+    
+    The initialization algorithm first converges a "collapsed" column without 
+    adiabatic stages which have no feeds or side draws. This collapsed column 
+    is initialized by solving for liquid and vapor flow rates assuming no phase 
+    change across adiabatic stages and unity partition coefficients at 
+    reboilers/condensers (in which case the stripping factor is equal to the 
+    boil-up ratio). Then, top and bottom stage temperatures are assumed to be
+    the bubble point and dew point of the fed mixture and the temperature 
+    across stages are linearly interpolated. The partition coefficients in 
+    all stages are assumed to be equal to the feed bubble point.
+    
+    The Murphree efficiency (i.e. stage efficiency) is based on the 
+    modified O'Connell correlation [2]_. The diameter is based on tray 
+    separation and flooding velocity [1]_ [3]_. Purchase costs are based on 
+    correlations compiled by Warren et. al. [4]_.
     
     """
+    
+    auxiliary_unit_names = (
+        'condenser', 'reflux_drum', 'top_split',
+        'pump', 'reboiler', 'bottoms_split',
+        'vacuum_system'
+    )
     line = 'Distillation'
     _ins_size_is_fixed = False
+    _outs_size_is_fixed = False
     _N_ins = 1
     _N_outs = 2
-    minimum_guess_distillate_recovery = 1e-11
-    bounded_solver_kwargs = dict(
-        checkiter=False,
-        checkbounds=False,
-    )
-    iter_solver_kwargs = dict(
-        xtol=5e-6,
-        checkiter=False,
-        checkconvergence=False, 
-        convergenceiter=3,
-    )
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None,
-                P=101325, *, LHK, N_stages, feed_stages, 
-                vapor_side_draws=None, liquid_side_draws=None,
-                specifications=None,
-                Lr=None,
-                Hr=None,
-                y_top=None,
-                x_bot=None, 
-                product_specification_format=None,
-                vessel_material='Carbon steel',
-                tray_material='Carbon steel',
-                tray_type='Sieve',
-                tray_spacing=450,
-                stage_efficiency=None,
-                velocity_fraction=0.8,
-                foaming_factor=1.0,
-                open_tray_area_fraction=0.1,
-                downcomer_area_fraction=None,
-                is_divided=False,
-                vacuum_system_preference='Liquid-ring pump',
-                condenser_thermo=None,
-                boiler_thermo=None,
-                partial_condenser=True,
+    _bounds = AdiabaticMultiStageVLEColumn._bounds
+    _side_draw_names = AdiabaticMultiStageVLEColumn._side_draw_names
+    _F_BM_default = AdiabaticMultiStageVLEColumn._F_BM_default
+    _max_agile_design = AdiabaticMultiStageVLEColumn._max_agile_design
+    _units = AdiabaticMultiStageVLEColumn._units
+    
+    weir_height = Distillation.weir_height
+    tray_spacing = Distillation.tray_spacing
+    stage_efficiency = Distillation.stage_efficiency
+    velocity_fraction = Distillation.velocity_fraction
+    foaming_factor = Distillation.foaming_factor
+    open_tray_area = Distillation.open_tray_area
+    downcomer_area_fraction = Distillation.downcomer_area_fraction
+    tray_type = Distillation.tray_type
+    tray_material = Distillation.tray_material
+    vessel_material = Distillation.vessel_material
+    
+    def _init(self, 
+            LHK, N_stages, feed_stages, 
+            reflux=None, boilup=None, 
+            P=101325, 
+            vapor_side_draws=None, liquid_side_draws=None,
+            stage_reactions=None,
+            vessel_material='Carbon steel',
+            tray_material='Carbon steel',
+            tray_type='Sieve',
+            tray_spacing=450,
+            stage_efficiency=None,
+            velocity_fraction=0.8,
+            foaming_factor=1.0,
+            open_tray_area=0.1,
+            weir_height=0.1,
+            downcomer_area_fraction=None,
+            vacuum_system_preference='Liquid-ring pump',
+            partition_data=None,
+            full_condenser=None,
+            collapsed_init=None,
+            use_cache=None,
+            algorithm=None,
+            method=None,
+            inside_out=None,
+            maxiter=None,
+            stage_specifications=None,
         ):
-        Unit.__init__(self, ID, ins, outs, thermo)
-        
-        # Operation specifications
-        self.P = P
-        self.N_stages = N_stages
-        self.feed_stages = feed_stages
-        self.vapor_side_draws = vapor_side_draws
-        self.liquid_side_draws = liquid_side_draws
-        self.specifications = specifications
-        self._partial_condenser = partial_condenser
-        self._set_distillation_product_specifications(product_specification_format,
-                                                      x_bot, y_top, Lr, Hr)
+        if full_condenser: 
+            if liquid_side_draws is None:
+                liquid_side_draws = {}
+            if 0 not in liquid_side_draws:
+                if reflux is None:
+                    liquid_side_draws[0] = 1.
+                else:
+                    liquid_side_draws[0] = reflux / (1 + reflux)
+            reflux = inf # Boil-up is 0
+        self.LHK = LHK
+        if stage_specifications is None: stage_specifications = {}
+        if reflux is not None:
+            stage_specifications[0] = ('Reflux', reflux)
+        if boilup is not None:
+            stage_specifications[-1] = ('Boilup', boilup)
+        super()._init(N_stages=N_stages, feed_stages=feed_stages,
+                      top_side_draws=vapor_side_draws, 
+                      bottom_side_draws=liquid_side_draws,              
+                      partition_data=partition_data,
+                      phases=("g", "l"), P=P, use_cache=use_cache,
+                      stage_specifications=stage_specifications,
+                      stage_reactions=stage_reactions,
+                      collapsed_init=collapsed_init,
+                      inside_out=inside_out,
+                      algorithm=algorithm,
+                      method=method,
+                      maxiter=maxiter)
         
         # Construction specifications
+        self.weir_height = weir_height
         self.vessel_material = vessel_material
         self.tray_type = tray_type
         self.tray_material = tray_material
@@ -1997,75 +2648,258 @@ class MESHDistillation(Distillation, new_graphics=False):
         self.stage_efficiency = stage_efficiency
         self.velocity_fraction = velocity_fraction
         self.foaming_factor = foaming_factor
-        self.open_tray_area_fraction = open_tray_area_fraction
+        self.open_tray_area = open_tray_area
         self.downcomer_area_fraction = downcomer_area_fraction
-        self.is_divided = is_divided
         self.vacuum_system_preference = vacuum_system_preference
-        self._load_components(partial_condenser, condenser_thermo, boiler_thermo, LHK)
+        self._load_components()
+        self._last_args = (
+            self.N_stages, self.feed_stages, self.vapor_side_draws, 
+            self.liquid_side_draws, self.use_cache, *self._ins, 
+            self.partition_data, self.P, self.stage_specifications,
+        )
+        
+    @property
+    def reflux(self):
+        if 0 in self.stage_specifications:
+            name, value = self.stage_specifications[0]
+            if name == 'Reflux': return value
+    @reflux.setter
+    def reflux(self, reflux):
+        self.stage_specifications[0] = ('Reflux', reflux)
+    
+    @property
+    def boilup(self):
+        if -1 in self.stage_specifications:
+            name, value = self.stage_specifications[-1]
+            if name == 'Boilup': return value
+        else:
+            last_stage = self.N_stages - 1
+            name, value = self.stage_specifications[last_stage]
+            if name == 'Boilup': return value
+    @boilup.setter
+    def boilup(self, boilup):
+        self.stage_specifications[-1] = ('Boilup', boilup)
     
     def _setup(self):
         super()._setup()
         args = (self.N_stages, self.feed_stages, self.vapor_side_draws, 
-                *self._ins, self.liquid_side_draws, self.specifications, self.partition_data)
+                self.liquid_side_draws, self.use_cache, *self._ins, 
+                self.partition_data, self.P, self.stage_specifications)
         if args != self._last_args:
-            self.stages = sep.MultiStageEquilibrium(
-                self.N_stages, self.ins, self.feed_stages, specifications=self.specifications,
-                top_side_draws=self.vapor_side_draws, bottom_side_draws=self.liquid_side_draws, 
-                thermo=self.thermo, partition_data=self.partition_data, phases=('L', 'l'),
+            MultiStageEquilibrium._init(
+                self, N_stages=self.N_stages,
+                feed_stages=self.feed_stages,
+                phases=('g', 'l'), P=self.P,
+                top_side_draws=self.vapor_side_draws, 
+                bottom_side_draws=self.liquid_side_draws,
+                partition_data=self.partition_data, 
+                stage_specifications=self.stage_specifications,
+                stage_reactions=self.stage_reactions,
+                use_cache=self.use_cache, 
             )
             self._last_args = args
     
-    def _run(self):
-        # Initial mass balance
-        self._run_binary_distillation_mass_balance()
+    def _load_components(self):
+        # Setup components
+        thermo = self.thermo
+        reflux = self.reflux 
         
-        # Initialize objects to calculate bubble and dew points
-        vle_chemicals = self.mixed_feed.vle_chemicals
-        reset_cache = self._vle_chemicals != vle_chemicals
-        if reset_cache:
-            self._dew_point = DewPoint(vle_chemicals, self.thermo)
-            self._bubble_point = BubblePoint(vle_chemicals, self.thermo)
-            self._IDs_vle = self._dew_point.IDs
-            self._vle_chemicals = vle_chemicals
-            
-        # Setup light and heavy keys
-        LHK = [i.ID for i in self.chemicals[self.LHK]]
-        IDs = self._IDs_vle
-        self._LHK_vle_index = np.array([IDs.index(i) for i in LHK], dtype=int)
-        
-        # Add temporary specification
-        composition_spec = self.product_specification_format == 'Composition'
-        if composition_spec:
-            feed = self.mixed_feed
-            distillate, bottoms = self.outs
-            LK_index, HK_index = LHK_index = self._LHK_index
-            LK_feed, HK_feed = feed.mol[LHK_index]
-            self._Lr = distillate.mol[LK_index] / LK_feed
-            self._Hr = bottoms.mol[HK_index] / HK_feed
-            
-        # Set starting point for solving column
-        if reset_cache:
-            self._add_trace_heavy_and_light_non_keys_in_products()
-            self._distillate_recoveries = self._estimate_distillate_recoveries()
-        else:
-            distillate_recoveries = self._distillate_recoveries
-            lb = self.minimum_guess_distillate_recovery
-            ub = 1 - lb
-            distillate_recoveries[distillate_recoveries < lb] = lb
-            distillate_recoveries[distillate_recoveries > ub] = ub
-        
-        # Solve for new recoveries
-        self._solve_distillate_recoveries()
-        self._update_distillate_and_bottoms_temperature()
-        
-        # Remove temporary data
-        if composition_spec: self._Lr = self._Hr = None
+        #: [HXutility] Condenser.
+        if reflux is None: # No condenser
+            self.condenser = self.reflux_drum = self.top_split = None
+            self.condensate = self.stages[0].outs[1]
+        elif reflux == inf: # Full condenser
+            self.reflux_drum = None
+            self.auxiliary(
+                'condenser', HXutility,
+                ins='vapor',
+                thermo=thermo,
+            )
+            self.auxiliary(
+                'top_split', MockSplitter,
+                ins = self.condenser-0,
+                outs=(self-2, 'condensate'),
+                thermo=thermo,
+            )
+            self.condensate = self.top_split-1
+            self.condenser.inlet.phase = 'g'
+        elif reflux == 0:
+            self.condenser = self.reflux_drum = self.top_split = None
+            self.condensate = self.stages[0].outs[1]
+        else: # Partial condenser
+            self.top_split = None
+            self.auxiliary(
+                'condenser', HXutility,
+                ins='vapor',
+                thermo=thermo,
+            )
+            self.condenser.outlet.phases = ('g', 'l')
+            self.auxiliary(
+                'reflux_drum', RefluxDrum,
+                ins=self.condenser-0,
+                outs=(self-0, 'condensate')
+            )
+            self.condensate = self.reflux_drum-1
+            self.condenser.inlet.phase = 'g'
+        self.auxiliary('pump', bst.Pump,
+            'liquid', thermo=thermo,
+        )
+        self.auxiliary('reboiler', HXutility,
+            self.pump-0, thermo=thermo,
+        )
+        self.reboiler.outs[0].phases = ('g', 'l')
+        self.auxiliary('bottoms_split', bst.PhaseSplitter,
+            self.reboiler-0, ('boilup', self-1), thermo=thermo,
+        )
 
     def plot_stages(self):
         raise TypeError('cannot plot stages for shortcut column')
         
-    def _design(self):
-        self._run_MESH()
-        self._run_condenser_and_reboiler()
-        self._complete_distillation_column_design()
+    def _actual_stages(self):
+        """Return a tuple with the actual number of stages for the rectifier and the stripper."""
+        eff = self.stage_efficiency
+        if eff is None:
+            # Calculate Murphree Efficiency
+            eff = 1
+            stages = self.stages
+            IDs = stages[0].partition.IDs
+            LK, HK = self.LHK
+            LI = IDs.index(LK)
+            HI = IDs.index(HK)
+            N_stages = 0
+            for i in stages:
+                try:
+                    vapor, liquid = i.partition.outs
+                    mu = liquid.get_property('mu', 'mPa*s')
+                    alpha = i.partition.K[LI] / i.partition.K[HI]
+                    L_Rmol = liquid.F_mol
+                    V_Rmol = vapor.F_mol
+                    eff *= design.compute_murphree_stage_efficiency(
+                        mu, alpha, L_Rmol, V_Rmol
+                    )
+                    N_stages += 1
+                except:
+                    N_stages += i.partition.B in (0, inf)
+            eff = eff ** (1 / N_stages)
+            return N_stages, np.ceil(N_stages / eff)
+        else:
+            return self.N_stages, np.ceil(self.N_stages / eff)
+       
+    def update_liquid_holdup(self):
+        diameter = self.estimate_diameter() 
+        hw = weir_height = self._TS * self.weir_height * 0.0393701 # mm to inches
+        area = diameter * diameter * pi / 4
+        b = 2/3
+        partitions = self.partitions
+        for i in self.stage_reactions:
+            partition = partitions[i]
+            vapor, liquid = partition.outs
+            if vapor.isempty():
+                Ks = 0
+            elif liquid.isempty():
+                partition.reaction.liquid_volume = 0
+                continue
+            else:
+                rho_V = vapor.rho
+                rho_L = liquid.rho
+                active_area = area * (1 - 2 * partition.downcomer_area_fraction)
+                Ua = vapor.get_total_flow('ft3/s') / active_area
+                Ks = Ua * sqrt(rho_V / (rho_L - rho_V)) # Capacity parameter    
+            Phi_e = exp(-4.257 * Ks**0.91) # Effective relative froth density 
+            Lw = 0.73 * diameter * 12 # Weir length [in] assuming Ad/A = 0.1
+            # TODO: Compute weir length or other Ad/A
+            qL = liquid.get_total_flow('gal/min')
+            CL = 0.362 + 0.317 * exp(-3.5 * weir_height)
+            hL = Phi_e * (hw + CL * (qL / (Lw * Phi_e)) ** b) # equivalent height of clear liquid holdup [in]
+            partition.reaction.liquid_volume = hL * area * 0.00236155 # m3 
+       
+    def estimate_diameter(self): # ft
+        diameters = []
+        TS = self._TS
+        A_ha = self._A_ha
+        F_F = self._F_F
+        f = self._f
+        for i in self.stages:
+            vapor, liquid = i.partition.outs
+            if liquid.isempty() or vapor.isempty(): continue
+            rho_L = liquid.rho
+            V = vapor.F_mass
+            V_vol = vapor.get_total_flow('m^3/s')
+            rho_V = vapor.rho
+            L = liquid.F_mass # To get liquid going down
+            sigma = liquid.get_property('sigma', 'dyn/cm')
+            F_LV = design.compute_flow_parameter(L, V, rho_V, rho_L)
+            C_sbf = design.compute_max_capacity_parameter(TS, F_LV)
+            U_f = design.compute_max_vapor_velocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha)
+            A_dn = self._A_dn
+            if A_dn is None: i.partition.downcomer_area_fraction = A_dn = design.compute_downcomer_area_fraction(F_LV)
+            diameters.append(
+                design.compute_tower_diameter(V_vol, U_f, f, A_dn)
+            )
+        return max(diameters) * 3.28 # ft
         
+    def _design(self):
+        self._simulate_condenser_and_reboiler()
+        Design = self.design_results
+        
+        ### Get maximum required diameter of column across stages ###
+        Po = self.P * 0.000145078 # to psi
+        rho_M = material_densities_lb_per_in3[self.vessel_material]
+        if Po < 14.68:
+            warn('vacuum pressure vessel ASME codes not implemented yet; '
+                 'wall thickness may be inaccurate and stiffening rings may be '
+                 'required', category=RuntimeWarning)
+        N_theoretical, N_actual = self._actual_stages()
+        TS = self._TS
+        Design['Theoretical stages'] = N_theoretical
+        Design['Actual stages'] = actual_stages = N_actual - (bool(self.condenser) + bool(self.reboiler))
+        Design['Height'] = H = design.compute_tower_height(TS, actual_stages) * 3.28
+        Design['Diameter'] = Di = self.estimate_diameter()
+        Design['Wall thickness'] = tv = design.compute_tower_wall_thickness(Po, Di, H)
+        Design['Weight'] = design.compute_tower_weight(Di, H, tv, rho_M)
+
+    def _simulate_condenser_and_reboiler(self):
+        top = self.stages[0]
+        bottom = self.stages[-1]
+        reboiler = self.reboiler
+        condenser = self.condenser
+        reflux_drum = self.reflux_drum
+        top_split = self.top_split
+        
+        # Set condenser conditions
+        if condenser:
+            condenser.simulate_as_auxiliary_exchanger(top.ins, top.outs, vle=False)
+        
+        # Set reboiler conditions
+        reboiler.simulate_as_auxiliary_exchanger(bottom.ins, bottom.outs, vle=False)
+        liq = reboiler.ins[0]
+        self.pump.ins[0].copy_like(liq)
+        self.pump.simulate()
+        self.bottoms_split.simulate()
+        
+        if reflux_drum:
+            reflux_drum.simulate()
+        elif top_split:
+            splitter = self.stages[0].splitters[-1]
+            top_split.ins[0].copy_like(splitter.ins[0])
+            for i, j in zip(top_split.ins + top_split.outs, splitter.ins + splitter.outs):
+                i.copy_like(j)
+
+    def _cost(self):
+        Design = self.design_results
+        Cost = self.baseline_purchase_costs
+        F_M = self.F_M
+     
+        # Cost trays assuming a partial condenser
+        N_T = Design['Actual stages'] - 1.
+        Di = Design['Diameter']
+        F_M['Trays'] = self._F_TM_function(Di)
+        Cost['Trays'] = design.compute_purchase_cost_of_trays(N_T, Di)
+           
+        # Cost vessel assuming T < 800 F
+        W = Design['Weight'] # in lb
+        H = Design['Height'] # in ft
+        Cost['Tower'] = design.compute_empty_tower_cost(W)
+        Cost['Platform and ladders'] = design.compute_plaform_ladder_cost(Di, H)
+        
+RigorousDistillation = MESHDistillation

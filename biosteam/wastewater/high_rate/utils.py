@@ -304,9 +304,9 @@ def append_wwt_chemicals(chemicals, set_thermo=True):
 
     # Add aliases and groups
     get = getattr
-    for grp in chemicals._group_mol_compositions.keys():
+    for grp, comp in chemicals._group_mol_compositions.items():
         group_IDs = [chem.ID for chem in get(chemicals, grp)]
-        chems.define_group(grp, group_IDs)
+        chems.define_group(grp, group_IDs, comp)
 
     if set_thermo: settings.set_thermo(chems)
     return chems

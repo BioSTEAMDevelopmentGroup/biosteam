@@ -76,12 +76,12 @@ class ProcessWaterCenter(bst.Facility):
     _N_outs = 3
     _units = {'Makeup water flow rate': 'kg/hr',
               'Process water flow rate': 'kg/hr'}
-    def __init__(self, ID='', ins=None, outs=(), thermo=None,
-                 makeup_water_streams=None,
-                 process_water_streams=None,
-                 reverse_osmosis_water_price=None,
-                 process_water_price=None):
-        bst.Facility.__init__(self, ID, ins, outs, thermo)
+    def _init(self, 
+            makeup_water_streams=None,
+            process_water_streams=None,
+            reverse_osmosis_water_price=None,
+            process_water_price=None
+        ):
         if process_water_streams and makeup_water_streams:
             process_water_streams = list(process_water_streams)
             for i in makeup_water_streams:
@@ -143,9 +143,10 @@ class ProcessWaterCenter(bst.Facility):
     
     def update_process_water(self):
         process_water_streams = self.process_water_streams
+        makeup_water_streams = set(self.makeup_water_streams)
         if process_water_streams is None:
-            self.process_water_streams = process_water_streams = bst.get_fresh_process_water_streams()
-        process_water = sum([stream.imol['7732-18-5'] for stream in process_water_streams])
+            self.process_water_streams = process_water_streams = [i for i in bst.get_fresh_process_water_streams() if i not in makeup_water_streams]
+        process_water = sum([i.imol['7732-18-5'] for i in process_water_streams])
         self.process_water.imol['7732-18-5'] = process_water
 
     def update_reverse_osmosis_grade_water(self):

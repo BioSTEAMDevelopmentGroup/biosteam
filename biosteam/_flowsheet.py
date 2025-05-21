@@ -6,35 +6,21 @@
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 """
-As BioSTEAM objects are created, they are automatically registered. The `main_flowsheet` object allows the user to find any Unit, Stream or System instance.  When `main_flowsheet` is called, it simply looks up the item and returns it. 
+As BioSTEAM objects are created, they are automatically registered. 
+The `main_flowsheet` object allows the user to find any Unit, Stream or System instance.
+When `main_flowsheet` is called, it simply looks up the item and returns it. 
 """
 from __future__ import annotations
 from typing import Optional, Iterable
 import biosteam as bst
 from thermosteam.utils import Registry
-from thermosteam import Stream
-from ._unit import Unit
+from thermosteam import AbstractStream
+from ._unit import AbstractUnit
 from ._system import System
 
 __all__ = ('main_flowsheet', 'Flowsheet', 'F')
 
 # %% Flowsheet search      
-
-class TemporaryFlowsheet:
-    __slots__ = ('original', 'temporary')
-    
-    def __init__(self, temporary):
-        self.temporary = temporary
-    
-    def __enter__(self):
-        self.original = main_flowsheet.get_flowsheet()
-        main_flowsheet.set_flowsheet(self.temporary)
-        return self.temporary
-    
-    def __exit__(self, type, exception, traceback):
-        main_flowsheet.set_flowsheet(self.original)
-        if exception: raise exception
-
 
 class FlowsheetRegistry:
     __getitem__ = object.__getattribute__
@@ -85,8 +71,9 @@ class Flowsheet:
     #: All flowsheets.
     flowsheet: FlowsheetRegistry = FlowsheetRegistry()
     
-    def __new__(cls, ID):        
+    def __new__(cls, ID=None):        
         self = super().__new__(cls)
+        if ID is None: ID = ''
         
         #: Contains all System objects as attributes.
         self.system: Registry = Registry()
@@ -99,13 +86,16 @@ class Flowsheet:
         
         #: ID of flowsheet.
         self._ID: str = ID
+        
+        #: Temporary flowsheet stack.
+        self._temporary_stack = []
+        
         self.flowsheet.__dict__[ID] = self
         return self
     
-    def temporary(self):
+    def __enter__(self):
         """
-        Return a TemporaryFlowsheet object that, through context management,
-        will temporarily register all objects in this flowsheet instead of 
+        Temporarily register all objects in this flowsheet instead of 
         the main flowsheet.
         
         Examples
@@ -113,7 +103,7 @@ class Flowsheet:
         >>> import biosteam as bst
         >>> bst.settings.set_thermo(['Water'], cache=True)
         >>> f = bst.Flowsheet('f')
-        >>> with f.temporary():
+        >>> with f:
         ...     M1 = bst.Mixer('M1')
         >>> M1 in bst.main_flowsheet.unit
         False
@@ -121,7 +111,15 @@ class Flowsheet:
         True
         
         """
-        return TemporaryFlowsheet(self)
+        self._temporary_stack.append(main_flowsheet.get_flowsheet())
+        main_flowsheet.set_flowsheet(self)
+        return self
+    
+    def __exit__(self, type, exception, traceback):
+        main_flowsheet.set_flowsheet(self._temporary_stack.pop())
+        if exception: raise exception
+    
+    def temporary(self): return self # for backwards compatibility
     
     def __reduce__(self):
         return self.from_registries, self.registries
@@ -150,6 +148,7 @@ class Flowsheet:
         flowsheet.unit = unit
         flowsheet.system = system
         flowsheet._ID = ID
+        flowsheet._temporary_stack = []
         flowsheet.flowsheet.__dict__[ID] = flowsheet
         return flowsheet
     
@@ -160,7 +159,7 @@ class Flowsheet:
     def clear(self, reset_ticket_numbers=True):
         for registry in self.registries: registry.clear()
         if reset_ticket_numbers:
-            for i in (Stream, Unit, System): i.ticket_numbers.clear()
+            for i in (AbstractStream, AbstractUnit, System): i.ticket_numbers.clear()
     
     def discard(self, ID):
         for registry in self.registries: registry.discard(ID)
@@ -233,10 +232,10 @@ class Flowsheet:
                                                 title, **graph_attrs)
     
     def create_system(self, ID: Optional[str]="", 
-                      ends: Optional[Iterable[Stream]]=None,
-                      facility_recycle: Optional[Stream]=None, 
+                      ends: Optional[Iterable[AbstractStream]]=None,
+                      facility_recycle: Optional[AbstractStream]=None, 
                       operating_hours: Optional[float]=None,
-                      lang_factor: Optional[float]=None):
+                      **kwargs):
         """
         Create a System object from all units and streams defined in the flowsheet.
         
@@ -255,16 +254,12 @@ class Flowsheet:
             Number of operating hours in a year. This parameter is used to
             compute annualized properties such as utility cost and material cost
             on a per year basis.
-        lang_factor : 
-            Lang factor for getting fixed capital investment from
-            total purchase cost. If no lang factor, installed equipment costs are
-            estimated using bare module factors.
         
         """
         return System.from_units(ID, self.unit, ends, facility_recycle,
-                                 operating_hours, lang_factor)
+                                 operating_hours, **kwargs)
     
-    def __call__(self, ID: str|type[Unit], strict: Optional[bool]=False):
+    def __call__(self, ID: str|type[AbstractUnit], strict: Optional[bool]=False):
         """
 		Return requested biosteam item or a list of all matching items.
     
@@ -338,9 +333,9 @@ class MainFlowsheet(Flowsheet):
                 dct = new_flowsheet.__dict__
         else:
             raise TypeError('flowsheet must be a Flowsheet object')
-        Stream.registry = dct['stream']
+        AbstractStream.registry = dct['stream']
         System.registry = dct['system']
-        Unit.registry = dct['unit']
+        AbstractUnit.registry = dct['unit']
         object.__setattr__(self, '__dict__', dct)
         
     def get_flowsheet(self):
@@ -359,6 +354,6 @@ class MainFlowsheet(Flowsheet):
 F = main_flowsheet = object.__new__(MainFlowsheet)
 main_flowsheet.set_flowsheet(
     Flowsheet.from_registries(
-        'default', Stream.registry, Unit.registry, System.registry
+        'default', AbstractStream.registry, AbstractUnit.registry, System.registry
     )
 )

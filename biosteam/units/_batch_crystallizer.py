@@ -86,11 +86,11 @@ class BatchCrystallizer(Unit):
         return (('Cleaning and unloading time', self.tau_0, 'hr'),
                 ('Working volume fraction', self.V_wf, ''))
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None,
-                 tau=None, N=None, V=None, T=305.15,
-                 Nmin=2, Nmax=36, vessel_material='Carbon steel',
-                 kW=0.00746):
-        Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, 
+             tau=None, N=None, V=None, T=305.15,
+             Nmin=2, Nmax=36, vessel_material='Carbon steel',
+             kW=0.00746
+        ):
         self._N = N; self._V = V
         
         #: [float] Reaction time [hr].

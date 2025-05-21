@@ -46,8 +46,7 @@ class PelletMill(Unit):
     _N_ins = 1
     _N_outs = 1
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, kW=0.01):
-        Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, kW=0.01):
         self.kW = kW
         
     def _cost(self):
@@ -93,10 +92,6 @@ class BagassePelletMill(PelletMill):
         ((1500, 2000), 114.5),
     ]
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, kW=None):
-        Unit.__init__(self, ID, ins, outs, thermo)
-        self.kW = kW
-        
     def default_kW(self, F_mass):
         for (lb, ub), kW in self.capacity_to_power:
             if F_mass < ub: return kW

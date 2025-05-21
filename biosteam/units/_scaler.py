@@ -8,7 +8,7 @@
 """
 """
 from .._unit import Unit
-from .._graphics import scaler_graphics
+from thermosteam._graphics import scaler_graphics
 from .._power_utility import PowerUtility
 from ..utils.piping import Inlets, Outlets
 

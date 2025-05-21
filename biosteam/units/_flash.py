@@ -14,7 +14,7 @@ import numpy as np
 from . import design_tools as design
 from .splitting import Splitter
 from .heat_exchange import HX, HXutility
-from .._graphics import vertical_vessel_graphics
+from thermosteam._graphics import vertical_vessel_graphics
 import biosteam as bst
 
 exp = np.exp
@@ -25,7 +25,7 @@ ln = np.log
 #if not (0.1 < V < 70):
 #    raise DesignError(f"Volume is out of bounds for costing")
 #lambda V, CE: CE*13*V**0.62 # V (m3)
-__all__ = ('Flash', 'SplitFlash', 'RatioFlash')
+__all__ = ('Flash', 'SplitFlash')
 
 
 # %% Flash
@@ -146,7 +146,7 @@ class Flash(design.PressureVessel, Unit):
         Cost Accounting and Capital Cost Estimation (Chapter 16)
     
     """
-    auxiliary_unit_names = ('heat_exchanger', 'vacuum_system')
+    auxiliary_unit_names = ('heat_exchanger', 'vacuum_system', 'vapor_condenser')
     _auxin_index = {
         'heat_exchanger': 0
     }
@@ -166,19 +166,19 @@ class Flash(design.PressureVessel, Unit):
     _graphics = vertical_vessel_graphics 
     _N_outs = 2
 
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 V=None, T=None, Q=None, P=None, y=None, x=None,
-                 vessel_material='Carbon steel',
-                 vacuum_system_preference='Liquid-ring pump',
-                 has_glycol_groups=False,
-                 has_amine_groups=False,
-                 vessel_type=None,
-                 holdup_time=15,
-                 surge_time=7.5,
-                 has_mist_eliminator=False):
-        Unit.__init__(self, ID, ins, outs, thermo)
-        self._load_components()
-        
+    def _init(self, 
+            V=None, T=None, Q=None, P=None, y=None, x=None,
+            vessel_material='Carbon steel',
+            vacuum_system_preference='Liquid-ring pump',
+            has_glycol_groups=False,
+            has_amine_groups=False,
+            vessel_type=None,
+            holdup_time=15,
+            surge_time=7.5,
+            has_mist_eliminator=False,
+            flash_inlet=True, 
+            has_vapor_condenser=None,
+        ):
         #: Enforced molar vapor fraction
         self.V = V
         
@@ -221,11 +221,26 @@ class Flash(design.PressureVessel, Unit):
         #: [bool] True if using a mist eliminator pad
         self.has_mist_eliminator = has_mist_eliminator
         
+        #: [bool] Whether to flash inlet. If inlet is already flashed, 
+        #: False can save simulation time.
+        self.flash_inlet = flash_inlet
+        
+        #: [bool] Whether to condense the vapor leaving the flash. This allows
+        #: vacuum systems to operate more efficiently.
+        self.has_vapor_condenser = has_vapor_condenser
+        
+        self._load_components()
+        
     def _load_components(self):
         self._multi_stream = ms = MultiStream(None, thermo=self.thermo)
         self.auxiliary(
             'heat_exchanger', HXutility, ins=self.feed, outs=ms
         )
+        if self.has_vapor_condenser:
+            self.auxiliary(
+                'vapor_condenser', HXutility, ins='vapor', 
+                outs=self.outs[0], V=0, rigorous=True,
+            )
         
     def reset_cache(self, isdynamic=None):
         self._multi_stream.reset_cache()
@@ -266,6 +281,9 @@ class Flash(design.PressureVessel, Unit):
     def _run(self):
         separations.vle(self.ins[0], *self.outs, self.T, self.P, self.V, 
                         self.Q, self.x, self.y, self._multi_stream)
+        if self.has_vapor_condenser: 
+            self.vapor_condenser.ins[0].copy_like(self.outs[0])
+            self.vapor_condenser.run()
             
     def _size_flash_vessel(self):
         vap, liq, *_ = self.outs
@@ -288,7 +306,7 @@ class Flash(design.PressureVessel, Unit):
         if self.Q == 0.:
             self.heat_exchanger._setup() # Removes results
         else:
-            self.heat_exchanger.simulate_as_auxiliary_exchanger(self.ins, self.outs, P=self.ins[0].P)
+            self.heat_exchanger.simulate_as_auxiliary_exchanger(self.ins, self.outs, vle=self.flash_inlet)
 
     def _cost(self):
         D = self.design_results
@@ -313,6 +331,7 @@ class Flash(design.PressureVessel, Unit):
     def _design_parameters(self):
         # Retrieve run_args and properties
         vap, liq, *_ = self._outs
+        if self.has_vapor_condenser: vap = self.vapor_condenser.ins[0]
         rhov = vap.get_property('rho', 'lb/ft3')
         rhol = liq.get_property('rho', 'lb/ft3')
         P = liq.get_property('P', 'psi')  # Pressure (psi)
@@ -494,17 +513,20 @@ class Flash(design.PressureVessel, Unit):
 class SplitFlash(Flash):
     line = 'Flash' 
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, split,
-                 order=None, T=None, P=None, Q=None,
-                 vessel_material='Carbon steel',
-                 vacuum_system_preference='Liquid-ring pump',
-                 has_glycol_groups=False,
-                 has_amine_groups=False,
-                 vessel_type=None,
-                 holdup_time=15,
-                 surge_time=7.5,
-                 has_mist_eliminator=False):
-        Splitter.__init__(self, ID, ins, outs, thermo, split=split, order=order)
+    def _init(self, split,
+            order=None, T=None, P=None, Q=None,
+            vessel_material='Carbon steel',
+            vacuum_system_preference='Liquid-ring pump',
+            has_glycol_groups=False,
+            has_amine_groups=False,
+            vessel_type=None,
+            holdup_time=15,
+            surge_time=7.5,
+            has_mist_eliminator=False,
+            has_vapor_condenser=False,
+        ):
+        Splitter._init(self, split=split, order=order)
+        self.has_vapor_condenser = has_vapor_condenser
         self._load_components()
         
         self.T = T #: Operating temperature (K)
@@ -534,7 +556,11 @@ class SplitFlash(Flash):
         
         #: [bool] True if using a mist eliminator pad
         self.has_mist_eliminator = has_mist_eliminator
+        
+        self.flash_inlet = False
+        
     
+    isplit = Splitter.isplit
     split = Splitter.split
     V = None
     
@@ -552,59 +578,7 @@ class SplitFlash(Flash):
     def _design(self):
         self.heat_exchanger.simulate_as_auxiliary_exchanger(self.ins, self.outs, vle=False)
         super()._design()
-    
-# TODO: Remove this in favor of partition coefficients
-class RatioFlash(Flash):
 
-    def __init__(self, ID='', ins=None, outs=(), *,
-                 K_chemicals, Ks, top_solvents=(), top_split=(),
-                 bot_solvents=(), bot_split=()):
-        Unit.__init__(self, ID, ins, outs)
-        self._load_components()
-        self.K_chemicals = K_chemicals
-        self.Ks = Ks
-        self.top_solvents = top_solvents
-        self.top_split = top_split
-        self.bot_solvents = bot_solvents
-        self.bot_split = bot_split
-
-    def _run(self):
-        feed = self.ins[0]
-        top, bot = self.outs
-        indices = self.chemicals.get_index
-        def flattend(indices, split):
-            flat_index = []
-            flat_split = []
-            integer = int
-            isa = isinstance
-            for i, j in zip(indices, split):
-                if isa(i, integer): 
-                    flat_index.append(i)
-                    flat_split.append(j)
-                else:
-                    flat_index.extend(i)
-                    flat_split.extend([j] * len(i))
-            return flat_index, np.array(flat_split)
-        
-        K_index, Ks = flattend(indices(self.K_chemicals), self.Ks)
-        top_index, top_split = flattend(indices(self.top_solvents), self.top_split)
-        bot_index, bot_split = flattend(indices(self.bot_solvents), self.bot_split)
-        top_mol = top.mol; bot_mol = bot.mol; feed_mol = feed.mol
-        top_mol[top_index] = feed_mol[top_index] * top_split
-        bot_mol[top_index] = feed_mol[top_index] - top_mol[top_index]
-        bot_mol[bot_index] = feed_mol[bot_index] * bot_split
-        top_mol[bot_index] = feed_mol[bot_index] - bot_mol[bot_index]
-        topnet = top_mol[top_index].sum()
-        botnet = bot_mol[bot_index].sum()
-        molnet = topnet+botnet
-        top_mol[K_index] = Ks * topnet * feed_mol[K_index] / molnet  # solvent * mol ratio
-        bot_mol[K_index] = feed_mol[K_index] - top_mol[K_index]
-        top.T, top.P = feed.T, feed.P
-        bot.T, bot.P = feed.T, feed.P
-
-    def _design(self): # pragma: no cover
-        self.heat_exchanger.simulate_as_auxiliary_exchanger(self.ins, self.outs, vle=False)
-        super()._design()
 
 # %% Single Component for MultiEffectEvaporator
 
@@ -636,9 +610,8 @@ class Evaporator(Flash):
             self._P = chemical.Psat(T)
             self._T = T
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
-                 Q=None, V=None, P=101325, chemical='7732-18-5'):
-        super().__init__(ID, ins, outs, thermo, vessel_type='Vertical')
+    def _init(self, Q=None, V=None, P=101325, chemical='7732-18-5'):
+        super()._init(vessel_type='Vertical')
         self.chemical = self.chemicals[chemical]
         self.P = P
         self.Q = Q
@@ -696,7 +669,11 @@ class Evaporator(Flash):
                 elif V > 1:
                     vapor.imol[chemical_ID] = f
                     liquid.imol[chemical_ID] = 0
-                    vapor.H = H
+                    try:
+                        vapor.H = H
+                    except RuntimeError: # Extrapolation failed
+                        vapor.phase = 'g'
+                        vapor.T = vapor.chemicals[chemical_ID].Tc
                 else:
                     vapor.imol[chemical_ID] = f * V
                     liquid.imol[chemical_ID] = (1 - V) * f

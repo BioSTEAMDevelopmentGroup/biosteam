@@ -37,6 +37,8 @@ cashflow_columns = ('Depreciable capital [MM$]',
                     'Sales [MM$]',
                     'Tax [MM$]',
                     'Incentives [MM$]',
+                    'Taxed earnings [MM$]',
+                    'Forwarded losses [MM$]',
                     'Net earnings [MM$]',
                     'Cash flow [MM$]',
                     'Discount factor',
@@ -72,27 +74,30 @@ def NPV_at_IRR(IRR, cashflow_array, duration_array):
     return (cashflow_array/(1.+IRR)**duration_array).sum()
 
 @njit(cache=True)
-def initial_loan_principal(loan, interest):
+def loan_principal_with_interest(loan, interest):
     principal = 0
     k = 1. + interest
     for i in loan:
-        principal += i
         principal *= k
+        principal += i
     return principal
 
 @njit(cache=True)
-def final_loan_principal(payment, principal, interest, years):
-    for iter in range(years):
-        principal += principal * interest - payment
-    return principal
+def solve_payment(loan_principal, interest, years):
+    f = 1 + interest
+    fn = f ** years
+    return loan_principal * interest * fn / (fn - 1)
 
-def solve_payment(payment, loan, interest, years):
-    principal = initial_loan_principal(loan, interest)
-    payment = flx.aitken_secant(final_loan_principal,
-                                payment, payment+10., 1., 10.,
-                                args=(principal, interest, years),
-                                maxiter=200, checkiter=False)
-    return payment
+@njit(cache=True)
+def taxable_earnings_with_fowarded_losses(taxable_cashflow): # Forwards losses to later years to reduce future taxes
+    taxed_earnings = taxable_cashflow.copy()
+    for i in range(taxed_earnings.size - 1):
+        x = taxed_earnings[i]
+        if x < 0:
+            taxed_earnings[i] = 0
+            taxed_earnings[i + 1] += x
+    if taxed_earnings[-1] < 0: taxed_earnings[-1] = 0
+    return taxed_earnings
 
 @njit(cache=True)
 def add_replacement_cost_to_cashflow_array(equipment_installed_cost, 
@@ -170,6 +175,7 @@ def taxable_and_nontaxable_cashflows(
         finance_fraction,
         start, years,
         lang_factor,
+        accumulate_interest_during_construction,
     ):
     # Cash flow data and parameters
     # C_FC: Fixed capital
@@ -186,18 +192,23 @@ def taxable_and_nontaxable_cashflows(
         startup_FOCfrac,
         startup_salesfrac,
         construction_schedule,
-        start
+        start,
     )
     for i in unit_capital_costs:
         add_all_replacement_costs_to_cashflow_array(i, C_FC, years, start, lang_factor)
     if finance_interest:
         interest = finance_interest
         years = finance_years
-        Loan[:start] = loan = finance_fraction*(C_FC[:start]+C_WC[:start])
-        LP[start:start + years] = solve_payment(loan.sum()/years * (1. + interest),
-                                                loan, interest, years)
+        Loan[:start] = loan = finance_fraction*(C_FC[:start])
+        if accumulate_interest_during_construction:
+            loan_principal = loan_principal_with_interest(loan, interest)
+        else:
+            loan_principal = loan.sum()
+        LP[start:start + years] = solve_payment(loan_principal, interest, years)
         taxable_cashflow = S - C - D - LP
         nontaxable_cashflow = D + Loan - C_FC - C_WC 
+        if not accumulate_interest_during_construction: 
+            nontaxable_cashflow[:start] -= loan * interest 
     else:
         taxable_cashflow = S - C - D
         nontaxable_cashflow = D - C_FC - C_WC
@@ -214,9 +225,13 @@ def NPV_with_sales(
     ):
     """Return NPV with an additional annualized sales."""
     taxable_cashflow = taxable_cashflow + sales * sales_coefficients
-    tax = np.zeros_like(taxable_cashflow)
+    tax = np.zeros_like(taxable_cashflow, dtype=float)
     incentives = tax.copy()
-    fill_tax_and_incentives(incentives, taxable_cashflow, nontaxable_cashflow, tax, depreciation)
+    fill_tax_and_incentives(
+        incentives, 
+        taxable_earnings_with_fowarded_losses(taxable_cashflow),
+        nontaxable_cashflow, tax, depreciation
+    )
     cashflow = nontaxable_cashflow + taxable_cashflow + incentives - tax
     return (cashflow/discount_factors).sum()
 
@@ -312,7 +327,7 @@ class TEA:
                  '_startup_schedule', '_operating_days',
                  '_duration', '_depreciation_key', '_depreciation',
                  '_years', '_duration', '_start',  'IRR', '_IRR', '_sales',
-                 '_duration_array_cache')
+                 '_duration_array_cache', 'accumulate_interest_during_construction')
     
     #: Available depreciation schedules. Defaults include modified 
     #: accelerated cost recovery system from U.S. IRS publication 946 (MACRS),
@@ -365,6 +380,41 @@ class TEA:
         'India': 0.85,
     }
 
+    class Accounting:
+        __slots__ = ('index', 'data', 'names', 'units')
+        
+        def __init__(self, units, names=None):
+            self.units = units
+            self.names = names
+            self.index = []
+            self.data =[]
+        
+        def entry(self, index: str, cost: list|float, notes: str = ''):
+            self.index.append(index)
+            if getattr(cost, 'ndim') == 0: cost = float(cost)
+            if isinstance(cost, (float, int, str)):
+                self.data.append([notes, cost])
+            else:
+                self.data.append([notes, *cost])
+
+        @property
+        def total_costs(self):
+            if self.names is None:
+                return sum([i[1] for i in self.data])
+            else:
+                N = len(self.data[0])
+                return [sum([i[index] for i in self.data]) for index in range(1, N)]
+        
+        def table(self):
+            names = self.names
+            units = self.units
+            index = self.index
+            return pd.DataFrame(
+                self.data, 
+                index=pd.MultiIndex.from_tuples(index) if isinstance(index[0], tuple) else index,
+                columns=('Notes', f'Cost [{units}]') if names is None else ('Notes', *[f'{i}\n[{units}]' for i in names]),
+            )
+
     def __init_subclass__(cls, isabstract=False):
         if isabstract: return
         for method in ('_DPI', '_TDC', '_FCI', '_FOC'):
@@ -389,7 +439,8 @@ class TEA:
                 construction_schedule: Sequence[float],
                 startup_months: float, startup_FOCfrac: float, startup_VOCfrac: float,
                 startup_salesfrac: float, WC_over_FCI: float,  finance_interest: float,
-                finance_years: int, finance_fraction: float):
+                finance_years: int, finance_fraction: float,
+                accumulate_interest_during_construction: bool=False):
         #: System being evaluated.
         self.system: System = system
         
@@ -434,6 +485,9 @@ class TEA:
         #: Guess cost for solve_price method
         self._sales: float = 0
         
+        #: Whether to immediately pay interest before operation or to accumulate interest during construction
+        self.accumulate_interest_during_construction = accumulate_interest_during_construction
+        
         #: For convenience, set a TEA attribute for the system
         system._TEA = self
 
@@ -448,6 +502,10 @@ class TEA:
     
     def _FCI(self, TDC):
         return TDC # For compatibility with Lang factors
+
+    @property
+    def save_report(self):
+        return self.system.save_report
 
     @property
     def units(self) -> set[Unit]:
@@ -643,7 +701,7 @@ class TEA:
     
     @property
     def annual_depreciation(self) -> float:
-        """Depreciation [USD/yr] equivalent to TDC dived by the the duration of the venture."""
+        """Depreciation [USD/yr] equivalent to TDC divided by the duration of the venture."""
         return self.TDC/(self.duration[1]-self.duration[0])
 
     @property
@@ -708,6 +766,8 @@ class TEA:
         # S: Sales
         # T: Tax
         # I: Incentives
+        # TE: Taxed earnings
+        # FL: Forwarded losses
         # NE: Net earnings
         # CF: Cash flow
         # DF: Discount factor
@@ -721,7 +781,7 @@ class TEA:
         VOC = self.VOC
         sales = self.sales
         length = start + years
-        C_D, C_FC, C_WC, D, L, LI, LP, LPl, C, S, T, I, NE, CF, DF, NPV, CNPV = data = np.zeros((17, length))
+        C_D, C_FC, C_WC, D, L, LI, LP, LPl, C, S, T, I, TE, FL, NE, CF, DF, NPV, CNPV = data = np.zeros((19, length))
         self._fill_depreciation_array(D, start, years, TDC)
         w0 = self._startup_time
         w1 = 1. - w0
@@ -744,24 +804,43 @@ class TEA:
             interest = self.finance_interest
             years = self.finance_years
             end = start + years
-            L[:start] = loan = self.finance_fraction*(C_FC[:start]+C_WC[:start])
-            f_interest = (1. + interest)
-            LP[start:end] = solve_payment(loan.sum()/years * f_interest,
-                                          loan, interest, years)
+            L[:start] = loan = self.finance_fraction*(C_FC[:start])
+            accumulate_interest_during_construction = self.accumulate_interest_during_construction
+            if accumulate_interest_during_construction:
+                initial_loan_principal = loan_principal_with_interest(loan, interest)
+            else:
+                initial_loan_principal = loan.sum()
+            LP[start:end] = solve_payment(initial_loan_principal, interest, years)
             loan_principal = 0
-            for i in range(end):
-                LI[i] = li = (loan_principal + L[i]) * interest 
-                LPl[i] = loan_principal = loan_principal - LP[i] + li + L[i]
+            if accumulate_interest_during_construction:
+                for i in range(end):
+                    LI[i] = li = (loan_principal + L[i]) * interest 
+                    LPl[i] = loan_principal = loan_principal - LP[i] + li + L[i]
+            else:
+                for i in range(end):
+                    if i < start: 
+                        li = 0
+                    else:
+                        li = (loan_principal + L[i]) * interest 
+                    LI[i] = li
+                    LPl[i] = loan_principal = loan_principal - LP[i] + li + L[i]
+                LI[:start] = L[:start] * interest # Interest still needs to be payed
             taxable_cashflow = S - C - D - LP
             nontaxable_cashflow = D + L - C_FC - C_WC
+            if not accumulate_interest_during_construction:
+                nontaxable_cashflow[:start] -= LI[:start] # Subtract the interest during construction from NPV
         else:
             taxable_cashflow = S - C - D
             nontaxable_cashflow = D - C_FC - C_WC
-        self._fill_tax_and_incentives(I, taxable_cashflow, nontaxable_cashflow, T, D)
+        TE[:] = taxable_earnings_with_fowarded_losses(taxable_cashflow)
+        FL[1:] = (taxable_cashflow - TE).cumsum()[:-1]
+        self._fill_tax_and_incentives(
+            I, TE, nontaxable_cashflow, T, D
+        )
         NE[:] = taxable_cashflow + I - T
         CF[:] = NE + nontaxable_cashflow
         DF[:] = 1/(1.+self.IRR)**self._get_duration_array()
-        NPV[:] = CF*DF
+        NPV[:] = CF * DF
         CNPV[:] = NPV.cumsum()
         DF *= 1e6
         data /= 1e6
@@ -774,7 +853,11 @@ class TEA:
         taxable_cashflow, nontaxable_cashflow, depreciation = self._taxable_nontaxable_depreciation_cashflows()
         tax = np.zeros_like(taxable_cashflow)
         incentives = tax.copy()
-        self._fill_tax_and_incentives(incentives, taxable_cashflow, nontaxable_cashflow, tax, depreciation)
+        self._fill_tax_and_incentives(
+            incentives,
+            taxable_earnings_with_fowarded_losses(taxable_cashflow),
+            nontaxable_cashflow, tax, depreciation
+        )
         cashflow = nontaxable_cashflow + taxable_cashflow + incentives - tax
         return NPV_at_IRR(self.IRR, cashflow, self._get_duration_array())
     
@@ -818,21 +901,25 @@ class TEA:
                 self.finance_years,
                 self.finance_fraction,
                 start, years,
-                self.lang_factor
+                self.lang_factor,
+                self.accumulate_interest_during_construction,
             ),
             D
         )
     
     def _fill_tax_and_incentives(self, incentives, taxable_cashflow, nontaxable_cashflow, tax, depreciation):
-        index = taxable_cashflow > 0.
-        tax[index] = self.income_tax * taxable_cashflow[index]
+        tax[:] = self.income_tax * taxable_cashflow
     
     def _net_earnings_and_nontaxable_cashflow_arrays(self):
         taxable_cashflow, nontaxable_cashflow, depreciation = self._taxable_nontaxable_depreciation_cashflows()
         size = taxable_cashflow.size
         tax = np.zeros(size)
         incentives = tax.copy()
-        self._fill_tax_and_incentives(incentives, taxable_cashflow, nontaxable_cashflow, tax, depreciation)
+        self._fill_tax_and_incentives(
+            incentives, 
+            taxable_earnings_with_fowarded_losses(taxable_cashflow), 
+            nontaxable_cashflow, tax, depreciation
+        )
         net_earnings = taxable_cashflow + incentives - tax
         return net_earnings, nontaxable_cashflow
     
@@ -943,6 +1030,21 @@ class TEA:
             current_price = sum([system.get_market_value(i) for i in streams]) / abs(price2cost)
         return current_price + sales / price2cost 
         
+    def VOC_table(
+            self, products, functional_unit='MT', with_products=False, 
+        ):
+        return bst.report.voc_table(
+            [self.system], products, 
+            system_names=None, functional_unit=functional_unit,
+            with_products=with_products, dataframe=True
+        )
+        
+    def CAPEX_table(self):
+        return NotImplemented
+    
+    def FOC_table(self):
+        return NotImplemented
+    
     def solve_sales(self):
         """
         Return the required additional sales [USD] to reach the breakeven 
@@ -950,12 +1052,11 @@ class TEA:
         
         """
         discount_factors = (1 + self.IRR)**self._get_duration_array()
-        sales_coefficients = np.ones_like(discount_factors)
+        sales_coefficients = np.ones_like(discount_factors, dtype=float)
         start = self._start
         sales_coefficients[:start] = 0
         w0 = self._startup_time
-        sales_coefficients[self._start] =  w0*self.startup_VOCfrac + (1-w0)
-        sales = self._sales
+        sales_coefficients[start] =  w0*self.startup_salesfrac + (1.-w0)
         taxable_cashflow, nontaxable_cashflow, depreciation = self._taxable_nontaxable_depreciation_cashflows()
         if np.isnan(taxable_cashflow).any():
             warn('nan encountered in cashflow array; resimulating system', category=RuntimeWarning)
@@ -969,17 +1070,16 @@ class TEA:
                 sales_coefficients,
                 discount_factors,
                 self._fill_tax_and_incentives)
-        x0 = sales
+        x0 = self._sales if np.isfinite(self._sales) else 0
         f = NPV_with_sales
-        if not np.isfinite(x0): x0 = 0.
         y0 = f(x0, *args)
         x1 = x0 - y0 / self._years # First estimate
         try:
-            sales = flx.aitken_secant(f, x0, x1, xtol=10, ytol=1000.,
+            sales = flx.aitken_secant(f, x0, x1, xtol=10, ytol=100.,
                                       maxiter=1000, args=args, checkiter=True)
         except:
             bracket = flx.find_bracket(f, x0, x1, args=args)
-            sales = flx.IQ_interpolation(f, *bracket, args=args, xtol=10, ytol=1000, maxiter=1000, checkiter=False)
+            sales = flx.IQ_interpolation(f, *bracket, args=args, xtol=10, ytol=100, maxiter=1000, checkiter=False)
         self._sales = sales
         return sales
     

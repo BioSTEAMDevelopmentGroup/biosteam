@@ -14,6 +14,11 @@
 #
 import os
 import sys
+try:
+    from docutils import nodes
+    nodes.reprunicode = lambda x: x # Workaround for bug in nbsphinx-link
+except:
+    pass # docutils may not be installed for test suit
 
 new_path = ['..\\', '..\\thermosteam\\', '..\\Bioindustrial-Park\\', '..\\How2STEAM\\']
 for p in new_path:
@@ -63,12 +68,12 @@ autodoc_member_order = 'bysource'
 # ones.
 
 extensions = [
+    'sphinx.ext.napoleon',
     'sphinxcontrib.jquery', # Some extensions require jquery, which used to come with Sphinx before v6.
-    "matplotlib.sphinxext.plot_directive",
+    'matplotlib.sphinxext.plot_directive',
     'IPython.sphinxext.ipython_console_highlighting', # Fixes bug with pygments highlighting in nbsphinx (a workaround)
     'sphinx_design',
     'sphinx.ext.autodoc',
-    'sphinx.ext.napoleon',
     'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
     'sphinx.ext.doctest',
@@ -84,117 +89,148 @@ extensions = [
     'nbsphinx_link',
 ]
 
-try:
-    import sphinx_autodoc_typehints as sat
-    def format_annotation(annotation, config) -> str:  # noqa: C901 # too complex
-        # Special cases
-        if isinstance(annotation, sat.ForwardRef):
-            return annotation.__forward_arg__
-        if annotation is None or annotation is type(None):  # noqa: E721
-            return ":py:obj:`None`"
-        if annotation is Ellipsis:
-            return ":py:data:`...<Ellipsis>`"
+# try:
+#     import sphinx_autodoc_typehints as sat
+#     def format_annotation(annotation, config) -> str:  # noqa: C901 # too complex
+#         # Special cases
+#         if isinstance(annotation, sat.ForwardRef):
+#             return annotation.__forward_arg__
+#         if annotation is None or annotation is type(None):  # noqa: E721
+#             return ":py:obj:`None`"
+#         if annotation is Ellipsis:
+#             return ":py:data:`...<Ellipsis>`"
     
-        if isinstance(annotation, tuple):
-            return sat.format_internal_tuple(annotation, config)
+#         if isinstance(annotation, tuple):
+#             return sat.format_internal_tuple(annotation, config)
     
-        try:
-            module = sat.get_annotation_module(annotation)
-            class_name = sat.get_annotation_class_name(annotation, module)
-            args = sat.get_annotation_args(annotation, module, class_name)
-        except ValueError:
-            return str(annotation).strip("'")
+#         try:
+#             module = sat.get_annotation_module(annotation)
+#             class_name = sat.get_annotation_class_name(annotation, module)
+#             args = sat.get_annotation_args(annotation, module, class_name)
+#         except ValueError:
+#             return str(annotation).strip("'")
     
-        # Redirect all typing_extensions types to the stdlib typing module
-        if module == "typing_extensions":
-            module = "typing"
+#         # Redirect all typing_extensions types to the stdlib typing module
+#         if module == "typing_extensions":
+#             module = "typing"
     
-        full_name = f"{module}.{class_name}" if module != "builtins" else class_name
-        fully_qualified: bool = getattr(config, "typehints_fully_qualified", False)
-        prefix = "" if fully_qualified or full_name == class_name else "~"
-        if module == "typing" and class_name in sat._PYDATA_ANNOTATIONS:
-            role = "data"
-        else:
-            role = "class"
-        args_format = "\\[{}]"
-        formatted_args: str | None = ""
+#         full_name = f"{module}.{class_name}" if module != "builtins" else class_name
+#         fully_qualified: bool = getattr(config, "typehints_fully_qualified", False)
+#         prefix = "" if fully_qualified or full_name == class_name else "~"
+#         if module == "typing" and class_name in sat._PYDATA_ANNOTATIONS:
+#             role = "data"
+#         else:
+#             role = "class"
+#         args_format = r"\[{}]"
+#         formatted_args: str | None = ""
     
-        # Some types require special handling
-        if full_name == "typing.NewType":
-            args_format = f"\\(``{annotation.__name__}``, {{}})"
-            role = "class" if sys.version_info >= (3, 10) else "func"
-        elif full_name == "typing.TypeVar":
-            params = {k: getattr(annotation, f"__{k}__") for k in ("bound", "covariant", "contravariant")}
-            params = {k: v for k, v in params.items() if v}
-            if "bound" in params:
-                params["bound"] = f" {format_annotation(params['bound'], config)}"
-            args_format = f"\\(``{annotation.__name__}``{', {}' if args else ''}"
-            if params:
-                args_format += "".join(f", {k}={v}" for k, v in params.items())
-            args_format += ")"
-            formatted_args = None if args else args_format
-        elif full_name == "typing.Optional":
-            args = tuple(x for x in args if x is not type(None))  # noqa: E721
-        elif full_name in ("typing.Union", "types.UnionType") and type(None) in args:
-            if len(args) == 2:
-                full_name = "typing.Optional"
-                args = tuple(x for x in args if x is not type(None))  # noqa: E721
-            else:
-                simplify_optional_unions: bool = getattr(config, "simplify_optional_unions", True)
-                if not simplify_optional_unions:
-                    full_name = "typing.Optional"
-                    args_format = f"\\[:py:data:`{prefix}typing.Union`\\[{{}}]]"
-                    args = tuple(x for x in args if x is not type(None))  # noqa: E721
-        elif full_name == "typing.Callable" and args and args[0] is not ...:
-            fmt = [format_annotation(arg, config) for arg in args]
-            formatted_args = f"\\[\\[{', '.join(fmt[:-1])}], {fmt[-1]}]"
-        elif full_name == "typing.Literal":
-            formatted_args = f"\\[{', '.join(repr(arg) for arg in args)}]"
-        elif full_name == "types.UnionType":
-            return " | ".join([format_annotation(arg, config) for arg in args])
+#         # Some types require special handling
+#         if full_name == "typing.NewType":
+#             args_format = f"\\(``{annotation.__name__}``, {{}})"
+#             role = "class" if sys.version_info >= (3, 10) else "func"
+#         elif full_name == "typing.TypeVar":
+#             params = {k: getattr(annotation, f"__{k}__") for k in ("bound", "covariant", "contravariant")}
+#             params = {k: v for k, v in params.items() if v}
+#             if "bound" in params:
+#                 params["bound"] = f" {format_annotation(params['bound'], config)}"
+#             args_format = f"\\(``{annotation.__name__}``{', {}' if args else ''}"
+#             if params:
+#                 args_format += "".join(f", {k}={v}" for k, v in params.items())
+#             args_format += ")"
+#             formatted_args = None if args else args_format
+#         elif full_name == "typing.Optional":
+#             args = tuple(x for x in args if x is not type(None))  # noqa: E721
+#         elif full_name in ("typing.Union", "types.UnionType") and type(None) in args:
+#             if len(args) == 2:
+#                 full_name = "typing.Optional"
+#                 args = tuple(x for x in args if x is not type(None))  # noqa: E721
+#             else:
+#                 simplify_optional_unions: bool = getattr(config, "simplify_optional_unions", True)
+#                 if not simplify_optional_unions:
+#                     full_name = "typing.Optional"
+#                     args_format = f"\\[:py:data:`{prefix}typing.Union`\\[{{}}]]"
+#                     args = tuple(x for x in args if x is not type(None))  # noqa: E721
+#         elif full_name == "typing.Callable" and args and args[0] is not ...:
+#             fmt = [format_annotation(arg, config) for arg in args]
+#             formatted_args = f"\\[\\[{', '.join(fmt[:-1])}], {fmt[-1]}]"
+#         elif full_name == "typing.Literal":
+#             formatted_args = f"\\[{', '.join(repr(arg) for arg in args)}]"
+#         elif full_name == "types.UnionType":
+#             return " | ".join([format_annotation(arg, config) for arg in args])
     
-        if args and not formatted_args:
-            try:
-                iter(args)
-            except TypeError:
-                fmt = [format_annotation(args, config)]
-            else:
-                fmt = [format_annotation(arg, config) for arg in args]
-            formatted_args = args_format.format(", ".join(fmt))
+#         if args and not formatted_args:
+#             try:
+#                 iter(args)
+#             except TypeError:
+#                 fmt = [format_annotation(args, config)]
+#             else:
+#                 fmt = [format_annotation(arg, config) for arg in args]
+#             formatted_args = args_format.format(", ".join(fmt))
     
-        result = f":py:{role}:`{prefix}{full_name}`{formatted_args}"
-        return result
+#         result = f":py:{role}:`{prefix}{full_name}`{formatted_args}"
+#         return result
     
-    def typehints_formatter(annotation, config):
-        # original = str(annotation).replace("'", "")
-        name = format_annotation(annotation, config)
-        if name.startswith('Optional['):
-            name = name.replace('Optional[', '')[:-1] + ', optional'
-        elif name.startswith(':py:data:`~typing.Optional`\['):
-            name = name.replace(':py:data:`~typing.Optional`\[', '')[:-1] + ', optional'
-        if not name.startswith(':py:class:') and not name.startswith(':py:data:'):
-            pyclass_added = False
-            for i in ['Iterable', 'Sequence', 'Collection', 'str', 'list', 'tuple', 'dict', 'int',
-                      'bool', 'set', 'frozenset', 'float']:
-                name = name.replace(i, f':py:class:`{i}`')
-                pyclass_added = True
-            for i in ['Unit', 'Facility', 'HeatUtility', 'PowerUtility', 'System', 'TEA', 'HXutility']:
-                name = name.replace(i, f':py:class:`~biosteam.{i}`')
-                pyclass_added = True
-            for i in ['Chemical', 'Thermo', 'Stream', 'ReactionSet']:
-                name = name.replace(i, f':py:class:`~thermosteam.{i}`')
-                pyclass_added = True
-            if pyclass_added: 
-                name = name.replace('[', '\[').replace(':py:class::py:class:', ':py:class:')
-        name = name.replace('bst.', '').replace('tmo.', '').replace(
-            '`biosteam', '`~biosteam').replace('._unit', '')
-        # file = os.path.join(os.path.dirname(__file__), 'annotations.txt')
-        # with open(file, 'a') as f: f.write(f"{name}  ({original})\n")
-        return name
-except:
-    pass
+# import sphinx_autodoc_typehints as sat
+# format_annotation_old = sat.format_annotation
+# def format_annotation(annotation, config):
+#     annotation_rst = format_annotation_old(annotation, config)
+#     if annotation_rst.endswith('| :py:obj:`None`'): annotation_rst = annotation_rst[:-16] + ', optional'
+    
+#     return annotation_rst
+# sat.format_annotation = format_annotation
+import sphinx_autodoc_typehints as sat
+from functools import reduce
+import biosteam as bst
+import typing
+import types
+from types import UnionType, GenericAlias
+from thermosteam import units_of_measure 
+from numpy import typing as numpy_typing
+defs = numpy_typing.__dict__ | units_of_measure.__dict__ | bst.__dict__ | typing.__dict__ | types.__dict__
+# For documentation purposes, users do not need to know about abstract unit/stream
+defs['AbstractUnit'] = bst.Unit 
+defs['AbstractStream'] = bst.Stream
+format_annotation_old = sat.format_annotation
 
-simplify_optional_unions = True
+def replace_forward_ref(annotation):
+    if hasattr(annotation, '__forward_arg__'):
+        forward_arg = annotation.__forward_arg__
+        return eval(forward_arg, defs)
+    elif isinstance(annotation, GenericAlias):
+        return annotation
+    elif isinstance(annotation, UnionType):
+        return reduce(lambda a, b: a | b, [replace_forward_ref(i) for i in annotation.__args__])
+    elif hasattr(annotation, '__args__'):
+        try: annotation.__args__ = tuple([replace_forward_ref(i) for i in annotation.__args__])
+        except: pass
+        return annotation
+    elif isinstance(annotation, str):
+        try:
+            return eval(annotation, defs)
+        except:
+            annotation = annotation.replace('(', '[').replace(')', ']')
+            try:
+                return eval(annotation, defs)
+            except:
+                return annotation
+    else:
+        return annotation
+
+def format_annotation(annotation, config, *args, **kwargs):
+    # original = str(annotation)
+    annotation = replace_forward_ref(annotation)
+    if type(annotation) is typing._UnionGenericAlias: # Optional
+        rst = format_annotation_old(annotation.__args__[0], config, *args, **kwargs) + ', optional'
+    else:
+        rst = format_annotation_old(annotation, config, *args, **kwargs)
+    # file = os.path.join(os.path.dirname(__file__), 'annotations.txt')
+    # with open(file, 'a') as f: f.write(f"{rst}  ({original})\n")
+    return rst
+sat.format_annotation = format_annotation
+
+typehints_fully_qualified = False
+always_use_bars_union  = True
+simplify_optional_unions = False
 always_document_param_types = False
 typehints_document_rtype = False
 typehints_use_rtype = False
@@ -208,6 +244,7 @@ intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
     'qsdsan': ('https://qsdsan.readthedocs.io/en/latest/', None),
     'thermo': ('https://thermo.readthedocs.io/', None),
+    'chaospy': ('https://chaospy.readthedocs.io/en/master/', None),
 }
 
 # Allow exceptions to occur in notebooks
@@ -263,10 +300,10 @@ html_theme_options = {
         'image_dark': 'logo_dark.png'
     },
     "show_toc_level": 2,
-    # "announcement": (
-    #     "<p>Join us on Feb 17, 9:15-10:15am CST, for a BioSTEAM workshop! "
-    #     "<a href='mailto: biosteamdevelopmentgroup@gmail.com'>Email us for details</a></p>"
-    # ),
+    "announcement": (
+        "<p>Full day BioSTEAM workshop, May 3 at the "
+        "<a href='https://www.simbhq.org/sbfc/workshop/'>SBFC conference</a>!</p>"
+    ),
     "external_links": [
       {"name": "Bioindustrial-Park", "url": "https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park"},
       {"name": "How2STEAM", "url": "https://mybinder.org/v2/gh/BioSTEAMDevelopmentGroup/How2STEAM/HEAD"},

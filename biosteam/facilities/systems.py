@@ -140,7 +140,10 @@ def create_facilities(
                 @FT.add_specification(run=True)
                 def adjust_fire_water(): fire_water.imass['Water'] = feedstock.F_mass * FT.fire_water_over_feedstock
         if CHP:
-            create_coheat_and_power_system(mockup=True, autopopulate=True, **CHP_kwargs)
+            if 'autopopulate' not in CHP_kwargs:
+                CHP_kwargs = CHP_kwargs.copy()
+                CHP_kwargs['autopopulate'] = True
+            create_coheat_and_power_system(mockup=True, **CHP_kwargs)
         if blowdown_recycle:
             units = bst.main_flowsheet.unit.get_context_level(0)
             blowdown_to_wastewater = bst.Stream('blowdown_to_wastewater')
@@ -172,31 +175,49 @@ def create_facilities(
 
 @bst.SystemFactory(
     ID='CHP_sys',
-    ins=['makeup_water', 'natural_gas', 'FGD_lime', 'boiler_chemicals'],
+    ins=['makeup_water', 'natural_gas', 'FGD_lime', 'boiler_chemicals', 'air'],
     outs=['emissions', 'blowdown', 'ash'],
     fixed_ins_size=False,
 )
 def create_coheat_and_power_system(
         ins, outs, combustible_slurries=None, combustible_gases=None, 
-        autopopulate=None, **kwargs
+        autopopulate=None, slurry_feed=True, gas_feed=True, **kwargs
     ):
-    makeup_water, natural_gas, lime, boiler_chemicals, = ins
-    
-    slurry_mixer = bst.Mixer('slurry_mixer', ins=combustible_slurries or [])
-    gas_mixer = bst.Mixer('gas_mixer', ins=combustible_gases or [])
+    makeup_water, natural_gas, lime, boiler_chemicals, air = ins
+    if 'fuel_source' in kwargs: natural_gas.ID = kwargs['fuel_source'].lower()
+    if slurry_feed and autopopulate or combustible_slurries:
+        slurry = bst.Stream('to_boiler')
+        slurry_mixer = bst.Mixer(ins=combustible_slurries or [], outs=slurry)
+        slurry_mixer.register_alias('slurry_mixer')
+        slurry = slurry_mixer-0
+    else:
+        slurry = None
+    if gas_feed and autopopulate or combustible_gases:
+        gas_to_boiler = bst.Stream('gas_to_boiler')
+        gas_mixer = bst.Mixer(ins=combustible_gases or [], outs=gas_to_boiler)
+        gas_mixer.register_alias('gas_mixer')
+        gas = gas_mixer-0
+        gas.phase = 'g'
+    else:
+        gas = None
     BT = bst.BoilerTurbogenerator(
-        ins=[slurry_mixer-0, gas_mixer-0, 
-             makeup_water, natural_gas, lime, boiler_chemicals],
+        ins=[slurry, gas, 
+             makeup_water, natural_gas, 
+             lime, boiler_chemicals, air],
         outs=outs,
         **kwargs,
     )
-    gas_mixer.autopopulate = slurry_mixer.autopopulate = False if autopopulate is None else autopopulate
+    BT.autopopulate = False if autopopulate is None else autopopulate
     
     @BT.add_specification(run=True)
     def autopopulate_combustibles():
-        if gas_mixer.autopopulate and not slurry_mixer.ins and not gas_mixer.ins:
+        if BT.autopopulate and not (slurry_feed and slurry_mixer.ins) and not (gas_feed and gas_mixer.ins):
             streams = bst.FreeProductStreams(BT.system.streams)
-            slurry_mixer.ins.extend(streams.combustible_slurries)
-            gas_mixer.ins.extend(streams.combustible_gases)
-            slurry_mixer.run_until(BT)
-            gas_mixer.run_until(BT)
+            if slurry_feed: 
+                slurry_mixer.ins.extend([i for i in streams.combustible_slurries if i is not slurry])
+                slurry_mixer.run_until(BT)
+            if gas_feed: 
+                gas_mixer.ins.extend([i for i in streams.combustible_gases if i is not gas])
+                gas_mixer.run_until(BT)
+        else:
+            BT.autopopulate = False

@@ -1,12 +1,7 @@
 # Cane Biorefineries and Benchmarks
 
 The `cane` module contains sugarcane, oilcane, and energycane biorefinery configurations, 
-as discussed in [[1]](#1). Two oilcane configurations are currently available: 
-(I) oil extraction by the expression of bagasse and centrifugation of vinasse from juice fermentation, and 
-(II) oil extraction after an integrated, single-step co-fermentation of both juice 
-and bagasse hydrolysate. Mass balances around oil separation are based on experimental results 
-and the oil composition in terms of free fatty acids, triacyl glycerides, and polar lipids 
-is accounted for. 
+as discussed in [[1]](#1). 
 
 ```{toctree}
 :hidden:
@@ -15,159 +10,241 @@ systems
 units
 ```
 
-Getting Started
+Getting started
 ---------------
 
-Four biorefineries can be created using the names detailed in the following table:
+Three configurations are currently available: (i) fermentation of juice and 
+direct cogeneration (DC) of heat and power from bagasse, (ii) integrated 
+co-fermentation (ICF) of both juice and bagasse hydrolysate, and (iii) integrated 
+co-fermentation and recovery (ICFR) of plant and microbial oil. Either ethanol or
+microbial an be produced at DC and ICF configurations. In all 
+configurations, either sugarcane or oilcane is crushed to release the juice and 
+the free oil is recovered from the fermentation effluent through a 3-phase decanter
+centrifuge. In the DC configuration, the bagasse is sent directly to the boiler to produce 
+heat and power. In the ICF and ICFR configurations, the bagasse is pretreated 
+with liquid hot water, hydrolyzed with cellulases, and co-fermented with the 
+juice.  In the DC and ICF configurations, the oil in the cell mass is recovered mechanically with a screw press after drying. 
+In the ICFR, the oil in the cell mass is recovered by centrifugation after cellulosic 
+pretreatment with the bagasse.
 
-| Feedstocks                | Products            | Direct cogeneration | Integrated Co-fermentation|
-| ------------------------- | ------------------  | ------------------- | ------------------------- |
-| Oilcane                   | Ethanol & biodiesel | O1                  | O2                        |
-| Oilcane                   | Ethanol & crude oil | O3                  | O4                        |
-| Oilcane & oil-sorghum     | Ethanol & biodiesel | O1\*                | O2\*                      |
-| Oilcane & oil-sorghum     | Ethanol & crude oil | O3\*                | O4\*                      |
-| Sugarcane                 | Ethanol & biodiesel | S1                  | S2                        |
-| Sugarcane & sweet sorghum | Ethanol             | S1\*                | S2\*                      |
+The following table details the options available for loading a biorefinery:
 
-Here are a few examples:
+| Name | Feedstock | Configuration | Final products      | Fermentation |
+| ---- | --------- | ------------- | ------------------- | ------------ |
+| S1   | Sugarcane | DC            | Ethanol             | Batch        |
+| S2   | Sugarcane | ICF           | Ethanol             | Batch        |
+| O1   | Oilcane   | DC            | Ethanol & biodiesel | Batch        |
+| O2   | Oilcane   | ICF           | Ethanol & biodiesel | Batch        |
+| O3   | Oilcane   | DC            | Ethanol & crude oil | Batch        |
+| O4   | Oilcane   | ICF           | Ethanol & crude oil | Batch        |
+| O5   | Oilcane   | DC            | Biodiesel           | Fed-batch    |
+| O6   | Oilcane   | ICF           | Biodiesel           | Fed-batch    |
+| O7   | Oilcane   | DC            | Biodiesel           | Batch        |
+| O8   | Oilcane   | ICFR          | Biodiesel           | Batch        |
+| O9   | Oilcane   | ICF           | Biodiesel           | Batch        |
+
+To select a specific cane line (e.g., sugarcane-WT or oilcane-1566) as described in 
+[[2]](#2), add the name of the line after a period. For example, "O5.WT" is the 
+DC biorefinery processing traditional sugarcane to biodiesel 
+(through microbial oil production) and "O7.1566" is the 
+ICF biorefinery processing oilcane prototype 1566 to biodiesel (from plant and microbial oils).
+
+For sweet sorghum and oil-sorghum integration, add a '\*'. For example, "S1\*" is
+the DC biorefinery producing ethanol from sugarcane and sweet sorghum and "O2*"
+is the ICF biorefinery co-producing ethanol and biodiesel from oilcane and oil-sorghum.
+
+The default assumptions on market prices, technological performance, and wastewater
+treatment are set to those used in the 2022 publication [[1]](#1). For updated 
+assumptions used in 2023-2024 publications (e.g., updated market prices,
+oilcane oil contents, and high-rate wastewater treatment of bagasse),
+run the function "YRCP2023()" before loading biorefineries.
+
+Here is an example for loading the ICF biorefinery producing biodiesel from
+oilcane 1566 using 2023-2024 assumptions. Note that all unit operations, streams, 
+systems, parameters, and metrics are available as attrbitutes to the Biorefinery object:
 
 ```python
->>> from biorefineries import cane
->>> S1 = cane.Biorefinery('S1') # Load conventional sugarcane biorefinery
->>> S1.sys.show(data=False) # Full system
-System: sugarcane_sys
-Highest convergence error among components in recycle
-stream M201-0 after 5 loops:
-- flow rate   1.36e-12 kmol/hr (3.8e-14%)
-- temperature 4.41e-06 K (1.3e-06%)
-ins...
-[0] sugarcane
-[1] H3PO4
-[2] lime
-[3] polymer
-[4] denaturant
-outs...
-[0] advanced_ethanol
-[1] vinasse
-[2] wastewater
-[3] emissions
-[4] ash_disposal
+>>> import biorefineries.cane as c
+>>> c.YRCP2023()
+>>> O7 = c.Biorefinery('O7.1566') # Create biorefinery
+>>> O7.sys.diagram() # View autogenerated process flowsheet
+```
 
->>> O1 = cane.Biorefinery('O1') # Load direct cogeneration oilcane configuration
->>> O1.sys.show(data=False)
-System: oilcane_sys
-Highest convergence error among components in recycle
-streams {C504-1, P518-0} after 4 loops:
-- flow rate   2.07e-08 kmol/hr (2.1e-06%)
-- temperature 6.68e-07 K (2e-07%)
-ins...
-[0] oilcane
-outs...
-[0] advanced_ethanol
-[1] biodiesel
-[2] crude_glycerol
-[3] vinasse
+![O7](./O7.png)
 
+```python
+>>> O7.R201.show() # All objects are available through the biorefinery object
+AeratedFermentation: R201
+ins...
+[0] s28  from  HXutility-H201
+    phase: 'l', T: 303.15 K, P: 101325 Pa
+    flow (kmol/hr): Water                 8.27e+03
+                    Glucose               10.8
+                    Sucrose               64.1
+                    H3PO4                 0.247
+                    Phosphatidylinositol  0.0839
+                    OleicAcid             0.29
+                    TriOlein              0.673
+[1] s140  
+    phase: 'g', T: 305.15 K, P: 101325 Pa
+    flow (kmol/hr): O2  275
+                    N2  1.04e+03
+outs...
+[0] vent  
+    phase: 'g', T: 305.15 K, P: 101325 Pa
+    flow (kmol/hr): CO2  233
+                    O2   197
+                    N2   1.04e+03
+[1] s29  to  StorageTank-T201
+    phase: 'l', T: 305.15 K, P: 101325 Pa
+    flow (kmol/hr): Water                 8.52e+03
+                    Glucose               0.0907
+                    H3PO4                 0.247
+                    Yeast                 310
+                    Glycerol              0.155
+                    Phosphatidylinositol  0.0839
+                    OleicAcid             0.768
+                    ...                   5.61
 ```
 
 To retrieve economic and environmental results at different scenarios, you can 
 use the Model object:
 
 ```python
->>> import biorefineries.cane
->>> import pandas as pd
->>> pd.set_option('display.max_rows', 50) # Show complete data table
->>> O2 = cane.Biorefinery('O2') # Load integrated co-fermentation oilcane configuration
->>> parameters = O2.model.get_baseline_sample() # All parameters at the baseline scenario
+>>> import biorefineries.cane as c
+>>> c.YRCP2023()
+>>> # Load integrated co-fermentation oilcane configuration producing biodiesel from sugarcane
+>>> O7 = c.Biorefinery('O7.WT') 
+>>> # All parameters at the baseline scenario
+>>> parameters = O7.model.get_baseline_sample() 
 >>> parameters
-                                   Oil recovery [%]                                 60
-                                   Saccharification oil recovery [%]                70
-                                   Cane operating days [day/yr]                    180
-                                   Sorghum operating days [day/yr]                  45
-                                   Annual crushing capacity [MT/yr]            1.6e+06
-Stream-cellulosic ethanol          Price [USD/L]                                 0.902
-Stream-advanced ethanol            Price [USD/L]                                 0.573
-Stream-biodiesel                   Price [USD/L]                                  1.01
-Stream-cellulosic based diesel     Price [USD/L]                                   1.5
-Stream-natural gas                 Price [USD/m3]                                0.154
-                                   Electricity price [USD/kWhr]                 0.0641
-                                   IRR [%]                                          10
-Stream-crude glycerol              Price [USD/kg]                                 0.16
-Stream-pure glycerine              Price [USD/kg]                                 0.65
-Saccharification                   Reaction time [hr]                               72
-Stream-cellulase                   Price [USD/kg]                                0.212
-cellulase                          Cellulase loading [wt. % cellulose]            0.02
-Pretreatment reactor system        Base cost [million USD]                    1.97e+07
-Pretreatment and saccharification  Cane glucose yield [%]                           91
-                                   Sorghum glucose yield [%]                        79
-                                   Cane xylose yield [%]                          97.5
-                                   Sorghum xylose yield [%]                         86
-Cofermenation                      Glucose to ethanol yield [%]                     90
-                                   Xylose to ethanol yield [%]                      42
-Cofermentation                     Ethanol titer [g/L]                            68.5
-                                   Ethanol productivity [g/L]                    0.951
-Cofermenation                      Glucose to microbial oil yield [%]             49.5
-                                   Xylose to microbial oil yield [%]              49.5
-Cofermentation                     Microbial oil titer [g/L]                      27.4
-                                   Microbial oil productivity [g/L]               0.31
-oilcane                            Cane PL content [% oil]                          10
-oilsorghum                         Sorghum PL content [% oil]                       10
-oilcane                            Cane FFA content [% oil]                         10
-oilsorghum                         Sorghum FFA content [% oil]                      10
-oilcane                            Cane oil content [dry wt. %]                     10
-oilsorghum                         Relative sorghum oil content [dry wt. %]       -1.5
-                                   TAG to FFA conversion [% oil]                    23
-Stream-oilcane                     GWP [kg*CO2-eq/kg]                           0.0352
-Stream-methanol                    GWP [kg*CO2-eq/kg]                             0.45
-Stream-pure glycerine              GWP [kg*CO2-eq/kg]                             1.67
-Stream-cellulase                   GWP [kg*CO2-eq/kg]                            0.404
-Stream-natural gas                 GWP [kg*CO2-eq/kg]                             0.33
-                                   Income tax [%]                                   21
+-                                  Juicing oil recovery [%]                    60
+                                   Microbial oil recovery [%]                  70
+                                   Bagasse oil recovery [%]                    70
+                                   Cane operating days [day/y]                180
+                                   Sorghum operating days [day/y]              45
+Feedstock                          Available land [ha]                   1.87e+04
+                                   Dry biomass yield [DMT/ha/y]              17.7
+Crude oil                          Price [USD/L]                            0.544
+Feedstock                          Price [USD/kg]                           0.035
+Ethanol                            Price [USD/L]                            0.358
+Biodiesel                          Price [USD/L]                            0.749
+RIN D3                             Price [USD/RIN]                          0.534
+RIN D4                             Price [USD/RIN]                          0.206
+RIN D5                             Price [USD/RIN]                          0.205
+Natural gas                        Price [USD/m3]                               0
+Electricity                        Price [USD/kWh]                              0
+-                                  IRR [%]                                     10
+Crude glycerol                     Price [USD/kg]                            0.16
+Pure glycerine                     Price [USD/kg]                            0.65
+Saccharification                   Reaction time [h]                           72
+Cellulase                          Price [USD/kg]                           0.212
+                                   Cellulase loading [wt. % cellulose]       0.02
+Pretreatment reactor system        Base cost [million USD]                   19.7
+Pretreatment and saccharification  Cane glucose yield [%]                      85
+                                   Sorghum glucose yield [%]                   79
+                                   Cane xylose yield [%]                       65
+                                   Sorghum xylose yield [%]                    86
+Cofermenation                      Glucose to ethanol yield [%]                90
+                                   Xylose to ethanol yield [%]                 50
+Cofermentation                     Ethanol titer [g/L]                       68.5
+                                   Ethanol productivity [g/L/h]             0.951
+Cofermenation                      Glucose to microbial oil yield [%]        13.2
+                                   Xylose to microbial oil yield [%]         13.2
+Fermentation                       Microbial oil titer [g/L]                 13.2
+                                   Microbial oil productivity [g/L/h]        0.17
+Oilcane                            Cane PL content [% oil]                     10
+Oilsorghum                         Sorghum PL content [% oil]                  10
+Oilcane                            Cane FFA content [% oil]                    10
+Oilsorghum                         Sorghum FFA content [% oil]                 10
+-                                  TAG to FFA conversion [% oil]               23
+Sugarcane                          GWP [kg*CO2e/kg]                        0.0352
+Methanol                           GWP [kg*CO2e/kg]                          0.45
+Pure glycerine                     GWP [kg*CO2e/kg]                          1.67
+Cellulase                          GWP [kg*CO2e/kg]                         0.404
+Natural gas                        GWP [kg*CO2e/kg]                          0.33
+-                                  Income tax [%]                              21
+Stream-Oilcane                     Oil content [dw %]                       0.018
+                                   Moisture content [wt %]                  0.667
+                                   Sugar content [dw %]                     0.367
 dtype: float64
 
 >>> parameters['oilcane', 'Cane oil content [dry wt. %]'] = 10 # Change oil content
->>> O2.model(parameters) # Evaluate at new oil content
-Biorefinery              MFPP [USD/MT]                                          47.1
-                         Feedstock consumption [MT/yr]                       1.6e+06
-                         Biodiesel production [L/MT]                            27.1
-                         Biodiesel yield [L/hc]                                  NaN
-                         Ethanol production [L/MT]                              99.8
-                         Electricity production [kWhr/MT]                       41.2
-                         Net energy production [GGE/MT]                           27
-                         Natural gas consumption [m3/MT]                           0
-                         TCI [10^6*USD]                                          503
-                         Heat exchanger network error [%]                  -1.82e-07
-Economic allocation      GWP [kg*CO2*eq / USD]                                 0.483
-                         Ethanol GWP [kg*CO2*eq / L]                           0.367
-                         Biodiesel GWP [kg*CO2*eq / L]                         0.622
-                         Crude glycerol GWP [kg*CO2*eq / kg]                  0.0772
-                         Electricity GWP [kg*CO2*eq / MWhr]                     30.9
-Displacement allocation  Ethanol GWP [kg*CO2*eq / L]                          -0.446
-                         Biodiesel GWP [kg*CO2*eq / L]                         -1.65
-Energy allocation        Biofuel GWP [kg*CO2*eq / GGE]                          2.04
-                         Ethanol GWP [kg*CO2*eq / L]                            0.36
-                         Biodiesel GWP [kg*CO2*eq / L]                         0.566
-                         Crude-glycerol GWP [kg*CO2*eq / kg]                   0.216
-Biorefinery              IRR [%]                                                8.91
-                         MFPP derivative [USD/MT]                               1.33
-                         Biodiesel production derivative [L/MT]                 2.71
-                         Ethanol production derivative [L/MT]                  -3.05
-                         Electricity production derivative [kWhr/MT]            5.94
-                         Natural gas consumption derivative [cf/MT]                0
-                         TCI derivative [10^6*USD]                              1.93
-Economic allocation      GWP derivative [kg*CO2*eq / USD]                   -0.00851
-Ethanol                  Ethanol GWP derivative [kg*CO2*eq / L]             -0.00655
-Biodiesel                Biodiesel GWP derivative [kg*CO2*eq / L]            -0.0111
-Crude glycerol           Crude glycerol GWP derivative [kg*CO2*eq / kg]     -0.00136
-Electricity              Electricity GWP derivative [kg*CO2*eq / MWhr]        -0.546
-Biorefinery              ROI [%]                                                9.59
-                         Competitive oilcane biomass yield [% sugarcane]         NaN
-                         Competitive microbial oil yield [wt. %]                 NaN
+>>> parameters['oilcane', 'Moisture content [wt %]'] = 65 
+>>> O7.model(parameters) # Evaluate at new oil content
+-                        MFPP [USD/MT]                                     -7.48
+                         MESP [USD/L]                                          0
+                         MBSP [USD/L]                                       3.48
+                         Feedstock consumption [MT/y]                    1.6e+06
+                         Biodiesel production [L/MT]                        15.6
+                         Biodiesel yield [L/ha]                         1.33e+03
+                         Ethanol production [L/MT]                             0
+                         Electricity production [kWh/MT]                     513
+                         Net energy production [GGE/MT]                     20.9
+                         Natural gas consumption [m3/MT]                       0
+                         TCI [10^6*USD]                                      652
+                         Heat exchanger network error [%]                  4e-13
+Economic allocation      GWP [kg*CO2e / USD]                               0.848
+                         Ethanol GWP [kg*CO2e / L]                         0.477
+                         Biodiesel GWP [kg*CO2e / L]                       0.477
+                         Crude glycerol GWP [kg*CO2e / kg]                 0.136
+                         Electricity GWP [kg*CO2e / MWh]                    58.5
+Displacement allocation  Ethanol GWP [kg*CO2e / L]                             0
+                         Biodiesel GWP [kg*CO2e / L]                       -12.6
+Energy allocation        Biofuel GWP [kg*CO2e / GGE]                        1.81
+                         Ethanol GWP [kg*CO2e / L]                          0.32
+                         Biodiesel GWP [kg*CO2e / L]                       0.503
+                         Crude-glycerol GWP [kg*CO2e / kg]                 0.192
+-                        MFPP derivative [USD/MT]                            NaN
+                         Biodiesel production derivative [L/MT]              NaN
+                         Ethanol production derivative [L/MT]                NaN
+                         Electricity production derivative [kWh/MT]          NaN
+                         Natural gas consumption derivative [cf/MT]          NaN
+                         TCI derivative [10^6*USD]                           NaN
+Economic allocation      GWP derivative [kg*CO2e / USD]                        0
+Ethanol                  GWP derivative [kg*CO2e / L]                          0
+Biodiesel                GWP derivative [kg*CO2e / L]                          0
+Crude glycerol           GWP derivative [kg*CO2e / kg]                         0
+Electricity              GWP derivative [kg*CO2e / MWh]                        0
+-                        ROI [%]                                            1.16
+Feedstock                Competitive biomass yield [dry MT/ha]               NaN
+                         Energy competitive biomass yield [dry MT/ha]        NaN
+-                        Breakeven IRR [%]                                 -3.77
 dtype: float64
 
 ```
+
+Here are an additional example for loading the conventional sugarcane biorefinery
+producing ethanol and electricity:
+
+```python
+>>> import biorefineries.cane as c
+>>> S1 = c.Biorefinery('S1') # Load conventional sugarcane biorefinery
+>>> S1.sys.show(data=False) # Full system
+System: sugarcane_sys
+Highest convergence error among components in recycle
+stream M201-0 after 5 loops:
+- flow rate   9.09e-13 kmol/hr (0%)
+- temperature 4.25e-06 K (1.3e-06%)
+ins...
+[0] sugarcane  
+[1] H3PO4  
+[2] lime  
+[3] polymer  
+[4] denaturant  
+outs...
+[0] advanced_ethanol  
+[1] vinasse  
+[2] fiber_fines  
+[3] emissions  
+[4] ash_disposal  
+
+```
+
 
 ## References
 <a id="1">[1]</a> 
     Cortés-Peña, Y.R., C.V. Kurambhatti, K. Eilts, V. Singh, J.S. Guest, “Economic and Environmental Sustainability of Vegetative Oil Extraction Strategies at Integrated Oilcane and Oil-sorghum Biorefineries,” ACS Sustainable Chemistry & Engineering.
 
+<a id="2">[2]</a>
+    Cortés-Peña, Y., W. Woodruff, S. Banerjee, et al., “Integration of Plant and Microbial Oil Processing at Oilcane Biorefineries for More Sustainable Biofuel Production,” Chemistry, (2023). https://doi.org/10.26434/chemrxiv-2023-rdvbl.

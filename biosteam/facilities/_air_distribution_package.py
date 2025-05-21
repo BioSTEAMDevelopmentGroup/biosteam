@@ -12,7 +12,7 @@ cost = bst.decorators.cost
 
 __all__ = ('AirDistributionPackage',)
 
-@cost('Flow rate', 'Plant air reciever',
+@cost('Flow rate', 'Plant air receiver',
       cost=16e3, CE=522, S=83333, n=0.6, BM=3.1)
 @cost('Flow rate', 'Instrument air dryer',
       cost=15e3, CE=522, S=83333, n=0.6, BM=1.8)

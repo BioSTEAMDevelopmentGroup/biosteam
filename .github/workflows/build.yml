@@ -14,18 +14,18 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.9]
+        python-version: [3.11, 3.12]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }} ${{ matrix.architecture }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
         architecture: ${{ matrix.architecture }}
 
     - name: cache Linux
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       if: startsWith(runner.os, 'Linux')
       with:
         path: ~/.cache/pip
@@ -33,7 +33,7 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-${{ runner.architecture }}-${{ runner.python-version }}pip-
     - name: cache MacOS
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       if: startsWith(runner.os, 'macOS')
       with:
         path: ~/Library/Caches/pip
@@ -41,7 +41,7 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-${{ runner.architecture }}-${{ runner.python-version }}pip-
     - name: cache Windows
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       if: startsWith(runner.os, 'Windows')
       with:
         path: ~\AppData\Local\pip\Cache

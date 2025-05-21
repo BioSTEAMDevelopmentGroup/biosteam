@@ -37,6 +37,7 @@ class MetricBar(NamedTuple): # pragma: no coverage
     center: bool = None
     title_position: str = 'top'
     shrink: bool = 0.8
+    pad: float = 0.15
     
     def fmt(self, x):
         value = f'{round(x, self.N_decimals):,}'
@@ -56,7 +57,7 @@ class MetricBar(NamedTuple): # pragma: no coverage
     @property
     def title(self):
         if self.units:
-            return f'{self.name}{self.units_dlim}[{self.units}]'
+            return f'{self.name}{self.units_dlim}{self.units}'
         else:
             return self.name
     
@@ -70,14 +71,16 @@ class MetricBar(NamedTuple): # pragma: no coverage
     def colorbar(self, fig, ax, colorplot, label=True, **cbarkwargs):
         if self.forced_size is not None:
             cbarkwargs['fraction'] = self.forced_size
+        if 'pad' not in cbarkwargs:
+            cbarkwargs['pad'] = self.pad
         cbar = fig.colorbar(colorplot, ax=ax, ticks=self.ticks, **cbarkwargs)
         cbar_ax = cbar.ax
         # cbar_ax.locator_params(nbins=self.N_ticks)
         if label:
             if self.title_position == 'top':
-                cbar_ax.set_title(self.title, self.ylabelkwargs)
+                cbar_ax.set_title(self.title, **self.ylabelkwargs)
             else:
-                cbar_ax.set_ylabel(self.title, self.ylabelkwargs)
+                cbar_ax.set_ylabel(self.title, **self.ylabelkwargs)
         try:
             ylabels = [y.get_text() for y in cbar_ax.get_yticklabels()]
             ylabels = [(i if i[0].isdigit() else '-'+i[1:]) for i in ylabels]

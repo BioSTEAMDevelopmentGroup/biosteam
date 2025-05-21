@@ -8,7 +8,12 @@ References
 .. [1] Seider, W. D.; Lewin, D. R.; Seader, J. D.; Widagdo, S.; Gani, R.;
     Ng, M. K. Cost Accounting and Capital Cost Estimation.
     In Product and Process Design Principles; Wiley, 2017; pp 426–485.
-
+.. [2] Amazon. Robinair (15115) VacuMaster Single Stage Vacuum Pump - Single-Stage, 1.5 CFM. 
+    https://www.amazon.com/Robinair-15115-VacuMaster-Single-Vacuum/dp/B005CO9FDW?ref_=ast_sto_dp.
+    Accessed on 09/28/2023.
+.. [3] Amazon. Robinair (15300) VacuMaster Economy Vacuum Pump - 2-Stage, 3 CFM.
+    https://www.amazon.com/Robinair-15300-VacuMaster-Economy-Vacuum/dp/B000O1E5UQ?ref_=ast_sto_dp
+    Accessed on 09/28/2023.
 
 """
 from numpy import log as ln
@@ -26,6 +31,7 @@ __all__ = ('compute_vacuum_system_power_and_cost',)
 
 # System types of vacuum systems
 # Volumetric flowrate ranges, (cfm) and lower limit of suction (torr)
+# Rotary vane pumps based on ref. [2], [3]
 _steamjet_ejectors = {
     'One stage':               ((10, 1000000), 100),
     'Two stage':               ((10, 1000000),  15),
@@ -38,11 +44,20 @@ _dry_vacuum = {
     'Three stage rotary lobe': ((60,     240), 1.5),
     'Three stage claw':        ((60,     270), 0.3),
     'Screw compressor':        ((50,    1400), 0.1)}
+_rotary_vane = {
+    'One stage':               ((0,     1.51), 0.115),
+    'Two stage':               ((1.5,   3.01), 0.035)}
 
 _default_vacuum_systems = {'Liquid-ring pump': _liquid_ring,
                            'Steam-jet ejector': _steamjet_ejectors,
-                           'Dry-vacuum pump': _dry_vacuum}
-            
+                           'Dry-vacuum pump': _dry_vacuum,
+                           'Rotary-vane pump': _rotary_vane}
+
+_default_rotary_vane_work_cost = {
+    'One stage': (1/5 * 0.7457, 127*1.08), # hp to kW; 2023 USD (including tax & shipping)
+    'Two stage': (1/3 * 0.7457, 248*1.08)
+}
+
 _air_density = 1.2041 # kg/m3 dry air
 
 # %% Calculate vacuum system requirements
@@ -75,15 +90,16 @@ def compute_vacuum_system_power_and_cost(
     else:
         F_vol_air = F_mass_air = 0
     F_vol_cfm = 0.5886*F_vol + F_vol_air
-    if F_vol_cfm < 3.01:
-        factor = 3.01/F_vol_cfm
-        F_vol_cfm = 3.01
-    else:
-        factor = 1
+    # if F_vol_cfm < 3.01:
+        # factor = 3.01/F_vol_cfm
+        # F_vol_cfm = 3.01
+    # else:
+    #     factor = 1
+    factor = 1
     F_mass_kgph = (F_mass + 0.4536*F_mass_air)*factor # kg/hr
     F_mass_lbph = 2.205 * F_mass_kgph
-    vacuum_systems = get_prefered_vacuum_systems(vacuum_system_preference)
-    name, grade, N = select_vacuum_system(vacuum_systems, F_vol_cfm, P_suction)
+    vacuum_systems = get_preferred_vacuum_systems(vacuum_system_preference)
+    name, grade, N = select_vacuum_system(vacuum_systems, F_vol_cfm, P_suction, bool(vacuum_system_preference))
     base_cost = calculate_vacuum_cost(name, grade, F_mass_lbph, F_vol_cfm, P_suction)
     cost = bst.CE / 567.  * base_cost
     if name == 'Steam-jet ejector':
@@ -92,6 +108,12 @@ def compute_vacuum_system_power_and_cost(
         steam = 0.41631 * F_mass_kgph # [kmol/hr] 7.5 weight steam/ weight gas
         work = 0.
         has_condenser = grade != 'One stage'
+    elif name == 'Rotary-vane pump':
+        has_condenser = False
+        agent = None
+        steam = 0.
+        N = 1
+        work = _default_rotary_vane_work_cost[grade][0]
     else:
         has_condenser = False
         agent = None
@@ -108,7 +130,7 @@ def compute_vacuum_system_power_and_cost(
 
 # %% Supporting functions
 
-def get_prefered_vacuum_systems(preference):
+def get_preferred_vacuum_systems(preference):
     defaults = _default_vacuum_systems
     if preference is None:
         return defaults
@@ -142,7 +164,7 @@ def get_available_vacuum_systems(F_vol_cfm, P_suction):
                 types.append((vacuumtype, grade))
     return types
 
-def select_vacuum_system(vacuum_systems, F_vol_cfm, P_suction):
+def select_vacuum_system(vacuum_systems, F_vol_cfm, P_suction, ignore_F_lb=False):
     """
     Return a heuristic vacuum type and grade
     
@@ -156,8 +178,11 @@ def select_vacuum_system(vacuum_systems, F_vol_cfm, P_suction):
     for name, vacuum_sys in vacuum_systems.items():
         for grade, flowrange_minsuction in vacuum_sys.items():
             flowrange, minsuction = flowrange_minsuction
-            if checkbounds(F_vol_cfm, flowrange) and P_suction > minsuction:
-                return (name, grade, 1)
+            if ignore_F_lb:
+                if F_vol_cfm < flowrange[-1] and P_suction > minsuction:
+                    return (name, grade, 1)
+            elif checkbounds(F_vol_cfm, flowrange) and P_suction > minsuction:
+                    return (name, grade, 1)
     for name, vacuum_sys in vacuum_systems.items(): # Flow rate too large
         for grade, flowrange_minsuction in vacuum_sys.items():
             flowrange, minsuction = flowrange_minsuction
@@ -251,5 +276,10 @@ def calculate_vacuum_cost(vacuum_sys, grade, F_mass_lbph, F_vol_cfm, P_suction):
         elif grade == 'Screw compressor':
             Cp = 10875*S**0.38
         Cost = Cp
+    elif vacuum_sys == 'Rotary-vane pump':
+        Cost = _default_rotary_vane_work_cost[grade][1] / 708. * 567.   # !!! 708 is the 2021 CEPCI, need to be updated to 2023 CEPCI
     return Cost
+    
+
+    
     

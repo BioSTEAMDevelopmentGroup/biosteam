@@ -10,7 +10,7 @@
 import pytest
 import biosteam as bst
 import numpy as np
-from biosteam._network import Network
+from thermosteam.network import Network
 from numpy.testing import assert_allclose
 
 def test_auxiliary_unit_owners():
@@ -26,10 +26,29 @@ def test_auxiliary_unit_owners():
     # Once unit is in a system, auxiliary units must have an owner
     assert unit.mixer.owner is unit
 
+def test_unit_convinience_properties():
+    class TestUnit(bst.Unit):
+        _N_ins = 2
+        _N_outs = 2
+        
+        def _run(self):
+            for i, j in zip(self.ins, self.outs):
+                j.copy_like(i)
+    
+    bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
+    ins = [bst.Stream(None, Water=1, Ethanol=2),
+           bst.Stream(None, Water=2, Ethanol=5)]
+    U = TestUnit(None, ins=ins, outs=(None, None))
+    U.run()
+    assert (U.mol_in == [3, 7]).all()
+    assert (U.mol_in == U.mol_out).all()
+    assert (U.z_mol_in == U.z_mol_out).all()
+    assert (U.z_mol_in == [0.3, 0.7]).all()
+
 def test_unit_inheritance_setup_method():
     class NewUnit(bst.Unit):
         def _setup(self):
-            pass
+            super()._setup()
     
     bst.settings.set_thermo(['Water'], cache=True)
     U1 = NewUnit()
@@ -55,17 +74,15 @@ def test_process_specifications_linear():
         ethanol = T2.ins[0]
         water.F_mass = ethanol.F_mass
     sys.simulate()
-    assert M1.specifications[0].path == ()
+    assert M1.specifications[0].path == [T1, H1]
     assert sys._to_network() == Network(
         [T2,
          H2,
+         T1,
+         H1,
          T3,
          H3,
-         Network(
-            [M1,
-             T1,
-             H1],
-            recycle=H1-0),
+         M1,
          H4]
     )
     assert_allclose(H4.outs[0].mol, sum([i.ins[0].mol for i in (T1, T2, T3)]))
@@ -114,10 +131,13 @@ def test_process_specifications_linear():
     H1.add_specification(lambda: None, run=True, impacted_units=[T2])
     H2.add_specification(lambda: None, run=True, impacted_units=[T1])
     sys.simulate()
-    assert sys.unit_path.index(H1) < sys.unit_path.index(T2)
-    assert H1.specifications[0].path == ()
-    assert H2.specifications[0].path == ()
-    # Net simulation order is ..., T2, H2, T1, H1, T2, H2, ...
+    if sys.unit_path.index(H1) < sys.unit_path.index(T2):
+        assert H1.specifications[0].path == []
+        assert H2.specifications[0].path == [T1, H1, T2]
+        # Net simulation order is ..., T2, H2, T1, H1, T2, H2, ...
+    else:
+        assert H1.specifications[0].path == [T2, H2, T1]
+        assert H2.specifications[0].path == []
     
 def test_process_specifications_with_recycles():
     bst.F.set_flowsheet('bifurcated_recycle_loops')
@@ -169,23 +189,29 @@ def test_process_specifications_with_recycles():
          P2_a,
          S1_a,
          Network(
-            [Network(
-                [P1_b,
-                 Network(
-                    [M1_b,
-                     S2_a,
-                     M2_a,
-                     S2_b,
-                     S3_a,
-                     M2_b,
-                     S3_b,
-                     M1_a],
-                    recycle=M1_a-0),
-                 P2_b,
-                 S1_b],
-                recycle=P1_b-0)],
-            recycle=[S3_b-1, S1_b-1])])
-    assert M1_b.specifications[0].path == ()
+            [M1_a,
+             S2_a,
+             M2_a,
+             S3_a],
+            recycle=S3_a-1),
+         P2_b,
+         S1_b,
+         P1_b,
+         Network(
+            [M1_b,
+             S2_b,
+             M2_b,
+             S3_b],
+            recycle=S3_b-1)]
+    )
+    assert M1_b.specifications[0].path == [
+        recycle_loop_sys.subsystems[0],
+        P2_b,
+        S1_b,
+        P1_b,
+        M2_b,
+        S3_b
+    ]
     
 def test_unit_connections():
     from biorefineries import sugarcane as sc
@@ -226,11 +252,10 @@ def test_unit_graphics():
     
     S = bst.Splitter(None, outs=None, split=0.5)
     
-    GraphicsWarning = bst.exceptions.GraphicsWarning
-    with pytest.warns(GraphicsWarning):
+    with pytest.warns(RuntimeWarning):
         assert S._graphics.get_inlet_options(S, 1) == {'headport': 'c'}
     
-    with pytest.warns(GraphicsWarning):
+    with pytest.warns(RuntimeWarning):
         assert M._graphics.get_outlet_options(M, 1) == {'tailport': 'c'}
 
 def test_cost_decorator():
@@ -384,6 +409,7 @@ def test_skipping_unit_simulation_with_empty_inlet_streams():
         
 if __name__ == '__main__':
     test_auxiliary_unit_owners()
+    test_unit_convinience_properties()
     test_unit_inheritance_setup_method()
     test_process_specifications_linear()
     test_process_specifications_with_recycles()

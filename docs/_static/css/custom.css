@@ -1,20 +1,19 @@
 html[data-theme="dark"] img {
     filter: none;
 }
+
 html[data-theme="dark"] .bd-content img:not(.only-dark) {
     background: unset;
 }
 
-.bd-header-announcement:after {
-    background-color: rgb(225, 173, 106);
-}
-
 html[data-theme="light"] {
     --pst-color-title: rgb(69, 157, 185);
+    --pst-color-secondary-bg: rgb(245, 245, 245);
 }
 
 html[data-theme="dark"] {
     --pst-color-title: rgb(229, 229, 229);
+    --pst-color-secondary-bg: #14181e;
 }
 
 h1 {

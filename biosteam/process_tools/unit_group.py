@@ -9,9 +9,10 @@
 import pandas as pd
 import biosteam as bst
 import numpy as np
+from thermosteam.utils import repr_items
 from . import utils
 from .._unit import Unit
-from ..utils import misc, streams_from_units
+from ..utils import streams_from_units
 from .._heat_utility import HeatUtility
 from collections.abc import Mapping
 
@@ -70,7 +71,7 @@ class UnitGroup:
     
     >>> ugroup.autofill_metrics(electricity_production=True)
     >>> ugroup.metrics
-    [<Metric: Installed equipment cost (MM$)>, <Metric: Cooling duty (GJ/hr)>, <Metric: Heating duty (GJ/hr)>, <Metric: Electricity consumption (MW)>, <Metric: Electricity production (MW)>, <Metric: Material cost (USD/hr)>]
+    [<Indicator: Installed equipment cost (MM$)>, <Indicator: Cooling duty (GJ/hr)>, <Indicator: Heating duty (GJ/hr)>, <Indicator: Electricity consumption (MW)>, <Indicator: Electricity production (MW)>, <Indicator: Material cost (USD/hr)>]
     
     Get all metric results:
         
@@ -305,7 +306,7 @@ class UnitGroup:
         >>> areas = UnitGroup.group_by_area(cornstover_sys.units)
         >>> areas[-1].show()
         UnitGroup: 700
-         units: T701, P701, M701, T702, P702,
+         units: T701, P701, T702, P702, M701,
                 T703
         
         >>> default() # Bring biosteam settings back to default
@@ -472,9 +473,9 @@ class UnitGroup:
         ... )
              Net electricity production
         0                           100
-        100                       -2.97
-        200                        -3.5
-        300                      -0.895
+        100                       -2.96
+        200                       -3.49
+        300                      -0.906
         400                           0
         
         >>> bst.UnitGroup.df_from_groups(
@@ -485,7 +486,7 @@ class UnitGroup:
         0                           108
         100                       -3.21
         200                       -3.78
-        300                      -0.966
+        300                       -0.98
         400                           0
         
         >>> bst.default() # Reset to biosteam defaults
@@ -521,7 +522,7 @@ class UnitGroup:
     def show(self):
         units = self.units
         if units:
-            units = '\n' + misc.repr_items(' units: ', units)
+            units = '\n' + repr_items(' units: ', units)
         else:
             units = "\n units: (No units)"
         metrics = self.metrics

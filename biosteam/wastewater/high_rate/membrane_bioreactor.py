@@ -188,25 +188,25 @@ class AnMBR(bst.Unit):
                'AF', 'AeF')
 
 
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 reactor_type='CSTR',
-                 membrane_configuration='cross-flow',
-                 membrane_type='multi-tube',
-                 membrane_material='ceramic',
-                 membrane_unit_cost=8,
-                 include_aerobic_filter=False,
-                 add_GAC=False,
-                 include_degassing_membrane=True,
-                 Y_biogas=0.86,
-                 Y_biomass=0.05, # from the 0.02-0.08 uniform range in ref [1]
-                 biodegradability={},
-                 split={},
-                 sludge_conc=10.5,
-                 T=35+273.15,
-                 include_pump_building_cost=False,
-                 include_excavation_cost=False,
-                 **kwargs):
-        bst.Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, 
+            reactor_type='CSTR',
+            membrane_configuration='cross-flow',
+            membrane_type='multi-tube',
+            membrane_material='ceramic',
+            membrane_unit_cost=8,
+            include_aerobic_filter=False,
+            add_GAC=False,
+            include_degassing_membrane=True,
+            Y_biogas=0.86,
+            Y_biomass=0.05, # from the 0.02-0.08 uniform range in ref [1]
+            biodegradability={},
+            split={},
+            sludge_conc=10.5,
+            T=35+273.15,
+            include_pump_building_cost=False,
+            include_excavation_cost=False,
+            **kwargs
+        ):
         self.reactor_type = reactor_type
         self.include_aerobic_filter = include_aerobic_filter
         self.membrane_configuration = membrane_configuration
@@ -344,20 +344,19 @@ class AnMBR(bst.Unit):
         self.growth_rxns(mixed.mol)
         self.biogas_rxns(mixed.mol)
         mixed.split_to(perm, sludge, self._isplit.data)
-
+        degassing(perm, biogas)
+        degassing(sludge, biogas)
+        
         sludge_conc = self._sludge_conc
         insolubles = tuple(i.ID for i in self.chemicals if i.ID in default_insolubles)
         m_insolubles = sludge.imass[insolubles].sum()
         if m_insolubles/sludge.F_vol <= sludge_conc:
-            diff = sludge.ivol['Water'] - m_insolubles/sludge_conc
-            sludge.ivol['Water'] = m_insolubles/sludge_conc
-            perm.ivol['Water'] += diff
+            old = sludge.ivol['Water']
+            sludge.ivol['Water'] = new = min(m_insolubles/sludge_conc, sludge.ivol['Water'] + perm.ivol['Water'])
+            perm.ivol['Water'] += old - new
         if perm.imass['Water'] < 0:
             raise ValueError('Not enough moisture in the influent for waste sludge '
                              f'with {sludge_conc} g/L sludge concentration.')
-
-        degassing(perm, biogas)
-        degassing(sludge, biogas)
 
         # Gas for sparging, no sparging needed if submerged or using GAC
         air_out.link_with(air_in)
@@ -374,19 +373,20 @@ class AnMBR(bst.Unit):
 
         mod_per_cas, cas_per_tank = N_mod_min, N_cas_min
 
-        J, J_max, N_train = self.J, self.J_max, self._N_train_min
-        while J > J_max:
+        J_max = self.J_max
+        
+        while self.J > J_max:
             mod_per_cas += 1
             if mod_per_cas == N_mod_max + 1:
                 if cas_per_tank == N_cas_max + 1:
-                    N_train += 1
+                    self.N_train+=1
                     mod_per_cas, cas_per_tank = N_mod_min, N_cas_min
                 else:
                     cas_per_tank += 1
                     mod_per_cas = N_mod_min
-
-        self._N_train, self._mod_per_cas, self._cas_per_tank = \
-            N_train, mod_per_cas, cas_per_tank
+                    
+        self._mod_per_cas, self._cas_per_tank = \
+            mod_per_cas, cas_per_tank
 
 
     # Called by _run

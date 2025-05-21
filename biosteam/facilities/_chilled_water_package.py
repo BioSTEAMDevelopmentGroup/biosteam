@@ -35,23 +35,23 @@ class ChilledWaterPackage(bst.Facility):
     
     """
     ticket_name = 'CWP'
-    network_priority = 0
+    network_priority = -1
     _units = {'Duty': 'kJ/hr'}
     def __init__(self, ID='', agent=None):
         self.agent = chilled_water = agent or bst.settings.get_cooling_agent('chilled_water')
         super().__init__(ID,
-                         ins='recirculated_chilled_water',
+                         ins='.recirculated_chilled_water',
                          outs=chilled_water.to_stream(),
                          thermo=chilled_water.thermo)
-        
+    
     def _load_chilled_water_utilities(self):
-        self.chilled_water_utilities = cwu = set()
+        self.chilled_water_utilities = cwu = []
         ID = self.agent.ID
         for u in self.other_units:
             if u is self: continue
             for hu in u.heat_utilities:
                 agent = hu.agent 
-                if agent and agent.ID == ID: cwu.add(hu)
+                if agent and agent.ID == ID: cwu.append(hu)
         
     def _design(self):
         self._load_chilled_water_utilities()

@@ -16,6 +16,7 @@ class Auxiliary:
         'auxiliary_units',
         'power_utility',
         'heat_utilities', 
+        'design_results',
         'baseline_purchase_costs',
         'purchase_costs',
         'installed_costs',
@@ -23,10 +24,15 @@ class Auxiliary:
         'auxiliary_unit_names',
         'parallel',
     )
-    
     add_power_utility = bst.Unit.add_power_utility
     add_heat_utility = bst.Unit.add_heat_utility 
     create_heat_utility = bst.Unit.create_heat_utility 
+    get_design_result = bst.Unit.get_design_result
+    set_design_result = bst.Unit.set_design_result
+    convert_design_result = bst.Unit.convert_design_result
+    
+    def __init_subclass__(cls):
+        if '_units' not in cls.__dict__: cls._units = {}
     
     def __init__(self):
         self.power_utility = bst.PowerUtility()
@@ -34,6 +40,7 @@ class Auxiliary:
         self.baseline_purchase_costs = {}
         self.purchase_costs = {}
         self.installed_costs = {}
+        self.design_results = {}
         self.F_M = {}
         self.F_D = {} 
         self.F_P = {}
@@ -41,10 +48,13 @@ class Auxiliary:
         self.parallel = {}
         self.auxiliary_unit_names = ()
         
+    def _design(self): pass
+    def _cost(self): pass
+        
     def _setup(self):
         results = (self.baseline_purchase_costs, self.purchase_costs, 
                    self.installed_costs, self.F_M, self.F_D, self.F_P,
-                   self.F_BM)
+                   self.F_BM, self.design_results)
         for i in results: i.clear()
         for i in self.heat_utilities: i.empty()
         self.heat_utilities.clear()

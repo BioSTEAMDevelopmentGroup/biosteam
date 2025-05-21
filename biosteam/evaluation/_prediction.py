@@ -103,6 +103,7 @@ class Average:
     
 fast_fit_model_types = set([
     LinearRegressor, 
+    InterceptLinearRegressor,
     Average
 ])
 linear_model_types = set([
@@ -155,7 +156,7 @@ class Response:
         distances = cdist(x, X, metric=distance)
         exact_match = distances == 0
         if exact_match.any(): return y[exact_match[0]].mean()
-        w = np.sqrt(weight(distances))
+        w = weight(distances)
         X = X * w.transpose()
         y = y * w[0]
         self.model.fit(X, y)
@@ -297,7 +298,7 @@ class ConvergenceModel:
             interaction_pairs: Optional[bool] = None,
             normalization: Optional[bool] = None,
             load_responses: Optional[bool] = None,
-            save_prediction: Optional[bool] = False,
+            save_prediction: Optional[bool] = True,
         ):
         if system is None:
             systems = set([i.system for i in predictors])
@@ -319,6 +320,8 @@ class ConvergenceModel:
             model_type = model_type.lower()
             if model_type == 'linear regressor':
                 model_type = LinearRegressor
+            elif model_type == 'intercept linear regressor':
+                model_type = InterceptLinearRegressor
             elif model_type == 'linear svr': # linear support vector machine regression
                 from sklearn.svm import LinearSVR
                 from sklearn.pipeline import make_pipeline
@@ -345,9 +348,8 @@ class ConvergenceModel:
             if model_type in fast_fit_model_types:
                 recess = 0
             else:
-                recess = 5 * sum([i.kind == 'coupled' for i in predictors])
-        if interaction_pairs is None:
-            interaction_pairs = model_type in linear_model_types
+                recess = 5 * sum([i.coupled for i in predictors])
+        if interaction_pairs is None: interaction_pairs = False
         if local_weighted is None:
             if model_type in fast_fit_model_types:
                 local_weighted = True
@@ -383,7 +385,11 @@ class ConvergenceModel:
     def normalize_sample(self, sample):
         return (sample - self.sample_min) / self.sample_range
     
-    def reframe_sample(self, sample):
+    def reframe_sample(self, sample, predictors=None):
+        if predictors is not None and predictors != self.predictors:
+            index = {j: i for i, j in enumerate(self.predictors)}
+            sample = self.data['samples'][-1]
+            for p, s in zip(predictors, sample): sample[index[p]] = s
         if self.predictor_index is not None:
             sample = np.asarray(sample)[self.predictor_index]
         if self.normalization:
@@ -426,9 +432,12 @@ class ConvergenceModel:
             name = str(response)
             y_actual = np.array(actual[response])
             y_predicted = np.array(predicted[response])
-            if last is None: last = len(y_predicted)
-            y_actual = y_actual[-last:]
-            y_predicted = y_predicted[-last:]
+            if last is None: 
+                index = len(y_predicted)
+            else:
+                index = last
+            y_actual = y_actual[-index:]
+            y_predicted = y_predicted[-index:]
             results[name] = R2(
                 y_actual,
                 y_predicted,
@@ -444,7 +453,7 @@ class ConvergenceModel:
     def R2_fitted(self):
         return self._R2('fitted')
     
-    def practice(self, case_study):
+    def practice(self, case_study, predictors=None):
         """
         Predict and set recycle responses given the sample, then append actual
         simulation result to data.
@@ -470,7 +479,7 @@ class ConvergenceModel:
         Does nothing if not used in with statement containing simulation.
         
         """
-        self.case_study = self.reframe_sample(case_study)
+        self.case_study = self.reframe_sample(case_study, predictors)
         return self
         
     def __enter__(self):
@@ -527,10 +536,6 @@ class ConvergenceModel:
         data = self.data
         if exception and self.fitted:
             del data['samples'][-1]
-            if self.save_predicition: 
-                predicted = data['predicted']
-                for response in self.responses:
-                    del predicted[response][-1]
             raise exception
         actual = data['actual']
         for response in self.responses:
@@ -540,9 +545,9 @@ class ConvergenceModel:
         
     def evaluate_system_convergence(self, sample, default=None, **kwargs):
         system = self.system
-        for p, value in zip(self.predictors, sample):
-            if p.scale is not None: value *= p.scale
+        for p, value in zip(self.predictors, sample): 
             p.setter(value)
+            p.last_value = value
         try:
             system.simulate(design_and_cost=False, **kwargs)
         except Exception as error:
@@ -559,7 +564,7 @@ class ConvergenceModel:
         return recycles_data
        
     def load_predictors(self, predictors):
-        predictor_index = np.array([i.kind == 'coupled' for i in predictors])
+        predictor_index = np.array([i.coupled for i in predictors])
         self.predictor_index = predictor_index = None if predictor_index.all() else np.where(predictor_index)[0]
         if predictor_index is not None: predictors = [predictors[i] for i in predictor_index]
         self.predictors = predictors

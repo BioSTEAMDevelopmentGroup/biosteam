@@ -191,11 +191,10 @@ class Tank(Unit, isabstract=True):
     _F_BM_default = {'Tank': 2.3}
     _N_outs = 1
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                  vessel_type=None, tau=None, V_wf=None, 
-                  vessel_material=None, kW_per_m3=0.):
-        Unit.__init__(self, ID, ins, outs, thermo)
-
+    def _init(self, 
+            vessel_type=None, tau=None, V_wf=None, 
+            vessel_material=None, kW_per_m3=0.
+        ):
         # [str] Vessel type.
         self.vessel_type = vessel_type or self._default_vessel_type
 
@@ -385,6 +384,7 @@ class MixTank(Tank):
     
     """
     rigorous = False
+    conserve_phases = False
     _N_ins = 2
     _ins_size_is_fixed = False
     _run = Mixer._run

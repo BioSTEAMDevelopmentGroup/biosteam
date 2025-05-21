@@ -10,7 +10,7 @@
 from .._unit import Unit
 from .mixing import *
 from .splitting import *
-from .phase_equilibrium import *
+from .stage import *
 from .molecular_sieve import *
 from .vacuum_system import *
 from ._pump import *
@@ -25,9 +25,7 @@ from ._diagram_only_units import *
 from ._flash import *
 from ._multi_effect_evaporator import *
 from .solids_separation import *
-from ._batch_bioreactor import *
 from ._batch_crystallizer import *
-from ._fermentation import *
 from ._enzyme_treatment import *
 from ._clarifier import *
 from ._screw_feeder import *
@@ -36,7 +34,6 @@ from ._conveying_belt import *
 from ._vent_scrubber import *
 from ._vibrating_screen import *
 from ._carbon_capture import *
-from .stirred_tank_reactor import *
 from .compressor import *
 from .turbine import *
 from .valve import *
@@ -47,6 +44,12 @@ from .liquid_liquid_extraction import *
 from .adsorption import *
 from .auxiliary import *
 from .agitator import *
+from .nrel_bioreactor import *
+from .stirred_tank_reactor import *
+from .aerated_bioreactor import *
+from .auxiliary_pressure_vessel import *
+from .fluidized_catalytic_cracking import *
+from .single_phase_reactor import *
 
 from . import (
     _flash, 
@@ -58,12 +61,13 @@ from . import (
     _vibrating_screen,
     _junction,
     _scaler,
-    _fermentation, 
     _enzyme_treatment, 
     _clarifier, 
     _balance,  
     _screw_feeder,
+    nrel_bioreactor,
     stirred_tank_reactor,
+    aerated_bioreactor,
     molecular_sieve,
     vacuum_system,
     adsorption,
@@ -75,14 +79,13 @@ from . import (
     liquid_liquid_extraction, 
     mixing, 
     splitting, 
-    phase_equilibrium,
+    stage,
     heat_exchange, 
     solids_separation,
     decorators, 
     design_tools, 
     _duplicator,
     _diagram_only_units, 
-    _batch_bioreactor,
     _batch_crystallizer,
     _carbon_capture,
     compressor,
@@ -90,6 +93,9 @@ from . import (
     valve,
     auxiliary,
     agitator,
+    auxiliary_pressure_vessel,
+    fluidized_catalytic_cracking,
+    single_phase_reactor,
 )
 
 
@@ -100,7 +106,7 @@ __all__ = ('Unit',
            *_flash.__all__,
            *mixing.__all__,
            *splitting.__all__,
-           *phase_equilibrium.__all__,
+           *stage.__all__,
            *_pump.__all__,
            *heat_exchange.__all__,
            *_multi_effect_evaporator.__all__,
@@ -113,7 +119,6 @@ __all__ = ('Unit',
            *_junction.__all__,
            *_scaler.__all__,
            *solids_separation.__all__,
-           *_fermentation.__all__, 
            *_enzyme_treatment.__all__,
            *_clarifier.__all__,
            *size_reduction.__all__,
@@ -122,10 +127,11 @@ __all__ = ('Unit',
            *_screw_feeder.__all__,
            *_magnetic_separator.__all__,
            *_duplicator.__all__,
-           *_batch_bioreactor.__all__,
            *_batch_crystallizer.__all__,
            *_carbon_capture.__all__,
            *drying.__all__,
+           *aerated_bioreactor.__all__,
+           *nrel_bioreactor.__all__,
            *adsorption.__all__,
            *compressor.__all__,
            *turbine.__all__,
@@ -133,12 +139,15 @@ __all__ = ('Unit',
            *vacuum_system.__all__,
            *auxiliary.__all__,
            *agitator.__all__,
+           *auxiliary_pressure_vessel.__all__,
+           *fluidized_catalytic_cracking.__all__,
+           *single_phase_reactor.__all__,
            'adsorption',
            'drying',
            'tank',
            'mixing',
            'splitting',
-           'phase_equilibrium',
+           'stage',
            'distillation',
            'decorators',
            'design_tools',

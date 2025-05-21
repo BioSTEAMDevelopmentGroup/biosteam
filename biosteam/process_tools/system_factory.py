@@ -13,6 +13,8 @@ import biosteam as bst
 from .._unit import streams
 from biosteam.utils import as_stream, MissingStream
 from biosteam.process_tools import utils
+from biosteam import Unit
+from typing import Optional
 from inspect import signature
 
 __all__ = ('SystemFactory', 'stream_kwargs')
@@ -215,8 +217,18 @@ class SystemFactory:
                                  fixed_ins_size, fixed_outs_size,
                                  fthermo)
     
-    def __call__(self, ID=None, ins=None, outs=None, mockup=False, area=None, udct=None, 
-                 operating_hours=None, autorename=None, **kwargs):
+    def __call__(self, ID=None, ins=None, outs=None,
+            mockup=False, area=None, udct=None, 
+            autorename=None, operating_hours=None,
+            lang_factor=None, algorithm=None, 
+            method=None, maxiter=None,
+            molar_tolerance=None,
+            relative_molar_tolerance=None,
+            temperature_tolerance=None,
+            relative_temperature_tolerance=None,
+            box=False, network_priority=None,
+            **kwargs
+        ):
         fthermo = self.fthermo
         if fthermo: 
             fthermo_sig = signature(fthermo)
@@ -231,12 +243,40 @@ class SystemFactory:
         ins = create_streams(self.ins, ins, 'inlets', self.fixed_ins_size)
         outs = create_streams(self.outs, outs, 'outlets', self.fixed_outs_size)
         rename = area is not None
-        with (bst.MockSystem() if mockup else bst.System(ID or self.ID, operating_hours=operating_hours)) as system:
+        options = dict(
+            ID=ID or self.ID,
+            operating_hours=operating_hours,
+            lang_factor=lang_factor, algorithm=algorithm, 
+            method=method, maxiter=maxiter,
+            molar_tolerance=molar_tolerance,
+            relative_molar_tolerance=relative_molar_tolerance,
+            temperature_tolerance=temperature_tolerance,
+            relative_temperature_tolerance=relative_temperature_tolerance,
+        )
+        if network_priority is not None: box = True
+        if box:
+            if mockup: raise ValueError('cannot box mockup system')
             if rename: 
-                unit_registry = system.flowsheet.unit
+                unit_registry = bst.main_flowsheet.unit
                 irrelevant_units = tuple(unit_registry)
                 unit_registry.untrack(irrelevant_units)
-            self.f(ins, outs, **kwargs)
+            if network_priority is None:
+                module = bst.Module(ins=ins, outs=outs)
+            else:
+                module = bst.FacilityModule(ins=ins, outs=outs)
+                module.network_priority = network_priority
+            ins = tuple([module.auxin(i) for i in module.ins])
+            outs = tuple([module.auxout(i) for i in module.outs])
+            with bst.Flowsheet(ID), bst.System(**options) as system:
+                self.f(ins, outs, **kwargs)
+            module.register_auxiliary(system, 'auxiliary_system')     
+        else:        
+            with (bst.MockSystem() if mockup else bst.System(**options)) as system:
+                if rename: 
+                    unit_registry = system.flowsheet.unit
+                    irrelevant_units = tuple(unit_registry)
+                    unit_registry.untrack(irrelevant_units)
+                self.f(ins, outs, **kwargs)
         system.load_inlet_ports(ins, {k: i for i, j in enumerate(self.ins) if (k:=get_name(j)) is not None})
         system.load_outlet_ports(outs, {k: i for i, j in enumerate(self.outs) if (k:=get_name(j)) is not None})
         if autorename is not None: tmo.utils.Registry.AUTORENAME = original_autorename
@@ -342,6 +382,4 @@ def create_streams(defaults, user_streams, kind, fixed_size):
         streams += [as_stream(i) for i in user_streams[N_defaults:]]
     return streams
     
-system_factory_signature = signature(SystemFactory.__call__)
-system_factory_parameters = list(system_factory_signature.parameters.values())[1:-1]
-del system_factory_signature
+system_factory_parameters = list(signature(SystemFactory.__call__).parameters.values())[1:-1]

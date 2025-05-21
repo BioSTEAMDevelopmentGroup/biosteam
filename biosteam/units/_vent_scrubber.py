@@ -17,8 +17,7 @@ __all__ = ('VentScrubber',)
 class VentScrubber(Unit): 
     _N_ins = _N_outs = 2
     _units = {'Flow rate': 'kg/hr'}
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, gas):
-        Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, gas):
         self.gas = gas
     
     def _run(self):

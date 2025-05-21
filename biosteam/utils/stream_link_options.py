@@ -9,26 +9,18 @@
 """
 from collections import namedtuple
 
-__all__ = ('StreamLinkOptions',
-           'static',
-           'static_flow_and_phase',
-           'static_link_options',
-           'static_flow_link_options',
-           'static_flow_and_phase_options')
+__all__ = ('static',
+           'static_flow_and_phase')
 
 # %% Linking options
 
-StreamLinkOptions = namedtuple('StreamLinkOptions', ('flow', 'phase', 'TP'), module=__name__)
-static_link_options = StreamLinkOptions(flow=True, TP=True, phase=True)
-static_flow_and_phase_options = StreamLinkOptions(flow=True, TP=False, phase=True)
-static_flow_link_options = StreamLinkOptions(flow=True, TP=False, phase=False)
 
 def _run_static(self):
     self._outs[0].copy_like(self._ins[0])
 
 def static(cls=None):
     if cls is None: return lambda cls: static(cls)
-    cls._stream_link_options = static_link_options
+    cls._link_streams = True
     cls._run = _run_static
     return cls
 
@@ -39,8 +31,8 @@ def _run_static_flow(self):
     outlet.copy_flow(inlet)
 
 def static_flow_and_phase(cls):
-    cls._stream_link_options = static_flow_and_phase_options
     cls._N_ins = cls._N_outs = 1
+    if '_run' not in cls.__dict__: cls._run = cls._run_static_flow
     return cls
 
 del namedtuple

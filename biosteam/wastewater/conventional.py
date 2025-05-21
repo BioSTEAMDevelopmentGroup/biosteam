@@ -127,10 +127,10 @@ def aerobic_digestion_reactions(chemicals, MW_sludge, X_combustion=0.74, X_growt
     thermo = settings.get_default_thermo(thermo)
     parsable_name = thermo.chemicals.get_parsable_synonym
     def growth(chemical):
-        f = MW_sludge / chemical.MW
+        f = chemical.MW / MW_sludge
         reactant = chemical.ID
         if not isvalid(reactant): reactant = parsable_name(reactant)
-        return Rxn(f"{f}{reactant} -> WWTsludge", reactant, X_growth, chemicals=thermo.chemicals)
+        return Rxn(f"{reactant} -> {f}WWTsludge", reactant, X_growth, chemicals=thermo.chemicals)
     return PRxn([i.get_combustion_reaction(conversion=X_combustion) + growth(i)
                  for i in chemicals])
 
@@ -176,9 +176,7 @@ class AnaerobicDigestion(bst.Unit):
     purchase_cost = installation_cost = 0
     _N_ins = 1
     _N_outs = 3
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 reactions=None, sludge_split=None):
-        bst.Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, reactions=None, sludge_split=None):
         chemicals = self.chemicals
         if not reactions:
             digestables = get_digestable_organic_chemicals(chemicals)
@@ -286,8 +284,7 @@ class AerobicDigestion(bst.Unit):
     _N_outs = 2
     purchase_cost = installation_cost = 0
     
-    def __init__(self, ID='', ins=None, outs=(), *, reactions=None, evaporation=0.0113):
-        bst.Unit.__init__(self, ID, ins, outs)
+    def _init(self, reactions=None, evaporation=0.0113):
         if not reactions:
             chemicals = self.chemicals
             digestables = get_digestable_organic_chemicals(self.chemicals)
@@ -302,12 +299,12 @@ class AerobicDigestion(bst.Unit):
         water.copy_like(waste)
         water.mol[:] += caustic.mol
         self.reactions.force_reaction(water)
-        O2 = - water.imass['O2']
+        O2 = -water.imass['O2']
         N2 = 0.78 / 0.22 * O2
         air.empty()
-        air.imass['O2', 'N2'] += [1.5 * O2, 1.5 * N2]
-        water.imol['O2'] = 0.
-        water.imass['N2'] = N2
+        air.imass['O2', 'N2'] += [1.2 * O2, 1.2 * N2]
+        water.imass['O2'] += 1.2 * O2
+        water.imass['N2'] += 1.2 * N2
         vent.copy_flow(water, ('CO2', 'O2', 'N2'))
         water_index = self.chemicals.index('7732-18-5')
         vent.mol[water_index] = water.mol[water_index] * self.evaporation
@@ -338,9 +335,7 @@ class SludgeCentrifuge(bst.SolidsSeparator):
     
     """
     purchase_cost = installation_cost = 0
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
-                 split=None, order=None, moisture_content=None, strict_moisture_content=None):
-        self._load_thermo(thermo)
+    def _init(self, split=None, order=None, moisture_content=None, strict_moisture_content=None):
         chemicals = self.chemicals
         ID_water = chemicals['7732-18-5'].ID # Water must be defined
         if split is None:
@@ -400,16 +395,17 @@ class SludgeCentrifuge(bst.SolidsSeparator):
         if ID_water not in split and moisture_content is None:
             # Only set moisture content if water split is not given
             moisture_content = 0.79
-        bst.SolidsSeparator.__init__(
-            self, ID, ins, outs, thermo, split=split, order=order,
+        bst.SolidsSeparator._init(
+            self, split=split, order=order,
             moisture_content=moisture_content, strict_moisture_content=strict_moisture_content
         )
-        
+
     def _run(self):
         ins = self.ins
         retentate, permeate = self.outs # Filtrate, solids
         separations.mix_and_split(ins, retentate, permeate, self.split)
         separations.adjust_moisture_content(permeate, retentate, self.moisture_content, None, self.strict_moisture_content)
+            
         
 # TODO: Split values seem arbitrary in NREL 2011 model, perhaps work on a better model
 class MembraneBioreactor(bst.Splitter):
@@ -433,9 +429,7 @@ class MembraneBioreactor(bst.Splitter):
     
     """
     purchase_cost = installation_cost = 0
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
-                 split=None, order=None):
-        self._load_thermo(thermo)
+    def _init(self, split=None, order=None):
         if split is None:
             chemicals = self.chemicals
             split = dict(
@@ -474,7 +468,7 @@ class MembraneBioreactor(bst.Splitter):
             )
             remove_undefined_chemicals(split, chemicals)
             default_chemical_dict(split, chemicals, 0.15, 0.125, 0.145)
-        bst.Splitter.__init__(self, ID, ins, outs, thermo, split=split, order=order)
+        bst.Splitter._init(self, split=split, order=order)
         
 class ReverseOsmosis(bst.Unit):
     """
@@ -494,9 +488,7 @@ class ReverseOsmosis(bst.Unit):
     """
     _N_ins = 1
     _N_outs = 2
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 water_recovery=0.987):
-        bst.Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, water_recovery=0.987):
         self.water_recovery = water_recovery
     
     @property

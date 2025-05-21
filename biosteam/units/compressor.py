@@ -25,14 +25,16 @@ References
 
 """
 import biosteam as bst
+import numpy as np
 from warnings import warn
 from math import log, exp, ceil
 from typing import NamedTuple, Tuple, Callable, Dict
+from thermosteam.constants import R
 from .heat_exchange import HX
 from ..utils import list_available_names
 from ..exceptions import DesignWarning, bounds_warning
 from .. import Unit
-from .._graphics import compressor_graphics
+from thermosteam._graphics import compressor_graphics
 
 __all__ = (
     'Compressor',
@@ -126,10 +128,10 @@ class Compressor(Unit, isabstract=True):
             ),
     }
 
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
-                 P, eta=0.7, vle=False, compressor_type=None, 
-                 driver=None, material=None, driver_efficiency=None):
-        Unit.__init__(self, ID, ins, outs, thermo)
+    def _init(self, 
+            P, eta=0.7, vle=False, compressor_type=None, 
+            driver=None, material=None, driver_efficiency=None
+        ):
         self.P = P  #: Outlet pressure [Pa].
         self.eta = eta  #: Isentropic efficiency.
 
@@ -542,6 +544,7 @@ class IsentropicCompressor(Compressor, new_graphics=False):
     Utility cost                                  USD/hr       9.66e-05
 
     """
+    _energy_variable = 'T'
 
     def _run(self):
         feed = self.ins[0]
@@ -561,11 +564,75 @@ class IsentropicCompressor(Compressor, new_graphics=False):
         dH_actual = dH_isentropic / self.eta
         out.H = feed.H + dH_actual        
         if self.vle is True: out.vle(H=out.H, P=out.P)
+        if self.system and self.system.algorithm == 'Phenomena oriented':
+            self._coeffs = {self: feed.T, feed.source: out.T} # dT_out = (T_out/T_in) * dT_in
+        
+    def _mass_and_energy_balance_specifications(self):
+        return 'Compressor', [
+            ('Isentropic efficiency', 100 * self.eta, '%'),
+            ('P', self.P, 'Pa'),
+        ]
         
     def _design(self):
         super()._design()
         self._set_power(self.design_results['Ideal power'] / self.eta)
+    
+    def _get_energy_departure_coefficient(self, stream):
+        feed = self.ins[0]
+        source = feed.source
+        if source is None or source._energy_variable != 'T': return None
+        return (self, -stream.C)
+    
+    def _update_nonlinearities(self):
+        feed = self.ins[0]
+        product = self.outs[0]
+        if len(product.phases) > 1:
+            raise NotImplementedError('energy departure equation with multiple phase not yet implemented for isentropic compressors')
+        source = feed.source
+        if source is None or source._energy_variable != 'T': return []
+        data = product.get_data()
+        T_product = product.T
+        self._run()
+        # self._coeffs = {self: feed.T, source: T_product} # dT_out = (T_out/T_in) * dT_in
+        product.set_data(data)
+        product.T = T_product
+    
+    def _create_energy_departure_equations(self): 
+        return []
+        # Special case where T_out = f(T_in)
+        # 0 = Cp * log(T/T0) - R * log(P/P0)
+        # log(T/T0) = R / Cp * log(P/P0)
+        # T = T0 * exp(R / Cp * log(P/P0))
+        # T = T0 * P/P0 * exp(R/Cp)
+        # feed = self.ins[0]
+        # product = self.outs[0]
+        # if len(product.phases) > 1:
+        #     raise NotImplementedError('energy departure equation with multiple phase not yet implemented for isentropic compressors')
+        # source = feed.source
+        # # TODO: add method <Stream>.energy_variable -> 'T'|'B'
+        # if source is None or source._energy_variable != 'T': return []
+        # return [(self._coeffs, 0)]
+    
+    def _create_material_balance_equations(self, composition_sensitive):
+        fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
+        outlet, = self.outs
+        if len(outlet.phases) > 1:
+            raise NotImplementedError('energy departure equation with multiple phase not yet implemented for isentropic compressors')
+        ones = np.ones(self.chemicals.size)
+        minus_ones = -ones
+        zeros = np.zeros(self.chemicals.size)
         
+        # Overall flows
+        eq_overall = {outlet: ones}
+        for i in process_inlets: eq_overall[i] = minus_ones
+        equations.append(
+            (eq_overall, sum([i.mol for i in fresh_inlets], zeros))
+        )
+        return equations
+    
+    # def _update_energy_variable(self, departure):
+    #     self.outs[0].T += departure
+
 
 class PolytropicCompressor(Compressor, new_graphics=False):
     """
@@ -590,7 +657,7 @@ class PolytropicCompressor(Compressor, new_graphics=False):
         for real gases at high pressure ratios.
     n_steps: int
         Number of virtual steps used in numerical integration for hundseid method.
-    type: str
+    compressor_type: str
         Type of compressor : blower/centrifugal/reciprocating. If None, the type
         will be determined automatically.
 
@@ -704,9 +771,9 @@ class PolytropicCompressor(Compressor, new_graphics=False):
 
     """
     available_methods = {'schultz', 'hundseid'}
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, eta=0.7, 
+    def _init(self, P, eta=0.7, 
                  vle=False, compressor_type=None, method=None, n_steps=None):
-        Compressor.__init__(self, ID=ID, ins=ins, outs=outs, thermo=thermo, P=P, eta=eta, vle=vle, compressor_type=compressor_type)
+        Compressor._init(self, P=P, eta=eta, vle=vle, compressor_type=compressor_type)
         self.method = "schultz" if method is None else method
         self.n_steps = 100 if n_steps is None else n_steps
         
@@ -851,29 +918,27 @@ class MultistageCompressor(Unit):
         flow (kmol/hr): H2  1
     
     >>> K.results()
-    Multistage compressor                           Units                      K
-    Electricity         Power                          kW                      0
-                        Cost                       USD/hr                      0
-    High pressure steam Duty                        kJ/hr                   5.68
-                        Flow                      kmol/hr               0.000177
-                        Cost                       USD/hr                5.6e-05
-    Chilled water       Duty                        kJ/hr              -1.12e+04
-                        Flow                      kmol/hr                   7.42
-                        Cost                       USD/hr                 0.0559
-    Design              Type                               Multistage compressor
-                        Area                         ft^2                   1.54
-                        Tube side pressure drop       psi                     12
-                        Shell side pressure drop      psi                     20
-    Purchase cost       K k1 - Compressor(s)          USD               1.45e+04
-                        K h1 - Double pipe            USD                    568
-                        K k2 - Compressor(s)          USD               1.46e+04
-                        K h2 - Double pipe            USD                    675
-                        K k3 - Compressor(s)          USD               1.48e+04
-                        K h3 - Double pipe            USD                    956
-                        K k4 - Compressor(s)          USD               1.52e+04
-                        K h4 - Double pipe            USD               1.78e+03
-    Total purchase cost                               USD                6.3e+04
-    Utility cost                                   USD/hr                  0.056
+    Multistage compressor                       Units                      K
+    Electricity         Power                      kW                      0
+                        Cost                   USD/hr                      0
+    High pressure steam Duty                    kJ/hr                   5.68
+                        Flow                  kmol/hr               0.000177
+                        Cost                   USD/hr                5.6e-05
+    Chilled water       Duty                    kJ/hr              -1.12e+04
+                        Flow                  kmol/hr                   7.42
+                        Cost                   USD/hr                 0.0559
+    Design              Type                           Multistage compressor
+                        Area                     ft^2                   1.54
+    Purchase cost       K k1 - Compressor(s)      USD               1.45e+04
+                        K h1 - Double pipe        USD                    568
+                        K k2 - Compressor(s)      USD               1.46e+04
+                        K h2 - Double pipe        USD                    675
+                        K k3 - Compressor(s)      USD               1.48e+04
+                        K h3 - Double pipe        USD                    956
+                        K k4 - Compressor(s)      USD               1.52e+04
+                        K h4 - Double pipe        USD               1.78e+03
+    Total purchase cost                           USD                6.3e+04
+    Utility cost                               USD/hr                  0.056
 
     Show the fluid state at the outlet of each heat exchanger:
     
@@ -917,34 +982,32 @@ class MultistageCompressor(Unit):
         flow (kmol/hr): H2  1
     
     >>> K.results()
-    Multistage compressor                           Units                     K2
-    Electricity         Power                          kW                      0
-                        Cost                       USD/hr                      0
-    High pressure steam Duty                        kJ/hr                   6.48
-                        Flow                      kmol/hr               0.000202
-                        Cost                       USD/hr               6.39e-05
-    Chilled water       Duty                        kJ/hr              -5.63e+03
-                        Flow                      kmol/hr                   3.73
-                        Cost                       USD/hr                 0.0282
-    Cooling water       Duty                        kJ/hr              -7.15e+03
-                        Flow                      kmol/hr                   4.88
-                        Cost                       USD/hr                0.00238
-    Design              Type                               Multistage compressor
-                        Area                         ft^2                   1.14
-                        Tube side pressure drop       psi                     15
-                        Shell side pressure drop      psi                     25
-    Purchase cost       K2 k1 - Compressor(s)         USD               1.11e+04
-                        K2 h1 - Double pipe           USD                    297
-                        K2 k2 - Compressor(s)         USD                1.3e+04
-                        K2 h2 - Double pipe           USD                    199
-                        K2 k3 - Compressor(s)         USD               1.44e+04
-                        K2 h3 - Double pipe           USD                    129
-                        K2 k4 - Compressor(s)         USD               1.64e+04
-                        K2 h4 - Double pipe           USD                    753
-                        K2 k5 - Compressor(s)         USD               1.45e+04
-                        K2 h5 - Double pipe           USD               2.03e+03
-    Total purchase cost                               USD               7.27e+04
-    Utility cost                                   USD/hr                 0.0306
+    Multistage compressor                        Units                     K2
+    Electricity         Power                       kW                      0
+                        Cost                    USD/hr                      0
+    High pressure steam Duty                     kJ/hr                   6.48
+                        Flow                   kmol/hr               0.000202
+                        Cost                    USD/hr               6.39e-05
+    Chilled water       Duty                     kJ/hr              -5.63e+03
+                        Flow                   kmol/hr                   3.73
+                        Cost                    USD/hr                 0.0282
+    Cooling water       Duty                     kJ/hr              -7.15e+03
+                        Flow                   kmol/hr                   4.88
+                        Cost                    USD/hr                0.00238
+    Design              Type                            Multistage compressor
+                        Area                      ft^2                   1.14
+    Purchase cost       K2 k1 - Compressor(s)      USD               1.11e+04
+                        K2 h1 - Double pipe        USD                    297
+                        K2 k2 - Compressor(s)      USD                1.3e+04
+                        K2 h2 - Double pipe        USD                    199
+                        K2 k3 - Compressor(s)      USD               1.44e+04
+                        K2 h3 - Double pipe        USD                    129
+                        K2 k4 - Compressor(s)      USD               1.64e+04
+                        K2 h4 - Double pipe        USD                    753
+                        K2 k5 - Compressor(s)      USD               1.45e+04
+                        K2 h5 - Double pipe        USD               2.03e+03
+    Total purchase cost                            USD               7.27e+04
+    Utility cost                                USD/hr                 0.0306
 
     Show the fluid state at the outlet of each heat exchanger:
     
@@ -1011,34 +1074,32 @@ class MultistageCompressor(Unit):
         flow (kmol/hr): H2  1
     
     >>> K.results()
-    Multistage compressor                           Units                     K2
-    Electricity         Power                          kW                      0
-                        Cost                       USD/hr                      0
-    High pressure steam Duty                        kJ/hr                   6.48
-                        Flow                      kmol/hr               0.000202
-                        Cost                       USD/hr               6.39e-05
-    Chilled water       Duty                        kJ/hr              -5.63e+03
-                        Flow                      kmol/hr                   3.73
-                        Cost                       USD/hr                 0.0282
-    Cooling water       Duty                        kJ/hr              -7.15e+03
-                        Flow                      kmol/hr                   4.88
-                        Cost                       USD/hr                0.00238
-    Design              Type                               Multistage compressor
-                        Area                         ft^2                   1.14
-                        Tube side pressure drop       psi                     15
-                        Shell side pressure drop      psi                     25
-    Purchase cost       K2 k1 - Compressor(s)         USD               1.11e+04
-                        K2 h1 - Double pipe           USD                    297
-                        K2 k2 - Compressor(s)         USD                1.3e+04
-                        K2 h2 - Double pipe           USD                    199
-                        K2 k3 - Compressor(s)         USD               1.44e+04
-                        K2 h3 - Double pipe           USD                    129
-                        K2 k4 - Compressor(s)         USD               1.64e+04
-                        K2 h4 - Double pipe           USD                    753
-                        K2 k5 - Compressor(s)         USD               1.45e+04
-                        K2 h5 - Double pipe           USD               2.03e+03
-    Total purchase cost                               USD               7.27e+04
-    Utility cost                                   USD/hr                 0.0306
+    Multistage compressor                        Units                     K2
+    Electricity         Power                       kW                      0
+                        Cost                    USD/hr                      0
+    High pressure steam Duty                     kJ/hr                   6.48
+                        Flow                   kmol/hr               0.000202
+                        Cost                    USD/hr               6.39e-05
+    Chilled water       Duty                     kJ/hr              -5.63e+03
+                        Flow                   kmol/hr                   3.73
+                        Cost                    USD/hr                 0.0282
+    Cooling water       Duty                     kJ/hr              -7.15e+03
+                        Flow                   kmol/hr                   4.88
+                        Cost                    USD/hr                0.00238
+    Design              Type                            Multistage compressor
+                        Area                      ft^2                   1.14
+    Purchase cost       K2 k1 - Compressor(s)      USD               1.11e+04
+                        K2 h1 - Double pipe        USD                    297
+                        K2 k2 - Compressor(s)      USD                1.3e+04
+                        K2 h2 - Double pipe        USD                    199
+                        K2 k3 - Compressor(s)      USD               1.44e+04
+                        K2 h3 - Double pipe        USD                    129
+                        K2 k4 - Compressor(s)      USD               1.64e+04
+                        K2 h4 - Double pipe        USD                    753
+                        K2 k5 - Compressor(s)      USD               1.45e+04
+                        K2 h5 - Double pipe        USD               2.03e+03
+    Total purchase cost                            USD               7.27e+04
+    Utility cost                                USD/hr                 0.0306
 
     """
 
@@ -1049,13 +1110,10 @@ class MultistageCompressor(Unit):
         **HX._units,
     }
 
-    def __init__(
-            self, ID='', ins=None, outs=(), thermo=None, *,
-            pr=None, n_stages=None, eta=0.7, vle=False, compressor_type=None,
+    def _init(
+            self, pr=None, n_stages=None, eta=0.7, vle=False, compressor_type=None,
             compressors=None, hxs=None,
-    ):
-        super().__init__(ID=ID, ins=ins, outs=outs, thermo=thermo)
-
+        ):
         # setup option 1: list of compressors and list of heat exchangers
         if compressors is not None and hxs is not None:
             if not isinstance(compressors[0], Compressor):

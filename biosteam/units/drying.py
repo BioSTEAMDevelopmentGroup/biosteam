@@ -30,8 +30,34 @@ from .design_tools import (
 )
 from .decorators import cost
 from .._unit import Unit
+from math import exp, log
+from thermosteam import separations
 
-__all__ = ('DrumDryer', 'ThermalOxidizer')
+__all__ = ('SprayDryer', 'DrumDryer', 'ThermalOxidizer')
+
+@cost('Evaporation rate', CE=567, units='lb/hr', # lb=30, ub=3000, 
+      BM=2.06, f=lambda W: exp(8.5133 + 0.9847*(logW:=log(W)) - 0.0561 * logW * logW)
+)
+class SprayDryer(Unit):
+    _units = {'Evaporation rate': 'lb/hr'}
+    _N_ins = 1
+    _N_outs = 2
+    
+    def _init(self, moisture_content=0.90):
+        self.moisture_content = moisture_content
+        
+    def _run(self):
+        feed = self.ins[0]
+        water, solids = self.outs
+        solids.copy_like(feed)
+        water.copy_flow(solids, 'Water', remove=True)
+        separations.adjust_moisture_content(solids, water, self.moisture_content)
+        water.phase = 'g'
+        
+    def _design(self):
+        water, solids = self.outs
+        self.design_results['Evaporation rate'] = water.get_total_flow('lb/hr')
+
 
 # TODO: The drum dryer is carbon steel. Add material factors later
 @cost('Peripheral drum area', CE=CEPCI_by_year[2007], ub=7854.0, BM=2.06,
@@ -45,16 +71,16 @@ class DrumDryer(Unit):
     ----------
     ins : 
         * [0] Wet solids.
-        * [1] Air.
+        * [1] Dry gas.
         * [2] Natural gas.
     outs : 
         * [0] Dried solids
-        * [1] Hot air
+        * [1] Hot gas
         * [2] Emissions
     split : dict[str, float]
-        Component splits to hot air (stream [1]).
+        Component splits to hot gas (stream [1]).
     R : float, optional
-        Flow of hot air over evaporation. Defaults to 1.4 wt gas / wt evap.
+        Flow of hot gas over evaporation. Defaults to 1.4 wt gas / wt evap.
     H : float, optional
         Specific evaporation rate [kg/hr/m3]. Defaults to 20. 
     length_to_diameter : float, optional
@@ -66,8 +92,8 @@ class DrumDryer(Unit):
         
     Notes
     -----
-    The flow rate for air in the inlet is varied to meet the `R` specification
-    (i.e. flow of hot air over flow rate evaporated). The flow rate of inlet natural
+    The flow rate for gas in the inlet is varied to meet the `R` specification
+    (i.e. flow of hot gas over flow rate evaporated). The flow rate of inlet natural
     gas is also altered to meet the heat demand.
     
     The default parameter values are based on heuristics for drying 
@@ -178,17 +204,16 @@ class DrumDryer(Unit):
         """[Stream] Natural gas to satisfy steam and electricity requirements."""
         return self.ins[2]
     
-    def __init__(self, ID="", ins=None, outs=(), thermo=None, *,
-                 split, R=1.4, H=20., length_to_diameter=25, T=343.15, P=10*101325,
-                 moisture_content=0.15, utility_agent='Natural gas',
-                 moisture_ID=None):
-        super().__init__(ID, ins, outs, thermo)
+    def _init(self, split, R=1.4, H=20., length_to_diameter=25, T=343.15, P=10*101325,
+              moisture_content=0.15, utility_agent='Natural gas', gas_composition=None,
+              moisture_ID=None):
         self._isplit = self.chemicals.isplit(split)
         self.define_utility('Natural gas', self.natural_gas)
         self.P = P
         self.T = T
         self.R = R
         self.H = H
+        self.gas_composition = gas_composition
         self.length_to_diameter = length_to_diameter
         self.moisture_content = moisture_content
         self.utility_agent = utility_agent
@@ -213,7 +238,12 @@ class DrumDryer(Unit):
         emissions.phase = air.phase = natural_gas.phase = hot_air.phase = 'g'
         design_results = self.design_results
         design_results['Evaporation'] = evaporation = hot_air.F_mass
-        air.imass['N2', 'O2'] = np.array([0.78, 0.32]) * self.R * evaporation
+        gas_composition = self.gas_composition
+        if gas_composition is None:
+            gas_composition = [('N2', 0.78), ('O2', 0.32)]
+        total_gas_flow = self.R * evaporation
+        for ID, x in gas_composition:
+            air.imass[ID] = x * total_gas_flow
         hot_air.mol += air.mol
         dry_solids.T = hot_air.T = self.T
         emissions.T = self.T + 30.
@@ -276,9 +306,7 @@ class ThermalOxidizer(Unit):
         """[Stream] Natural gas to satisfy steam and electricity requirements."""
         return self.ins[2]
     
-    def __init__(self, *args, tau=0.00014, duty_per_kg=61., V_wf=0.95, 
-                 **kwargs):
-        Unit.__init__(self, *args, **kwargs)
+    def _init(self, tau=0.00014, duty_per_kg=61., V_wf=0.95):
         self.define_utility('Natural gas', self.natural_gas)
         self.tau = tau
         self.duty_per_kg = duty_per_kg
@@ -301,6 +329,7 @@ class ThermalOxidizer(Unit):
         combustion_rxns.force_reaction(dummy_emissions)
         O2 = max(-dummy_emissions.imol['O2'], 0.) # Missing oxygen
         air.imol['N2', 'O2'] += [0.79/0.21 * O2, O2]
+        emissions.mix_from(self.ins)
         # Account for temperature raise
         combustion_rxns.adiabatic_reaction(emissions)
         

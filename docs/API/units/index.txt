@@ -5,24 +5,25 @@ units
    :maxdepth: 1
 
    decorators
-   design_tools/design_tools
+   design_tools/index
+   adsorption
+   aerated_bioreactor
    compressor
    distillation
    drying
    heat_exchange
    liquid_liquid_extraction
    mixing
+   nrel_bioreactor
    tank
    solids_separation
    splitting
    stirred_tank_reactor
+   single_phase_reactor
    vacuum_system
-   valve   
-   wastewater
+   valve
    Pump
-   BatchBioreactor
    Duplicator
-   Fermentation
    Flash
    Junction
    MassBalance

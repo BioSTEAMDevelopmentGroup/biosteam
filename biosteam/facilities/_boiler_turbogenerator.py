@@ -37,25 +37,17 @@ class BoilerTurbogenerator(bst.Facility):
     Parameters
     ----------
     ins : 
-        [0] Liquid/solid feed that will be burned.
-        
-        [1] Gas feed that will be burned.
-        
-        [2] Make-up water. 
-        
-        [3] Natural gas to satisfy steam and power requirement.
-        
-        [4] Lime for flue gas desulfurization.
-        
-        [5] Boiler chemicals.
-        
+        * [0] Liquid/solid feed that will be burned.
+        * [1] Gas feed that will be burned.
+        * [2] Make-up water. 
+        * [3] Natural gas/fuel to satisfy steam and electricity demand.
+        * [4] Lime for flue gas desulfurization.
+        * [5] Boiler chemicals.
+        * [6] Air or oxygen-rich gas.
     outs : 
-        [0] Total emissions produced.
-        
-        [1] Blowdown water.
-        
-        [2] Ash disposal.
-        
+        * [0] Total emissions produced.
+        * [1] Blowdown water.
+        * [2] Ash disposal.
     boiler_efficiency : float, optional
         Fraction of heat transferred to steam. Defaults to 0.8.
     turbo_generator_efficiency : float, optional
@@ -64,7 +56,9 @@ class BoilerTurbogenerator(bst.Facility):
         Steam produced. Defaults to low pressure steam.
     other_agents = () : Iterable[UtilityAgent], optional
         Other steams produced. Defaults to all other heating agents.
-    natural_gas_price : float, optional
+    fuel_source : str, optional
+        Name fuel used to satisfy steam and electricity demand. Defaults to 'CH4'.
+    fuel_price : float, optional
         Price of natural gas [USD/kg]. Same as `bst.stream_utility_prices['Natural gas']`,
         which defaults to 0.218.
     ash_disposal_price : float, optional
@@ -74,13 +68,12 @@ class BoilerTurbogenerator(bst.Facility):
         Whether to purchase natural gas to satisfy system electricity demand
         if there is not enough heat from process feeds (i.e., inlets 0 and 1).
         If True, natural gas is purchased to satisfy system heat and electricity demand
-        (even if there is not enough heat from the feed wastes and gas);
-        if False, natural gas is only purchased to satisfy system heat demand
-        (i.e., electricity will be purchased from the grid if there is not
-         enough heat from the feeds).
+        when there is not enough heat from the feed and gas.
+        If False, natural gas is only purchased to satisfy system heat demand
+        and electricity will be purchased from the grid if there is not
+        enough heat from the feeds.
         In either case, if there is excess heat from the process feeds,
-        electricity will still be produced
-        (i.e., this argument only affects the calculation of natural gas flow).
+        electricity will still be produced.
     boiler_efficiency_basis : str, optional
         Basis of boiler efficiency. Defaults to 'LHV' (i.e., lower heating value).
         'HHV' (i.e., higher heating value) is also a valid basis. 
@@ -107,6 +100,49 @@ class BoilerTurbogenerator(bst.Facility):
     ...     BT = bst.BoilerTurbogenerator('BT')
     ...     BT.ins[0] = bagasse
     >>> sys.simulate()
+    >>> BT.show()
+    BoilerTurbogenerator: BT
+    ins...
+    [0] bagasse  
+        phase: 'l', T: 298.15 K, P: 101325 Pa
+        flow (kmol/hr): Water          1.78e+03
+                        Cellulose      139
+                        Hemicellulose  101
+                        Lignin         79.5
+    [1] -  
+        phase: 'l', T: 298.15 K, P: 101325 Pa
+        flow: 0
+    [2] -  
+        phase: 'l', T: 298.15 K, P: 101325 Pa
+        flow (kmol/hr): Water  488
+    [3] -  
+        phase: 'g', T: 288.71 K, P: 101560 Pa
+        flow: 0
+    [4] -  
+        phase: 'l', T: 298.15 K, P: 101325 Pa
+        flow: 0
+    [5] -  
+        phase: 'l', T: 298.15 K, P: 101325 Pa
+        flow (kmol/hr): Ash  0.567
+    [6] -  
+        phase: 'g', T: 298.15 K, P: 101325 Pa
+        flow (kmol/hr): O2  9.85e+03
+                        N2  4.23e+04
+    outs...
+    [0] emissions  
+        phase: 'g', T: 394.15 K, P: 101325 Pa
+        flow (kmol/hr): Water  3.19e+03
+                        CO2    1.98e+03
+                        O2     7.84e+03
+                        N2     4.23e+04
+    [1] rejected_water_and_blowdown  
+        phase: 'l', T: 298.15 K, P: 101325 Pa
+        flow (kmol/hr): Water  488
+    [2] ash_disposal  
+        phase: 'l', T: 298.15 K, P: 101325 Pa
+        flow (kmol/hr): Water  0.00944
+                        Ash    0.567
+    
     >>> BT.results() # Steam and electricity are produced, so costs are negative
     Boiler turbogenerator                                      Units        BT
     Electricity           Power                                   kW -1.31e+05
@@ -117,12 +153,12 @@ class BoilerTurbogenerator(bst.Facility):
     Cooling water         Duty                                 kJ/hr -8.42e+07
                           Flow                               kmol/hr  5.75e+04
                           Cost                                USD/hr      28.1
-    Natural gas (inlet)   Flow                                 kg/hr         0
+    Fuel (inlet)          Flow                                 kg/hr         0
                           Cost                                USD/hr         0
     Ash disposal (outlet) Flow                                 kg/hr     0.737
                           Cost                                USD/hr    0.0234
-    Design                Flow rate                            kg/hr  2.93e+05
-                          Work                                    kW  1.33e+05
+    Design                Work                                    kW  1.33e+05
+                          Flow rate                            kg/hr  2.93e+05
                           Ash disposal                         kg/hr     0.737
     Purchase cost         Baghouse bags                          USD      81.1
                           Boiler                                 USD  3.33e+07
@@ -148,12 +184,12 @@ class BoilerTurbogenerator(bst.Facility):
     
     """
     ticket_name = 'BT'
-    network_priority = 0
+    network_priority = 1
     boiler_blowdown = 0.03
     # Reverse osmosis (RO) typically rejects 25% of water, but the boiler-feed water is assumed to come after RO.
-    # Setting this parameter to a fraction more than zero effectively assumes that this unit includes reverse osmosis.
+    # Setting this parameter to a fraction more than zero effectively assumes that this unit accounts for reverse osmosis.
     RO_rejection = 0 
-    _N_ins = 6
+    _N_ins = 7
     _N_outs = 3
     _units = {'Flow rate': 'kg/hr',
               'Work': 'kW',
@@ -169,56 +205,81 @@ class BoilerTurbogenerator(bst.Facility):
                  side_steam=None,
                  agent=None,
                  other_agents=None,
+                 fuel_price=None,
                  natural_gas_price=None,
                  ash_disposal_price=None,
                  T_emissions=None,
+                 CO2_emissions_concentration=None,
                  satisfy_system_electricity_demand=None,
                  boiler_efficiency_basis=None,
+                 fuel_source=None,
+                 oxygen_rich_gas_composition=None,
         ):
         if boiler_efficiency_basis is None: boiler_efficiency_basis = 'LHV'
         if boiler_efficiency is None: boiler_efficiency = 0.80
         if turbogenerator_efficiency is None: turbogenerator_efficiency = 0.85
         if satisfy_system_electricity_demand is None: satisfy_system_electricity_demand = True
+        if fuel_source is None: fuel_source = 'CH4'
+        if oxygen_rich_gas_composition is None: oxygen_rich_gas_composition = dict(O2=21, N2=79, phase='g', units='kg/hr')
+        if CO2_emissions_concentration is None: CO2_emissions_concentration = 0.055  # Usually between 4 - 7 for biomass and natural gas (https://www.sciencedirect.com/science/article/pii/S0957582021005127)
         bst.Facility.__init__(self, ID, ins, outs, thermo)
         settings = bst.settings
         self.boiler_efficiency_basis = boiler_efficiency_basis
         self.agent = agent = agent or settings.get_heating_agent('low_pressure_steam')
-        self.define_utility('Natural gas', self.natural_gas)
+        self.fuel_source = fuel_source
+        self.define_utility('Fuel', self.fuel)
         self.define_utility('Ash disposal', self.ash_disposal)
         self.boiler_efficiency = boiler_efficiency
         self.turbogenerator_efficiency = turbogenerator_efficiency
-        self.steam_utilities = set()
-        self.power_utilities = set()
+        self.steam_utilities = []
         self.steam_demand = agent.to_stream()
         self.side_steam = side_steam
         self.other_agents = [i for i in settings.heating_agents if i is not agent] if other_agents is None else other_agents
-        self.T_emissions = self.agent.T if T_emissions is None else T_emissions # Assume no heat integration
-        if natural_gas_price is not None: self.natural_gas_price = natural_gas_price
+        self.CO2_emissions_concentration = CO2_emissions_concentration
+        self.oxygen_rich_gas_composition = oxygen_rich_gas_composition 
+        if T_emissions is not None: 
+            raise ValueError('setting T_emissions is not yet implemented')
+            # T_emissions should dictate the efficiency of either the boiler or the turbogenerator.
+            # Note that T_emissions is tied to the energy balance.
+            self.T_emissions = T_emissions
+        if natural_gas_price is not None: 
+            self.fuel_price = natural_gas_price
+        elif fuel_price is not None: 
+            self.fuel_price = fuel_price
         if ash_disposal_price is not None: self.ash_disposal_price = ash_disposal_price
         self.satisfy_system_electricity_demand = satisfy_system_electricity_demand
-        self._load_components()
-        
-    def _load_components(self):
-        chemicals = self.chemicals
-        if 'SO2' in chemicals:
+      
+    def _get_desulfurization_rxn_and_coreactant(self):
+        try:
+            return self.desulfurization_reaction, self._ID_lime
+        except:
+            chemicals = self.chemicals
             CAS_lime = '1305-62-0'
-            if CAS_lime in chemicals or 'Ca(OH)2' in chemicals:
-                if 'Ca(OH)2' not in chemicals:
-                    chemicals.set_synonym(CAS_lime, 'Ca(OH)2')
-                self.desulfurization_reaction =  tmo.Reaction(
+            has_common_name = 'Ca(OH)2' in chemicals
+            if CAS_lime in chemicals or has_common_name:
+                if not has_common_name: chemicals.set_synonym(CAS_lime, 'Ca(OH)2')
+                self.desulfurization_reaction = rxn = tmo.Reaction(
                     'SO2 + Ca(OH)2 + 0.5 O2 -> CaSO4 + H2O', 'SO2', 0.92, chemicals
                 )
-                self._ID_lime = 'Ca(OH)2'
-                return
+                self._ID_lime = ID = 'Ca(OH)2'
+                return rxn, ID
             CAS_lime = '1305-78-8'
-            if CAS_lime in chemicals or 'CaO' in chemicals:
-                if 'CaO' not in chemicals:
-                    chemicals.set_synonym(CAS_lime, 'CaO')
-                self.desulfurization_reaction =  tmo.Reaction(
+            has_common_name = 'CaO' in chemicals
+            if CAS_lime in chemicals or has_common_name:
+                if not has_common_name: chemicals.set_synonym(CAS_lime, 'CaO')
+                self.desulfurization_reaction = rxn = tmo.Reaction(
                     'SO2 + CaO + 0.5 O2 -> CaSO4', 'SO2', 0.92, chemicals
                 )
-                self._ID_lime = 'CaO'
-                return
+                self._ID_lime = ID = 'CaO'
+                return rxn, ID
+        raise RuntimeError(
+            "lime is required for boiler, but no chemical 'CaO' or 'Ca(OH)2' "
+            "available in thermodynamic property package"
+        )
+        
+    @property
+    def emissions(self):
+        return self.outs[0]
     
     @property
     def blowdown_water(self):
@@ -230,9 +291,16 @@ class BoilerTurbogenerator(bst.Facility):
         return self.ins[2]
     
     @property
-    def natural_gas(self):
-        """[Stream] Natural gas to satisfy steam and electricity requirements."""
+    def fuel(self):
+        """[Stream] Fuel used to satisfy steam and electricity requirements."""
         return self.ins[3]
+    natural_gas = fuel
+    
+    @property
+    def air(self):
+        """[Stream] Air or oxygen rich gas used to supply oxygen for combustion."""
+        return self.ins[6]
+    oxygen_rich_gas = air
     
     @property
     def ash_disposal(self):
@@ -240,13 +308,13 @@ class BoilerTurbogenerator(bst.Facility):
         return self.outs[2]
     
     @property
-    def natural_gas_price(self):
+    def fuel_price(self):
         """[Float] Price of natural gas, same as `bst.stream_utility_prices['Natural gas']`."""
-        return bst.stream_utility_prices['Natural gas']
-    
-    @natural_gas_price.setter
-    def natural_gas_price(self, new_price):
-        bst.stream_utility_prices['Natural gas'] = new_price
+        return bst.stream_utility_prices['Fuel']
+    @fuel_price.setter
+    def fuel_price(self, new_price):
+        bst.stream_utility_prices['Fuel'] = new_price
+    natural_gas_price = fuel_price
     
     @property
     def ash_disposal_price(self):
@@ -270,7 +338,7 @@ class BoilerTurbogenerator(bst.Facility):
                 for hu in u.heat_utilities:
                     agent = hu.agent
                     if agent and agent.ID == ID:
-                        steam_utilities.add(hu)
+                        steam_utilities.append(hu)
         self.electricity_demand = sum([u.power_utility.consumption for u in units])
     
     def _design(self):
@@ -281,10 +349,12 @@ class BoilerTurbogenerator(bst.Facility):
         chemicals = self.chemicals
         self._load_utility_agents()
         mol_steam = sum([i.flow for i in self.steam_utilities])
-        feed_solids, feed_gas, makeup_water, feed_CH4, lime, chems = self.ins
-        feed_CH4.phase = 'g'
-        feed_CH4.set_property('T', 60, 'degF')
-        feed_CH4.set_property('P', 14.73, 'psi')
+        feed_solids, feed_gas, makeup_water, fuel, lime, chems, oxygen_rich_gas = self.ins
+        oxygen_rich_gas.empty()
+        if self.fuel_source == 'CH4':
+            fuel.phase = 'g'
+            fuel.set_property('T', 60, 'degF')
+            fuel.set_property('P', 14.73, 'psi')
         emissions, blowdown_water, ash_disposal = self.outs
         if not lime.price:
             lime.price = 0.19937504680689402
@@ -296,46 +366,37 @@ class BoilerTurbogenerator(bst.Facility):
             H_steam += side_steam.H
             mol_steam += side_steam.F_mol
         steam_demand.imol['7732-18-5'] = mol_steam 
-        duty_over_mol = 39000 # kJ / mol-superheated steam 
-        emissions_mol = emissions.mol
-        emissions.T = self.T_emissions
-        emissions.P = 101325
-        emissions.phase = 'g'
         self.combustion_reactions = combustion_rxns = chemicals.get_combustion_reactions()
         non_empty_feeds = [i for i in (feed_solids, feed_gas) if not i.isempty()]
         boiler_efficiency_basis = self.boiler_efficiency_basis
-        def calculate_excess_electricity_at_natual_gas_flow(natural_gas_flow):
-            if natural_gas_flow:
-                natural_gas_flow = abs(natural_gas_flow)
-                feed_CH4.imol['CH4'] = natural_gas_flow
+        fuel_source = self.fuel_source
+        def calculate_excess_electricity_at_natual_gas_flow(fuel_flow):
+            if fuel_flow:
+                fuel_flow = abs(fuel_flow)
+                fuel.imol[fuel_source] = fuel_flow
             else:
-                feed_CH4.empty()
-            emissions_mol[:] = feed_CH4.mol
-            for feed in non_empty_feeds: emissions_mol[:] += feed.mol
-            combustion_rxns.force_reaction(emissions_mol)
-            emissions.imol['O2'] = 0
+                fuel.empty()
             if boiler_efficiency_basis == 'LHV':
-                H_combustion = feed_CH4.LHV
+                H_combustion = fuel.LHV
                 for feed in non_empty_feeds: H_combustion += feed.LHV
             elif boiler_efficiency_basis == 'HHV':
-                H_combustion = feed_CH4.HHV
+                H_combustion = fuel.HHV
                 for feed in non_empty_feeds: H_combustion += feed.HHV
             else:
                 raise ValueError(
                     f"invalid boiler efficiency basis {boiler_efficiency_basis}; "
                     f"valid values include 'LHV', or 'HHV'"
                 )
-            H_content = B_eff * H_combustion 
-            #: [float] Total steam produced by the boiler (kmol/hr)
-            self.total_steam = H_content / duty_over_mol 
-            Design['Flow rate'] = flow_rate = self.total_steam * 18.01528
-            
-            # Heat available for the turbogenerator
-            H_electricity = H_content - H_steam
-            
+            self.H_content = H_content = B_eff * H_combustion 
+            self.H_loss_to_emissions = H_combustion - H_content
+            H_electricity = H_content - H_steam # Heat available for the turbogenerator
             electricity = H_electricity * TG_eff  # Electricity produced
             self.cooling_duty = electricity - H_electricity
-            Design['Work'] = work = electricity/3600
+            Design['Work'] = work = electricity / 3600
+            duty_over_mol = 39000 # kJ / mol-superheated steam 
+            self.total_steam = H_content / duty_over_mol #: [float] Total steam produced by the boiler (kmol/hr)
+            Design['Flow rate'] = flow_rate = self.total_steam * 18.01528
+            
             if self.satisfy_system_electricity_demand:
                 boiler = self.cost_items['Boiler']
                 rate_boiler = boiler.kW * flow_rate / boiler.S
@@ -343,25 +404,48 @@ class BoilerTurbogenerator(bst.Facility):
             else:
                 return work
         
-        self._excess_electricity_without_natural_gas = excess_electricity = calculate_excess_electricity_at_natual_gas_flow(0)
+        self._excess_electricity_without_fuel = excess_electricity = calculate_excess_electricity_at_natual_gas_flow(0)
         if excess_electricity < 0:
             f = calculate_excess_electricity_at_natual_gas_flow
             lb = 0.
-            ub = - excess_electricity * 3600 / feed_CH4.chemicals.CH4.LHV
+            fuel.imol[fuel_source] = 1
+            ub = - excess_electricity * 3600 / fuel.LHV
             while f(ub) < 0.: 
                 lb = ub
                 ub *= 2
             flx.IQ_interpolation(f, lb, ub, xtol=1, ytol=1)
-            if self.cooling_duty > 0.: 
-                # In the event that no electricity is produced and the solver
-                # solution for natural gas is slightly below the requirement for steam
-                # (this would lead to a positive duty).
-                self.cooling_duty = 0.
-                Design['Work'] = 0.
         
+        if self.cooling_duty > 0.: 
+            # In the event that no electricity is produced and the solver
+            # solution for natural gas is slightly below the requirement for steam
+            # (this would lead to a positive duty).
+            self.cooling_duty = 0.
+            Design['Work'] = 0.
+        
+        emissions.T = 298.15 # Will be updated later with the energy balance
+        emissions.P = 101325
+        emissions.phase = 'g'
+        emissions_mol = emissions.mol
+        emissions_mol[:] = fuel.mol
+        for feed in non_empty_feeds: emissions_mol[:] += feed.mol
+        combustion_rxns.force_reaction(emissions_mol)
+        O2_consumption = -emissions.imol['O2']
+        oxygen_rich_gas.reset_flow(**self.oxygen_rich_gas_composition)
+        z_O2 = oxygen_rich_gas.imol['O2'] / oxygen_rich_gas.F_mol
+        oxygen_rich_gas.F_mol = O2_consumption / z_O2
+        emissions_mol += oxygen_rich_gas.mol
+        F_emissions = emissions.F_mass
+        z_CO2 = emissions.imass['CO2'] / F_emissions
+        z_CO2_target = self.CO2_emissions_concentration
+        if z_CO2 > z_CO2_target:
+            F_emissions_new = z_CO2 * F_emissions / z_CO2_target
+            dF_emissions = F_emissions_new - F_emissions
+            oxygen_rich_gas.F_mass = F_mass_O2_new = oxygen_rich_gas.F_mass + dF_emissions
+            emissions_mol += oxygen_rich_gas.mol * (dF_emissions / F_mass_O2_new)
+        emissions.H += self.H_loss_to_emissions
         hu_cooling = bst.HeatUtility()
         hu_cooling(self.cooling_duty, steam_demand.T)
-        hus_heating = bst.HeatUtility.sum_by_agent(tuple(self.steam_utilities))
+        hus_heating = bst.HeatUtility.sum_by_agent(self.steam_utilities)
         for hu in hus_heating: hu.reverse()
         self.heat_utilities = [*hus_heating, hu_cooling]
         water_index = chemicals.index('7732-18-5')
@@ -370,15 +454,18 @@ class BoilerTurbogenerator(bst.Facility):
         )
         ash_IDs = [i.ID for i in self.chemicals if not i.formula]
         emissions_mol = emissions.mol
-        if 'SO2' in chemicals: 
+        SO2_produced = 0
+        if 'SO2' in chemicals:
+            SO2_produced += emissions.imol['SO2']
+        if 'CaSO4' in chemicals:
+            SO2_produced += emissions.imol['CaSO4']
             ash_IDs.append('CaSO4')
-            lime_index = emissions.chemicals.index(self._ID_lime)
-            sulfur_index = emissions.chemicals.index('CaSO4')
-            self.desulfurization_reaction.force_reaction(emissions)
+        if SO2_produced: 
+            rxn, ID_lime = self._get_desulfurization_rxn_and_coreactant()
             # FGD lime scaled based on SO2 generated,	
             # 20% stoichiometric excess based on P52 of ref [1]
-            
-            lime.mol[lime_index] = lime_mol = max(0, emissions_mol[sulfur_index] * 1.2)
+            rxn.force_reaction(emissions)
+            lime.imol[ID_lime] = lime_mol = SO2_produced * 1.2
             emissions_mol.remove_negatives()
         else:
             lime.empty()
@@ -388,10 +475,12 @@ class BoilerTurbogenerator(bst.Facility):
         ash_disposal.copy_flow(emissions, IDs=tuple(ash_IDs), remove=True)
         ash_disposal.imol['Ash'] += boiler_chems
         dry_ash = ash_disposal.F_mass
-        ash_disposal.imass['Water'] = moisture = dry_ash * 0.3 # ~20% moisture
+        moisture = min(emissions.imass['Water'], dry_ash * 0.3) # ~20% moisture
+        ash_disposal.imass['Water'] = moisture
+        emissions.imass['Water'] -= moisture
         Design['Ash disposal'] = dry_ash + moisture
-        if 'SO2' in chemicals:
-            if self._ID_lime == '1305-62-0': # Ca(OH)2
+        if SO2_produced:
+            if ID_lime == 'Ca(OH)2': # Ca(OH)2
                 lime.imol['Water'] = 4 * lime_mol # Its a slurry
             else: # CaO
                 lime.imol['Water'] = 5 * lime_mol 

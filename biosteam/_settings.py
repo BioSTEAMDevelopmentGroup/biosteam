@@ -9,7 +9,7 @@
 This module extends thermosteam's ProcessSettings object.
 """
 from thermosteam import settings
-from thermosteam.units_of_measure import AbsoluteUnitsOfMeasure
+from thermosteam.units_of_measure import UnitsOfMeasure
 from typing import Callable
 import biosteam as bst
 import numpy as np
@@ -32,7 +32,7 @@ bst.Unit.{flowmethname} = {flowmethname}
 get_unit_utility_cost_executable = '''
 def {costmethname}(self):
     """Return the {docname} cost [USD/hr]."""
-    return bst.stream_utility_prices[name] * self.{flowmethname}()
+    return bst.stream_prices[{name}] * self.{flowmethname}()
 
 bst.Unit.{costmethname} = {costmethname}
 '''
@@ -48,7 +48,7 @@ bst.System.{flowmethname} = {flowmethname}
 get_system_utility_cost_executable = '''
 def {costmethname}(self):
     """Return the {docname} cost [USD/yr]."""
-    return bst.stream_utility_prices[name] * self.{flowmethname}()
+    return bst.stream_prices[name] * self.{flowmethname}()
 
 bst.System.{costmethname} = {costmethname}
 '''
@@ -64,7 +64,7 @@ def CEPCI(self, CEPCI):
     bst.CE = CEPCI
 
 @property
-def utility_characterization_factors(self) ->  dict[tuple[str, str], tuple[float, AbsoluteUnitsOfMeasure]]:
+def utility_characterization_factors(self) ->  dict[tuple[str, str], tuple[float, UnitsOfMeasure]]:
     """Utility characterization factor data (value and units) by agent ID 
     and impact key."""
     return bst.HeatUtility.characterization_factors
@@ -89,13 +89,13 @@ def heating_agents(self, heating_agents):
     bst.HeatUtility.heating_agents = heating_agents
     
 @property
-def stream_utility_prices(self) -> dict[str, float]:
-    """Price of stream utilities [USD/kg] which are defined as 
+def stream_prices(self) -> dict[str, float]:
+    """Price of stream utilities/fees/credits [USD/kg] which are defined as 
     inlets and outlets to unit operations."""
-    return bst.stream_utility_prices
-@stream_utility_prices.setter
-def stream_utility_prices(self, stream_utility_prices):
-    bst.stream_utility_prices = stream_utility_prices
+    return bst.stream_prices
+@stream_prices.setter
+def stream_prices(self, stream_prices):
+    bst.stream_prices = stream_prices
 
 @property
 def impact_indicators(self) -> dict[str, str]:
@@ -131,9 +131,9 @@ def allocation_properties(self):
     return bst.allocation_properties
 
 def register_utility(self, name: str, price: float):
-    """Register new stream utility in BioSTEAM given the name and the price 
+    """Register new stream utility/credit/fee in BioSTEAM given the name and the price 
     [USD/kg]."""
-    if name not in bst.stream_utility_prices:
+    if name not in bst.stream_prices:
         docname = name.lower()
         methname = docname.replace(' ', '_').replace('-', '_')
         flowmethname = f"get_{methname}_flow"
@@ -159,7 +159,7 @@ def register_utility(self, name: str, price: float):
         # System
         exec(get_system_utility_flow_executable.format(**flow_kwargs), globs)
         exec(get_system_utility_cost_executable.format(**cost_kwargs), globs)
-    bst.stream_utility_prices[name] = price
+    bst.stream_prices[name] = price
 
 def define_allocation_property(
         self, name: str, basis: float, 
@@ -190,16 +190,17 @@ Settings.utility_characterization_factors = utility_characterization_factors
 Settings.cooling_agents = cooling_agents
 Settings.heating_agents = heating_agents
 Settings.impact_indicators = impact_indicators
-Settings.stream_utility_prices = stream_utility_prices
+Settings.stream_prices = stream_prices
 Settings.electricity_price = electricity_price
 Settings.skip_simulation_of_units_with_empty_inlets = skip_simulation_of_units_with_empty_inlets
-Settings.register_utility = register_utility
+Settings.register_fee = Settings.register_credit = Settings.register_utility = register_utility
 Settings.allocation_properties = allocation_properties
 Settings.define_allocation_property = define_allocation_property
 
 # %% Register stream utilities
 
-settings.register_utility('Natural gas', 0.218)
+settings.register_utility('Fuel', 0.218) # Natural gas
+settings.register_utility('Natural gas', 0.218) # Natural gas
 settings.register_utility('Ash disposal', -0.0318)
 settings.register_utility('Reverse osmosis water', 5.6e-4)
 settings.register_utility('Process water', 2.7e-4)

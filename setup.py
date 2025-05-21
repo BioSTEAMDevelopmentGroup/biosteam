@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2023, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2024, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -11,18 +11,19 @@ setup(
     name='biosteam',
     packages=['biosteam'],
     license='MIT',
-    version='2.38.3',
+    version='2.51.15',
     description='The Biorefinery Simulation and Techno-Economic Analysis Modules',
     long_description=open('README.rst', encoding='utf-8').read(),
     author='Yoel Cortes-Pena',
     install_requires=['IPython>=7.9.0',
-                      'thermosteam>=0.38.2,<0.39.0', 
+                      'thermosteam>=0.51.13', 
                       'graphviz>=0.17',
-                      'chaospy>=3.3.9',
+                      'numpoly==1.2.13',
+                      'chaospy==4.3.15',
                       'pyyaml'],
     extras_require={ 
         'dev': [
-            'biorefineries>=2.26.0',
+            'biorefineries>=2.31.0',
             'sympy',
             'sphinx', 
             'sphinx_multitoc_numbering', 

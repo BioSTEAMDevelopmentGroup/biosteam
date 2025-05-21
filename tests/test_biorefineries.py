@@ -7,14 +7,17 @@
 # for license details.
 """
 """
-def test_sugarcane_biorefinery():
-    from biorefineries import sugarcane as sc
-    from biorefineries.tests.test_biorefineries import test_sugarcane
-    sc._system_loaded = False
+from biorefineries.tests.test_biorefineries import (
+    test_oilcane_O6, 
+    test_oilcane_O8, 
+    test_oilcane_O9,
+    test_sugarcane,
+    test_cornstover,
+)
+    
+if __name__ == '__main__':
+    test_oilcane_O6()
+    test_oilcane_O8() 
+    test_oilcane_O9()
     test_sugarcane()
-
-def test_cornstover_biorefinery():
-    from biorefineries import cornstover as cs
-    from biorefineries.tests.test_biorefineries import test_cornstover
-    cs.Biorefinery.cache.clear()
     test_cornstover()
