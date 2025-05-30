@@ -937,7 +937,7 @@ class System:
         
         * If conditional is True, the signature must be solver(f, x, **kwargs) 
           where f(x) = (x, converged) is the solution and the solver stops 
-          when converged is True. This method is prefered in BioSTEAM.
+          when converged is True. This method is preferred in BioSTEAM.
         
         """
         name = name.lower().replace('-', '').replace('_', '').replace(' ', '')
