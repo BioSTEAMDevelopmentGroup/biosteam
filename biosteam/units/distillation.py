@@ -1072,6 +1072,130 @@ class Distillation(Unit, isabstract=True):
         top = self.outs[0].mol
         self._distillate_recoveries = (top / feed).to_array()
 
+    equation_node_names = (
+        'overall_material_balance_node', 
+        'separation_material_balance_node',
+        'phenomena_node',
+    )
+    
+    def initialize_overall_material_balance_node(self):
+        self.overall_material_balance_node.set_equations(
+            inputs=[j for i in self.ins if (j:=i.F_node)],
+            outputs=[i.F_node for i in self.outs],
+        )
+    
+    def initialize_separation_material_balance_node(self):
+        self.separation_material_balance_node.set_equations(
+            outputs=[self.outs[0].F_node],
+            inputs=[self.S_node, self.outs[1].F_node],
+        )
+        
+    def initialize_phenomena_node(self):
+        self.phenomena_node.set_equations(
+            inputs=(
+                *[i.T_node for i in self.ins], 
+                *[i.F_node for i in self.outs]
+            ),
+            outputs=(
+                self.S_node, *[i.T_node for i in self.outs]),
+        )
+    
+    def _collect_phenomena_variables(self):
+        return [self.S_node, *[i.T_node for i in self.outs]] # list[VariableNode] 
+    
+    @property
+    def S_node(self):
+        S = getattr(self, '_distillate_recoveries', 0)
+        if hasattr(self, '_S_node'):
+            self._S_node.value = S
+            return self._S_node
+        self._S_node = var = bst.VariableNode(f"{self.node_tag}.S", S)
+        return var
+    
+    def _collect_edge_errors(self):
+        equation_name = self.overall_material_balance_node.name
+        outs = self.outs
+        results = []
+        error = np.abs(sum([i.mol for i in outs]) - sum([i.mol for i in self.ins])).sum()
+        for i, outlet in enumerate(outs):
+            index = (equation_name, outlet.F_node.name)
+            results.append((index, error))
+        return results # list[tuple[tuple[equation_name, variable_name], value]]
+
+    def _collect_equation_errors(self):
+        equation_name = self.overall_material_balance_node.name
+        outs = self.outs
+        results = []
+        flows_out = sum([i.mol for i in outs])
+        error = np.abs(flows_out - sum([i.mol for i in self.ins])).sum() / flows_out.sum()
+        results.append((equation_name, error))
+        
+        equation_name = self.separation_material_balance_node.name
+        S = (self.K * self.B)
+        flows_by_phase = {i.phase: 0 for i in outs}
+        for i in outs: flows_by_phase[i.phase] += i.mol
+        top, bottom = flows_by_phase.values()
+        expected = S * bottom
+        actual = top
+        error = np.abs(expected - actual).sum() / (top + bottom).sum()
+        index = equation_name
+        results.append((index, error))
+        
+        ms = bst.MultiStream.sum(self.outs, conserve_phases=True)
+        if self.phases == ('g', 'l'):
+            equation_name = self.vle_phenomena_node.name
+            if self.T_specification:
+                ms.vle(T=self.T_specification, P=self.P)
+                gas = ms.imol['g']
+                liq = ms.imol['l']
+                B = gas.sum() / liq.sum()
+                K = gas / (liq * B)
+                expected = np.array([*K, B])
+                actual = np.array([*np.log1p(self.K), self.B])
+            else:
+                bp = ms['l'].bubble_point_at_P()
+                expected = np.array([*bp.K, bp.T])
+                actual = np.array([*np.log1p(self.K), self.T])
+        else:
+            equation_name = self.lle_phenomena_node.name
+            # ms.lle._lle_chemicals = ms.lle_chemicals
+            # ms.lle._K = self.K
+            # ms.lle._phi = self.B / (1 + self.B)
+            # try:
+            #     breakpoint()
+            #     lle_chemicals, K, _, phi = ms.lle(T=self.T, update=False, top_chemical=self.partition.top_chemical, use_cache=False, single_loop=True)
+            # except Exception as e:
+            #     breakpoint()
+            # if phi == 1: phi = 1 - 1e-16
+            Gamma = self.thermo.Gamma(ms.lle_chemicals)
+            IDs = [i.ID for i in ms.lle_chemicals]
+            x_liquid = ms.imol['l', IDs]
+            x_liquid /= x_liquid.sum()
+            x_LIQUID = ms.imol['L', IDs]
+            x_LIQUID /= x_LIQUID.sum()
+            K = Gamma(x=x_liquid, T=self.T) / Gamma(x=x_LIQUID, T=self.T)
+            z = ms.imol[IDs]
+            z /= z.sum()
+            phi = tmo.equilibrium.phase_fraction(z, K, 0.5)
+            if phi == 1: phi = 1 - 1e-16
+            try:
+                expected = np.array([*np.log1p(K), phi / (1. - phi)])
+            except:
+                breakpoint()
+            actual = np.array([*np.log1p(self.K), self.B])
+        try:
+            error = np.abs(expected - actual).sum()
+        except:
+            breakpoint()
+        results.append((equation_name, error))
+        
+        if self._energy_variable is not None:
+            equation_name = self.energy_balance_node.name
+            error = (sum([i.H for i in outs]) - sum([i.H for i in self.ins])) / sum([i.C for i in outs])
+            results.append((equation_name, np.abs(error)))
+            
+        return results # list[tuple[equation_name, value]]
+
 
 # %% McCabe-Thiele distillation model utilities
 
@@ -1328,7 +1452,7 @@ class BinaryDistillation(Distillation, new_graphics=False):
     def _run(self):
         self._run_binary_distillation_mass_balance()
         self._update_distillate_and_bottoms_temperature()
-        if self.system and self.system.algorithm == 'Phenomena oriented':
+        if self.system and self.system.algorithm != 'Sequential modular':
             self._update_equilibrium_variables()
 
     def reset_cache(self, isdynamic=None):
@@ -1554,8 +1678,9 @@ class BinaryDistillation(Distillation, new_graphics=False):
     def _create_material_balance_equations(self, composition_sensitive):
         split = self._distillate_recoveries
         IDs = self.chemicals.IDs
-        IDs_vle = tuple([i.ID for i in self._vle_chemicals])
-        if IDs != IDs_vle: split = self.chemicals.array(IDs_vle, split)
+        if hasattr(self, '_vle_chemicals'): 
+            IDs_vle = tuple([i.ID for i in self._vle_chemicals])
+            if IDs != IDs_vle: split = self.chemicals.array(IDs_vle, split)
         fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
         top, bottom = self.outs
         ones = np.ones(self.chemicals.size)
@@ -1832,7 +1957,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
         if all([i.isempty() for i in self.ins]): return
         # Initial mass balance
         self._run_binary_distillation_mass_balance()
-        
+
         # Initialize objects to calculate bubble and dew points
         vle_chemicals = self.mixed_feed.vle_chemicals
         try:
@@ -1848,10 +1973,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
         # Setup light and heavy keys
         LHK = [i.ID for i in self.chemicals[self.LHK]]
         IDs = self._IDs_vle
-        try:
-            self._LHK_vle_index = np.array([IDs.index(i) for i in LHK], dtype=int)
-        except:
-            breakpoint()
+        self._LHK_vle_index = np.array([IDs.index(i) for i in LHK], dtype=int)
         
         # Add temporary specification
         composition_spec = self.product_specification_format == 'Composition'
@@ -1991,9 +2113,9 @@ class ShortcutColumn(Distillation, new_graphics=False):
     def _estimate_distillate_recoveries(self):
         # Use Hengsteback and Geddes equations
         alpha_mean = self._estimate_mean_volatilities_relative_to_heavy_key()
-        return compute_distillate_recoveries_Hengsteback_and_Gaddes(self.Lr, self.Hr,
-                                                                    alpha_mean,
-                                                                    self._LHK_vle_index)
+        return compute_distillate_recoveries_Hengsteback_and_Gaddes(
+            self.Lr, self.Hr, alpha_mean, self._LHK_vle_index
+        )
     
     def _update_distillate_recoveries(self, distillate_recoveries):
         feed = self.mixed_feed

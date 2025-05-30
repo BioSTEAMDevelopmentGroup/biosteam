@@ -8,21 +8,34 @@ import biosteam as bst
 import numpy as np
 
 __all__ = (
+    'create_acetic_acid_stripper_system',
     'create_acetic_acid_simple_system',
     'create_acetic_acid_complex_system',
     'create_acetic_acid_complex_decoupled_system',
 )
 
+def create_acetic_acid_stripper_system(alg):
+    import biosteam as bst
+    bst.settings.set_thermo(['AceticAcid', 'Water', 'MTBE'], cache=True)
+    feed = bst.Stream('feed', Water=75, AceticAcid=5, MTBE=20, T=320)
+    steam = bst.Stream('steam', Water=100, phase='g', T=390)
+    stripper = bst.Stripper('D1',
+        N_stages=5, ins=[feed, steam], 
+        outs=['vapor', 'liquid'],
+        solute="AceticAcid", 
+    )
+    return bst.System.from_units(units=[stripper], algorithm=alg)
+    
 def create_acetic_acid_simple_system(alg):
     solvent_feed_ratio = 1
     thermo = bst.Thermo(['Water', 'AceticAcid', 'EthylAcetate'], cache=True)
     bst.settings.set_thermo(thermo)
-    with bst.System(algorithm=alg) as sys:
+    with bst.System('acetic_acid_simple', algorithm=alg) as sys:
         feed = bst.Stream('feed', AceticAcid=6660, Water=43600)
         solvent = bst.Stream('solvent', EthylAcetate=65000)
         recycle = bst.Stream('recycle')
         LE = bst.MultiStageEquilibrium(
-            N_stages=6, ins=[feed, solvent, recycle],
+            N_stages=5, ins=[feed, solvent, recycle],
             feed_stages=(0, -1, -1),
             phases=('L', 'l'),
             maxiter=200,
@@ -37,17 +50,20 @@ def create_acetic_acid_simple_system(alg):
         #     method='fixed-point',
         #     use_cache=True,
         # )
-        DEA = bst.MultiStageEquilibrium(N_stages=6, ins=[LE-1], feed_stages=[3],
-            outs=['vapor', 'liquid'],
-            stage_specifications={0: ('Reflux', 0.673), -1: ('Boilup', 2.57)},
-            phases=('g', 'l'),
+        DEA = bst.MESHDistillation(N_stages=6, ins=[LE-1], feed_stages=[3],
+            outs=['', 'bottoms', recycle],
+            # stage_specifications={0: ('Reflux', 0.673), -1: ('Boilup', 2.57)},
+            reflux=0.673,
+            boilup=2.57,
+            full_condenser=True,
             maxiter=200,
             method='fixed-point',
             use_cache=True,
+            LHK=('EthylAcetate', 'AceticAcid'),
         )
-        HX = bst.SinglePhaseStage(ins=DEA-0, outs=recycle, T=320, phase='l')
+        # HX = bst.SinglePhaseStage(ins=DEA-0, outs=recycle, T=320, phase='l')
         chemicals = bst.settings.chemicals
-
+        
         @LE.add_specification(run=True)
         def fresh_solvent_flow_rate():
             broth = feed.F_mass
@@ -111,7 +127,7 @@ def create_acetic_acid_complex_system(
     # bst.units.MultiStageEquilibrium.default_attempts = 5
     # bst.units.MultiStageEquilibrium.default_molar_tolerance = 1e-9
     # bst.units.MultiStageEquilibrium.default_relative_molar_tolerance = 1e-9
-    with bst.System(algorithm=alg) as sys:
+    with bst.System('acetic_acid_complex', algorithm=alg) as sys:
         # @ethyl_acetate.material_balance
         # def fresh_solvent_flow_rate():
         #     f = np.ones(chemicals.size)
@@ -264,7 +280,7 @@ def create_acetic_acid_complex_decoupled_system(
     # bst.units.MultiStageEquilibrium.default_attempts = 5
     # bst.units.MultiStageEquilibrium.default_molar_tolerance = 1e-9
     # bst.units.MultiStageEquilibrium.default_relative_molar_tolerance = 1e-9
-    with bst.System(algorithm=alg) as sys:
+    with bst.System('acetic_acid_complex_decoupled', algorithm=alg) as sys:
         # @ethyl_acetate.material_balance
         # def fresh_solvent_flow_rate():
         #     f = np.ones(chemicals.size)

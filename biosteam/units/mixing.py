@@ -75,6 +75,41 @@ class Mixer(Unit):
     _N_ins = 2
     _ins_size_is_fixed = False
     
+    equation_node_names = (
+        'overall_material_balance_node', 
+        'energy_balance_node',
+    )
+    
+    def initialize_overall_material_balance_node(self):
+        self.overall_material_balance_node.set_equations(
+            outputs=[i.F_node for i in self.outs],
+            inputs=[j for i in self.ins if (j:=i.F_node)],
+        )
+        
+    def initialize_energy_balance_node(self):
+        self.energy_balance_node.set_equations(
+            inputs=(
+                self.T_node, 
+                *[i.F_node for i in (*self.ins, *self.outs)],
+                *[j for i in self.ins if (j:=i.E_node)],
+            ),
+            outputs=[
+                j for i in self.outs if (j:=i.E_node)
+            ],
+        )
+    
+    @property
+    def T_node(self):
+        if hasattr(self, '_T_node'): 
+            self._T_node.value = self.outs[0].T
+            return self._T_node
+        self._T_node = var = bst.VariableNode(f"{self.node_tag}.T", self.outs[0].T)
+        return var 
+        
+    @property
+    def E_node(self):
+        return self.T_node    
+    
     def _assert_compatible_property_package(self): 
         pass # Not necessary for mixing streams
     

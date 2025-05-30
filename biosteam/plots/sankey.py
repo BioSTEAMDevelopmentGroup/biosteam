@@ -196,7 +196,6 @@ class Handle: # pragma: no coverage
         products = [i for i in streams if i._sink not in nodes_index and i._source and i not in self.ignore and not i.isempty()]
         main_products = self.main_products or sorted(products, key=stream_cost, reverse=True)[:self.max_products]
         products = reduced_streams(main_products, unit_groups)
-        breakpoint()
         for product in products:
             node = self.product_node(product)
             nodes.append(node)

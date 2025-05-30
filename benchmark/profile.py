@@ -40,15 +40,23 @@ __all__ = (
     'save_simulation_errors',
     'Tracker',
     'test_convergence_rigorous',
+    'create_graph_theoretic_convergence_gif',
+    'create_convergence_plot',
+    'get_phenomegraph',
+    'create_graphs'
 )
 
 # %% Make simulation rigorous to achieve lower tolerances
 
-bst.MultiStageEquilibrium.default_maxiter = 20
-bst.MultiStageEquilibrium.default_max_attempts = 10
+bst.System.default_maxiter = 200
+bst.System.default_molar_tolerance = 1e-6
+bst.System.default_relative_molar_tolerance = 1e-6
+bst.MultiStageEquilibrium.default_maxiter = 30 # 20
+bst.MultiStageEquilibrium.default_max_attempts = 0 # 10
+bst.MultiStageEquilibrium.max_attempts = 10 # 0 for tracking
 bst.MultiStageEquilibrium.default_molar_tolerance = 1e-9
 bst.MultiStageEquilibrium.default_relative_molar_tolerance = 1e-12
-bst.MultiStageMixerSettlers.default_maxiter = 50
+bst.MultiStageMixerSettlers.default_maxiter = 30 # 50
 tmo.BubblePoint.maxiter = 100 # -> 50 [-]
 tmo.DewPoint.maxiter = 100 # -> 50 [-]
 tmo.BubblePoint.T_tol = 1e-16 # -> 1e-9 [K]
@@ -104,7 +112,6 @@ class BenchmarkModel:
                 extraction_stages=self.extraction_stages, 
                 raffinate_distillation_stages=self.raffinate_distillation_stages,
                 extract_distillation_stages=self.raffinate_distillation_stages,
-                atol=1e-10
             )
             self.sm_system = self.sm_tracker.system
             self.sm_recycles = self.sm_system.get_all_recycles()
@@ -113,7 +120,6 @@ class BenchmarkModel:
                 extraction_stages=self.extraction_stages, 
                 raffinate_distillation_stages=self.raffinate_distillation_stages,
                 extract_distillation_stages=self.raffinate_distillation_stages,
-                atol=1e-10
             )
             self.po_system = self.po_tracker.system
             self.po_recycles = self.po_system.get_all_recycles()
@@ -226,10 +232,13 @@ def plot_monte_carlo(system='alcohol_wide_flash'):
 try:
     images_folder = os.path.join(os.path.dirname(__file__), 'images')
     simulations_folder = os.path.join(os.path.dirname(__file__), 'simulations')
+    graphs_folder = os.path.join(os.path.dirname(__file__), 'graphs')
 except:
     images_folder = os.path.join(os.getcwd(), 'images')
     simulations_folder = os.path.join(os.getcwd(), 'simulations')
-
+    graphs_folder = os.path.join(os.getcwd(), 'graphs')
+    
+stages_file = os.path.join(simulations_folder, 'system_stages.json')
 all_systems = {}
 system_titles = {}
 system_convergence_times = {}
@@ -237,7 +246,7 @@ system_tickmarks = {}
 system_labels = {}
 system_yticks = {}
 try:
-    with open('system_stages.json') as f: system_stages = json.load(f)
+    with open(stages_file) as f: system_stages = json.load(f)
 except:
     system_stages = {}
 
@@ -260,19 +269,19 @@ def register(name, title, time, tickmarks, label, yticks=None):
 # )
 register(
     'acetic_acid_complex', 'Rigorous system',
-    240, [0, 60, 120, 180, 240], 'AcOH\nindustrial\ndewatering', 
+    180, [0, 40, 80, 120, 160], 'AcOH\nindustrial\ndewatering', 
     [(-15, -10, -5, 0, 5), (-15, -10, -5, 0, 5)],
     # [(-5, -2.5, 0, 2.5, 5), (-8, -5, -2, 1, 4)],
 )
 register(
     'acetic_acid_simple', 'Subsystem',
-    40, [0, 8, 16, 24, 32], 'AcOH\npartial\ndewatering',
+    30, [0, 6, 12, 18, 24], 'AcOH\npartial\ndewatering',
     [(-15, -10, -5, 0, 5), (-15, -10, -5, 0, 5)],
     # [(-15, -10, -5, 0, 5, 10), (-15, -10, -5, 0, 5, 10)],
 )
 register(
     'acetic_acid_complex_decoupled', 'Shortcut system',
-    25, [5, 10, 15, 20, 25], 'AcOH\nshortcut\ndewatering',
+    30, [0, 8, 16, 24, 28],'AcOH\nshortcut\ndewatering',
     [(-15, -10, -5, 0, 5), (-15, -10, -5, 0, 5)],
 )
 # register(
@@ -283,6 +292,7 @@ register(
 #     'alcohol_wide_flash', 'Alcohol flash wide',
 #     0.05, [0.01, 0.02, 0.03, 0.04, 0.05], 'Alcohol\nflash\nwide'
 # )
+
 register(
     'butanol_purification', 'Butanol purification',
     1, [0, 0.1, 0.2, 0.3, 0.4, 0.5], 'BtOH\nseparation',
@@ -311,12 +321,18 @@ register(
     [[-10, -7.5, -5, -2.5, 0], [-10, -7.5, -5, -2.5, 0]],
 )
 
-with open('system_stages.json', 'w') as file: json.dump(system_stages, file)
+register(
+    'acetic_acid_stripper', 'Stripper',
+    1, [0, 0.1, 0.2, 0.3, 0.4, 0.5], 'Stripper',
+    [(-15, -10, -5, 0, 5), (-15, -10, -5, 0, 5)],
+)
+
+with open(stages_file, 'w') as file: json.dump(system_stages, file)
 
 # %% Testing
 
 def test_convergence(systems=None, alg=None, maxiter=None):
-    if maxiter is None: maxiter = 200
+    if maxiter is None: maxiter = 1000
     if systems is None: systems = list(all_systems)
     elif isinstance(systems, str): systems = [systems]
     outs = []
@@ -334,6 +350,7 @@ def test_convergence(systems=None, alg=None, maxiter=None):
                 time.tic()
                 po.simulate()
                 print('- Phenomena oriented', time.toc())
+                po.show()
                 new.append(po)
             if alg is None or alg == 'sm': 
                 bst.F.set_flowsheet('SM')
@@ -342,10 +359,12 @@ def test_convergence(systems=None, alg=None, maxiter=None):
                 time.tic()
                 sm.simulate()
                 print('- Sequential modular', time.toc())
+                sm.show()
                 new.append(sm)
             outs.append(new)
             if alg is None:
                 for s_sm, s_dp in zip(sm.streams, po.streams):
+                    # assert s_sm.node_tag == s_dp.node_tag
                     actual = s_sm.mol
                     value = s_dp.mol
                     try:
@@ -417,22 +436,119 @@ def convergence_time(sm, po):
     return sm['Time'][sm_index], po['Time'][po_index]
 
 
+# %% Graph-theoretic representation of convergence
+
+def get_phenomegraph(
+        system=None, algorithm=None, load=True, save=True,
+        simulate=True, bipartite=True, new_graph=False
+    ):
+    bst.MultiStageEquilibrium.max_attempts = 0 # For consistent tracking
+    if system is None: system = 'acetic_acid_simple'
+    if algorithm is None: algorithm = 'phenomena oriented'
+    alg = algorithm.replace(' ', '_').replace('-', '_')
+    file = os.path.join(graphs_folder, f"{system}_{alg}")
+    if not bipartite: file += '_monopartite'
+    if new_graph:
+        dotfile = None
+    else:
+        dotfile = tmo.DotFile(os.path.join(graphs_folder, system))
+    if load:
+        try:
+            with open(file, 'rb') as f: phenomena_graph = pickle.load(f)
+        except Exception as e:
+            print(e)
+            return get_phenomegraph(
+                system=system, algorithm=algorithm,
+                load=False, save=save, bipartite=bipartite,
+                new_graph=new_graph, simulate=simulate,
+            )
+    else:
+        bst.F.clear()
+        sys = all_systems[system](algorithm)
+        sys.set_tolerance(
+            mol=1e-2,
+            rmol=1e-2,
+            maxiter=500,
+            method='fixed-point',
+            subsystems=True,
+        )
+        if simulate:
+            sys.track_convergence(True, collect=False)
+            sys.simulate()
+        phenomena_graph = sys.get_phenomegraph(
+            dotfile=dotfile, bipartite=bipartite, 
+            flowsheet_level=algorithm != 'sequential modular',
+        )
+        if save:
+            if not simulate: file += '_nosim'
+            with open(file, 'wb') as f: pickle.dump(phenomena_graph, f)
+    return phenomena_graph
+
+def create_graphs(system=None, bipartite=True):
+    if system is None: system = 'acetic_acid_simple'
+    header = system
+    if not bipartite: header += '_monopartite'
+    file = os.path.join(graphs_folder, f"{header}_graph.png")
+    SM_graph = get_phenomegraph(system, algorithm='sequential modular', simulate=False, new_graph=False)
+    SM_graph.write(file)
+    PO_graph = get_phenomegraph(system, algorithm='phenomena oriented', new_graph=False, simulate=False)
+    for graph in (SM_graph, PO_graph):
+        for subgraph in graph.subgraphs:
+            _, name = subgraph.name.split('.')
+            file = os.path.join(graphs_folder, f"{header}_subgraph_{name}.png")
+            subgraph.write(file)
+        
+def create_convergence_plot(
+        system=None, algorithm=None, load=True, save=True,
+    ):
+    if system is None: system = 'acetic_acid_simple'
+    if algorithm is None: algorithm = 'phenomena oriented'
+    alg = algorithm.replace(' ', '_').replace('-', '_')
+    phenomena_graph = get_phenomegraph(
+        system=system, algorithm=algorithm, 
+        load=load, save=save, 
+    )
+    file = os.path.join(graphs_folder, f"{system}_{alg}")
+    return phenomena_graph.plot_convergence_profile(file=file)
+
+def create_graph_theoretic_convergence_gif(
+        system=None, algorithm=None, load=True, save=True, 
+        duration=None, new_graph=False,
+    ):
+    if system is None: system = 'acetic_acid_simple'
+    if algorithm is None: algorithm = 'phenomena oriented'
+    if duration is None:
+        if algorithm == 'phenomena oriented':
+            duration = 120
+        else:
+            duration = 80
+    alg = algorithm.replace(' ', '_').replace('-', '_')
+    bipartite_graph = get_phenomegraph(
+        system=system, algorithm=algorithm, new_graph=new_graph,
+        load=load, save=True, bipartite=True
+    )
+    aggregated_graph = get_phenomegraph(
+        system=system, algorithm=algorithm, new_graph=new_graph,
+        load=load, save=save, bipartite=False
+    )
+    file = os.path.join(graphs_folder, f"{system}_{alg}")
+    reference = {eq.name: n for n, nodes in enumerate(aggregated_graph.phenomenodes) for eq in nodes.equations}
+    bipartite_graph.convergence_gif(
+        file=file, duration=duration, profiles=aggregated_graph.profiles,
+        reference=reference,
+    )
+    for i, pg in enumerate(bipartite_graph.subgraphs):
+        pg.convergence_gif(file=f'{file}_{i}', duration=duration, 
+                           profiles=aggregated_graph.profiles,
+                           reference=reference)
+
+
 # %% Profiling and benchmarking utilities
 
 class ErrorPoint(NamedTuple):
     time: float; error: float
 
 default_steady_state_cutoff = 1
-    
-def get_flows(streams, phases):
-    flows = []
-    for i, stream_phases in zip(streams, phases):
-        if len(stream_phases) == 1:
-            flows.append(i.mol)
-            continue
-        for j in stream_phases:
-            flows.append(i.imol[j])
-    return np.array(flows)
 
 def steady_state_error(profile, steady_state_cutoff=None):
     if steady_state_cutoff is None: steady_state_cutoff = default_steady_state_cutoff
@@ -472,21 +588,18 @@ class Convergence:
         except: 
             try: system.simulate()
             except: pass
-            if system.algorithm == 'Phenomena oriented':
-                N = 500
-            else:
-                N = 50
-            for i in range(N): system.run()
-            streams, adiabatic_stages, all_stages = streams_and_stages(system)
-            cfe, te = zip(*[i._simulation_error() for i in all_stages])
-            phases = [i.phases for i in streams]
-            flows = get_flows(streams, phases)
-            system.run()
-            cfe, te = zip(*[i._simulation_error() for i in all_stages])
-            flows_new = get_flows(streams, phases)
-            benchmark = sum(cfe) + sum(te) + np.abs(flows_new - flows).sum()
+            for i in range(50): system.run()
+            streams, adiabatic_stages, all_stages = get_streams_and_stages(system)
+            # cfe, te = zip(*[i._simulation_error() for i in all_stages])
             Ts = np.array([i.T for i in streams])
-            results = flows_new, Ts, [i.node_tag for i in streams], phases
+            flows = np.array([i.mol for i in streams])
+            system.run()
+            # cfe, te = zip(*[i._simulation_error() for i in all_stages])
+            flows_new = np.array([i.mol for i in streams])
+            Ts_new = np.array([i.T for i in streams])
+            benchmark = np.abs(Ts_new - Ts).sum() + np.abs(flows_new - flows).sum()
+            # benchmark = sum(cfe) + sum(te) + np.abs(flows_new - flows).sum()
+            results = flows_new, Ts_new, [i.node_tag for i in streams]
             with open(file, 'wb') as f: pickle.dump((*results, benchmark), f)
         self.results = results
         self.benchmark = benchmark
@@ -494,13 +607,12 @@ class Convergence:
 
 class Tracker:
     __slots__ = (
-        'system', 'run', 'streams', 
-        'adiabatic_stages', 'stages',
-        'profile_time', 'rtol', 'atol',
+        'system', 'run', 
+        'profile_time',
         'kwargs', 'name', 'algorithm'
     )
     
-    def __init__(self, name, algorithm, rtol=1e-16, atol=1e-9, **kwargs):
+    def __init__(self, name, algorithm, **kwargs):
         sys = all_systems[name](algorithm, **kwargs)
         sys._setup_units()
         sys.flowsheet.clear()
@@ -511,13 +623,12 @@ class Tracker:
             self.run = sys.run_sequential_modular
         elif sys.algorithm == 'Phenomena oriented':
             self.run = sys.run_phenomena
+        elif sys.algorithm == 'Mixed':
+            self.run = sys.run_mixed
         else:
             raise ValueError('invalid algorithm')
         self.algorithm = algorithm
-        self.rtol = rtol
-        self.atol = atol
         self.profile_time = system_convergence_times[name]
-        self.streams, self.adiabatic_stages, self.stages, = streams_and_stages(sys)
         
     def estimate_steady_state(self, load=True): # Uses optimization to estimate steady state
         options = '_'.join(['{i}_{j}' for i, j in self.kwargs.items()])
@@ -527,9 +638,12 @@ class Tracker:
         else:
             file_name = f"{self.name}_{algorithm}_steady_state"
         file = os.path.join(simulations_folder, file_name)
+        bst.F.clear()
+        sys = all_systems[self.name](algorithm, **self.kwargs)
         c = Convergence(
-            all_systems[self.name](algorithm, **self.kwargs), file
+            sys, file
         )
+        sys.flowsheet.clear()
         # L, R = [
         #     Convergence(all_systems[self.name](algorithm, **self.kwargs), file).results[0]
         #     for algorithm in ('Sequential modular', 'Phenomena oriented')
@@ -731,9 +845,6 @@ class Tracker:
         
     def profile(self):
         f = self.run
-        streams = self.streams
-        adiabatic_stages = self.adiabatic_stages
-        stages = self.stages
         total_time = self.profile_time
         time = bst.TicToc()
         flow_error = []
@@ -741,20 +852,24 @@ class Tracker:
         material_error = []
         temperature_error = []
         net_time = 0
-        temperatures = np.array([i.T for i in streams])
         diverged_scenarios = []
         temperature_history = []
         flow_history = []
         record = []
-        steady_state_flows, steady_state_temperatures, node_tags, phases = self.estimate_steady_state()
-        assert node_tags == [i.node_tag for i in streams]
-        flows = get_flows(streams, phases)
+        streams, adiabatic_stages, stages = get_streams_and_stages(self.system)
+        steady_state_flows, steady_state_temperatures, node_tags = self.estimate_steady_state()
+        temperatures = np.array([i.T for i in streams])
+        flows = np.array([i.mol for i in streams])
+        # try: 
+        #     assert node_tags == [i.node_tag for i in streams]
+        # except:
+        #     breakpoint()
         while net_time < total_time:
             time.tic()
             diverged_scenarios.append(f())
             net_time += time.toc()
             new_temperatures = np.array([i.T for i in streams])
-            new_flows = get_flows(streams, phases)
+            new_flows = np.array([i.mol for i in streams])
             record.append(net_time)
             flow_history.append(new_flows)
             temperature_history.append(new_temperatures)
@@ -766,9 +881,12 @@ class Tracker:
             temperature_error.append(
                 np.log10(dT + 1e-25)
             )
-            energy_error.append(
-                np.log10(sum([abs(dT_error(i)) for i in adiabatic_stages]) + 1e-25)
-            )
+            try:
+                energy_error.append(
+                    np.log10(sum([abs(dT_error(i)) for i in adiabatic_stages]) + 1e-25)
+                )
+            except:
+                energy_error.append(energy_error[-1])
             material_error.append(
                 np.log10(sum([abs(i.mass_balance_error()) for i in stages]) + 1e-25)
             )
@@ -787,33 +905,23 @@ class Tracker:
             'Diverged scenarios': diverged_scenarios,
         }
 
-def streams_and_stages(sys):
+def get_streams_and_stages(sys):
     all_stages = []
     adiabatic_stages = []
-    streams = []
-    past_streams = set()
     # print(f'----{sys.algorithm}----')
     for i in sorted(sys.unit_path, key=lambda x: x.node_tag):
         # print(i)
         if hasattr(i, 'stages'):
             all_stages.extend(i.stages)
-            for j in i.stages:
-                new_streams = [i for i in (j.outs + j.ins) if i.imol not in past_streams]
-                streams.extend(new_streams)
-                past_streams.update([i.imol for i in new_streams])
-                if j.B_specification is None and j.T_specification is None:
-                    adiabatic_stages.append(j)
         else:
-            try:
-                if i.B_specification is None and i.T_specification is None:
-                    adiabatic_stages.append(j)
-            except:
-                pass
             all_stages.append(i)
-            new_streams = [j for j in (i.outs + i.ins) if j.imol not in past_streams]
-            streams.extend(new_streams)
-            past_streams.update([i.imol for i in new_streams])
-    streams = sorted(streams, key=lambda x: x.node_tag) 
+    for j in all_stages:
+        try:
+            if j.B_specification is None and j.T_specification is None:
+                adiabatic_stages.append(j)
+        except:
+            pass
+    streams = sum([i.outs for i in all_stages], [])
     return (streams, adiabatic_stages, all_stages)
 
 def dT_error(stage):
@@ -855,69 +963,28 @@ def plot_benchmark(systems=None, exclude=None, N=5, load=True, save=True, sort_b
     for m, sys in enumerate(systems):
         N = Ns[m]
         time = system_convergence_times[sys]
-        sms = []
-        pos = []
-        if load:
-            # try:
+        profiles = {}
+        for alg in ('sequential modular', 'phenomena oriented', 'mixed'):
+            alg_profiles = []
+            profiles[alg] = alg_profiles
+            short = ''.join([i[0] for i in alg.split(' ')])
             for i in range(N):
-                sm_name = f'sm_{time}_{sys}_profile_{i}.npy'
+                sm_name = f'{short}_{time}_{sys}_profile_{i}.npy'
                 file = os.path.join(simulations_folder, sm_name)
                 if load:
                     try:
                         with open(file, 'rb') as f: sm = pickle.load(f)
                     except:
-                        sm = Tracker(sys, 'sequential modular').profile()
+                        sm = Tracker(sys, alg).profile()
                 else:
-                    sm = Tracker(sys, 'sequential modular').profile()
+                    sm = Tracker(sys, alg).profile()
                 if save:
-                    sm_name = f'sm_{time}_{sys}_profile_{i}.npy'
+                    sm_name = f'{short}_{time}_{sys}_profile_{i}.npy'
                     file = os.path.join(simulations_folder, sm_name)
                     with open(file, 'wb') as f: pickle.dump(sm, f)
-                sms.append(sm)
-            for i in range(N):
-                po_name = f'po_{time}_{sys}_profile_{i}.npy'
-                file = os.path.join(simulations_folder, po_name)
-                if load:
-                    try:
-                        with open(file, 'rb') as f: po = pickle.load(f)
-                    except:
-                        po = Tracker(sys, 'phenomena oriented').profile()
-                else:
-                    po = Tracker(sys, 'phenomena oriented').profile()
-                if save:
-                    po_name = f'po_{time}_{sys}_profile_{i}.npy'
-                    file = os.path.join(simulations_folder, po_name)
-                    with open(file, 'wb') as f: pickle.dump(po, f)
-                pos.append(po)
-            # except:
-            #     for i in range(N):
-            #         sm = Tracker(sys, 'sequential modular').profile()
-            #         sms.append(sm)
-            #     for i in range(N):
-            #         po = Tracker(sys, 'phenomena oriented').profile()
-            #         pos.append(po)
-            #     if save:
-            #         sm_name = f'sm_{time}_{sys}_benchmark_{N}.npy'
-            #         file = os.path.join(simulations_folder, sm_name)
-            #         with open(file, 'wb') as f: pickle.dump(sms, f)
-            #         po_name = f'po_{time}_{sys}_benchmark_{N}.npy'
-            #         file = os.path.join(simulations_folder, po_name)
-            #         with open(file, 'wb') as f: pickle.dump(pos, f)
-        else:
-            for i in range(N):
-                sm = Tracker(sys, 'sequential modular').profile()
-                sms.append(sm)
-            for i in range(N):
-                po = Tracker(sys, 'phenomena oriented').profile()
-                pos.append(po)
-            if save:
-                sm_name = f'sm_{time}_{sys}_profile.npy'
-                file = os.path.join(simulations_folder, sm_name)
-                with open(file, 'wb') as f: pickle.dump(sms, f)
-                po_name = f'po_{time}_{sys}_profile.npy'
-                file = os.path.join(simulations_folder, po_name)
-                with open(file, 'wb') as f: pickle.dump(pos, f)
-        cutoff = max([steady_state_error(i) for i in sms + pos])
+                alg_profiles.append(sm)
+        cutoff = max([steady_state_error(i) for i in sum(profiles.values(), [])])
+        raise NotImplementedError('update code!')
         sms = np.array([benchmark(i, cutoff) for i in sms])
         pos = np.array([benchmark(i, cutoff) for i in pos])
         values.append(pos)
@@ -1027,9 +1094,11 @@ def dct_mean_std(dcts: list[dict], keys: list[str]):
     return {i: (values[i].mean(), values[i].std()) for i in keys}
 
 def plot_profile(
-        systems=None, N=1, load=True, save=True,
+        systems=None, algorithms=None, N=5, load=True, save=True,
         T=False,
     ):
+    if algorithms is None: algorithms = ('phenomena oriented', 'mixed', 'sequential modular', )
+    if isinstance(systems, str): systems = [systems]
     if systems is None: systems = list(all_systems)
     fs = 9
     bst.set_font(fs)
@@ -1090,116 +1159,83 @@ def plot_profile(
             all_axes = all_axes.reshape([n_rows, n_cols])
     if n_cols == 1:
         all_axes = np.reshape(all_axes, [n_rows, n_cols]) 
+    colors = {
+        'sequential modular': Color(fg='#33BBEE').RGBn,
+        'phenomena oriented': Color(fg='#EE7733').RGBn,
+        'mixed': Color(fg='#a280b9').RGBn,
+    }
+    ss = Color(fg='#79bf82').RGBn
     for m, sys in enumerate(systems):
         time = system_convergence_times[sys]
         axes = all_axes[:, m]
-        sms = []
-        pos = []
-        for i in range(N):
-            sm_name = f'sm_{time}_{sys}_profile_{i}.npy'
-            file = os.path.join(simulations_folder, sm_name)
-            if load:
-                try:
-                    with open(file, 'rb') as f: sm = pickle.load(f)
-                except:
-                    sm = Tracker(sys, 'sequential modular').profile()
-            else:
-                sm = Tracker(sys, 'sequential modular').profile()
-            if save:
-                sm_name = f'sm_{time}_{sys}_profile_{i}.npy'
-                file = os.path.join(simulations_folder, sm_name)
-                with open(file, 'wb') as f: pickle.dump(sm, f)
-            sms.append(sm)
-        for i in range(N):
-            po_name = f'po_{time}_{sys}_profile_{i}.npy'
-            file = os.path.join(simulations_folder, po_name)
-            if load:
-                try:
-                    with open(file, 'rb') as f: po = pickle.load(f)
-                except:
-                    po = Tracker(sys, 'phenomena oriented').profile()
-            else:
-                po = Tracker(sys, 'phenomena oriented').profile()
-            if save:
-                po_name = f'po_{time}_{sys}_profile_{i}.npy'
-                file = os.path.join(simulations_folder, po_name)
-                with open(file, 'wb') as f: pickle.dump(po, f)
-            pos.append(po)
+        profiles = {}
+        for alg in algorithms:
+            alg_profiles = []
+            profiles[alg] = alg_profiles
+            short = ''.join([i[0] for i in alg.split(' ')])
+            for i in range(N):
+                name = f'{short}_{time}_{sys}_profile_{i}.npy'
+                file = os.path.join(simulations_folder, name)
+                if load:
+                    try:
+                        with open(file, 'rb') as f: profile = pickle.load(f)
+                    except:
+                        try:
+                            profile = Tracker(sys, alg).profile()
+                        except Exception as e:
+                            print(e)
+                            breakpoint()
+                            profile = None
+                            break
+                else:
+                    try:
+                        profile = Tracker(sys, alg).profile()
+                    except Exception as e:
+                        print(e)
+                        breakpoint()
+                        profile = None
+                        break
+                if save:
+                    name = f'{short}_{time}_{sys}_profile_{i}.npy'
+                    file = os.path.join(simulations_folder, name)
+                    with open(file, 'wb') as f: pickle.dump(profile, f)
+                alg_profiles.append(profile)
+            if profile is None:
+                del profiles[alg]
         tub = system_tickmarks[sys][-1]
         if N > 1:
-            pos = pos[1:]
-            sms = sms[1:]
-            tub = min(tub, min([dct['Time'][-1] for dct in sms]), min([dct['Time'][-1] for dct in pos]))
-        sm = dct_mean_profile(sms, keys, tub)
-        po = dct_mean_profile(pos, keys, tub)
-        csm = Color(fg='#33BBEE').RGBn
-        cpo = Color(fg='#EE7733').RGBn
+            for alg_profiles in profiles.values():
+                tub = min(tub, min([dct['Time'][-1] for dct in alg_profiles]))
+        mean_profiles = {i: dct_mean_profile(j, keys, tub) for i, j in profiles.items()}
         yticks_list = system_yticks[sys]
         for n, (i, ax, u) in enumerate(zip(keys, axes, units)):
             plt.sca(ax)
             xticks = system_tickmarks[sys]
-            ms = False # (np.array(xticks) < 1e-1).all()
             if n == n_rows-1: 
-                if ms:
-                    plt.xlabel('Time [ms]')
-                else:
-                    plt.xlabel('Time [s]')
+                plt.xlabel('Time [s]')
             label = labels[i]
             if m == 0: plt.ylabel(f'{label} {u}')
-            ysm = np.array(sm[i])
-            ypo = np.array(po[i])
-            ysm = gaussian_filter(ysm, 0.2)
-            ypo = gaussian_filter(ypo, 0.2)
-            cutoff = ysm.min() + 1
-            sm_index = sum(ysm > cutoff)
-            po_index = sum(ypo > cutoff)
-            tsm = np.array(sm['Time'])
-            tpo = np.array(po['Time'])
-            if ms: 
-                xticks = [int(i * 1e3) for i in xticks]
-                tsm *= 1e3
-                tpo *= 1e3
-            size = len(tpo)
-            diverged = po['Diverged scenarios'][:size]
-            plt.plot(tsm, ysm, '--', color=csm, lw=1.5, alpha=0.5)
-            plt.plot(tsm, ysm, lw=0, marker='.', color=csm, markersize=2.5)
-            plt.plot(tpo[~diverged], ypo[~diverged], lw=0, marker='.', color=cpo, markersize=2.5)
-            plt.plot(tpo[diverged], ypo[diverged], lw=0, marker='x', color=cpo, markersize=2.5)
-            plt.plot(tpo, ypo, '-', color=cpo, lw=1.5, alpha=0.5)
-            try:
-                plt.plot(tsm[sm_index], ysm[sm_index], lw=0, marker='*', color=csm, markersize=5)
-                plt.plot(tpo[po_index], ypo[po_index], lw=0, marker='*', color=cpo, markersize=5)
-            except:
-                pass
-            print(sm_index, po_index)
-            # plt.annotate(str(sm_index), (tsm[sm_index], ysm[sm_index]), (tsm[sm_index], ysm[sm_index] - 1.5), color=csm)
-            # plt.annotate(str(po_index), (tpo[po_index], ypo[po_index]), (tpo[po_index], ypo[po_index] + 0.5), color=cpo)
+            args = []
+            for alg, mean_profile in mean_profiles.items():
+                y = np.array(mean_profile[i])
+                y = gaussian_filter(y, 0.2)
+                cutoff = y.min() + 1.5
+                index = sum(y > cutoff)
+                t = np.array(mean_profile['Time'])
+                c = colors[alg]
+                args.append((t, y, c, index, t[index]))
+                print(alg, index)
+            for t, y, c, index, _ in sorted(args, key=lambda x: x[-1]):
+                plt.plot(t, y, '-', color=c, lw=1.5, alpha=0.5)
+                plt.plot(t, y, lw=0, marker='.', color=c, markersize=1)
+                # try:
+                #     plt.plot(t[index], y[index], lw=0, marker='*', color=c, markersize=5)
+                # except:
+                #     pass
             yticklabels = m == 0
             yticks = yticks_list[n]
             if yticklabels:
                 yticklabels = [r'$\mathrm{10}^{' f'{i}' '}$' for i in yticks]
-            # if m == 0 and n == 0:
-            #     index = int(len(tsm) * 0.5)
-            #     xy = x, y = (tsm[index], ysm[index])
-            #     ax.annotate('Sequential\nmodular',
-            #         xy=xy, 
-            #         xytext=(x-0.01*tub, y+1),
-            #         # arrowprops=dict(arrowstyle="->", color=csm),
-            #         color=csm,
-            #         fontsize=fs,
-            #         fontweight='bold',
-            #     )
-            #     index = int(len(tpo) * 0.5)
-            #     xy = x, y = (tpo[index], ypo[index])
-            #     ax.annotate('Phenomena\noriented',
-            #         xy=xy, 
-            #         xytext=(x+0.05*tub, y+5),
-            #         # arrowprops=dict(arrowstyle="->", color=cpo),
-            #         ha='right',
-            #         color=cpo,
-            #         fontsize=fs,
-            #         fontweight='bold',
-            #     )
             xticklabels = xtick0 = n == n_rows-1
             xtickf = m == n_cols-1
             ytick0 = n == n_rows-1
@@ -1212,8 +1248,8 @@ def plot_profile(
                 xticklabels=xticklabels,
                 yticklabels=yticklabels,
             )
-    letter_color = c.neutral.shade(25).RGBn
-    titles = [system_titles[i] for i in systems]
+    # letter_color = c.neutral.shade(25).RGBn
+    # titles = [system_titles[i] for i in systems]
     # for ax, letter in zip(all_axes[0], titles):
     #     plt.sca(ax)
     #     ylb, yub = plt.ylim()
@@ -1236,12 +1272,12 @@ def plot_profile(
         bottom = 0.08
     plt.subplots_adjust(right=0.96, left=left, bottom=bottom, top=top, hspace=0, wspace=0)
     for i in ('svg', 'png'):
-        name = f'PO_SM_profile.{i}'
+        name = f'profile.{i}'
         file = os.path.join(images_folder, name)
         plt.savefig(file, dpi=900, transparent=True)
     for i in ('svg', 'png'):
         system_names = '_'.join(systems)
-        name = f'PO_SM_{system_names}_profile.{i}'
+        name = f'{system_names}_profile.{i}'
         file = os.path.join(images_folder, name)
         plt.savefig(file, dpi=900, transparent=True)
     # return fig, all_axes, sms, pos

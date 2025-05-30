@@ -1420,8 +1420,10 @@ def generate_contour_data(
 def plot_contour_2d(X, Y, Z, 
                     xlabel, ylabel, xticks, yticks, 
                     metric_bars, titles=None, 
-                    fillcolor=None, styleaxiskw=None,
-                    label=False, wbar=1, contour_label_interval=2): # pragma: no coverage
+                    fillcolor=None, styleaxiskw=None, label_size=10,
+                    label=False, wbar=1, contour_label_interval=2,
+                    highlight_levels=None, 
+                    highlight_color=None): # pragma: no coverage
     """Create contour plots and return the figure and the axes."""
     if isinstance(metric_bars[0], MetricBar):
         nrows = len(metric_bars)
@@ -1466,6 +1468,7 @@ def plot_contour_2d(X, Y, Z,
     cps = np.zeros([nrows, ncols], dtype=object)
     linecolor = np.array([*c.neutral_shade.RGBn, 0.1])
     other_axes = [[] for i in range(nrows)]
+    if highlight_color is None: highlight_color = 'r'
     for row in range(nrows):
         metric_row = metric_bars[row]
         for col in range(ncols):
@@ -1486,11 +1489,20 @@ def plot_contour_2d(X, Y, Z,
             if label:
                 cs = plt.contour(cp, zorder=1, linewidths=0.8,
                                  levels=cp.levels, colors=[linecolor])
-                levels = levels=[i for i in cp.levels[:-1][::contour_label_interval]]
+                clevels = [i for i in cp.levels[:-1][::contour_label_interval]]
                 clabels = ax.clabel(
-                    cs, levels=levels,
+                    cs, levels=clevels,
                     inline=True, fmt=metric_bar.fmt,
                     colors=['k'], zorder=1
+                )
+                for i in clabels: i.set_rotation(0)
+            if highlight_levels:
+                cs = plt.contour(cp, zorder=1, linewidths=0.8,
+                                 levels=highlight_levels, colors=[highlight_color])
+                clabels = ax.clabel(
+                    cs, levels=highlight_levels,
+                    inline=True, fmt=metric_bar.fmt,
+                    colors=[highlight_color], zorder=1
                 )
                 for i in clabels: i.set_rotation(0)
             cps[row, col] = cp
@@ -1521,8 +1533,8 @@ def plot_contour_2d(X, Y, Z,
         # set_axes_labels(axes[:, :-1], xlabel, ylabel)
     # else:
         # set_axes_labels(axes, xlabel, ylabel)
-    fig.supxlabel(xlabel)
-    fig.supylabel(ylabel)
+    fig.supxlabel(xlabel, size=label_size)
+    fig.supylabel(ylabel, size=label_size)
     plt.subplots_adjust(hspace=0.1, wspace=0.1)
     return fig, axes, cps, cbs, other_axes
        

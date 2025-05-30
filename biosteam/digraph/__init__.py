@@ -9,6 +9,8 @@
 """
 from . import digraph
 
-__all__ = (*digraph.__all__,)
+__all__ = (
+    *digraph.__all__,
+)
 
 from .digraph import *
