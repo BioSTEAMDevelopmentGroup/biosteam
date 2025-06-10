@@ -241,7 +241,7 @@ class Unit(AbstractUnit):
                     )
         name = cls.__name__
         if hasattr(bst, 'units') and hasattr(bst, 'wastewater') and hasattr(bst, 'facilities'):
-            # Add 3rd party unit to biosteam module for convinience
+            # Add 3rd party unit to biosteam module for convenience
             if name not in bst.units.__dict__:
                 bst.units.__dict__[name] = cls
             if name not in bst.__dict__:
@@ -753,7 +753,7 @@ class Unit(AbstractUnit):
                 Utility agent to use. Defaults to a suitable agent from 
                 predefined heating/cooling utility agents.
         heat_transfer_efficiency : 
-            Enforced fraction of heat transfered from utility (due
+            Enforced fraction of heat transferred from utility (due
             to losses to environment).
         hxn_ok :
             Whether heat utility can be satisfied within a heat exchanger network.
