@@ -132,7 +132,7 @@ def rename_unit(unit, area):
     * U = Other units
     * V = Valve
     * J = Junction, not a physical unit (serves to adjust streams)
-    * PS = Process specificiation, not a physical unit (serves to adjust streams)
+    * PS = Process specification, not a physical unit (serves to adjust streams)
     
     Examples
     --------
@@ -182,7 +182,7 @@ def rename_units(units, area):
     * T = Tank or bin for storage
     * U = Other units
     * J = Junction, not a physical unit (serves to adjust streams)
-    * PS = Process specificiation, not a physical unit (serves to adjust streams)
+    * PS = Process specification, not a physical unit (serves to adjust streams)
     
     Examples
     --------
