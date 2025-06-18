@@ -181,7 +181,7 @@ class HX(Unit, isabstract=True):
             ci, hi, co, ho)
 
         # TODO: Complete design of heat exchanger to find L
-        # For now assume lenght is 20 ft
+        # For now assume length is 20 ft
         L = 20
 
         # Design pressure

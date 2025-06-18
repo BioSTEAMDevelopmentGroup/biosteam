@@ -13,7 +13,7 @@
 
 """
 from __future__ import annotations
-__version__ = '2.51.15'
+__version__ = '2.51.18'
 
 #: Chemical engineering plant cost index (defaults to 567.5 at 2017).
 CE: float = 567.5 
@@ -106,6 +106,6 @@ import pandas as pd
 from IPython.display import display
 
 def display_table_as_html(series):
-    return display(pd.DataFrame(series, columns=['']))
+    return display(pd.DataFrame(series))
 
 pd.Series._ipython_display_ = display_table_as_html

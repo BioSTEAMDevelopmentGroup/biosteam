@@ -18,7 +18,11 @@ from .digraph import (digraph_from_units,
                       minimal_digraph,
                       surface_digraph,
                       finalize_digraph)
-from thermosteam import AbstractStream, Stream, MultiStream, Chemical, PhenomenaGraph
+from thermosteam import (
+    AbstractStream, Stream, MultiStream, Chemical, 
+    BipartitePhenomeGraph, PhenomeGraph, PhenomeNode, DotFile,
+    all_subgraphs, 
+)
 from thermosteam.base import SparseArray
 from . import HeatUtility, PowerUtility
 from thermosteam.utils import registered
@@ -48,6 +52,7 @@ from thermosteam.network import temporary_units_dump, TemporaryUnit
 import os
 import openpyxl
 import thermosteam as tmo
+from itertools import product
 if TYPE_CHECKING: 
     from ._tea import TEA
     from .evaluation import Response
@@ -73,25 +78,6 @@ class SystemSpecification:
     def __call__(self): self.f(*self.args)
 
 
-# %% PhenomeNode
-
-all_subgraphs = ('material_balance', 'energy_balance', 'phenomena')
-
-def get_node_edges(equation_nodes, inputs=True, outputs=True):
-    return tuple(set(sum([i.get_edges(inputs, outputs) for i in equation_nodes], [])))
-
-def get_variable_nodes(equation_nodes, inputs=True, outputs=True):
-    if inputs:
-        variables = [i.input_variables for i in equation_nodes]
-        if outputs:
-            variables.extend([i.output_variables for i in equation_nodes])
-    elif outputs:
-        variables = [i.output_variables for i in equation_nodes]
-    else:
-        variables = []
-    return tuple(set(sum(variables, ())))
-
-
 # %% Reconfiguration for phenomena oriented simulation and convergence
 
 ObjectType = np.dtype('O')
@@ -114,6 +100,29 @@ class Configuration:
         self.composition_sensitive_path = [i for i in path if getattr(i, 'composition_sensitive', False)]
         self.composition_sensitive_nodes =  [i for i in nodes if getattr(i, 'composition_sensitive', False) or isinstance(i, Stream)]
     
+    def get_composition_sensitive_flows(self):
+        streams = []
+        past_streams = set()
+        for i in self.composition_sensitive_nodes:
+            for stream in (i.ins + i.outs):
+                if stream in past_streams: continue
+                past_streams.add(stream)
+                streams.append(stream)
+        phases = [i.phases for i in streams]
+        flows = [stream.imol.data.copy() for stream in streams]
+        return streams, phases, flows
+    
+    def get_composition_sensitive_data(self):
+        streams = []
+        past_streams = set()
+        for i in self.composition_sensitive_nodes:
+            for stream in (i.ins + i.outs):
+                if stream in past_streams: continue
+                past_streams.add(stream)
+                streams.append(stream)
+        data = [i.get_data() for i in streams]
+        return streams, data
+    
     def solve_nonlinearities(self):
         if self.aggregated:
             for i in self.path: 
@@ -125,37 +134,34 @@ class Configuration:
             for i in self.path: 
                 if getattr(i, 'decoupled', False): i.run()
                 i._update_nonlinearities()
-    
-    def solve_material_flows(self, composition_sensitive=False):
-        if composition_sensitive:
-            if self.composition_sensitive_path:
+        if self.composition_sensitive_path:
+            # streams, phases, flows = self.get_composition_sensitive_flows()
+            # streams, data = self.get_composition_sensitive_data()
+            # for i in self.composition_sensitive_path: i.run()
+            containers, flows = self.solve_material_flows(composition_sensitive=True, full_output=True)
+            def update_inner_material_balance_parameters(flows):
                 for i in self.composition_sensitive_path: i._update_composition_parameters()
-                flows = self._solve_material_flows(composition_sensitive=True)
-                # for i in range(20):
-                #     for i in self.composition_sensitive_path: i._update_composition_parameters()
-                #     self._solve_material_flows(composition_sensitive=True)
-                def update_inner_material_balance_parameters(flows):
-                    for i in self.composition_sensitive_path: i._update_composition_parameters()
-                    return self._solve_material_flows(composition_sensitive=True)
-                
-                def outer_loop(flows):
-                    flows = flx.fixed_point(
-                        update_inner_material_balance_parameters,
-                        flows, xtol=tmo.LLE.pseudo_equilibrium_inner_loop_options['xtol'] * flows.max(), 
-                        maxiter=20, checkiter=False,
-                        checkconvergence=False,
-                    )
-                    for i in self.composition_sensitive_path: i._update_net_flow_parameters()
-                    return flows
-                
-                flows = flx.fixed_point(
-                    outer_loop,
-                    flows, xtol=tmo.LLE.pseudo_equilibrium_inner_loop_options['xtol'] * flows.max(), 
-                    maxiter=10, checkiter=False,
-                    checkconvergence=False,
-                )
-        else:
-            self._solve_material_flows(composition_sensitive=False)
+                return self.solve_material_flows(composition_sensitive=True)
+            
+            flx.fixed_point(
+                update_inner_material_balance_parameters,
+                flows, xtol=tmo.LLE.pseudo_equilibrium_inner_loop_options['xtol'] * flows.max(), 
+                maxiter=100, checkiter=False,
+                checkconvergence=False,
+            )
+            for i in self.composition_sensitive_path: i._update_net_flow_parameters()
+            # flows = flx.fixed_point(
+            #     outer_loop,
+            #     flows, xtol=tmo.LLE.pseudo_equilibrium_inner_loop_options['xtol'] * flows.max(), 
+            #     maxiter=30, checkiter=False,
+            #     checkconvergence=False,
+            # )
+            for i, j in zip(containers, flows): i[:] = j
+            # for i, j, k in zip(streams, phases, flows):
+            #     i.phases = j
+            #     i.imol.data[:] = k
+            for i in self.composition_sensitive_nodes: 
+                if hasattr(i, '_update_auxiliaries'): i._update_auxiliaries()
     
     def dynamic_coefficients(self, b):
         try:
@@ -167,7 +173,7 @@ class Configuration:
             delayed = [(i, j) for i, j in enumerate(b) if j.dtype is ObjectType]
         return delayed
     
-    def _solve_material_flows(self, composition_sensitive, update=True):
+    def solve_material_flows(self, composition_sensitive=False, full_output=False):
         if composition_sensitive:
             nodes = self.composition_sensitive_nodes
         else:
@@ -188,6 +194,7 @@ class Configuration:
                 b.append(value)
         delayed = self.dynamic_coefficients(b)
         if delayed:
+            raise NotImplementedError('delayed coefficients')
             delayed_index = []
             for _, t in delayed:
                 delayed_index.extend([i for i, j in enumerate(t) if callable(j)])
@@ -219,23 +226,22 @@ class Configuration:
             if np.isnan(A).any(): raise RuntimeError('invalid number encountered')
             values = solve(A, np.array(b).T).T
             if np.isnan(values).any(): raise RuntimeError('invalid number encountered')
-            if not update: return values
             values[(values < 0) & (values > -1e-6)] = 0
             masks = values < 0
             if masks.any():
-                data_storage = []
+                containers = []
                 for obj in objs:
                     indexer, phase = obj
                     index = indexer._phase_indexer(phase)
-                    data_storage.append(indexer.data.rows[index])
+                    containers.append(indexer.data.rows[index])
                 new_values = values[masks] 
-                old_values = SparseArray.from_rows(data_storage).to_array()
+                old_values = SparseArray.from_rows(containers).to_array()
                 denominator = (old_values[masks] - new_values)
                 denominator[denominator == 0] = 1
                 weights = -new_values / denominator
                 relaxation_factor = weights.max()
                 values = relaxation_factor * old_values + (1 - relaxation_factor) * values
-                for mol, value in zip(data_storage, values): # update material flows
+                for mol, value in zip(containers, values): # update material flows
                     mol[:] = value
                 # for obj, mask, value in zip(objs, masks, values): # update material flows
                 #     indexer, phase = obj
@@ -249,11 +255,20 @@ class Configuration:
                 #     else:
                 #         mol[:] = value
             else:
-                for obj, value in zip(objs, values): # update material flows
-                    indexer, phase = obj
-                    index = indexer._phase_indexer(phase)
-                    mol = indexer.data.rows[index]
-                    mol[:] = value
+                if full_output:
+                    containers = []
+                    for obj, value in zip(objs, values): # update material flows
+                        indexer, phase = obj
+                        index = indexer._phase_indexer(phase)
+                        mol = indexer.data.rows[index]
+                        containers.append(mol)
+                        mol[:] = value
+                else:
+                    for obj, value in zip(objs, values): # update material flows
+                        indexer, phase = obj
+                        index = indexer._phase_indexer(phase)
+                        mol = indexer.data.rows[index]
+                        mol[:] = value
             # masks = values >= 0
             # mask = (values < 0) & (values > -1e-9)
             # if (values < 0).any(): 
@@ -266,7 +281,10 @@ class Configuration:
             #     mol[mask] = value[mask]
         for i in nodes: 
             if hasattr(i, '_update_auxiliaries'): i._update_auxiliaries()
-        return values
+        if full_output:
+            return containers, values
+        else:
+            return values
         
     def solve_energy_departures(self):
         nodes = self.nodes
@@ -298,7 +316,9 @@ class Configuration:
             for i in ins: 
                 i._sink = u
                 sinks[i.imol] = u
-            if getattr(u, 'decoupled', False): u = None
+            if getattr(u, 'decoupled', False): 
+                breakpoint()
+                u = None
             for i in outs: 
                 i._source = u
                 sources[i.imol] = u
@@ -314,6 +334,14 @@ class Configuration:
             s._sink = sink
         if exception: raise exception
             
+class MaterialFlows:
+    __slots__ = ('containers', 'old_values', 'values')
+    
+    def __init__(self, containers, old_values, values):
+        self.containers = containers
+        self.old_values = old_values
+        self.values = values
+
 
 # %% Sequential modular convergence tools
 
@@ -889,6 +917,7 @@ class System:
     default_methods: dict[str] = {
         'Sequential modular': 'Aitken',
         'Phenomena oriented': 'fixed-point',
+        'Mixed': 'Aitken',
     }
     
     #: Whether to raise a RuntimeError when system doesn't converge
@@ -908,7 +937,7 @@ class System:
         
         * If conditional is True, the signature must be solver(f, x, **kwargs) 
           where f(x) = (x, converged) is the solution and the solver stops 
-          when converged is True. This method is prefered in BioSTEAM.
+          when converged is True. This method is preferred in BioSTEAM.
         
         """
         name = name.lower().replace('-', '').replace('_', '').replace(' ', '')
@@ -2488,8 +2517,39 @@ class System:
             self.run_sequential_modular()
         elif algorithm == 'Phenomena oriented':
             self.run_phenomena()
+        elif algorithm == 'Mixed':
+            self.run_mixed()
         else:
             raise RuntimeError(f'unknown algorithm {algorithm!r}')
+
+    def run_mixed(self):
+        path = self.unit_path
+        for i in path: i.run()
+        tracking = self._track_convergence
+        with self.stage_configuration(aggregated=False) as conf:
+            conf.solve_material_flows()
+            if tracking: self._collect_subgraph_variables(conf, 'material_balance')
+            try:
+                mass_balance_error = sum([abs(i.mass_balance_error()) for i in conf.nodes])
+                if mass_balance_error > 1e-3:
+                    raise RuntimeError('mass balance error greater than tolerance')
+                conf.solve_energy_departures()
+                if tracking: self._collect_subgraph_variables(conf, 'energy_balance')
+                conf.solve_material_flows()
+                if tracking: self._collect_subgraph_variables(conf, 'material_balance')
+            except (NotImplementedError, UnboundLocalError, KeyError) as error:
+                raise error
+            except Exception as e:
+                print('-------')
+                print('FAILED!')
+                print(e)
+                for i in path: i.run()
+                conf.solve_material_flows()
+                if tracking: self._collect_subgraph_variables(conf, 'material_balance')
+                conf.solve_energy_departures()
+                if tracking: self._collect_subgraph_variables(conf, 'energy_balance')
+                conf.solve_material_flows()
+                if tracking: self._collect_subgraph_variables(conf, 'material_balance')
 
     def run_sequential_modular(self):
         """Run mass and energy balances for each element in the path
@@ -2527,15 +2587,23 @@ class System:
                 )
             return conf
         
-    def track_convergence(self, track=True):
+    def track_convergence(self, track=True, collect=False):
         if track:
             self._track_convergence = True
-            for i in self.stages: i.create_equation_nodes()
-            with self.stage_configuration(aggregated=False):
-                for i in self.stages: i.initialize_equation_nodes()
-            self.equation_nodes = equations = tuple(set(sum([i.equation_nodes for i in self.stages], ())))
-            self.variable_nodes = variables = tuple(set(sum([i.variables for i in equations], ())))
-            self.variable_profiles = {i: [] for i in variables}
+            with self.stage_configuration(aggregated=False) as conf:
+                for i in self.stages: 
+                    i.create_equation_nodes(conf.stream_ref)
+                    i.initialize_equation_nodes()
+                self.equation_nodes = equations = tuple(set(sum([i.equation_nodes for i in self.stages], ())))
+                self.variable_nodes = variables = tuple(set(sum([i.variables for i in equations], ())))
+                self.variable_profiles = variable_profiles = {i: [] for i in variables}
+                for i in self.path: i._variable_profiles = variable_profiles
+                for i in conf.nodes:
+                    for variable in i._collect_specification_variables():
+                        if variable not in variable_profiles: variable_profiles[variable] = []
+                if collect:
+                    for i in conf.nodes:
+                        for variable, values in variable_profiles.items(): values.append(variable.value)
             self.equation_profiles = {}
             self.edge_profiles = {}
         else:
@@ -2546,9 +2614,7 @@ class System:
             self.equation_profiles = None
             self.edge_profiles = None
     
-    def get_phenomena_graph(self, raise_error=True):
-        if not getattr(self, '_track_convergence', False):
-            raise RuntimeError('convergence was not tracked')
+    def get_profiles(self, equation_profiles, edge_profiles):
         variable_profiles = self.get_variable_profiles()
         column_names = list(variable_profiles)
         namespace = self.flowsheet.to_dict()
@@ -2556,57 +2622,119 @@ class System:
         chemicals = bst.settings.get_chemicals()
         directories = []
         stages = []
-        variables = []
         for name in column_names:
             directory, chemical = name
-            if chemical == '-':
-                dot_index = directory.rindex('.')
-                stages.append(directory[:dot_index])
-                variables.append(directory[dot_index+1:])
+            if directory[-1] == 'F':
+                directory = directory[:-1] + 'mol'
+            if '.outs[' in directory:
+                dot_index = directory.rindex('.outs[')
+            elif '.ins[' in directory:
+                dot_index = directory.rindex('.ins[')
             else:
+                dot_index = directory.rindex('.')
+            stages.append(directory[:dot_index])
+            if chemical != '-':
                 index = chemicals.index(chemical)
-                if directory[-1] == 'F':
-                    stages.append(directory[:directory.rindex('.outs[')])
-                    variables.append('F')
-                    directory = directory[:-1] + 'mol'
-                else:
-                    dot_index = directory.rindex('.')
-                    stages.append(directory[:dot_index])
-                    variables.append(directory[dot_index+1:])
                 directory += f"[{index}]"
             directories.append(directory)
-        equation_profiles = self.get_equation_profiles(variable_profiles, directories, stages, variables, namespace) 
-        edge_profiles = self.get_edge_profiles(variable_profiles, directories, stages, variables, namespace) 
+        stages = set(stages)
+        if equation_profiles:
+            equation_profiles = self.get_equation_profiles(variable_profiles, directories, stages, namespace) 
+        else:
+            equation_profiles = None
+        if edge_profiles:
+            edge_profiles = self.get_edge_profiles(variable_profiles, directories, stages, namespace) 
+        else:
+            edge_profiles = None
+        return variable_profiles, equation_profiles, edge_profiles
+    
+    def get_phenomegraph(self, bipartite=False, **kwargs):
+        if bipartite:
+            return self.get_bipartite_phenomegraph(**kwargs)
+        else:
+            return self.get_monopartite_phenomegraph(**kwargs)
+            
+    def get_monopartite_phenomegraph(self, flowsheet_level=True, dotfile=None):
+        if flowsheet_level:
+            criteria = [all_subgraphs]
+        else:
+            unit_names = [i.ID for i in self.path]
+            criteria = [unit_names, all_subgraphs]
+        stage_tags = [i.node_tag for i in self.stages]
+        return PhenomeGraph(
+            self.equation_nodes, criteria, stage_tags, self.get_variable_profiles()
+        )
+    
+    def get_bipartite_phenomegraph(
+            self,
+            flowsheet_level=True,
+            get_equation_profiles=False,
+            get_edge_profiles=False,
+            dotfile=None, 
+            **kwargs,
+        ):
+        if not getattr(self, '_track_convergence', False):
+            with self.stage_configuration(aggregated=False) as conf:
+                for i in self.stages: 
+                    i.create_equation_nodes(conf.stream_ref)
+                    i.initialize_equation_nodes()
+                self.equation_nodes = equations = tuple(set(sum([i.equation_nodes for i in self.stages], ())))
+                self.variable_nodes = variables = tuple(set(sum([i.variables for i in equations], ())))
+                self.variable_profiles = variable_profiles = {i: [] for i in variables}
+                for i in self.path: i._variable_profiles = variable_profiles
+                for i in conf.nodes:
+                    for variable in i._collect_specification_variables():
+                        if variable not in variable_profiles: variable_profiles[variable] = []
+            self.equation_profiles = {}
+            self.edge_profiles = {}
+        if isinstance(dotfile, str): dotfile = DotFile(dotfile)
         variables = self.variable_nodes
         equations = self.equation_nodes
-        edges = get_node_edges(equations, inputs=False)
-        subgraphs = []
+        edges = tuple(BipartitePhenomeGraph.get_node_edges(equations))
         name = self.ID + '_graph'
-        for subgraph in all_subgraphs:
+        subgraph_units = [i.ID for i in self.path]
+        variable_profiles, equation_profiles, edge_profiles = self.get_profiles(
+            get_equation_profiles, get_edge_profiles
+        )
+        graph = BipartitePhenomeGraph(
+            name, equations, variables, edges, equation_profiles, 
+            variable_profiles, edge_profiles, 
+            dotfile.file if dotfile else None, 
+            subgraph_units=subgraph_units,
+            **kwargs,
+        )
+        if flowsheet_level:
+            names = all_subgraphs
+        else:
+            names = subgraph_units
+        for subgraph in names:
             subgraph_equations = [i for i in equations if subgraph in i.name]
-            subgraph_edges = get_node_edges(subgraph_equations, inputs=False)
-            subgraph_variables = tuple(set(sum([i.outputs for i in subgraph_equations], ())))
+            subgraph_variables = set(sum([i.outputs for i in subgraph_equations], []))
+            if not flowsheet_level:
+                subgraph_variables = set([i for i in subgraph_variables if subgraph in i.name])
+            subgraph_edges = BipartitePhenomeGraph.get_node_edges(subgraph_equations)
+            subgraph_edges = tuple([i for i in subgraph_edges if i.variable in subgraph_variables])
+            subgraph_variables = tuple(subgraph_variables)
             subgraph_name = '.'.join([name, subgraph])
             subgraph_variable_profiles = variable_profiles[[i.name for i in subgraph_variables]]
-            try:
-                subgraph_equation_profiles = equation_profiles[[i.name for i in subgraph_equations]]
+            if get_edge_profiles:
                 subgraph_edge_profiles = edge_profiles[[i.name for i in subgraph_edges]]
-            except Exception as e:
-                if raise_error: raise e from None
-                subgraph_equation_profiles = None
+            else:
                 subgraph_edge_profiles = None
-            subgraphs.append(
-                PhenomenaGraph(
-                    subgraph_name, subgraph_equations, 
-                    subgraph_variables, subgraph_edges,
-                    subgraph_equation_profiles,
-                    subgraph_variable_profiles,
-                    subgraph_edge_profiles
-                )
+            if get_equation_profiles:
+                subgraph_equation_profiles = equation_profiles[[i.name for i in subgraph_equations]]
+            else:
+                subgraph_equation_profiles = None
+            file = dotfile.subfile(subgraph) if dotfile else None
+            graph.subgraph(
+                subgraph_name, subgraph_equations, 
+                subgraph_variables, subgraph_edges,
+                subgraph_equation_profiles,
+                subgraph_variable_profiles,
+                subgraph_edge_profiles,
+                file
             )
-        return PhenomenaGraph(
-            name, equations, variables, edges, equation_profiles, variable_profiles, edge_profiles, subgraphs
-        )
+        return graph
     
     def get_variable_profiles(self):
         variable_profiles = self.variable_profiles
@@ -2628,15 +2756,16 @@ class System:
                     end = j + 1
                 values[i, j:end] = values_i
                 j = end
-        return pd.DataFrame(values, columns=pd.MultiIndex.from_tuples(columns))
+        rows, = np.where((~np.isnan(values)).all(axis=1))
+        return pd.DataFrame(values[rows], columns=pd.MultiIndex.from_tuples(columns))
     
-    def get_edge_profiles(self, variable_profiles_table, directories, stages, variables, namespace):
+    def get_edge_profiles(self, variable_profiles_table, directories, stages, namespace):
         edge_profiles = self.edge_profiles
         M = variable_profiles_table.shape[0]
         steady_states = variable_profiles_table.iloc[-1]
         for i in range(M):
             row = variable_profiles_table.iloc[i]
-            for directory, stage, variable, value, steady_state in zip(directories, stages, variables, row, steady_states):
+            for directory, stage, value, steady_state in zip(directories, stages, row, steady_states):
                 exec(f"{directory} = {value}", namespace)
                 unit = eval(stage, namespace)
                 for name, error in unit._collect_edge_errors():
@@ -2654,11 +2783,14 @@ class System:
                 values[i, j] = values_i
         return pd.DataFrame(values, columns=pd.MultiIndex.from_tuples(columns))
     
-    def get_equation_profiles(self, variable_profiles_table, directories, stages, variables, namespace):
+    def get_equation_profiles(self, variable_profiles_table, directories, stages, namespace):
         equation_profiles = self.equation_profiles
         M = variable_profiles_table.shape[0]
+        # print('------')
+        # print('M', M)
         for i in range(M):
             row = variable_profiles_table.iloc[i]
+            # print(i)
             for directory, value in zip(directories, row):
                 exec(f"{directory} = {value}", namespace)
             for stage in stages:
@@ -2668,129 +2800,66 @@ class System:
                         equation_profiles[name].append(error)
                     else:
                         equation_profiles[name] = [error]
+                for name, error in unit._collect_specification_errors():
+                    if name in equation_profiles:
+                        equation_profiles[name].append(error)
+                    else:
+                        equation_profiles[name] = [error]
         columns = list(equation_profiles)
         N = len(columns)
         values = np.zeros([M, N])
-        for i in range(M):
-            for j, lst in enumerate(equation_profiles.values()):
+        for j, lst in enumerate(equation_profiles.values()):
+            for i in range(M):
                 values_i = lst[i]
                 values[i, j] = values_i
-        return pd.DataFrame(values, columns=pd.MultiIndex.from_tuples(columns))
-    
-    # def run_phenomena(self):
-    #     """Decouple and linearize material, equilibrium, summation, enthalpy,
-    #     and reaction phenomena and iteratively solve them."""
-    #     path = self.unit_path
-    #     tracking = self._track_convergence
-    #     with self.stage_configuration(aggregated=False) as conf:
-    #         try:
-    #             if self.adaptive_phenomena_oriented_simulation:
-    #                 for i in path: 
-    #                     if isinstance(i, (bst.Mixer, bst.Splitter)) and not i.specifications: continue
-    #                     i.run()
-    #                     if tracking: self._collect_variables(conf)
-    #                     conf.solve_energy_departures()
-    #                     if tracking: self._collect_subgraph_variables(conf, 'energy_balance')
-    #                     conf._solve_material_flows(composition_sensitive=False)
-    #                     if tracking: self._collect_subgraph_variables(conf, 'material_balance')
-    #             conf.solve_nonlinearities()
-    #             conf.solve_material_flows(composition_sensitive=True)
-    #             if tracking: self._collect_subgraph_variables(conf, 'phenomena')
-    #             conf.solve_energy_departures()
-    #             if tracking: self._collect_subgraph_variables(conf, 'energy_balance')
-    #             conf._solve_material_flows(composition_sensitive=False)
-    #             if tracking: self._collect_subgraph_variables(conf, 'material_balance')
-    #         except (NotImplementedError, UnboundLocalError, TypeError, KeyError) as error:
-    #             raise error
-    #         except:
-    #         # except Exception as e:
-    #             # if self.c[0] != 0: raise e
-    #             # self.c[0] += 1
-    #             # print('failed!')
-    #             for i in path: 
-    #                 i.run()
-    #                 if tracking: self._collect_variables(conf)
+        return pd.DataFrame(values, columns=columns)
     
     def run_phenomena(self):
         """Decouple and linearize material, equilibrium, summation, enthalpy,
         and reaction phenomena and iteratively solve them."""
         path = self.unit_path
-        tracking = self._track_convergence
+        tracking = self._track_convergence and not self._iter % 3
         with self.stage_configuration(aggregated=False) as conf:
-            # if self._diverged_count > 3:
-            #     for i in path: 
-            #         i.run()
-            #         if tracking: self._collect_variables(conf)
-            #     return True
             try:
-                conf.solve_material_flows(composition_sensitive=True)
+                mass_balance_error = sum([abs(i.mass_balance_error()) for i in conf.nodes])
+                if mass_balance_error > 1e-3:
+                    raise RuntimeError('mass balance error greater than tolerance')
                 conf.solve_nonlinearities()
                 if tracking: self._collect_subgraph_variables(conf, 'phenomena')
                 conf.solve_energy_departures()
                 if tracking: self._collect_subgraph_variables(conf, 'energy_balance')
-                flows = conf._solve_material_flows(composition_sensitive=False)
+                conf.solve_material_flows()
                 if tracking: self._collect_subgraph_variables(conf, 'material_balance')
             except (NotImplementedError, UnboundLocalError, KeyError) as error:
                 raise error
-            except:
+            except Exception as e:
                 print('FAILED!')
+                print(e)
                 print('-------')
-                diverged = True
-                for i in path: 
-                    i.run()
-                    if tracking: self._collect_variables(conf)
-                # flows = conf._solve_material_flows(composition_sensitive=False)
-                # if tracking: self._collect_subgraph_variables(conf, 'material_balance')
-                # if self.adaptive_phenomena_oriented_simulation: self._last_flows = flows
-            else:
-                diverged = False
-                if self.adaptive_phenomena_oriented_simulation:
-                    error = np.abs(flows - self._last_flows).sum()
-                    diverged = error > 1.20 * self._last_error
-                    if diverged:
-                        print('RETRY!')
-                        print('------')
-                        for i in path:
-                            i.run()
-                            if tracking: self._collect_variables(conf)
-                        flows = conf._solve_material_flows(composition_sensitive=False)
-                        if tracking: self._collect_subgraph_variables(conf, 'material_balance')
-                        error = np.abs(flows - self._last_flows).sum()
-                        # if error > self._last_error:
-                        #     diverged = False
-                        #     self.adaptive_phenomena_oriented_simulation = False
-                        self._last_flows = flows
-                        self._last_error = error
-                    else:
-                        self._last_flows = flows
-                        self._last_error = error
-                        print('SUCCESS!')
-                        print('-------')
-            # self._diverged_count += diverged
-        return diverged
-    
-    def _collect_variables(self, configuration):
-        for i in all_subgraphs: self._collect_subgraph_variables(configuration, i)
+                for i in path: i.run()
+                conf.solve_material_flows()
+                if tracking: self._collect_subgraph_variables(conf, 'material_balance')
+                conf.solve_energy_departures()
+                if tracking: self._collect_subgraph_variables(conf, 'energy_balance')
+                conf.solve_material_flows()
+                if tracking: self._collect_subgraph_variables(conf, 'material_balance')
             
     def _collect_subgraph_variables(self, configuration, subgraph):
         variables = self.variable_profiles
-        collected_variables = set()
         if subgraph not in all_subgraphs:
             raise ValueError(
                 f'invalid subgraph {subgraph!r}; '
                 f'only {all_subgraphs!r} are valid'
             )
+        method_name = f'_collect_{subgraph}_variables'
         for i in configuration.nodes:
-            method = getattr(i, f'_collect_{subgraph}_variables', None)
+            method = getattr(i, method_name, None)
             if method is None: continue
-            for variable, value in method():
-                if variable in collected_variables: continue
-                variables[variable].append(value)
-                collected_variables.add(variable)
-        unchanged_variables = set(variables).difference(collected_variables)
-        for variable in unchanged_variables:
-            variables[variable].append(variable.value)
-        assert len(set([len(i) for i in variables.values()])) == 1, "overlaping variables collected"
+            method()
+                
+        if subgraph == 'material_balance':
+            for i in configuration.nodes: i._collect_specification_variables()
+        for variable, values in variables.items(): values.append(variable.value)
             
     def _solve(self):
         """Solve the system recycle iteratively."""

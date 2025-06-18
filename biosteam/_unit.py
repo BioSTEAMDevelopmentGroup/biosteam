@@ -24,7 +24,7 @@ from typing import Callable, Optional, TYPE_CHECKING, Sequence, Iterable
 from thermosteam.base.sparse import SparseVector, sum_sparse_vectors
 import numpy as np
 import thermosteam as tmo
-from thermosteam import EquationNode
+from thermosteam import EquationNode, VariableNode
 if TYPE_CHECKING: 
     System = bst._recycle_system
     HXutility = bst.HXutility
@@ -241,7 +241,7 @@ class Unit(AbstractUnit):
                     )
         name = cls.__name__
         if hasattr(bst, 'units') and hasattr(bst, 'wastewater') and hasattr(bst, 'facilities'):
-            # Add 3rd party unit to biosteam module for convinience
+            # Add 3rd party unit to biosteam module for convenience
             if name not in bst.units.__dict__:
                 bst.units.__dict__[name] = cls
             if name not in bst.__dict__:
@@ -286,17 +286,78 @@ class Unit(AbstractUnit):
     #: Add embodied emissions (e.g., unit construction) in LCA
     _lca = AbstractMethod
     
+    def _update_variables(self):
+        variable_profiles = self._variable_profiles
+        if hasattr(self, 'stages'): 
+            for i in self.stages: i._collect_specification_variables()
+        else:
+            self._collect_specification_variables()
+        for variable, values in variable_profiles.items(): values.append(variable.value)
+    
+    def get_E_node(self, stream):
+        return getattr(self, 'E_node', None)
+    
     def initialize_equation_nodes(self):
         for eq in self.equation_node_names: getattr(self, f'initialize_{eq}')()
+        
+    def _collect_material_balance_variables(self):
+        return [i.F_node for i in self.outs] # list[VariableNode] 
     
-    def create_equation_nodes(self):
+    def _collect_energy_balance_variables(self):
+        return [j for i in self.outs if (j:=i.E_node)] # list[VariableNode] 
+        
+    def create_specification_nodes(self, stream_ref):
+        self.material_balance_specifications_nodes = specification_nodes = []
+        self.specification_streams = specification_streams = []
+        self.specification_equations = specification_equations = []
+        for s in (*self.ins, *self.outs):
+            for i, f in enumerate(s.material_equations):
+                node = EquationNode(f"{self.node_tag}.material_balance_specifications_nodes[{i}]")
+                specification_nodes.append(node) 
+                specification_equations.append(f)
+                dct, _ = f()
+                streams = [stream_ref[i.material_reference] for i in dct]
+                inputs = []
+                outputs = []
+                for s in streams:
+                    isfeed = s.isfeed() or s.source._recycle_system is not self._recycle_system
+                    if isfeed:   
+                        sink = s.sink
+                        if hasattr(s, '_F_node'):
+                            s._F_node.value = s.mol.to_array()
+                        else:
+                            s._F_node = VariableNode(
+                                f"{sink.node_tag}.ins[{sink.ins.index(s)}].F",
+                                s.mol.to_array(),
+                            )
+                        outputs.append(s.F_node)
+                    else:
+                        inputs.append(s.F_node)
+                specification_streams.extend(streams)
+                node.set_equations(inputs=inputs, outputs=outputs)
+    
+    def _collect_specification_variables(self):
+        return [j for i in self.material_balance_specifications_nodes for j in i.variables]
+    
+    def _collect_specification_errors(self):
+        results = []
+        for node, f in zip(self.material_balance_specifications_nodes, 
+                           self.specification_equations):
+            dct, rhs = f()
+            lhs = sum([s.mol * coef for s, coef in dct.items()])
+            error = np.abs(rhs - lhs).sum()
+            results.append((node.name, error))
+        return results
+    
+    def create_equation_nodes(self, stream_ref):
         eqs = self.equation_node_names
         equation_nodes = []
         for eq in eqs: 
             node = EquationNode(f"{self.node_tag}.{eq}")
             equation_nodes.append(node)
             setattr(self, eq, node)
-        self.equation_nodes = tuple(equation_nodes)
+        self.create_specification_nodes(stream_ref)
+        self.equation_nodes = (*equation_nodes, *self.material_balance_specifications_nodes)
         if not hasattr(self, 'energy_balance_node'):
             self.energy_balance_node = None
     
@@ -412,7 +473,7 @@ class Unit(AbstractUnit):
         fresh_inlets = []
         process_inlets = []
         material_equations = [f() for i in inlets for f in i.material_equations]
-        isfeed = lambda s: s.isfeed() or i.source._recycle_system is not self._recycle_system
+        isfeed = lambda s: s.isfeed() or s.source._recycle_system is not self._recycle_system
         if not material_equations:
             if composition_sensitive:
                 for i in inlets: 
@@ -692,7 +753,7 @@ class Unit(AbstractUnit):
                 Utility agent to use. Defaults to a suitable agent from 
                 predefined heating/cooling utility agents.
         heat_transfer_efficiency : 
-            Enforced fraction of heat transfered from utility (due
+            Enforced fraction of heat transferred from utility (due
             to losses to environment).
         hxn_ok :
             Whether heat utility can be satisfied within a heat exchanger network.

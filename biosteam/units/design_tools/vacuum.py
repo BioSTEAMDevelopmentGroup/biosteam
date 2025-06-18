@@ -98,7 +98,7 @@ def compute_vacuum_system_power_and_cost(
     factor = 1
     F_mass_kgph = (F_mass + 0.4536*F_mass_air)*factor # kg/hr
     F_mass_lbph = 2.205 * F_mass_kgph
-    vacuum_systems = get_prefered_vacuum_systems(vacuum_system_preference)
+    vacuum_systems = get_preferred_vacuum_systems(vacuum_system_preference)
     name, grade, N = select_vacuum_system(vacuum_systems, F_vol_cfm, P_suction, bool(vacuum_system_preference))
     base_cost = calculate_vacuum_cost(name, grade, F_mass_lbph, F_vol_cfm, P_suction)
     cost = bst.CE / 567.  * base_cost
@@ -130,7 +130,7 @@ def compute_vacuum_system_power_and_cost(
 
 # %% Supporting functions
 
-def get_prefered_vacuum_systems(preference):
+def get_preferred_vacuum_systems(preference):
     defaults = _default_vacuum_systems
     if preference is None:
         return defaults

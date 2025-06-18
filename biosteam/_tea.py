@@ -701,7 +701,7 @@ class TEA:
     
     @property
     def annual_depreciation(self) -> float:
-        """Depreciation [USD/yr] equivalent to TDC dived by the the duration of the venture."""
+        """Depreciation [USD/yr] equivalent to TDC divided by the duration of the venture."""
         return self.TDC/(self.duration[1]-self.duration[0])
 
     @property

@@ -120,7 +120,7 @@ Installation
 #. BioSTEAM uses `Graphviz <http://www.graphviz.org/>`__ to make flowsheet diagrams. 
    You will need to install Graphviz separately as follows:
 
-   * Windows: Download the installer and follow the instructions listed `in this link <https://forum.graphviz.org/t/new-simplified-installation-procedure-on-windows/224#format-svg-not-recognized-use-one-of>`__
+   * Windows: Download the EXE installer and follow the instructions listed `in this link <https://graphviz.org/download/>`__
 
    * Ubuntu: 
 
@@ -184,7 +184,9 @@ tools for sustainability assessments. Here is a short list of related publicatio
   #. `Implications of Biorefinery Policy Incentives and Location-Specific Economic Parameters for the Financial Viability of Biofuels. Environ Sci Technol 2023 <https://doi.org/10.1021/acs.est.2c07936>`_
 
 * **Bioproduct and biofuel studies**:
-
+  
+  #. `Sustainable potassium sorbate production from triacetic acid lactone in food-grade solvents. Green Chem 2025 <https://doi.org/10.1039/D4GC04832F>`_
+  
   #. `Integration of plant and microbial oil processing at oilcane biorefineries for more sustainable biofuel production. GCB Bioenergy 2024 <https://doi.org/10.1111/gcbb.13183>`_
 
   #. `Economic and Environmental Sustainability of Bio-Based HMF Production and Recovery from Lignocellulosic Biomass. Green Chem 2024 <https://doi.org/10.1039/D4GC04270K>`_
@@ -216,6 +218,8 @@ tools for sustainability assessments. Here is a short list of related publicatio
   #. `Techno-Economic Evaluation of Biorefineries Based on Low-Value Feedstocks Using the BioSTEAM Software: A Case Study for Animal Bedding. Processes 2020 <https://doi.org/10.3390/pr8080904>`_
 
 * **Plastics and recycling**:
+
+  #. `Screening green solvents for multilayer plastic film recycling processes. Computers & Chemical Engineering 2025 <https://doi.org/10.1016/j.compchemeng.2025.109129>`_
 
   #. `Comparative Techno-Economic Analysis and Life Cycle Assessment of Producing High-Value Chemicals and Fuels from Waste Plastic via Conventional Pyrolysis and Thermal Oxo-Degradation. Energy Fuels 2023 <https://doi.org/10.1021/acs.energyfuels.3c02321>`_
 
