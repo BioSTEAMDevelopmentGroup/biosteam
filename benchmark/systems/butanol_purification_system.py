@@ -26,7 +26,9 @@ def create_system_butanol_purification(alg):
     # Dewater
     water_distiller = bst.BinaryDistillation(
         ins=(feed, water_rich), outs=(distillate_0, 'water'),
-        x_bot=0.0001, y_top=0.2, k=1.2, Rmin=0.01,
+        # Hr=0.66, Lr=0.999,
+        x_bot=0.0001, y_top=0.2, 
+        k=1.2, Rmin=0.01,
         LHK=('Butanol', 'Water'),
         partial_condenser=False,
     )
@@ -47,6 +49,7 @@ def create_system_butanol_purification(alg):
     butanol_distiller = bst.BinaryDistillation(
         ins=settler-0,
         outs=(distillate_1, 'butanol'),
+        # Hr=0.61, Lr=0.999,
         x_bot=0.0001, y_top=0.6, 
         k=1.2, Rmin=0.01,
         LHK=('Water', 'Butanol'),
@@ -55,6 +58,7 @@ def create_system_butanol_purification(alg):
     # butanol_distiller.decoupled = True
     
     sys = bst.System.from_units(units=[water_distiller, mixer, settler, butanol_distiller], algorithm=alg)
+    # breakpoint()
     return sys
 
 def test_butanol_purification_system():

@@ -25,7 +25,7 @@ from .._unit import Unit
 from biosteam.exceptions import FailedEvaluation
 from warnings import warn
 from collections.abc import Sized
-from biosteam.utils import TicToc
+from biosteam.utils import Timer
 from typing import Optional, Callable
 from ._parameter import Parameter
 from .evaluation_tools import load_default_parameters
@@ -972,8 +972,8 @@ class Model:
                 model_type=convergence_model,
             )
         if notify:
-            timer = TicToc()
-            timer.tic()
+            timer = Timer()
+            timer.start()
             count = [0]
             def evaluate(sample, convergence_model, count=count, **kwargs):
                 count[0] += 1
@@ -1094,9 +1094,8 @@ class Model:
             evaluate_sample = self._evaluate_sample
             table = self.table
             if notify:
-                from biosteam.utils import TicToc
-                timer = TicToc()
-                timer.tic()
+                timer = Timer()
+                timer.start()
                 count = [0]
                 def evaluate(sample, count=count):
                     count[0] += 1
@@ -1128,9 +1127,9 @@ class Model:
             
             # Initialize timer
             if notify_coordinate:
-                from biosteam.utils import TicToc
-                timer = TicToc()
-                timer.tic()
+                from biosteam.utils import Timer
+                timer = Timer()
+                timer.start()
                 def evaluate(**kwargs):
                     f_evaluate(**kwargs)
                     print(f"[Coordinate {n}] Elapsed time: {timer.elapsed_time:.0f} sec")

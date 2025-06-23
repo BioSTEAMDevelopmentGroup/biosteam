@@ -100,10 +100,8 @@ class Mixer(Unit):
     
     @property
     def T_node(self):
-        if hasattr(self, '_T_node'): 
-            self._T_node.value = self.outs[0].T
-            return self._T_node
-        self._T_node = var = bst.VariableNode(f"{self.node_tag}.T", self.outs[0].T)
+        if hasattr(self, '_T_node'): return self._T_node
+        self._T_node = var = bst.VariableNode(f"{self.node_tag}.T", lambda: self.outs[0].T)
         return var 
         
     @property

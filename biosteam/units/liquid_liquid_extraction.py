@@ -885,7 +885,7 @@ class MixerSettler(bst.Unit):
     ...    model='partition coefficients',
     ...    settler_data={
     ...        'partition_coefficients': np.array([1.451e-01, 1.380e+00, 2.958e+03]),
-    ...        'partion_IDs': ('Water', 'Methanol', 'Octanol'),
+    ...        'partition_IDs': ('Water', 'Methanol', 'Octanol'),
     ...    },
     ... )
     >>> MS1.simulate()

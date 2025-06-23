@@ -237,7 +237,7 @@ class ProcessModel:
         if 'Scenario' in cls.__dict__:
             cls.Scenario = scenario(cls.Scenario)
     
-    def __new__(cls, *, simulate=True, scenario=None, load=True, save=None, **kwargs):
+    def __new__(cls, scenario=None, *, simulate=True, load=True, save=None, **kwargs):
         scenario = cls.scenario_hook(scenario, kwargs)
         if load and scenario in cls.cache: 
             process_model = cls.cache[scenario]
@@ -261,6 +261,7 @@ class ProcessModel:
         else:
             units = unit_registry.close_context_level()
             if system is None: system = bst.System.from_units(units=units)
+            if self.flowsheet is not system.flowsheet: self.flowsheet.update(system.flowsheet)
             self.load_system(system)
         model = self.create_model()
         if model is NotImplemented:
@@ -284,8 +285,10 @@ class ProcessModel:
     
     def load_system(self, system):
         self.system = system
-        self.flowsheet = flowsheet = system.flowsheet
-        self.__dict__.update(flowsheet.to_dict())
+        self.__dict__.update(self.flowsheet.to_dict())
+        for i in system.subsystems: self.__dict__[i.ID] = i
+        for i in system.units: self.__dict__[i.ID] = i
+        for i in system.streams: self.__dict__[i.ID] = i
             
     def load_model(self, model):
         self.model = model

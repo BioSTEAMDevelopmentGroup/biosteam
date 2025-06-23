@@ -8,28 +8,29 @@
 """
 """
 from thermosteam import utils
-from . import (patches,
-               tictoc,
-               piping,
-               stream_link_options,
-               functors,
-               scope,
+from . import (
+    patches,
+    timer,
+    piping,
+    stream_link_options,
+    functors,
+    scope,
 )
-__all__ = ('colors',
-           'patches', 
-           'tictoc',
-           'functors',
-           *utils.__all__,
-           *patches.__all__, 
-           *tictoc.__all__, 
-           *piping.__all__, 
-           *stream_link_options.__all__,
-           *functors.__all__,
-           *scope.__all__,
+__all__ = (
+    'colors',
+    'patches', 
+    'functors',
+    *utils.__all__,
+    *patches.__all__, 
+    *timer.__all__, 
+    *piping.__all__, 
+    *stream_link_options.__all__,
+    *functors.__all__,
+    *scope.__all__,
 )
 from thermosteam.utils import *
 from .patches import *
-from .tictoc import *
+from .timer import *
 from .piping import *
 from .stream_link_options import *
 from .functors import *

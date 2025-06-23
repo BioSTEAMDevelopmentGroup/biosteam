@@ -286,13 +286,8 @@ class Unit(AbstractUnit):
     #: Add embodied emissions (e.g., unit construction) in LCA
     _lca = AbstractMethod
     
-    def _update_variables(self):
-        variable_profiles = self._variable_profiles
-        if hasattr(self, 'stages'): 
-            for i in self.stages: i._collect_specification_variables()
-        else:
-            self._collect_specification_variables()
-        for variable, values in variable_profiles.items(): values.append(variable.value)
+    def _collect_variables(self, key):
+        self._system_collect_variables((key, self.ID))
     
     def get_E_node(self, stream):
         return getattr(self, 'E_node', None)
@@ -300,12 +295,10 @@ class Unit(AbstractUnit):
     def initialize_equation_nodes(self):
         for eq in self.equation_node_names: getattr(self, f'initialize_{eq}')()
         
-    def _collect_material_balance_variables(self):
-        return [i.F_node for i in self.outs] # list[VariableNode] 
+    @property
+    def variable_nodes(self):
+        return set(sum([i.variable_nodes for i in self.equation_nodes], []))
     
-    def _collect_energy_balance_variables(self):
-        return [j for i in self.outs if (j:=i.E_node)] # list[VariableNode] 
-        
     def create_specification_nodes(self, stream_ref):
         self.material_balance_specifications_nodes = specification_nodes = []
         self.specification_streams = specification_streams = []
@@ -323,21 +316,16 @@ class Unit(AbstractUnit):
                     isfeed = s.isfeed() or s.source._recycle_system is not self._recycle_system
                     if isfeed:   
                         sink = s.sink
-                        if hasattr(s, '_F_node'):
-                            s._F_node.value = s.mol.to_array()
-                        else:
+                        if not hasattr(s, '_F_node'):
                             s._F_node = VariableNode(
                                 f"{sink.node_tag}.ins[{sink.ins.index(s)}].F",
-                                s.mol.to_array(),
+                                lambda: s.mol.to_array(),
                             )
                         outputs.append(s.F_node)
                     else:
                         inputs.append(s.F_node)
                 specification_streams.extend(streams)
                 node.set_equations(inputs=inputs, outputs=outputs)
-    
-    def _collect_specification_variables(self):
-        return [j for i in self.material_balance_specifications_nodes for j in i.variables]
     
     def _collect_specification_errors(self):
         results = []
