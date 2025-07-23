@@ -35,7 +35,8 @@ from thermosteam.network import repr_ins_and_outs
 from . import utils
 from .utils import (
     repr_items, ignore_docking_warnings,
-    piping, colors, list_available_names, dictionaries2array
+    piping, colors, list_available_names, dictionaries2array,
+    Timer
 )
 from .process_tools import get_power_utilities, get_heat_utilities
 from collections import abc
@@ -132,12 +133,15 @@ class Configuration:
                     i._update_nonlinearities()
         else:
             for i in self.path: 
-                if getattr(i, 'decoupled', False): i.run()
+                if getattr(i, 'decoupled', False): 
+                    assert False
+                    i.run()
                 i._update_nonlinearities()
         if self.composition_sensitive_path:
             # streams, phases, flows = self.get_composition_sensitive_flows()
             # streams, data = self.get_composition_sensitive_data()
             # for i in self.composition_sensitive_path: i.run()
+            # for i in range(10):
             containers, flows = self.solve_material_flows(composition_sensitive=True, full_output=True)
             def update_inner_material_balance_parameters(flows):
                 for i in self.composition_sensitive_path: i._update_composition_parameters()
@@ -823,12 +827,12 @@ class System:
         '_rmol_error',
         '_rT_error',
         '_iter',
-        'phenomena_maxiter',
         '_ins',
         '_outs',
         '_path_cache',
         '_prioritized_units',
         '_temporary_connections_log',
+        'maxtime',
         'maxiter',
         'molar_tolerance',
         'relative_molar_tolerance',
@@ -870,12 +874,15 @@ class System:
         '_aggregated_stage_configuration',
         'adaptive_phenomena_oriented_simulation',
         '_stage_configuration',
-        '_track_convergence',
+        'grouped_variables',
+        'tracking',
+        'tracking_gap',
         'variable_profiles',
         'equation_profiles',
         'edge_profiles',
         'variable_nodes',
         'equation_nodes',
+        'timer',
         # Dynamic simulation
         '_isdynamic',
         '_state',
@@ -906,10 +913,6 @@ class System:
     #: Default relative temperature tolerance
     default_relative_temperature_tolerance: float = 0.001
 
-    #: Default maximum number of phenomena-oriented simulations before 
-    #: running each unit operation sequentially
-    default_phenomena_maxiter: int = 15
-
     #: Default convergence algorithm.
     default_algorithm: str = 'Sequential modular'
 
@@ -917,7 +920,7 @@ class System:
     default_methods: dict[str] = {
         'Sequential modular': 'Aitken',
         'Phenomena oriented': 'fixed-point',
-        'Mixed': 'Aitken',
+        'Phenomena modular': 'fixed-point',
     }
     
     #: Whether to raise a RuntimeError when system doesn't converge
@@ -1107,6 +1110,7 @@ class System:
             relative_molar_tolerance: Optional[float]=None,
             temperature_tolerance: Optional[float]=None,
             relative_temperature_tolerance: Optional[float]=None,
+            maxtime: Optional[float]=None,
         ):
         self.N_runs = N_runs
         
@@ -1117,8 +1121,8 @@ class System:
         #: Maximum number of iterations.
         self.maxiter: int = self.default_maxiter if maxiter is None else maxiter
 
-        #: Default maximum number of phenomena-oriented simulations before attempting sequential modular
-        self.phenomena_maxiter = self.default_phenomena_maxiter
+        #: Maximum simulation time [s].
+        self.maxtime: float|None = maxtime
 
         #: Molar tolerance [kmol/hr].
         self.molar_tolerance: float = self.default_molar_tolerance if molar_tolerance is None else molar_tolerance
@@ -1154,7 +1158,7 @@ class System:
         self.adaptive_phenomena_oriented_simulation = True
 
         #: Whether to track convergence variables at each iteration.
-        self._track_convergence = False
+        self.tracking = False
 
         self._set_path(path)
         self._specifications = []
@@ -1428,18 +1432,19 @@ class System:
                       T: Optional[float]=None, rT: Optional[float]=None, 
                       subsystems: bool=False, maxiter: Optional[int]=None, 
                       subfactor: Optional[float]=None, method: Optional[str]=None,
-                      algorithm: Optional[str]=None):
+                      algorithm: Optional[str]=None,
+                      maxtime:Optional[float]=None):
         """
         Set the convergence tolerance and convergence method of the system.
 
         Parameters
         ----------
         mol :
-            Molar tolerance.
+            Molar tolerance [kmol/hr].
         rmol :
             Relative molar tolerance.
         T :
-            Temperature tolerance.
+            Temperature tolerance [K].
         rT :
             Relative temperature tolerance.
         subsystems :
@@ -1451,22 +1456,25 @@ class System:
         method :
             Numerical method.
         algorithm :
-            Convergence algorithm
+            Convergence algorithm.
+        maxtime :
+            Maximum convergence time [s].
         
         """
-        if mol: self.molar_tolerance = float(mol)
-        if rmol: self.relative_molar_tolerance = float(rmol)
-        if T: self.temperature_tolerance = float(T)
-        if rT: self.temperature_tolerance = float(rT)
-        if maxiter: self.maxiter = int(maxiter)
-        if method: self.method = method
-        if algorithm: self.algorithm = algorithm
+        if mol is not None: self.molar_tolerance = float(mol)
+        if rmol is not None: self.relative_molar_tolerance = float(rmol)
+        if T is not None: self.temperature_tolerance = float(T)
+        if rT is not None: self.temperature_tolerance = float(rT)
+        if maxiter is not None: self.maxiter = int(maxiter)
+        if method is not None: self.method = method
+        if algorithm is not None: self.algorithm = algorithm
+        if maxtime is not None: self.maxtime = maxtime
         if subsystems:
             if subfactor:
                 for i in self.subsystems: i.set_tolerance(*[(i * subfactor if i else i) for i in (mol, rmol, T, rT)],
-                                                          subsystems, maxiter, subfactor, method, algorithm)
+                                                          subsystems, maxiter, subfactor, method, algorithm, maxtime)
             else:
-                for i in self.subsystems: i.set_tolerance(mol, rmol, T, rT, subsystems, maxiter, subfactor, method, algorithm)
+                for i in self.subsystems: i.set_tolerance(mol, rmol, T, rT, subsystems, maxiter, subfactor, method, algorithm, maxtime)
 
     ins = MockSystem.ins
     outs = MockSystem.outs
@@ -2365,7 +2373,7 @@ class System:
                 max_errors = np.maximum.reduce([abs(mol[nonzero_index]), abs(mol_new[nonzero_index])])
                 self._rmol_error = rmol_error = (mol_errors / max_errors).max()
             else:
-                self._rmol_error = rmol_error = 0.
+                self._rmol_error = rmol_error = mol_error
         else:
             self._mol_error = mol_error = 0.
             self._rmol_error = rmol_error = 0.
@@ -2380,9 +2388,13 @@ class System:
             (T_error < self.temperature_tolerance
              or rT_error < self.relative_temperature_tolerance)
         )
-        if not_converged and self._iter >= self.maxiter:
-            if self.strict_convergence: raise RuntimeError(f'{repr(self)} could not converge' + self._error_info())
-            else: not_converged = False
+        if not_converged:
+            if (self._iter >= self.maxiter
+                or (self.maxtime and self.timer.elapsed_time > self.maxtime)): 
+                if self.strict_convergence: 
+                    raise RuntimeError(f'{repr(self)} could not converge' + self._error_info())
+                else: 
+                    not_converged = False
         return self._get_recycle_data(), not_converged
         
     def _iter_run(self, data):
@@ -2517,49 +2529,61 @@ class System:
             self.run_sequential_modular()
         elif algorithm == 'Phenomena oriented':
             self.run_phenomena()
-        elif algorithm == 'Mixed':
-            self.run_mixed()
+        elif algorithm == 'Phenomena modular':
+            self.run_phenomena_modular()
         else:
             raise RuntimeError(f'unknown algorithm {algorithm!r}')
 
-    def run_mixed(self):
+    def run_phenomena_modular(self):
         path = self.unit_path
-        for i in path: i.run()
-        tracking = self._track_convergence
+        tracking = self.tracking
         with self.stage_configuration(aggregated=False) as conf:
-            conf.solve_material_flows()
-            if tracking: self._collect_subgraph_variables(conf, 'material_balance')
             try:
-                mass_balance_error = sum([abs(i.mass_balance_error()) for i in conf.nodes])
-                if mass_balance_error > 1e-3:
-                    raise RuntimeError('mass balance error greater than tolerance')
-                conf.solve_energy_departures()
-                if tracking: self._collect_subgraph_variables(conf, 'energy_balance')
-                conf.solve_material_flows()
-                if tracking: self._collect_subgraph_variables(conf, 'material_balance')
+                for n, i in enumerate(path): 
+                    # if hasattr(i, 'stages'):
+                    #     stages = i.stages
+                    # else:
+                    #     stages = [i]
+                    # streams = [outlet for stage in stages for outlet in stage.outs]
+                    # energy_variables = [
+                    #     (s, j, getattr(s, j)) 
+                    #     for s in self.stages 
+                    #     if (j:=getattr(s, '_energy_variable', None))
+                    # ]
+                    # flows = [s.mol.copy() for s in streams]
+                    if isinstance(i, (bst.Mixer, bst.Splitter)) and not i.specifications: continue
+                    i.run()
+                    # for s, mol in zip(streams, flows): s.mol[:] = mol
+                    # for stage, name, value in energy_variables: setattr(stage, name, value)
+                    if tracking: self._collect_variables((i.ID, 'phenomena'))
+                    conf.solve_material_flows()
+                    if tracking: self._collect_variables('material')
+                    conf.solve_energy_departures()
+                    if tracking: self._collect_variables('energy')
             except (NotImplementedError, UnboundLocalError, KeyError) as error:
                 raise error
             except Exception as e:
                 print('-------')
                 print('FAILED!')
                 print(e)
-                for i in path: i.run()
-                conf.solve_material_flows()
-                if tracking: self._collect_subgraph_variables(conf, 'material_balance')
-                conf.solve_energy_departures()
-                if tracking: self._collect_subgraph_variables(conf, 'energy_balance')
-                conf.solve_material_flows()
-                if tracking: self._collect_subgraph_variables(conf, 'material_balance')
+                for i in path[n+1:]: 
+                    i.run()
+                    if tracking: self._collect_variables(i.ID)
 
     def run_sequential_modular(self):
         """Run mass and energy balances for each element in the path
         without costing unit operations."""
         isa = isinstance
         f = try_method_with_object_stamp
+        tracking = self.tracking
         for i in self._path:
-            if isa(i, Unit): f(i, i.run)
+            # self.assert_tracking_ok()
+            if isa(i, Unit): 
+                f(i, i.run)
+                if tracking: self._collect_variables(i.ID)
             elif isa(i, System): f(i, i.converge)
             else: raise RuntimeError('path elements must be either a unit or a system')
+        # self.assert_tracking_ok()
 
     def stage_configuration(self, aggregated=False):
         try:
@@ -2587,9 +2611,16 @@ class System:
                 )
             return conf
         
-    def track_convergence(self, track=True, collect=False):
+    def track_convergence(
+            self, 
+            track=True, 
+            system_tracking_gap=None, 
+            unit_tracking_gap=None,
+        ):
         if track:
-            self._track_convergence = True
+            if system_tracking_gap is None: system_tracking_gap = 1
+            if unit_tracking_gap is None: unit_tracking_gap = 1
+            self.tracking = True
             with self.stage_configuration(aggregated=False) as conf:
                 for i in self.stages: 
                     i.create_equation_nodes(conf.stream_ref)
@@ -2597,56 +2628,63 @@ class System:
                 self.equation_nodes = equations = tuple(set(sum([i.equation_nodes for i in self.stages], ())))
                 self.variable_nodes = variables = tuple(set(sum([i.variables for i in equations], ())))
                 self.variable_profiles = variable_profiles = {i: [] for i in variables}
-                for i in self.path: i._variable_profiles = variable_profiles
                 for i in conf.nodes:
-                    for variable in i._collect_specification_variables():
+                    specification_variables = [j for i in i.material_balance_specifications_nodes for j in i.variables]
+                    for variable in specification_variables:
                         if variable not in variable_profiles: variable_profiles[variable] = []
-                if collect:
-                    for i in conf.nodes:
-                        for variable, values in variable_profiles.items(): values.append(variable.value)
+            for i in self.units:
+                i.tracking_gap = unit_tracking_gap
+                i._system_collect_variables = self._collect_variables
+                i.tracking = True
             self.equation_profiles = {}
             self.edge_profiles = {}
+            self.grouped_variables = {}
+            self.tracking_gap = system_tracking_gap
+            if not self.recycle:
+                self.timer = Timer()
+                self.timer.start()
         else:
-            self._track_convergence = False
+            for i in self.variable_profiles: i.getter = None
+            self.tracking = False
             self.equation_nodes = None
             self.variable_nodes = None
             self.variable_profiles = None
             self.equation_profiles = None
             self.edge_profiles = None
+            self.tracking_gap = None
+            self.grouped_variables = None
+            for i in self.units:
+                i.tracking_gap = None
+                i.tracking = False
     
     def get_profiles(self, equation_profiles, edge_profiles):
-        variable_profiles = self.get_variable_profiles()
-        column_names = list(variable_profiles)
-        namespace = self.flowsheet.to_dict()
-        namespace['nan'] = np.nan
-        chemicals = bst.settings.get_chemicals()
-        directories = []
-        stages = []
-        for name in column_names:
-            directory, chemical = name
-            if directory[-1] == 'F':
-                directory = directory[:-1] + 'mol'
-            if '.outs[' in directory:
-                dot_index = directory.rindex('.outs[')
-            elif '.ins[' in directory:
-                dot_index = directory.rindex('.ins[')
-            else:
-                dot_index = directory.rindex('.')
-            stages.append(directory[:dot_index])
-            if chemical != '-':
-                index = chemicals.index(chemical)
-                directory += f"[{index}]"
-            directories.append(directory)
-        stages = set(stages)
-        if equation_profiles:
-            equation_profiles = self.get_equation_profiles(variable_profiles, directories, stages, namespace) 
-        else:
-            equation_profiles = None
-        if edge_profiles:
-            edge_profiles = self.get_edge_profiles(variable_profiles, directories, stages, namespace) 
-        else:
-            edge_profiles = None
-        return variable_profiles, equation_profiles, edge_profiles
+        time, variable_profiles = self.get_variable_profiles()
+        if equation_profiles or edge_profiles:
+            column_names = list(variable_profiles)
+            namespace = self.flowsheet.to_dict()
+            namespace['nan'] = np.nan
+            chemicals = bst.settings.get_chemicals()
+            directories = []
+            stages = []
+            for name in column_names:
+                directory, chemical = name
+                if directory[-1] == 'F':
+                    directory = directory[:-1] + 'mol'
+                if '.outs[' in directory:
+                    dot_index = directory.rindex('.outs[')
+                elif '.ins[' in directory:
+                    dot_index = directory.rindex('.ins[')
+                else:
+                    dot_index = directory.rindex('.')
+                stages.append(directory[:dot_index])
+                if chemical != '-':
+                    index = chemicals.index(chemical)
+                    directory += f"[{index}]"
+                directories.append(directory)
+            stages = set(stages)
+            if equation_profiles: equation_profiles = self.get_equation_profiles(variable_profiles, directories, stages, namespace) 
+            if edge_profiles: edge_profiles = self.get_edge_profiles(variable_profiles, directories, stages, namespace) 
+        return time, variable_profiles, equation_profiles, edge_profiles
     
     def get_phenomegraph(self, bipartite=False, **kwargs):
         if bipartite:
@@ -2654,26 +2692,35 @@ class System:
         else:
             return self.get_monopartite_phenomegraph(**kwargs)
             
-    def get_monopartite_phenomegraph(self, flowsheet_level=True, dotfile=None):
-        if flowsheet_level:
-            criteria = [all_subgraphs]
+    def get_monopartite_phenomegraph(self, decomposition=None, dotfile=None):
+        if decomposition is None: decomposition = self.algorithm.lower()
+        subgraph_units = [i.ID for i in self.path]
+        if 'phenomena' in decomposition:
+            if 'modular' in decomposition:
+                criteria = [*all_subgraphs, *[(i, 'phenomena') for i in subgraph_units]]
+            else:
+                criteria = all_subgraphs
+        elif 'modular' in decomposition:
+            criteria = list(product(subgraph_units, all_subgraphs))
         else:
-            unit_names = [i.ID for i in self.path]
-            criteria = [unit_names, all_subgraphs]
+            raise ValueError('unknown decompostion')
         stage_tags = [i.node_tag for i in self.stages]
+        time, variable_profiles = self.get_variable_profiles()
         return PhenomeGraph(
-            self.equation_nodes, criteria, stage_tags, self.get_variable_profiles()
+            self.equation_nodes, criteria, stage_tags, variable_profiles,
+            time,
         )
     
     def get_bipartite_phenomegraph(
             self,
-            flowsheet_level=True,
+            decomposition=None,
             get_equation_profiles=False,
             get_edge_profiles=False,
             dotfile=None, 
             **kwargs,
         ):
-        if not getattr(self, '_track_convergence', False):
+        if decomposition is None: decomposition = self.algorithm.lower()
+        if not getattr(self, 'tracking', False):
             with self.stage_configuration(aggregated=False) as conf:
                 for i in self.stages: 
                     i.create_equation_nodes(conf.stream_ref)
@@ -2681,9 +2728,9 @@ class System:
                 self.equation_nodes = equations = tuple(set(sum([i.equation_nodes for i in self.stages], ())))
                 self.variable_nodes = variables = tuple(set(sum([i.variables for i in equations], ())))
                 self.variable_profiles = variable_profiles = {i: [] for i in variables}
-                for i in self.path: i._variable_profiles = variable_profiles
                 for i in conf.nodes:
-                    for variable in i._collect_specification_variables():
+                    specification_variables = [j for i in i.material_balance_specifications_nodes for j in i.variables]
+                    for variable in specification_variables:
                         if variable not in variable_profiles: variable_profiles[variable] = []
             self.equation_profiles = {}
             self.edge_profiles = {}
@@ -2693,25 +2740,46 @@ class System:
         edges = tuple(BipartitePhenomeGraph.get_node_edges(equations))
         name = self.ID + '_graph'
         subgraph_units = [i.ID for i in self.path]
-        variable_profiles, equation_profiles, edge_profiles = self.get_profiles(
+        time, variable_profiles, equation_profiles, edge_profiles = self.get_profiles(
             get_equation_profiles, get_edge_profiles
         )
         graph = BipartitePhenomeGraph(
             name, equations, variables, edges, equation_profiles, 
-            variable_profiles, edge_profiles, 
+            variable_profiles, edge_profiles, time,
             dotfile.file if dotfile else None, 
             subgraph_units=subgraph_units,
             **kwargs,
         )
-        if flowsheet_level:
-            names = all_subgraphs
-        else:
+        if 'phenomena' in decomposition:
+            if 'modular' in decomposition:
+                names = [*all_subgraphs, *[(i, 'phenomena') for i in subgraph_units]]
+            else:
+                names = all_subgraphs
+        elif 'modular' in decomposition:
             names = subgraph_units
+        else:
+            raise ValueError('unknown decompostion')
+        
+        def equation_match(equation, subgraph):
+            name = equation.name
+            if isinstance(subgraph, tuple):
+                return all([i in name for i in subgraph])
+            else:
+                return subgraph in name
+            
+        def variable_match(variable, subgraph):
+            name = variable.name
+            if subgraph in all_subgraphs:
+                return True
+            elif isinstance(subgraph, tuple):
+                return subgraph[0] in name
+            else:
+                return subgraph in name
+            
         for subgraph in names:
-            subgraph_equations = [i for i in equations if subgraph in i.name]
+            subgraph_equations = [i for i in equations if equation_match(i, subgraph)]
             subgraph_variables = set(sum([i.outputs for i in subgraph_equations], []))
-            if not flowsheet_level:
-                subgraph_variables = set([i for i in subgraph_variables if subgraph in i.name])
+            subgraph_variables = set([i for i in subgraph_variables if variable_match(i, subgraph)])
             subgraph_edges = BipartitePhenomeGraph.get_node_edges(subgraph_equations)
             subgraph_edges = tuple([i for i in subgraph_edges if i.variable in subgraph_variables])
             subgraph_variables = tuple(subgraph_variables)
@@ -2741,7 +2809,7 @@ class System:
         variable_nodes = tuple(variable_profiles)
         names = [i.name for i in variable_nodes]
         chemicals = [i.ID for i in bst.settings.get_chemicals()]
-        subnames = [('-' if np.ndim(i.value) == 0 else chemicals) for i in variable_nodes]
+        subnames = [('-' if np.ndim(i.last_value) == 0 else chemicals) for i in variable_nodes]
         columns = [(name, i) for name, subname in zip(names, subnames) for i in subname]
         M = len(next(iter(variable_profiles.values())))
         N = len(columns)
@@ -2757,7 +2825,9 @@ class System:
                 values[i, j:end] = values_i
                 j = end
         rows, = np.where((~np.isnan(values)).all(axis=1))
-        return pd.DataFrame(values[rows], columns=pd.MultiIndex.from_tuples(columns))
+        df = pd.DataFrame(values[rows], columns=pd.MultiIndex.from_tuples(columns))
+        record = np.array(self.timer.record)
+        return record[rows], df
     
     def get_edge_profiles(self, variable_profiles_table, directories, stages, namespace):
         edge_profiles = self.edge_profiles
@@ -2818,49 +2888,93 @@ class System:
         """Decouple and linearize material, equilibrium, summation, enthalpy,
         and reaction phenomena and iteratively solve them."""
         path = self.unit_path
-        tracking = self._track_convergence and not self._iter % 3
+        tracking = self.tracking and (not self.tracking_gap or not self._iter % self.tracking_gap)
         with self.stage_configuration(aggregated=False) as conf:
             try:
                 mass_balance_error = sum([abs(i.mass_balance_error()) for i in conf.nodes])
                 if mass_balance_error > 1e-3:
                     raise RuntimeError('mass balance error greater than tolerance')
                 conf.solve_nonlinearities()
-                if tracking: self._collect_subgraph_variables(conf, 'phenomena')
+                if tracking:
+                    self._collect_variables('phenomena')
+                    # self.assert_tracking_ok()
                 conf.solve_energy_departures()
-                if tracking: self._collect_subgraph_variables(conf, 'energy_balance')
+                if tracking: 
+                    self._collect_variables('energy')
+                    # self.assert_tracking_ok()
                 conf.solve_material_flows()
-                if tracking: self._collect_subgraph_variables(conf, 'material_balance')
+                if tracking: 
+                    self._collect_variables('material')
+                    # self.assert_tracking_ok()
             except (NotImplementedError, UnboundLocalError, KeyError) as error:
                 raise error
             except Exception as e:
                 print('FAILED!')
                 print(e)
                 print('-------')
-                for i in path: i.run()
+                for i in path: 
+                    # self.assert_tracking_ok()
+                    i.run()
+                    if tracking: self._collect_variables(i.ID)
+                # self.assert_tracking_ok()
                 conf.solve_material_flows()
-                if tracking: self._collect_subgraph_variables(conf, 'material_balance')
-                conf.solve_energy_departures()
-                if tracking: self._collect_subgraph_variables(conf, 'energy_balance')
-                conf.solve_material_flows()
-                if tracking: self._collect_subgraph_variables(conf, 'material_balance')
+                if tracking: self._collect_variables('material')
+                    # self.assert_tracking_ok()
+                # conf.solve_energy_departures()
+                # if tracking: self._collect_variables('energy')
+                #     # self.assert_tracking_ok()
+                # conf.solve_material_flows()
+                # if tracking: self._collect_variables('material')
+                #     # self.assert_tracking_ok()
             
-    def _collect_subgraph_variables(self, configuration, subgraph):
+    def assert_tracking_ok(self):
+        if not self.tracking: return
+        N, = set([len(i) for i in self.variable_profiles.values()])
+        M = len(self.timer.record)
+        assert M == N
+            
+    def _collect_variables(self, key):
+        grouped_variables = self.grouped_variables
+        if isinstance(key, str): key = (key,)
+        if key in grouped_variables:
+            group = grouped_variables[key]
+        else:
+            equations = [
+                eq for eq in self.equation_nodes
+                if all([i in eq.name for i in key])
+            ]
+            group = [i for eq in equations for i in eq.tracked_outputs]
+            grouped_variables[key] = group = set(group)
         variables = self.variable_profiles
-        if subgraph not in all_subgraphs:
-            raise ValueError(
-                f'invalid subgraph {subgraph!r}; '
-                f'only {all_subgraphs!r} are valid'
-            )
-        method_name = f'_collect_{subgraph}_variables'
-        for i in configuration.nodes:
-            method = getattr(i, method_name, None)
-            if method is None: continue
-            method()
-                
-        if subgraph == 'material_balance':
-            for i in configuration.nodes: i._collect_specification_variables()
-        for variable, values in variables.items(): values.append(variable.value)
+        for variable, values in variables.items(): 
+            if variable in group: 
+                value = variable.get_value()
+            else:
+                value = variable.last_value
+            values.append(value)
+        self.timer.measure()
             
+    def _mock_collect_variables(self, key, variable_errors, convergence_rate):
+        grouped_variables = self.grouped_variables
+        if isinstance(key, str): key = (key,)
+        if key in grouped_variables:
+            group = grouped_variables[key]
+        else:
+            equations = [
+                eq for eq in self.equation_nodes
+                if all([i in eq.name for i in key])
+            ]
+            group = [i for eq in equations for i in eq.tracked_outputs]
+            grouped_variables[key] = group = set(group)
+        variables = self.variable_profiles
+        for variable, values in variables.items(): 
+            if variable in group: 
+                variable_errors[variable] = value = max(variable_errors[variable] - convergence_rate, 0)
+            else:
+                value = variable_errors[variable]
+            values.append(value)
+        self.timer.mock_measure()
+        
     def _solve(self):
         """Solve the system recycle iteratively."""
         self._reset_iter()
@@ -2940,6 +3054,9 @@ class System:
 
     def _reset_iter(self):
         self._iter = 0
+        if self.maxtime or self.tracking: 
+            self.timer = Timer()
+            self.timer.start()
         for j in self.tracked_recycles.values(): j.clear()
         for system in self.subsystems: system._reset_iter()
 
@@ -3154,6 +3271,73 @@ class System:
             ws.state = y*0.0
             ws.dstate = y*0.0
 
+    def mock_convergence(
+            self, 
+            convergence_rate=10, 
+        ):
+        self.track_convergence()
+        self._setup()
+        self._reset_iter()
+        algorithm = self.algorithm 
+        if algorithm == 'Sequential modular':
+            method = self._mock_run_sequential
+        elif algorithm == 'Phenomena oriented':
+            method = self._mock_run_phenomena
+        elif algorithm == 'Phenomena modular':
+            method = self._mock_run_phenomena_modular
+        else:
+            raise RuntimeError(f'unknown algorithm {algorithm!r}')
+        variable_errors = {i: 100 for i in self.variable_nodes}
+        while sum(variable_errors.values()): method(variable_errors, convergence_rate)
+        
+    def _mock_run_phenomena(self, variable_errors, convergence_rate):
+        for i in ('phenomena', 'energy', 'material'):
+            self._mock_collect_variables(i, variable_errors, convergence_rate)
+        
+    def _mock_run_sequential(self, variable_errors, convergence_rate):
+        subgraphs = ('phenomena', 'energy', 'material')
+        for i in self._path:
+            if hasattr(i, 'stages'):
+                for factor in (0.75, 0.25):
+                    inner_rate = factor * convergence_rate
+                    for subgraph in subgraphs:
+                        self._mock_collect_variables(
+                            (i.ID, subgraph), 
+                            variable_errors, 
+                            inner_rate
+                        )
+            else:
+                for subgraph in subgraphs:
+                    self._mock_collect_variables(
+                        (i.ID, subgraph), 
+                        variable_errors, 
+                        convergence_rate
+                    )
+                    
+    def _mock_run_phenomena_modular(self, variable_errors, convergence_rate):
+        for i in self._path:
+            if isinstance(i, (bst.Mixer, bst.Splitter)): continue
+            if hasattr(i, 'stages'):
+                for factor in (3 / 4, 3 / 16, 1 / 16):
+                    inner_rate = factor * convergence_rate
+                    self._mock_collect_variables(
+                        (i.ID, 'phenomena'), 
+                        variable_errors, 
+                        inner_rate
+                    )
+            else:
+                self._mock_collect_variables(
+                    (i.ID, 'phenomena'), 
+                    variable_errors, 
+                    convergence_rate
+                )
+            for subgraph in ('energy', 'material'):
+                self._mock_collect_variables(
+                    subgraph, 
+                    variable_errors, 
+                    convergence_rate
+                )
+            
     def simulate(self, update_configuration: Optional[bool]=None, units=None, 
                  design_and_cost=None, **kwargs):
         """

@@ -315,7 +315,7 @@ def fill_info_from_path(path, indices, info_by_unit):
     isa = isinstance
     number = preferences.number_path
     profile = preferences.profile
-    TicToc = bst.utils.TicToc
+    Timer = bst.utils.Timer
     for u in path:
         if isa(u, bst.Junction):
             continue # Do no include junctions
@@ -330,9 +330,9 @@ def fill_info_from_path(path, indices, info_by_unit):
             if number: old_data[0].append(index)
         else:
             if profile: # pragma: no cover
-                t = TicToc()
+                t = Timer()
                 for n in range(1):
-                    t.tic(); u.simulate(); t.toc()
+                    t.start(); u.simulate(); t.elapsed_time()
                     if n > 1 and sum(t.record) > 0.2: break 
                 time = f"{1000 * t.mean:.2g} ms"
             else:

@@ -10,10 +10,10 @@
 import time
 import numpy as np
 
-__all__ = ('TicToc',)
+__all__ = ('Timer',)
 
-class TicToc: # pragma: no coverage
-    """Create a TicToc class with tic toc functions that measure elapsed time."""
+class Timer: # pragma: no coverage
+    """Create a Timer class with functions that measure elapsed time."""
     __slots__ = ['ID', 'record', '_start']
 
     def __init__(self, ID=None):
@@ -21,14 +21,23 @@ class TicToc: # pragma: no coverage
         self.record = [] #: [list] elapsed times from tic toc functions
         self._start = None
 
-    def tic(self):
+    def start(self):
         """Start timer."""
         # Marks the beginning of a time interval
         self._start = time.perf_counter()
         return self._start
 
-    def toc(self, record=True):
-        """Record time interval since last 'tic'."""
+    def mock_start(self):
+        self._start = 0
+        return 0
+
+    def mock_measure(self):
+        record = self.record
+        if record: record.append(record[-1] + 1)
+        else: record.append(1)
+
+    def measure(self, record=True):
+        """Record time interval since last start time."""
         # Appends time difference
         try: elapsed_time = self.elapsed_time
         except TypeError:

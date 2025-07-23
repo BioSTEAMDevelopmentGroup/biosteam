@@ -20,7 +20,7 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import minimize, differential_evolution
 from math import inf
-from typing import Callable
+from typing import Callable, Optional
 from copy import copy
 from scipy.optimize import root
 from ..exceptions import Converged
@@ -124,10 +124,6 @@ class SinglePhaseStage(Unit):
             raise RuntimeError('must specify either Q or T; not both')
         else:
             outlet.T = self.T
-        if hasattr(self, '_variable_profiles'):
-            self._collect_material_balance_variables()
-            self._collect_energy_balance_variables()
-            self._update_variables()
 
     def _get_energy_departure_coefficient(self, stream):
         if self.T is None: return (self, -stream.C)
@@ -198,10 +194,8 @@ class SinglePhaseStage(Unit):
     
     @property
     def T_node(self):
-        if hasattr(self, '_T_node'): 
-            self._T_node.value = self.T
-            return self._T_node
-        self._T_node = var = VariableNode(f"{self.node_tag}.T", self.T)
+        if hasattr(self, '_T_node'): return self._T_node
+        self._T_node = var = VariableNode(f"{self.node_tag}.T", lambda: self.T)
         return var 
         
     @property
@@ -544,13 +538,6 @@ class StageEquilibrium(Unit):
         self.partition._run()
         for i in self.splitters: i._run()
         self._update_separation_factors()
-        if hasattr(self, '_variable_profiles'):
-            self._collect_material_balance_variables()
-            self._collect_energy_balance_variables()
-            self._collect_phenomena_variables()
-            self._update_variables()
-    
-    
     
     def _get_energy_departure_coefficient(self, stream):
         energy_variable = self._energy_variable
@@ -845,9 +832,14 @@ class StageEquilibrium(Unit):
         )
         
     def initialize_lle_phenomena_node(self):
+        intermediates = [
+            i.F_node for i in self.outs 
+            if hasattr(i.sink, 'lle_phenomena_node')
+        ]
         self.lle_phenomena_node.set_equations(
-            inputs=[self.T_node, *[i.F_node for i in self.outs]],
-            outputs=[self.K_node, self.Phi_node],
+            inputs=[self.T_node, *[i.F_node for i in self.ins]],
+            outputs=[self.K_node, self.Phi_node, *intermediates],
+            tracked_outputs=[self.K_node, self.Phi_node],
         )
     
     def initialize_vle_phenomena_node(self):
@@ -875,35 +867,34 @@ class StageEquilibrium(Unit):
         
     @property
     def K_node(self):
-        if hasattr(self, '_K_node'): 
-            self._K_node.value = self.K
-            return self._K_node
-        self._K_node = var = VariableNode(f"{self.node_tag}.K", self.K)
+        if hasattr(self, '_K_node'): return self._K_node
+        if self.B_specification == 0 or self.B_specification == np.inf:
+            var = None
+        else:
+            var = VariableNode(f"{self.node_tag}.K", lambda: self.K)
+        self._K_node = var
         return var
     
     @property
     def T_node(self):
-        if hasattr(self, '_T_node'): 
-            self._T_node.value = self.T
-            return self._T_node
-        self._T_node = var = VariableNode(f"{self.node_tag}.T", self.T)
+        if hasattr(self, '_T_node'): return self._T_node
+        if self.T_specification is not None: 
+            var = None
+        else:
+            var = VariableNode(f"{self.node_tag}.T", lambda: self.T)
+        self._T_node = var
         return var 
     
     @property
     def Phi_node(self):
-        if hasattr(self, '_Phi_node'): 
-            if self._Phi_node is not None: 
-                self._Phi_node.value = self.B
-            return self._Phi_node
+        if hasattr(self, '_Phi_node'): return self._Phi_node
         if self.phases == ('g', 'l'):
-            if self.T_specification: 
-                self._Phi_node = var = VariableNode(f"{self.node_tag}.Phi", self.B)
-            elif self.B_specification is not None:
+            if self.B_specification is not None:
                 self._Phi_node = var = None
             else:
-                self._Phi_node = var = VariableNode(f"{self.node_tag}.Phi", self.B)
+                self._Phi_node = var = VariableNode(f"{self.node_tag}.Phi", lambda: self.B)
         else:
-            self._Phi_node = var = VariableNode(f"{self.node_tag}.Phi", self.B)
+            self._Phi_node = var = VariableNode(f"{self.node_tag}.Phi", lambda: self.B)
         return var
     
     def get_E_node(self, stream):
@@ -914,10 +905,7 @@ class StageEquilibrium(Unit):
     
     @property
     def E_node(self):
-        if hasattr(self, '_E_node'):
-            if self._E_node is not None: 
-                self._E_node.value = getattr(self, self._energy_variable)
-            return self._E_node
+        if hasattr(self, '_E_node'): return self._E_node
         if self._energy_variable is None:
             var = None
         elif self.phases == ('g', 'l'):
@@ -926,16 +914,6 @@ class StageEquilibrium(Unit):
             var = self.T_node
         self._E_node = var
         return var
-    
-    def _collect_phenomena_variables(self):
-        if self.phases == ('g', 'l'):
-            if self.T_specification is None:
-                nodes = [self.T_node, self.K_node]
-            else:
-                nodes = [self.Phi_node, self.K_node]
-        else:
-            nodes = [self.Phi_node, self.K_node]
-        return nodes # list[VariableNode] 
     
     def _collect_edge_errors(self):
         equation_name = self.overall_material_balance_node.name
@@ -1082,16 +1060,27 @@ class PhasePartition(Unit):
     def _set_arrays(self, IDs, **kwargs):
         IDs_last = self.IDs
         IDs = tuple(IDs)
-        if IDs_last and IDs_last != IDs and len(IDs_last) > len(IDs):
-            size = len(IDs_last)
-            index = [IDs_last.index(i) for i in IDs]
-            for name, array in kwargs.items():
-                last = np.ones(size)
-                setattr(self, name, last)
-                f = getattr(PhasePartition, name + '_relaxation_factor')
-                g = 1. - f 
-                for i, j in enumerate(index):
-                    last[j] = g * array[i] + f * last[j]
+        if IDs_last and IDs_last != IDs:
+            if len(IDs_last) > len(IDs):
+                index = [IDs_last.index(i) for i in IDs]
+                for name, array in kwargs.items():
+                    last = getattr(self, name)
+                    f = getattr(PhasePartition, name + '_relaxation_factor')
+                    g = 1. - f 
+                    for i, j in enumerate(index):
+                        last[j] = g * array[i] + f * last[j]
+            else:
+                self.IDs = IDs
+                index = [IDs.index(i) for i in IDs_last]
+                for name, array in kwargs.items():
+                    last = getattr(self, name)
+                    new = array.copy()
+                    setattr(self, name, new)
+                    for i, j in enumerate(index): new[i] = last[j]
+                    f = getattr(PhasePartition, name + '_relaxation_factor')
+                    g = 1. - f 
+                    for i, j in enumerate(index):
+                        new[j] = g * array[i] + f * new[j]
         else:
             for i, j in kwargs.items(): setattr(self, i, j)
             self.IDs = IDs
@@ -1170,16 +1159,20 @@ class PhasePartition(Unit):
                              K_relaxation_factor=None): # Bubble point
         top, bottom = self.outs
         if P is not None: top.P = bottom.P = P
-        if bottom.isempty():
-            if top.isempty(): return
-            p = top.dew_point_at_P(P)
+        if len(self.ins) >= 3:
+            self._run_vle(update=False)
+            return
         else:
-            p = bottom.bubble_point_at_P(P)
-        # TODO: Note that solution decomposition method is bubble point
-        x = p.x
-        x[x == 0] = 1.
-        K_new = p.y / p.x
-        IDs = p.IDs
+            if bottom.isempty():
+                if top.isempty(): return
+                p = top.dew_point_at_P(P)
+            else:
+                p = bottom.bubble_point_at_P(P)
+            # TODO: Note that solution decomposition method is bubble point
+            x = p.x
+            x[x == 0] = 1.
+            K_new = p.y / p.x
+            IDs = p.IDs
         if self.T_specification:
             self._run_vle(update=False)
             for i in self.outs: i.T = self.T_specification
@@ -1472,9 +1465,9 @@ class MultiStageEquilibrium(Unit):
     >>> MSE.simulate()
     >>> vapor, liquid = MSE.outs
     >>> vapor.imol['Ethanol'] / feed.imol['Ethanol']
-    0.927
+    0.96
     >>> vapor.imol['Ethanol'] / vapor.F_mol
-    0.675
+    0.69
     
     Simulate the same distillation column with a full condenser, 5 stages, a 0.673 reflux ratio, 
     2.57 boilup ratio, and feed at stage 2:
@@ -1497,8 +1490,8 @@ class MultiStageEquilibrium(Unit):
     """
     _N_ins = 2
     _N_outs = 2
-    max_attempts = 10
-    default_maxiter = 20
+    max_attempts = 5
+    default_maxiter = 40
     default_fallback = None
     default_molar_tolerance = 1e-3
     default_relative_molar_tolerance = 1e-6
@@ -1509,7 +1502,8 @@ class MultiStageEquilibrium(Unit):
         'optimize': 'CG',
         'SurPASS': 'differential evolution', 
     }
-    
+    #: Gap between tracked iterations.
+    tracking_gap: Optional[int] = None
     #: Method definitions for convergence
     root_options: dict[str, tuple[Callable, bool, dict]] = {
         'fixed-point': (flx.conditional_fixed_point, True, {}),
@@ -2130,15 +2124,13 @@ class MultiStageEquilibrium(Unit):
                 #     for i in self.partitions: del i.B_relaxation_factor
                 if repeat:
                     top_flow_rates = solver(self._conditional_iter, top_flow_rates)
-                if self.iter == self.maxiter and self.fallback and self.fallback != (self.algorithm, self.method):
-                    algorithm, method = self.algorithm, self.method
-                    self.algorithm, self.method = self.fallback
+                if self.iter == self.maxiter and self.fallback and self.fallback[0] != self.algorithm:
+                    original = self.algorithm, self.method, self.maxiter
+                    self.algorithm, self.method, self.maxiter = self.fallback
                     try:
                         self._run()
                     finally:
-                        self.algorithm, self.method = algorithm, method
-                    self.iter = 0
-                    top_flow_rates = solver(self._conditional_iter, top_flow_rates)
+                        self.algorithm, self.method, self.maxiter = original
             elif algorithm == 'sequential':
                 self.iter = 0
                 top_flow_rates = flx.conditional_fixed_point(
@@ -2605,8 +2597,8 @@ class MultiStageEquilibrium(Unit):
         dBs = self.get_energy_balance_phase_ratio_departures()
         for i, dB in zip(self.partitions, dBs):
             if i.B_specification is None: i.B += (1 - i.B_relaxation_factor) * dB
-        if hasattr(self, '_variable_profiles') and not self.iter % 5:
-            self._collect_energy_balance_variables()
+        if getattr(self, 'tracking', False) and not self.iter % self.tracking_gap:
+            self._collect_variables('energy')
     
     def update_energy_balance_temperatures(self):
         dTs = self.get_energy_balance_temperature_departures()
@@ -2614,8 +2606,8 @@ class MultiStageEquilibrium(Unit):
             partition = stage.partition
             partition.T += dT
             for i in partition.outs: i.T += dT
-        if hasattr(self, '_variable_profiles') and not self.iter % 5:
-            self._collect_energy_balance_variables()
+        if getattr(self, 'tracking', False) and not self.iter % self.tracking_gap:
+            self._collect_variables('energy')
         return dTs
        
     def run_mass_balance(self):
@@ -2830,7 +2822,10 @@ class MultiStageEquilibrium(Unit):
     def update_vle_variables(self, top_flow_rates=None):
         stages = self.stages
         P = self.P
-        if top_flow_rates is not None: self.set_flow_rates(top_flow_rates)
+        if top_flow_rates is not None: 
+            self.set_flow_rates(top_flow_rates)
+            if getattr(self, 'tracking', False) and not self.iter % self.tracking_gap:
+                self._collect_variables('material')
         if self.stage_reactions:
             self.update_liquid_holdup() # Finds liquid volume at each stage
             for i in stages:
@@ -2856,7 +2851,7 @@ class MultiStageEquilibrium(Unit):
                 partition._run_decoupled_KTvle(P=P)
                 T = partition.T
                 for i in (partition.outs + i.outs): i.T = T
-        if hasattr(self, '_variable_profiles') and not self.iter % 5:
+        if getattr(self, 'tracking', False) and not self.iter % self.tracking_gap:
             # for n, i in enumerate(stages):
             #     print(n, i.K, i.T)
             # print(stages[0].K, stages[0].T)
@@ -2867,19 +2862,7 @@ class MultiStageEquilibrium(Unit):
             # print(stages[0].ins[0].F_mol)
             # breakpoint()
             # stages[0].partition._run_decoupled_KTvle(P=P)
-            self._collect_phenomena_variables()
-    
-    def _collect_phenomena_variables(self):
-        for i in self.stages: i._collect_phenomena_variables()
-        self._update_variables()
-    
-    def _collect_material_balance_variables(self):
-        for i in self.stages: i._collect_material_balance_variables()
-        self._update_variables()
-    
-    def _collect_energy_balance_variables(self):
-        for i in self.stages: i._collect_energy_balance_variables()
-        self._update_variables()
+            self._collect_variables('vle_phenomena')
     
     def lle_gibbs(self):
         return sum([i.partition.lle_gibbs() for i in self.stages])
@@ -2888,7 +2871,10 @@ class MultiStageEquilibrium(Unit):
         stages = self.stages
         P = self.P
         if 'K' in self.partition_data:
-            if top_flow_rates is not None: self.set_flow_rates(top_flow_rates)
+            if top_flow_rates is not None: 
+                self.set_flow_rates(top_flow_rates)
+                if getattr(self, 'tracking', False) and not self.iter % self.tracking_gap:
+                    self._collect_variables('material')
         else:
             if top_flow_rates is None: top_flow_rates = self.get_top_flow_rates()
             def psuedo_equilibrium(top_flow_rates):
@@ -2916,13 +2902,16 @@ class MultiStageEquilibrium(Unit):
                 mixer.ins, energy_balance=False,
             )
             partition._run_decoupled_B()
-        if hasattr(self, '_variable_profiles') and not self.iter % 5:
-            self._collect_phenomena_variables()
+        if getattr(self, 'tracking', False) and not self.iter % self.tracking_gap:
+            self._collect_variables('lle_phenomena')
     
     def _iter(self, top_flow_rates=None):
         self.iter += 1
         if self._has_vle:
             self.update_vle_variables(top_flow_rates)
+            # print('------')
+            # print('Phenomena')
+            # print('K', self.stages[0].K)
             # self.interpolate_missing_variables()
             self.update_energy_balance_phase_ratio_departures()
         elif self._has_lle: # LLE
@@ -2991,8 +2980,6 @@ class MultiStageEquilibrium(Unit):
             return estimate_top_flow_rates(Sb, *self._iter_args, safe)
         for i in self.stages: i._update_separation_factors()
         flows = self.run_mass_balance()
-        if hasattr(self, '_variable_profiles') and not self.iter % 5:
-            self._collect_material_balance_variables()
         return flows
     
     def _run_phenomena(self):
@@ -3046,9 +3033,13 @@ class MultiStageEquilibrium(Unit):
 
     def _sequential_iter(self, top_flow_rates):
         self.iter += 1
-        self.set_flow_rates(top_flow_rates)
+        # self.set_flow_rates(top_flow_rates)
         for i in self.stages: i._run()
         for i in reversed(self.stages): i._run()
+        # print('------')
+        # print('Sequential')
+        # print('K', self.stages[0].K)
+        # breakpoint()
         mol = top_flow_rates.flatten()
         top_flow_rates = self.get_top_flow_rates()
         mol_new = top_flow_rates.flatten()

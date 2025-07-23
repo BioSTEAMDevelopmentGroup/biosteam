@@ -1066,11 +1066,6 @@ class Distillation(Unit, isabstract=True):
             
             dimensions = [(H, Di)]
         self._cost_vacuum(dimensions)
-        
-    def _update_equilibrium_variables(self):
-        feed = sum([i.mol for i in self.ins])
-        top = self.outs[0].mol
-        self._distillate_recoveries = (top / feed).to_array()
 
     equation_node_names = (
         'overall_material_balance_node', 
@@ -1102,15 +1097,6 @@ class Distillation(Unit, isabstract=True):
     
     def _collect_phenomena_variables(self):
         return [self.S_node, *[i.T_node for i in self.outs]] # list[VariableNode] 
-    
-    @property
-    def S_node(self):
-        S = getattr(self, '_distillate_recoveries', 0)
-        if hasattr(self, '_S_node'):
-            self._S_node.value = S
-            return self._S_node
-        self._S_node = var = bst.VariableNode(f"{self.node_tag}.S", S)
-        return var
     
     def _collect_edge_errors(self):
         equation_name = self.overall_material_balance_node.name
@@ -1449,11 +1435,24 @@ class BinaryDistillation(Distillation, new_graphics=False):
     _cache_tolerance = np.array([50., 1e-5, 1e-6, 1e-6, 1e-2, 1e-6], float)
     _energy_variable = None
     
+    @property
+    def S_node(self):
+        if hasattr(self, '_S_node'): return self._S_node
+        self._S_node = var = bst.VariableNode(
+            f"{self.node_tag}.S", lambda: getattr(self, '_distillate_recoveries', np.zeros(self.chemicals.size))
+        )
+        return var
+    
+    def _update_equilibrium_variables(self):
+        feed = sum([i.mol for i in self.ins])
+        top = self.outs[0].mol
+        self._distillate_recoveries = (top / feed).to_array()
+        return self._distillate_recoveries
+    
     def _run(self):
         self._run_binary_distillation_mass_balance()
         self._update_distillate_and_bottoms_temperature()
-        if self.system and self.system.algorithm != 'Sequential modular':
-            self._update_equilibrium_variables()
+        self._update_equilibrium_variables()
 
     def reset_cache(self, isdynamic=None):
         self._McCabeThiele_args = np.zeros(6)
@@ -1718,7 +1717,7 @@ class BinaryDistillation(Distillation, new_graphics=False):
     def _update_nonlinearities(self):
         outs = self.outs
         data = [i.get_data() for i in outs]
-        self._run_binary_distillation_mass_balance()
+        self._run()
         for i, j in zip(outs, data): i.set_data(j)
 
 # %% Fenske-Underwook-Gilliland distillation model utilities
@@ -1947,6 +1946,14 @@ class ShortcutColumn(Distillation, new_graphics=False):
         checkconvergence=False, 
         convergenceiter=3,
     )
+    
+    @property
+    def S_node(self):
+        if hasattr(self, '_S_node'): return self._S_node
+        self._S_node = var = bst.VariableNode(
+            f"{self.node_tag}.S", lambda: getattr(self, '_distillate_recoveries', np.zeros(self.chemicals.size))
+        )
+        return var
     
     def reset_cache(self, isdynamic=None):
         self._vle_chemicals = None
@@ -2199,13 +2206,10 @@ class ShortcutColumn(Distillation, new_graphics=False):
             distillate_LHK_mol[mask] = max_flows[mask]
             self._Lr = distillate_LHK_mol[0] / LHK_mol[0]
             self._Hr = distillate_LHK_mol[1] / LHK_mol[1]
+        flows = [i.mol.copy() for i in self.outs]
+        # self._solve_distillate_recoveries()
         self._distillate_recoveries = self._estimate_distillate_recoveries()
-        # s_top, s_bottom = self.outs
-        # s_dummy = s_top.copy()
-        # s_dummy.mol = top
-        # s_top.T = (s_dummy.dew_point_at_P() if self._partial_condenser else s_dummy.bubble_point_at_P()).T
-        # s_dummy.mol = bottom
-        # s_bottom.T = s_dummy.bubble_point_at_P().T
+        for i, j in zip(self.outs, flows): i.mol[:] = j
 
 
 # %% Rigorous absorption/stripping column
@@ -2575,37 +2579,37 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     >>> D1.simulate()
     >>> vapor, liquid = D1.outs
     >>> vapor.imol['Ethanol'] / feed.imol['Ethanol']
-    0.927
+    0.96
     >>> vapor.imol['Ethanol'] / vapor.F_mol
-    0.675
+    0.69
     
     >>> D1.results()
     Distillation                                               Units          
-    Electricity         Power                                     kW       0.6
-                        Cost                                  USD/hr    0.0469
-    Cooling water       Duty                                   kJ/hr -2.97e+06
+    Electricity         Power                                     kW     0.574
+                        Cost                                  USD/hr    0.0449
+    Cooling water       Duty                                   kJ/hr -2.98e+06
                         Flow                                 kmol/hr  2.03e+03
-                        Cost                                  USD/hr     0.989
-    Low pressure steam  Duty                                   kJ/hr  7.76e+06
-                        Flow                                 kmol/hr       200
-                        Cost                                  USD/hr      47.7
+                        Cost                                  USD/hr     0.992
+    Low pressure steam  Duty                                   kJ/hr   7.8e+06
+                        Flow                                 kmol/hr       202
+                        Cost                                  USD/hr        48
     Design              Theoretical stages                                   5
                         Actual stages                                        7
                         Height                                    ft      24.3
-                        Diameter                                  ft      3.35
+                        Diameter                                  ft      3.32
                         Wall thickness                            in     0.312
-                        Weight                                    lb  3.66e+03
-    Purchase cost       Trays                                    USD  8.14e+03
-                        Tower                                    USD  3.44e+04
-                        Platform and ladders                     USD  9.48e+03
+                        Weight                                    lb  3.63e+03
+    Purchase cost       Trays                                    USD  8.11e+03
+                        Tower                                    USD  3.43e+04
+                        Platform and ladders                     USD  9.43e+03
                         Condenser - Floating head                USD  2.36e+04
-                        Reflux drum - Vertical pressure ...      USD  1.21e+04
-                        Reflux drum - Platform and ladders       USD  3.46e+03
-                        Pump - Pump                              USD  4.34e+03
-                        Pump - Motor                             USD       362
-                        Reboiler - Floating head                 USD  2.31e+04
-    Total purchase cost                                          USD  1.19e+05
-    Utility cost                                              USD/hr      48.7
+                        Reflux drum - Vertical pressure ...      USD  1.29e+04
+                        Reflux drum - Platform and ladders       USD  3.89e+03
+                        Pump - Pump                              USD  4.35e+03
+                        Pump - Motor                             USD       358
+                        Reboiler - Floating head                 USD  2.34e+04
+    Total purchase cost                                          USD   1.2e+05
+    Utility cost                                              USD/hr        49
     
     Simulate distillation column with a full condenser, 5 stages, a 0.673 reflux ratio, 
     2.57 boilup ratio, and feed at stage 2:

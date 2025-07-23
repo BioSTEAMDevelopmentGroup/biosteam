@@ -21,6 +21,7 @@ from thermosteam._graphics import splitter_graphics
 from thermosteam import separations
 import biosteam as bst
 import numpy as np
+from thermosteam import VariableNode
 
 __all__ = ('Splitter', 'PhaseSplitter', 'FakeSplitter', 'MockSplitter',
            'ReversedSplitter', 'Separator')
@@ -311,6 +312,63 @@ class Separator(Unit):
     _N_ins = 1
     _N_outs = 2
     _ins_size_is_fixed = False
+    
+    @property
+    def equation_node_names(self): 
+        material_balances = (
+            'overall_material_balance_node', 
+            'separation_material_balance_node',
+        )
+        if self.T_specification is None:
+            return (
+                *material_balances,
+                'energy_balance_node',
+            )
+        else:
+            return material_balances
+    
+    def initialize_overall_material_balance_node(self):
+        self.overall_material_balance_node.set_equations(
+            inputs=[j for i in self.ins if (j:=i.F_node)],
+            outputs=[i.F_node for i in self.outs],
+        )
+    
+    def initialize_separation_material_balance_node(self):
+        self.separation_material_balance_node.set_equations(
+            outputs=[i.F_node for i in self.outs],
+            inputs=[],
+        )
+        
+    def initialize_energy_balance_node(self):
+        self.energy_balance_node.set_equations(
+            inputs=(
+                self.T_node, 
+                *[i.T_node for i in (*self.ins, *self.outs)],
+                *[i.F_node for i in (*self.ins, *self.outs)],
+                *[j for i in self.ins if (j:=i.E_node)]
+            ),
+            outputs=[j for i in self.outs if (j:=i.E_node)],
+        )
+        
+    @property
+    def T_node(self):
+        if self.T_specification:
+            if hasattr(self, '_T_node'): return self._T_node
+            self._T_node = var = VariableNode(f"{self.node_tag}.T", lambda: self.T)
+            return var 
+    
+    def get_E_node(self, stream):
+        return self.E_node
+    
+    @property
+    def E_node(self):
+        if hasattr(self, '_E_node'): return self._E_node
+        if self.T_specification is None:
+            var = self.T_node
+        else:
+            var = None
+        self._E_node = var
+        return var
     
     @property
     def isplit(self):

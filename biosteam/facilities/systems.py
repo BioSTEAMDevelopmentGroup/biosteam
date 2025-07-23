@@ -200,7 +200,11 @@ def create_coheat_and_power_system(
         gas.phase = 'g'
     else:
         gas = None
-    BT = bst.BoilerTurbogenerator(
+    if 'cls' in kwargs:
+        cls = kwargs.pop('cls')
+    else:
+        cls = bst.BoilerTurbogenerator
+    BT = cls(
         ins=[slurry, gas, 
              makeup_water, natural_gas, 
              lime, boiler_chemicals, air],
