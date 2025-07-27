@@ -57,7 +57,13 @@ def create_system_butanol_purification(alg):
     )
     # butanol_distiller.decoupled = True
     
-    sys = bst.System.from_units(units=[water_distiller, mixer, settler, butanol_distiller], algorithm=alg)
+    sys = bst.System.from_units(
+        units=[water_distiller, 
+               mixer, 
+               settler, 
+               butanol_distiller], 
+        algorithm=alg
+    )
     # breakpoint()
     return sys
 

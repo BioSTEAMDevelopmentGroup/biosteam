@@ -80,6 +80,14 @@ class Mixer(Unit):
         'energy_balance_node',
     )
     
+    @property
+    def _energy_variable(self):
+        phases = self.outs[0].phases
+        if phases == ('g', 'l'):
+            return 'B'
+        else:
+            return 'T'
+    
     def initialize_overall_material_balance_node(self):
         self.overall_material_balance_node.set_equations(
             outputs=[i.F_node for i in self.outs],
@@ -122,11 +130,11 @@ class Mixer(Unit):
                        conserve_phases=getattr(self, 'conserve_phases', None))
         V = s_out.vapor_fraction
         if V == 0:
-            self._B = 0
+            self.B = 0
         elif V == 1:
-            self._B = np.inf
+            self.B = np.inf
         else:
-            self._B = V / (1 - V)
+            self.B = V / (1 - V)
     
     def _get_energy_departure_coefficient(self, stream):
         if stream.phases == ('g', 'l'):
@@ -187,7 +195,7 @@ class Mixer(Unit):
             )
             
             # Top to bottom flows
-            B = self._B
+            B = self.B
             eq_outs = {}
             if B == np.inf:
                 eq_outs[bottom] = ones
@@ -207,7 +215,7 @@ class Mixer(Unit):
     def _update_energy_variable(self, departure):
         phases = self.outs[0].phases
         if phases == ('g', 'l'):
-            self._B += departure
+            self.B += departure
         else:
             self.outs[0].T += departure
 

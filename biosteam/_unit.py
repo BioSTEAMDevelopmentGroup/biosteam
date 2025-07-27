@@ -43,8 +43,8 @@ __all__ = ('Unit',)
 
 # %% Unit Operation
 
-def phenomena_oriented_run(self):
-    if not (self._recycle_system and self._system.algorithm == 'Phenomena oriented'):
+def phenomena_based_run(self):
+    if not (self._recycle_system and self._system.algorithm == 'Phenomena based'):
         Unit.run(self)
         return
     ins = self.ins
@@ -164,14 +164,14 @@ class Unit(AbstractUnit):
                 '_energy_variable',
             )
             if all([getattr(cls, i) is getattr(Unit, i) for i in methods]):
-                cls.run = phenomena_oriented_run
+                cls.run = phenomena_based_run
             else:
                 for i in methods: 
                     if getattr(cls, i) is not getattr(Unit, i): continue
                     setattr(cls, i, AbstractMethod)
                 cls.run = Unit.run
         elif default_phenomena:
-            cls.run = phenomena_oriented_run
+            cls.run = phenomena_based_run
             for i in methods: setattr(cls, i, getattr(Unit, i))
         if '_N_heat_utilities' in dct:
             warn("'_N_heat_utilities' class attribute is scheduled for deprecation; "
@@ -269,7 +269,7 @@ class Unit(AbstractUnit):
     #: lifetime of each purchase cost item.
     _default_equipment_lifetime: int|dict[str, int] = {}
 
-    #: [str] The energy variable for phenomena-oriented simulation.
+    #: [str] The energy variable for phenomena-based simulation.
     _energy_variable: str = None
 
     ### Abstract methods ###
@@ -358,7 +358,7 @@ class Unit(AbstractUnit):
         
     def _update_nonlinearities(self):
         """
-        Update phenomenological variables for phenomena-oriented simulation.
+        Update phenomenological variables for phenomena-based simulation.
         """
         ins = self.ins
         outs = self.outs
@@ -404,14 +404,14 @@ class Unit(AbstractUnit):
     def _get_energy_departure_coefficient(self, stream):
         """
         tuple[object, float] Return energy departure coefficient of a stream 
-        for phenomena-oriented simulation.
+        for phenomena-based simulation.
         """
         if self._energy_variable == 'T': return (self, stream.C)
     
     def _create_material_balance_equations(self, composition_sensitive):
         """
         list[tuple[dict, array]] Create material balance equations for 
-        phenomena-oriented simulation.
+        phenomena-based simulation.
         """
         if self._link_streams: return []
         fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
@@ -419,7 +419,11 @@ class Unit(AbstractUnit):
         N = self.chemicals.size
         ones = np.ones(N)
         predetermined_flow = SparseVector.from_dict(sum_sparse_vectors([i.mol for i in fresh_inlets]), size=N)
-        rhs = predetermined_flow + self._dmol
+        try:
+            dmol = self._dmol
+            rhs = predetermined_flow + dmol
+        except:
+            rhs = predetermined_flow
         mol_total = sum([i.mol for i in outs])
         for i, s in enumerate(outs):
             split = s.mol / mol_total
@@ -435,7 +439,7 @@ class Unit(AbstractUnit):
     def _create_energy_departure_equations(self):
         """
         list[tuple[dict, float]] Create energy departure equations for 
-        phenomena-oriented simulation.
+        phenomena-based simulation.
         """
         if self._energy_variable == 'T':
             coeff = {self: sum([i.C for i in self.outs])}
@@ -451,7 +455,7 @@ class Unit(AbstractUnit):
     def _update_energy_variable(self, departure):
         """
         Update energy variable being solved in energy departure equations for 
-        phenomena-oriented simulation.
+        phenomena-based simulation.
         """
         if self._energy_variable == 'T':
             for i in self.outs: i.T += departure

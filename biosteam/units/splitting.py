@@ -319,7 +319,7 @@ class Separator(Unit):
             'overall_material_balance_node', 
             'separation_material_balance_node',
         )
-        if self.T_specification is None:
+        if self.T is None:
             return (
                 *material_balances,
                 'energy_balance_node',
@@ -352,23 +352,17 @@ class Separator(Unit):
         
     @property
     def T_node(self):
-        if self.T_specification:
+        if not self.T:
             if hasattr(self, '_T_node'): return self._T_node
-            self._T_node = var = VariableNode(f"{self.node_tag}.T", lambda: self.T)
+            self._T_node = var = VariableNode(f"{self.node_tag}.T", lambda: self.outs[0].T)
             return var 
     
     def get_E_node(self, stream):
-        return self.E_node
+        return self.T_node
     
     @property
     def E_node(self):
-        if hasattr(self, '_E_node'): return self._E_node
-        if self.T_specification is None:
-            var = self.T_node
-        else:
-            var = None
-        self._E_node = var
-        return var
+        return self.T_node
     
     @property
     def isplit(self):
@@ -386,7 +380,7 @@ class Separator(Unit):
     
     def _init(self, split, order=None, T=None, P=None, phases=None):
         self._isplit = self.thermo.chemicals.isplit(split, order)
-        self.T_specification = self.T = T
+        self.T = T
         self.P = P
         self.phases = phases
         
@@ -414,8 +408,8 @@ class Separator(Unit):
         top, bottom = self._outs
         top.mix_from(ins)
         top.split_to(*self.outs, self._isplit.data)
-        if self.T_specification:
-            top.T = bottom.T = self.T_specification
+        if self.T:
+            top.T = bottom.T = self.T
         if self.phases:
             top.phase, bottom.phase = self.phases
         if self.P:
@@ -452,18 +446,16 @@ class Separator(Unit):
         return equations
     
     def _get_energy_departure_coefficient(self, stream):
-        if self.T_specification is not None: return
+        if self.T is not None: return
         coeff = -stream.C
         return (self, coeff)
     
     def _create_energy_departure_equations(self):
-        if self.T_specification is not None: return []
+        if self.T is not None: return []
         coeff = {self: self.ins[0].C}
         self.ins[0]._update_energy_departure_coefficient(coeff)
         return [(coeff, self.H_in - self.H_out)]
     
     def _update_energy_variable(self, departure):
-        if self.T is None: self.T = self.outs[0].T
-        self.T = T = self.T + departure
-        for i in self.outs: i.T = T
+        for i in self.outs: i.T += departure
     

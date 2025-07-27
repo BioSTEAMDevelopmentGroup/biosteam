@@ -106,6 +106,6 @@ import pandas as pd
 from IPython.display import display
 
 def display_table_as_html(series):
-    return display(pd.DataFrame(series))
+    return display(pd.DataFrame(series, columns=['']))
 
 pd.Series._ipython_display_ = display_table_as_html

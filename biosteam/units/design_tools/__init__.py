@@ -20,8 +20,10 @@ from . import tank_design
 from . import geometry
 from . import mechanical
 from . import utils
+from . import MESH
 
 __all__ = (
+    'MESH',
     *agitator.__all__,
     *cost_index.__all__,
     *pressure_vessel.__all__,

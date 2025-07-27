@@ -18,11 +18,11 @@ def create_system_haber_bosch_process(alg='sequential modular'):
     chemicals = bst.Chemicals(['N2', 'H2', 'NH3'], cache=True)
     bst.settings.set_thermo(
         chemicals, 
-        # mixture=bst.PRMixture.from_chemicals(chemicals),
-        # Phi=bst.PRFugacityCoefficients,
+        mixture=bst.PRMixture.from_chemicals(chemicals),
+        Phi=bst.PRFugacityCoefficients,
         # Gamma=bst.PRActivityCoefficients,
     )
-    bst.settings.mixture.include_excess_energies = True
+    # bst.settings.mixture.include_excess_energies = True
     
     with bst.System(algorithm=alg) as sys:
         feed = bst.Stream(
@@ -73,7 +73,7 @@ if __name__ == '__main__':
     sm.simulate()
     
     print('-----------')
-    po = create_system_haber_bosch_process('Phenomena-oriented')
+    po = create_system_haber_bosch_process('Phenomena-based')
     po.diagram()
     po.set_tolerance(mol=1e-9, rmol=1e-9, method='fixed-point')
     po.simulate()

@@ -12,6 +12,20 @@ import numpy as np
 
 __all__ = ('Timer',)
 
+class TimerOffset:
+    __slots__ = ['_timer', '_start']
+    
+    def __init__(self, timer):
+        self._timer = timer
+        
+    def __enter__(self):
+        self._start = time.perf_counter()
+        
+    def __exit__(self, type, exception, traceback):
+        self._timer._start += (time.perf_counter() - self._start)
+        if exception: raise exception
+
+
 class Timer: # pragma: no coverage
     """Create a Timer class with functions that measure elapsed time."""
     __slots__ = ['ID', 'record', '_start']
@@ -20,6 +34,11 @@ class Timer: # pragma: no coverage
         self.ID = ID
         self.record = [] #: [list] elapsed times from tic toc functions
         self._start = None
+
+    def offset(self):
+        if self._start is None: 
+            raise RuntimeError('timer has not been started yet')
+        return TimerOffset(self)
 
     def start(self):
         """Start timer."""

@@ -82,6 +82,8 @@ class SystemSpecification:
 # %% Reconfiguration for phenomena oriented simulation and convergence
 
 ObjectType = np.dtype('O')
+TRACK_CONDITION_NUMBER = 2
+TRACK_VARIABLES = 1
 
 class Configuration:
     __slots__ = ('path', 'stages', 'nodes', 'streams',
@@ -89,6 +91,8 @@ class Configuration:
                  'composition_sensitive_path', 
                  'composition_sensitive_nodes',
                  '_has_dynamic_coefficients')
+    
+    energy_variable_relaxation_factor = 0.5
     
     def __init__(self, path, stages, nodes, streams, stream_ref, connections, aggregated):
         self.path = path
@@ -138,10 +142,6 @@ class Configuration:
                     i.run()
                 i._update_nonlinearities()
         if self.composition_sensitive_path:
-            # streams, phases, flows = self.get_composition_sensitive_flows()
-            # streams, data = self.get_composition_sensitive_data()
-            # for i in self.composition_sensitive_path: i.run()
-            # for i in range(10):
             containers, flows = self.solve_material_flows(composition_sensitive=True, full_output=True)
             def update_inner_material_balance_parameters(flows):
                 for i in self.composition_sensitive_path: i._update_composition_parameters()
@@ -149,21 +149,14 @@ class Configuration:
             
             flx.fixed_point(
                 update_inner_material_balance_parameters,
-                flows, xtol=tmo.LLE.pseudo_equilibrium_inner_loop_options['xtol'] * flows.max(), 
+                flows, 
+                xtol=tmo.LLE.pseudo_equilibrium_inner_loop_options['xtol'], 
+                rtol=tmo.LLE.pseudo_equilibrium_inner_loop_options['rtol'], 
                 maxiter=100, checkiter=False,
                 checkconvergence=False,
             )
             for i in self.composition_sensitive_path: i._update_net_flow_parameters()
-            # flows = flx.fixed_point(
-            #     outer_loop,
-            #     flows, xtol=tmo.LLE.pseudo_equilibrium_inner_loop_options['xtol'] * flows.max(), 
-            #     maxiter=30, checkiter=False,
-            #     checkconvergence=False,
-            # )
             for i, j in zip(containers, flows): i[:] = j
-            # for i, j, k in zip(streams, phases, flows):
-            #     i.phases = j
-            #     i.imol.data[:] = k
             for i in self.composition_sensitive_nodes: 
                 if hasattr(i, '_update_auxiliaries'): i._update_auxiliaries()
     
@@ -245,6 +238,7 @@ class Configuration:
                 weights = -new_values / denominator
                 relaxation_factor = weights.max()
                 values = relaxation_factor * old_values + (1 - relaxation_factor) * values
+                values[values < 0] = 0
                 for mol, value in zip(containers, values): # update material flows
                     mol[:] = value
                 # for obj, mask, value in zip(objs, masks, values): # update material flows
@@ -300,8 +294,21 @@ class Configuration:
                 b.append(value)
         A, objs = dictionaries2array(A)
         departures = solve(A, np.array(b).T).T
+        # Prevent negative numbers
+        f = 1
+        for obj, delta in zip(objs, departures): 
+            if delta >= 0: continue
+            var = obj._energy_variable
+            value = getattr(obj, var, None)
+            if value is None: 
+                if var == 'T':
+                    value = obj.outs[0].T
+                else:
+                    raise RuntimeError(f'energy variable {var!r} value is None')
+            f = min(- value / delta, f)
+        departures *= (1 - self.energy_variable_relaxation_factor) * f
         try:
-            for obj, departure in zip(objs, departures): 
+            for obj, departure in zip(objs, departures):
                 obj._update_energy_variable(departure)
         except AttributeError as e:
             if obj._update_energy_variable:
@@ -875,9 +882,9 @@ class System:
         'adaptive_phenomena_oriented_simulation',
         '_stage_configuration',
         'grouped_variables',
-        'tracking',
-        'tracking_gap',
+        'tracking_flag',
         'variable_profiles',
+        'condition_number_profile',
         'equation_profiles',
         'edge_profiles',
         'variable_nodes',
@@ -919,7 +926,7 @@ class System:
     #: Default method for convergence algorithm.
     default_methods: dict[str] = {
         'Sequential modular': 'Aitken',
-        'Phenomena oriented': 'fixed-point',
+        'Phenomena based': 'fixed-point',
         'Phenomena modular': 'fixed-point',
     }
     
@@ -1157,8 +1164,11 @@ class System:
         #: Whether to run sequential modular simulation when phenomena oriented simulation is not converging.
         self.adaptive_phenomena_oriented_simulation = True
 
-        #: Whether to track convergence variables at each iteration.
-        self.tracking = False
+        #: Flag to track convergence at each iteration. 
+        #: * 0 - no tracking
+        #: * 1 - track variables
+        #: * 2 - track variables and condition number
+        self.tracking_flag = 0
 
         self._set_path(path)
         self._specifications = []
@@ -1741,41 +1751,6 @@ class System:
         if inclusive: segment = [*segment, end]
         return segment
 
-    # def simulation_number(self, obj):
-    #     """Return the simulation number of either a Unit or System object as 
-    #     it would appear in the system diagram."""
-    #     numbers = []
-    #     isa = isinstance
-    #     if isa(obj, System):
-    #         sys = obj
-    #         for i, other in enumerate(self.path):
-    #             if isa(other, System):
-    #                 if sys is other: 
-    #                     numbers.append(i)
-    #                     break
-    #                 elif sys in other.subsystems:
-    #                     numbers.append(i)
-    #                     numbers.append(other.simulation_number(sys))
-    #                     break
-    #         else:
-    #             raise ValueError(f"system {repr(sys)} not within system {repr(self)}")
-    #     else: # Must be unit
-    #         unit = obj
-    #         for i, other in enumerate(self.path):
-    #             if isa(other, System):
-    #                 if unit in other.unit_set: 
-    #                     numbers.append(i)
-    #                     numbers.append(other.simulation_number(unit))
-    #                     break
-    #             elif other is unit:
-    #                 numbers.append(i)
-    #                 break
-    #         else:
-    #             raise ValueError(f"unit {repr(unit)} not within system {repr(self)}")
-    #     number = 0
-    #     for i, n in enumerate(numbers): number += n * 10 ** -i
-    #     return number
-
     def split(self, 
               stream: Stream,
               ID_upstream: Optional[str]=None,
@@ -2142,7 +2117,7 @@ class System:
 
     @property
     def algorithm(self) -> str:
-        """Iterative convergence algorithm ('Sequatial modular', or 'Phenomena oriented').
+        """Iterative convergence algorithm ('Sequatial modular', or 'Phenomena based').
         
         Notes
         -----
@@ -2527,39 +2502,72 @@ class System:
         algorithm = self.algorithm 
         if algorithm == 'Sequential modular':
             self.run_sequential_modular()
-        elif algorithm == 'Phenomena oriented':
-            self.run_phenomena()
-        elif algorithm == 'Phenomena modular':
-            self.run_phenomena_modular()
         else:
-            raise RuntimeError(f'unknown algorithm {algorithm!r}')
+            if self._iter == 0:
+                self.run_sequential_modular()
+                with self.stage_configuration(aggregated=False) as conf:
+                    conf.solve_material_flows()
+                    if self.tracking_flag: self._collect_variables('material')
+            elif algorithm == 'Phenomena based':
+                self.run_phenomena()
+            elif algorithm == 'Phenomena modular':
+                self.run_phenomena_modular()
+            else:
+                raise RuntimeError(f'unknown algorithm {algorithm!r}')
+
+    def run_sequential_modular(self):
+        """Run mass and energy balances for each element in the path
+        without costing unit operations."""
+        isa = isinstance
+        f = try_method_with_object_stamp
+        flag = self.tracking_flag
+        for i in self._path:
+            if isa(i, Unit): 
+                f(i, i.run)
+                if flag: self._collect_variables(i.ID)
+            elif isa(i, System): f(i, i.converge)
+            else: raise RuntimeError('path elements must be either a unit or a system')
+        if flag == TRACK_CONDITION_NUMBER:
+            self._collect_recycle_condition_number()
+
+    def run_phenomena(self):
+        """Decouple and linearize material, equilibrium, summation, enthalpy,
+        and reaction phenomena and iteratively solve them."""
+        path = self.unit_path
+        flag = self.tracking_flag
+        with self.stage_configuration(aggregated=False) as conf:
+            try:
+                conf.solve_nonlinearities()
+                if flag: self._collect_variables('phenomenode')
+                conf.solve_energy_departures()
+                if flag: self._collect_variables('energy')
+                conf.solve_material_flows()
+                if flag: self._collect_variables('material')
+            except (NotImplementedError, UnboundLocalError, KeyError) as error:
+                raise error
+            except Exception as e:
+                print('FAILED!')
+                print(e)
+                print('-------')
+                for i in path: 
+                    i.run()
+                    if flag: self._collect_variables(i.ID)
+                conf.solve_material_flows()
+                if flag: self._collect_variables('material')
 
     def run_phenomena_modular(self):
         path = self.unit_path
-        tracking = self.tracking
+        flag = self.tracking_flag
         with self.stage_configuration(aggregated=False) as conf:
             try:
                 for n, i in enumerate(path): 
-                    # if hasattr(i, 'stages'):
-                    #     stages = i.stages
-                    # else:
-                    #     stages = [i]
-                    # streams = [outlet for stage in stages for outlet in stage.outs]
-                    # energy_variables = [
-                    #     (s, j, getattr(s, j)) 
-                    #     for s in self.stages 
-                    #     if (j:=getattr(s, '_energy_variable', None))
-                    # ]
-                    # flows = [s.mol.copy() for s in streams]
                     if isinstance(i, (bst.Mixer, bst.Splitter)) and not i.specifications: continue
                     i.run()
-                    # for s, mol in zip(streams, flows): s.mol[:] = mol
-                    # for stage, name, value in energy_variables: setattr(stage, name, value)
-                    if tracking: self._collect_variables((i.ID, 'phenomena'))
+                    if flag: self._collect_variables((i.ID, 'phenomenode'))
                     conf.solve_material_flows()
-                    if tracking: self._collect_variables('material')
+                    if flag: self._collect_variables('material')
                     conf.solve_energy_departures()
-                    if tracking: self._collect_variables('energy')
+                    if flag: self._collect_variables('energy')
             except (NotImplementedError, UnboundLocalError, KeyError) as error:
                 raise error
             except Exception as e:
@@ -2568,22 +2576,7 @@ class System:
                 print(e)
                 for i in path[n+1:]: 
                     i.run()
-                    if tracking: self._collect_variables(i.ID)
-
-    def run_sequential_modular(self):
-        """Run mass and energy balances for each element in the path
-        without costing unit operations."""
-        isa = isinstance
-        f = try_method_with_object_stamp
-        tracking = self.tracking
-        for i in self._path:
-            # self.assert_tracking_ok()
-            if isa(i, Unit): 
-                f(i, i.run)
-                if tracking: self._collect_variables(i.ID)
-            elif isa(i, System): f(i, i.converge)
-            else: raise RuntimeError('path elements must be either a unit or a system')
-        # self.assert_tracking_ok()
+                    if flag: self._collect_variables(i.ID)
 
     def stage_configuration(self, aggregated=False):
         try:
@@ -2614,13 +2607,10 @@ class System:
     def track_convergence(
             self, 
             track=True, 
-            system_tracking_gap=None, 
-            unit_tracking_gap=None,
+            condition_number=False,
         ):
         if track:
-            if system_tracking_gap is None: system_tracking_gap = 1
-            if unit_tracking_gap is None: unit_tracking_gap = 1
-            self.tracking = True
+            self.tracking_flag = track + condition_number
             with self.stage_configuration(aggregated=False) as conf:
                 for i in self.stages: 
                     i.create_equation_nodes(conf.stream_ref)
@@ -2633,29 +2623,36 @@ class System:
                     for variable in specification_variables:
                         if variable not in variable_profiles: variable_profiles[variable] = []
             for i in self.units:
-                i.tracking_gap = unit_tracking_gap
                 i._system_collect_variables = self._collect_variables
                 i.tracking = True
             self.equation_profiles = {}
             self.edge_profiles = {}
             self.grouped_variables = {}
-            self.tracking_gap = system_tracking_gap
+            if condition_number:
+                if self.algorithm == 'Sequential modular':
+                    self.condition_number_profile = {
+                        'recycle': [],
+                    }
+                else:
+                    self.condition_number_profile = {
+                        'material': [],
+                        'energy': [],
+                        'phenomenode': [],
+                    }
             if not self.recycle:
                 self.timer = Timer()
                 self.timer.start()
+                
         else:
             for i in self.variable_profiles: i.getter = None
-            self.tracking = False
+            self.tracking_flag = False
             self.equation_nodes = None
             self.variable_nodes = None
             self.variable_profiles = None
             self.equation_profiles = None
             self.edge_profiles = None
-            self.tracking_gap = None
             self.grouped_variables = None
-            for i in self.units:
-                i.tracking_gap = None
-                i.tracking = False
+            for i in self.units: i.tracking = False
     
     def get_profiles(self, equation_profiles, edge_profiles):
         time, variable_profiles = self.get_variable_profiles()
@@ -2668,14 +2665,17 @@ class System:
             stages = []
             for name in column_names:
                 directory, chemical = name
-                if directory[-1] == 'F':
-                    directory = directory[:-1] + 'mol'
-                if '.outs[' in directory:
-                    dot_index = directory.rindex('.outs[')
-                elif '.ins[' in directory:
-                    dot_index = directory.rindex('.ins[')
+                if directory[-1] == 'R':
+                    directory = directory[:-1] + 'dmol'
                 else:
-                    dot_index = directory.rindex('.')
+                    if directory[-1] == 'F':
+                        directory = directory[:-1] + 'mol'
+                    if '.outs[' in directory:
+                        dot_index = directory.rindex('.outs[')
+                    elif '.ins[' in directory:
+                        dot_index = directory.rindex('.ins[')
+                    else:
+                        dot_index = directory.rindex('.')
                 stages.append(directory[:dot_index])
                 if chemical != '-':
                     index = chemicals.index(chemical)
@@ -2695,9 +2695,9 @@ class System:
     def get_monopartite_phenomegraph(self, decomposition=None, dotfile=None):
         if decomposition is None: decomposition = self.algorithm.lower()
         subgraph_units = [i.ID for i in self.path]
-        if 'phenomena' in decomposition:
+        if 'phenomenode' in decomposition:
             if 'modular' in decomposition:
-                criteria = [*all_subgraphs, *[(i, 'phenomena') for i in subgraph_units]]
+                criteria = [*all_subgraphs, *[(i, 'phenomenode') for i in subgraph_units]]
             else:
                 criteria = all_subgraphs
         elif 'modular' in decomposition:
@@ -2720,7 +2720,7 @@ class System:
             **kwargs,
         ):
         if decomposition is None: decomposition = self.algorithm.lower()
-        if not getattr(self, 'tracking', False):
+        if not getattr(self, 'tracking_flag', False):
             with self.stage_configuration(aggregated=False) as conf:
                 for i in self.stages: 
                     i.create_equation_nodes(conf.stream_ref)
@@ -2750,9 +2750,9 @@ class System:
             subgraph_units=subgraph_units,
             **kwargs,
         )
-        if 'phenomena' in decomposition:
+        if 'phenomenode' in decomposition:
             if 'modular' in decomposition:
-                names = [*all_subgraphs, *[(i, 'phenomena') for i in subgraph_units]]
+                names = [*all_subgraphs, *[(i, 'phenomenode') for i in subgraph_units]]
             else:
                 names = all_subgraphs
         elif 'modular' in decomposition:
@@ -2883,77 +2883,54 @@ class System:
                 values_i = lst[i]
                 values[i, j] = values_i
         return pd.DataFrame(values, columns=columns)
-    
-    def run_phenomena(self):
-        """Decouple and linearize material, equilibrium, summation, enthalpy,
-        and reaction phenomena and iteratively solve them."""
-        path = self.unit_path
-        tracking = self.tracking and (not self.tracking_gap or not self._iter % self.tracking_gap)
-        with self.stage_configuration(aggregated=False) as conf:
-            try:
-                mass_balance_error = sum([abs(i.mass_balance_error()) for i in conf.nodes])
-                if mass_balance_error > 1e-3:
-                    raise RuntimeError('mass balance error greater than tolerance')
-                conf.solve_nonlinearities()
-                if tracking:
-                    self._collect_variables('phenomena')
-                    # self.assert_tracking_ok()
-                conf.solve_energy_departures()
-                if tracking: 
-                    self._collect_variables('energy')
-                    # self.assert_tracking_ok()
-                conf.solve_material_flows()
-                if tracking: 
-                    self._collect_variables('material')
-                    # self.assert_tracking_ok()
-            except (NotImplementedError, UnboundLocalError, KeyError) as error:
-                raise error
-            except Exception as e:
-                print('FAILED!')
-                print(e)
-                print('-------')
-                for i in path: 
-                    # self.assert_tracking_ok()
-                    i.run()
-                    if tracking: self._collect_variables(i.ID)
-                # self.assert_tracking_ok()
-                conf.solve_material_flows()
-                if tracking: self._collect_variables('material')
-                    # self.assert_tracking_ok()
-                # conf.solve_energy_departures()
-                # if tracking: self._collect_variables('energy')
-                #     # self.assert_tracking_ok()
-                # conf.solve_material_flows()
-                # if tracking: self._collect_variables('material')
-                #     # self.assert_tracking_ok()
             
     def assert_tracking_ok(self):
-        if not self.tracking: return
+        if not self.tracking_flag: return
         N, = set([len(i) for i in self.variable_profiles.values()])
         M = len(self.timer.record)
         assert M == N
+
+    def _collect_recycle_condition_number(self):
+        pass
+
+    def _collect_material_condition_number(self):
+        pass
+    
+    def _collect_energy_condition_number(self):
+        pass
+    
+    def _collect_phenomena_condition_number(self):
+        pass
             
     def _collect_variables(self, key):
-        grouped_variables = self.grouped_variables
-        if isinstance(key, str): key = (key,)
-        if key in grouped_variables:
-            group = grouped_variables[key]
-        else:
-            equations = [
-                eq for eq in self.equation_nodes
-                if all([i in eq.name for i in key])
-            ]
-            group = [i for eq in equations for i in eq.tracked_outputs]
-            grouped_variables[key] = group = set(group)
-        variables = self.variable_profiles
-        for variable, values in variables.items(): 
-            if variable in group: 
-                value = variable.get_value()
-            else:
-                value = variable.last_value
-            values.append(value)
         self.timer.measure()
-            
+        with self.timer.offset():
+            if self.tracking_flag == TRACK_CONDITION_NUMBER:
+                if key == 'material':
+                    self._collect_material_condition_number()
+                elif key == 'energy':
+                    self._collect_energy_condition_number()
+                elif key == 'phenomenode':
+                    self._collect_phenomena_condition_number()
+            grouped_variables = self.grouped_variables
+            if isinstance(key, str): key = (key,)
+            if key in grouped_variables:
+                group = grouped_variables[key]
+            else:
+                equations = [
+                    eq for eq in self.equation_nodes
+                    if all([i in eq.name for i in key])
+                ]
+                group = [i for eq in equations for i in eq.tracked_outputs]
+                grouped_variables[key] = group = set(group)
+            variables = self.variable_profiles
+            for variable, values in variables.items(): 
+                if variable in group: 
+                    value = variable.get_value()
+                else:
+                    value = variable.last_value
+                values.append(value)
+                
     def _mock_collect_variables(self, key, variable_errors, convergence_rate):
         grouped_variables = self.grouped_variables
         if isinstance(key, str): key = (key,)
@@ -3054,7 +3031,7 @@ class System:
 
     def _reset_iter(self):
         self._iter = 0
-        if self.maxtime or self.tracking: 
+        if self.maxtime or self.tracking_flag: 
             self.timer = Timer()
             self.timer.start()
         for j in self.tracked_recycles.values(): j.clear()
@@ -3278,7 +3255,7 @@ class System:
         algorithm = self.algorithm 
         if algorithm == 'Sequential modular':
             method = self._mock_run_sequential
-        elif algorithm == 'Phenomena oriented':
+        elif algorithm == 'Phenomena based':
             method = self._mock_run_phenomena
         elif algorithm == 'Phenomena modular':
             method = self._mock_run_phenomena_modular
@@ -3288,11 +3265,11 @@ class System:
         while sum(variable_errors.values()): method(variable_errors, convergence_rate)
         
     def _mock_run_phenomena(self, variable_errors, convergence_rate):
-        for i in ('phenomena', 'energy', 'material'):
+        for i in ('phenomenode', 'energy', 'material'):
             self._mock_collect_variables(i, variable_errors, convergence_rate)
         
     def _mock_run_sequential(self, variable_errors, convergence_rate):
-        subgraphs = ('phenomena', 'energy', 'material')
+        subgraphs = ('phenomenode', 'energy', 'material')
         for i in self._path:
             if hasattr(i, 'stages'):
                 for factor in (0.75, 0.25):
@@ -3318,13 +3295,13 @@ class System:
                 for factor in (3 / 4, 3 / 16, 1 / 16):
                     inner_rate = factor * convergence_rate
                     self._mock_collect_variables(
-                        (i.ID, 'phenomena'), 
+                        (i.ID, 'phenomenode'), 
                         variable_errors, 
                         inner_rate
                     )
             else:
                 self._mock_collect_variables(
-                    (i.ID, 'phenomena'), 
+                    (i.ID, 'phenomenode'), 
                     variable_errors, 
                     convergence_rate
                 )

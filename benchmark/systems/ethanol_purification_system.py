@@ -11,11 +11,11 @@ __all__ = (
 )
 
 def create_system_ethanol_purification(alg):
-    bst.settings.set_thermo(['Water', 'Ethanol', bst.Chemical('Solids', search_db=False, phase='l', default=True)], cache=True)
+    bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
     distilled_beer = bst.Stream(
         'distilled_beer', 
         phase='g', T=386.16, P=212782, 
-        Water=1403, Ethanol=545.7, Solids=10, units='kmol/hr'
+        Water=1403, Ethanol=545.7, units='kmol/hr'
     )
     ethanol = bst.Stream(
         'ethanol'
@@ -24,13 +24,25 @@ def create_system_ethanol_purification(alg):
   
     # Mix ethanol Recycle (Set-up)
     
-    D303 = bst.BinaryDistillation(
+    # D303 = bst.BinaryDistillation(
+    #     ins=(distilled_beer, recycle),
+    #     x_bot=3.9106e-06, y_top=0.80805, k=1.2, Rmin=0.01,
+    #     LHK=('Ethanol', 'Water'),
+    #     P=212782,
+    #     is_divided=True
+    # )
+    
+    D303 = bst.MESHDistillation(
         ins=(distilled_beer, recycle),
-        x_bot=3.9106e-06, y_top=0.80805, k=1.2, Rmin=0.01,
         LHK=('Ethanol', 'Water'),
         P=212782,
-        is_divided=True
+        N_stages=20,
+        feed_stages=(11,),
+        reflux=2.42,
+        boilup=0.4036,
+        use_cache=True,
     )
+    
     
     # Molecular sieve
     U301 = bst.Separator(

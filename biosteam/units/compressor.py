@@ -35,6 +35,7 @@ from ..utils import list_available_names
 from ..exceptions import DesignWarning, bounds_warning
 from .. import Unit
 from thermosteam._graphics import compressor_graphics
+from thermosteam import VariableNode
 
 __all__ = (
     'Compressor',
@@ -544,7 +545,57 @@ class IsentropicCompressor(Compressor, new_graphics=False):
     Utility cost                                  USD/hr       9.66e-05
 
     """
+    equation_node_names = (
+        'overall_material_balance_node',
+        'energy_balance_node',
+        'isentropic_compression_phenomenode',
+    )
     _energy_variable = 'T'
+
+    @property
+    def T_node(self):
+        if hasattr(self, '_T_node'): return self._T_node
+        self._T_node = var = VariableNode(f"{self.node_tag}.T", lambda: self.outs[0].T)
+        return var 
+    
+    def get_E_node(self, stream):
+        return self.T_node
+    
+    @property
+    def E_node(self):
+        return self.T_node
+
+    @property
+    def Q_node(self):
+        if hasattr(self, '_Q_node'): return self._Q_node
+        self._Q_node = var = VariableNode(f"{self.node_tag}.Q", lambda: self.Q)
+        return var
+
+    def initialize_isentropic_compression_phenomenode(self):
+        self.isentropic_compression_phenomenode.set_equations(
+            inputs=(
+                self.T_node, 
+                *[i.T_node for i in (*self.ins, *self.outs)],
+                *[i.F_node for i in (*self.ins, *self.outs)],
+            ),
+            outputs=[self.Q_node],
+        )
+
+    def initialize_overall_material_balance_node(self):
+        self.overall_material_balance_node.set_equations(
+            inputs=[j for i in self.ins if (j:=i.F_node)],
+            outputs=[i.F_node for i in self.outs],
+        )
+        
+    def initialize_energy_balance_node(self):
+        self.energy_balance_node.set_equations(
+            inputs=(
+                self.Q_node,
+                *[i.T_node for i in (*self.ins, *self.outs)],
+                *[i.F_node for i in (*self.ins, *self.outs)],
+            ),
+            outputs=[self.E_node],
+        )
 
     def _run(self):
         feed = self.ins[0]
@@ -552,20 +603,14 @@ class IsentropicCompressor(Compressor, new_graphics=False):
         out.copy_like(feed)
         out.P = self.P
         out.S = feed.S
-        if self.vle is True:
-            out.vle(S=out.S, P=out.P)
-            T_isentropic = out.T
-        else:
-            T_isentropic = out.T
-        self.T_isentropic = T_isentropic
+        self.T_isentropic = out.T
+        if self.vle is True: out.vle(S=out.S, P=out.P)
         dH_isentropic = out.H - feed.H
         self.design_results['Ideal power'] = dH_isentropic / 3600. # kW
         self.design_results['Ideal duty'] = 0.
-        dH_actual = dH_isentropic / self.eta
+        self.Q = dH_actual = dH_isentropic / self.eta
         out.H = feed.H + dH_actual        
         if self.vle is True: out.vle(H=out.H, P=out.P)
-        if self.system and self.system.algorithm == 'Phenomena oriented':
-            self._coeffs = {self: feed.T, feed.source: out.T} # dT_out = (T_out/T_in) * dT_in
         
     def _mass_and_energy_balance_specifications(self):
         return 'Compressor', [
@@ -581,37 +626,27 @@ class IsentropicCompressor(Compressor, new_graphics=False):
         feed = self.ins[0]
         source = feed.source
         if source is None or source._energy_variable != 'T': return None
-        return (self, -stream.C)
+        return (stream, -stream.C)
     
     def _update_nonlinearities(self):
         feed = self.ins[0]
-        product = self.outs[0]
-        if len(product.phases) > 1:
+        out = self.outs[0]
+        if len(out.phases) > 1:
             raise NotImplementedError('energy departure equation with multiple phase not yet implemented for isentropic compressors')
-        source = feed.source
-        if source is None or source._energy_variable != 'T': return []
-        data = product.get_data()
-        T_product = product.T
-        self._run()
-        # self._coeffs = {self: feed.T, source: T_product} # dT_out = (T_out/T_in) * dT_in
-        product.set_data(data)
-        product.T = T_product
-    
-    def _create_energy_departure_equations(self): 
-        return []
-        # Special case where T_out = f(T_in)
-        # 0 = Cp * log(T/T0) - R * log(P/P0)
-        # log(T/T0) = R / Cp * log(P/P0)
-        # T = T0 * exp(R / Cp * log(P/P0))
-        # T = T0 * P/P0 * exp(R/Cp)
-        # feed = self.ins[0]
-        # product = self.outs[0]
-        # if len(product.phases) > 1:
-        #     raise NotImplementedError('energy departure equation with multiple phase not yet implemented for isentropic compressors')
-        # source = feed.source
-        # # TODO: add method <Stream>.energy_variable -> 'T'|'B'
-        # if source is None or source._energy_variable != 'T': return []
-        # return [(self._coeffs, 0)]
+        mixture = self.mixture
+        T_isentropic = getattr(self, 'T_isentropic', feed.T)
+        self.T_isentropic = mixture.solve_T_at_SP(out.phase, out.mol, feed.S, T_isentropic, out.P)
+        dH_isentropic = mixture('H', out, T=self.T_isentropic) - feed.H
+        self.design_results['Ideal power'] = dH_isentropic / 3600. # kW
+        self.design_results['Ideal duty'] = 0.
+        self.Q = dH_isentropic / self.eta
+        
+    def _create_energy_departure_equations(self):
+        feed = self.ins[0]
+        out = self.outs[0]
+        coeff = {self: out.C}
+        feed._update_energy_departure_coefficient(coeff)
+        return [(coeff, feed.H - out.H + self.Q)]
     
     def _create_material_balance_equations(self, composition_sensitive):
         fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
@@ -630,8 +665,8 @@ class IsentropicCompressor(Compressor, new_graphics=False):
         )
         return equations
     
-    # def _update_energy_variable(self, departure):
-    #     self.outs[0].T += departure
+    def _update_energy_variable(self, departure):
+        self.outs[0].T += departure
 
 
 class PolytropicCompressor(Compressor, new_graphics=False):
