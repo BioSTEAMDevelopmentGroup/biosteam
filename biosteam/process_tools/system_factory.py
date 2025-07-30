@@ -269,7 +269,7 @@ class SystemFactory:
             outs = tuple([module.auxout(i) for i in module.outs])
             with bst.Flowsheet(ID), bst.System(**options) as system:
                 self.f(ins, outs, **kwargs)
-            module.register_auxiliary(system, 'auxiliary_system')     
+            module._init(system=system)
         else:        
             with (bst.MockSystem() if mockup else bst.System(**options)) as system:
                 if rename: 
