@@ -980,24 +980,37 @@ class TEA:
         else:
             return self.AOC - coproduct_sales
     
-    def solve_IRR(self, financing=True):
+    def solve_IRR(self, financing=True, bounds=None):
         """Return the IRR at the break even point (NPV = 0) through cash flow analysis."""
         IRR = self._IRR
-        if not IRR or np.isnan(IRR) or IRR < 0.: IRR = self.IRR
-        if not IRR or np.isnan(IRR) or IRR < 0.: IRR = 0.10
+        if not IRR or np.isnan(IRR) or IRR < 0.: IRR = 0.01
         if financing:
             args = (self.cashflow_array, self._get_duration_array())
-            IRR = flx.aitken_secant(NPV_at_IRR,
-                                    IRR, 1.0001 * IRR + 1e-3, xtol=1e-6, ytol=10.,
-                                    maxiter=200, args=args, checkiter=False)
+            if bounds:
+                IRR = flx.IQ_interpolation(
+                    NPV_at_IRR, *bounds, x=IRR, xtol=1e-6, ytol=10.,
+                    maxiter=200, args=args, checkiter=False
+                )
+            else:
+                IRR = flx.aitken_secant(
+                    NPV_at_IRR, IRR, 1.0001 * IRR + 1e-3, xtol=1e-6, ytol=10.,
+                    maxiter=200, args=args, checkiter=False
+                )
         else:
             financing_values = self.finance_fraction, self.finance_interest
             self.finance_fraction = self.finance_interest = None
             try:
                 args = (self.cashflow_array, self._get_duration_array())
-                IRR = flx.aitken_secant(NPV_at_IRR,
-                                        IRR, 1.0001 * IRR + 1e-3, xtol=1e-6, ytol=10.,
-                                        maxiter=200, args=args, checkiter=False)
+                if bounds:
+                    IRR = flx.IQ_interpolation(
+                        NPV_at_IRR, *bounds, x=IRR, xtol=1e-6, ytol=10.,
+                        maxiter=200, args=args, checkiter=False
+                    )
+                else:
+                    IRR = flx.aitken_secant(
+                        NPV_at_IRR, IRR, 1.0001 * IRR + 1e-3, xtol=1e-6, ytol=10.,
+                        maxiter=200, args=args, checkiter=False
+                    )
             finally:
                 self.finance_fraction, self.finance_interest = financing_values
         self._IRR = IRR

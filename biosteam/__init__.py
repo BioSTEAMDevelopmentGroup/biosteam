@@ -100,12 +100,11 @@ def nbtutorial(dark=False):
     preferences.show_all_streams = True
     from warnings import filterwarnings
     filterwarnings('ignore')
+    
+    import pandas as pd
+    from IPython.display import display
 
-# %% 
-import pandas as pd
-from IPython.display import display
+    def display_table_as_html(series):
+        return display(series.to_frame())
 
-def display_table_as_html(series):
-    return display(pd.DataFrame(series, columns=['']))
-
-pd.Series._ipython_display_ = display_table_as_html
+    pd.Series._ipython_display_ = display_table_as_html

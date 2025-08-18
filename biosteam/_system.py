@@ -2285,7 +2285,7 @@ class System:
             elif kind == 3 or kind == 'minimal':
                 f = self._minimal_digraph(facilities, graph_attrs)
             elif kind == 4 or kind == 'stage':
-                f = self._stage_digraph(facilities, graph_attrs)
+                f = self._stage_digraph(graph_attrs)
             else:
                 raise ValueError("kind must be one of the following: "
                                  "0 or 'cluster', 1 or 'thorough', 2 or 'surface', "

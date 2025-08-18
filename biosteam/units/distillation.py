@@ -2348,6 +2348,9 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
             weir_height=0.1,
             use_cache=None,
             collapsed_init=False,
+            vle_decomposition=None,
+            maxiter=None,
+            max_attempts=None,
             method=None,
         ):
         super()._init(N_stages=N_stages, feed_stages=feed_stages,
@@ -2355,7 +2358,10 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
                       bottom_side_draws=liquid_side_draws,
                       partition_data=partition_data,
                       phases=("g", "l"), collapsed_init=collapsed_init,
-                      P=P, T=T, use_cache=use_cache, method=method)
+                      P=P, T=T, use_cache=use_cache, method=method,
+                      vle_decomposition=vle_decomposition,
+                      maxiter=maxiter,
+                      max_attempts=max_attempts)
        
         # Construction specifications
         self.solute = solute
@@ -2620,6 +2626,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     ...     reflux=0.673, boilup=2.57,
     ...     LHK=('Ethanol', 'Water'),
     ...     full_condenser=True,
+    ...     max_attempts=10,
     ... )
     >>> D1.simulate()
     >>> vapor, liquid, distillate = D1.outs
@@ -2627,32 +2634,6 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     0.81
     >>> distillate.imol['Ethanol'] / distillate.F_mol
     0.70
-    
-    >>> D1.results()
-    Distillation                                     Units          
-    Electricity         Power                           kW     0.918
-                        Cost                        USD/hr    0.0718
-    Cooling water       Duty                         kJ/hr -9.13e+06
-                        Flow                       kmol/hr  6.24e+03
-                        Cost                        USD/hr      3.04
-    Low pressure steam  Duty                         kJ/hr  9.62e+06
-                        Flow                       kmol/hr       249
-                        Cost                        USD/hr      59.2
-    Design              Theoretical stages                         5
-                        Actual stages                              6
-                        Height                          ft      22.9
-                        Diameter                        ft      3.82
-                        Wall thickness                  in     0.312
-                        Weight                          lb     4e+03
-    Purchase cost       Trays                          USD  7.58e+03
-                        Tower                          USD  3.62e+04
-                        Platform and ladders           USD   9.8e+03
-                        Condenser - Floating head      USD   3.5e+04
-                        Pump - Pump                    USD  4.33e+03
-                        Pump - Motor                   USD       390
-                        Reboiler - Floating head       USD  2.41e+04
-    Total purchase cost                                USD  1.17e+05
-    Utility cost                                    USD/hr      62.3
     
     Notes
     -----

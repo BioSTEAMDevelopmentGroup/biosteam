@@ -237,26 +237,64 @@ def bottom_flow_rates(
     a = bsplit_1
     return solve_TDMA(a, b, c, d) 
 
-# @njit(cache=True)
-# def bottom_flow_rates(
-#         top_flows, feed_flows, asplit_left, bsplit_left,
-#         N_stages, N_chemicals
-#     ):
-#     bottom_flows = 0 * top_flows
-#     bottom_flows[0] = feed_flows[0] + top_flows[1] * asplit_left[1] - top_flows[0]
-#     for i in range(1, N_stages-1):
-#         bottom_flows[i] = (
-#             feed_flows[i] + bsplit_left[i-1] * bottom_flows[i-1] + 
-#             top_flows[i+1] * asplit_left[i+1] - top_flows[i]
-#         )
-#     bottom_flows[-1] = feed_flows[-1] + bsplit_left[-2] * bottom_flows[-2] - top_flows[-1]
-#     return bottom_flows
+@njit(cache=True)
+def liquid_compositions(
+        bulk_vapor_flow_rates,
+        bulk_liquid_flow_rates,
+        partition_coefficients, 
+        feed_flows,
+        asplit_1,
+        bsplit_1,
+        N_stages,
+    ):
+    """
+    Solve a-phase flow rates for a single component across equilibrium stages with side draws. 
+
+    Parameters
+    ----------
+    stripping_factors : Iterable[1d array]
+        The ratio of component flow rates in phase a (extract or vapor) over
+        the component flow rates in phase a (raffinate or liquid). 
+    feed_flows : Iterable[1d array]
+        Flow rates of all components fed across stages. Shape should be 
+        (N_stages, N_chemicals).
+    asplit_1 : 1d array
+        Side draw split from phase a minus 1 by stage.
+    bsplit_1 : 1d array
+        Side draw split from phase b minus 1 by stage.
+
+    Returns
+    -------
+    flow_rates_a : 2d array
+        Flow rates of phase a with stages by row and components by column.
+
+    """
+    KV = bulk_vapor_flow_rates * partition_coefficients
+    b = bulk_liquid_flow_rates + KV
+    c = np.expand_dims(asplit_1[1:], -1) * KV[1:]
+    d = feed_flows.copy()
+    a = bsplit_1 * bulk_liquid_flow_rates
+    return solve_TDMA(a, b, c, d)
+
+@njit(cache=True)
+def bottom_flows_mass_balance(
+        top_flows, feed_flows, asplit_left, bsplit_left,
+        N_stages
+    ):
+    bottom_flows = 0 * top_flows
+    bottom_flows[0] = feed_flows[0] + top_flows[1] * asplit_left[1] - top_flows[0]
+    for i in range(1, N_stages-1):
+        bottom_flows[i] = (
+            feed_flows[i] + bsplit_left[i-1] * bottom_flows[i-1] + 
+            top_flows[i+1] * asplit_left[i+1] - top_flows[i]
+        )
+    bottom_flows[-1] = feed_flows[-1] + bsplit_left[-2] * bottom_flows[-2] - top_flows[-1]
+    return bottom_flows
 
 
 @njit(cache=True)
 def top_flows_mass_balance(
-        bottom_flows, feed_flows, asplit_left, bsplit_left,
-        N_stages, N_chemicals
+        bottom_flows, feed_flows, asplit_left, bsplit_left, N_stages
     ):
     top_flows = 0 * bottom_flows
     top_flows[-1] = feed_flows[-1] + bsplit_left[-2] * bottom_flows[-2] - bottom_flows[-1]
@@ -271,9 +309,37 @@ def top_flows_mass_balance(
 # %% Energy balance solution
 
 @njit(cache=True)
-def phase_ratio_departures(
+def vapor_flow_rates(
         L, V, hl, hv, asplit_1, asplit_left, bsplit_left, 
         N_stages, specification_index, H_feeds
+    ):
+    # hV1*L1*dB1 - hv2*L2*dB2 = Q1 + (hl0 * L0 + hv2 * V2) - (hl1 * L1 + hv1 * V1)
+    # hV1*L1*dB1 - hv2*L2*dB2 = Q1 + (hl0 * L0 + hv2 * L2 * B2) - (hl1 * L1 + hv1 * L1 * B1)
+    # hV1*L1*dB1 + hv1 * L1 * B1 - hv2*L2*dB2 - hv2 * L2 * B2 = Q1 + (hl0 * L0) - (hl1 * L1)
+    # hV1*L1*B1 - hv2*L2*B2 = Q1 + hl0 * L0 - hl1 * L1
+    # hV1*V1 - hv2*V2 = Q1 + hl0 * L0 - hl1 * L1
+    b = hv
+    c = b[1:] * asplit_1[1:]
+    Hl_out = hl * L
+    Hl_in = (Hl_out * bsplit_left)[:-1]
+    d = H_feeds - Hl_out
+    d[1:] += Hl_in
+    raise NotImplementedError('solution not implemented yet')
+    for i, j in enumerate(specification_index):
+        b[j] = 1
+        d[j] = 0
+        jlast = j - 1
+        if jlast > 0: c[jlast] = 0
+        try: c[j] = 0
+        except: pass
+    return solve_RBDMA(b, c, d)
+
+@njit(cache=True)
+def phase_ratio_departures(
+        L, V, hl, hv, asplit_1, asplit_left, bsplit_left, 
+        N_stages,
+        specification_index,
+        H_feeds
     ):
     # hV1*L1*dB1 - hv2*L2*dB2 = Q1 + H_in - H_out
     b = hv * L

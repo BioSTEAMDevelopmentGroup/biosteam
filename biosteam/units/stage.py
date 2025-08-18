@@ -25,7 +25,7 @@ from copy import copy
 from .. import Unit
 from .design_tools import MESH
 from thermosteam import (
-    VariableNode,
+    equilibrium, VariableNode,
 )
 
 __all__ = (
@@ -65,7 +65,7 @@ def _get_specification(name, value):
     else:
         raise RuntimeError(f"specification '{name}' not implemented for stage")
     return B, Q, T, F
-      
+
 
 # %% Single phase
 
@@ -1037,9 +1037,11 @@ class PhasePartition(Unit):
     dmol_relaxation_factor = 0
     S_relaxation_factor = 0
     B_relaxation_factor = 0
-    gamma_y_relaxation_factor = 0
     K_relaxation_factor = 0
     T_relaxation_factor = 0
+    F_relaxation_factor = 0
+    gamma_y_relaxation_factor = 0
+    fgas_relaxation_factor = 0
     
     def _init(self, phases, partition_data, top_chemical=None, reaction=None):
         self.partition_data = partition_data
@@ -1047,6 +1049,7 @@ class PhasePartition(Unit):
         self.top_chemical = top_chemical
         self.reaction = reaction
         self.gamma_y = None
+        self.fgas = None
         self.IDs = None
         self.K = None
         self.B = None
@@ -1137,6 +1140,69 @@ class PhasePartition(Unit):
         chemicals = chemicals.tuple
         lle_chemicals = [chemicals[i] for i in index]
         return self.thermo.Gamma(lle_chemicals), [i.ID for i in lle_chemicals], index
+    
+    def _get_fugacity_models(self):
+        chemicals = self.chemicals
+        index = chemicals.get_vle_indices(sum([i.mol for i in self.ins]).nonzero_keys())
+        chemicals = chemicals.tuple
+        vle_chemicals = [chemicals[i] for i in index]
+        return (equilibrium.GasFugacities(vle_chemicals, thermo=self.thermo),
+                equilibrium.LiquidFugacities(vle_chemicals, thermo=self.thermo), 
+                [i.ID for i in vle_chemicals],
+                index)
+    
+    def _update_fgas(self, P=None):
+        F_gas, F_liq, IDs, index = self._get_fugacity_models()
+        top, bottom = self.outs
+        T = self.T
+        y = top.mol[index]
+        y_sum = y.sum()
+        if y_sum: 
+            y /= y_sum
+        else:
+            y = np.ones(y.size) / y.size
+        if P is None: P = self.P
+        self.fgas = F_gas.coefficient(y, T, P)
+    
+    def _run_decoupled_Kfgas(self, P=None):
+        top, bottom = self.outs
+        F_gas, F_liq, IDs, index = self._get_fugacity_models()
+        if P is None: P = self.P
+        T = self.T
+        x = bottom.mol[index]
+        x_sum = x.sum()
+        if x_sum:
+            x /= x_sum
+        else:
+            x = np.ones(x.size) / x.size
+        
+        try:
+            fgas = self.fgas
+            init = fgas is None or fgas.size != len(index)
+        except:
+            init = True
+        if init:
+            y = top.mol[index]
+            y_sum = y.sum()
+            if y_sum: 
+                y /= y_sum
+            else:
+                y = np.ones(y.size) / y.size
+            self.fgas = fgas = F_gas.coefficient(y, T, P)
+        
+        fliq = F_liq.coefficient(x, T, P)
+        K = fliq / fgas 
+        y = K * x
+        y /= y.sum()
+        fgas = F_gas.coefficient(y, T, P)
+        K = fliq / fgas
+        good = (x != 0) | (y != 0)
+        if not good.all():
+            index, = np.where(good)
+            IDs = [IDs[i] for i in index]
+            fgas = [fgas[i] for i in index]
+            K = [K[i] for i in index]
+        self._set_arrays(IDs, fgas=fgas, K=K)
     
     def _run_decoupled_Kgamma(self, P=None): # Psuedo-equilibrium
         top, bottom = self.outs
@@ -1529,7 +1595,8 @@ class MultiStageEquilibrium(Unit):
     >>> MSE = bst.MultiStageEquilibrium(N_stages=5, ins=[feed], feed_stages=[2],
     ...     outs=['vapor', 'liquid', 'distillate'],
     ...     stage_specifications={0: ('Reflux', float('inf')), -1: ('Boilup', 2.57)},
-    ...     bottom_side_draws={0: 0.673 / (1 + 0.673)}
+    ...     bottom_side_draws={0: 0.673 / (1 + 0.673)},
+    ...     max_attempts=10,
     ... )
     >>> MSE.simulate()
     >>> vapor, liquid, distillate = MSE.outs
@@ -1551,16 +1618,19 @@ class MultiStageEquilibrium(Unit):
     detault_inside_out = False
     default_inner_loop_algorthm = None
     decomposition_algorithms = {
-        'phenomena', 'Wang-Henke', 'sequential modular',
+        'phenomena', 'sequential modular',
     }
     available_algorithms = {
         *decomposition_algorithms, 
         'simultaneous correction',
     }
     default_methods = {
-        'phenomena': 'fixed-point',
-        'Wang-Henke': 'fixed-point',
+        'phenomena': 'wegstein',
         'simultaneous correction': NotImplemented,
+    }
+    method_options = {
+        'fixed-point': {},
+        'wegstein': {'lb': 1, 'ub': 4, 'exp': 0.5}
     }
     auxiliary_unit_names = (
         'stages',
@@ -1689,6 +1759,7 @@ class MultiStageEquilibrium(Unit):
             maxiter=None,
             max_attempts=None,
             inside_out=None,
+            vle_decomposition=None,
         ):
         # For VLE look for best published algorithm (don't try simple methods that fail often)
         if N_stages is None: N_stages = len(stages)
@@ -1820,6 +1891,8 @@ class MultiStageEquilibrium(Unit):
         self.method = self.default_methods[self.algorithm] if method is None else method
         
         self.inside_out = self.detault_inside_out if inside_out is None else inside_out
+        
+        self.vle_decomposition = vle_decomposition
     
     @property
     def composition_sensitive(self):
@@ -1994,7 +2067,7 @@ class MultiStageEquilibrium(Unit):
             for i in self.stages: i._update_nonlinearities()
         elif self._has_lle:
             pass
-            # self.update_lle_variables()
+            # self.update_pseudo_lle()
     
     def _update_energy_variable(self, departure):
         phases = self.phases
@@ -2074,7 +2147,7 @@ class MultiStageEquilibrium(Unit):
             for n, j in enumerate(index): feed_flows[i, n] += dmol[j]
         return feed_flows
     
-    def set_flow_rates(self, bottom_flows):
+    def set_flow_rates(self, bottom_flows, update_B=True):
         stages = self.stages
         N_stages = self.N_stages
         range_stages = range(N_stages)
@@ -2082,9 +2155,13 @@ class MultiStageEquilibrium(Unit):
         index = self._update_index
         if self.stage_reactions:
             feed_flows = self._feed_flows_and_conversion()
+        f = PhasePartition.F_relaxation_factor
+        if f and self.bottom_flows is not None:
+            bottom_flows = f * self.bottom_flows + (1 - f) * bottom_flows
+        self.bottom_flows = bottom_flows
         top_flows = MESH.top_flows_mass_balance(
             bottom_flows, feed_flows, self._asplit_left, self._bsplit_left, 
-            self.N_stages, self._N_chemicals
+            self.N_stages
         )
         for i in range_stages:
             stage = stages[i]
@@ -2092,21 +2169,30 @@ class MultiStageEquilibrium(Unit):
             s_top, s_bot = partition.outs
             t = top_flows[i]
             mask = t < 0
+            bulk_t = t.sum()
             if mask.any():
-                bulk_t = t.sum()
                 t[mask] = 0
-                dummy = t.sum()
-                if dummy: t *= bulk_t / dummy
+                t *= bulk_t / t.sum()
             b = bottom_flows[i]
             mask = b < 0
+            bulk_b = b.sum()
             if mask.any():
-                bulk_b = b.sum()
                 b[mask] = 0
-                dummy = b.sum()
-                if dummy: b *= bulk_b / b.sum()
+                b *= bulk_b / b.sum()
             s_top.mol[index] = t
             s_bot.mol[index] = b
             for i in stage.splitters: i._run()
+            if update_B and stage.B_specification is None:
+                stage.B = bulk_t / bulk_b
+        
+    def default_vle_decomposition(self):
+        K = np.mean([i.K for i in self.stages], axis=0)
+        mol = self.feed_flows.sum(axis=0)
+        z = mol / mol.sum()
+        if equilibrium.stable_phase(K, z):
+            self.vle_decomposition = 'sum rates'
+        else:
+            self.vle_decomposition = 'bubble point'
         
     def _run(self):
         if all([i.isempty() for i in self.ins]): 
@@ -2121,6 +2207,7 @@ class MultiStageEquilibrium(Unit):
                     maxiter=self.maxiter,
                     xtol=self.S_tolerance,
                     rtol=self.relative_S_tolerance,
+                    **self.method_options[method],
                 )
                 if method == 'fixed-point':
                     solver = flx.fixed_point
@@ -2130,15 +2217,20 @@ class MultiStageEquilibrium(Unit):
                     raise ValueError(f'invalid method {method!r}')
                 f = self._inside_out_iter if self.inside_out else self._iter
                 self.attempt = 0
+                self.bottom_flows = None
+                last = self.max_attempts - 1
+                if self.vle_decomposition is None:
+                    self.default_vle_decomposition()
                 for n in range(self.max_attempts):
                     self.attempt = n
                     self.iter = 0
                     try:
                         separation_factors = solver(f, separation_factors, **options)
                     except:
-                        for i in self.stages: i._run()
-                        for i in reversed(self.stages): i._run()
-                        separation_factors = np.array([i.S for i in self._S_stages])
+                        if n != last:
+                            for i in self.stages: i._run()
+                            for i in reversed(self.stages): i._run()
+                            separation_factors = np.array([i.S for i in self._S_stages])
                     else:
                         break
                 if self.iter == self.maxiter and self.fallback and self.fallback[0] != self.algorithm:
@@ -2313,6 +2405,7 @@ class MultiStageEquilibrium(Unit):
                 for i in partition.outs + stages[i].outs: i.T = T 
                 partition.K = collapsed_partition.K
                 partition.gamma_y = collapsed_partition.gamma_y
+                partition.fgas = collapsed_partition.fgas
         self.interpolate_missing_variables()
                 
     def hot_start(self):
@@ -2465,6 +2558,7 @@ class MultiStageEquilibrium(Unit):
                         partition.B = B
                         for i in partition.outs: i.T = T
                         partition.K = K
+                        partition.fgas = P * y_mol
                         for s in partition.outs: s.empty()
             N_chemicals = len(index)
         if top_chemicals:
@@ -2626,10 +2720,12 @@ class MultiStageEquilibrium(Unit):
     
     def update_energy_balance_temperatures(self):
         dTs = self.get_energy_balance_temperature_departures()
-        for stage, dT in zip(self.stages, dTs):
-            partition = stage.partition
-            partition.T += dT
-            for i in partition.outs: i.T += dT
+        partitions = self.partitions
+        for p, dT in zip(partitions, dTs):
+            if p.T_specification is None: 
+                dT = (1 - p.T_relaxation_factor) * dT
+                p.T += dT
+                for i in p.outs: i.T += dT
         if getattr(self, 'tracking', False):
             self._collect_variables('energy')
         return dTs
@@ -2752,7 +2848,7 @@ class MultiStageEquilibrium(Unit):
         err = np.sqrt(total_error)
         return err
     
-    def update_vle_variables(self):
+    def update_bubble_point(self):
         stages = self.stages
         P = self.P
         if self.stage_reactions:
@@ -2776,8 +2872,60 @@ class MultiStageEquilibrium(Unit):
     def lle_gibbs(self):
         return sum([i.partition.lle_gibbs() for i in self.stages])
     
-    def update_lle_variables(self, separation_factors=None):
+    def update_pseudo_lle(self, separation_factors=None):
         stages = self.stages
+        P = self.P
+        if 'K' in self.partition_data:
+            if separation_factors is not None: 
+                self.update_flow_rates(separation_factors, update_B=False)
+                for i in stages: i._update_separation_factors()
+                if getattr(self, 'tracking', False):
+                    self._collect_variables('material')
+        else:
+            stages = self._S_stages
+            if separation_factors is None: separation_factors = np.array([i.S for i in stages])
+            def psuedo_equilibrium(separation_factors):
+                self.update_flow_rates(separation_factors, update_B=False)
+                for n, i in enumerate(stages): 
+                    i.partition._run_decoupled_Kgamma(P=P)
+                    i._update_separation_factors()
+                return np.array([i.S for i in stages])
+            separation_factors = flx.fixed_point(
+                psuedo_equilibrium, separation_factors, 
+                xtol=self.S_tolerance,
+                rtol=self.relative_S_tolerance,
+                checkiter=False,
+                checkconvergence=False,
+            )
+            self.update_flow_rates(separation_factors, update_B=True)
+            for i in stages: i._update_separation_factors()
+        for i in stages: 
+            mixer = i.mixer
+            partition = i.partition
+            mixer.outs[0].mix_from(mixer.ins, energy_balance=False)
+            partition._run_decoupled_B()
+            i._update_separation_factors()
+        if getattr(self, 'tracking', False):
+            self._collect_variables('lle_phenomena')
+    
+    def update_flow_rates(self, separation_factors, update_B=True):
+        if separation_factors.min() < 0:
+            S = separation_factors
+            S_old = np.array([i.S for i in self._S_stages])
+            # S * x + (1 - x) * S_old = 0
+            # S * x + S_old - x * S_old = 0
+            # S_old + x * (S - S_old) = 0
+            # x = S_old / (S_old - S)
+            x = S_old / (S_old - S)
+            x = 0.1 * (x[(x < 1) & (x > 0)]).min()
+            separation_factors = S * x + (1 - x) * S_old
+        for stage, S in zip(self._S_stages, separation_factors): stage.S = S
+        flows = self.run_mass_balance()
+        self.set_flow_rates(flows, update_B)
+        if getattr(self, 'tracking', False):
+            self._collect_variables('material')
+    
+    def update_pseudo_vle(self, separation_factors):
         P = self.P
         if 'K' in self.partition_data:
             if separation_factors is not None: 
@@ -2785,51 +2933,37 @@ class MultiStageEquilibrium(Unit):
                 if getattr(self, 'tracking', False):
                     self._collect_variables('material')
         else:
-            if separation_factors is None: separation_factors = np.array([i.S for i in self.stages])
-            def psuedo_equilibrium(separation_factors):
-                self.update_flow_rates(separation_factors)
-                for n, i in enumerate(stages): 
-                    mixer = i.mixer
-                    partition = i.partition
-                    mixer.outs[0].mix_from(
-                        mixer.ins, energy_balance=False,
-                    )
-                    partition._run_decoupled_Kgamma(P=P)
-                    i._update_separation_factors()
-                return np.array([i.S for i in self.stages])
-            separation_factors = flx.fixed_point(
-                psuedo_equilibrium, separation_factors, xtol=max(self.S_tolerance, self.relative_S_tolerance * separation_factors.mean()),
-            )
-            self.update_flow_rates(separation_factors)
-        for i in stages: 
-            mixer = i.mixer
-            partition = i.partition
-            mixer.outs[0].mix_from(
-                mixer.ins, energy_balance=False,
-            )
-            partition._run_decoupled_B()
-            i._update_separation_factors()
+            if separation_factors is None: separation_factors = np.array([i.S for i in self._S_stages])
+            self.update_flow_rates(separation_factors, update_B=True)
+            for i in self.stages: 
+                i.partition._run_decoupled_Kfgas(P=P)
+                i._update_separation_factors()
         if getattr(self, 'tracking', False):
-            self._collect_variables('lle_phenomena')
-    
-    def update_flow_rates(self, separation_factors):
-        for stage, S in zip(self._S_stages, separation_factors): stage.S = S
-        flows = self.run_mass_balance()
-        self.set_flow_rates(flows)
-        if getattr(self, 'tracking', False):
-            self._collect_variables('material')
+            raise NotImplementedError('tracking sum rates decomposition not implemented')
     
     def _phenomena_iter(self, separation_factors):
         if self._has_vle:
-            self.update_flow_rates(separation_factors)
-            self.update_vle_variables()
-            self.update_energy_balance_phase_ratio_departures()
-            for i in self.stages: i._update_separation_factors()
+            decomp = self.vle_decomposition
+            if decomp == 'bubble point':
+                self.update_flow_rates(separation_factors, update_B=True)
+                self.update_bubble_point()
+                self.update_energy_balance_phase_ratio_departures()
+                for i in self.stages: i._update_separation_factors()
+            elif decomp == 'sum rates':
+                self.update_pseudo_vle(separation_factors)
+                self.update_energy_balance_temperatures()
+            else:
+                raise NotImplementedError(f'{decomp!r} decomposition not implemented')
         elif self._has_lle:
-            self.update_lle_variables(separation_factors)
+            self.update_pseudo_lle(separation_factors)
             self.update_energy_balance_temperatures()
         else:
             raise RuntimeError('unknown equilibrium phenomena')
+        if not hasattr(self, 'deltas'): self.deltas = []
+        x = lambda stream: np.array([*stream.mol, stream.H])
+        self.deltas.append(
+            [x(i.outs[0]) - sum([x(i) for i in i.ins if i.phase=='g']) for i in self.partitions]
+        )
         return np.array([i.S for i in self._S_stages])
     
     def _inside_out_iter(self, separation_factors):
@@ -2883,37 +3017,6 @@ class MultiStageEquilibrium(Unit):
         # fig.show()
         return True
     
-    def solve_Wang_Henke_bubble_point(liquid_compositions):
-        pass
-    
-    def solve_bulk_liquid_flow_rates(bulk_vapor_flow_rates):
-        pass
-    
-    def solve_energy_balance_vapor_flow_rates(
-            temperatures, 
-            vapor_compositions, 
-            bulk_liquid_flow_rates,
-            liquid_compositions
-        ):
-        pass
-    
-    def _Wang_Henke_iter(self, separation_factors):
-        for stage, S in zip(self._S_stages, separation_factors): stage.S = S
-        liquid_flow_rates = self.run_mass_balance()
-        bulk_liquid_flow_rates = liquid_flow_rates.sum(axis=1)
-        liquid_compositions = liquid_flow_rates / bulk_liquid_flow_rates
-        temperatures, partition_coefficients, vapor_compositions = self.solve_Wang_Henke_bubble_point(
-            liquid_compositions
-        )
-        bulk_vapor_flow_rates = self.solve_energy_balance_vapor_flow_rates(
-            temperatures, 
-            vapor_compositions, 
-            bulk_liquid_flow_rates,
-            liquid_compositions
-        )
-        bulk_liquid_flow_rates = self.solve_bulk_liquid_flow_rates(bulk_vapor_flow_rates)
-        return [F_V / bulk_liquid_flow_rates[i] * partition_coefficients[i] for i in range(self.N_stages) if (F_V:=bulk_vapor_flow_rates[i]) != 0]
-    
     def _sequential_iter(self, separation_factors):
         self.update_flow_rates(separation_factors)
         for i in self.stages: i._run()
@@ -2930,8 +3033,7 @@ class MultiStageEquilibrium(Unit):
         N_stages = self.N_stages
         range_stages = range(N_stages)
         top_flows = MESH.top_flows_mass_balance(
-            bottom_flows, feed_flows, self._asplit_left, self._bsplit_left, 
-            N_stages, self._N_chemicals
+            bottom_flows, feed_flows, self._asplit_left, self._bsplit_left, N_stages
         )
         for i in range_stages:
             t = top_flows[i]
@@ -3007,9 +3109,6 @@ class MultiStageEquilibrium(Unit):
         algorithm = self.algorithm
         if algorithm == 'phenomena':
             separation_factors = self._phenomena_iter(separation_factors)
-        elif algorithm == 'Wang-Henke':
-            if self._has_lle: raise RuntimeError(f'LLE cannot be solved by algorithm {algorithm!r}')
-            separation_factors = self._Wang_Henke_iter(separation_factors)
         elif algorithm == 'sequential modular':
             separation_factors = self._sequential_iter(separation_factors)
         else:

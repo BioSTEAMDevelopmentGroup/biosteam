@@ -48,9 +48,6 @@ __all__ = (
     'plot_contour_2d', 
     'plot_contour_single_metric',
     'plot_heatmap',
-    'plot_uncertainty_pairs_2d',
-    'plot_uncertainty_pairs_1d',
-    'plot_uncertainty_pairs',
     'plot_kde_2d',
     'plot_kde_1d',
     'plot_kde',
@@ -930,7 +927,7 @@ plot_montecarlo_across_coordinate = plot_uncertainty_across_coordinate
 
 # %% KDE
 
-def plot_uncertainty_pairs(
+def plot_kde(
         x, y, axes=None, fig=None,
         xticks=None, yticks=None, xticklabels=None, yticklabels=None,
         xtick0=True, ytick0=True, xtickf=True, ytickf=True,
@@ -1032,16 +1029,22 @@ def plot_uncertainty_pairs(
                 else:
                     fill = color
                     edge = Color(fg=color).shade(60).RGBn
+            else:
+                fill = xbox.fill
+                edge = xbox.edge
             plot_uncertainty_boxes(x, fill, edge, positions=(xbox.get_position(-1),), vertical=False, outliers=False, width=xbox_width, bounds=True)
         if ybox:
             plt.sca(ybox.axis)
-            if xbox.fill is None and xbox.edge is None:
+            if ybox.fill is None and ybox.edge is None:
                 if kde:
-                    fill = xbox.fill
-                    edge = xbox.edge
+                    fill = ybox.fill
+                    edge = ybox.edge
                 else:
                     fill = color
                     edge = Color(fg=color).shade(60).RGBn
+            else:
+                fill = ybox.fill
+                edge = ybox.edge
             plot_uncertainty_boxes(y, fill, edge, positions=(ybox.get_position(-1),), vertical=True, outliers=False, width=ybox_width, bounds=True)
     # if xboxes:
     #     plt.sca(xbox_ax)
@@ -1113,9 +1116,7 @@ def plot_uncertainty_pairs(
         )
     return fig, ax, axes
   
-plot_kde = plot_uncertainty_pairs  
-  
-def plot_uncertainty_pairs_1d(
+def plot_kde_1d(
         xs, ys, axes=None, xboxes=None, yboxes=None,
         xticks=None, yticks=None, xticklabels=None, yticklabels=None,
         autobox=True, xbox_kwargs=None, ybox_kwargs=None, aspect_ratio=1.,
@@ -1175,7 +1176,7 @@ def plot_uncertainty_pairs_1d(
         ax = axes[0, i]
         xticksi = None if xticks is None else xticks[i]
         xticklabelsi = None if xticklabels is None else xticklabels[i]
-        plot_uncertainty_pairs(x, y, ax=ax, fig=fig,
+        plot_kde(x, y, ax=ax, fig=fig,
                  xbox=[False] if hasattr(x, 'ndim') and x.ndim == 1 else len(x) * [False],
                  ybox=[False] if hasattr(y, 'ndim') and y.ndim == 1 else len(y) * [False],
                  xticks=xticksi,
@@ -1253,9 +1254,7 @@ def plot_uncertainty_pairs_1d(
     if ylabel is not None: plt.ylabel(ylabel, fontsize=fs)
     return fig, axes
   
-plot_kde_1d = plot_uncertainty_pairs_1d
-  
-def plot_uncertainty_pairs_2d(
+def plot_kde_2d(
         xs, ys, axes=None, xboxes=None, yboxes=None,
         xticks=None, yticks=None, xticklabels=None, yticklabels=None,
         autobox=True, xbox_kwargs=None, ybox_kwargs=None, aspect_ratio=1.,
@@ -1331,7 +1330,7 @@ def plot_uncertainty_pairs_2d(
             yticklabelsi = None if yticklabels is None else yticklabels[i]
             xticklabelsj = i == N_rows - 1
             yticklabelsi = j == 0
-            plot_uncertainty_pairs(x, y, ax=ax, fig=fig,
+            plot_kde(x, y, ax=ax, fig=fig,
                      xbox=[False],
                      ybox=[False],
                      xticks=xticksj,
@@ -1373,8 +1372,6 @@ def plot_uncertainty_pairs_2d(
     plt.subplots_adjust(hspace=0, wspace=0)
     plt.sca(ax)
     return fig, axes
-
-plot_kde_2d = plot_uncertainty_pairs_2d
 
 # %% Contours
 
