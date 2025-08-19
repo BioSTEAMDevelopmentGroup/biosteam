@@ -45,6 +45,7 @@ __all__ = (
     'plot_bars', 
     'plot_vertical_line', 
     'plot_scatter_points',
+    'plot_contour',
     'plot_contour_2d', 
     'plot_contour_single_metric',
     'plot_heatmap',
@@ -1414,40 +1415,41 @@ def generate_contour_data(
     if file and save and not load: np.save(file, Z)
     return X, Y, Z
 
-def plot_contour_2d(X, Y, Z, 
-                    xlabel, ylabel, xticks, yticks, 
-                    metric_bars, titles=None, 
-                    fillcolor=None, styleaxiskw=None, label_size=10,
-                    label=False, wbar=1, contour_label_interval=2,
-                    highlight_levels=None, 
-                    highlight_color=None): # pragma: no coverage
+def plot_contour(
+        X, Y, Z, 
+        xlabel, ylabel, xticks, yticks, 
+        metric_bars, titles=None, 
+        fillcolor=None, styleaxiskw=None, label_size=10,
+        label=False, wbar=1, contour_label_interval=2,
+        highlight_levels=None, 
+        highlight_color=None
+    ): # pragma: no coverage
     """Create contour plots and return the figure and the axes."""
-    if isinstance(metric_bars[0], MetricBar):
+    if isinstance(metric_bars, MetricBar):
+        metric_bars = [metric_bars]
+        nrows = 1
+        row_bars = True
+    elif isinstance(metric_bars[0], MetricBar):
         nrows = len(metric_bars)
-        ncols = Z.shape[-1] if titles is None else len(titles)
         row_bars = True
     else:
         nrows = len(metric_bars)
         ncols = len(metric_bars[0])
         row_bars = False
-    if Z.ndim == 3:
+    A, B = Z.shape[:2]
+    if Z.ndim == 2:
+        ncols = 1
+        Z = Z[:, :, None, None]
+    elif Z.ndim == 3:
         if Z.shape == (*X.shape, nrows):
             Z = Z[:, :, :, None]
-        elif Z.shape == (*X.shape, ncols):
-            Z = Z[:, :, None, :]
         else:
-            raise ValueError(
-           f"Z was shape {Z.shape}, but expeted shape {(*X.shape, nrows)}; "
-            "Z.shape must be (X, Y, M), where (X, Y) is the shape of both X and Y, "
-            "M is the number of metrics"  
-        )
-        
-    else:
-        assert Z.shape == (*X.shape, nrows, ncols), (
-           f"Z was shape {Z.shape}, but expeted shape {(*X.shape, nrows, ncols)}; "
-            "Z.shape must be (X, Y, M, N), where (X, Y) is the shape of both X and Y, "
-            "M is the number of metrics, and N is the number of elements in titles (if given)"  
-        )
+            Z = Z[:, :, None, :]
+    assert Z.shape == (*X.shape, nrows, ncols), (
+       f"Z was shape {Z.shape}, but expeted shape {(*X.shape, nrows, ncols)}; "
+        "Z.shape must be (A, B, M, N), where (A, B) is the shape of both X and Y, "
+        "M is the number of metrics, and N is the number of elements in titles (if given)"  
+    )
     if row_bars:
         fig, axes = contour_subplots(nrows, ncols, wbar=wbar)
         cbs = np.zeros([nrows], dtype=object)
@@ -1534,16 +1536,23 @@ def plot_contour_2d(X, Y, Z,
     fig.supylabel(ylabel, size=label_size)
     plt.subplots_adjust(hspace=0.1, wspace=0.1)
     return fig, axes, cps, cbs, other_axes
-       
+plot_contour_2d = plot_contour       
+
 def plot_contour_single_metric(
         X, Y, Z, xlabel, ylabel, xticks, yticks, metric_bar,
         titles=None, fillcolor=None, styleaxiskw=None, label=False,
         contour_label_interval=2,
     ): # pragma: no coverage
     """Create contour plots and return the figure and the axes."""
-    *_, nrows, ncols = Z.shape
+    if Z.ndim < 4:
+        if Z.ndim == 3:
+            Z = Z[:, :, :, None]
+            *_, nrows, ncols = Z.shape
+        elif Z.ndim == 2:
+            Z = Z[:, :, None, None]
+            *_, nrows, ncols = Z.shape    
     assert Z.shape == (*X.shape, nrows, ncols), (
-        "Z.shape must be (X, Y, M, N), where (X, Y) is the shape of both X and Y"
+        "the first 2 dimensions of Z must have the same shape as X and Y"
     )
     fig, axes, ax_colorbar = contour_subplots(nrows, ncols, single_colorbar=True)
     if styleaxiskw is None: styleaxiskw = dict(xtick0=False, ytick0=False)

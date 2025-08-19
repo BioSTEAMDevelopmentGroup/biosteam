@@ -95,7 +95,7 @@ class UtilityAgent(Stream):
                  **chemical_flows: float):
         self._thermal_condition = ThermalCondition(T, P)
         thermo = self._load_thermo(thermo)
-        self._init_indexer((), phase, thermo.chemicals, chemical_flows)
+        self._init_indexer(None, phase, thermo.chemicals, chemical_flows)
         if units is not None:
             name, factor = self._get_flow_name_and_factor(units)
             flow = getattr(self, name)
