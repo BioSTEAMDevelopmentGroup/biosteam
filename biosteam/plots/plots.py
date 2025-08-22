@@ -66,7 +66,7 @@ plt.rcParams['figure.dpi'] = 300 # High DPI (default is 100; so low!)
 default_light_color = c.orange_tint.RGBn
 default_dark_color = c.orange_shade.RGBn
 title_color = c.neutral.shade(25).RGBn
-color_wheel = GG_colors.wheel(keys=['red', 'blue', 'purple', 'orange', 'green'])
+default_color_wheel = GG_colors.wheel(keys=['red', 'blue', 'purple', 'orange', 'green'])
 
 def annotate_point(
         text, x, y, dx=0, dy=0.2, dx_text=0, dy_text=0.22,
@@ -935,9 +935,10 @@ def plot_kde(
         xbox=None, ybox=None, xbox_kwargs=None, ybox_kwargs=None, 
         aspect_ratio=1.25, colors=None, xbox_width=None,
         ybox_width=None, zorders=None, xlabel=None, ylabel=None,
-        ax=None, kde= None, transparency=None, **kwargs
+        ax=None, kde= None, transparency=None, color_wheel=None, **kwargs
     ):
     if kde is None: kde = True
+    if color_wheel is None: color_wheel = default_color_wheel
     axis_not_given = axes is None and ax is None
     xs = x if isinstance(x, (tuple, list)) or x.ndim == 2 else (x,)
     ys = y if isinstance(y, (tuple, list)) or y.ndim == 2 else (y,)
@@ -1121,7 +1122,7 @@ def plot_kde_1d(
         xs, ys, axes=None, xboxes=None, yboxes=None,
         xticks=None, yticks=None, xticklabels=None, yticklabels=None,
         autobox=True, xbox_kwargs=None, ybox_kwargs=None, aspect_ratio=1.,
-        xlabel=None, ylabel=None, fs=None, colors=None, kde=None, **kwargs
+        xlabel=None, ylabel=None, fs=None, colors=None, kde=None, color_wheel=None, **kwargs
     ):
     if kde is None: kde = True
     N_cols = len(xs)
@@ -1130,6 +1131,7 @@ def plot_kde_1d(
         xticklabels = N_cols * [xticklabels]
     if xticks is not None and len(xticks) != N_cols:
         xticks = N_cols * [xticks]
+    if color_wheel is None: color_wheel = default_color_wheel
     if axes is None:
         if autobox:
             N_internal_x = sum([(1 if hasattr(x, 'ndim') and x.ndim == 1 else len(x))
@@ -1190,6 +1192,7 @@ def plot_kde_1d(
                  ytickf=True,
                  colors=colors,
                  kde=kde,
+                 color_wheel=color_wheel,
                  **kwargs)
     if xboxes is not None:
         for i, xbox in enumerate(xboxes):
