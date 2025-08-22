@@ -21,7 +21,7 @@ def test_flash():
         flash.B = 1.
         flash.outs[0].mol[:] = [50, 50]
         flash.outs[1].mol[:] = [50, 50]
-    sys = bst.System('sys', path=flashes, algorithm='phenomena-oriented')
+    sys = bst.System('sys', path=flashes, algorithm='phenomena based')
     sys.track_convergence()
     for i in range(10):
         sys.run_phenomena()
@@ -46,7 +46,7 @@ def test_2_stage_flash():
         flash.B = 1.
         flash.outs[0].mol[:] = [50, 50]
         flash.outs[1].mol[:] = [50, 50]
-    sys = bst.System('sys', path=flashes, algorithm='phenomena-oriented')
+    sys = bst.System('sys', path=flashes, algorithm='phenomena based')
     sys.track_convergence()
     for i in range(10):
         sys.run_phenomena()
