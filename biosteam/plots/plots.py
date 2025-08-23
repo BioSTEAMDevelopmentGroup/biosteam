@@ -1544,16 +1544,16 @@ plot_contour_2d = plot_contour
 def plot_contour_single_metric(
         X, Y, Z, xlabel, ylabel, xticks, yticks, metric_bar,
         titles=None, fillcolor=None, styleaxiskw=None, label=False,
-        contour_label_interval=2,
+        contour_label_interval=2, highlight_levels=None, highlight_color=None,
+        label_fs=None,
     ): # pragma: no coverage
     """Create contour plots and return the figure and the axes."""
     if Z.ndim < 4:
         if Z.ndim == 3:
             Z = Z[:, :, :, None]
-            *_, nrows, ncols = Z.shape
         elif Z.ndim == 2:
             Z = Z[:, :, None, None]
-            *_, nrows, ncols = Z.shape    
+    *_, nrows, ncols = Z.shape
     assert Z.shape == (*X.shape, nrows, ncols), (
         "the first 2 dimensions of Z must have the same shape as X and Y"
     )
@@ -1562,6 +1562,7 @@ def plot_contour_single_metric(
     cps = np.zeros([nrows, ncols], dtype=object)
     linecolor = np.array([*c.neutral_shade.RGBn, 0.1])
     other_axes = []
+    if highlight_color is None: highlight_color = 'r'
     for row in range(nrows):
         for col in range(ncols):
             ax = axes[row, col]
@@ -1583,17 +1584,27 @@ def plot_contour_single_metric(
                 clabels = ax.clabel(
                     cs, levels=levels,
                     inline=True, fmt=metric_bar.fmt,
-                    colors=['k'], zorder=1
+                    colors=['k'], zorder=1, fontsize=label_fs,
                 )
                 for i in clabels: i.set_rotation(0)
             cps[row, col] = cp
             
-            if row == nrows - 1 and not styleaxiskw.get('ytick0', True):
+            if highlight_levels:
+                cs = plt.contour(cp, zorder=1, linewidths=0.8,
+                                 levels=highlight_levels, colors=[highlight_color])
+                clabels = ax.clabel(
+                    cs, levels=highlight_levels,
+                    inline=True, fmt=metric_bar.fmt,
+                    colors=[highlight_color], zorder=1
+                )
+                for i in clabels: i.set_rotation(0)
+            
+            if row == nrows - 1 and 'ytick0' not in styleaxiskw:
                 sak = styleaxiskw.copy()
                 sak['ytick0'] = True
             else:
                 sak = styleaxiskw
-            if col == 0 and not styleaxiskw.get('xtick0', True):
+            if col == 0 and 'xtick0' not in styleaxiskw:
                 sak = sak.copy()
                 sak['xtick0'] = True
             dct = style_axis(ax, xticks, yticks, xticklabels, yticklabels, **sak)
@@ -1606,8 +1617,8 @@ def plot_contour_single_metric(
             ax = axes[0, col]
             ax.set_title(title, color=title_color, fontsize=10, fontweight='bold')
     fig = plt.gcf()
-    fig.supxlabel(xlabel)
-    fig.supylabel(ylabel)
+    if xlabel: fig.supxlabel(xlabel)
+    if ylabel: fig.supylabel(ylabel)
     plt.subplots_adjust(hspace=0.1, wspace=0.1, bottom=0.2)
     return fig, axes, cps, cb, other_axes
             
