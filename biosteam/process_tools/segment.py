@@ -29,7 +29,8 @@ class Segment:
         self.sink.ins[self.sink_index] = None
             
     def insert(self, stream):
-        stream.sink.ins.replace(stream, self.source.outs[self.source_index])
+        i = stream.sink.ins.index(stream)
+        stream.sink.ins[i] = self.source.outs[self.source_index]
         self.sink.ins[self.sink_index] = stream
         
         
