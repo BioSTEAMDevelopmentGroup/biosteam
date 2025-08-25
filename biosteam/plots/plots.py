@@ -666,7 +666,8 @@ def plot_spearman_1d(rhos, top=None, name=None, color=None,
     return fig, ax
 
 def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
-                     cutoff=None, sort=True, xlabel=None, sort_index=None, w=None): # pragma: no coverage
+                     cutoff=None, sort=True, xlabel=None, sort_index=None, w=None,
+                     edgecolors=None): # pragma: no coverage
     """
     Display Spearman's rank correlation plot.
     
@@ -706,9 +707,17 @@ def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
     if not color_wheel: color_wheel = CABBI_colors.wheel()
     fig, ax = plt.subplots()
     for i, rho in enumerate(rhos):
+        if edgecolors:
+            edgecolor = edgecolors[N - i - 1]
+            if hasattr(edgecolor, 'RGBn'): edgecolor = edgecolor.RGBn
+        else:
+            edgecolor = None
         color = color_wheel[N - i - 1]
-        if hasattr(color, 'RGBn'): color = color.RGBn
-        plot_spearman_1d(rho, color=color, s=s, offset=i, w=w,
+        if hasattr(color, 'RGBn'): 
+            if edgecolor is None:
+                edgecolor = color.shade(50).RGBn
+            color = color.RGBn
+        plot_spearman_1d(rho, color=color, s=s, offset=i, w=w, edgecolors=edgecolor,
                          fig=fig, ax=ax, style=False, sort=False, top=None)
     # Plot central line
     yranges = [(s/2 + s*i - 1., 1.) for i in range(len(rhos[0]))]
@@ -1138,7 +1147,7 @@ def plot_kde_1d(
                                 for x in xs]) / N_cols
             N_internal_y = sum([(1 if hasattr(y, 'ndim') and y.ndim == 1 else len(y))
                                 for y in ys])
-            grid_kw = dict(height_ratios=[0.4 * N_internal_x, *N_rows*[4]], width_ratios=[*N_cols*[4], 0.4 * N_internal_y])
+            grid_kw = dict(height_ratios=[0.25 * N_internal_x, *N_rows*[4]], width_ratios=[*N_cols*[4], 0.3 * N_internal_y])
             fig, all_axes = plt.subplots(
                 ncols=N_cols + 1, nrows=N_rows + 1, 
                 gridspec_kw=grid_kw,
