@@ -157,8 +157,6 @@ class Configuration:
             )
             for i in self.composition_sensitive_path: i._update_net_flow_parameters()
             for i, j in zip(containers, flows): i[:] = j
-            for i in self.composition_sensitive_nodes: 
-                if hasattr(i, '_update_auxiliaries'): i._update_auxiliaries()
     
     def dynamic_coefficients(self, b):
         try:
@@ -277,8 +275,6 @@ class Configuration:
             #     index = indexer._phase_indexer(phase)
             #     mol = indexer.data.rows[index]
             #     mol[mask] = value[mask]
-        for i in nodes: 
-            if hasattr(i, '_update_auxiliaries'): i._update_auxiliaries()
         if full_output:
             return containers, values
         else:

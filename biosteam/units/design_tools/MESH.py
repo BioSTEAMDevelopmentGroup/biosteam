@@ -10,7 +10,7 @@ from scipy.optimize import minimize
 # %% Diagonal matrix solution
 
 @njit(cache=True)
-def solve_TDMA(a, b, c, d): # Tridiagonal matrix solver
+def solve_tridiagonal_matrix(a, b, c, d): # Tridiagonal matrix solver
     """
     Solve a tridiagonal matrix using Thomas' algorithm.
     
@@ -26,8 +26,8 @@ def solve_TDMA(a, b, c, d): # Tridiagonal matrix solver
     for i in range(n):
         inext = i + 1
         m = a[i] / b[i]
-        b[inext] = b[inext] - m * c[i] 
-        d[inext] = d[inext] - m * d[i]
+        b[inext] -= m * c[i] 
+        d[inext] -= m * d[i]
         
     b[n] = d[n] / b[n]
     for i in range(n-1, -1, -1):
@@ -35,7 +35,33 @@ def solve_TDMA(a, b, c, d): # Tridiagonal matrix solver
     return b
 
 @njit(cache=True)
-def solve_LBDMA(a, b, d): # Left bidiagonal matrix solver
+def solve_block_tridiagonal_matrix(A, B, C, d):
+    """
+    Solve a block tridiagonal matrix using Thomas' algorithm.
+    
+    http://en.wikipedia.org/wiki/Tridiagonal_matrix_algorithm
+    http://www.cfd-online.com/Wiki/Tridiagonal_matrix_algorithm_-_TDMA_(Thomas_algorithm)
+    
+    Notes
+    -----
+    `a` array starts from a1 (not a0).
+    
+    """
+    d = d.copy()
+    n = d.shape[0] - 1 # number of equations minus 1
+    for i in range(n):
+        inext = i + 1
+        M = np.linalg.solve(B[i], A[i])
+        B[inext] -= M @ C[i] 
+        d[inext] -= M @ d[i]
+        
+    d[n] = np.linalg.solve(B[n], d[n])
+    for i in range(n-1, -1, -1):
+        d[i] = np.linalg.solve(B[i], d[i] - C[i] @ d[i+1])
+    return d
+    
+@njit(cache=True)
+def solve_left_bidiagonal_matrix(a, b, d): # Left bidiagonal matrix solver
     """
     Solve a left bidiagonal matrix using a reformulation of Thomas' algorithm.
     """
@@ -197,7 +223,50 @@ def hot_start_bottom_flow_rates(
             d[i] += top_feed_flows[i]
         else:
             d[i] += top_feed_flows[i] - top_flows[i + 1] * asplit_1[i + 1]
-    return solve_LBDMA(a, b, d)
+    return solve_left_bidiagonal_matrix(a, b, d)
+
+@njit(cache=True)
+def create_block_tridiagonal_matrix(As, Bs, Cs):
+    """
+    Create a dense block tridiagonal matrix.
+
+    Parameters
+    ----------
+    As : list of (m x m) arrays
+        Lower-diagonal blocks, length n-1
+    Bs : list of (m x m) arrays
+        Diagonal blocks, length n
+    Cs : list of (m x m) arrays
+        Upper-diagonal blocks, length n-1
+
+    Returns
+    -------
+    M : (n*m, n*m) ndarray
+        Dense block tridiagonal matrix
+    """
+    n = len(Bs)
+    m = Bs[0].shape[0]
+    n_vars = n * m
+    M = np.zeros((n_vars, n_vars))
+
+    # initialize first row slice
+    row_start = 0
+    row_end = row_start + m
+    row_end_next = row_end + m
+    row_slice = slice(row_start, row_end)
+    last = n-1
+    for i in range(n):
+        M[row_slice, row_slice] = Bs[i]  # diagonal
+        if i == last: break
+        next_slice = slice(row_end, row_end_next)
+        M[row_slice, next_slice] = Cs[i]  # upper
+        M[next_slice, row_slice] = As[i]  # lower
+        # prepare for next iteration
+        row_slice = next_slice
+        row_start = row_end
+        row_end = row_end_next
+        row_end_next += m
+    return M
 
 # %% Component flow rate solution
 
@@ -235,7 +304,7 @@ def bottom_flow_rates(
     c = np.expand_dims(asplit_1[1:], -1) * stripping_factors[1:]
     d = feed_flows.copy()
     a = bsplit_1
-    return solve_TDMA(a, b, c, d) 
+    return solve_tridiagonal_matrix(a, b, c, d) 
 
 @njit(cache=True)
 def liquid_compositions(
@@ -274,7 +343,7 @@ def liquid_compositions(
     c = np.expand_dims(asplit_1[1:], -1) * KV[1:]
     d = feed_flows.copy()
     a = bsplit_1 * bulk_liquid_flow_rates
-    return solve_TDMA(a, b, c, d)
+    return solve_tridiagonal_matrix(a, b, c, d)
 
 @njit(cache=True)
 def bottom_flows_mass_balance(
@@ -371,7 +440,7 @@ def temperature_departures(Cv, Cl, Hv, Hl, asplit_left, bsplit_left,
     d = H_feeds - Hl - Hv
     d[1:] += (Hl * bsplit_left)[:-1]
     d[:-1] += (Hv * asplit_left)[1:]
-    return solve_TDMA(a, b, c, d)
+    return solve_tridiagonal_matrix(a, b, c, d)
 
 def get_neighbors(index=None, all_index=None, missing=None, size=None):
     if size is not None:
@@ -435,7 +504,10 @@ def fillmissing(all_neighbors, values):
             values[i] = values[neighbors[0]]
     return values
 
-# %% Wang-Henke 
+# %% Simultaneous correction (Newton-Raphson)
+
+
+# %% Wang-Henke (not needed, mathematically equivalent to phenomena approach)
 
 #  Energy balance
 def solve_vapor_flow_rates():

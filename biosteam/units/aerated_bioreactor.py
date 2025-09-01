@@ -640,16 +640,26 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             for i in self.compressors: i.P = P
             for i in self.gas_coolers: i.T = T
             self._load_gas_feeds()
+            substrates = sum([i.get_flow(units='mol/s', key=self.gas_substrates) for i in self.ins])
             F_liquid_max = self._initialize_variable_liquid_guess(feed, effluent, vent)
             product, titer = next(iter(self.titer.items()))
             def liquid_flow_rate_objective(F_feed):
                 feed.F_mass = F_feed
-                STRs = self.get_STRs()
-                effluent.copy_flow(feed)
-                effluent.set_flow(STRs, units='mol/s', key=self.gas_substrates)
-                self._run_reactions(effluent)
-                vent.empty()
-                self._run_vent(vent, effluent)
+                
+                def f(vent_flow_rates):
+                    self.vent.mol = vent_flow_rates
+                    STRs = self.get_STRs()
+                    STRs = np.minimum(STRs, substrates)
+                    effluent.mix_from(self.ins, energy_balance=False)
+                    effluent.set_flow(STRs, units='mol/s', key=self.gas_substrates)
+                    remaining = substrates - STRs
+                    self._run_reactions(effluent)
+                    vent.empty()
+                    self.vent.set_flow(remaining, units='mol/s', key=self.gas_substrates)
+                    self._run_vent(vent, effluent)
+                    return self.vent.mol.to_array()
+                    
+                flx.aitken(f, self.vent.mol.to_array(), checkiter=False, xtol=1e-3, checkconvergence=False)
                 return effluent.imass[product] / effluent.ivol['Water'] - titer
                 
             flx.IQ_interpolation(liquid_flow_rate_objective, 0.05 * F_liquid_max, F_liquid_max, ytol=1e-3)
@@ -657,7 +667,6 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         # breakpoint()
         
     def _run_reactions(self, effluent):
-        effluent.mix_from(self.ins)
         data = effluent.get_data()
         rxns = self.reactions
         rxns.force_reaction(effluent)
@@ -675,14 +684,13 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                 break
         
     def _initialize_variable_liquid_guess(self, feed, effluent, vent):
-        effluent.copy_flow(feed)
+        effluent.mix_from(self.ins)
+        data = vent.get_data()
+        vent.empty()
         self._run_reactions(effluent)
         product, titer = next(iter(self.titer.items()))
         F_liquid_max = 1000 * effluent.imass[product] / titer # kg / hr
-        feed.F_mass = F_liquid_max
-        effluent.mix_from(self.ins, energy_balance=False)
-        vent.empty()
-        self._run_vent(vent, effluent)
+        vent.set_data(data)
         return F_liquid_max
         
     def _solve_total_power(self, SURs): # For STR = SUR [mol / s]
@@ -726,7 +734,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         STRs = []
         for ID in self.gas_substrates:
             Py_gas = P_gas * gas_in.imol[ID] / gas_in.F_mol
-            Py_vent = P_vent * vent.imol[ID] / vent.F_mol
+            Py_vent = P_vent * vent.imol[ID] / (vent.F_mol or 1)
             C_sat_gas = aeration.C_L(self.T, Py_gas, ID) # mol / kg
             C_sat_vent = aeration.C_L(self.T, Py_vent, ID) # mol / kg
             theta = self.theta

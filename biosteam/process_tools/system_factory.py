@@ -258,8 +258,11 @@ class SystemFactory:
             if mockup: raise ValueError('cannot box mockup system')
             if rename: 
                 unit_registry = bst.main_flowsheet.unit
-                irrelevant_units = tuple(unit_registry)
+                irrelevant_units = set(unit_registry)
                 unit_registry.untrack(irrelevant_units)
+            elif udct:
+                unit_registry = bst.main_flowsheet.unit
+                irrelevant_units = set(unit_registry)
             if network_priority is None:
                 module = bst.Module(ins=ins, outs=outs)
             else:
@@ -274,8 +277,11 @@ class SystemFactory:
             with (bst.MockSystem() if mockup else bst.System(**options)) as system:
                 if rename: 
                     unit_registry = system.flowsheet.unit
-                    irrelevant_units = tuple(unit_registry)
+                    irrelevant_units = set(unit_registry)
                     unit_registry.untrack(irrelevant_units)
+                elif udct:
+                    unit_registry = system.flowsheet.unit
+                    irrelevant_units = set(unit_registry)
                 self.f(ins, outs, **kwargs)
         system.load_inlet_ports(ins, {k: i for i, j in enumerate(self.ins) if (k:=get_name(j)) is not None})
         system.load_outlet_ports(outs, {k: i for i, j in enumerate(self.outs) if (k:=get_name(j)) is not None})
@@ -292,10 +298,10 @@ class SystemFactory:
                 else:
                     unit_dct[key] = unit
             
-            for unit in system.units:
-                cls = unit.__class__
-                add(unit._ID, unit)
-                add(cls.line, unit)
+            for ID, unit in system.flowsheet.unit.data.items():
+                if unit in irrelevant_units: continue
+                add(ID, unit)
+                add(unit.line, unit)
         if rename: 
             unit_registry.track(irrelevant_units)
             utils.rename_units(system.units, area)

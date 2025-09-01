@@ -594,9 +594,9 @@ def log_mean_driving_force(C_sat_out, C_sat_in, C_out, C_in=None):
     Parameters
     ----------
     C_sat_out : float
-        Saturated concentration entering the bioreactor.
-    C_sat_out : float
         Saturated concentration exiting the bioreactor.
+    C_sat_in : float
+        Saturated concentration entering the bioreactor.
     C_out : float, optional
         Outlet concentration. 
     C_in : float

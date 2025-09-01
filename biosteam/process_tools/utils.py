@@ -240,6 +240,8 @@ def ID_number(ID):
     """
     for i, letter in enumerate(ID):
         if letter.isdigit(): break
+    else:
+        return ''
     for j, letter in enumerate(ID[i:], start=i+1):
         if not letter.isdigit(): 
             j -= 1
