@@ -2154,16 +2154,6 @@ class MultiStageEquilibrium(Unit):
             stage._set_point(x[i])
     
     def _objective(self, x):
-        mask = x < 1e-12
-        if mask.any():
-            lb = x[mask].min()
-            ub = x[mask].max()
-            distance = ub - lb
-            if distance:
-                values = x[mask]
-                x[mask] = (values - lb) * 1e-12 / distance + 1e-16
-            else:
-                x[mask] = 1e-12
         return self._net_residual(self._residuals(x))
     
     def _net_residual(self, residuals):
@@ -2172,6 +2162,8 @@ class MultiStageEquilibrium(Unit):
         return net_residual
     
     def _residuals(self, x):
+        mask = x < 0
+        if mask.any(): x[mask] = 0
         N_chemicals = self._N_chemicals
         N_stages, N_variables = x.shape
         stages = self.stages
@@ -2546,8 +2538,11 @@ class MultiStageEquilibrium(Unit):
                 x = x.flatten()
                 f = lambda x: self._residuals(x.reshape(shape)).flatten()
                 jac = lambda x: MESH.create_block_tridiagonal_matrix(*self._jacobian(x.reshape(shape)))
-                x, *self._simultaneous_correction_info = fsolve(f, x, fprime=jac, full_output=True, maxfev=self.maxiter, xtol=self.S_tolerance * F_mol)
-                self._set_point(x.reshape(shape))
+                try: x, *self._simultaneous_correction_info = fsolve(f, x, fprime=jac, full_output=True, maxfev=self.maxiter, xtol=self.S_tolerance)
+                except: pass
+                else:
+                    x[x < 0] = 0
+                    self._set_point(x.reshape(shape))
             else:
                 raise RuntimeError(
                     f'invalid algorithm {algorithm!r}, only {self.available_algorithms} are allowed'

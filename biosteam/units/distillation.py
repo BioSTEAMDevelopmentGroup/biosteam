@@ -2591,12 +2591,12 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     Distillation                                               Units          
     Electricity         Power                                     kW     0.574
                         Cost                                  USD/hr    0.0449
-    Cooling water       Duty                                   kJ/hr -2.98e+06
+    Cooling water       Duty                                   kJ/hr -2.97e+06
                         Flow                                 kmol/hr  2.03e+03
-                        Cost                                  USD/hr     0.992
+                        Cost                                  USD/hr     0.989
     Low pressure steam  Duty                                   kJ/hr   7.8e+06
                         Flow                                 kmol/hr       202
-                        Cost                                  USD/hr        48
+                        Cost                                  USD/hr      47.9
     Design              Theoretical stages                                   5
                         Actual stages                                        7
                         Height                                    ft      24.3
@@ -2626,7 +2626,6 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     ...     reflux=0.673, boilup=2.57,
     ...     LHK=('Ethanol', 'Water'),
     ...     full_condenser=True,
-    ...     max_attempts=10,
     ... )
     >>> D1.simulate()
     >>> vapor, liquid, distillate = D1.outs
