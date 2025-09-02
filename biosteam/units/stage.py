@@ -2531,7 +2531,7 @@ class MultiStageEquilibrium(Unit):
                     else:
                         break
             elif algorithm == 'simultaneous correction':
-                self._H_magnitude = sum([i.C for i in self.ins])
+                self._H_magnitude = 10 * sum([i.C for i in self.ins])
                 x = self._get_point()
                 shape = x.shape
                 x = x.flatten()
