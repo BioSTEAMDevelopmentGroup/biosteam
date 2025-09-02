@@ -23,6 +23,7 @@ from scipy.interpolate import LinearNDInterpolator, RBFInterpolator, PchipInterp
 from math import inf
 from typing import Callable, Optional
 from copy import copy
+from scipy.optimize import fsolve
 from scipy.optimize._numdiff import approx_derivative
 from scipy.differentiate import jacobian
 from .. import Unit
@@ -761,7 +762,8 @@ class StageEquilibrium(Unit):
         mol_bot = x[-N_chemicals:]
         Ctop = (np.array([i.Cn(phase_top, T, P) for i in chemicals]) * mol_top).sum() / H_magnitude
         Cbot = (np.array([i.Cn(phase_bot, T, P) for i in chemicals]) * mol_bot).sum() / H_magnitude
-        dEdx = jacobian(self._equilibrium_residuals_vectorized, x).df
+        # dEdx = jacobian(self._equilibrium_residuals_vectorized, x).df
+        dEdx = approx_derivative(self._equilibrium_residuals_vectorized, x)
         htop = np.array([i.H(phase_top, T, P) for i in chemicals]) / H_magnitude
         hbot = np.array([i.H(phase_bot, T, P) for i in chemicals]) / H_magnitude
         JD = JacobianData(
@@ -777,35 +779,6 @@ class StageEquilibrium(Unit):
         )
         return JD
     
-    def _get_point(self, x=None):
-        IDs = self.partition.IDs
-        N_chemicals = len(IDs)
-        if x is None:
-            x = np.zeros(N_chemicals * 2 + 1)
-        top, bottom = self.partition.outs
-        x[:N_chemicals] = top.imol[IDs]
-        x[N_chemicals] = self.T
-        x[-N_chemicals:] = bottom.imol[IDs]
-        return x
-    
-    def _set_point(self, x):
-        IDs = self.partition.IDs
-        N_chemicals = len(IDs)
-        top, bottom = self.partition.outs
-        top.imol[IDs] = mol_top = x[:N_chemicals]
-        if self.specified_variable != 'T':
-            self.T = x[N_chemicals]
-        bottom.imol[IDs] = mol_bot = x[-N_chemicals:]
-        if self.specified_variable != 'B':
-            bulk_bot = mol_bot.sum()
-            if bulk_bot:
-                self.B = mol_top.sum() / bulk_bot
-            else:
-                self.B = float('inf')
-        mol_bot[mol_bot == 0] = 1-16
-        self.S[:] = mol_top / mol_bot
-        if self.B != 0: self.K = self.S / self.B
-    
     def _simultaneous_correction_data(self, x, H_feed, mol_feed, H_magnitude):
         IDs = self.partition.IDs
         chemicals = self.chemicals[IDs]
@@ -817,7 +790,8 @@ class StageEquilibrium(Unit):
         mol_bot = x[-N_chemicals:]
         Ctop = (np.array([i.Cn(phase_top, T, P) for i in chemicals]) * mol_top).sum() / H_magnitude
         Cbot = (np.array([i.Cn(phase_bot, T, P) for i in chemicals]) * mol_bot).sum() / H_magnitude
-        dEdx = jacobian(self._equilibrium_residuals_vectorized, x).df
+        # dEdx = jacobian(self._equilibrium_residuals_vectorized, x).df
+        dEdx = approx_derivative(self._equilibrium_residuals_vectorized, x)
         htop = np.array([i.H(phase_top, T, P) for i in chemicals]) / H_magnitude
         hbot = np.array([i.H(phase_bot, T, P) for i in chemicals]) / H_magnitude
         Htop = (htop * mol_top).sum()
@@ -858,10 +832,15 @@ class StageEquilibrium(Unit):
                 T = x[N_chemicals]
                 bulk_top = mol_top.sum()
                 bulk_bottom = mol_bottom.sum()
-                y = mol_top / bulk_top
-                x = mol_bottom / bulk_bottom
-                K = K_model(y, x, T, P)
-                return K * mol_bottom * bulk_top / bulk_bottom - mol_top
+                if bulk_top and bulk_bottom:
+                    y = mol_top / bulk_top
+                    x = mol_bottom / bulk_bottom
+                    K = K_model(y, x, T, P)
+                    return K * mol_bottom * bulk_top / bulk_bottom - mol_top
+                elif self.B == 0 or bulk_top:
+                    return -0.1 * mol_top
+                else:
+                    return 0.1 * mol_bottom
             
             self._vectorized_equilibrium_residuals = lambda x: np.apply_along_axis(residuals, axis=0, arr=x)
             return self._vectorized_equilibrium_residuals
@@ -872,14 +851,19 @@ class StageEquilibrium(Unit):
         mol_bottom = center.bottom.mol
         bulk_top = mol_top.sum()
         bulk_bottom = mol_bottom.sum()
-        y = mol_top / bulk_top
-        x = mol_bottom / bulk_bottom
-        try:
-            K_model = self._K_model
-        except:
-            self._K_model = K_model = tmo.equilibrium.PartitionCoefficients(''.join(self.phases), self.chemicals[self.partition.IDs], self.thermo)
-        K = K_model(y, x, T, self.P)
-        return K * mol_bottom * bulk_top / bulk_bottom - mol_top
+        if bulk_top and bulk_bottom:
+            y = mol_top / bulk_top
+            x = mol_bottom / bulk_bottom
+            try:
+                K_model = self._K_model
+            except:
+                self._K_model = K_model = tmo.equilibrium.PartitionCoefficients(''.join(self.phases), self.chemicals[self.partition.IDs], self.thermo)
+            K = K_model(y, x, T, self.P)
+            return K * mol_bottom * bulk_top / bulk_bottom - mol_top
+        elif self.B == 0 or bulk_top:
+            return -0.1 * mol_top
+        else:
+            return 0.1 * mol_bottom
     
     def _material_balance_residuals(self, upper, center, lower):
         mol_out = center.top.mol + center.bottom.mol
@@ -924,6 +908,36 @@ class StageEquilibrium(Unit):
             return self.F - F
         else:
             raise RuntimeError('unknown specification')
+    
+    def _get_point(self, x=None):
+        IDs = self.partition.IDs
+        N_chemicals = len(IDs)
+        if x is None:
+            x = np.zeros(N_chemicals * 2 + 1)
+        top, bottom = self.partition.outs
+        x[:N_chemicals] = top.imol[IDs]
+        x[N_chemicals] = self.T
+        x[-N_chemicals:] = bottom.imol[IDs]
+        return x
+    
+    def _set_point(self, x):
+        IDs = self.partition.IDs
+        N_chemicals = len(IDs)
+        top, bottom = self.partition.outs
+        top.imol[IDs] = mol_top = x[:N_chemicals]
+        if self.specified_variable != 'T':
+            self.T = x[N_chemicals]
+        bottom.imol[IDs] = mol_bot = x[-N_chemicals:]
+        if self.specified_variable != 'B':
+            bulk_bot = mol_bot.sum()
+            if bulk_bot:
+                self.B = mol_top.sum() / bulk_bot
+            else:
+                self.B = float('inf')
+        mol_bot[mol_bot == 0] = 1-16
+        self.S[:] = mol_top / mol_bot
+        if self.B != 0: self.K = self.S / self.B
+        for i in self.splitters: i._run()
 
     # %% Phenomena-based simulation
     
@@ -1829,9 +1843,9 @@ class MultiStageEquilibrium(Unit):
     _N_ins = 2
     _N_outs = 2
     inside_maxiter = 100
-    default_max_attempts = 5
-    default_maxiter = 40
-    default_fallback = None
+    default_max_attempts = 2
+    default_maxiter = 30
+    default_fallback = 'simultaneous correction', 'trust-region', 50, 1
     default_S_tolerance = 1e-6
     default_relative_S_tolerance = 1e-6
     default_algorithm = 'phenomena'
@@ -1846,7 +1860,7 @@ class MultiStageEquilibrium(Unit):
     }
     default_methods = {
         'phenomena': 'wegstein',
-        'simultaneous correction': NotImplemented,
+        'simultaneous correction': 'trust-region',
     }
     method_options = {
         'fixed-point': {},
@@ -2152,57 +2166,7 @@ class MultiStageEquilibrium(Unit):
                 x[mask] = 1e-12
         return self._net_residual(self._residuals(x))
     
-    # _H_magnitude = 1
-    @property
-    def _H_magnitude(self):
-        try:
-            return self.__H_magnitude
-        except:
-            self.__H_magnitude = sum([i.Hvap for i in self.ins]) / self.feed_flows.sum()
-            return self.__H_magnitude
-        # if var == 'Q':
-        #     try:
-        #         return self._Q_magnitude
-        #     except:
-        #         self._Q_magnitude = sum([i.Hvap for i in self.ins]) / self.feed_flows.sum()
-        #         return self._Q_magnitude
-        # elif var in ('B', 'F'):
-        #     try:
-        #         return self._BF_magnitude
-        #     except:
-        #         self._BF_magnitude = sum([i.F_mol for i in self.ins])
-        #         return self._BF_magnitude
-        # elif var == 'M':
-        #     try:
-        #         return self._M_magnitude
-        #     except:
-        #         self._M_magnitude = self.feed_flows.sum(axis=0)
-        #         return self._M_magnitude
-        # elif var in ('E', 'T', 'M', 'B', 'F'):
-        #     return 1 # Good order of magnitude already
-        # else:
-        #     raise NotImplementedError(f'{var!r} has no order of magnitude')
-    
     def _net_residual(self, residuals):
-        # original = residuals
-        # residuals = residuals.copy()
-        # groups = {}
-        # var_index = 0
-        # for i, stage in enumerate(self.stages):
-        #     var = stage.specified_variable
-        #     if var in ('T', 'B', 'F'):
-        #         continue
-        #     elif var in groups:
-        #         groups[var].append(i)
-        #     else:
-        #         groups[var] = [i]
-        # for var, group in groups.items():
-        #     residuals[group, var_index] /= self._get_order_of_magnitude(var)
-        # N_chemicals = self._N_chemicals
-        # M_slice = slice(1, N_chemicals + 1)
-        # residuals[:, M_slice] /= self._get_order_of_magnitude('M')
-        # net_residual = (residuals * residuals).sum()
-        # self._last_residuals = (original, net_residual)
         net_residual = (residuals * residuals).sum()
         self._last_residuals = (residuals, net_residual)
         return net_residual
@@ -2291,7 +2255,8 @@ class MultiStageEquilibrium(Unit):
         correction = MESH.solve_block_tridiagonal_matrix(A, B, C, residuals)
         return correction
     
-    def _simultaneous_correction_iter(self, x): # TODO: implement line search algorithm 
+    def _simultaneous_correction_iter(self, x): 
+        # Simple line search, fsolve (which uses trust-region) is better
         try:
             residuals, residual = self._last_residuals
         except:
@@ -2335,32 +2300,18 @@ class MultiStageEquilibrium(Unit):
         else:
             A, B, C = self._jacobian(x)
         correction = -MESH.solve_block_tridiagonal_matrix(A, B, C, residuals)
-        # dummy = correction.copy()
-        # mask = (dummy != 0) & (x != 0)
-        # t_limits = -x[mask] / dummy[mask]
-        # t1 = min((t_limits[t_limits > 0]).min(), 2)
-        # t1 = max(t1, 0.3)
         try:
             tguess = self._tguess
         except:
             self._tguess = tguess = 1
-        # if tguess > t1: tguess = 0.5 * t1
         try:
             tguess, x, new_residual = flx.inexact_line_search(self._objective, x, correction, fx=residual, tguess=tguess)
         except:
             self._last_residuals = residuals, residual # Reset to original
             return 0, x, residual
-        # tguess, *info = flx.exact_line_search(self._objective, x, correction)
-        # print(info)
-        # x += tguess * correction
         residuals, residual = self._last_residuals
         self._tguess = tguess
         return tguess, x, residual
-        # print(residual, new_residual)
-        # x = x + tguess * correction
-        # mask = x < 0
-        # if mask.any(): x[mask] = 0.5 * x[mask]
-        # return tguess, x, self._objective(x)
     
     # %% Decoupled phenomena equation oriented simulation
     
@@ -2567,7 +2518,6 @@ class MultiStageEquilibrium(Unit):
                 f = self._inside_out_iter if self.inside_out else self._iter
                 self.attempt = 0
                 self.bottom_flows = None
-                last = self.max_attempts - 1
                 if self.vle_decomposition is None:
                     self.default_vle_decomposition()
                 for n in range(self.max_attempts):
@@ -2576,22 +2526,28 @@ class MultiStageEquilibrium(Unit):
                     try:
                         separation_factors = solver(f, separation_factors, **options)
                     except:
-                        if n != last:
-                            for i in self.stages: i._run()
-                            for i in reversed(self.stages): i._run()
-                            separation_factors = np.array([i.S for i in self._S_stages])
+                        for i in self.stages: i._run()
+                        for i in reversed(self.stages): i._run()
+                        separation_factors = np.array([i.S for i in self._S_stages])
+                        if self.fallback and self.fallback[0] != self.algorithm:
+                            original = self.algorithm, self.method, self.maxiter, self.max_attempts
+                            self.algorithm, self.method, self.maxiter, self.max_attempts = self.fallback
+                            try:
+                                self._run()
+                            finally:
+                                self.algorithm, self.method, self.maxiter, self.max_attempts = original
                     else:
                         break
-                if self.iter == self.maxiter and self.fallback and self.fallback[0] != self.algorithm:
-                    original = self.algorithm, self.method, self.maxiter, self.max_attempts
-                    self.algorithm, self.method, self.maxiter = self.fallback
-                    self.max_attempts = 1
-                    try:
-                        self._run()
-                    finally:
-                        self.algorithm, self.method, self.maxiter, self.max_attempts = original
             elif algorithm == 'simultaneous correction':
-                raise NotImplementedError(f'{algorithm!r} not implemented in BioSTEAM (yet)')
+                F_mol = self.feed_flows.sum()
+                self._H_magnitude = sum([i.Hvap for i in self.ins]) / F_mol
+                x = self._get_point()
+                shape = x.shape
+                x = x.flatten()
+                f = lambda x: self._residuals(x.reshape(shape)).flatten()
+                jac = lambda x: MESH.create_block_tridiagonal_matrix(*self._jacobian(x.reshape(shape)))
+                x, *self._simultaneous_correction_info = fsolve(f, x, fprime=jac, full_output=True, maxfev=self.maxiter, xtol=self.S_tolerance * F_mol)
+                self._set_point(x.reshape(shape))
             else:
                 raise RuntimeError(
                     f'invalid algorithm {algorithm!r}, only {self.available_algorithms} are allowed'
