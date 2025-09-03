@@ -8,7 +8,7 @@ from math import exp, log
 import numpy as np
 from thermosteam.constants import R
 from numpy.testing import assert_allclose
-    
+
 def test_multi_stage_adiabatic_vle():
     bst.settings.set_thermo(['AceticAcid', 'EthylAcetate', 'Water', 'MTBE'], cache=True)
     feed = bst.Stream('feed', Water=75, AceticAcid=5, MTBE=20, T=320)
@@ -64,6 +64,18 @@ def test_multi_stage_adiabatic_vle():
         atol=1,
         rtol=0.01,
     )
+    
+def test_multi_stage_adiabatic_vle_non_condensables():
+    import biosteam as bst
+    bst.settings.set_thermo(['Water', 'Ethanol', 'CO2', 'N2'], cache=True)
+    liq = bst.Stream('feed', Water=100, units='kg/hr', T=320)
+    gas = bst.Stream('steam', CO2=100, N2=100, Ethanol=40, units='kg/hr', phase='g', T=305.15)
+    MSE = bst.MultiStageEquilibrium(N_stages=10, ins=[liq, gas], feed_stages=[0, -1],
+        outs=['vapor', 'liquid'],
+        phases=('g', 'l'),
+    )
+    MSE.simulate()
+    
    
 # def test_lactic_acid_ethanol_reactive_distillation():
 #     import biosteam as bst

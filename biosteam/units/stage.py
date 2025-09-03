@@ -181,7 +181,7 @@ class JacobianConstructor:
                 C[eq.H, var.T] = -lower.dHdTtop
             np.fill_diagonal(C[eq.M, var.Ftop], -1)
 
-# @njit(cache=True)
+@njit(cache=True)
 def jacobian_blocks(jacobian_data, N_stages, N_chemicals, N_variables):
     JC = JacobianConstructor(N_chemicals)
     A_blocks = np.zeros((N_stages-1, N_variables, N_variables))
@@ -1859,12 +1859,12 @@ class MultiStageEquilibrium(Unit):
         'simultaneous correction',
     }
     default_methods = {
-        'phenomena': 'wegstein',
+        'phenomena': 'fixed-point',
         'simultaneous correction': 'trust-region',
     }
     method_options = {
-        'fixed-point': {},
-        'wegstein': {'lb': 1, 'ub': 4, 'exp': 0.5}
+        'fixed-point': {'convergenceiter': 3},
+        'wegstein': {'lb': 1, 'ub': 4, 'exp': 0.5, 'convergenceiter': 3}
     }
     auxiliary_unit_names = (
         'stages',
@@ -2542,6 +2542,7 @@ class MultiStageEquilibrium(Unit):
                 else:
                     x[x < 0] = 0
                     self._set_point(x.reshape(shape))
+                    self.update_mass_balance()
             else:
                 raise RuntimeError(
                     f'invalid algorithm {algorithm!r}, only {self.available_algorithms} are allowed'
