@@ -26,9 +26,10 @@ from copy import copy
 from scipy.optimize import fsolve
 from scipy.optimize._numdiff import approx_derivative
 from scipy.differentiate import jacobian
+from collections import deque
 from .. import Unit
 from .design_tools import MESH
-from numba import float64, types, njit
+from numba import float64, int8, types, njit
 from thermosteam import (
     equilibrium, VariableNode,
 )
@@ -55,13 +56,11 @@ class JacobianData:
     variable: str
     value: float
 
-
 @jitdata
 class InterstageData:
     H: float
     mol: float64[:]
     split: float
-    
     
 @jitdata
 class FeedData:
@@ -181,7 +180,7 @@ class JacobianConstructor:
                 C[eq.H, var.T] = -lower.dHdTtop
             np.fill_diagonal(C[eq.M, var.Ftop], -1)
 
-@njit(cache=True)
+@njit(types.UniTuple(float64[:, :, :], 3)(types.List(JacobianData.class_type.instance_type, reflected=True), int8, int8, int8))
 def jacobian_blocks(jacobian_data, N_stages, N_chemicals, N_variables):
     JC = JacobianConstructor(N_chemicals)
     A_blocks = np.zeros((N_stages-1, N_variables, N_variables))
@@ -693,35 +692,15 @@ class StageEquilibrium(Unit):
         self.partition._run()
         for i in self.splitters: i._run()
         self._update_separation_factors()
-    
-    def _init_separation_factors(self):
-        if self.specified_variable == 'B':
-            B = self.B
-            if B == 0:
-                self.S = 0 * self.K
-            elif B == inf:
-                self.S = self.K.copy()
-                self.S[:] = inf
-            else:
-                self.S = (B * self.K)
-        else:
-            B = self.B
-            if B is None:
-                self.S = np.ones(self.chemicals.size)
-            else:
-                self.S = (B * self.K)
         
     def _update_separation_factors(self, f=None):
-        if not hasattr(self, 'S'): self._init_separation_factors()
-        if self.B is None or self.B == inf or self.B == 0: return
-        K = self.K
-        if K.size != self.S.size: 
-            self._init_separation_factors()
-            return
-        S = K * self.B
-        if self.phases == ('L', 'l'):
-            self.S = S
+        if self.B == inf:
+            self.S = np.ones(len(self.partition.IDs)) * np.inf
+        elif self.B == 0: 
+            self.S = np.zeros(len(self.partition.IDs))
         else:
+            K = self.K
+            S = K * self.B
             if f is None: f = self.partition.S_relaxation_factor
             if f == 0:
                 self.S = S
@@ -836,12 +815,27 @@ class StageEquilibrium(Unit):
                     y = mol_top / bulk_top
                     x = mol_bottom / bulk_bottom
                     K = K_model(y, x, T, P)
-                    return K * mol_bottom * bulk_top / bulk_bottom - mol_top
+                    error = K * mol_bottom * bulk_top / bulk_bottom - mol_top
                 elif self.B == 0 or bulk_top:
-                    return -0.1 * mol_top
+                    error = -0.1 * mol_top
                 else:
-                    return 0.1 * mol_bottom
-            
+                    error = 0.1 * mol_bottom
+                # if 'g' in self.phases:
+                #     try:
+                #         Tmax = self._Tmax
+                #         Tmin = self._Tmin
+                #     except:
+                #         chemicals = self.chemicals[self.partition.IDs]
+                #         Ts = [i.Tsat(self.P) for i in chemicals]
+                #         Tmax = self._Tmax = 1.2 * max(Ts)
+                #         Tmin = self._Tmin = 0.8 * min(Ts)
+                #     if T > Tmax:
+                #         error[error > 0] += 1e3 * (T - Tmax)
+                #         error[error < 0] -= 1e3 * (T - Tmax)
+                #     elif T < Tmin:
+                #         error[error > 0] += 1e3 * (Tmin - T)
+                #         error[error < 0] -= 1e3 * (Tmin - T)
+                return error
             self._vectorized_equilibrium_residuals = lambda x: np.apply_along_axis(residuals, axis=0, arr=x)
             return self._vectorized_equilibrium_residuals
     
@@ -859,11 +853,27 @@ class StageEquilibrium(Unit):
             except:
                 self._K_model = K_model = tmo.equilibrium.PartitionCoefficients(''.join(self.phases), self.chemicals[self.partition.IDs], self.thermo)
             K = K_model(y, x, T, self.P)
-            return K * mol_bottom * bulk_top / bulk_bottom - mol_top
+            error = K * mol_bottom * bulk_top / bulk_bottom - mol_top
         elif self.B == 0 or bulk_top:
-            return -0.1 * mol_top
+            error = -0.1 * mol_top
         else:
-            return 0.1 * mol_bottom
+            error = 0.1 * mol_bottom
+        # if 'g' in self.phases:
+        #     try:
+        #         Tmax = self._Tmax
+        #         Tmin = self._Tmin
+        #     except:
+        #         chemicals = self.chemicals[self.partition.IDs]
+        #         Ts = [i.Tsat(self.P) for i in chemicals]
+        #         Tmax = self._Tmax = 1.2 * max(Ts)
+        #         Tmin = self._Tmin = 0.8 * min(Ts)
+        #     if T > Tmax:
+        #         error[error > 0] += 1e3 * (T - Tmax)
+        #         error[error < 0] -= 1e3 * (T - Tmax)
+        #     elif T < Tmin:
+        #         error[error > 0] += 1e3 * (Tmin - T)
+        #         error[error < 0] -= 1e3 * (Tmin - T)
+        return error
     
     def _material_balance_residuals(self, upper, center, lower):
         mol_out = center.top.mol + center.bottom.mol
@@ -935,8 +945,11 @@ class StageEquilibrium(Unit):
             else:
                 self.B = float('inf')
         mol_bot[mol_bot == 0] = 1-16
-        self.S[:] = mol_top / mol_bot
-        if self.B != 0: self.K = self.S / self.B
+        self.S = mol_top / mol_bot
+        if self.B == 0: 
+            self.K = np.zeros(N_chemicals)
+        else:
+            self.K = self.S / self.B
         for i in self.splitters: i._run()
 
     # %% Phenomena-based simulation
@@ -1313,7 +1326,6 @@ class PhasePartition(Unit):
         self.P = None
         self.Q = None
         self.specified_variable = None
-        self.B_fallback = 1
         self.dmol = SparseVector.from_size(self.chemicals.size)
         for i, j in zip(self.outs, self.phases): i.phase = j 
         
@@ -1843,11 +1855,11 @@ class MultiStageEquilibrium(Unit):
     _N_ins = 2
     _N_outs = 2
     inside_maxiter = 100
-    default_max_attempts = 2
-    default_maxiter = 30
-    default_fallback = 'simultaneous correction', 'trust-region', 50, 1
-    default_S_tolerance = 1e-6
-    default_relative_S_tolerance = 1e-6
+    default_max_attempts = 5
+    default_maxiter = 100
+    default_optimize_result = 'trust-region', 50
+    default_tolerance = 1e-5
+    default_relative_tolerance = 1e-5
     default_algorithm = 'phenomena'
     detault_inside_out = False
     default_inner_loop_algorthm = None
@@ -1863,8 +1875,8 @@ class MultiStageEquilibrium(Unit):
         'simultaneous correction': 'trust-region',
     }
     method_options = {
-        'fixed-point': {'convergenceiter': 3},
-        'wegstein': {'lb': 1, 'ub': 4, 'exp': 0.5, 'convergenceiter': 3}
+        'fixed-point': {},
+        'wegstein': {'lb': 1, 'ub': 4, 'exp': 0.5}
     }
     auxiliary_unit_names = (
         'stages',
@@ -2117,14 +2129,14 @@ class MultiStageEquilibrium(Unit):
         #: [int] Maximum number of attempts.
         self.max_attempts = self.default_max_attempts if max_attempts is None else max_attempts
         
-        #: tuple[str, str] Fallback algorithm and method.
-        self.fallback = self.default_fallback
+        #: tuple[str, int] Final optimization method and number of iterations.
+        self.optimize_result = self.default_optimize_result
 
-        #: [float] Separation factor tolerance
-        self.S_tolerance = self.default_S_tolerance
+        #: [float] Absolute molar flow and temperature tolerance
+        self.tolerance = self.default_tolerance
 
-        #: [float] Relative separation factor tolerance
-        self.relative_S_tolerance = self.default_relative_S_tolerance
+        #: [float] Relative molar flow and temperature tolerance
+        self.relative_tolerance = self.default_relative_tolerance
         
         self.use_cache = True if use_cache else False
         
@@ -2183,7 +2195,8 @@ class MultiStageEquilibrium(Unit):
         residuals = np.zeros([N_stages, N_variables]) # H, Mi, Ei
         residuals[0, H_index] = stage._energy_balance_residual(None, center, lower)
         residuals[0, M_slice] = stage._material_balance_residuals(None, center, lower)
-        stage = stages[1]
+        i = 1
+        stage = stages[i]
         for i in range(2, N_stages): 
             upper = center
             center = lower
@@ -2490,98 +2503,144 @@ class MultiStageEquilibrium(Unit):
         if all([i.isempty() for i in self.ins]): 
             for i in self.outs: i.empty()
             return
-        try:
-            separation_factors = self.hot_start()
-            algorithm = self.algorithm
-            method = self.method
-            if algorithm in self.decomposition_algorithms:
-                options = dict(
-                    maxiter=self.maxiter,
-                    xtol=self.S_tolerance,
-                    rtol=self.relative_S_tolerance,
-                    **self.method_options[method],
-                )
-                if method == 'fixed-point':
-                    solver = flx.fixed_point
-                elif method == 'wegstein':
-                    solver = flx.wegstein
-                else:
-                    raise ValueError(f'invalid method {method!r}')
-                f = self._inside_out_iter if self.inside_out else self._iter
-                self.attempt = 0
-                self.bottom_flows = None
-                if self.vle_decomposition is None:
-                    self.default_vle_decomposition()
-                for n in range(self.max_attempts):
-                    self.attempt = n
-                    self.iter = 0
-                    try:
-                        separation_factors = solver(f, separation_factors, **options)
+        x = self.hot_start()
+        algorithm = self.algorithm
+        method = self.method
+        self._H_magnitude = 10 * sum([i.mixture.Cn('l', i.mol, i.T, i.P) for i in self.ins])
+        if algorithm in self.decomposition_algorithms:
+            optimize_result = self.optimize_result
+            options = dict(
+                maxiter=self.maxiter,
+                xtol=10 * self.tolerance if optimize_result else self.tolerance,
+                rtol=10 * self.relative_tolerance if optimize_result else self.relative_tolerance,
+                **self.method_options[method],
+            )
+            if method == 'fixed-point':
+                solver = flx.fixed_point
+            elif method == 'wegstein':
+                solver = flx.wegstein
+            else:
+                raise ValueError(f'invalid method {method!r}')
+            f = self._inside_out_iter if self.inside_out else self._iter
+            self.attempt = 0
+            self.bottom_flows = None
+            self._tguess = 1
+            self._mean_residual = np.inf
+            residual_record = 4 * [(None, np.inf)]
+            residual_record[0] = (x, self._objective(x))
+            self._residual_record = deque(residual_record)
+            if self.vle_decomposition is None:
+                self.default_vle_decomposition()
+            self.iter = 0
+            for n in range(self.max_attempts):
+                self.attempt = n
+                try: x = solver(f, x, **options)
+                except: 
+                    residual = self._mean_residual
+                    self._mean_residual = np.inf
+                    self._residual_record[1] = (None, np.inf)
+                    try: x = solver(self._sequential_iter, x, **options)
                     except:
-                        for i in self.stages: i._run()
-                        for i in reversed(self.stages): i._run()
-                        separation_factors = np.array([i.S for i in self._S_stages])
-                        if self.fallback and self.fallback[0] != self.algorithm:
-                            original = self.algorithm, self.method, self.maxiter, self.max_attempts
-                            self.algorithm, self.method, self.maxiter, self.max_attempts = self.fallback
-                            try:
-                                self._run()
-                            finally:
-                                self.algorithm, self.method, self.maxiter, self.max_attempts = original
+                        if residual >= self._mean_residual: break
                     else:
+                        self._set_point(x)
                         break
-            elif algorithm == 'simultaneous correction':
-                self._H_magnitude = 10 * sum([i.mixture.Cn('l', i.mol, i.T, i.P) for i in self.ins])
-                x = self._get_point()
-                shape = x.shape
-                x = x.flatten()
-                f = lambda x: self._residuals(x.reshape(shape)).flatten()
-                jac = lambda x: MESH.create_block_tridiagonal_matrix(*self._jacobian(x.reshape(shape)))
-                try: x, *self._simultaneous_correction_info = fsolve(f, x, fprime=jac, full_output=True, maxfev=self.maxiter, xtol=self.S_tolerance)
-                except: pass
                 else:
-                    x[x < 0] = 0
-                    self._set_point(x.reshape(shape))
-                    self.update_mass_balance()
-            else:
-                raise RuntimeError(
-                    f'invalid algorithm {algorithm!r}, only {self.available_algorithms} are allowed'
-                )
-            # self.correct_overall_mass_balance()
-        except Exception as e:
-            if self.use_cache:
-                self.use_cache = False
+                    self._set_point(x)
+                    break
+            if self.optimize_result:
+                original = self.method, self.maxiter
+                self.method, self.maxiter = optimize_result
                 try:
-                    self._run()
+                    self._simultaneous_correction(x)
                 finally:
-                    self.use_cache = True
-            else:
-                raise e
+                    self.method, self.maxiter = original
+        elif algorithm == 'simultaneous correction':
+            self._simultaneous_correction(x)
+        else:
+            raise RuntimeError(
+                f'invalid algorithm {algorithm!r}, only {self.available_algorithms} are allowed'
+            )
     
-    def _phenomena_iter(self, separation_factors):
+    def _simultaneous_correction(self, x):
+        shape = x.shape
+        x = x.flatten()
+        f = lambda x: self._residuals(x.reshape(shape)).flatten()
+        jac = lambda x: MESH.create_block_tridiagonal_matrix(*self._jacobian(x.reshape(shape)))
+        try: x, *self._simultaneous_correction_info = fsolve(f, x, fprime=jac, full_output=True, maxfev=self.maxiter, xtol=self.tolerance)
+        except: pass
+        else:
+            x[x < 0] = 0
+            self._set_point(x.reshape(shape))
+        #     self.update_mass_balance()
+    
+    def _phenomena_iter(self, x0):
+        self.iter += 1
+        self._set_point(x0)
         if self._has_vle:
             decomp = self.vle_decomposition
             if decomp == 'bubble point':
-                self.update_flow_rates(separation_factors, update_B=True)
                 self.update_bubble_point()
                 self.update_energy_balance_phase_ratio_departures()
                 for i in self.stages: i._update_separation_factors()
+                separation_factors = np.array([i.S for i in self._S_stages])
+                self.update_flow_rates(separation_factors, update_B=True)
+                return self._line_search(x0, self._get_point())
             elif decomp == 'sum rates':
-                self.update_pseudo_vle(separation_factors)
+                self.update_pseudo_vle()
+                separation_factors = np.array([i.S for i in self._S_stages])
+                self.update_flow_rates(separation_factors, update_B=True)
                 self.update_energy_balance_temperatures()
             else:
                 raise NotImplementedError(f'{decomp!r} decomposition not implemented')
         elif self._has_lle:
-            self.update_pseudo_lle(separation_factors)
+            self.update_pseudo_lle()
             self.update_energy_balance_temperatures()
         else:
             raise RuntimeError('unknown equilibrium phenomena')
-        if not hasattr(self, 'deltas'): self.deltas = []
-        x = lambda stream: np.array([*stream.mol, stream.H])
-        self.deltas.append(
-            [x(i.outs[0]) - sum([x(i) for i in i.ins if i.phase=='g']) for i in self.partitions]
+        return self._get_point()
+      
+    def _line_search(self, x0, x1):
+        x1 = self._get_point()
+        correction = x1 - x0
+        record = self._residual_record
+        _, r0 = record[0]
+        tguess = self._tguess
+        self._tguess, x1, r1 = flx.inexact_line_search(
+            self._objective, x0, correction, 
+            fx=r0, t0=0.1, t1=1.1, tguess=tguess
         )
-        return np.array([i.S for i in self._S_stages])
+        record.rotate()
+        record[0] = x1, r1
+        residuals = np.array([i[1] for i in record])
+        mean = np.mean(residuals)
+        if mean > self._mean_residual:
+            index = np.argmin(residuals)
+            x, r = record[0] = record[index]
+            self._set_point(x)
+            raise RuntimeError('residual error is oscillating')
+        else:
+            self._mean_residual = mean
+            x1[x1 < 0] = 0
+            x1 = self._get_point()
+            return x1
+    
+    def _sequential_iter(self, x0):
+        self.iter += 1
+        self._set_point(x0)
+        for i in self.stages: i._run()
+        for i in reversed(self.stages): i._run()
+        return self._line_search(x0, self._get_point())
+    
+    def _iter(self, x0):
+        algorithm = self.algorithm
+        if algorithm == 'phenomena':
+            x1 = self._phenomena_iter(x0)
+        elif algorithm == 'sequential modular':
+            x1 = self._sequential_iter(x0)
+        else:
+            raise RuntimeError(f'invalid algorithm {algorithm!r}')
+        return x1
     
     def _inside_out_iter(self, separation_factors):
         self.iter += 1
@@ -2592,53 +2651,22 @@ class MultiStageEquilibrium(Unit):
                 self._surrogate_iter, 
                 separation_factors, 
                 maxiter=self.inside_maxiter,
-                xtol=self.S_tolerance,
-                rtol=self.relative_S_tolerance, 
+                xtol=self.tolerance,
+                rtol=self.relative_tolerance, 
                 checkconvergence=False,
                 checkiter=False,
             )
         else:
             return separation_factors
     
-    def _update_surrogate_models(self):
-        partitions = self.partitions
-        mixture = self.mixture
-        range_stages = range(self.N_stages)
-        P = self.P
-        Ts = np.array([i.T for i in partitions])
-        for i in range(self.N_stages-1):
-            if Ts[i+1] - Ts[i] < 0: return False
-        xs = np.array([i.x for i in partitions])
-        ys = np.array([i.y for i in partitions])
-        Ks = np.array([i.K for i in partitions])
-        hVs = np.array([
-            mixture.H(mol=ys[i], phase='g', T=Ts[i], P=P)
-            for i in range_stages
-        ])
-        hLs = np.array([
-            mixture.H(mol=xs[i], phase='l', T=Ts[i], P=P)
-            for i in range_stages
-        ])
-        self.Tlb = Ts.min()
-        self.Tub = Ts.max()
-        self.T_surrogate = self.TSurrogate(xs[:, :-1], Ts, **self.T_surrogate_options)
-        self.K_surrogate = self.KSurrogate(Ts, Ks, **self.K_surrogate_options)
-        self.hV_surrogate = self.hSurrogate(Ts, hVs, **self.h_surrogate_options)
-        self.hL_surrogate = self.hSurrogate(Ts, hLs, **self.h_surrogate_options)
-        # import matplotlib.pyplot as plt
-        # xs = np.linspace(self.Tlb, self.Tub, num=100)
-        # fig, ax = plt.subplots()
-        # ax.plot(Ts, hVs, "o", label="data")
-        # ax.plot(xs, self.hV_surrogate(xs), label='surrogate')
-        # ax.legend()
-        # fig.show()
-        return True
-    
-    def _sequential_iter(self, separation_factors):
-        self.update_flow_rates(separation_factors)
-        for i in self.stages: i._run()
-        for i in reversed(self.stages): i._run()
-        return np.array([i.S for i in self._S_stages])
+    def _surrogate_iter(self, separation_factors=None):
+        self.inside_iter += 1
+        algorithm = self.algorithm
+        if algorithm == 'phenomena':
+            separation_factors = self._phenomena_surrogate_iter(separation_factors)
+        else:
+            raise RuntimeError(f'invalid algorithm {algorithm!r} for surrogate model')
+        return separation_factors
     
     def _phenomena_surrogate_iter(self, separation_factors):
         feed_flows, *args = self._iter_args
@@ -2712,25 +2740,40 @@ class MultiStageEquilibrium(Unit):
         # breakpoint()
         return S
     
-    def _surrogate_iter(self, separation_factors=None):
-        self.inside_iter += 1
-        algorithm = self.algorithm
-        if algorithm == 'phenomena':
-            separation_factors = self._phenomena_surrogate_iter(separation_factors)
-        else:
-            raise RuntimeError(f'invalid algorithm {algorithm!r} for surrogate model')
-        return separation_factors
+    def _update_surrogate_models(self):
+        partitions = self.partitions
+        mixture = self.mixture
+        range_stages = range(self.N_stages)
+        P = self.P
+        Ts = np.array([i.T for i in partitions])
+        for i in range(self.N_stages-1):
+            if Ts[i+1] - Ts[i] < 0: return False
+        xs = np.array([i.x for i in partitions])
+        ys = np.array([i.y for i in partitions])
+        Ks = np.array([i.K for i in partitions])
+        hVs = np.array([
+            mixture.H(mol=ys[i], phase='g', T=Ts[i], P=P)
+            for i in range_stages
+        ])
+        hLs = np.array([
+            mixture.H(mol=xs[i], phase='l', T=Ts[i], P=P)
+            for i in range_stages
+        ])
+        self.Tlb = Ts.min()
+        self.Tub = Ts.max()
+        self.T_surrogate = self.TSurrogate(xs[:, :-1], Ts, **self.T_surrogate_options)
+        self.K_surrogate = self.KSurrogate(Ts, Ks, **self.K_surrogate_options)
+        self.hV_surrogate = self.hSurrogate(Ts, hVs, **self.h_surrogate_options)
+        self.hL_surrogate = self.hSurrogate(Ts, hLs, **self.h_surrogate_options)
+        # import matplotlib.pyplot as plt
+        # xs = np.linspace(self.Tlb, self.Tub, num=100)
+        # fig, ax = plt.subplots()
+        # ax.plot(Ts, hVs, "o", label="data")
+        # ax.plot(xs, self.hV_surrogate(xs), label='surrogate')
+        # ax.legend()
+        # fig.show()
+        return True
     
-    def _iter(self, separation_factors=None):
-        self.iter += 1
-        algorithm = self.algorithm
-        if algorithm == 'phenomena':
-            separation_factors = self._phenomena_iter(separation_factors)
-        elif algorithm == 'sequential modular':
-            separation_factors = self._sequential_iter(separation_factors)
-        else:
-            raise RuntimeError(f'invalid algorithm {algorithm!r}')
-        return separation_factors
     
     # %% Initial guess
     
@@ -2783,7 +2826,7 @@ class MultiStageEquilibrium(Unit):
         )
         top_flow_rates = flx.wegstein(
             self._hot_start_phase_ratios_iter,
-            top_flow_rates, args=args, xtol=self.relative_S_tolerance,
+            top_flow_rates, args=args, xtol=self.relative_tolerance,
             checkiter=False,
         )
         bottom_flow_rates = MESH.hot_start_bottom_flow_rates(
@@ -3020,8 +3063,9 @@ class MultiStageEquilibrium(Unit):
                 for s in i.splitters: s._run()
         for i in partitions: i.IDs = IDs
         self.interpolate_missing_variables()
-        for i in self.stages: i._init_separation_factors()
-        return np.array([i.S for i in self._S_stages])
+        for i in self.stages: i._update_separation_factors()
+        self.update_mass_balance()
+        return self._get_point()
     
     def interpolate_missing_variables(self):
         stages = self.stages
@@ -3261,7 +3305,8 @@ class MultiStageEquilibrium(Unit):
             bulk_t = t.sum()
             if mask.any():
                 t[mask] = 0
-                t *= bulk_t / t.sum()
+                tsum = t.sum()
+                if tsum: t *= bulk_t / tsum
             b = bottom_flows[i]
             mask = b < 0
             bulk_b = b.sum()
@@ -3318,58 +3363,49 @@ class MultiStageEquilibrium(Unit):
         else:
             for i in stages:
                 partition = i.partition
-                partition._run_decoupled_KTvle(P=P)
+                try:
+                    partition._run_decoupled_KTvle(P=P)
+                except:
+                    breakpoint()
                 T = partition.T
                 for i in (partition.outs + i.outs): i.T = T
         if getattr(self, 'tracking', False):
             self._collect_variables('vle_phenomena')
     
-    def update_pseudo_lle(self, separation_factors=None):
+    def update_pseudo_lle(self):
+        if self.phases == ('l', 'L'): breakpoint()
         stages = self.stages
         P = self.P
-        if 'K' in self.partition_data:
-            if separation_factors is not None: 
-                self.update_flow_rates(separation_factors, update_B=False)
-                for i in stages: i._update_separation_factors()
-                if getattr(self, 'tracking', False):
-                    self._collect_variables('material')
-        else:
+        if 'K' not in self.partition_data:
             stages = self._S_stages
-            if separation_factors is None: separation_factors = np.array([i.S for i in stages])
-            def psuedo_equilibrium(separation_factors):
-                self.update_flow_rates(separation_factors, update_B=False)
+            def psuedo_equilibrium(flow_rates):
+                self.set_flow_rates(flow_rates, update_B=False)
                 for n, i in enumerate(stages): 
                     i.partition._run_decoupled_Kgamma(P=P)
                     i._update_separation_factors()
-                return np.array([i.S for i in stages])
+                return self.run_mass_balance()
+            
             separation_factors = flx.fixed_point(
-                psuedo_equilibrium, separation_factors, 
-                xtol=self.S_tolerance,
-                rtol=self.relative_S_tolerance,
+                psuedo_equilibrium, self.run_mass_balance(), 
+                xtol=self.tolerance,
+                rtol=self.relative_tolerance,
                 checkiter=False,
                 checkconvergence=False,
             )
-            self.update_flow_rates(separation_factors, update_B=True)
-            for i in stages: i._update_separation_factors()
         for i in stages: 
             mixer = i.mixer
             partition = i.partition
             mixer.outs[0].mix_from(mixer.ins, energy_balance=False)
             partition._run_decoupled_B()
             i._update_separation_factors()
+        separation_factors = np.array([i.S for i in stages])
+        self.update_flow_rates(separation_factors, update_B=True)
         if getattr(self, 'tracking', False):
             self._collect_variables('lle_phenomena')
     
     def update_pseudo_vle(self, separation_factors):
         P = self.P
-        if 'K' in self.partition_data:
-            if separation_factors is not None: 
-                self.update_flow_rates(separation_factors)
-                if getattr(self, 'tracking', False):
-                    self._collect_variables('material')
-        else:
-            if separation_factors is None: separation_factors = np.array([i.S for i in self._S_stages])
-            self.update_flow_rates(separation_factors, update_B=True)
+        if 'K' not in self.partition_data:
             for i in self.stages: 
                 i.partition._run_decoupled_Kfgas(P=P)
                 i._update_separation_factors()
