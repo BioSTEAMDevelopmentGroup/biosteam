@@ -2571,8 +2571,9 @@ class MultiStageEquilibrium(Unit):
         except: pass
         else:
             x[x < 0] = 0
+            x = x.reshape(shape)
             if (x[:, self._N_chemicals] < 1000).all():
-                self._set_point(x.reshape(shape))
+                self._set_point(x)
         #     self.update_mass_balance()
     
     def _phenomena_iter(self, x0):
