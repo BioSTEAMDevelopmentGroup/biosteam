@@ -31,6 +31,7 @@ from collections import deque
 from .. import Unit
 from .design_tools import MESH
 from numba import float64, int8, types, njit
+from typing import NamedTuple
 from thermosteam import (
     equilibrium, VariableNode,
 )
@@ -42,6 +43,12 @@ __all__ = (
     'MultiStageEquilibrium',
     'PhasePartition',
 )
+
+class IterationResult(NamedTuple):
+    t: float #: Step size
+    x: np.ndarray #: Point
+    r: float #: Residual
+
 
 # %% Equation-oriented tools
 
@@ -1855,8 +1862,10 @@ class MultiStageEquilibrium(Unit):
     """
     _N_ins = 2
     _N_outs = 2
+    _line_search = False # Experimental feature
+    dynamic_learning_rate = 0.1
     inside_maxiter = 100
-    default_max_attempts = 10
+    default_max_attempts = 5
     default_maxiter = 100
     default_optimize_result = 'trust-region', 50
     default_tolerance = 1e-5
@@ -2526,23 +2535,20 @@ class MultiStageEquilibrium(Unit):
             self.attempt = 0
             self.bottom_flows = None
             self._mean_residual = np.inf
-            empty = flx.LineSearchResult(None, None, np.inf)
-            residual_record = 5 * [empty]
-            residual_record[0] = flx.LineSearchResult(1, x, self._objective(x))
-            self._residual_record = deque(residual_record)
+            self._best_result = empty = IterationResult(None, None, np.inf)
+            record = 5 * [empty]
+            record[0] = IterationResult(1, x, self._objective(x))
+            self._residual_record = record = deque(record)
             if self.vle_decomposition is None:
                 self.default_vle_decomposition()
             self.iter = 0
             for n in range(self.max_attempts):
                 self.attempt = n
                 try: x = solver(f, self._get_point(), **options)
-                except: 
-                    residual = self._mean_residual
+                except:
                     self._mean_residual = np.inf
-                    self._residual_record[1] = empty
                     try: x = solver(self._sequential_iter, self._get_point(), **options)
-                    except:
-                        if residual >= self._mean_residual: break
+                    except: break
                     else:
                         self._set_point(x)
                         break
@@ -2553,7 +2559,7 @@ class MultiStageEquilibrium(Unit):
                 original = self.method, self.maxiter
                 self.method, self.maxiter = optimize_result
                 try:
-                    self._simultaneous_correction(x)
+                    self._simultaneous_correction(self._get_point())
                 finally:
                     self.method, self.maxiter = original
         elif algorithm == 'simultaneous correction':
@@ -2565,30 +2571,31 @@ class MultiStageEquilibrium(Unit):
     
     def _simultaneous_correction(self, x):
         shape = x.shape
-        x = x.flatten()
         f = lambda x: self._residuals(x.reshape(shape)).flatten()
         jac = lambda x: MESH.create_block_tridiagonal_matrix(*self._jacobian(x.reshape(shape)))
         # x, *self._simultaneous_correction_info = leastsq(f, x, Dfun=jac, full_output=True, maxfev=self.maxiter, xtol=self.tolerance)
         # f = lambda x: self._objective(x.reshape(shape))
         # self._simultaneous_correction_info = res = minimize_ipopt(f, x, jac=jac)
         # x = res.x
-        try: x, *self._simultaneous_correction_info = fsolve(f, x, fprime=jac, full_output=True, maxfev=self.maxiter, xtol=self.tolerance)
+        try: 
+            x, *self._simultaneous_correction_info = fsolve(
+                f, x.flatten(), fprime=jac, full_output=True, 
+                maxfev=self.maxiter, xtol=self.tolerance
+            )
         except: pass
         else:
             x[x < 0] = 0
             x = x.reshape(shape)
             r = self._objective(x)
             try: 
-                record = self._residual_record
+                result = self._best_result
             except:
                 self._set_point(x)
-                self.update_mass_balance()
             else:
-                index = np.argmin([i.f for i in record])
-                result = record[index]
-                if r < result.f: 
-                    self._set_point(x)
-                    self.update_mass_balance()
+                self._set_point(x)
+                self.update_mass_balance()
+                r = self._objective(self._get_point())
+                if result.r < r: self._set_point(result.x)
     
     def _phenomena_iter(self, x0):
         self.iter += 1
@@ -2601,7 +2608,6 @@ class MultiStageEquilibrium(Unit):
                 for i in self.stages: i._update_separation_factors()
                 separation_factors = np.array([i.S for i in self._S_stages])
                 self.update_flow_rates(separation_factors, update_B=True)
-                return self._line_search(x0, self._get_point())
             elif decomp == 'sum rates':
                 self.update_pseudo_vle()
                 separation_factors = np.array([i.S for i in self._S_stages])
@@ -2614,28 +2620,33 @@ class MultiStageEquilibrium(Unit):
             self.update_energy_balance_temperatures()
         else:
             raise RuntimeError('unknown equilibrium phenomena')
-        return self._get_point()
-      
-    def _line_search(self, x0, x1):
-        correction = x1 - x0
+        return self._new_point()
+    
+    def _new_point(self):
         record = self._residual_record
-        t0, _, r0 = record[0]
-        result = flx.inexact_line_search(
-            self._objective, x0, correction, 
-            fx=r0, t0=0.05, t1=1.2, tguess=t0
-        )
+        t0, x0, r0 = record[0]
+        x1 = self._get_point()
+        correction = x1 - x0
+        if self._line_search:
+            result = flx.inexact_line_search(
+                self._objective, x0, correction, 
+                fx=r0, t0=0.8, t1=1.2, tguess=t0
+            )
+        else:
+            result = IterationResult(1, x1, self._objective(x1))
         x1 = result.x
         x1[x1 < 0] = 0
         record.rotate()
         record[0] = result
-        residuals = np.array([i.f for i in record])
+        residuals = np.array([i.r for i in record])
         mean = np.mean(residuals)
         if mean > self._mean_residual:
-            index = np.argmin(residuals)
-            record[0] = result = record[index]
+            record[0] = result = self._best_result
             self._set_point(result.x)
             raise RuntimeError('residual error is oscillating')
         else:
+            if self._best_result.r > result.r: 
+                self._best_result = result
             self._mean_residual = mean
             return x1
     
@@ -2644,7 +2655,7 @@ class MultiStageEquilibrium(Unit):
         self._set_point(x0)
         for i in self.stages: i._run()
         for i in reversed(self.stages): i._run()
-        return self._line_search(x0, self._get_point())
+        return self._new_point()
     
     def _iter(self, x0):
         algorithm = self.algorithm
