@@ -23,7 +23,8 @@ from scipy.interpolate import LinearNDInterpolator, RBFInterpolator, PchipInterp
 from math import inf
 from typing import Callable, Optional
 from copy import copy
-from scipy.optimize import fsolve
+from scipy.optimize import fsolve, leastsq
+# from cyipopt import minimize_ipopt
 from scipy.optimize._numdiff import approx_derivative
 from scipy.differentiate import jacobian
 from collections import deque
@@ -1855,7 +1856,7 @@ class MultiStageEquilibrium(Unit):
     _N_ins = 2
     _N_outs = 2
     inside_maxiter = 100
-    default_max_attempts = 5
+    default_max_attempts = 10
     default_maxiter = 100
     default_optimize_result = 'trust-region', 50
     default_tolerance = 1e-5
@@ -2260,63 +2261,63 @@ class MultiStageEquilibrium(Unit):
         correction = MESH.solve_block_tridiagonal_matrix(A, B, C, residuals)
         return correction
     
-    def _simultaneous_correction_iter(self, x): 
-        # Simple line search, fsolve (which uses trust-region) is better
-        try:
-            residuals, residual = self._last_residuals
-        except:
-            N_chemicals = self._N_chemicals
-            N_stages, N_variables = x.shape
-            jacobian_data = []
-            stage_data = []       
-            stages = self.stages
-            H_magnitude = self._H_magnitude
-            residuals = np.zeros([N_stages, N_variables]) # H, Mi, Ei
-            for i, (xi, stage, H_feed, mol_feed) in enumerate(zip(x, stages, self.feed_enthalpies, self.feed_flows)):
-                JD, SD = stage._simultaneous_correction_data(xi, H_feed, mol_feed, H_magnitude)
-                jacobian_data.append(JD)
-                stage_data.append(SD)
-            center = stage_data[0]
-            lower = stage_data[1]
-            stage = stages[0]
-            H_index = 0
-            M_slice = slice(1, N_chemicals + 1)
-            E_slice = slice(N_chemicals + 1, None)
-            residuals = np.zeros([N_stages, N_variables]) # H, Mi, Ei
-            residuals[0, H_index] = stage._energy_balance_residual(None, center, lower)
-            residuals[0, M_slice] = stage._material_balance_residuals(None, center, lower)
-            stage = stages[1]
-            for i in range(2, N_stages): 
-                upper = center
-                center = lower
-                lower = stage_data[i]
-                ilast = i-1
-                residuals[ilast, H_index] = stage._energy_balance_residual(upper, center, lower)
-                residuals[ilast, M_slice] = stage._material_balance_residuals(upper, center, lower)
-                residuals[ilast, E_slice] = stage._equilibrium_residuals(center)
-                stage = stages[i]
-            upper = center
-            center = lower
-            residuals[i, H_index] = stage._energy_balance_residual(upper, center, None)
-            residuals[i, M_slice] = stage._material_balance_residuals(upper, center, None)
-            residuals[i, E_slice] = stage._equilibrium_residuals(center)
-            A, B, C = jacobian_blocks(jacobian_data, N_stages, N_chemicals, N_variables)
-            residual = self._net_residual(residuals)
-        else:
-            A, B, C = self._jacobian(x)
-        correction = -MESH.solve_block_tridiagonal_matrix(A, B, C, residuals)
-        try:
-            tguess = self._tguess
-        except:
-            self._tguess = tguess = 1
-        try:
-            tguess, x, new_residual = flx.inexact_line_search(self._objective, x, correction, fx=residual, tguess=tguess)
-        except:
-            self._last_residuals = residuals, residual # Reset to original
-            return 0, x, residual
-        residuals, residual = self._last_residuals
-        self._tguess = tguess
-        return tguess, x, residual
+    # def _simultaneous_correction_iter(self, x): 
+    #     # Simple line search, fsolve (which uses trust-region) is better
+    #     try:
+    #         residuals, residual = self._last_residuals
+    #     except:
+    #         N_chemicals = self._N_chemicals
+    #         N_stages, N_variables = x.shape
+    #         jacobian_data = []
+    #         stage_data = []       
+    #         stages = self.stages
+    #         H_magnitude = self._H_magnitude
+    #         residuals = np.zeros([N_stages, N_variables]) # H, Mi, Ei
+    #         for i, (xi, stage, H_feed, mol_feed) in enumerate(zip(x, stages, self.feed_enthalpies, self.feed_flows)):
+    #             JD, SD = stage._simultaneous_correction_data(xi, H_feed, mol_feed, H_magnitude)
+    #             jacobian_data.append(JD)
+    #             stage_data.append(SD)
+    #         center = stage_data[0]
+    #         lower = stage_data[1]
+    #         stage = stages[0]
+    #         H_index = 0
+    #         M_slice = slice(1, N_chemicals + 1)
+    #         E_slice = slice(N_chemicals + 1, None)
+    #         residuals = np.zeros([N_stages, N_variables]) # H, Mi, Ei
+    #         residuals[0, H_index] = stage._energy_balance_residual(None, center, lower)
+    #         residuals[0, M_slice] = stage._material_balance_residuals(None, center, lower)
+    #         stage = stages[1]
+    #         for i in range(2, N_stages): 
+    #             upper = center
+    #             center = lower
+    #             lower = stage_data[i]
+    #             ilast = i-1
+    #             residuals[ilast, H_index] = stage._energy_balance_residual(upper, center, lower)
+    #             residuals[ilast, M_slice] = stage._material_balance_residuals(upper, center, lower)
+    #             residuals[ilast, E_slice] = stage._equilibrium_residuals(center)
+    #             stage = stages[i]
+    #         upper = center
+    #         center = lower
+    #         residuals[i, H_index] = stage._energy_balance_residual(upper, center, None)
+    #         residuals[i, M_slice] = stage._material_balance_residuals(upper, center, None)
+    #         residuals[i, E_slice] = stage._equilibrium_residuals(center)
+    #         A, B, C = jacobian_blocks(jacobian_data, N_stages, N_chemicals, N_variables)
+    #         residual = self._net_residual(residuals)
+    #     else:
+    #         A, B, C = self._jacobian(x)
+    #     correction = -MESH.solve_block_tridiagonal_matrix(A, B, C, residuals)
+    #     try:
+    #         tguess = self._tguess
+    #     except:
+    #         self._tguess = tguess = 1
+    #     try:
+    #         tguess, x, new_residual = flx.inexact_line_search(self._objective, x, correction, fx=residual, tguess=tguess)
+    #     except:
+    #         self._last_residuals = residuals, residual # Reset to original
+    #         return 0, x, residual
+    #     residuals, residual = self._last_residuals
+    #     self._tguess = tguess
+    #     return tguess, x, residual
     
     # %% Decoupled phenomena equation oriented simulation
     
@@ -2524,22 +2525,22 @@ class MultiStageEquilibrium(Unit):
             f = self._inside_out_iter if self.inside_out else self._iter
             self.attempt = 0
             self.bottom_flows = None
-            self._tguess = 1
             self._mean_residual = np.inf
-            residual_record = 4 * [(None, np.inf)]
-            residual_record[0] = (x, self._objective(x))
+            empty = flx.LineSearchResult(None, None, np.inf)
+            residual_record = 5 * [empty]
+            residual_record[0] = flx.LineSearchResult(1, x, self._objective(x))
             self._residual_record = deque(residual_record)
             if self.vle_decomposition is None:
                 self.default_vle_decomposition()
             self.iter = 0
             for n in range(self.max_attempts):
                 self.attempt = n
-                try: x = solver(f, x, **options)
+                try: x = solver(f, self._get_point(), **options)
                 except: 
                     residual = self._mean_residual
                     self._mean_residual = np.inf
-                    self._residual_record[1] = (None, np.inf)
-                    try: x = solver(self._sequential_iter, x, **options)
+                    self._residual_record[1] = empty
+                    try: x = solver(self._sequential_iter, self._get_point(), **options)
                     except:
                         if residual >= self._mean_residual: break
                     else:
@@ -2567,14 +2568,27 @@ class MultiStageEquilibrium(Unit):
         x = x.flatten()
         f = lambda x: self._residuals(x.reshape(shape)).flatten()
         jac = lambda x: MESH.create_block_tridiagonal_matrix(*self._jacobian(x.reshape(shape)))
+        # x, *self._simultaneous_correction_info = leastsq(f, x, Dfun=jac, full_output=True, maxfev=self.maxiter, xtol=self.tolerance)
+        # f = lambda x: self._objective(x.reshape(shape))
+        # self._simultaneous_correction_info = res = minimize_ipopt(f, x, jac=jac)
+        # x = res.x
         try: x, *self._simultaneous_correction_info = fsolve(f, x, fprime=jac, full_output=True, maxfev=self.maxiter, xtol=self.tolerance)
         except: pass
         else:
             x[x < 0] = 0
             x = x.reshape(shape)
-            if (x[:, self._N_chemicals] < 1000).all():
+            r = self._objective(x)
+            try: 
+                record = self._residual_record
+            except:
                 self._set_point(x)
-        #     self.update_mass_balance()
+                self.update_mass_balance()
+            else:
+                index = np.argmin([i.f for i in record])
+                result = record[index]
+                if r < result.f: 
+                    self._set_point(x)
+                    self.update_mass_balance()
     
     def _phenomena_iter(self, x0):
         self.iter += 1
@@ -2603,28 +2617,26 @@ class MultiStageEquilibrium(Unit):
         return self._get_point()
       
     def _line_search(self, x0, x1):
-        x1 = self._get_point()
         correction = x1 - x0
         record = self._residual_record
-        _, r0 = record[0]
-        tguess = self._tguess
-        self._tguess, x1, r1 = flx.inexact_line_search(
+        t0, _, r0 = record[0]
+        result = flx.inexact_line_search(
             self._objective, x0, correction, 
-            fx=r0, t0=0.1, t1=1.1, tguess=tguess
+            fx=r0, t0=0.05, t1=1.2, tguess=t0
         )
+        x1 = result.x
+        x1[x1 < 0] = 0
         record.rotate()
-        record[0] = x1, r1
-        residuals = np.array([i[1] for i in record])
+        record[0] = result
+        residuals = np.array([i.f for i in record])
         mean = np.mean(residuals)
         if mean > self._mean_residual:
             index = np.argmin(residuals)
-            x, r = record[0] = record[index]
-            self._set_point(x)
+            record[0] = result = record[index]
+            self._set_point(result.x)
             raise RuntimeError('residual error is oscillating')
         else:
             self._mean_residual = mean
-            x1[x1 < 0] = 0
-            x1 = self._get_point()
             return x1
     
     def _sequential_iter(self, x0):
@@ -3339,7 +3351,9 @@ class MultiStageEquilibrium(Unit):
             # S * x + S_old - x * S_old = 0
             # S_old + x * (S - S_old) = 0
             # x = S_old / (S_old - S)
-            x = S_old / (S_old - S)
+            denominator = S_old - S
+            denominator[denominator == 0] = 1
+            x = S_old / denominator
             x = 0.1 * (x[(x < 1) & (x > 0)]).min()
             separation_factors = S * x + (1 - x) * S_old
         for stage, S in zip(self._S_stages, separation_factors): stage.S = S
