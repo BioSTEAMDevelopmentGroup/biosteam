@@ -2592,9 +2592,6 @@ class MultiStageEquilibrium(Unit):
             except:
                 self._set_point(x)
             else:
-                self._set_point(x)
-                self.update_mass_balance()
-                r = self._objective(self._get_point())
                 if result.r < r: self._set_point(result.x)
     
     def _phenomena_iter(self, x0):
@@ -2645,8 +2642,7 @@ class MultiStageEquilibrium(Unit):
             self._set_point(result.x)
             raise RuntimeError('residual error is oscillating')
         else:
-            if self._best_result.r > result.r: 
-                self._best_result = result
+            if self._best_result.r > result.r: self._best_result = result
             self._mean_residual = mean
             return x1
     
