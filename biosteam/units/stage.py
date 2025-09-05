@@ -2593,12 +2593,10 @@ class MultiStageEquilibrium(Unit):
             x[x < 0] = 0
             x = x.reshape(shape)
             r = self._objective(x)
-            try: 
-                result = self._best_result
-            except:
-                self._set_point(x)
+            try: result = self._best_result
+            except: pass
             else:
-                if result.r < r: self._set_point(result.x)
+                if result.r < r: x = result.x
         return x
     
     def _phenomena_iter(self, x0):
