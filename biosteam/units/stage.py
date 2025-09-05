@@ -2550,9 +2550,12 @@ class MultiStageEquilibrium(Unit):
                 try: x = solver(f, x, **options)
                 except:
                     x = self._get_point()
+                    result = self._best_result
                     self._mean_residual = np.inf
                     try: x = solver(self._sequential_iter, x, **options)
-                    except: x = self._get_point()
+                    except: 
+                        x = self._get_point()
+                        if result is self._best_result: break
                     else: break
                 else: break
             if self.optimize_result:
@@ -3397,10 +3400,7 @@ class MultiStageEquilibrium(Unit):
         else:
             for i in stages:
                 partition = i.partition
-                try:
-                    partition._run_decoupled_KTvle(P=P)
-                except:
-                    breakpoint()
+                partition._run_decoupled_KTvle(P=P)
                 T = partition.T
                 for i in (partition.outs + i.outs): i.T = T
         if getattr(self, 'tracking', False):
