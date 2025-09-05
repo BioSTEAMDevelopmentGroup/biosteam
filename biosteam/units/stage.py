@@ -2562,7 +2562,7 @@ class MultiStageEquilibrium(Unit):
                 original = self.method, self.maxiter
                 self.method, self.maxiter = optimize_result
                 try:
-                    self._simultaneous_correction(self._get_point())
+                    x = self._simultaneous_correction(self._get_point())
                 finally:
                     self.method, self.maxiter = original
         elif algorithm == 'simultaneous correction':
