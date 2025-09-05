@@ -141,7 +141,9 @@ class Configuration:
                     assert False
                     i.run()
                 i._update_nonlinearities()
+        
         if self.composition_sensitive_path:
+            # for i in self.composition_sensitive_path: i._run()
             containers, flows = self.solve_material_flows(composition_sensitive=True, full_output=True)
             def update_inner_material_balance_parameters(flows):
                 for i in self.composition_sensitive_path: i._update_composition_parameters()
@@ -152,11 +154,11 @@ class Configuration:
                 flows, 
                 xtol=tmo.LLE.pseudo_equilibrium_inner_loop_options['xtol'], 
                 rtol=tmo.LLE.pseudo_equilibrium_inner_loop_options['rtol'], 
-                maxiter=100, checkiter=False,
+                maxiter=10, checkiter=False,
                 checkconvergence=False,
             )
             for i in self.composition_sensitive_path: i._update_net_flow_parameters()
-            for i, j in zip(containers, flows): i[:] = j
+            self.solve_material_flows(composition_sensitive=True)
     
     def dynamic_coefficients(self, b):
         try:
@@ -265,16 +267,8 @@ class Configuration:
                         index = indexer._phase_indexer(phase)
                         mol = indexer.data.rows[index]
                         mol[:] = value
-            # masks = values >= 0
-            # mask = (values < 0) & (values > -1e-9)
-            # if (values < 0).any(): 
-            #     raise RuntimeError('material balance could not be solved')
-            
-            # for obj, mask, value in zip(objs, masks, values): # update material flows
-            #     indexer, phase = obj
-            #     index = indexer._phase_indexer(phase)
-            #     mol = indexer.data.rows[index]
-            #     mol[mask] = value[mask]
+        for node in nodes: 
+            if hasattr(node, '_update_auxiliaries'): node._update_auxiliaries()
         if full_output:
             return containers, values
         else:

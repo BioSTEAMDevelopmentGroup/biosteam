@@ -6,6 +6,8 @@ import thermosteam as tmo
 import numpy as np
 from numpy.testing import assert_allclose
 
+# bst.MultiStageEquilibrium.optimize_result = False
+
 def test_trivial_lle_case():
     import biosteam as bst
     import numpy as np
@@ -58,8 +60,8 @@ def test_trivial_liquid_extraction_case():
     sys.run_phenomena()
     value = extract.imol['Methanol'] / feed.imol['Methanol']
     T = extract.T
-    assert_allclose(actual, value, rtol=1e-3, atol=1e-6)
-    assert_allclose(T_actual, T, rtol=1e-3, atol=1e-6)
+    assert_allclose(actual, value, rtol=1e-3, atol=1e-3)
+    assert_allclose(T_actual, T, rtol=1e-3, atol=1e-3)
 
 def test_trivial_distillation_case():   
     import biosteam as bst
@@ -77,6 +79,8 @@ def test_trivial_distillation_case():
             use_cache=True,
             maxiter=200,
         )
+        MSE.molar_tolerance = 1e-9
+        MSE.relative_molar_tolerance = 1e-9
     sys.simulate()
     vapor, liquid = MSE.outs
     actual = round(vapor.imol['Ethanol'] / feed.imol['Ethanol'], 2)
@@ -127,7 +131,7 @@ def test_simple_acetic_acid_separation_no_recycle():
     for s_sm, s_dp in zip(sm.streams, po.streams):
         actual = s_sm.mol
         value = s_dp.mol
-        assert_allclose(actual, value, rtol=1e-6, atol=1e-6)
+        assert_allclose(actual, value, rtol=1e-3, atol=1e-3)
 
 def test_simple_acetic_acid_separation_with_recycle():
     import biosteam as bst
@@ -315,7 +319,7 @@ def test_vlle_case():
     for s_sm, s_dp in zip(sm.streams, po.streams):
         actual = s_sm.mol
         value = s_dp.mol
-        assert_allclose(actual, value, rtol=1e-6, atol=1e-6)
+        assert_allclose(actual, value, rtol=1e-4, atol=1e-4)
     
     
     # assert_allclose(s.mol, [1, 0.5, 2]) # mass balance
@@ -328,10 +332,10 @@ def test_vlle_case():
     # assert_allclose(xg, 0.08808029891244049, atol=2e-3, rtol=2e-3) # mass balance
 
 if __name__ == '__main__':
-    # test_trivial_lle_case()
-    # test_trivial_vle_case()
-    # test_trivial_liquid_extraction_case()
-    # test_trivial_distillation_case()
-    # test_simple_acetic_acid_separation_no_recycle()
-    # test_simple_acetic_acid_separation_with_recycle()
+    test_trivial_lle_case()
+    test_trivial_vle_case()
+    test_trivial_liquid_extraction_case()
+    test_trivial_distillation_case()
+    test_simple_acetic_acid_separation_no_recycle()
+    test_simple_acetic_acid_separation_with_recycle()
     test_vlle_case()

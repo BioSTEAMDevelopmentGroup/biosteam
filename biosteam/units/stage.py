@@ -540,6 +540,10 @@ class StageEquilibrium(Unit):
             )
         self.specify_variables(**specifications)
     
+    def _update_auxiliaries(self):
+        for i in self.splitters: i.ins[0].mix_from(i.outs, energy_balance=False)
+        self.mixer.outs[0].mix_from(self.ins, energy_balance=False)
+    
     # %% Streams
     
     @property
@@ -802,15 +806,24 @@ class StageEquilibrium(Unit):
         )
         return JD, SD
     
+    
+    @property
+    def _partition_coeffients(self):
+        try:
+            K_model = self._K_model
+        except:
+            if 'K' in self.partition.partition_data:
+                self._K_model = K_model = lambda y, x, T, P: self.partition.partition_data['K']
+            else:
+                self._K_model = K_model = tmo.equilibrium.PartitionCoefficients(''.join(self.phases), self.chemicals[self.partition.IDs], self.thermo)
+        return K_model
+    
     @property
     def _equilibrium_residuals_vectorized(self):
         try:
             return self._vectorized_equilibrium_residuals
         except:
-            try:
-                K_model = self._K_model
-            except:
-                self._K_model = K_model = tmo.equilibrium.PartitionCoefficients(''.join(self.phases), self.chemicals[self.partition.IDs], self.thermo)
+            K_model = self._partition_coeffients
             P = self.P
             def residuals(x):
                 N_chemicals = (x.size - 1) // 2
@@ -856,10 +869,7 @@ class StageEquilibrium(Unit):
         if bulk_top and bulk_bottom:
             y = mol_top / bulk_top
             x = mol_bottom / bulk_bottom
-            try:
-                K_model = self._K_model
-            except:
-                self._K_model = K_model = tmo.equilibrium.PartitionCoefficients(''.join(self.phases), self.chemicals[self.partition.IDs], self.thermo)
+            K_model = self._partition_coeffients
             K = K_model(y, x, T, self.P)
             error = K * mol_bottom * bulk_top / bulk_bottom - mol_top
         elif self.B == 0 or bulk_top:
@@ -1153,6 +1163,8 @@ class StageEquilibrium(Unit):
         partition._run_decoupled_Kgamma()
     
     def _update_net_flow_parameters(self):
+        mixer = self.mixer
+        mixer.outs[0].mix_from(mixer.ins, energy_balance=False)
         self.partition._run_decoupled_B()
     
     def _update_nonlinearities(self):
@@ -1256,7 +1268,7 @@ class StageEquilibrium(Unit):
         partition_data = self.partition.partition_data
         if (self.specified_variable == 'B') and (self.B == 0 or self.B == np.inf):
             var = None 
-        if  (partition_data and 'K' in partition_data):
+        elif  (partition_data and 'K' in partition_data):
             var = None
         else:
             var = VariableNode(f"{self.node_tag}.K", lambda: self.K)
@@ -2035,6 +2047,11 @@ class MultiStageEquilibrium(Unit):
         if bottom_side_draws is None: bottom_side_draws = {}
         elif not isinstance(bottom_side_draws, dict): bottom_side_draws = dict(bottom_side_draws)
         if partition_data is None: partition_data = {}
+        if 'K' in partition_data:
+            K = partition_data['K']
+            partition_stage = K.ndim == 2
+        else:
+            partition_stage = False
         self.multi_stream = tmo.MultiStream(None, P=P, phases=phases, thermo=self.thermo)
         self.N_stages = N_stages
         self.P = P
@@ -2075,33 +2092,24 @@ class MultiStageEquilibrium(Unit):
                 else: 
                     top_split = 0
                 if i in bottom_side_draws:
-                    try:
-                        outs.append(next(bsd_iter))
-                    except:
-                        breakpoint()
+                    outs.append(next(bsd_iter))
                     bottom_split = bottom_side_draws[i]
                     bottom_splits[i] = bottom_split
                 else: 
                     bottom_split = 0
-                try:
-                    new_stage = self.auxiliary(
-                        'stages', StageEquilibrium, phases=phases,
-                        ins=feed,
-                        outs=outs,
-                        partition_data=partition_data,
-                        top_split=top_split,
-                        bottom_split=bottom_split,
-                    )
-                except:
-                    breakpoint()
-                    new_stage = self.auxiliary(
-                        'stages', StageEquilibrium, phases=phases,
-                        ins=feed,
-                        outs=outs,
-                        partition_data=partition_data,
-                        top_split=top_split,
-                        bottom_split=bottom_split,
-                    )
+                if partition_stage:
+                    pd = partition_data.copy()
+                    pd['K'] = K[i]
+                else:
+                    pd = partition_data
+                new_stage = self.auxiliary(
+                    'stages', StageEquilibrium, phases=phases,
+                    ins=feed,
+                    outs=outs,
+                    partition_data=pd,
+                    top_split=top_split,
+                    bottom_split=bottom_split,
+                )
                 if last_stage:
                     last_stage.add_feed(new_stage-0)
                 last_stage = new_stage
@@ -2330,6 +2338,9 @@ class MultiStageEquilibrium(Unit):
     
     # %% Decoupled phenomena equation oriented simulation
     
+    def _update_auxiliaries(self):
+        for i in self.stages: i._update_auxiliaries()
+    
     @property
     def composition_sensitive(self):
         return self._has_lle
@@ -2435,7 +2446,7 @@ class MultiStageEquilibrium(Unit):
             i._run_decoupled_Kgamma()
     
     def _update_net_flow_parameters(self):
-        for i in self.partitions: i._run_decoupled_B()
+        for i in self.stages: i._update_net_flow_parameters()
     
     def _update_nonlinearities(self):
         if self._has_vle:
@@ -2516,7 +2527,6 @@ class MultiStageEquilibrium(Unit):
         x = self.hot_start()
         algorithm = self.algorithm
         method = self.method
-        self._H_magnitude = 10 * sum([i.mixture.Cn('l', i.mol, i.T, i.P) for i in self.ins])
         if algorithm in self.decomposition_algorithms:
             optimize_result = self.optimize_result
             options = dict(
@@ -2532,29 +2542,19 @@ class MultiStageEquilibrium(Unit):
             else:
                 raise ValueError(f'invalid method {method!r}')
             f = self._inside_out_iter if self.inside_out else self._iter
-            self.attempt = 0
-            self.bottom_flows = None
-            self._mean_residual = np.inf
-            self._best_result = empty = IterationResult(None, None, np.inf)
-            record = 5 * [empty]
-            record[0] = IterationResult(1, x, self._objective(x))
-            self._residual_record = record = deque(record)
             if self.vle_decomposition is None:
                 self.default_vle_decomposition()
             self.iter = 0
             for n in range(self.max_attempts):
                 self.attempt = n
-                try: x = solver(f, self._get_point(), **options)
+                try: x = solver(f, x, **options)
                 except:
+                    x = self._get_point()
                     self._mean_residual = np.inf
-                    try: x = solver(self._sequential_iter, self._get_point(), **options)
-                    except: break
-                    else:
-                        self._set_point(x)
-                        break
-                else:
-                    self._set_point(x)
-                    break
+                    try: x = solver(self._sequential_iter, x, **options)
+                    except: x = self._get_point()
+                    else: break
+                else: break
             if self.optimize_result:
                 original = self.method, self.maxiter
                 self.method, self.maxiter = optimize_result
@@ -2563,11 +2563,12 @@ class MultiStageEquilibrium(Unit):
                 finally:
                     self.method, self.maxiter = original
         elif algorithm == 'simultaneous correction':
-            self._simultaneous_correction(x)
+            x = self._simultaneous_correction(x)
         else:
             raise RuntimeError(
                 f'invalid algorithm {algorithm!r}, only {self.available_algorithms} are allowed'
             )
+        self._phenomena_iter(x)
     
     def _simultaneous_correction(self, x):
         shape = x.shape
@@ -2593,6 +2594,7 @@ class MultiStageEquilibrium(Unit):
                 self._set_point(x)
             else:
                 if result.r < r: self._set_point(result.x)
+        return x
     
     def _phenomena_iter(self, x0):
         self.iter += 1
@@ -3086,7 +3088,16 @@ class MultiStageEquilibrium(Unit):
         self.interpolate_missing_variables()
         for i in self.stages: i._update_separation_factors()
         self.update_mass_balance()
-        return self._get_point()
+        self._H_magnitude = 10 * sum([i.mixture.Cn('l', i.mol, i.T, i.P) for i in self.ins])
+        self.attempt = 0
+        self.bottom_flows = None
+        self._mean_residual = np.inf
+        self._best_result = empty = IterationResult(None, None, np.inf)
+        record = 10 * [empty]
+        x = self._get_point()
+        record[0] = IterationResult(1, x, self._objective(x))
+        self._residual_record = record = deque(record)
+        return x
     
     def interpolate_missing_variables(self):
         stages = self.stages
@@ -3396,10 +3407,13 @@ class MultiStageEquilibrium(Unit):
             self._collect_variables('vle_phenomena')
     
     def update_pseudo_lle(self):
-        if self.phases == ('l', 'L'): breakpoint()
         stages = self.stages
         P = self.P
-        if 'K' not in self.partition_data:
+        if 'K' in self.partition_data:
+            for i in self.stages:
+                i.K = i.partition.partition_data['K']
+            self.update_mass_balance()
+        else:
             stages = self._S_stages
             def psuedo_equilibrium(flow_rates):
                 self.set_flow_rates(flow_rates, update_B=False)
@@ -3422,7 +3436,7 @@ class MultiStageEquilibrium(Unit):
             partition._run_decoupled_B()
             i._update_separation_factors()
         separation_factors = np.array([i.S for i in stages])
-        self.update_flow_rates(separation_factors, update_B=True)
+        self.update_flow_rates(separation_factors, update_B=False)
         if getattr(self, 'tracking', False):
             self._collect_variables('lle_phenomena')
     
