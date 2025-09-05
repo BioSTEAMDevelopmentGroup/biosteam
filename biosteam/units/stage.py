@@ -2571,10 +2571,9 @@ class MultiStageEquilibrium(Unit):
             raise RuntimeError(
                 f'invalid algorithm {algorithm!r}, only {self.available_algorithms} are allowed'
             )
-        # Last simulation to force mass balance and equilibrium conditions
-        self._best_result = self._residual_record[0] = IterationResult(1, x, np.inf)
-        self._mean_residual = np.inf
-        self._phenomena_iter(x)
+        self._set_point(x)
+        # Last simulation to force mass balance
+        self.update_mass_balance()
     
     def _simultaneous_correction(self, x):
         shape = x.shape
