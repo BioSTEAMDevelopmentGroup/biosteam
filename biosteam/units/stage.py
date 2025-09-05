@@ -2571,7 +2571,8 @@ class MultiStageEquilibrium(Unit):
             raise RuntimeError(
                 f'invalid algorithm {algorithm!r}, only {self.available_algorithms} are allowed'
             )
-        self._phenomena_iter(x)
+        try: self._phenomena_iter(x)
+        except: pass
     
     def _simultaneous_correction(self, x):
         shape = x.shape
