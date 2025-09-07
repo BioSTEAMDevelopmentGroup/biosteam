@@ -1879,7 +1879,7 @@ class MultiStageEquilibrium(Unit):
     _N_outs = 2
     _line_search = False # Experimental feature.
     _tracked_points = None # For numerical/convergence analysis.
-    minimum_residual_reduction = 0.02 # Minimum fractional reduction in residual for simulation.
+    minimum_residual_reduction = 0.1 # Minimum fractional reduction in residual for simulation.
     iteration_memory = 3 # Length of recorded iterations.
     inside_maxiter = 100
     default_max_attempts = 5
@@ -2567,9 +2567,6 @@ class MultiStageEquilibrium(Unit):
                 try: x = solver(f, x, maxiter=maxiter, xtol=xtol, rtol=rtol, args=(algorithm,))
                 except:
                     self._mean_residual = np.inf
-                    empty = IterationResult(1, x, np.inf)
-                    for i in range(self.iteration_memory):
-                        self._iteration_record[i] = empty
                     x = self._best_result.x
                     maxiter = self.maxiter - self.iter
                     if maxiter <= 0: break
