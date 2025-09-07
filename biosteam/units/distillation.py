@@ -2351,14 +2351,14 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
             vle_decomposition=None,
             maxiter=None,
             max_attempts=None,
-            method=None,
+            methods=None,
         ):
         super()._init(N_stages=N_stages, feed_stages=feed_stages,
                       top_side_draws=vapor_side_draws, 
                       bottom_side_draws=liquid_side_draws,
                       partition_data=partition_data,
                       phases=("g", "l"), collapsed_init=collapsed_init,
-                      P=P, T=T, use_cache=use_cache, method=method,
+                      P=P, T=T, use_cache=use_cache, methods=methods,
                       vle_decomposition=vle_decomposition,
                       maxiter=maxiter,
                       max_attempts=max_attempts)
@@ -2638,17 +2638,14 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     -----
     The convergence algorithm decouples the equilibrium relationships, 
     mass balances, and energy balances using a custom version of the Wang-Henke 
-    bubble point method. This algorithm is authored by Yoel Cortes-Pena, but is 
-    not yet peer reviewed. The main difference is that the tridiagonal matrix of 
-    mass balances across stages is used to solve for flow rates instead of mass 
-    fractions. 
+    bubble point method. 
     
-    The initialization algorithm first converges a "collapsed" column without 
-    adiabatic stages which have no feeds or side draws. This collapsed column 
-    is initialized by solving for liquid and vapor flow rates assuming no phase 
+    The initialization algorithm first flashes the feed to collect partition
+    coefficients, bubble and dew point temperatures, and the feed quality.
+    Then, we solve for liquid and vapor flow rates assuming no phase 
     change across adiabatic stages and unity partition coefficients at 
     reboilers/condensers (in which case the stripping factor is equal to the 
-    boil-up ratio). Then, top and bottom stage temperatures are assumed to be
+    boil-up ratio). Top and bottom stage temperatures are assumed to be
     the bubble point and dew point of the fed mixture and the temperature 
     across stages are linearly interpolated. The partition coefficients in 
     all stages are assumed to be equal to the feed bubble point.
@@ -2709,8 +2706,8 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
             full_condenser=None,
             collapsed_init=None,
             use_cache=None,
-            algorithm=None,
-            method=None,
+            algorithms=None,
+            methods=None,
             inside_out=None,
             maxiter=None,
             max_attempts=None,
@@ -2740,8 +2737,8 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                       stage_reactions=stage_reactions,
                       collapsed_init=collapsed_init,
                       inside_out=inside_out,
-                      algorithm=algorithm,
-                      method=method,
+                      algorithms=algorithms,
+                      methods=methods,
                       max_attempts=max_attempts,
                       maxiter=maxiter)
         

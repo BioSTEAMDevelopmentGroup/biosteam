@@ -32,6 +32,9 @@ from .. import Unit
 from .design_tools import MESH
 from numba import float64, int8, types, njit
 from typing import NamedTuple
+import matplotlib.cm as cm
+import matplotlib.colors as clr
+import matplotlib.pyplot as plt
 from thermosteam import (
     equilibrium, VariableNode,
 )
@@ -1874,19 +1877,21 @@ class MultiStageEquilibrium(Unit):
     """
     _N_ins = 2
     _N_outs = 2
-    _line_search = False # Experimental feature
-    dynamic_learning_rate = 0.1
+    _line_search = False # Experimental feature.
+    _tracked_points = None # For numerical/convergence analysis.
+    minimum_residual_reduction = 0.02 # Minimum fractional reduction in residual for simulation.
+    iteration_memory = 3 # Length of recorded iterations.
     inside_maxiter = 100
     default_max_attempts = 5
     default_maxiter = 100
-    default_optimize_result = 'trust-region', 50
+    default_optimize_result = True
     default_tolerance = 1e-5
-    default_relative_tolerance = 1e-5
-    default_algorithm = 'phenomena'
+    default_relative_tolerance = 1e-4
+    default_algorithms = ('simultaneous correction', 'phenomena', 'sequential modular')
     detault_inside_out = False
     default_inner_loop_algorthm = None
     decomposition_algorithms = {
-        'phenomena', 'sequential modular',
+        'phenomena', 'phenomena modular', 'sequential modular',
     }
     available_algorithms = {
         *decomposition_algorithms, 
@@ -1894,6 +1899,8 @@ class MultiStageEquilibrium(Unit):
     }
     default_methods = {
         'phenomena': 'fixed-point',
+        'phenomena modular': 'fixed-point',
+        'sequential modular': 'fixed-point',
         'simultaneous correction': 'trust-region',
     }
     method_options = {
@@ -2023,8 +2030,8 @@ class MultiStageEquilibrium(Unit):
             top_chemical=None, 
             use_cache=None,
             collapsed_init=False,
-            algorithm=None,
-            method=None,
+            algorithms=None,
+            methods=None,
             maxiter=None,
             max_attempts=None,
             inside_out=None,
@@ -2061,6 +2068,7 @@ class MultiStageEquilibrium(Unit):
         self._has_lle = 'L' in phases
         self._top_split = top_splits = np.zeros(N_stages)
         self._bottom_split = bottom_splits = np.zeros(N_stages)
+        self._convergence_analysis_mode = False
         if stages is None:
             top_mark = 2 + len(top_side_draws)
             tsd_iter = iter(self.outs[2:top_mark])
@@ -2147,7 +2155,7 @@ class MultiStageEquilibrium(Unit):
         #: [int] Maximum number of attempts.
         self.max_attempts = self.default_max_attempts if max_attempts is None else max_attempts
         
-        #: tuple[str, int] Final optimization method and number of iterations.
+        #: [bool] Optimize final result.
         self.optimize_result = self.default_optimize_result
 
         #: [float] Absolute molar flow and temperature tolerance
@@ -2160,21 +2168,28 @@ class MultiStageEquilibrium(Unit):
         
         self.collapsed_init = collapsed_init
         
-        self.algorithm = self.default_algorithm if algorithm is None else algorithm
-        
-        self.method = self.default_methods[self.algorithm] if method is None else method
-        
+        if algorithms is None:
+            self.algorithms = self.default_algorithms
+        elif isinstance(algorithms, str):
+            self.algorithms = (algorithms,)
+        else:
+            self.algorithms = algorithms        
+            
+        if methods is None:
+            self.methods = [self.default_methods[i] for i in self.algorithms]
+        elif isinstance(methods, str):
+            self.methods = len(self.algorithms) * (methods,)
+        else:
+            self.methods = methods
+            
         self.inside_out = self.detault_inside_out if inside_out is None else inside_out
         
         self.vle_decomposition = vle_decomposition
     
     # %% Optimization
     
-    def _get_point(self):
-        N_chemicals = self._N_chemicals
-        N_stages = self.N_stages
-        N_variables = 2 * N_chemicals + 1
-        x = np.zeros([N_stages, N_variables])
+    def _get_point(self, x=None):
+        if x is None: x = np.zeros(self._point_shape)
         for i, stage in enumerate(self.stages): 
             stage._get_point(x[i])
         return x
@@ -2187,9 +2202,7 @@ class MultiStageEquilibrium(Unit):
         return self._net_residual(self._residuals(x))
     
     def _net_residual(self, residuals):
-        net_residual = (residuals * residuals).sum()
-        self._last_residuals = (residuals, net_residual)
-        return net_residual
+        return (residuals * residuals).sum()
     
     def _residuals(self, x):
         mask = x < 0
@@ -2278,63 +2291,59 @@ class MultiStageEquilibrium(Unit):
         correction = MESH.solve_block_tridiagonal_matrix(A, B, C, residuals)
         return correction
     
-    # def _simultaneous_correction_iter(self, x): 
-    #     # Simple line search, fsolve (which uses trust-region) is better
-    #     try:
-    #         residuals, residual = self._last_residuals
-    #     except:
-    #         N_chemicals = self._N_chemicals
-    #         N_stages, N_variables = x.shape
-    #         jacobian_data = []
-    #         stage_data = []       
-    #         stages = self.stages
-    #         H_magnitude = self._H_magnitude
-    #         residuals = np.zeros([N_stages, N_variables]) # H, Mi, Ei
-    #         for i, (xi, stage, H_feed, mol_feed) in enumerate(zip(x, stages, self.feed_enthalpies, self.feed_flows)):
-    #             JD, SD = stage._simultaneous_correction_data(xi, H_feed, mol_feed, H_magnitude)
-    #             jacobian_data.append(JD)
-    #             stage_data.append(SD)
-    #         center = stage_data[0]
-    #         lower = stage_data[1]
-    #         stage = stages[0]
-    #         H_index = 0
-    #         M_slice = slice(1, N_chemicals + 1)
-    #         E_slice = slice(N_chemicals + 1, None)
-    #         residuals = np.zeros([N_stages, N_variables]) # H, Mi, Ei
-    #         residuals[0, H_index] = stage._energy_balance_residual(None, center, lower)
-    #         residuals[0, M_slice] = stage._material_balance_residuals(None, center, lower)
-    #         stage = stages[1]
-    #         for i in range(2, N_stages): 
-    #             upper = center
-    #             center = lower
-    #             lower = stage_data[i]
-    #             ilast = i-1
-    #             residuals[ilast, H_index] = stage._energy_balance_residual(upper, center, lower)
-    #             residuals[ilast, M_slice] = stage._material_balance_residuals(upper, center, lower)
-    #             residuals[ilast, E_slice] = stage._equilibrium_residuals(center)
-    #             stage = stages[i]
-    #         upper = center
-    #         center = lower
-    #         residuals[i, H_index] = stage._energy_balance_residual(upper, center, None)
-    #         residuals[i, M_slice] = stage._material_balance_residuals(upper, center, None)
-    #         residuals[i, E_slice] = stage._equilibrium_residuals(center)
-    #         A, B, C = jacobian_blocks(jacobian_data, N_stages, N_chemicals, N_variables)
-    #         residual = self._net_residual(residuals)
-    #     else:
-    #         A, B, C = self._jacobian(x)
-    #     correction = -MESH.solve_block_tridiagonal_matrix(A, B, C, residuals)
-    #     try:
-    #         tguess = self._tguess
-    #     except:
-    #         self._tguess = tguess = 1
-    #     try:
-    #         tguess, x, new_residual = flx.inexact_line_search(self._objective, x, correction, fx=residual, tguess=tguess)
-    #     except:
-    #         self._last_residuals = residuals, residual # Reset to original
-    #         return 0, x, residual
-    #     residuals, residual = self._last_residuals
-    #     self._tguess = tguess
-    #     return tguess, x, residual
+    def _run_simultaneous_correction(self, x): 
+        # Newton-Raphson with an exact line search.
+        # fsolve (which uses trust-region) is better.
+        # This method marely serves as a baseline to perform numerical analysis.
+        residuals = self._residuals(x)
+        A, B, C = self._jacobian(x)
+        correction = -MESH.solve_block_tridiagonal_matrix(A, B, C, residuals)
+        
+        # N_chemicals = self._N_chemicals
+        # N_stages, N_variables = x.shape
+        # jacobian_data = []
+        # stage_data = []       
+        # stages = self.stages
+        # H_magnitude = self._H_magnitude
+        # residuals = np.zeros([N_stages, N_variables]) # H, Mi, Ei
+        # for i, (xi, stage, H_feed, mol_feed) in enumerate(zip(x, stages, self.feed_enthalpies, self.feed_flows)):
+        #     JD, SD = stage._simultaneous_correction_data(xi, H_feed, mol_feed, H_magnitude)
+        #     jacobian_data.append(JD)
+        #     stage_data.append(SD)
+        # center = stage_data[0]
+        # lower = stage_data[1]
+        # stage = stages[0]
+        # H_index = 0
+        # M_slice = slice(1, N_chemicals + 1)
+        # E_slice = slice(N_chemicals + 1, None)
+        # residuals = np.zeros([N_stages, N_variables]) # H, Mi, Ei
+        # residuals[0, H_index] = stage._energy_balance_residual(None, center, lower)
+        # residuals[0, M_slice] = stage._material_balance_residuals(None, center, lower)
+        # stage = stages[1]
+        # for i in range(2, N_stages): 
+        #     upper = center
+        #     center = lower
+        #     lower = stage_data[i]
+        #     ilast = i-1
+        #     residuals[ilast, H_index] = stage._energy_balance_residual(upper, center, lower)
+        #     residuals[ilast, M_slice] = stage._material_balance_residuals(upper, center, lower)
+        #     residuals[ilast, E_slice] = stage._equilibrium_residuals(center)
+        #     stage = stages[i]
+        # upper = center
+        # center = lower
+        # residuals[i, H_index] = stage._energy_balance_residual(upper, center, None)
+        # residuals[i, M_slice] = stage._material_balance_residuals(upper, center, None)
+        # residuals[i, E_slice] = stage._equilibrium_residuals(center)
+        # A, B, C = jacobian_blocks(jacobian_data, N_stages, N_chemicals, N_variables)
+        # correction = -MESH.solve_block_tridiagonal_matrix(A, B, C, residuals)
+        try:
+            result = flx.inexact_line_search(
+                self._objective, x, correction, t0=1e-3, t1=0.1,
+            )
+        except:
+            return x + 1e-3 * correction
+        else:
+            return result.x
     
     # %% Decoupled phenomena equation oriented simulation
     
@@ -2525,83 +2534,99 @@ class MultiStageEquilibrium(Unit):
             for i in self.outs: i.empty()
             return
         x = self.hot_start()
-        algorithm = self.algorithm
-        method = self.method
-        if algorithm in self.decomposition_algorithms:
-            optimize_result = self.optimize_result
-            options = dict(
-                maxiter=self.maxiter,
-                xtol=10 * self.tolerance if optimize_result else self.tolerance,
-                rtol=10 * self.relative_tolerance if optimize_result else self.relative_tolerance,
-                **self.method_options[method],
-            )
-            if method == 'fixed-point':
-                solver = flx.fixed_point
-            elif method == 'wegstein':
-                solver = flx.wegstein
-            else:
-                raise ValueError(f'invalid method {method!r}')
-            f = self._inside_out_iter if self.inside_out else self._iter
-            if self.vle_decomposition is None:
-                self.default_vle_decomposition()
-            self.iter = 0
-            for n in range(self.max_attempts):
-                self.attempt = n
-                try: x = solver(f, x, **options)
-                except:
-                    x = self._get_point()
-                    result = self._best_result
-                    self._mean_residual = np.inf
-                    try: x = solver(self._sequential_iter, x, **options)
-                    except: 
-                        x = self._get_point()
-                        if result is self._best_result: break
-                    else: break
-                else: break
-            if self.optimize_result:
-                original = self.method, self.maxiter
-                self.method, self.maxiter = optimize_result
-                try:
+        algorithms = self.algorithms
+        methods = self.methods
+        optimize_result = self.optimize_result
+        f = self._inside_out_iter if self.inside_out else self._iter
+        decompositions = self.decomposition_algorithms
+        analysis_mode = self._convergence_analysis_mode
+        maxiter = self.maxiter
+        xtol = 100 * self.tolerance if optimize_result else self.tolerance
+        rtol = 100 * self.relative_tolerance if optimize_result else self.relative_tolerance
+        self.iter = 0
+        for n in range(self.max_attempts):
+            self.attempt = n
+            for algorithm, method in zip(algorithms, methods):
+                if algorithm == 'simultaneous correction':
                     x = self._simultaneous_correction(x)
-                finally:
-                    self.method, self.maxiter = original
-        elif algorithm == 'simultaneous correction':
-            x = self._simultaneous_correction(x)
-        else:
-            raise RuntimeError(
-                f'invalid algorithm {algorithm!r}, only {self.available_algorithms} are allowed'
-            )
+                    if self._best_result.r < 1e-3:
+                        optimize_result = False
+                        break
+                    continue
+                if algorithm in decompositions:
+                    if method == 'fixed-point':
+                        solver = flx.fixed_point
+                    elif method == 'wegstein':
+                        solver = flx.wegstein
+                    else:
+                        raise ValueError(f'invalid method {method!r}')
+                if analysis_mode:
+                    self._tracked_algorithms.append(
+                        (self.iter + 1, algorithm)
+                    )
+                try: x = solver(f, x, maxiter=maxiter, xtol=xtol, rtol=rtol, args=(algorithm,))
+                except:
+                    self._mean_residual = np.inf
+                    empty = IterationResult(1, x, np.inf)
+                    for i in range(self.iteration_memory):
+                        self._iteration_record[i] = empty
+                    x = self._best_result.x
+                    maxiter = self.maxiter - self.iter
+                    if maxiter <= 0: break
+                else: 
+                    x = self._best_result.x
+                    break
+            else: continue
+            break
+        if optimize_result: x = self._simultaneous_correction(x)
         self._set_point(x)
         # Last simulation to force mass balance
         self.update_mass_balance()
     
-    def _simultaneous_correction(self, x):
-        shape = x.shape
-        f = lambda x: self._residuals(x.reshape(shape)).flatten()
-        jac = lambda x: MESH.create_block_tridiagonal_matrix(*self._jacobian(x.reshape(shape)))
-        # x, *self._simultaneous_correction_info = leastsq(f, x, Dfun=jac, full_output=True, maxfev=self.maxiter, xtol=self.tolerance)
-        # f = lambda x: self._objective(x.reshape(shape))
-        # self._simultaneous_correction_info = res = minimize_ipopt(f, x, jac=jac)
-        # x = res.x
-        try: 
-            x, *self._simultaneous_correction_info = fsolve(
-                f, x.flatten(), fprime=jac, full_output=True, 
-                maxfev=self.maxiter, xtol=self.tolerance
+    def _new_point(self):
+        record = self._iteration_record
+        x1 = self._get_point()
+        if self._line_search:
+            t0, x0, r0 = record[0]
+            correction = x1 - x0
+            result = flx.inexact_line_search(
+                self._objective, x0, correction, 
+                fx=r0, t0=0.8, t1=1.2, tguess=t0
             )
-        except: pass
         else:
-            x[x < 0] = 0
-            x = x.reshape(shape)
-            try: result = self._best_result
-            except: pass
-            else:
-                r = self._objective(x)
-                if result.r < r: x = result.x
-        return x
+            result = IterationResult(1, x1, self._objective(x1))
+        x1 = result.x
+        x1[x1 < 0] = 0
+        record.rotate()
+        record[0] = result
+        residuals = np.array([i.r for i in record])
+        mean = np.mean(residuals)
+        mrr = self.minimum_residual_reduction
+        if self._best_result.r > result.r: self._best_result = result
+        if (1 + mrr) * mean > self._mean_residual:
+            record[0] = result = self._best_result
+            self._set_point(result.x)
+            raise RuntimeError('residual error is not decreasing sufficiently')
+        else:
+            self._mean_residual = mean
+            return x1
     
-    def _phenomena_iter(self, x0):
+    def _iter(self, x0, algorithm):
         self.iter += 1
         self._set_point(x0)
+        if algorithm == 'phenomena':
+            self._run_phenomena()
+        elif algorithm == 'phenomena modular':
+            self._run_phenomena_modular()
+        elif algorithm == 'sequential modular':
+            self._run_sequential()
+        else:
+            raise RuntimeError(f'invalid algorithm {algorithm!r}')
+        x1 = self._new_point()
+        if self._convergence_analysis_mode: self._tracked_points[self.iter] = x1
+        return x1
+    
+    def _run_phenomena(self):
         if self._has_vle:
             decomp = self.vle_decomposition
             if decomp == 'bubble point':
@@ -2622,51 +2647,50 @@ class MultiStageEquilibrium(Unit):
             self.update_energy_balance_temperatures()
         else:
             raise RuntimeError('unknown equilibrium phenomena')
-        return self._new_point()
     
-    def _new_point(self):
-        record = self._residual_record
-        t0, x0, r0 = record[0]
-        x1 = self._get_point()
-        correction = x1 - x0
-        if self._line_search:
-            result = flx.inexact_line_search(
-                self._objective, x0, correction, 
-                fx=r0, t0=0.8, t1=1.2, tguess=t0
-            )
-        else:
-            result = IterationResult(1, x1, self._objective(x1))
-        x1 = result.x
-        x1[x1 < 0] = 0
-        record.rotate()
-        record[0] = result
-        residuals = np.array([i.r for i in record])
-        mean = np.mean(residuals)
-        if mean > self._mean_residual:
-            record[0] = result = self._best_result
-            self._set_point(result.x)
-            raise RuntimeError('residual error is oscillating')
-        else:
-            if self._best_result.r > result.r: self._best_result = result
-            self._mean_residual = mean
-            return x1
+    def _run_phenomena_modular(self):
+        self._run_sequential()
+        self.update_energy_balance_phase_ratio_departures()
+        for i in self.stages: i._update_separation_factors()
+        separation_factors = np.array([i.S for i in self._S_stages])
+        self.update_flow_rates(separation_factors, update_B=True)
     
-    def _sequential_iter(self, x0):
-        self.iter += 1
-        self._set_point(x0)
+    def _run_sequential(self):
         for i in self.stages: i._run()
         for i in reversed(self.stages): i._run()
-        return self._new_point()
     
-    def _iter(self, x0):
-        algorithm = self.algorithm
-        if algorithm == 'phenomena':
-            x1 = self._phenomena_iter(x0)
-        elif algorithm == 'sequential modular':
-            x1 = self._sequential_iter(x0)
+    def _simultaneous_correction(self, x):
+        shape = x.shape
+        if self._convergence_analysis_mode:
+            self._tracked_algorithms.append(
+                (self.iter + 1, 'simultaneous correction')
+            )
+            def f(x):
+                x = x.reshape(shape)
+                self.iter += 1
+                try: self._tracked_points[self.iter] = x
+                except: pass
+                return self._residuals(x).flatten()
         else:
-            raise RuntimeError(f'invalid algorithm {algorithm!r}')
-        return x1
+            f = lambda x: self._residuals(x.reshape(shape)).flatten()
+        
+        jac = lambda x: MESH.create_block_tridiagonal_matrix(*self._jacobian(x.reshape(shape)))
+        try: 
+            x, *self._simultaneous_correction_info = fsolve(
+                f, x.flatten(), fprime=jac, full_output=True, 
+                maxfev=self.maxiter, xtol=self.tolerance
+            )
+        except: pass
+        else:
+            x[x < 0] = 0
+            x = x.reshape(shape)
+            try: result = self._best_result
+            except: self._best_result = result
+            else:
+                r = self._objective(x)
+                if result.r < r: x = result.x
+                else: self._best_result = IterationResult(None, x, r)
+        return x
     
     def _inside_out_iter(self, separation_factors):
         self.iter += 1
@@ -3091,15 +3115,16 @@ class MultiStageEquilibrium(Unit):
         self.interpolate_missing_variables()
         for i in self.stages: i._update_separation_factors()
         self.update_mass_balance()
+        if self.vle_decomposition is None: self.default_vle_decomposition()
         self._H_magnitude = 10 * sum([i.mixture.Cn('l', i.mol, i.T, i.P) for i in self.ins])
         self.attempt = 0
-        self.bottom_flows = None
         self._mean_residual = np.inf
         self._best_result = empty = IterationResult(None, None, np.inf)
-        record = 10 * [empty]
+        self._point_shape = (N_stages, 2 * N_chemicals + 1)
+        record = self.iteration_memory * [empty]
         x = self._get_point()
         record[0] = IterationResult(1, x, self._objective(x))
-        self._residual_record = record = deque(record)
+        self._iteration_record = record = deque(record)
         return x
     
     def interpolate_missing_variables(self):
@@ -3323,14 +3348,12 @@ class MultiStageEquilibrium(Unit):
         index = self._update_index
         if self.stage_reactions:
             feed_flows = self._feed_flows_and_conversion()
-        f = PhasePartition.F_relaxation_factor
-        if f and self.bottom_flows is not None:
-            bottom_flows = f * self.bottom_flows + (1 - f) * bottom_flows
-        self.bottom_flows = bottom_flows
         top_flows = MESH.top_flows_mass_balance(
             bottom_flows, feed_flows, self._asplit_left, self._bsplit_left, 
             self.N_stages
         )
+        f = PhasePartition.F_relaxation_factor
+        if f != 0: raise NotImplementedError('F relaxation factor')
         for i in range_stages:
             stage = stages[i]
             partition = stage.partition
@@ -3449,3 +3472,145 @@ class MultiStageEquilibrium(Unit):
         if getattr(self, 'tracking', False):
             raise NotImplementedError('tracking sum rates decomposition not implemented')
         
+# %% Convergence analysis
+
+    def convergence_analysis(
+            self, 
+            iterations=None, 
+            algorithm=None, 
+            x0=None, xf=None,
+            fillsteps=1,
+            yticks=None,
+        ):
+        x = self.hot_start() if x0 is None else x0
+        if xf is None:
+            self._run()
+            xf = self._get_point()
+            self._set_point(x)
+        diff = (xf - x)
+        maxdistance = np.sqrt((diff * diff).sum())
+        if self.vle_decomposition is None: self.default_vle_decomposition()
+        if iterations is None: iterations = self.maxiter
+        self._convergence_analysis_mode = True
+        try:
+            self._tracked_points = points = np.zeros([iterations + 1, self.N_stages, self._N_chemicals * 2 + 1])
+            self._tracked_algorithms = algorithms = []
+            self._get_point(points[0])
+            if algorithm is None:
+                try: self._run()
+                except: pass
+                iterations = min(self.iter, iterations)
+            elif algorithm == 'simultaneous correction':
+                shape = x.shape
+                self.iter = 0
+                def f(x):
+                    x = x.reshape(shape)
+                    self.iter += 1
+                    points[self.iter] = x
+                    return self._residuals(x).flatten()
+                    
+                jac = lambda x: MESH.create_block_tridiagonal_matrix(*self._jacobian(x.reshape(shape)))
+                try: fsolve(f, x.flatten(), fprime=jac, maxfev=iterations)
+                except: pass
+                iterations = min(self.iter, iterations)
+            else:       
+                for n in range(1, iterations + 1):
+                    iterations = n
+                    if algorithm == 'phenomena':
+                        self._run_phenomena()
+                    elif algorithm == 'sequential modular':
+                        self._run_sequential()
+                    elif algorithm == 'phenomena modular':
+                        self._run_phenomena_modular()
+                    else:
+                        raise ValueError('invalid algorithm')
+                    self._get_point(points[n])
+        except:
+            pass
+        finally:
+            self._convergence_analysis_mode = False
+        iterations -= 1
+        corrections = np.diff(points, axis=0)
+        stepsize = 1 / fillsteps
+        shape = (iterations, fillsteps)
+        distances = np.zeros(shape)
+        residuals = np.zeros(shape)
+        iteration = np.zeros(shape)
+        f = self._objective
+        for i in range(iterations):
+            x0 = points[i]
+            dx = corrections[i]
+            for j in range(fillsteps):
+                t = j * stepsize
+                x = x0 + t * dx
+                diff = xf - x
+                iteration[i, j] = i + t
+                distances[i, j] = np.sqrt((diff * diff).sum())
+                residuals[i, j] = f(x)
+        colors = bst.utils.GG_colors
+        blue = colors.blue.RGBn
+        red = colors.red.RGBn
+        cmap = clr.LinearSegmentedColormap.from_list(
+            'blue2red',
+            [blue, red],
+            N=256
+        )
+        mindistance = 1e-1
+        distances[distances > maxdistance] = maxdistance
+        distances[distances < mindistance] = mindistance
+        distances = np.log(distances) 
+        distances -= np.log(mindistance)
+        distances /= np.log(maxdistance) - np.log(mindistance)
+        fig = plt.figure()
+        ax = plt.gca()
+        plt.scatter(
+            iteration.flatten(),
+            np.log(residuals.flatten()),
+            c=cmap(distances.flatten()),
+        )
+        if yticks is not None: 
+            plt.yticks(yticks)
+            lb, ub = yticks[0], yticks[-1]
+            plt.ylim([lb, ub])
+        else:
+            lb, ub = plt.ylim()
+        sm = cm.ScalarMappable(cmap=cmap)    
+        cbar = fig.colorbar(sm, ax=ax, ticks=[0, 1])
+        
+        yloc = lb + (ub - lb) * 1.05
+        if algorithms:
+            shorthand = {
+                'phenomena': 'P',
+                'phenomena modular': 'PM',
+                'sequential modular': 'SM',
+                'simultaneous correction': 'SC',
+            }
+            for iteration, algorithm in algorithms:
+                plt.axvline(iteration, color='silver', zorder=-1)
+                ax.text(
+                    iteration, yloc, shorthand[algorithm], 
+                    ha='center',
+                    fontdict=dict(
+                        fontname='arial', 
+                        size=10
+                    )
+                )
+        else:
+            ax.text(
+                np.mean(plt.xlim()), yloc, algorithm, 
+                ha='center',
+                fontdict=dict(
+                    fontname='arial', 
+                    size=10
+                )
+            )
+        plt.xlabel('Iteration')
+        plt.ylabel('log residual')
+        cbar.ax.set_ylabel('distance from steady state')
+        
+        # cbar_ax.set_title()
+            
+        
+        
+        
+    

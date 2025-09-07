@@ -317,9 +317,6 @@ class Configuration:
             for i in ins: 
                 i._sink = u
                 sinks[i.imol] = u
-            if getattr(u, 'decoupled', False): 
-                breakpoint()
-                u = None
             for i in outs: 
                 i._source = u
                 sources[i.imol] = u

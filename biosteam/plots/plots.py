@@ -58,6 +58,7 @@ __all__ = (
     'default_colors_and_hatches',
     'modify_stacked_bars',
     'title_color',
+    'contour_subplots',
 )
 
 # %% Utilities
