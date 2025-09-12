@@ -1148,7 +1148,7 @@ def plot_kde_1d(
                                 for x in xs]) / N_cols
             N_internal_y = sum([(1 if hasattr(y, 'ndim') and y.ndim == 1 else len(y))
                                 for y in ys])
-            grid_kw = dict(height_ratios=[0.25 * N_internal_x, *N_rows*[4]], width_ratios=[*N_cols*[4], 0.3 * N_internal_y])
+            grid_kw = dict(height_ratios=[0.3 * N_internal_x, *N_rows*[4]], width_ratios=[*N_cols*[4], 0.3 * N_internal_y])
             fig, all_axes = plt.subplots(
                 ncols=N_cols + 1, nrows=N_rows + 1, 
                 gridspec_kw=grid_kw,

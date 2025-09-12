@@ -62,6 +62,8 @@ __all__ = ('System', 'AgileSystem', 'MockSystem',
            'AgileSystem', 'OperationModeResults',
            'mark_disjunction', 'unmark_disjunction')
 
+# %% Miscillaneous
+
 def _reformat(name):
     name = name.replace('_', ' ')
     if name.islower(): name= name.capitalize()
@@ -811,7 +813,6 @@ class System:
         '_ID',
         '_path',
         '_facilities',
-        '_facility_loop',
         '_recycle',
         '_N_runs',
         '_method',
@@ -826,6 +827,8 @@ class System:
         '_path_cache',
         '_prioritized_units',
         '_temporary_connections_log',
+        '_integrated_facilities',
+        '_shared_facilities',
         'maxtime',
         'maxiter',
         'molar_tolerance',
@@ -850,7 +853,6 @@ class System:
         '_streams',
         '_feeds',
         '_products',
-        '_facility_recycle',
         '_inlet_names',
         '_outlet_names',
         # Specifications
@@ -968,8 +970,6 @@ class System:
         ends : 
             Streams that not products, but are ultimately specified through
             process requirements and not by its unit source.
-        facility_recycle : 
-            Recycle stream between facilities and system path.
         operating_hours : 
             Number of operating hours in a year. This parameter is used to
             compute annualized properties such as utility cost and material cost
@@ -979,14 +979,13 @@ class System:
         if feedstock is None: raise ValueError('must pass feedstock stream')
         network = Network.from_feedstock(feedstock, feeds, ends)
         return cls._from_network(ID, network, facilities,
-                                facility_recycle, operating_hours,
+                                operating_hours,
                                 **kwargs)
 
     @classmethod
     def from_units(cls, ID: Optional[str]="",
                    units: Optional[Iterable[Unit]]=None, 
                    ends: Optional[Iterable[Stream]]=None,
-                   facility_recycle: Optional[Stream]=None, 
                    operating_hours: Optional[float]=None,
                    **kwargs):
         """
@@ -1014,7 +1013,7 @@ class System:
         facilities = facilities_from_units(units)
         network = Network.from_units(units, ends)
         return cls._from_network(ID, network, facilities,
-                                facility_recycle, operating_hours,
+                                operating_hours,
                                 **kwargs)
 
     @classmethod
@@ -1092,7 +1091,6 @@ class System:
             path: Optional[Iterable[Unit|System]]=(), 
             recycle: Optional[Stream]=None, 
             facilities: Iterable[Facility]=(),
-            facility_recycle: Optional[Stream]=None, 
             N_runs: Optional[int]=None,
             operating_hours: Optional[float]=None,
             lang_factor: Optional[float]=None,
@@ -1105,6 +1103,7 @@ class System:
             temperature_tolerance: Optional[float]=None,
             relative_temperature_tolerance: Optional[float]=None,
             maxtime: Optional[float]=None,
+            shared_facilities=None,
         ):
         self.N_runs = N_runs
         
@@ -1145,27 +1144,32 @@ class System:
         #: Log for all process specifications checked for temporary connections.
         self._temporary_connections_log = set()
 
+        #: Whether subsystem facilities are shared with the entire system
+        self._shared_facilities = True if shared_facilities is None else shared_facilities
+
         #: Whether to simulate system after running all specifications.
         self.simulate_after_specifications = False
 
         #: Whether to run sequential modular simulation when phenomena oriented simulation is not converging.
         self.adaptive_phenomena_oriented_simulation = True
 
+        #: Whether facilities have a recycle loop.
+        self._integrated_facilities = None
+
         #: Flag to track convergence at each iteration. 
         #: * 0 - no tracking
         #: * 1 - track variables
         #: * 2 - track variables and condition number
         self.tracking_flag = 0
-
+        
+        self._register(ID)
         self._set_path(path)
+        self.recycle = recycle
+        self._set_facilities(facilities)
         self._specifications = []
         self._running_specifications = False
         self._load_flowsheet()
         self._reset_errors()
-        self._set_facilities(facilities)
-        self.recycle = recycle
-        self._set_facility_recycle(facility_recycle)
-        self._register(ID)
         self._save_configuration()
         self._load_stream_links()
         self._state = None
@@ -1296,7 +1300,6 @@ class System:
         self._set_path(path)
         self.recycle = network.recycle
         self._set_facilities(facilities)
-        self._set_facility_recycle(facility_recycle or find_blowdown_recycle(facilities))
         self.set_tolerance(
             mol=self.molar_tolerance,
             rmol=self.relative_molar_tolerance,
@@ -1420,8 +1423,6 @@ class System:
         """Copy path, facilities and recycle from other system."""
         self._path = other._path
         self._facilities = other._facilities
-        self._facility_loop = other._facility_loop
-        self._facility_recycle = other._facility_recycle
         self._recycle = other._recycle
         self._connections = other._connections
 
@@ -1815,38 +1816,34 @@ class System:
         self._path = path = tuple(path)
 
     def _set_facilities(self, facilities):
-        facilities_path = []
-        units = set(get_units(self))
-        for i in facilities: get_missing_units(i, units, facilities_path)
-        
         #: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the path simulation.
-        self._facilities = tuple(facilities_path)
-        self._load_facilities()
-
-    def _load_facilities(self):
+        self._facilities = tuple(facilities)
+        if self._shared_facilities: facilities = sum([i.facilities for i in self.subsystems], facilities)
         isa = isinstance
         units = self.cost_units
-        for i in self._facilities:
+        for i in facilities:
             if isa(i, Facility):
                 i._other_units = other_units = units.copy()
                 other_units.discard(i)
-
-    def _set_facility_recycle(self, recycle):
-        if recycle:
-            try:
-                sys = self._downstream_system(recycle._sink)
-                for i in sys.units: i._system = self
-                self._load_facilities()
-                sys.recycle = recycle
-                sys.__class__ = FacilityLoop
-                #: [FacilityLoop] Recycle loop for converging facilities
-                self._facility_loop = sys
-                self._facility_recycle = recycle
-            except:
-                self._facility_loop = None
-                self._facility_recycle = recycle
+        units = set(self.units)
+        for i in facilities: units.discard(i)
+        recycles = [
+            outlet 
+            for facility in facilities
+            for outlet in facility.outs
+            if outlet.sink in units
+        ]
+        if recycles:
+            self._integrated_facilities = True
+            system_recycles = self.recycle
+            if system_recycles:
+                if isinstance(system_recycles, abc.Iterable):
+                    recycles.extend(i)
+                else:
+                    recycles.append(i)
+            self.recycle = recycles
         else:
-            self._facility_loop = self._facility_recycle = None
+            self._integrated_facilities = False
 
     # Forward pipping
     __sub__ = Unit.__sub__
@@ -2020,8 +2017,8 @@ class System:
     @recycle.setter
     def recycle(self, recycle):
         isa = isinstance
-        if recycle is None:
-            self._recycle = recycle
+        if not recycle:
+            self._recycle = None
         elif isa(recycle, Stream):
             self._recycle = recycle
         elif isa(recycle, abc.Iterable):
@@ -2470,7 +2467,6 @@ class System:
                 self._save_configuration()
             else:
                 self._setup_units()
-        self._load_facilities()
 
     @piping.ignore_docking_warnings
     def _remove_temporary_units(self):
@@ -2508,11 +2504,15 @@ class System:
         isa = isinstance
         f = try_method_with_object_stamp
         flag = self.tracking_flag
+        integrated = self._integrated_facilities
         for i in self._path:
-            if isa(i, Unit): 
-                f(i, i.run)
+            if isa(i, Unit):
+                if integrated: f(i, i.simulate)
+                else: f(i, i.run)
                 if flag: self._collect_variables(i.ID)
-            elif isa(i, System): f(i, i.converge)
+            elif isa(i, System): 
+                if integrated: f(i, i.simulate) 
+                else: f(i, i.converge)
             else: raise RuntimeError('path elements must be either a unit or a system')
         if flag == TRACK_CONDITION_NUMBER:
             self._collect_recycle_condition_number()
@@ -2877,6 +2877,7 @@ class System:
         M = len(self.timer.record)
         assert M == N
 
+    # TODO: Decide whether to remove condition number analysis.
     def _collect_recycle_condition_number(self):
         pass
 
@@ -2983,9 +2984,6 @@ class System:
         """
         if recycle_data is not None: recycle_data.reset()
         if self._recycle:
-            for i in self.path:
-                if isinstance(i, Unit) and hasattr(i, 'recycle_system_hook'):
-                    i.recycle_system_hook(self)
             method = self._solve
         else:
             method = self.run_sequential_modular
@@ -2997,16 +2995,17 @@ class System:
             try: recycle_data.update()
             except AttributeError: raise ValueError('no recycle data to update')
 
-    def _summary(self):
+    def _summary(self, force_path=False):
         simulated_units = set()
         isa = isinstance
         Unit = bst.Unit
         f = try_method_with_object_stamp
-        for i in self._path:
-            if isa(i, Unit):
-                if i in simulated_units: continue
-                simulated_units.add(i)
-            f(i, i._summary)
+        if not self._integrated_facilities or force_path:
+            for i in self._path:
+                if isa(i, Unit):
+                    if i in simulated_units: continue
+                    simulated_units.add(i)
+                f(i, i._summary)
         for i in self._facilities:
             if isa(i, Unit): f(i, i.simulate)
             elif isa(i, System):
@@ -3390,8 +3389,6 @@ class System:
                                 design_and_cost=design_and_cost,
                                 **kwargs
                             )
-                        elif self._facility_loop: 
-                            self._facility_loop.converge()
                 self._simulation_outputs = outputs
             return outputs
 
@@ -4323,15 +4320,6 @@ class System:
                     + ins_and_outs)
         else:
             return f"System: {self.ID}\n{ins_and_outs}"
-
-class FacilityLoop(System):
-    __slots__ = ()
-
-    def run(self):
-        obj = super()
-        for i in self.units: i._setup()
-        obj.run()
-        self._summary()
 
 del ignore_docking_warnings
 

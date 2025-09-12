@@ -78,32 +78,7 @@ def solve_left_bidiagonal_matrix(a, b, d): # Left bidiagonal matrix solver
     return b
 
 @njit(cache=True)
-def solve_RBDMA_1D_careful(b, c, d):
-    n = d.shape[0] - 1 # number of equations minus 1
-    bn = b[n]
-    dn = d[n]
-    if bn == 0:
-        if dn == 0:
-            b[n] = 0
-        else:
-            b[n] = inf
-    else:
-        b[n] = d[n] / b[n]
-
-    for i in range(n-1, -1, -1):
-        bi = b[i]
-        num = d[i] - c[i] * b[i+1]
-        if bi == 0:
-            if num == 0:
-                b[i] = 0
-            else:
-                b[i] = inf
-        else:
-            b[i] = num / bi
-    return b
-
-@njit(cache=True)
-def solve_RBDMA(b, c, d): # Right bidiagonal matrix solver
+def solve_right_bidiagonal_matrix(b, c, d): # Right bidiagonal matrix solver
     """
     Solve a right bidiagonal matrix using a reformulation of Thomas' algorithm.
     """
@@ -170,7 +145,7 @@ def hot_start_top_flow_rates(
             d[i] += bottom_feed_flows[i]
         else:
             d[i] += bottom_feed_flows[i] - bottom_flows[i - 1] * bsplit_1[i - 1]
-    return solve_RBDMA(b, c, d)
+    return solve_right_bidiagonal_matrix(b, c, d)
 
 @njit(cache=True)
 def hot_start_bottom_flow_rates(
@@ -401,14 +376,15 @@ def vapor_flow_rates(
         if jlast > 0: c[jlast] = 0
         try: c[j] = 0
         except: pass
-    return solve_RBDMA(b, c, d)
+    return solve_right_bidiagonal_matrix(b, c, d)
 
-@njit(cache=True)
+# @njit(cache=True)
 def phase_ratio_departures(
         L, V, hl, hv, asplit_1, asplit_left, bsplit_left, 
         N_stages,
         specification_index,
-        H_feeds
+        H_feeds,
+        RF=False, # Reflux rate and bottoms flow rate specification
     ):
     # hV1*L1*dB1 - hv2*L2*dB2 = Q1 + H_in - H_out
     b = hv * L
@@ -420,14 +396,19 @@ def phase_ratio_departures(
     Hv_in = (Hv_out * asplit_left)[1:]
     d[1:] += Hl_in
     d[:-1] += Hv_in
-    for i, j in enumerate(specification_index):
-        b[j] = 1
-        d[j] = 0
-        jlast = j - 1
-        if jlast > 0: c[jlast] = 0
-        try: c[j] = 0
-        except: pass
-    return solve_RBDMA(b, c, d)
+    if RF:
+        dB = d * 0
+        dB[2:] = solve_left_bidiagonal_matrix(b[2:], c[1:], d[1:-1])
+        return dB
+    else:
+        n_last = d.size - 1
+        for j in specification_index:
+            b[j] = 1
+            d[j] = 0
+            jlast = j - 1
+            if jlast > 0: c[jlast] = 0
+            if j < n_last: c[j] = 0
+        return solve_right_bidiagonal_matrix(b, c, d)
 
 @njit(cache=True)
 def temperature_departures(Cv, Cl, Hv, Hl, asplit_left, bsplit_left,
