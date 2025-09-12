@@ -1817,7 +1817,7 @@ class System:
 
     def _set_facilities(self, facilities):
         #: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the path simulation.
-        self._facilities = tuple(facilities)
+        self._facilities = facilities = tuple(facilities)
         if self._shared_facilities: facilities = sum([i.facilities for i in self.subsystems], facilities)
         isa = isinstance
         units = self.cost_units
@@ -2843,11 +2843,8 @@ class System:
     def get_equation_profiles(self, variable_profiles_table, directories, stages, namespace):
         equation_profiles = self.equation_profiles
         M = variable_profiles_table.shape[0]
-        # print('------')
-        # print('M', M)
         for i in range(M):
             row = variable_profiles_table.iloc[i]
-            # print(i)
             for directory, value in zip(directories, row):
                 exec(f"{directory} = {value}", namespace)
             for stage in stages:
