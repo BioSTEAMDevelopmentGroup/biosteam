@@ -157,10 +157,11 @@ class Unit(AbstractUnit):
         if default_phenomena is None:
             methods = (
                 '_update_nonlinearities',
-                '_get_energy_departure_coefficient',
+                '_update_energy_coefficient',
+                '_update_variable',
                 '_create_material_balance_equations',
-                '_create_energy_departure_equations',
-                '_update_energy_variable',
+                '_create_energy_balance_equations',
+                '_create_bulk_balance_equations',
                 '_energy_variable',
             )
             if all([getattr(cls, i) is getattr(Unit, i) for i in methods]):
@@ -377,11 +378,11 @@ class Unit(AbstractUnit):
         self._duty = self.Hnet
         Ts_new = [i.T for i in outs]
         if all([i == j for i, j in zip(Ts_new, Ts)]): # T constant
-            self._energy_variable = None
+            self.specified_variable = 'T'
         elif self.Hnet == Q: # Q constant    
-            self._energy_variable = 'T'
+            self.specified_variable = 'Q'
         else:
-            self._energy_variable = None
+            self.specified_variable = 'B'
         for i, j in zip(outs, data): i.set_data(j)
     
     def _simulation_error(self):
@@ -401,12 +402,27 @@ class Unit(AbstractUnit):
         self._outs = outs
         return np.abs(new_flows - flows).sum(), np.abs(Ts_new - Ts).sum()
     
-    def _get_energy_departure_coefficient(self, stream):
+    def _update_energy_coefficient(self, stream, coefficients):
         """
-        tuple[object, float] Return energy departure coefficient of a stream 
-        for phenomena-based simulation.
+        Update coefficient of a stream 
+        for phenomena-based simulation and 
+        return the reference value.
         """
-        if self._energy_variable == 'T': return (self, stream.C)
+        if self.specified_variable == 'Q': 
+            C = stream.C
+            coefficients[self, 'T'] = -C
+            return -C * stream.T
+        return 0
+    
+    def _update_variable(self, variable, value):
+        """
+        Update variable being solved in equations for 
+        phenomena-based simulation.
+        """
+        if variable == 'T':
+            for i in self.outs: i.T = value
+        else:
+            raise ValueError('invalid variable')
     
     def _create_material_balance_equations(self, composition_sensitive):
         """
@@ -414,7 +430,7 @@ class Unit(AbstractUnit):
         phenomena-based simulation.
         """
         if self._link_streams: return []
-        fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
+        fresh_inlets, process_inlets, equations = self._begin_material_equations(composition_sensitive)
         outs = self.flat_outs
         N = self.chemicals.size
         ones = np.ones(N)
@@ -425,7 +441,7 @@ class Unit(AbstractUnit):
         except:
             rhs = predetermined_flow
         mol_total = sum([i.mol for i in outs])
-        for i, s in enumerate(outs):
+        for s in outs:
             split = s.mol / mol_total
             minus_split = -split
             eq_outs = {}
@@ -436,31 +452,58 @@ class Unit(AbstractUnit):
             )
         return equations
     
-    def _create_energy_departure_equations(self):
+    def _create_energy_balance_equations(self):
         """
         list[tuple[dict, float]] Create energy departure equations for 
         phenomena-based simulation.
         """
+        fresh_inlets, process_inlets, equations = self._begin_energy_equations()
         if self._energy_variable == 'T':
-            coeff = {self: sum([i.C for i in self.outs])}
-            for i in self.ins: i._update_energy_departure_coefficient(coeff)
-            if self._dmol.any():
-                dH = self._duty - self.Hnet
+            dmol = self._dmol
+            if dmol.any(): 
+                dH = self._duty + sum([i.Hf for i in self.outs]) - sum([i.Hf for i in self.ins]) 
             else:
-                dH = self._duty + self.H_in - self.H_out
-            return [(coeff, dH)]
+                dH = self._duty
+            coeff = {(self, 'T'): sum([i.C for i in self.outs])}
+            for i, s in enumerate(self.outs): coeff[self, i] = s.h
+            for i in process_inlets: 
+                dH += i._update_energy_coefficient(coeff)
+            for i in fresh_inlets:
+                dH += i.H
+            equations.append(
+                (coeff, dH)
+            )
+            return equations
         else:
-            return []
+            return equations
     
-    def _update_energy_variable(self, departure):
+    def _create_bulk_balance_equations(self):
         """
-        Update energy variable being solved in energy departure equations for 
+        list[tuple[dict, array]] Create bulk balance equations for 
         phenomena-based simulation.
         """
-        if self._energy_variable == 'T':
-            for i in self.outs: i.T += departure
+        if self._link_streams: return []
+        fresh_inlets, process_inlets, equations = self._begin_bulk_equations()
+        outs = self.flat_outs
+        predetermined_flow = [i.F_mol for i in fresh_inlets]
+        try:
+            dF_mol = self._dmol.sum()
+            rhs = predetermined_flow + dF_mol
+        except:
+            rhs = predetermined_flow
+        F_mol_total = sum([i.F_mol for i in outs])
+        for i, s in enumerate(outs):
+            split = s.F_mol / F_mol_total
+            minus_split = -split
+            eq_outs = {}
+            for i in process_inlets: eq_outs[i, 'F_mol'] = minus_split
+            eq_outs[s, 'F_mol'] = 1
+            equations.append(
+                (eq_outs, split * rhs)
+            )
+        return equations
     
-    def _begin_equations(self, composition_sensitive):
+    def _begin_material_equations(self, composition_sensitive):
         inlets = self.ins
         fresh_inlets = []
         process_inlets = []
@@ -518,6 +561,56 @@ class Unit(AbstractUnit):
                     process_inlets.append(i)   
             equations = material_equations
         return fresh_inlets, process_inlets, equations
+    
+    def _begin_bulk_equations(self):
+        inlets = self.ins
+        fresh_inlets = []
+        process_inlets = []
+        equations = [f() for i in inlets for f in i.bulk_equations]
+        isfeed = lambda s: s.isfeed() or s.source._recycle_system is not self._recycle_system
+        if equations:
+            for i in inlets: 
+                if (isfeed(i) and 
+                    not i.bulk_equations):
+                    fresh_inlets.append(i)
+                elif len(i) > 1:
+                    process_inlets.extend(i)
+                else:
+                    process_inlets.append(i)  
+        else:
+             for i in inlets: 
+                 if isfeed(i):
+                     fresh_inlets.append(i)
+                 elif len(i) > 1:
+                     process_inlets.extend(i)
+                 else:
+                     process_inlets.append(i)
+        return fresh_inlets, process_inlets, equations
+    
+    def _begin_energy_equations(self):
+        inlets = self.ins
+        fresh_inlets = []
+        process_inlets = []
+        equations = [f() for i in inlets for f in i.energy_equations]
+        isfeed = lambda s: s.isfeed() or s.source._recycle_system is not self._recycle_system
+        if equations:
+            for i in inlets: 
+                if (isfeed(i) and 
+                    not i.energy_equations):
+                    fresh_inlets.append(i)
+                elif len(i) > 1:
+                    process_inlets.extend(i)
+                else:
+                    process_inlets.append(i)  
+        else:
+             for i in inlets: 
+                 if isfeed(i):
+                     fresh_inlets.append(i)
+                 elif len(i) > 1:
+                     process_inlets.extend(i)
+                 else:
+                     process_inlets.append(i)
+        return fresh_inlets, process_inlets, equations    
     
     Inlets = piping.Inlets
     Outlets = piping.Outlets

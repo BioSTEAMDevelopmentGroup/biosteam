@@ -332,8 +332,8 @@ def test_vlle_case():
     # assert_allclose(xg, 0.08808029891244049, atol=2e-3, rtol=2e-3) # mass balance
 
 if __name__ == '__main__':
-    test_trivial_lle_case()
-    test_trivial_vle_case()
+    # test_trivial_lle_case()
+    # test_trivial_vle_case()
     test_trivial_liquid_extraction_case()
     test_trivial_distillation_case()
     test_simple_acetic_acid_separation_no_recycle()

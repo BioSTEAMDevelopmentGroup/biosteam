@@ -1677,7 +1677,7 @@ class BinaryDistillation(Distillation, new_graphics=False):
         if hasattr(self, '_vle_chemicals'): 
             IDs_vle = tuple([i.ID for i in self._vle_chemicals])
             if IDs != IDs_vle: split = self.chemicals.array(IDs_vle, split)
-        fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
+        fresh_inlets, process_inlets, equations = self._begin_material_equations(composition_sensitive)
         top, bottom = self.outs
         ones = np.ones(self.chemicals.size)
         minus_ones = -ones
@@ -1705,11 +1705,30 @@ class BinaryDistillation(Distillation, new_graphics=False):
         )
         return equations
     
-    def _get_energy_departure_coefficient(self, stream):
-        return None
-    
-    def _create_energy_departure_equations(self):
+    def _create_energy_balance_equations(self): 
         return []
+    
+    def _update_energy_coefficient(self, stream, coefficients):
+        return 0
+    
+    def _create_bulk_balance_equations(self):
+        fresh_inlets, process_inlets, equations = self._begin_bulk_equations()
+        eq_overall = {}
+        for i in self.outs: eq_overall[i, 'F_mol'] = 1
+        for i in process_inlets:
+            if i in eq_overall: del eq_overall[i, 'F_mol']
+            else: eq_overall[i, 'F_mol'] = -1
+        equations.append(
+            (eq_overall, sum([i.F_mol for i in fresh_inlets]))
+        )
+        top, bottom = self.outs
+        eq_outs = {}
+        eq_outs[top, 'F_mol'] = 1
+        eq_outs[bottom, 'F_mol'] = -top.F_mol / bottom.F_mol
+        equations.append(
+            (eq_outs, 0)
+        )
+        return equations
     
     def _update_nonlinearities(self):
         outs = self.outs
@@ -2145,8 +2164,9 @@ class ShortcutColumn(Distillation, new_graphics=False):
         self._distillate_recoveries = distillate_recoveries
         return distillate_recoveries
     
-    _get_energy_departure_coefficient = BinaryDistillation._get_energy_departure_coefficient
-    _create_energy_departure_equations = BinaryDistillation._create_energy_departure_equations
+    _update_energy_coefficient = BinaryDistillation._update_energy_coefficient
+    _create_energy_balance_equations = BinaryDistillation._create_energy_balance_equations
+    _create_bulk_balance_equations = BinaryDistillation._create_bulk_balance_equations
     _create_material_balance_equations = BinaryDistillation._create_material_balance_equations
     # _update_net_flow_parameters = BinaryDistillation._update_net_flow_parameters
 

@@ -94,8 +94,6 @@ class Configuration:
                  'composition_sensitive_nodes',
                  '_has_dynamic_coefficients')
     
-    energy_variable_relaxation_factor = 0.5
-    
     def __init__(self, path, stages, nodes, streams, stream_ref, connections, aggregated):
         self.path = path
         self.stages = stages
@@ -139,16 +137,14 @@ class Configuration:
                     i._update_nonlinearities()
         else:
             for i in self.path: 
-                if getattr(i, 'decoupled', False): 
-                    assert False
-                    i.run()
                 i._update_nonlinearities()
         
         if self.composition_sensitive_path:
             # for i in self.composition_sensitive_path: i._run()
+            # breakpoint()
             containers, flows = self.solve_material_flows(composition_sensitive=True, full_output=True)
             def update_inner_material_balance_parameters(flows):
-                for i in self.composition_sensitive_path: i._update_composition_parameters()
+                for i in self.composition_sensitive_nodes: i._update_composition_parameters()
                 return self.solve_material_flows(composition_sensitive=True)
             
             flx.fixed_point(
@@ -156,7 +152,7 @@ class Configuration:
                 flows, 
                 xtol=tmo.LLE.pseudo_equilibrium_inner_loop_options['xtol'], 
                 rtol=tmo.LLE.pseudo_equilibrium_inner_loop_options['rtol'], 
-                maxiter=10, checkiter=False,
+                maxiter=100, checkiter=False,
                 checkconvergence=False,
             )
             for i in self.composition_sensitive_path: i._update_net_flow_parameters()
@@ -243,17 +239,6 @@ class Configuration:
                 values[values < 0] = 0
                 for mol, value in zip(containers, values): # update material flows
                     mol[:] = value
-                # for obj, mask, value in zip(objs, masks, values): # update material flows
-                #     indexer, phase = obj
-                #     index = indexer._phase_indexer(phase)
-                #     mol = indexer.data.rows[index]
-                #     if mask.any():
-                #         new_mol = value[mask]
-                #         relaxation_factor = (-new_mol / (mol[mask] - new_mol)).max()
-                #         print(relaxation_factor)
-                #         mol[:] = relaxation_factor * mol + (1 - relaxation_factor) * value
-                #     else:
-                #         mol[:] = value
             else:
                 if full_output:
                     containers = []
@@ -276,37 +261,52 @@ class Configuration:
         else:
             return values
         
-    def solve_energy_departures(self):
+    def solve_energy_flows(self):
         nodes = self.nodes
         A = []
         b = []
         for node in nodes:
-            for coefficients, value in node._create_energy_departure_equations():
+            for coefficients, value in node._create_energy_balance_equations():
                 A.append(coefficients)
                 b.append(value)
+        if not A: return
+        for node in nodes:
+            for coefficients, value in node._create_bulk_balance_equations():
+                A.append(coefficients)
+                b.append(value)
+        A = [{(getattr(i, 'material_reference', i), v): j for (i, v), j in x.items()} for x in A]
         A, objs = dictionaries2array(A)
-        departures = solve(A, np.array(b).T).T
-        # Prevent negative numbers
-        f = 1
-        for obj, delta in zip(objs, departures): 
-            if delta >= 0: continue
-            var = obj._energy_variable
-            value = getattr(obj, var, None)
-            if value is None: 
-                if var == 'T':
-                    value = obj.outs[0].T
+        values = solve(A, np.array(b).T).T
+        # try: values = solve(A, np.array(b).T).T
+        # except: 
+        #     A = []
+        #     b = []
+        #     breakpoint()
+        #     for node in nodes:
+        #         for coefficients, value in node._create_energy_balance_equations():
+        #             breakpoint()
+        #             A.append(coefficients)
+        #             b.append(value)
+        #     if not A: return
+        #     for node in nodes:
+        #         for coefficients, value in node._create_bulk_balance_equations():
+        #             breakpoint()
+        #             A.append(coefficients)
+        #             b.append(value)
+        for (obj, var), value in zip(objs, values):
+            if var == 'F_mol':
+                indexer, phase = obj
+                index = indexer._phase_indexer(phase)
+                mol = indexer.data.rows[index]
+                if value == 0:
+                    mol[:] = 0
                 else:
-                    raise RuntimeError(f'energy variable {var!r} value is None')
-            f = min(- value / delta, f)
-        departures *= (1 - self.energy_variable_relaxation_factor) * f
-        try:
-            for obj, departure in zip(objs, departures):
-                obj._update_energy_variable(departure)
-        except AttributeError as e:
-            if obj._update_energy_variable:
-                raise e
+                    total = mol.sum()
+                    if total != 0: mol[:] *= value / total
             else:
-                raise NotImplementedError(f'{obj!r} has no method `_update_energy_variable`')
+                obj._update_variable(var, value)
+        for node in nodes:
+            if hasattr(node, '_reset_bulk_variable'): node._reset_bulk_variable()
         
     def __enter__(self):
         units = self.stages
@@ -2526,13 +2526,14 @@ class System:
             try:
                 conf.solve_nonlinearities()
                 if flag: self._collect_variables('phenomenode')
-                conf.solve_energy_departures()
+                conf.solve_energy_flows()
                 if flag: self._collect_variables('energy')
                 conf.solve_material_flows()
                 if flag: self._collect_variables('material')
             except (NotImplementedError, UnboundLocalError, KeyError) as error:
                 raise error
             except Exception as e:
+                raise e
                 print('FAILED!')
                 print(e)
                 print('-------')
@@ -2553,7 +2554,7 @@ class System:
                     if flag: self._collect_variables((i.ID, 'phenomenode'))
                     conf.solve_material_flows()
                     if flag: self._collect_variables('material')
-                    conf.solve_energy_departures()
+                    conf.solve_energy_flows()
                     if flag: self._collect_variables('energy')
             except (NotImplementedError, UnboundLocalError, KeyError) as error:
                 raise error

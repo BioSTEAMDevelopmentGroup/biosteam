@@ -75,18 +75,12 @@ class Mixer(Unit):
     _N_ins = 2
     _ins_size_is_fixed = False
     
+    Q = 0
+    specified_variable = 'Q'
     equation_node_names = (
         'overall_material_balance_node', 
         'energy_balance_node',
     )
-    
-    @property
-    def _energy_variable(self):
-        phases = self.outs[0].phases
-        if phases == ('g', 'l'):
-            return 'B'
-        else:
-            return 'T'
     
     def initialize_overall_material_balance_node(self):
         self.overall_material_balance_node.set_equations(
@@ -111,10 +105,15 @@ class Mixer(Unit):
         if hasattr(self, '_T_node'): return self._T_node
         self._T_node = var = bst.VariableNode(f"{self.node_tag}.T", lambda: self.outs[0].T)
         return var 
-        
+    
     @property
-    def E_node(self):
-        return self.T_node    
+    def B_node(self):
+        if hasattr(self, '_B_node'): return self._B_node
+        self._B_node = var = bst.VariableNode(f"{self.node_tag}.B", lambda: self.B)
+        return var
+        
+    def get_E_node(self, stream):
+        return self.B_node if self.outs[0].phases == ('g', 'l') else self.T_node
     
     def _assert_compatible_property_package(self): 
         pass # Not necessary for mixing streams
@@ -136,36 +135,63 @@ class Mixer(Unit):
         else:
             self.B = V / (1 - V)
     
-    def _get_energy_departure_coefficient(self, stream):
-        if stream.phases == ('g', 'l'):
-            vapor, liquid = stream
-            if vapor.isempty():
-                with liquid.temporary_phase('g'): coeff = liquid.H
-            else:
-                coeff = -vapor.h * liquid.F_mol
-        else:
-            coeff = -stream.C
-        return (self, coeff)
+    def _update_nonlinearities(self): self._run()
     
-    def _create_energy_departure_equations(self):
-        # Ll: C1dT1 - Ce2*dT2 - Cr0*dT0 - hv2*L2*dB2 = Q1 - H_out + H_in
-        # gl: hV1*L1*dB1 - hv2*L2*dB2 - Ce2*dT2 - Cr0*dT0 = Q1 + H_in - H_out
-        outlet = self.outs[0]
-        phases = outlet.phases
-        if phases == ('g', 'l'):
-            vapor, liquid = outlet
-            coeff = {}
-            if vapor.isempty():
-                with liquid.temporary_phase('g'): coeff[self] = liquid.H
-            else:
-                coeff[self] = vapor.h * liquid.F_mol
+    def _update_energy_coefficient(self, stream, coefficients):
+        if self.outs[0].phases != ('g', 'l'):
+            C = stream.C
+            coefficients[self, 'T'] = -C
+            H_ref = C * stream.T
         else:
-            coeff = {self: outlet.C}
-        for i in self.ins: i._update_energy_departure_coefficient(coeff)
-        return [(coeff, self.H_in - self.H_out)]
+            H_ref = 0
+        return H_ref
+    
+    def _create_energy_balance_equations(self):
+        fresh_inlets, process_inlets, equations = self._begin_energy_equations()
+        Q = self.Q + sum([i.H for i in fresh_inlets])
+        outlet = self.outs[0]
+        if outlet == ('g', 'l'):
+            coeff = {}
+            for i in self.flat_outs: coeff[i, 'F_mol'] = i.h
+        else:
+            coeff = {(outlet, 'F_mol'): outlet.h}
+            coeff[self, 'T'] = C = outlet.C
+            Q += C * outlet.T
+        for i in process_inlets: 
+            coeff[i, 'F_mol'] = -i.h
+            Q -= i._update_energy_coefficient(coeff)
+        return [(coeff, Q)]
+    
+    def _create_bulk_balance_equations(self):
+        fresh_inlets, process_inlets, equations = self._begin_bulk_equations()
+        eq_overall = {}
+        outlet = self.outs[0]
+        eq_overall[outlet, 'F_mol'] = 1
+        for i in process_inlets:
+            if i in eq_overall: del eq_overall[i, 'F_mol']
+            else: eq_overall[i, 'F_mol'] = -1
+        equations.append(
+            (eq_overall, sum([i.F_mol for i in fresh_inlets]))
+        )
+        if outlet.phases == ('g', 'l'):
+            top, bottom = self.flat_outs
+            eq_outs = {}
+            eq_outs[top, 'F_mol'] = 1
+            eq_outs[bottom, 'F_mol'] = -top.F_mol / bottom.F_mol
+            equations.append(
+                (eq_outs, 0)
+            )
+        return equations
+    
+    def _reset_bulk_variable(self):
+        if self.outs[0].phases == ('g', 'l'):
+            partition = self.partition
+            top, bottom = self.partition.outs
+            IDs = partition.IDs
+            partition.B = top.imol[IDs].sum() / bottom.imol[IDs].sum()
     
     def _create_material_balance_equations(self, composition_sensitive):
-        fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
+        fresh_inlets, process_inlets, equations = self._begin_material_equations(composition_sensitive)
         outlet, = self.outs
         if len(outlet) == 1:
             ones = np.ones(self.chemicals.size)
@@ -212,14 +238,11 @@ class Mixer(Unit):
             )
         return equations
     
-    def _update_energy_variable(self, departure):
-        phases = self.outs[0].phases
-        if phases == ('g', 'l'):
-            self.B += departure
+    def _update_variable(self, variable, value):
+        if variable == 'T':
+            self.outs[0].T = value
         else:
-            self.outs[0].T += departure
-
-    def _update_nonlinearities(self): pass
+            raise ValueError('cannot update variable')
 
 
 class SteamMixer(Unit):

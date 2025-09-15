@@ -5,7 +5,7 @@ General functional algorithms based on MESH equations to solve multi-stage.
 import numpy as np
 from numba import njit
 from math import inf
-from scipy.optimize import minimize
+from scipy.optimize import minimize, lsq_linear
 
 # %% Diagonal matrix solution
 
@@ -94,7 +94,7 @@ def solve_right_bidiagonal_matrix(b, c, d): # Right bidiagonal matrix solver
 @njit(cache=True)
 def hot_start_top_flow_rates(
         bottom_flows, phase_ratios, stage_index, top_feed_flows,
-        bottom_feed_flows, asplit_1, bsplit_1, N_stages,
+        bottom_feed_flows, neg_asplit, neg_bsplit, N_stages,
     ):
     """
     Solve a-phase flow rates for a single component across 
@@ -117,10 +117,10 @@ def hot_start_top_flow_rates(
     bottom_feed_flows : Iterable [1d array]
         Bottom flow rates of all components fed across stages. Shape should be 
         (N_stages, N_chemicals).
-    asplit_1 : 1d array
-        Side draw split from phase a minus 1 by stage.
-    bsplit_1 : 1d array
-        Side draw split from phase b minus 1 by stage.
+    neg_asplit : 1d array
+        Negative of the fraction of phase a being sent to the next stage.
+    neg_bsplit : 1d array
+        Negative of the fraction of phase b being sent to the next stage.
 
     Returns
     -------
@@ -132,7 +132,7 @@ def hot_start_top_flow_rates(
     b = d.copy()
     c = d.copy()
     for i in range(N_stages): 
-        c[i] = asplit_1[i]
+        c[i] = neg_asplit[i]
         b[i] = 1
     for n in range(stage_index.size):
         i = stage_index[n]
@@ -144,13 +144,13 @@ def hot_start_top_flow_rates(
         if i == 0:
             d[i] += bottom_feed_flows[i]
         else:
-            d[i] += bottom_feed_flows[i] - bottom_flows[i - 1] * bsplit_1[i - 1]
+            d[i] += bottom_feed_flows[i] - bottom_flows[i - 1] * neg_bsplit[i - 1]
     return solve_right_bidiagonal_matrix(b, c, d)
 
 @njit(cache=True)
 def hot_start_bottom_flow_rates(
         top_flows, phase_ratios, stage_index, top_feed_flows,
-        bottom_feed_flows, asplit_1, bsplit_1, N_stages
+        bottom_feed_flows, neg_asplit, neg_bsplit, N_stages
     ):
     """
     Solve a-phase flow rates for a single component across 
@@ -173,10 +173,10 @@ def hot_start_bottom_flow_rates(
     bottom_feed_flows : Iterable [1d array]
         Bottom flow rates of all components fed across stages. Shape should be 
         (N_stages, N_chemicals).
-    asplit_1 : 1d array
-        Side draw split from phase a minus 1 by stage.
-    bsplit_1 : 1d array
-        Side draw split from phase b minus 1 by stage.
+    neg_asplit : 1d array
+        Negative of the fraction of phase a being sent to the next stage.
+    neg_bsplit : 1d array
+        Negative of the fraction of phase b being sent to the next stage.
 
     Returns
     -------
@@ -188,7 +188,7 @@ def hot_start_bottom_flow_rates(
     b = d.copy()
     a = d.copy()
     for i in range(N_stages): 
-        a[i] = bsplit_1[i]
+        a[i] = neg_bsplit[i]
         b[i] = 1
     last_stage = N_stages - 1
     for n in range(stage_index.size):
@@ -197,7 +197,7 @@ def hot_start_bottom_flow_rates(
         if i == last_stage:
             d[i] += top_feed_flows[i]
         else:
-            d[i] += top_feed_flows[i] - top_flows[i + 1] * asplit_1[i + 1]
+            d[i] += top_feed_flows[i] - top_flows[i + 1] * neg_asplit[i + 1]
     return solve_left_bidiagonal_matrix(a, b, d)
 
 @njit(cache=True)
@@ -249,8 +249,8 @@ def create_block_tridiagonal_matrix(As, Bs, Cs):
 def bottom_flow_rates(
         stripping_factors, 
         feed_flows,
-        asplit_1,
-        bsplit_1,
+        neg_asplit,
+        neg_bsplit,
         N_stages,
     ):
     """
@@ -264,10 +264,10 @@ def bottom_flow_rates(
     feed_flows : Iterable[1d array]
         Flow rates of all components fed across stages. Shape should be 
         (N_stages, N_chemicals).
-    asplit_1 : 1d array
-        Side draw split from phase a minus 1 by stage.
-    bsplit_1 : 1d array
-        Side draw split from phase b minus 1 by stage.
+    neg_asplit : 1d array
+        Negative of the fraction of phase a being sent to the next stage.
+    neg_bsplit : 1d array
+        Negative of the fraction of phase b being sent to the next stage.
 
     Returns
     -------
@@ -276,9 +276,9 @@ def bottom_flow_rates(
 
     """
     b = 1. + stripping_factors
-    c = np.expand_dims(asplit_1[1:], -1) * stripping_factors[1:]
+    c = np.expand_dims(neg_asplit[1:], -1) * stripping_factors[1:]
     d = feed_flows.copy()
-    a = bsplit_1
+    a = neg_bsplit
     return solve_tridiagonal_matrix(a, b, c, d) 
 
 @njit(cache=True)
@@ -287,8 +287,8 @@ def liquid_compositions(
         bulk_liquid_flow_rates,
         partition_coefficients, 
         feed_flows,
-        asplit_1,
-        bsplit_1,
+        neg_asplit,
+        neg_bsplit,
         N_stages,
     ):
     """
@@ -302,10 +302,10 @@ def liquid_compositions(
     feed_flows : Iterable[1d array]
         Flow rates of all components fed across stages. Shape should be 
         (N_stages, N_chemicals).
-    asplit_1 : 1d array
-        Side draw split from phase a minus 1 by stage.
-    bsplit_1 : 1d array
-        Side draw split from phase b minus 1 by stage.
+    neg_asplit : 1d array
+        Negative of the fraction of phase a being sent to the next stage.
+    neg_bsplit : 1d array
+        Negative of the fraction of phase b being sent to the next stage.
 
     Returns
     -------
@@ -315,72 +315,106 @@ def liquid_compositions(
     """
     KV = bulk_vapor_flow_rates * partition_coefficients
     b = bulk_liquid_flow_rates + KV
-    c = np.expand_dims(asplit_1[1:], -1) * KV[1:]
+    c = np.expand_dims(neg_asplit[1:], -1) * KV[1:]
     d = feed_flows.copy()
-    a = bsplit_1 * bulk_liquid_flow_rates
+    a = np.expand_dims(neg_bsplit, -1) * bulk_liquid_flow_rates
     return solve_tridiagonal_matrix(a, b, c, d)
 
 @njit(cache=True)
 def bottom_flows_mass_balance(
-        top_flows, feed_flows, asplit_left, bsplit_left,
+        top_flows, feed_flows, asplit, bsplit,
         N_stages
     ):
     bottom_flows = 0 * top_flows
-    bottom_flows[0] = feed_flows[0] + top_flows[1] * asplit_left[1] - top_flows[0]
+    bottom_flows[0] = feed_flows[0] + top_flows[1] * asplit[1] - top_flows[0]
     for i in range(1, N_stages-1):
         bottom_flows[i] = (
-            feed_flows[i] + bsplit_left[i-1] * bottom_flows[i-1] + 
-            top_flows[i+1] * asplit_left[i+1] - top_flows[i]
+            feed_flows[i] + bsplit[i-1] * bottom_flows[i-1] + 
+            top_flows[i+1] * asplit[i+1] - top_flows[i]
         )
-    bottom_flows[-1] = feed_flows[-1] + bsplit_left[-2] * bottom_flows[-2] - top_flows[-1]
+    bottom_flows[-1] = feed_flows[-1] + bsplit[-2] * bottom_flows[-2] - top_flows[-1]
     return bottom_flows
 
 
 @njit(cache=True)
 def top_flows_mass_balance(
-        bottom_flows, feed_flows, asplit_left, bsplit_left, N_stages
+        bottom_flows, feed_flows, asplit, bsplit, N_stages
     ):
     top_flows = 0 * bottom_flows
-    top_flows[-1] = feed_flows[-1] + bsplit_left[-2] * bottom_flows[-2] - bottom_flows[-1]
+    top_flows[-1] = feed_flows[-1] + bsplit[-2] * bottom_flows[-2] - bottom_flows[-1]
     for i in range(N_stages-2, 0, -1):
         top_flows[i] = (
-            feed_flows[i] + bsplit_left[i-1] * bottom_flows[i-1] + 
-            top_flows[i+1] * asplit_left[i+1] - bottom_flows[i]
+            feed_flows[i] + bsplit[i-1] * bottom_flows[i-1] + 
+            top_flows[i+1] * asplit[i+1] - bottom_flows[i]
         )
-    top_flows[0] = feed_flows[0] + top_flows[1] * asplit_left[1] - bottom_flows[0]
+    top_flows[0] = feed_flows[0] + top_flows[1] * asplit[1] - bottom_flows[0]
     return top_flows
 
 # %% Energy balance solution
 
 @njit(cache=True)
-def vapor_flow_rates(
-        L, V, hl, hv, asplit_1, asplit_left, bsplit_left, 
-        N_stages, specification_index, H_feeds
+def bulk_vapor_and_liquid_flow_rates(
+        hl, hv, 
+        neg_asplit, neg_bsplit, 
+        top_split, bottom_split, 
+        N_stages, H_feeds, F_feeds,
+        variables,
+        values,
+        bulk_feed,
     ):
-    # hV1*L1*dB1 - hv2*L2*dB2 = Q1 + (hl0 * L0 + hv2 * V2) - (hl1 * L1 + hv1 * V1)
-    # hV1*L1*dB1 - hv2*L2*dB2 = Q1 + (hl0 * L0 + hv2 * L2 * B2) - (hl1 * L1 + hv1 * L1 * B1)
-    # hV1*L1*dB1 + hv1 * L1 * B1 - hv2*L2*dB2 - hv2 * L2 * B2 = Q1 + (hl0 * L0) - (hl1 * L1)
-    # hV1*L1*B1 - hv2*L2*B2 = Q1 + hl0 * L0 - hl1 * L1
-    # hV1*V1 - hv2*V2 = Q1 + hl0 * L0 - hl1 * L1
-    b = hv
-    c = b[1:] * asplit_1[1:]
-    Hl_out = hl * L
-    Hl_in = (Hl_out * bsplit_left)[:-1]
-    d = H_feeds - Hl_out
-    d[1:] += Hl_in
-    raise NotImplementedError('solution not implemented yet')
-    for i, j in enumerate(specification_index):
-        b[j] = 1
-        d[j] = 0
-        jlast = j - 1
-        if jlast > 0: c[jlast] = 0
-        try: c[j] = 0
-        except: pass
-    return solve_right_bidiagonal_matrix(b, c, d)
+    # Equations:
+    # - hl0*L0 + hv1*V1 + hl1*L1 - hv2*V2 = Q1
+    # - L0 + V1 + L1 - V2 = 0
+    N_bulk = 2 * N_stages
+    Q = np.zeros(N_bulk)
+    L0 = -1 # L0
+    V1 = 0 # V1
+    L1 = 1 # L1
+    V2 = 2 # V2
+    A = np.zeros((N_bulk, N_bulk))
+    last = N_stages - 1
+    for i in range(N_stages):
+        variable = variables[i]
+        value = values[i] 
+        n = 2 * i
+        m = n + 1
+        ilast = i - 1
+        inext = i + 1
+        
+        # Bulk material balance
+        if L0 != -1: A[m, L0] = neg_bsplit[ilast]
+        A[m, V1] = 1
+        A[m, L1] = 1
+        if i != last: A[m, V2] = neg_asplit[inext]
+        Q[m] = F_feeds[i]
+        
+        # Energy balance
+        if variable == 'Q':
+            if L0 != -1: A[n, L0] = hl[ilast] * neg_bsplit[ilast]
+            A[n, V1] = hv[i]
+            A[n, L1] = hl[i]
+            Q[n] = H_feeds[i] + value
+            if i != last: A[n, V2] = hv[inext] * neg_asplit[inext]
+        elif variable == 'B':
+            A[n, V1] = -1
+            A[n, L1] = value
+        elif variable == 'F':
+            A[n, L1] = 1
+            Q[n] = bulk_feed * value
+        else:
+            raise ValueError('unexpected variable specification')
+        L0 += 2
+        V1 += 2
+        L1 += 2
+        V2 += 2
+    
+    VLs = np.linalg.solve(A, Q)
+    VLs[VLs < 1e-16] = 1e-16
+    return VLs[::2], VLs[1::2] # V, L
 
-# @njit(cache=True)
+@njit(cache=True)
 def phase_ratio_departures(
-        L, V, hl, hv, asplit_1, asplit_left, bsplit_left, 
+        L, V, hl, hv, neg_asplit, asplit, bsplit, 
         N_stages,
         specification_index,
         H_feeds,
@@ -388,12 +422,12 @@ def phase_ratio_departures(
     ):
     # hV1*L1*dB1 - hv2*L2*dB2 = Q1 + H_in - H_out
     b = hv * L
-    c = b[1:] * asplit_1[1:]
+    c = b[1:] * neg_asplit[1:]
     Hl_out = hl * L
     Hv_out = hv * V
     d = H_feeds - Hl_out - Hv_out
-    Hl_in = (Hl_out * bsplit_left)[:-1]
-    Hv_in = (Hv_out * asplit_left)[1:]
+    Hl_in = (Hl_out * bsplit)[:-1]
+    Hv_in = (Hv_out * asplit)[1:]
     d[1:] += Hl_in
     d[:-1] += Hv_in
     if RF:
@@ -411,16 +445,16 @@ def phase_ratio_departures(
         return solve_right_bidiagonal_matrix(b, c, d)
 
 @njit(cache=True)
-def temperature_departures(Cv, Cl, Hv, Hl, asplit_left, bsplit_left,
+def temperature_departures(Cv, Cl, Hv, Hl, asplit, bsplit,
                            N_stages, H_feeds):
     # ENERGY BALANCE
     # C1dT1 - Cv2*dT2 - Cl0*dT0 = Q1 - H_out + H_in
     b = (Cv + Cl)
-    a = -(Cl * bsplit_left)
-    c = -(Cv * asplit_left)[1:]
+    a = -(Cl * bsplit)
+    c = -(Cv * asplit)[1:]
     d = H_feeds - Hl - Hv
-    d[1:] += (Hl * bsplit_left)[:-1]
-    d[:-1] += (Hv * asplit_left)[1:]
+    d[1:] += (Hl * bsplit)[:-1]
+    d[:-1] += (Hv * asplit)[1:]
     return solve_tridiagonal_matrix(a, b, c, d)
 
 def get_neighbors(index=None, all_index=None, missing=None, size=None):
@@ -485,20 +519,6 @@ def fillmissing(all_neighbors, values):
             values[i] = values[neighbors[0]]
     return values
 
-# %% Simultaneous correction (Newton-Raphson)
-
-
-# %% Wang-Henke (not needed, mathematically equivalent to phenomena approach)
-
-#  Energy balance
-def solve_vapor_flow_rates():
-    pass
-
-# Material balance
-def solve_liquid_compositions():
-    pass
-
-
 # %% Russel's inside-out algorithm (not ready)
 
 @njit(cache=True)
@@ -549,14 +569,14 @@ def T_approx(Kb, m, b):
 
 def solve_inside_loop(
         lnSb, Sb, Sb_index, top_flows, K, B, T, hv, hl, feed_flows,
-        asplit_1, bsplit_1, asplit_left, bsplit_left,
+        neg_asplit, neg_bsplit, asplit, bsplit,
         N_stages, specification_index, N_chemicals, H_feeds
     ):
     correct_stages = np.ones(N_stages, bool)
     args = (
         *inside_loop_args(top_flows, K, T, hv, hl),
-        feed_flows, asplit_1, bsplit_1,
-        asplit_left, bsplit_left, N_stages, 
+        feed_flows, neg_asplit, neg_bsplit,
+        asplit, bsplit, N_stages, 
         specification_index, N_chemicals, H_feeds,
         correct_stages, Sb, Sb_index,
     )
@@ -583,8 +603,8 @@ def inside_loop_args(
 # @njit(cache=True)
 def inside_loop_enthalpy_error(
         lnSb, alpha, Kb_coef, hv_coef, hl_coef, 
-        feed_flows, asplit_1, bsplit_1,
-        asplit_left, bsplit_left, N_stages, 
+        feed_flows, neg_asplit, neg_bsplit,
+        asplit, bsplit, N_stages, 
         specification_index, N_chemicals, H_feeds,
         correct_stages, Sb, Sb_index,
     ):
@@ -596,13 +616,13 @@ def inside_loop_enthalpy_error(
     top_flows = top_flow_rates(
         Sb, 
         feed_flows,
-        asplit_1,
-        bsplit_1,
+        neg_asplit,
+        neg_bsplit,
         N_stages,
         safe,
     )
     bottom_flows = mass_balance(
-        top_flows, feed_flows, asplit_left, bsplit_left, 
+        top_flows, feed_flows, asplit, bsplit, 
         correct_stages.copy(), N_stages, N_chemicals
     )
     top_flows_net = top_flows.sum(axis=1)
@@ -621,8 +641,8 @@ def inside_loop_enthalpy_error(
     Hl_out = hl * bottom_flows_net
     Hv_out = hv * top_flows_net
     d = H_feeds - Hl_out - Hv_out
-    Hl_in = (Hl_out * bsplit_left)[:-1]
-    Hv_in = (Hv_out * asplit_left)[1:]
+    Hl_in = (Hl_out * bsplit)[:-1]
+    Hv_in = (Hv_out * asplit)[1:]
     d[1:] += Hl_in
     d[:-1] += Hv_in
     for i in specification_index: d[i] = 0

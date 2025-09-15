@@ -280,41 +280,34 @@ def test_distillation():
         ['Water', 'AceticAcid', 'EthylAcetate'],
         cache=True
     )
-    bst.PhasePartition.B_relaxation_factor = 0.5
-    try:
-        hot_extract = bst.MultiStream(
-            phases=('g', 'l'), T=358.05, P=101325,
-            g=[('Water', 20.29), 
-               ('AceticAcid', 3.872), 
-               ('EthylAcetate', 105.2)],
-            l=[('Water', 1.878), 
-               ('AceticAcid', 0.6224), 
-               ('EthylAcetate', 4.311)]
-        )
-        distillation = bst.MESHDistillation(
-            N_stages=10,
-            ins=[hot_extract],
-            feed_stages=[5],
-            outs=['', 'bottoms_product', 'distillate'],
-            full_condenser=True,
-            reflux=1.0,
-            boilup=3.5,
-            use_cache=True,
-            LHK=('Water', 'AceticAcid'),
-            method='fixed-point',
-            maxiter=20,
-            max_attempts=10
-        )
-        distillation.simulate()
-        flows = [
-            [0.0, 0.0, 0.0],
-            [0.11207744942457795, 4.350500200173122, 22.35850002994225],
-            [22.055922550575424, 0.1438997998268773, 87.15249997005776]
-        ]
-        for i, j in zip(distillation.outs, flows):    
-            assert_allclose(i.mol, j, rtol=1e-3, atol=1e-3)
-    finally:
-        bst.PhasePartition.B_relaxation_factor = 0
+    hot_extract = bst.MultiStream(
+        phases=('g', 'l'), T=358.05, P=101325,
+        g=[('Water', 20.29), 
+           ('AceticAcid', 3.872), 
+           ('EthylAcetate', 105.2)],
+        l=[('Water', 1.878), 
+           ('AceticAcid', 0.6224), 
+           ('EthylAcetate', 4.311)]
+    )
+    distillation = bst.MESHDistillation(
+        N_stages=10,
+        ins=[hot_extract],
+        feed_stages=[5],
+        outs=['', 'bottoms_product', 'distillate'],
+        full_condenser=True,
+        reflux=1.0,
+        boilup=3.5,
+        use_cache=True,
+        LHK=('Water', 'AceticAcid'),
+    )
+    distillation.simulate()
+    flows = [
+        [0.0, 0.0, 0.0],
+        [0.11207744942457795, 4.350500200173122, 22.35850002994225],
+        [22.055922550575424, 0.1438997998268773, 87.15249997005776]
+    ]
+    for i, j in zip(distillation.outs, flows):    
+        assert_allclose(i.mol, j, rtol=1e-3, atol=1e-3)
     
 # def test_distillation_inside_out():
 #     import biosteam as bst
