@@ -2882,7 +2882,7 @@ class MultiStageEquilibrium(Unit):
         elif algorithm == 'sequential modular':
             x1 = self._run_sequential()
         elif algorithm == 'inside out':
-            x1 = self._run_inside_out(x0)
+            x1 = self._run_inside_out()
         else:
             raise RuntimeError(f'invalid algorithm {algorithm!r}')
         x1 = self._new_point(x1)
@@ -2910,9 +2910,6 @@ class MultiStageEquilibrium(Unit):
         for i, stage in enumerate(self.stages):
             f = lambda Tinv: np.log(stage.K_model(stage.y, stage.x, 1 / Tinv, P))
             stage.partition._run_decoupled_KTvle(P=P)
-            stage.outs[0].imol[stage.partition.IDs] = stage.y * stage.outs[0].imol[stage.partition.IDs].sum()
-            stage.outs[1].imol[stage.partition.IDs] = stage.x * stage.outs[1].imol[stage.partition.IDs].sum()
-            for s in stage.outs: s.T = stage.T
             dlogK_dTinv[i] = approx_derivative(f, 1 / stage.T)[:, 0]
             T[i] = Ti = stage.T
             x[i] = xi = stage.x
@@ -3428,14 +3425,14 @@ class MultiStageEquilibrium(Unit):
             self._specified_values = values = np.zeros(N_stages)
             invariable_enthalpies = np.zeros(N_stages)
             other_index = self._noneq_index
-            for i, stage in enumerate(self.stages):
+            for n, stage in enumerate(self.stages):
                 variable = stage.specified_variable
                 if variable == 'T':
                     variables += 'B'
-                    values[i] = stage.B
+                    values[n] = stage.B
                 else:
                     variables += variable
-                    values[i] = getattr(stage, variable)
+                    values[n] = getattr(stage, variable)
                 partition = stage.partition
                 vap, liq = partition.outs
                 H_in = sum([
@@ -3444,11 +3441,11 @@ class MultiStageEquilibrium(Unit):
                     for i in stage.ins
                 ])
                 H_out = sum([
-                    Hother(i.phase, i.mol[other_index], T, P)
-                    + Hother(i.phase, i.mol[other_index], T, P)
+                    Hother(i.phase, i.mol[other_index], i.T, P)
+                    + Hother(i.phase, i.mol[other_index], i.T, P)
                     for i in partition.outs
                 ])
-                invariable_enthalpies[i] += H_out - H_in
+                invariable_enthalpies[n] += H_out - H_in
             self._feed_and_invariable_enthalpies = invariable_enthalpies + feed_enthalpies
             self._specified_variables = variables
         self._gamma = self._eq_thermo.Gamma(self._eq_thermo.chemicals)
