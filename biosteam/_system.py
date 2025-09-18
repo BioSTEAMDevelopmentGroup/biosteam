@@ -2533,7 +2533,6 @@ class System:
             except (NotImplementedError, UnboundLocalError, KeyError) as error:
                 raise error
             except Exception as e:
-                raise e
                 print('FAILED!')
                 print(e)
                 print('-------')

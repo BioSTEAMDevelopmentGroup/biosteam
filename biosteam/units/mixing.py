@@ -158,6 +158,7 @@ class Mixer(Unit):
             coeff[self, 'T'] = C = outlet.C
             Q += C * outlet.T
         for i in process_inlets: 
+            if i.isempty(): continue
             coeff[i, 'F_mol'] = -i.h
             Q -= i._update_energy_coefficient(coeff)
         return [(coeff, Q)]
