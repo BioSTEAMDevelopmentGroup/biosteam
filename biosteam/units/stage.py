@@ -55,42 +55,21 @@ class IterationResult(NamedTuple):
 
 # %% Inside-out tools
 
-@njit(cache=True)
-def Kb_from_data(K, y, dlogK_dTinv):
-    w = y * dlogK_dTinv
-    w /= np.expand_dims(w.sum(axis=1), -1)
-    return np.exp((np.log(K) * w).sum(axis=1))
-
 @jitdata
-class SurrogateBubblePoint:
-    K: float64[:]
-    Kb: float
-    T: float
-
-@jitdata
-class PsuedoComponentBubblePoint:
-    Kb: float
-    T: float
-
-@jitdata(py=True)
 class SurrogateStage:
     _A: float
     _B: float
-    _a: float
-    _b: float
+    _a: float64[:]
+    _b: float64[:]
     _hV_ref: float
     _hL_ref: float
     _CV: float
     _CL: float
     _alpha: float64[:] 
     _beta: float64[:] #: K / (Kb * gamma) # For highly nonideal liquids
-    _Kb_ref: float
-    _T_ref: float
-    _x_ref: float64[:]
-    _K_ref: float64[:]
-    
-    @staticmethod
-    def from_data( 
+      
+    def __init__( 
+            self,
             x: float64[:], 
             x0: float64[:], 
             x1: float64[:],
@@ -121,14 +100,18 @@ class SurrogateStage:
         A = np.log(Kb) - B / T
         hV_ref = hV - CV * T
         hL_ref = hL - CL * T
-        ss = SurrogateStage(
-            A, B, a, b, 
-            hV_ref, hL_ref, CV, CL,
-            alpha, beta, Kb, T, x, K,
-        )
-        return ss
+        self._A = A
+        self._B = B
+        self._a = a
+        self._b = b
+        self._hV_ref = hV_ref
+        self._hL_ref = hL_ref
+        self._CV = CV
+        self._CL = CL
+        self._alpha = alpha
+        self._beta = beta
     
-    def gamma(self, x: float64[:], T: float):
+    def gamma(self, x: float64[:], T: float) -> float64[:]:
         return self._a + self._b * x 
     
     def Kb(self, T: float) -> float:
@@ -137,7 +120,7 @@ class SurrogateStage:
     def T(self, Kb: float) -> float:
         return self._B / (np.log(Kb) - self._A)
     
-    def _T_bubble_alpha_Kb(self, x: float64[:]) -> types.Tuple([float64, float64[:], float64[:]]):
+    def bubble_point(self, x: float64[:]) -> types.UniTuple(float, 2):
         beta = self._beta
         fgamma = self.gamma
         fT = self.T
@@ -172,27 +155,15 @@ class SurrogateStage:
             g0 = g1
         else:
             T = g1
-        return T, alpha, Kb
-    
-    def pseudo_component_bubble_point(self, x: float64[:]) -> PsuedoComponentBubblePoint:
-        T, _, Kb = self._T_bubble_alpha_Kb(x)
-        # return PsuedoComponentBubblePoint(self._Kb_ref, self._T_ref)
-        return PsuedoComponentBubblePoint(Kb, T)
-    
-    def bubble_point(self, x: float64[:]) -> SurrogateBubblePoint:
-        T, alpha, Kb = self._T_bubble_alpha_Kb(x)
-        K = alpha * Kb
-        return SurrogateBubblePoint(K, Kb, T)
+        return Kb, T
 
     def hV(self, T: float) -> float:
         return self._hV_ref + self._CV * T
     
     def hL(self, T: float) -> float:
         return self._hL_ref + self._CL * T
-    
-surrogate_stage_from_data = SurrogateStage.from_data
 
-@jitdata(py=True)
+@jitdata
 class SurrogateColumn:
     stages: types.List(SurrogateStage.class_type.instance_type, reflected=True)
     N_stages: int
@@ -209,26 +180,33 @@ class SurrogateColumn:
     bulk_feed: float
     alpha: float64[:, :]
     Kb: float64[:]
-    point_shape: types.UniTuple(int, 2)
+    point_shape: types.UniTuple(int8, 2)
     
-    @staticmethod
-    def from_data(
-            N_stages, 
-            N_chemicals,
-            T, x, y, 
-            gamma, K, dlogK_dTinv,
-            hV, hL, CV, CL,
-            specified_variables,
-            specified_values,
-            neg_asplit,
-            neg_bsplit,
-            top_split,
-            bottom_split,
-            feed_and_invariable_enthalpies,
-            feed_flows,
-            total_feed_flows,
-            bulk_feed,
-            point_shape,
+    def __init__(
+            self,
+            N_stages: int, 
+            N_chemicals: int,
+            T: float, 
+            x: float64[:, :], 
+            y: float64[:, :], 
+            gamma: float64[:, :], 
+            K: float64[:, :], 
+            dlogK_dTinv: float64[:, :],
+            hV: float64[:],
+            hL: float64[:], 
+            CV: float64[:],
+            CL: float64[:],
+            specified_variables: str,
+            specified_values: float64[:],
+            neg_asplit: float64[:],
+            neg_bsplit: float64[:],
+            top_split: float64[:],
+            bottom_split: float64[:],
+            feed_and_invariable_enthalpies: float64[:],
+            feed_flows: float64[:, :],
+            total_feed_flows: float64[:],
+            bulk_feed: float,
+            point_shape: types.UniTuple(int8, 2),
         ):
         logK = np.log(K)
         w = y * dlogK_dTinv
@@ -249,7 +227,7 @@ class SurrogateColumn:
                 i0 = i - 1
                 i1 = i + 1
             stages.append(
-                surrogate_stage_from_data(
+                SurrogateStage(
                     x[i], x[i0], x[i1],
                     T[i], T[i0], T[i1],
                     gamma[i], gamma[i0], gamma[i1],
@@ -258,43 +236,24 @@ class SurrogateColumn:
                     hV[i], hL[i], CV[i], CL[i],
                 )
             )
-        return SurrogateColumn(
-            stages, 
-            N_stages, 
-            N_chemicals,
-            specified_variables,
-            specified_values,
-            neg_asplit,
-            neg_bsplit,
-            top_split,
-            bottom_split,
-            feed_and_invariable_enthalpies,
-            feed_flows,
-            total_feed_flows,
-            bulk_feed,
-            alpha,
-            Kb,
-            point_shape,
-        )
+        self.stages = stages 
+        self.N_stages = N_stages 
+        self.N_chemicals = N_chemicals
+        self.specified_variables = specified_variables
+        self.specified_values = specified_values
+        self.neg_asplit = neg_asplit
+        self.neg_bsplit = neg_bsplit
+        self.top_split = top_split
+        self.bottom_split = bottom_split
+        self.feed_and_invariable_enthalpies = feed_and_invariable_enthalpies
+        self.feed_flows = feed_flows
+        self.total_feed_flows = total_feed_flows
+        self.bulk_feed = bulk_feed
+        self.alpha = alpha
+        self.Kb = Kb
+        self.point_shape = point_shape
     
-    def Sb_to_xy(self, Sb: float64[:]) -> types.UniTuple(float64[:, :], 2):
-        N_stages = self.N_stages
-        S = self.alpha * np.expand_dims(Sb, -1)
-        xL = MESH.bottom_flow_rates(
-            S, 
-            self.feed_flows, 
-            self.neg_asplit, 
-            self.neg_bsplit,
-            N_stages,
-        )
-        L = xL.sum(axis=1)
-        x = xL / np.expand_dims(L, -1)
-        yV = xL * S
-        V = xL.sum(axis=1)
-        y = yV / np.expand_dims(V, -1)
-        return x, y
-    
-    def Sb_to_point(self, Sb: float64[:]):
+    def Sb_to_point(self, Sb: float64[:]) -> float64[:, :]:
         stages = self.stages
         N_stages = self.N_stages
         S = self.alpha * np.expand_dims(Sb, -1)
@@ -310,8 +269,8 @@ class SurrogateColumn:
         yV = xL * S
         T = np.zeros(N_stages)
         for i, stage in enumerate(stages):
-            bp = stage.pseudo_component_bubble_point(x[i])
-            T[i] = bp.T
+            _, Ti = stage.bubble_point(x[i])
+            T[i] = Ti
         n = self.N_chemicals
         point = np.zeros(self.point_shape)
         point[:, :n] = yV
@@ -319,10 +278,10 @@ class SurrogateColumn:
         point[:, -n:] = xL
         return point
     
-    def residuals(self, logSb: float64[:]) -> float64[:]:
+    def residuals(self, logSb1: float64[:]) -> float64[:]:
         stages = self.stages
         N_stages = self.N_stages
-        Sb = np.exp(logSb)
+        Sb = np.exp(logSb1) - 1
         S = self.alpha * np.expand_dims(Sb, -1)
         xL = MESH.bottom_flow_rates(
             S, 
@@ -340,10 +299,10 @@ class SurrogateColumn:
         hL = T.copy()
         residuals = T.copy()
         for i, stage in enumerate(stages):
-            bp = stage.pseudo_component_bubble_point(x[i])
-            T[i] = bp.T
-            hV[i] = stage.hV(bp.T)
-            hL[i] = stage.hL(bp.T)
+            Kb, Ti = stage.bubble_point(x[i])
+            T[i] = Ti
+            hV[i] = stage.hV(Ti)
+            hL[i] = stage.hL(Ti)
         HV = hV * V
         HL = hL * L
         variables = self.specified_variables
@@ -393,11 +352,11 @@ class SurrogateColumn:
         T = hL.copy()
         for i in range(N_stages):
             stage = stages[i]
-            bp = stage.pseudo_component_bubble_point(x[i])
-            Kb[i] = bp.Kb
-            T[i] = bp.T
-            hL[i] = stage.hL(bp.T)
-            hV[i] = stage.hV(bp.T)
+            Kbi, Ti = stage.bubble_point(x[i])
+            Kb[i] = Kbi
+            T[i] = Ti
+            hL[i] = stage.hL(Ti)
+            hV[i] = stage.hV(Ti)
         V, L = MESH.bulk_vapor_and_liquid_flow_rates(
             hL, hV,
             self.neg_asplit, self.neg_bsplit, 
@@ -409,7 +368,6 @@ class SurrogateColumn:
             self.bulk_feed,
         )
         return Kb * V / L
-
 
 # %% Equation-oriented tools
 
@@ -547,6 +505,7 @@ class JacobianConstructor:
                 C[eq.H, var.Ftop] = -lower.dHdFtop
                 C[eq.H, var.T] = -lower.dHdTtop
             np.fill_diagonal(C[eq.M, var.Ftop], -1)
+
 
 @njit(types.UniTuple(float64[:, :, :], 3)(types.List(JacobianData.class_type.instance_type, reflected=True), int8, int8, int8))
 def jacobian_blocks(jacobian_data, N_stages, N_chemicals, N_variables):
@@ -2279,14 +2238,15 @@ class MultiStageEquilibrium(Unit):
     _line_search = False # Experimental feature.
     _tracked_points = None # For numerical/convergence analysis.
     minimum_residual_reduction = 0.25 # Minimum fractional reduction in residual for simulation.
-    iteration_memory = 8 # Length of recorded iterations.
+    iteration_memory = 10 # Length of recorded iterations.
     inside_maxiter = 100
     default_max_attempts = 5
     default_maxiter = 100
     default_optimize_result = True
     default_tolerance = 1e-5
     default_relative_tolerance = 1e-4
-    default_algorithms = ('phenomena', 'simultaneous correction', 'sequential modular')
+    default_algorithms = ('inside out', 'phenomena', 'simultaneous correction', 'sequential modular')
+    default_inside_loop_algorithm = 'simultaneous correction'
     decomposition_algorithms = {
         'phenomena', 'inside out', 'phenomena modular', 'sequential modular',
     }
@@ -2554,6 +2514,8 @@ class MultiStageEquilibrium(Unit):
         #: [float] Relative molar flow and temperature tolerance
         self.relative_tolerance = self.default_relative_tolerance
         
+        self.inside_loop_algorithm = self.default_inside_loop_algorithm
+        
         self.use_cache = True if use_cache else False
         
         self.collapsed_init = collapsed_init
@@ -2804,7 +2766,6 @@ class MultiStageEquilibrium(Unit):
         methods = self.methods
         optimize_result = self.optimize_result
         f = self._iter
-        decompositions = self.decomposition_algorithms
         analysis_mode = self._convergence_analysis_mode
         maxiter = self.maxiter
         xtol = 100 * self.tolerance if optimize_result else self.tolerance
@@ -2819,13 +2780,13 @@ class MultiStageEquilibrium(Unit):
                         optimize_result = False
                         break
                     continue
-                if algorithm in decompositions:
-                    if method == 'fixed-point':
-                        solver = flx.fixed_point
-                    elif method == 'wegstein':
-                        solver = flx.wegstein
-                    else:
-                        raise ValueError(f'invalid method {method!r}')
+                if method == 'fixed-point':
+                    solver = flx.fixed_point
+                elif method == 'wegstein':
+                    solver = flx.wegstein
+                else:
+                    raise ValueError(f'invalid method {method!r}')
+                if self._has_lle and algorithm == 'inside out': continue
                 if analysis_mode:
                     self._tracked_algorithms.append(
                         (self.iter + 1, algorithm)
@@ -2930,7 +2891,7 @@ class MultiStageEquilibrium(Unit):
             self._specified_values,
             self._bulk_feed,
         )
-        surrogate_column = SurrogateColumn.from_data(
+        SC = SurrogateColumn(
             self.N_stages, 
             self._N_chemicals,
             T, x, y, 
@@ -2949,18 +2910,48 @@ class MultiStageEquilibrium(Unit):
             self._bulk_feed,
             self._point_shape,
         )
-        Kb = surrogate_column.Kb
-        f = surrogate_column.residuals
-        # Sb = surrogate_column.phenomena_iter(Kb * V / L)
-        # x = surrogate_column.Sb_to_point(Sb)
-        # print(self._objective(x))
-        jac = lambda logSb: approx_derivative(f, logSb)
-        logSb, *self._inside_info = fsolve(
-            f, np.log(Kb * V / L), fprime=jac, full_output=True, 
-            maxfev=self.maxiter, xtol=self.tolerance
-        )
-        Sb = np.exp(logSb)
-        return surrogate_column.Sb_to_point(Sb)
+        Kb = SC.Kb
+        algorithm = self.inside_loop_algorithm
+        Sb = Kb * V / L
+        if algorithm == 'phenomena + simultaneous correction':
+            f = SC.phenomena_iter
+            Sb = flx.fixed_point(
+                f, Sb, 
+                xtol=self.tolerance, 
+                rtol=self.relative_tolerance, 
+                maxiter=self.maxiter,
+                checkiter=False,
+                checkconvergence=False,
+            )
+            breakpoint()
+            f = SC.residuals
+            jac = lambda logSb1: approx_derivative(f, logSb1)
+            logSb1, *self._inside_info = fsolve(
+                f, np.log(Sb + 1), fprime=jac, full_output=True, 
+                maxfev=self.maxiter, xtol=self.tolerance / 100
+            )
+            Sb = np.exp(logSb1) - 1
+        elif algorithm == 'phenomena':
+            f = SC.phenomena_iter
+            Sb = flx.fixed_point(
+                f, Sb, 
+                xtol=self.tolerance / 100, 
+                rtol=self.relative_tolerance / 100, 
+                maxiter=self.maxiter,
+                checkiter=False,
+                checkconvergence=False,
+            )
+        elif algorithm == 'simultaneous correction': 
+            f = SC.residuals
+            jac = lambda logSb: approx_derivative(f, logSb)
+            logSb1, *self._inside_info = fsolve(
+                f, np.log(Sb + 1), fprime=jac, full_output=True, 
+                maxfev=self.maxiter, xtol=self.tolerance / 100,
+            )
+            Sb = np.exp(logSb1) - 1
+        else:
+            raise RuntimeError('invalid inside loop algorithm')
+        return SC.Sb_to_point(Sb)
     
     # %% Normal simulation
     
