@@ -29,8 +29,6 @@ def solve_tridiagonal_matrix(a, b, c, d): # Tridiagonal matrix solver
         b[inext] -= m * c[i] 
         d[inext] -= m * d[i]
     
-    bn = b[n]
-    bn[bn < 1e-64] = 1e-64
     b[n] = np.exp(np.log(d[n]) - np.log(b[n]))
     for i in range(n-1, -1, -1):
         b[i] = (d[i] - c[i] * b[i+1]) / b[i]
@@ -354,7 +352,7 @@ def top_flows_mass_balance(
 
 # %% Energy balance solution
 
-@njit(cache=True)
+# @njit(cache=True)
 def bulk_vapor_and_liquid_flow_rates(
         hl, hv, 
         neg_asplit, neg_bsplit, 
@@ -409,7 +407,6 @@ def bulk_vapor_and_liquid_flow_rates(
         V1 += 2
         L1 += 2
         V2 += 2
-    
     VLs = np.linalg.solve(A, Q)
     VLs[VLs < 1e-16] = 1e-16
     return VLs[::2], VLs[1::2] # V, L

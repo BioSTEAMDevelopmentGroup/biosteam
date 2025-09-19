@@ -55,7 +55,7 @@ class IterationResult(NamedTuple):
 
 # %% Inside-out tools
 
-@jitdata
+@jitdata(py=True)
 class SurrogateStage:
     _A: float
     _B: float
@@ -124,9 +124,9 @@ class SurrogateStage:
         beta = self._beta
         fgamma = self.gamma
         fT = self.T
-        zero = x < 1e-16
+        zero = x < 0
         if zero.any():
-            x[zero] = 1e-16
+            x[zero] = 0
             x /= x.sum()
         # Initial guess without gamma
         Kb = 1 / (self._alpha * x).sum()
@@ -135,7 +135,10 @@ class SurrogateStage:
         # Guess with gamma
         alpha = fgamma(x, T0) * beta
         Kb = 1 / (alpha * x).sum()
-        T1 = g0 = self.T(Kb)
+        try:
+            T1 = g0 = self.T(Kb)
+        except:
+            breakpoint()
         
         # Solve by accelerated Wegstein iteration
         for _ in range(100):
@@ -166,7 +169,7 @@ class SurrogateStage:
     def hL(self, T: float) -> float:
         return self._hL_ref + self._CL * T
 
-@jitdata
+@jitdata(py=True)
 class SurrogateColumn:
     stages: types.List(SurrogateStage.class_type.instance_type, reflected=True)
     N_stages: int
@@ -211,7 +214,7 @@ class SurrogateColumn:
             bulk_feed: float,
             point_shape: types.UniTuple(int8, 2),
         ):
-        logK = np.log(K)
+        logK = np.log(K + 1e-34)
         w = y * dlogK_dTinv
         w /= np.expand_dims(w.sum(axis=1), -1)
         Kb = np.exp((logK * w).sum(axis=1))
@@ -2932,25 +2935,25 @@ class MultiStageEquilibrium(Unit):
             jac = lambda logSb1: approx_derivative(f, logSb1)
             logSb1, *self._inside_info = fsolve(
                 f, np.log(Sb + 1), fprime=jac, full_output=True, 
-                maxfev=self.maxiter, xtol=self.tolerance / 100
+                maxfev=self.maxiter, xtol=self.relative_tolerance / 1000
             )
             Sb = np.exp(logSb1) - 1
         elif algorithm == 'phenomena':
             f = SC.phenomena_iter
             Sb = flx.fixed_point(
                 f, Sb, 
-                xtol=self.tolerance / 100, 
-                rtol=self.relative_tolerance / 100, 
+                xtol=self.tolerance / 1000, 
+                rtol=self.relative_tolerance / 1000, 
                 maxiter=self.maxiter,
                 checkiter=False,
                 checkconvergence=False,
             )
         elif algorithm == 'simultaneous correction': 
             f = SC.residuals
-            jac = lambda logSb: approx_derivative(f, logSb)
+            jac = lambda logSb1: approx_derivative(f, logSb1)
             logSb1, *self._inside_info = fsolve(
                 f, np.log(Sb + 1), fprime=jac, full_output=True, 
-                maxfev=self.maxiter, xtol=self.tolerance / 100,
+                maxfev=self.maxiter, xtol=self.relative_tolerance / 1000,
             )
             Sb = np.exp(logSb1) - 1
         else:
@@ -3285,6 +3288,8 @@ class MultiStageEquilibrium(Unit):
                         if i.specified_variable != 'B': i.B = B
                         i.T = T
                         i.K = K
+                for i in self.stages: i._update_separation_factors()
+                self.update_flow_rates(np.array([i.S for i in self._S_stages]), update_B=False)
             elif eq == 'lle':
                 lle = ms.lle
                 T = ms.T
@@ -3292,8 +3297,9 @@ class MultiStageEquilibrium(Unit):
                 K = lle._K
                 phi = lle._phi
                 B = inf if phi == 1 else phi / (1 - phi)
-                y = ms.imol['L', IDs]
-                y /= y.sum()
+                y_mol = ms.imol['L', IDs]
+                x_mol = ms.imol['l', IDs]
+                y = y_mol / y_mol.sum()
                 f_gamma = self.thermo.Gamma([chemicals[i] for i in IDs])
                 gamma_y = f_gamma(y, T)
                 for i in partitions: 
@@ -3302,6 +3308,9 @@ class MultiStageEquilibrium(Unit):
                     i.K = K
                     i.gamma_y = gamma_y
                     for j in i.outs: j.T = T
+                top_flows = np.ones((N_stages, N_chemicals)) * y_mol
+                bottom_flows = np.ones((N_stages, N_chemicals)) * x_mol
+                self.set_all_flow_rates(top_flows, bottom_flows)
             elif self.stage_specifications:
                 P = self.P[N_stages // 2]
                 dp = ms.dew_point_at_P(P=P, IDs=IDs)
@@ -3310,13 +3319,19 @@ class MultiStageEquilibrium(Unit):
                 T_top = bp.T
                 dT_stage = (T_bot - T_top) / N_stages
                 Ts = np.array([T_top + i * dT_stage for i in range(N_stages)])
-                z = bp.z
-                z[z == 0] = 1.
-                x = dp.x
-                x[x == 0] = 1.
+                z = bp.z.copy()
+                z[z == 0] = 1e-32
+                x = dp.x.copy()
+                x[x == 0] = 1e-32
                 K_dew = dp.z / dp.x
                 K_bubble = bp.y / bp.z
+                K_dew[K_dew > 1e9] = 1e9
+                K_bubble[K_bubble > 1e9] = 1e9
+                K_dew[K_dew < 1e-9] = 1e-9
+                K_bubble[K_bubble < 1e-9] = 1e-9
                 dK_stage = (K_bubble - K_dew) / N_stages
+                top_flows = np.ones((N_stages, N_chemicals))
+                bottom_flows = np.ones((N_stages, N_chemicals))
                 for i, partition in enumerate(partitions):
                     partition.T = T = T_top + i * dT_stage
                     partition.K = K_dew + i * dK_stage
@@ -3326,8 +3341,8 @@ class MultiStageEquilibrium(Unit):
                     x /= x.sum()
                     y = a * bp.y + b * dp.y
                     y /= y.sum()
-                    partition.x = x
-                    partition.y = y
+                    bottom_flows[i] = partition.x = x
+                    top_flows[i] = partition.y = y
                     for s in partition.outs: s.T = T
                 xs = np.array([i.x for i in partitions])
                 ys = np.array([i.y for i in partitions])
@@ -3335,14 +3350,15 @@ class MultiStageEquilibrium(Unit):
                 phase_ratios = Vs / Ls
                 for partition, B in zip(partitions, phase_ratios):
                     if partition.specified_variable != 'B': partition.B = B
+                top_flows *= Vs[:, None]
+                bottom_flows *= Ls[:, None]
+                self.set_all_flow_rates(top_flows, bottom_flows)
             else:
                 vle = ms.vle
                 P = self.P[N_stages // 2]
                 vle(H=ms.H, P=P)
                 L_mol = ms.imol['l', IDs]
-                L_mol_net = L_mol.sum()
-                if L_mol_net: x = L_mol / L_mol.sum()
-                else: x = np.ones(N_chemicals, float) / N_chemicals
+                x = L_mol / L_mol.sum()
                 V_mol = ms.imol['g', IDs]
                 y = V_mol / V_mol.sum()
                 K = y / x
@@ -3358,9 +3374,10 @@ class MultiStageEquilibrium(Unit):
                     partition.y = y
                     partition.x = x
                     for s in partition.outs: s.empty()
+                top_flows = np.ones((N_stages, N_chemicals)) * V_mol
+                bottom_flows = np.ones((N_stages, N_chemicals)) * L_mol
+                self.set_all_flow_rates(top_flows, bottom_flows)
         if self.vle_decomposition is None: self.default_vle_decomposition()
-        for i in self.stages: i._update_separation_factors()
-        self.update_flow_rates(np.array([i.S for i in self._S_stages]), update_B=False)
         self._gamma = self._eq_thermo.Gamma(self._eq_thermo.chemicals)
         self._H_magnitude = 10 * sum([i.mixture.Cn('l', i.mol, i.T, i.P) for i in self.ins])
         self.attempt = 0
@@ -3534,6 +3551,55 @@ class MultiStageEquilibrium(Unit):
             for n, j in enumerate(index): feed_flows[i, n] += dmol[j]
         return feed_flows
     
+    def set_all_flow_rates(self, top_flows, bottom_flows):
+        stages = self.stages
+        N_stages = self.N_stages
+        range_stages = range(N_stages)
+        index = self._eq_index
+        RF_spec = self._RF_spec
+        for i in range_stages:
+            stage = stages[i]
+            partition = stage.partition
+            s_top, s_bot = partition.outs
+            t = top_flows[i]
+            mask = t < 0
+            bulk_t = t.sum()
+            if mask.any():
+                t[mask] = 0
+                tsum = t.sum()
+                if tsum: t *= bulk_t / tsum
+            b = bottom_flows[i]
+            mask = b < 0
+            bulk_b = b.sum()
+            if bulk_b < 0:
+                bottom_flows[i] = bottom_flows[i-1]
+                bulk_b = b.sum()
+            elif mask.any():
+                b[mask] = 0
+                bsum = b.sum()
+                if bsum != 0: b *= bulk_b / bsum
+            for i in stage.splitters: i._run()
+            if stage.specified_variable == 'B':
+                if stage.B == 0:
+                    t[:] = 0
+                else:
+                    t *= stage.B * bulk_b / bulk_t
+            elif RF_spec and i == 1:
+                first = stages[0]
+                second = stage
+                last = stages[-1]
+                F_feed = self._bulk_feed
+                F_bot = last.F * F_feed
+                F_dist = F_feed - F_bot
+                F_reflux = F_dist / first.B
+                F_second_vap = (F_reflux + F_dist - self._top_bulk_feed) / (1 - second.top_split)
+                F_second_liq = bulk_b
+                second.B = F_second_vap / F_second_liq
+                bottom_flows[-1] *= F_bot / bottom_flows[-1].sum()
+                t *= F_second_vap / bulk_t
+            s_top.mol[index] = t
+            s_bot.mol[index] = b
+    
     def set_flow_rates(self, bottom_flows, update_B=True):
         stages = self.stages
         N_stages = self.N_stages
@@ -3563,7 +3629,10 @@ class MultiStageEquilibrium(Unit):
             b = bottom_flows[i]
             mask = b < 0
             bulk_b = b.sum()
-            if mask.any():
+            if bulk_b < 0:
+                bottom_flows[i] = bottom_flows[i-1]
+                bulk_b = b.sum()
+            elif mask.any():
                 b[mask] = 0
                 bsum = b.sum()
                 if bsum != 0: b *= bulk_b / bsum
@@ -3616,6 +3685,8 @@ class MultiStageEquilibrium(Unit):
             separation_factors = S * x + (1 - x) * S_old
         for stage, S in zip(self._S_stages, separation_factors): stage.S = S
         flows = self.run_mass_balance()
+        if not np.isfinite(flows).all():
+            raise RuntimeError('infeasible values in flow rates')
         self.set_flow_rates(flows, update_B)
         if getattr(self, 'tracking', False):
             self._collect_variables('material')
