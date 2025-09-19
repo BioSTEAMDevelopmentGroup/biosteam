@@ -1916,7 +1916,7 @@ class PhasePartition(Unit):
                              K_relaxation_factor=None): # Bubble point
         top, bottom = self.outs
         if P is not None: top.P = bottom.P = P
-        if self.specified_variable != 'T':
+        if self.specified_variable == 'T':
             self._run_vle(update=False)
             for i in self.outs: i.T = self.T
         else:
