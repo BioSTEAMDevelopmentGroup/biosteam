@@ -32,7 +32,7 @@ from collections import deque
 from .. import Unit
 from .design_tools import MESH
 from numba import float64, int8, types, njit
-from typing import NamedTuple
+from typing import NamedTuple, Iterable
 import matplotlib.cm as cm
 import matplotlib.colors as clr
 import matplotlib.pyplot as plt
@@ -1916,7 +1916,7 @@ class PhasePartition(Unit):
                              K_relaxation_factor=None): # Bubble point
         top, bottom = self.outs
         if P is not None: top.P = bottom.P = P
-        if self.specified_variable:
+        if self.specified_variable != 'T':
             self._run_vle(update=False)
             for i in self.outs: i.T = self.T
         else:
@@ -2412,8 +2412,9 @@ class MultiStageEquilibrium(Unit):
             partition_stage = K.ndim == 2
         else:
             partition_stage = False
-        self.multi_stream = tmo.MultiStream(None, P=P, phases=phases, thermo=self.thermo)
         self.N_stages = N_stages
+        if not isinstance(P, Iterable): P = [P] * N_stages 
+        self.multi_stream = tmo.MultiStream(None, P=P[N_stages // 2], phases=phases, thermo=self.thermo)
         self.P = P
         self.T = T
         self.phases = phases = self.multi_stream.phases # Corrected order
@@ -2479,7 +2480,7 @@ class MultiStageEquilibrium(Unit):
             #: dict[int, tuple(str, float)] Specifications for VLE by stage
             self.stage_specifications = stage_specifications
             for i, (name, value) in stage_specifications.items():
-                stages[i].specify_variables(**{name: value})
+                stages[i].specify_variables(**{name: value}, P=P[i])
             self.stage_reactions = stage_reactions
             for i, reaction in stage_reactions.items():
                 stages[i].reaction = reaction
@@ -2872,18 +2873,19 @@ class MultiStageEquilibrium(Unit):
         H = mixture.H
         C = mixture.Cn
         for i, stage in enumerate(self.stages):
-            f = lambda Tinv: np.log(stage.K_model(stage.y, stage.x, 1 / Tinv, P))
-            stage.partition._run_decoupled_KTvle(P=P)
+            Pi = P[i]
+            f = lambda Tinv: np.log(stage.K_model(stage.y, stage.x, 1 / Tinv[0], Pi))
+            stage.partition._run_decoupled_KTvle(P=Pi)
             dlogK_dTinv[i] = approx_derivative(f, 1 / stage.T)[:, 0]
             T[i] = Ti = stage.T
             x[i] = xi = stage.x
             y[i] = yi = stage.y
             K[i] = stage.K
             gamma[i] = f_gamma(xi, Ti)
-            hV[i] = H('g', yi, Ti, P)
-            hL[i] = H('l', xi, Ti, P)
-            CV[i] = C('g', yi, Ti, P)
-            CL[i] = C('l', xi, Ti, P)
+            hV[i] = H('g', yi, Ti, Pi)
+            hL[i] = H('l', xi, Ti, Pi)
+            CV[i] = C('g', yi, Ti, Pi)
+            CL[i] = C('l', xi, Ti, Pi)
         V, L = MESH.bulk_vapor_and_liquid_flow_rates(
             hL, hV,
             self._neg_asplit, self._neg_bsplit, 
@@ -3071,89 +3073,11 @@ class MultiStageEquilibrium(Unit):
     
     # %% Initial guess
     
-    def _hot_start_phase_ratios_iter(self, 
-            top_flow_rates, phase_ratios, stage_index, *args
-        ):
-        bottom_flow_rates = MESH.hot_start_bottom_flow_rates(
-            top_flow_rates, phase_ratios, stage_index, *args
-        )
-        top_flow_rates = MESH.hot_start_top_flow_rates(
-            bottom_flow_rates, phase_ratios, stage_index, *args
-        )
-        if self._RF_spec:
-            bulk_bottom = self.stages[-1].F * self._bulk_feed
-            bulk_bottom_actual = bottom_flow_rates[-1].sum()
-            if bulk_bottom_actual:
-                bottom = bottom_flow_rates[-1]
-                new_bottom = bottom * bulk_bottom / bulk_bottom_actual
-                top_flow_rates[-1] = bottom_flow_rates[-2] * self._bsplit[-2] - new_bottom
-                bottom_flow_rates[-1] = new_bottom 
-                phase_ratios[1] = top_flow_rates.sum() / bulk_bottom
-            else:
-                phase_ratios[1] = 1 # Initial guess
-        # print('-------------')
-        # print('TOP')
-        # print(top_flow_rates)
-        # print('BOTTOM')
-        # print(bottom_flow_rates)
-        return top_flow_rates
-        
-    def hot_start_phase_ratios(self):
-        stages = self.stages
-        stage_index = []
-        phase_ratios = []
-        if self._RF_spec:
-            stage_index = [0, self.N_stages - 1]
-            phase_ratios = [stages[0].B, 1.]
-        else:
-            for i in list(self.stage_specifications):
-                p = stages[i].partition
-                if p.specified_variable != 'B': continue 
-                stage_index.append(i)
-                phase_ratios.append(p.B)
-        stage_index = np.array(stage_index, dtype=int)
-        phase_ratios = np.array(phase_ratios, dtype=float)
-        feeds = self.ins
-        feed_stages = self.feed_stages
-        top_feed_flows = 0 * self.feed_flows
-        bottom_feed_flows = top_feed_flows.copy()
-        top_flow_rates = top_feed_flows.copy()
-        index = self._eq_index
-        for feed, stage in zip(feeds, feed_stages):
-            if len(feed.phases) > 1 and 'g' in feed.phases:
-                top_feed_flows[stage, :] += feed['g'].mol[index]
-            elif feed.phase != 'g':
-                continue
-            else:
-                top_feed_flows[stage, :] += feed.mol[index]
-        for feed, stage in zip(feeds, feed_stages):
-            if len(feed.phases) > 1 and 'g' not in feed.phases:
-                bottom_feed_flows[stage, :] += feed['l'].mol[index]
-            elif feed.phase == 'g': 
-                continue
-            else:
-                bottom_feed_flows[stage, :] += feed.mol[index]
-        feed_flows, asplit_1, bsplit_1, N_stages = self._iter_args
-        args = (
-            phase_ratios, np.array(stage_index), top_feed_flows,
-            bottom_feed_flows, asplit_1, bsplit_1, N_stages
-        )
-        top_flow_rates = flx.wegstein(
-            self._hot_start_phase_ratios_iter,
-            top_flow_rates, args=args, xtol=self.relative_tolerance,
-            checkiter=False,
-        )
-        bottom_flow_rates = MESH.hot_start_bottom_flow_rates(
-            top_flow_rates, *args
-        )
-        bf = bottom_flow_rates.sum(axis=1)
-        bf[bf == 0] = 1e-32
-        return top_flow_rates.sum(axis=1) / bf
-    
     def hot_start_collapsed_stages(self,
             all_stages, feed_stages, stage_specifications,
             top_side_draws, bottom_side_draws,
         ):
+        raise NotImplementedError('not yet in BioSTEAM yet')
         last = 0
         for i in sorted(all_stages):
             if i == last + 1: continue
@@ -3208,7 +3132,6 @@ class MultiStageEquilibrium(Unit):
         top_phase, bottom_phase = ms.phases
         eq = 'vle' if top_phase == 'g' else 'lle'
         ms.mix_from(feeds)
-        ms.P = self.P
         if eq == 'lle':
             self.top_chemical = top_chemical = self.top_chemical or feeds[1].main_chemical
             for i in partitions: i.top_chemical = top_chemical
@@ -3255,13 +3178,12 @@ class MultiStageEquilibrium(Unit):
             feed_enthalpies[stage] += feed.H
         self._total_feed_flows = feed_flows.sum(axis=1)
         self._iter_args = (feed_flows, self._neg_asplit, self._neg_bsplit, self.N_stages)
-        feed_stages = [(i if i >= 0 else N_stages + i) for i in self.feed_stages]
-        stage_specifications = {(i if i >= 0 else N_stages + i): j for i, j in self.stage_specifications.items()}
-        top_side_draws = {(i if i >= 0 else N_stages + i): j for i, j in self.top_side_draws.items()}
-        bottom_side_draws = {(i if i >= 0 else N_stages + i): j for i, j in self.bottom_side_draws.items()}
-        self.key_stages = key_stages = set([*feed_stages, *stage_specifications, *top_side_draws, *bottom_side_draws])
+        # feed_stages = [(i if i >= 0 else N_stages + i) for i in self.feed_stages]
+        # stage_specifications = {(i if i >= 0 else N_stages + i): j for i, j in self.stage_specifications.items()}
+        # top_side_draws = {(i if i >= 0 else N_stages + i): j for i, j in self.top_side_draws.items()}
+        # bottom_side_draws = {(i if i >= 0 else N_stages + i): j for i, j in self.bottom_side_draws.items()}
+        # self.key_stages = set([*feed_stages, *stage_specifications, *top_side_draws, *bottom_side_draws])
         self._bulk_feed = feed_flows.sum()
-        
         # Reformulate flow rate specifications
         if (eq == 'vle'
             and stages[-1].specified_variable == 'F'
@@ -3272,14 +3194,72 @@ class MultiStageEquilibrium(Unit):
             self._top_bulk_feed = feed_flows[0].sum()
         else:
             self._RF_spec = False
+        N_chemicals = len(index)
+        if top_chemicals:
+            top_side_draws = self.top_side_draws
+            n = len(top_chemicals)
+            b = np.ones([N_stages, n])
+            c = self._neg_asplit[1:]
+            d = np.zeros([N_stages, n])
+            for feed, stage in zip(feeds, feed_stages):
+                d[stage] += feed.imol[top_chemicals]
+            top_flow_rates = MESH.solve_right_bidiagonal_matrix(b, c, d)
+            for partition, flows in zip(partitions, top_flow_rates):
+                partition.outs[0].imol[top_chemicals] = flows
+        if bottom_chemicals:
+            bottom_side_draws = self.bottom_side_draws
+            a = self._neg_bsplit[:-1]
+            n = len(bottom_chemicals)
+            b = np.ones([N_stages, n])
+            d = np.zeros([N_stages, n])
+            for feed, stage in zip(feeds, feed_stages):
+                d[stage] += feed.imol[bottom_chemicals]
+            bottom_flow_rates = MESH.solve_bidiagonal_matrix(a, b, d)
+            for partition, b in zip(partitions, bottom_flow_rates):
+                partition.outs[1].imol[bottom_chemicals] = b
+        if top_chemicals or bottom_chemicals:
+            for i in stages:
+                for s in i.splitters: s._run()
+        for i in partitions: i.IDs = IDs
+        other_chemicals = top_chemicals + bottom_chemicals
+        self._noneq_index = self.thermo.chemicals.indices(other_chemicals)
+        self._noneq_thermo = self.thermo.subset(other_chemicals)
+        self._eq_thermo = self.thermo.subset(IDs)
+        if eq == 'vle':
+            Hother = self._noneq_thermo.mixture.H
+            P = self.P
+            N_stages = self.N_stages
+            variables = ''
+            self._specified_values = values = np.zeros(N_stages)
+            invariable_enthalpies = np.zeros(N_stages)
+            other_index = self._noneq_index
+            for n, stage in enumerate(self.stages):
+                Pi = P[n]
+                variable = stage.specified_variable
+                if variable == 'T':
+                    variables += 'B'
+                    values[n] = stage.B
+                else:
+                    variables += variable
+                    values[n] = getattr(stage, variable)
+                partition = stage.partition
+                vap, liq = partition.outs
+                H_in = sum([
+                    Hother(i.phase, i.mol[other_index], i.T, Pi)
+                    + Hother(i.phase, i.mol[other_index], i.T, Pi)
+                    for i in stage.ins
+                ])
+                H_out = sum([
+                    Hother(i.phase, i.mol[other_index], i.T, Pi)
+                    + Hother(i.phase, i.mol[other_index], i.T, Pi)
+                    for i in partition.outs
+                ])
+                invariable_enthalpies[n] += H_out - H_in
+            self._feed_and_invariable_enthalpies = invariable_enthalpies + feed_enthalpies
+            self._specified_variables = variables
         if (self.use_cache 
             and all([i.IDs == IDs for i in partitions])): # Use last set of data
             pass
-        elif self.collapsed_init and len(key_stages) != self.N_stages:
-            self.hot_start_collapsed_stages(
-                key_stages, feed_stages, stage_specifications,
-                top_side_draws, bottom_side_draws,
-            )
         else:
             if data and 'K' in data: 
                 top, bottom = ms
@@ -3322,125 +3302,65 @@ class MultiStageEquilibrium(Unit):
                     i.K = K
                     i.gamma_y = gamma_y
                     for j in i.outs: j.T = T
+            elif self.stage_specifications:
+                P = self.P[N_stages // 2]
+                dp = ms.dew_point_at_P(P=P, IDs=IDs)
+                T_bot = dp.T
+                bp = ms.bubble_point_at_P(P=P, IDs=IDs)
+                T_top = bp.T
+                dT_stage = (T_bot - T_top) / N_stages
+                Ts = np.array([T_top + i * dT_stage for i in range(N_stages)])
+                z = bp.z
+                z[z == 0] = 1.
+                x = dp.x
+                x[x == 0] = 1.
+                K_dew = dp.z / dp.x
+                K_bubble = bp.y / bp.z
+                dK_stage = (K_bubble - K_dew) / N_stages
+                for i, partition in enumerate(partitions):
+                    partition.T = T = T_top + i * dT_stage
+                    partition.K = K_dew + i * dK_stage
+                    a = i / N_stages
+                    b = 1 - a
+                    x = a * bp.x + b * dp.x
+                    x /= x.sum()
+                    y = a * bp.y + b * dp.y
+                    y /= y.sum()
+                    partition.x = x
+                    partition.y = y
+                    for s in partition.outs: s.T = T
+                xs = np.array([i.x for i in partitions])
+                ys = np.array([i.y for i in partitions])
+                Vs, Ls = self.estimate_bulk_vapor_and_liquid_flow_rates(xs, ys, Ts)
+                phase_ratios = Vs / Ls
+                for partition, B in zip(partitions, phase_ratios):
+                    if partition.specified_variable != 'B': partition.B = B
             else:
-                P = self.P
-                if self.stage_specifications:
-                    dp = ms.dew_point_at_P(P=P, IDs=IDs)
-                    T_bot = dp.T
-                    bp = ms.bubble_point_at_P(P=P, IDs=IDs)
-                    T_top = bp.T
-                    dT_stage = (T_bot - T_top) / N_stages
-                    phase_ratios = self.hot_start_phase_ratios()
-                    z = bp.z
-                    z[z == 0] = 1.
-                    x = dp.x
-                    x[x == 0] = 1.
-                    K_dew = dp.z / dp.x
-                    K_bubble = bp.y / bp.z
-                    dK_stage = (K_bubble - K_dew) / N_stages
-                    for i, B in enumerate(phase_ratios):
-                        partition = partitions[i]
-                        if partition.specified_variable != 'B': partition.B = B
-                        partition.T = T = T_top + i * dT_stage
-                        partition.K = K_dew + i * dK_stage
-                        a = i / N_stages
-                        b = 1 - a
-                        x = a * bp.x + b * dp.x
-                        x /= x.sum()
-                        y = a * bp.y + b * dp.y
-                        y /= y.sum()
-                        partition.x = x
-                        partition.y = y
-                        for s in partition.outs: s.T = T
-                else:
-                    vle = ms.vle
-                    vle(H=ms.H, P=P)
-                    L_mol = ms.imol['l', IDs]
-                    L_mol_net = L_mol.sum()
-                    if L_mol_net: x = L_mol / L_mol.sum()
-                    else: x = np.ones(N_chemicals, float) / N_chemicals
-                    V_mol = ms.imol['g', IDs]
-                    y = V_mol / V_mol.sum()
-                    K = y / x
-                    phi = ms.V
-                    B = phi / (1 - phi)
-                    T = ms.T
-                    for partition in partitions:
-                        partition.T = T
-                        partition.B = B
-                        for i in partition.outs: i.T = T
-                        partition.K = K
-                        partition.fgas = P * y
-                        partition.y = y
-                        partition.x = x
-                        for s in partition.outs: s.empty()
-            N_chemicals = len(index)
-        if top_chemicals:
-            top_side_draws = self.top_side_draws
-            n = len(top_chemicals)
-            b = np.ones([N_stages, n])
-            c = self._neg_asplit[1:]
-            d = np.zeros([N_stages, n])
-            for feed, stage in zip(feeds, feed_stages):
-                d[stage] += feed.imol[top_chemicals]
-            top_flow_rates = MESH.solve_right_bidiagonal_matrix(b, c, d)
-            for partition, flows in zip(partitions, top_flow_rates):
-                partition.outs[0].imol[top_chemicals] = flows
-        if bottom_chemicals:
-            bottom_side_draws = self.bottom_side_draws
-            a = self._neg_bsplit[:-1]
-            n = len(bottom_chemicals)
-            b = np.ones([N_stages, n])
-            d = np.zeros([N_stages, n])
-            for feed, stage in zip(feeds, feed_stages):
-                d[stage] += feed.imol[bottom_chemicals]
-            bottom_flow_rates = MESH.solve_bidiagonal_matrix(a, b, d)
-            for partition, b in zip(partitions, bottom_flow_rates):
-                partition.outs[1].imol[bottom_chemicals] = b
-        if top_chemicals or bottom_chemicals:
-            for i in stages:
-                for s in i.splitters: s._run()
-        for i in partitions: i.IDs = IDs
-        
-        other_chemicals = top_chemicals + bottom_chemicals
-        self._noneq_index = self.thermo.chemicals.indices(other_chemicals)
-        self._noneq_thermo = self.thermo.subset(other_chemicals)
-        self._eq_thermo = self.thermo.subset(IDs)
-        self.interpolate_missing_variables()
+                vle = ms.vle
+                P = self.P[N_stages // 2]
+                vle(H=ms.H, P=P)
+                L_mol = ms.imol['l', IDs]
+                L_mol_net = L_mol.sum()
+                if L_mol_net: x = L_mol / L_mol.sum()
+                else: x = np.ones(N_chemicals, float) / N_chemicals
+                V_mol = ms.imol['g', IDs]
+                y = V_mol / V_mol.sum()
+                K = y / x
+                phi = ms.V
+                B = phi / (1 - phi)
+                T = ms.T
+                for P, partition in (self.P, partitions):
+                    partition.T = T
+                    partition.B = B
+                    for i in partition.outs: i.T = T
+                    partition.K = K
+                    partition.fgas = P * y
+                    partition.y = y
+                    partition.x = x
+                    for s in partition.outs: s.empty()
+        if self.vle_decomposition is None: self.default_vle_decomposition()
         for i in self.stages: i._update_separation_factors()
-        self.update_mass_balance()
-        if eq == 'vle':
-            if self.vle_decomposition is None: self.default_vle_decomposition()
-            Hother = self._noneq_thermo.mixture.H
-            P = self.P
-            N_stages = self.N_stages
-            variables = ''
-            self._specified_values = values = np.zeros(N_stages)
-            invariable_enthalpies = np.zeros(N_stages)
-            other_index = self._noneq_index
-            for n, stage in enumerate(self.stages):
-                variable = stage.specified_variable
-                if variable == 'T':
-                    variables += 'B'
-                    values[n] = stage.B
-                else:
-                    variables += variable
-                    values[n] = getattr(stage, variable)
-                partition = stage.partition
-                vap, liq = partition.outs
-                H_in = sum([
-                    Hother(i.phase, i.mol[other_index], i.T, P)
-                    + Hother(i.phase, i.mol[other_index], i.T, P)
-                    for i in stage.ins
-                ])
-                H_out = sum([
-                    Hother(i.phase, i.mol[other_index], i.T, P)
-                    + Hother(i.phase, i.mol[other_index], i.T, P)
-                    for i in partition.outs
-                ])
-                invariable_enthalpies[n] += H_out - H_in
-            self._feed_and_invariable_enthalpies = invariable_enthalpies + feed_enthalpies
-            self._specified_variables = variables
+        self.update_flow_rates(np.array([i.S for i in self._S_stages]), update_B=False)
         self._gamma = self._eq_thermo.Gamma(self._eq_thermo.chemicals)
         self._H_magnitude = 10 * sum([i.mixture.Cn('l', i.mol, i.T, i.P) for i in self.ins])
         self.attempt = 0
@@ -3589,11 +3509,10 @@ class MultiStageEquilibrium(Unit):
     
     def estimate_bulk_vapor_and_liquid_flow_rates(self, xs, ys, Ts):
         Hvle = self._eq_thermo.mixture.H
-        P = self.P
         N_stages = self.N_stages
         return MESH.bulk_vapor_and_liquid_flow_rates(
-                np.array([Hvle('l', i.x, i.T, P) for i in self.stages]), 
-                np.array([Hvle('g', i.y, i.T, P) for i in self.stages]), 
+                np.array([Hvle('l', i.x, i.T, i.P) for i in self.stages]), 
+                np.array([Hvle('g', i.y, i.T, i.P) for i in self.stages]), 
                 self._neg_asplit, self._neg_bsplit, 
                 self._top_split, self._bottom_split, 
                 N_stages, self._feed_and_invariable_enthalpies, 
@@ -3646,7 +3565,8 @@ class MultiStageEquilibrium(Unit):
             bulk_b = b.sum()
             if mask.any():
                 b[mask] = 0
-                b *= bulk_b / b.sum()
+                bsum = b.sum()
+                if bsum != 0: b *= bulk_b / bsum
             for i in stage.splitters: i._run()
             if stage.specified_variable == 'B':
                 if stage.B == 0:
@@ -3707,25 +3627,24 @@ class MultiStageEquilibrium(Unit):
         P = self.P
         if self.stage_reactions:
             self.update_liquid_holdup() # Finds liquid volume at each stage
-            for stage in stages:
+            for n, stage in enumerate(stages):
                 partition = stage.partition
-                partition._run_decoupled_KTvle(P=P)
+                partition._run_decoupled_KTvle(P=P[n])
                 T = partition.T
                 for i in (partition.outs + stage.outs): i.T = T
                 if partition.reaction: 
                     partition._run_decoupled_reaction(P=P)
         else:
-            for i in stages:
-                partition = i.partition
-                partition._run_decoupled_KTvle(P=P)
+            for n, stage in enumerate(stages):
+                partition = stage.partition
+                partition._run_decoupled_KTvle(P=P[n])
                 T = partition.T
-                for i in (partition.outs + i.outs): i.T = T
+                for i in (partition.outs + stage.outs): i.T = T
         if getattr(self, 'tracking', False):
             self._collect_variables('vle_phenomena')
     
     def update_pseudo_lle(self):
         stages = self.stages
-        P = self.P
         if 'K' in self.partition_data:
             for i in self.stages:
                 i.K = i.partition.partition_data['K']
@@ -3735,7 +3654,7 @@ class MultiStageEquilibrium(Unit):
             def psuedo_equilibrium(flow_rates):
                 self.set_flow_rates(flow_rates, update_B=False)
                 for n, i in enumerate(stages): 
-                    i.partition._run_decoupled_Kgamma(P=P)
+                    i.partition._run_decoupled_Kgamma()
                     i._update_separation_factors()
                 return self.run_mass_balance()
             
@@ -3760,8 +3679,8 @@ class MultiStageEquilibrium(Unit):
     def update_pseudo_vle(self, separation_factors):
         P = self.P
         if 'K' not in self.partition_data:
-            for i in self.stages: 
-                i.partition._run_decoupled_Kfgas(P=P)
+            for n, i in enumerate(self.stages): 
+                i.partition._run_decoupled_Kfgas(P=P[n])
                 i._update_separation_factors()
         if getattr(self, 'tracking', False):
             raise NotImplementedError('tracking sum rates decomposition not implemented')

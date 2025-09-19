@@ -28,8 +28,10 @@ def solve_tridiagonal_matrix(a, b, c, d): # Tridiagonal matrix solver
         m = a[i] / b[i]
         b[inext] -= m * c[i] 
         d[inext] -= m * d[i]
-        
-    b[n] = d[n] / b[n]
+    
+    bn = b[n]
+    bn[bn < 1e-64] = 1e-64
+    b[n] = np.exp(np.log(d[n]) - np.log(b[n]))
     for i in range(n-1, -1, -1):
         b[i] = (d[i] - c[i] * b[i+1]) / b[i]
     return b
