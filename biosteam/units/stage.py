@@ -124,7 +124,10 @@ class SurrogateStage:
         beta = self._beta
         fgamma = self.gamma
         fT = self.T
-        
+        zero = x < 1e-16
+        if zero.any():
+            x[zero] = 1e-16
+            x /= x.sum()
         # Initial guess without gamma
         Kb = 1 / (self._alpha * x).sum()
         T0 = fT(Kb)
@@ -2923,7 +2926,6 @@ class MultiStageEquilibrium(Unit):
                 checkiter=False,
                 checkconvergence=False,
             )
-            breakpoint()
             f = SC.residuals
             jac = lambda logSb1: approx_derivative(f, logSb1)
             logSb1, *self._inside_info = fsolve(
