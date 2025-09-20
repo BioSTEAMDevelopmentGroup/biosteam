@@ -3230,47 +3230,46 @@ class MultiStageEquilibrium(Unit):
         if top_chemicals or bottom_chemicals:
             for i in stages:
                 for s in i.splitters: s._run()
-        for i in partitions: i.IDs = IDs
         other_chemicals = top_chemicals + bottom_chemicals
         self._noneq_index = self.thermo.chemicals.indices(other_chemicals)
         self._noneq_thermo = self.thermo.subset(other_chemicals)
         self._eq_thermo = self.thermo.subset(IDs)
-        if eq == 'vle':
-            Hother = self._noneq_thermo.mixture.H
-            P = self.P
-            N_stages = self.N_stages
-            variables = ''
-            self._specified_values = values = np.zeros(N_stages)
-            invariable_enthalpies = np.zeros(N_stages)
-            other_index = self._noneq_index
-            for n, stage in enumerate(self.stages):
-                Pi = P[n]
-                variable = stage.specified_variable
-                if variable == 'T':
-                    variables += 'B'
-                    values[n] = stage.B
-                else:
-                    variables += variable
-                    values[n] = getattr(stage, variable)
-                partition = stage.partition
-                vap, liq = partition.outs
-                H_in = sum([
-                    Hother(i.phase, i.mol[other_index], i.T, Pi)
-                    + Hother(i.phase, i.mol[other_index], i.T, Pi)
-                    for i in stage.ins
-                ])
-                H_out = sum([
-                    Hother(i.phase, i.mol[other_index], i.T, Pi)
-                    + Hother(i.phase, i.mol[other_index], i.T, Pi)
-                    for i in partition.outs
-                ])
-                invariable_enthalpies[n] += H_out - H_in
-            self._feed_and_invariable_enthalpies = invariable_enthalpies + feed_enthalpies
-            self._specified_variables = variables
+        Hother = self._noneq_thermo.mixture.H
+        P = self.P
+        N_stages = self.N_stages
+        variables = ''
+        self._specified_values = values = np.zeros(N_stages)
+        invariable_enthalpies = np.zeros(N_stages)
+        other_index = self._noneq_index
+        for n, stage in enumerate(self.stages):
+            Pi = P[n]
+            variable = stage.specified_variable
+            if variable == 'T':
+                variables += 'B'
+                values[n] = stage.B
+            else:
+                variables += variable
+                values[n] = getattr(stage, variable)
+            partition = stage.partition
+            vap, liq = partition.outs
+            H_in = sum([
+                Hother(i.phase, i.mol[other_index], i.T, Pi)
+                + Hother(i.phase, i.mol[other_index], i.T, Pi)
+                for i in stage.ins
+            ])
+            H_out = sum([
+                Hother(i.phase, i.mol[other_index], i.T, Pi)
+                + Hother(i.phase, i.mol[other_index], i.T, Pi)
+                for i in partition.outs
+            ])
+            invariable_enthalpies[n] += H_out - H_in
+        self._feed_and_invariable_enthalpies = invariable_enthalpies + feed_enthalpies
+        self._specified_variables = variables
         if (self.use_cache 
             and all([i.IDs == IDs for i in partitions])): # Use last set of data
             pass
         else:
+            for i in partitions: i.IDs = IDs
             if data and 'K' in data: 
                 top, bottom = ms
                 K = data['K']
@@ -3393,6 +3392,7 @@ class MultiStageEquilibrium(Unit):
         self._point_shape = (N_stages, 2 * N_chemicals + 1)
         record = self.iteration_memory * [empty]
         x = self._get_point()
+        breakpoint()
         record[0] = IterationResult(1, x, self._objective(x))
         self._iteration_record = record = deque(record)
         return x
