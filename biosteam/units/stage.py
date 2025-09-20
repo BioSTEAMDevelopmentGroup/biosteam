@@ -55,7 +55,7 @@ class IterationResult(NamedTuple):
 
 # %% Inside-out tools
 
-@jitdata(py=True)
+@jitdata
 class SurrogateStage:
     _A: float
     _B: float
@@ -67,7 +67,9 @@ class SurrogateStage:
     _CL: float
     _alpha: float64[:] 
     _beta: float64[:] #: K / (Kb * gamma) # For highly nonideal liquids
-      
+    _Kbmax: float
+    _Kbmin: float
+    
     def __init__( 
             self,
             x: float64[:], 
@@ -110,6 +112,12 @@ class SurrogateStage:
         self._CL = CL
         self._alpha = alpha
         self._beta = beta
+        if Kb0 < Kb1: 
+            self._Kbmin = Kb0
+            self._Kbmax = Kb1
+        else:
+            self._Kbmin = Kb1
+            self._Kbmax = Kb0
     
     def gamma(self, x: float64[:], T: float) -> float64[:]:
         return self._a + self._b * x 
@@ -118,6 +126,8 @@ class SurrogateStage:
         return np.exp(self._A + self._B / T)
 
     def T(self, Kb: float) -> float:
+        if Kb < self._Kbmin: Kb = self._Kbmin
+        if Kb > self._Kbmax: Kb = self._Kbmax
         return self._B / (np.log(Kb) - self._A)
     
     def bubble_point(self, x: float64[:]) -> types.UniTuple(float, 2):
@@ -135,10 +145,7 @@ class SurrogateStage:
         # Guess with gamma
         alpha = fgamma(x, T0) * beta
         Kb = 1 / (alpha * x).sum()
-        try:
-            T1 = g0 = self.T(Kb)
-        except:
-            breakpoint()
+        T1 = g0 = self.T(Kb)
         
         # Solve by accelerated Wegstein iteration
         for _ in range(100):
@@ -169,7 +176,7 @@ class SurrogateStage:
     def hL(self, T: float) -> float:
         return self._hL_ref + self._CL * T
 
-@jitdata(py=True)
+@jitdata
 class SurrogateColumn:
     stages: types.List(SurrogateStage.class_type.instance_type, reflected=True)
     N_stages: int
@@ -3377,7 +3384,7 @@ class MultiStageEquilibrium(Unit):
                 top_flows = np.ones((N_stages, N_chemicals)) * V_mol
                 bottom_flows = np.ones((N_stages, N_chemicals)) * L_mol
                 self.set_all_flow_rates(top_flows, bottom_flows)
-        if self.vle_decomposition is None: self.default_vle_decomposition()
+        if eq == 'vle' and self.vle_decomposition is None: self.default_vle_decomposition()
         self._gamma = self._eq_thermo.Gamma(self._eq_thermo.chemicals)
         self._H_magnitude = 10 * sum([i.mixture.Cn('l', i.mol, i.T, i.P) for i in self.ins])
         self.attempt = 0
