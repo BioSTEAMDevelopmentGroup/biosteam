@@ -2805,15 +2805,14 @@ class MultiStageEquilibrium(Unit):
                     self._tracked_algorithms.append(
                         (self.iter + 1, algorithm)
                     )
-                x = solver(f, x, maxiter=maxiter, xtol=xtol, rtol=rtol, args=(algorithm,))
                 try: x = solver(f, x, maxiter=maxiter, xtol=xtol, rtol=rtol, args=(algorithm,))
                 except:
                     self._mean_residual = np.inf
-                    x = self._best_result.x
+                    if self._best_result.x is not None: x = self._best_result.x
                     maxiter = self.maxiter - self.iter
                     if maxiter <= 0: break
                 else: 
-                    x = self._best_result.x
+                    x = self._best_result.x 
                     break
             else: continue
             break
@@ -2861,10 +2860,7 @@ class MultiStageEquilibrium(Unit):
             x1 = self._run_inside_out()
         else:
             raise RuntimeError(f'invalid algorithm {algorithm!r}')
-        try:
-            x1 = self._new_point(x1)
-        except:
-            breakpoint()
+        x1 = self._new_point(x1)
         if self._convergence_analysis_mode: self._tracked_points[self.iter] = x1
         return x1
     
@@ -3228,7 +3224,7 @@ class MultiStageEquilibrium(Unit):
             d = np.zeros([N_stages, n])
             for feed, stage in zip(feeds, feed_stages):
                 d[stage] += feed.imol[bottom_chemicals]
-            bottom_flow_rates = MESH.solve_bidiagonal_matrix(a, b, d)
+            bottom_flow_rates = MESH.solve_left_bidiagonal_matrix(a, b, d)
             for partition, b in zip(partitions, bottom_flow_rates):
                 partition.outs[1].imol[bottom_chemicals] = b
         if top_chemicals or bottom_chemicals:
@@ -3375,7 +3371,7 @@ class MultiStageEquilibrium(Unit):
                 phi = ms.V
                 B = phi / (1 - phi)
                 T = ms.T
-                for P, partition in (self.P, partitions):
+                for P, partition in zip(self.P, partitions):
                     partition.T = T
                     partition.B = B
                     for i in partition.outs: i.T = T
