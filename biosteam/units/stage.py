@@ -2805,6 +2805,7 @@ class MultiStageEquilibrium(Unit):
                     self._tracked_algorithms.append(
                         (self.iter + 1, algorithm)
                     )
+                x = solver(f, x, maxiter=maxiter, xtol=xtol, rtol=rtol, args=(algorithm,))
                 try: x = solver(f, x, maxiter=maxiter, xtol=xtol, rtol=rtol, args=(algorithm,))
                 except:
                     self._mean_residual = np.inf
@@ -2860,7 +2861,10 @@ class MultiStageEquilibrium(Unit):
             x1 = self._run_inside_out()
         else:
             raise RuntimeError(f'invalid algorithm {algorithm!r}')
-        x1 = self._new_point(x1)
+        try:
+            x1 = self._new_point(x1)
+        except:
+            breakpoint()
         if self._convergence_analysis_mode: self._tracked_points[self.iter] = x1
         return x1
     
@@ -3500,6 +3504,12 @@ class MultiStageEquilibrium(Unit):
                 Cv, Cl, Hv, Hl, self._asplit, self._bsplit,
                 N_stages, self.feed_enthalpies
             )
+            if not np.isfinite(dTs).all():
+                breakpoint()
+                dTs = MESH.temperature_departures(
+                    Cv, Cl, Hv, Hl, self._asplit, self._bsplit,
+                    N_stages, self.feed_enthalpies
+                )
         return dTs
     
     def update_energy_balance_temperatures(self):

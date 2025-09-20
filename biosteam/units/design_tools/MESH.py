@@ -29,7 +29,7 @@ def solve_tridiagonal_matrix(a, b, c, d): # Tridiagonal matrix solver
         b[inext] -= m * c[i] 
         d[inext] -= m * d[i]
     
-    b[n] = np.exp(np.log(d[n]) - np.log(b[n]))
+    b[n] = d[n] / b[n]
     for i in range(n-1, -1, -1):
         b[i] = (d[i] - c[i] * b[i+1]) / b[i]
     return b
@@ -352,7 +352,7 @@ def top_flows_mass_balance(
 
 # %% Energy balance solution
 
-# @njit(cache=True)
+@njit(cache=True)
 def bulk_vapor_and_liquid_flow_rates(
         hl, hv, 
         neg_asplit, neg_bsplit, 
@@ -518,134 +518,5 @@ def fillmissing(all_neighbors, values):
             values[i] = values[neighbors[0]]
     return values
 
-# %% Russel's inside-out algorithm (not ready)
-
-@njit(cache=True)
-def omega_approx(y, K):
-    y_over_K = (y / K)
-    return y_over_K / y_over_K.sum()
-
-@njit(cache=True)
-def Kb_init(y, K):
-    omega = omega_approx(y, K)
-    return np.exp((omega * np.log(K)).sum(axis=1))
-
-@njit(cache=True)
-def Kb_iter(alpha, x):
-    return 1 / (alpha * x).sum(axis=1)
-
-@njit(cache=True)
-def alpha_approx(K, Kb):
-    return K / Kb
-
-@njit(cache=True)
-def fit(x, y):
-    xmean = x.mean()
-    ymean = y.mean()
-    xxmean = x - xmean
-    m = (xxmean * (y - ymean)).sum() / (xxmean * xxmean).sum()
-    b = ymean - m * xmean
-    return m, b
-
-@njit(cache=True)
-def fit_partition_model(T, Kb):
-    # TODO: update to use adjacent stages
-    x = 1 / T
-    y = np.log(Kb)
-    m, b = fit(x, y)
-    M = y.copy()
-    M[:] = m
-    B = y - M * x
-    return M, B
-
-@njit(cache=True)
-def h_approx(T, m, b):
-    return m * T + b
-
-@njit(cache=True)
-def T_approx(Kb, m, b):
-    return m / (np.log(Kb) - b)
-
-def solve_inside_loop(
-        lnSb, Sb, Sb_index, top_flows, K, B, T, hv, hl, feed_flows,
-        neg_asplit, neg_bsplit, asplit, bsplit,
-        N_stages, specification_index, N_chemicals, H_feeds
-    ):
-    correct_stages = np.ones(N_stages, bool)
-    args = (
-        *inside_loop_args(top_flows, K, T, hv, hl),
-        feed_flows, neg_asplit, neg_bsplit,
-        asplit, bsplit, N_stages, 
-        specification_index, N_chemicals, H_feeds,
-        correct_stages, Sb, Sb_index,
-    )
-    # result = root(inside_loop, KB.flatten(), 
-    #               options=dict(ftol=1e-6), args=args)
-    # print(result.x)
-    # print(KB_new)
-    return minimize(inside_loop_enthalpy_error, lnSb, method='CG', args=args)
-   
-@njit(cache=True)
-def inside_loop_args(
-        top_flows, K, T, hv, hl
-    ):
-    dummy = top_flows.sum(axis=1)
-    dummy[dummy == 0] = 1
-    y = top_flows / np.expand_dims(dummy, -1)
-    Kb = Kb_init(y, K)
-    Kb_coef = fit_partition_model(T, Kb)
-    hv_coef = fit(T, hv)
-    hl_coef = fit(T, hl)
-    alpha = alpha_approx(K, np.expand_dims(Kb, -1))
-    return alpha, Kb_coef, hv_coef, hl_coef
-    
-# @njit(cache=True)
-def inside_loop_enthalpy_error(
-        lnSb, alpha, Kb_coef, hv_coef, hl_coef, 
-        feed_flows, neg_asplit, neg_bsplit,
-        asplit, bsplit, N_stages, 
-        specification_index, N_chemicals, H_feeds,
-        correct_stages, Sb, Sb_index,
-    ):
-    safe = Sb_index is None
-    if safe: 
-        Sb = np.exp(lnSb).reshape([N_stages, N_chemicals])
-    else:
-        Sb[Sb_index] = np.exp(lnSb).reshape([len(Sb_index), N_chemicals])
-    top_flows = top_flow_rates(
-        Sb, 
-        feed_flows,
-        neg_asplit,
-        neg_bsplit,
-        N_stages,
-        safe,
-    )
-    bottom_flows = mass_balance(
-        top_flows, feed_flows, asplit, bsplit, 
-        correct_stages.copy(), N_stages, N_chemicals
-    )
-    top_flows_net = top_flows.sum(axis=1)
-    bottom_flows_net = bottom_flows.sum(axis=1)
-    dummy = bottom_flows_net.copy()
-    dummy[dummy == 0] = 1e-12
-    x = bottom_flows / dummy[:, np.newaxis]
-    dummy = top_flows_net.copy()
-    dummy[dummy == 0] = 1e-12
-    Kb = Kb_iter(alpha, x)
-    T = T_approx(Kb, *Kb_coef)
-    print(T)
-    hv = h_approx(T, *hv_coef)
-    hl = h_approx(T, *hl_coef)
-    print(hl)
-    Hl_out = hl * bottom_flows_net
-    Hv_out = hv * top_flows_net
-    d = H_feeds - Hl_out - Hv_out
-    Hl_in = (Hl_out * bsplit)[:-1]
-    Hv_in = (Hv_out * asplit)[1:]
-    d[1:] += Hl_in
-    d[:-1] += Hv_in
-    for i in specification_index: d[i] = 0
-    print(np.abs(d).sum())
-    return np.abs(d).sum() 
     
     
