@@ -58,6 +58,7 @@ from .heat_exchange import HXutility
 from ._flash import Flash
 from .stage import MultiStageEquilibrium
 from thermosteam import separations as sep
+from typing import Iterable
 
 __all__ = (
     'Distillation', 
@@ -985,7 +986,9 @@ class Distillation(Unit, isabstract=True):
         if A_dn is None:
             A_dn = design.compute_downcomer_area_fraction(F_LV)
         S_diameter = design.compute_tower_diameter(V_vol, U_f, f, A_dn) * 3.28
-        Po = self.P * 0.000145078 # to psi
+        P = self.P
+        if isinstance(P, Iterable): P = P.max()
+        Po = P * 0.000145078 # to psi
         rho_M = material_densities_lb_per_in3[self.vessel_material]
         if Po < 14.68:
             warn('vacuum pressure vessel ASME codes not implemented yet; '
@@ -2494,7 +2497,9 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
         if A_dn is None:
             A_dn = design.compute_downcomer_area_fraction(F_LV)
         diameter = design.compute_tower_diameter(V_vol, U_f, f, A_dn) * 3.28
-        Po = self.P * 0.000145078 # to psi
+        P = self.P
+        if isinstance(P, Iterable): P = P.max()
+        Po = P * 0.000145078 # to psi
         rho_M = material_densities_lb_per_in3[self.vessel_material]
        
         if Po < 14.68:
@@ -2964,7 +2969,9 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         Design = self.design_results
         
         ### Get maximum required diameter of column across stages ###
-        Po = self.P * 0.000145078 # to psi
+        P = self.P
+        if isinstance(P, Iterable): P = P.max()
+        Po = P * 0.000145078 # to psi
         rho_M = material_densities_lb_per_in3[self.vessel_material]
         if Po < 14.68:
             warn('vacuum pressure vessel ASME codes not implemented yet; '
