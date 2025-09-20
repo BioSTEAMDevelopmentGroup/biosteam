@@ -795,8 +795,6 @@ class System:
     facilities : 
         Offsite facilities that are simulated only after
         completing the path simulation.
-    facility_recycle : 
-        Recycle stream between facilities and system path.
     N_runs : 
         Number of iterations to converge the system.
     operating_hours :
@@ -949,7 +947,6 @@ class System:
             feeds: Optional[Iterable[Stream]]=None, 
             facilities: Iterable[Facility]=(),
             ends: Iterable[Stream]=None,
-            facility_recycle: Optional[Stream]=None,
             operating_hours: Optional[float]=None,
             **kwargs,
         ):
@@ -1001,9 +998,6 @@ class System:
             End streams of the system which are not products. Specify this
             argument if only a section of the complete system is wanted, or if
             recycle streams should be ignored.
-        facility_recycle : 
-            Recycle stream between facilities and system path. This argument
-            defaults to the outlet of a BlowdownMixer facility (if any).
         operating_hours : 
             Number of operating hours in a year. This parameter is used to
             compute annualized properties such as utility cost and material cost
@@ -1055,7 +1049,7 @@ class System:
                                      **kwargs)
          
     @classmethod
-    def _from_network(cls, ID, network, facilities=(), facility_recycle=None,
+    def _from_network(cls, ID, network, facilities=(),
                      operating_hours=None, **kwargs):
         """
         Create a System object from a network.
@@ -1069,8 +1063,6 @@ class System:
         facilities : Iterable[Facility]
             Offsite facilities that are simulated only after
             completing the path simulation.
-        facility_recycle : [:class:`~thermosteam.Stream`], optional
-            Recycle stream between facilities and system path.
         operating_hours : float, optional
             Number of operating hours in a year. This parameter is used to
             compute annualized properties such as utility cost and material cost
@@ -1078,12 +1070,11 @@ class System:
 
         """
         facilities = Facility.ordered_facilities(facilities)
-        if facility_recycle is None: facility_recycle = find_blowdown_recycle(facilities)
         isa = isinstance
         ID_subsys = None if ID is None else ''
         path = [(cls._from_network(ID_subsys, i) if isa(i, Network) else i)
                 for i in network.path]
-        return cls(ID, path, network.recycle, facilities, facility_recycle, None,
+        return cls(ID, path, network.recycle, facilities, None,
                    operating_hours, **kwargs)
 
     def __init__(self, 
@@ -1283,7 +1274,6 @@ class System:
 
     def _update_configuration(self,
             units: Optional[Sequence[str]]=None,
-            facility_recycle: Optional[Stream]=None,
         ):
         old_IDs = [i.ID for i in self.subsystems]
         # Warning: This method does not save the configuration.
