@@ -3392,7 +3392,6 @@ class MultiStageEquilibrium(Unit):
         self._point_shape = (N_stages, 2 * N_chemicals + 1)
         record = self.iteration_memory * [empty]
         x = self._get_point()
-        breakpoint()
         record[0] = IterationResult(1, x, self._objective(x))
         self._iteration_record = record = deque(record)
         return x
