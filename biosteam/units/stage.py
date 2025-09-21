@@ -126,11 +126,11 @@ class SurrogateStage:
         return np.exp(self._A + self._B / T)
 
     def T(self, Kb: float) -> float:
-        if Kb < self._Kbmin: Kb = self._Kbmin
-        if Kb > self._Kbmax: Kb = self._Kbmax
         return self._B / (np.log(Kb) - self._A)
     
     def bubble_point(self, x: float64[:]) -> types.UniTuple(float, 2):
+        Kbmin = self._Kbmin
+        Kbmax = self._Kbmax
         beta = self._beta
         fgamma = self.gamma
         fT = self.T
@@ -138,13 +138,18 @@ class SurrogateStage:
         if zero.any():
             x[zero] = 0
             x /= x.sum()
+        
         # Initial guess without gamma
         Kb = 1 / (self._alpha * x).sum()
+        if Kb < Kbmin: Kb = Kbmin
+        if Kb > Kbmax: Kb = Kbmax
         T0 = fT(Kb)
         
         # Guess with gamma
         alpha = fgamma(x, T0) * beta
         Kb = 1 / (alpha * x).sum()
+        if Kb < Kbmin: Kb = Kbmin
+        if Kb > Kbmax: Kb = Kbmax
         T1 = g0 = self.T(Kb)
         
         # Solve by accelerated Wegstein iteration
@@ -152,6 +157,8 @@ class SurrogateStage:
             dT = T1 - T0
             alpha = fgamma(x, T0) * beta
             Kb = 1 / (alpha * x).sum()
+            if Kb < Kbmin: Kb = Kbmin
+            if Kb > Kbmax: Kb = Kbmax
             g1 = fT(Kb)
             error = np.abs(g1 - T1)
             if error < 1e-9: 
@@ -2481,6 +2488,7 @@ class MultiStageEquilibrium(Unit):
                     partition_data=pd,
                     top_split=top_split,
                     bottom_split=bottom_split,
+                    P=P[i]
                 )
                 if last_stage:
                     last_stage.add_feed(new_stage-0)
