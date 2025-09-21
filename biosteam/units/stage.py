@@ -12,6 +12,7 @@ This module contains abstract classes for modeling stage-wise separations/reacti
 import thermosteam as tmo
 from thermosteam.utils import jitdata
 from thermosteam.base.sparse import SparseVector, sum_sparse_vectors
+# from thermosteam.equilibrium import solve_phase_fraction_Rashford_Rice
 from thermosteam import separations as sep
 from numba import njit
 import biosteam as bst
@@ -49,9 +50,12 @@ __all__ = (
 )
 
 class IterationResult(NamedTuple):
-    t: float #: Step size
     x: np.ndarray #: Point
     r: float #: Residual
+
+class ResidualProfile(NamedTuple):
+    iteration: np.ndarray
+    log_residual: np.ndarray
 
 # %% Inside-out tools
 
@@ -1196,26 +1200,16 @@ class StageEquilibrium(Unit):
                     y = mol_top / bulk_top
                     x = mol_bottom / bulk_bottom
                     K = K_model(y, x, T, P)
-                    error = K * mol_bottom * bulk_top / bulk_bottom - mol_top
+                    mol_out = mol_top + mol_bottom
+                    eq_mol_top = K * mol_bottom * bulk_top / bulk_bottom
+                    mask = eq_mol_top > mol_out
+                    mol_out = mol_out[mask]
+                    eq_mol_top[mask] = mol_out + np.log(eq_mol_top[mask] - mol_out + 1)
+                    error = eq_mol_top - mol_top
                 elif self.B == 0 or bulk_top:
                     error = -0.1 * mol_top
                 else:
                     error = 0.1 * mol_bottom
-                # if 'g' in self.phases:
-                #     try:
-                #         Tmax = self._Tmax
-                #         Tmin = self._Tmin
-                #     except:
-                #         chemicals = self.chemicals[self.partition.IDs]
-                #         Ts = [i.Tsat(self.P) for i in chemicals]
-                #         Tmax = self._Tmax = 1.2 * max(Ts)
-                #         Tmin = self._Tmin = 0.8 * min(Ts)
-                #     if T > Tmax:
-                #         error[error > 0] += 1e3 * (T - Tmax)
-                #         error[error < 0] -= 1e3 * (T - Tmax)
-                #     elif T < Tmin:
-                #         error[error > 0] += 1e3 * (Tmin - T)
-                #         error[error < 0] -= 1e3 * (Tmin - T)
                 return error
             self._vectorized_equilibrium_residuals = lambda x: np.apply_along_axis(residuals, axis=0, arr=x)
             return self._vectorized_equilibrium_residuals
@@ -1231,7 +1225,16 @@ class StageEquilibrium(Unit):
             x = mol_bottom / bulk_bottom
             K_model = self.K_model
             K = K_model(y, x, T, self.P)
-            error = K * mol_bottom * bulk_top / bulk_bottom - mol_top
+            mol_out = mol_top + mol_bottom
+            # net_mol = mol_out.sum()
+            # z = mol_out / net_mol
+            # V = solve_phase_fraction_Rashford_Rice(z, K, 0.5)
+            # x = z / (1. + V * (K - 1.))
+            # error = mol_bottom - net_mol * (1 - V) * x
+            eq_mol_top = K * mol_bottom * bulk_top / bulk_bottom
+            mask = eq_mol_top > mol_out
+            eq_mol_top[mask] = mol_out[mask]
+            error = eq_mol_top - mol_top
         elif self.B == 0 or bulk_top:
             error = -0.1 * mol_top
         else:
@@ -2257,6 +2260,7 @@ class MultiStageEquilibrium(Unit):
     _N_outs = 2
     _line_search = False # Experimental feature.
     _tracked_points = None # For numerical/convergence analysis.
+    damping = 0 # Damping factor; defined as x_(i+1) = damping * x_i + (1 - damping) * f(x_i)
     minimum_residual_reduction = 0.25 # Minimum fractional reduction in residual for simulation.
     iteration_memory = 10 # Length of recorded iterations.
     inside_maxiter = 100
@@ -2829,31 +2833,41 @@ class MultiStageEquilibrium(Unit):
         # Last simulation to force mass balance
         self.update_mass_balance()
     
-    def _new_point(self, x1=None):
+    def _new_point(self, x1=None, verbose=False):
         record = self._iteration_record
         if x1 is None: x1 = self._get_point()
         if self._line_search:
-            t0, x0, r0 = record[0]
+            try:
+                tguess, x0, r0 = record[0]
+            except:
+                x0, r0 = record[0]
+                tguess = 1
             correction = x1 - x0
             result = flx.inexact_line_search(
                 self._objective, x0, correction, 
-                fx=r0, t0=0.8, t1=1.2, tguess=t0
+                fx=r0, t0=0.1, t1=1 - self.damping, tguess=tguess
             )
+            if verbose: print([self.iter], 'step size', round(result.t, 2), 'residual', result.r)
+        elif self.damping:
+            x0, r0 = record[0]
+            w = self.damping
+            x1 = (1 - w) * x1 + w * x0
+            result = IterationResult(x1, self._objective(x1))
+            if verbose: print([self.iter], 'residual', result.r)
         else:
-            result = IterationResult(1, x1, self._objective(x1))
+            result = IterationResult(x1, self._objective(x1))
+            if verbose: print([self.iter], 'residual', result.r)
         x1 = result.x
-        x1[x1 < 0] = 0
         record.rotate()
         record[0] = result
-        residuals = np.array([i.r for i in record])
-        mean = np.mean(residuals)
-        mrr = self.minimum_residual_reduction
         if self._best_result.r > result.r: self._best_result = result
-        if mean > self._mean_residual * (1 - mrr):
-            raise RuntimeError('residual error is not decreasing sufficiently')
-        else:
+        if not self._convergence_analysis_mode:
+            residuals = np.array([i.r for i in record])
+            mean = np.mean(residuals)
+            if mean > self._mean_residual * (1 - self.minimum_residual_reduction):
+                raise RuntimeError('residual error is not decreasing sufficiently')
             self._mean_residual = mean
-            return x1
+        return x1
     
     def _iter(self, x0, algorithm):
         self.iter += 1
@@ -2890,10 +2904,18 @@ class MultiStageEquilibrium(Unit):
         mixture = self._eq_thermo.mixture
         H = mixture.H
         C = mixture.Cn
+        decomp = self.vle_decomposition
+        bp = decomp == 'bubble point'
+        if bp: sr = decomp == 'sum rates'
         for i, stage in enumerate(self.stages):
             Pi = P[i]
             f = lambda Tinv: np.log(stage.K_model(stage.y, stage.x, 1 / Tinv[0], Pi))
-            stage.partition._run_decoupled_KTvle(P=Pi)
+            if bp: 
+                stage.partition._run_decoupled_KTvle(P=Pi)
+            elif sr:
+                stage.K = stage.K_model(stage.y, stage.x, stage.T, Pi)
+            else:
+                raise RuntimeError('unknown decomposition')
             dlogK_dTinv[i] = approx_derivative(f, 1 / stage.T)[:, 0]
             T[i] = Ti = stage.T
             x[i] = xi = stage.x
@@ -3085,7 +3107,7 @@ class MultiStageEquilibrium(Unit):
             else:
                 r = self._objective(x)
                 if result.r < r: x = result.x
-                else: self._best_result = IterationResult(None, x, r)
+                else: self._best_result = IterationResult(x, r)
         return x
     
     
@@ -3393,14 +3415,14 @@ class MultiStageEquilibrium(Unit):
                 self.set_all_flow_rates(top_flows, bottom_flows)
         if eq == 'vle' and self.vle_decomposition is None: self.default_vle_decomposition()
         self._gamma = self._eq_thermo.Gamma(self._eq_thermo.chemicals)
-        self._H_magnitude = 10 * sum([i.mixture.Cn('l', i.mol, i.T, i.P) for i in self.ins])
+        self._H_magnitude = 100 * sum([i.mixture.Cn('l', i.mol, i.T, i.P) for i in self.ins])
         self.attempt = 0
         self._mean_residual = np.inf
-        self._best_result = empty = IterationResult(None, None, np.inf)
+        self._best_result = empty = IterationResult(None, np.inf)
         self._point_shape = (N_stages, 2 * N_chemicals + 1)
         record = self.iteration_memory * [empty]
         x = self._get_point()
-        record[0] = IterationResult(1, x, self._objective(x))
+        record[0] = IterationResult(x, self._objective(x))
         self._iteration_record = record = deque(record)
         return x
     
@@ -3818,20 +3840,17 @@ class MultiStageEquilibrium(Unit):
             self, 
             iterations=None, 
             algorithm=None, 
-            x0=None, xf=None,
+            x0=None, 
             fillsteps=1,
             yticks=None,
             xticks=None,
             method=None,
-            **kwargs,
+            plot=True,
+            solver_kwargs=None,
         ):
+        if solver_kwargs is None: solver_kwargs = {}
         x0 = self.hot_start() if x0 is None else x0
-        if xf is None:
-            self._run()
-            xf = self._get_point()
-            self._set_point(x0)
-        diff = (xf - x0)
-        maxdistance = np.sqrt((diff * diff).sum())
+        self._set_point(x0)
         if self.vle_decomposition is None: self.default_vle_decomposition()
         if iterations is None: iterations = self.maxiter
         self._convergence_analysis_mode = True
@@ -3876,19 +3895,20 @@ class MultiStageEquilibrium(Unit):
                     self._set_point(x)
                     if algorithm == 'phenomena':
                         self._run_phenomena()
+                        x = self._get_point()
                     elif algorithm == 'sequential modular':
                         self._run_sequential()
+                        x = self._get_point()
                     elif algorithm == 'phenomena modular':
                         self._run_phenomena_modular()
+                        x = self._get_point()
                     elif algorithm == 'inside out':
-                        try:
-                            points[self.iter] = self._run_inside_out()
-                        except:
-                            pass
-                        return points[self.iter]
+                        x = self._run_inside_out()
                     else:
                         raise ValueError('invalid algorithm')
-                    return self._get_point(points[self.iter])
+                    x = self._new_point(x)
+                    points[self.iter] = x
+                    return x
                 
                 if method == 'wegstein':
                     solver = flx.wegstein
@@ -3896,21 +3916,17 @@ class MultiStageEquilibrium(Unit):
                     solver = flx.fixed_point
                 else:
                     raise ValueError('unknown method')
-                try:
-                    solver(f, x0, xtol=0, 
-                           maxiter=iterations-1, 
-                           checkconvergence=False, 
-                           checkiter=False,
-                           **kwargs)
-                except:
-                    pass
+                solver(f, x0, xtol=0, 
+                       maxiter=iterations-1, 
+                       checkconvergence=False, 
+                       checkiter=False,
+                       **solver_kwargs)
         finally:
             self._convergence_analysis_mode = False
         iterations -= 1
         corrections = np.diff(points, axis=0)
         stepsize = 1 / fillsteps
         shape = (iterations, fillsteps)
-        distances = np.zeros(shape)
         residuals = np.zeros(shape)
         iteration = np.zeros(shape)
         f = self._objective
@@ -3920,76 +3936,69 @@ class MultiStageEquilibrium(Unit):
             for j in range(fillsteps):
                 t = j * stepsize
                 x = x0 + t * dx
-                diff = xf - x
                 iteration[i, j] = i + t
-                distances[i, j] = np.sqrt((diff * diff).sum())
                 residuals[i, j] = f(x)
-        colors = bst.utils.GG_colors
-        blue = colors.blue.RGBn
-        red = colors.red.RGBn
-        cmap = clr.LinearSegmentedColormap.from_list(
-            'blue2red',
-            [blue, red],
-            N=256
-        )
-        mindistance = 1e-1
-        distances[distances > maxdistance] = maxdistance
-        distances[distances < mindistance] = mindistance
-        distances = np.log(distances) 
-        distances -= np.log(mindistance)
-        distances /= np.log(maxdistance) - np.log(mindistance)
-        fig = plt.figure()
-        ax = plt.gca()
-        plt.scatter(
-            iteration.flatten(),
-            np.log(residuals.flatten()),
-            c=cmap(distances.flatten()),
-        )
-        if yticks is not None: 
-            plt.yticks(yticks)
-            lb, ub = yticks[0], yticks[-1]
-            plt.ylim([lb, ub])
-        else:
-            lb, ub = plt.ylim()
-        if xticks is not None:
-            plt.xticks(xticks)
-            plt.xlim([xticks[0], xticks[-1]])
-        sm = cm.ScalarMappable(cmap=cmap)    
-        cbar = fig.colorbar(sm, ax=ax, ticks=[0, 1])
-        
-        yloc = lb + (ub - lb) * 1.05
-        if algorithms:
-            shorthand = {
-                'phenomena': 'P',
-                'phenomena modular': 'PM',
-                'sequential modular': 'SM',
-                'simultaneous correction': 'SC',
-                'inside out': 'IO',
-            }
-            for iteration, algorithm in algorithms:
-                plt.axvline(iteration, color='silver', zorder=-1)
+        iteration = iteration.flatten()
+        log_residual = np.log(residuals.flatten())
+        if plot:
+            # colors = bst.utils.GG_colors
+            # blue = colors.blue.RGBn
+            # red = colors.red.RGBn
+            # cmap = clr.LinearSegmentedColormap.from_list(
+            #     'blue2red',
+            #     [blue, red],
+            #     N=256
+            # )
+            fig = plt.figure()
+            ax = plt.gca()
+            plt.scatter(
+                iteration,
+                log_residual,
+            )
+            if yticks is not None: 
+                plt.yticks(yticks)
+                lb, ub = yticks[0], yticks[-1]
+                plt.ylim([lb, ub])
+            else:
+                lb, ub = plt.ylim()
+            if xticks is not None:
+                plt.xticks(xticks)
+                plt.xlim([xticks[0], xticks[-1]])
+            # sm = cm.ScalarMappable(cmap=cmap)    
+            # cbar = fig.colorbar(sm, ax=ax, ticks=[0, 1])
+            yloc = lb + (ub - lb) * 1.05
+            if algorithms:
+                shorthand = {
+                    'phenomena': 'P',
+                    'phenomena modular': 'PM',
+                    'sequential modular': 'SM',
+                    'simultaneous correction': 'SC',
+                    'inside out': 'IO',
+                }
+                for iteration, algorithm in algorithms:
+                    plt.axvline(iteration, color='silver', zorder=-1)
+                    ax.text(
+                        iteration, yloc, shorthand[algorithm], 
+                        ha='center',
+                        fontdict=dict(
+                            fontname='arial', 
+                            size=10
+                        )
+                    )
+            else:
                 ax.text(
-                    iteration, yloc, shorthand[algorithm], 
+                    np.mean(plt.xlim()), yloc, algorithm, 
                     ha='center',
                     fontdict=dict(
                         fontname='arial', 
                         size=10
                     )
                 )
-        else:
-            ax.text(
-                np.mean(plt.xlim()), yloc, algorithm, 
-                ha='center',
-                fontdict=dict(
-                    fontname='arial', 
-                    size=10
-                )
-            )
-        plt.xlabel('Iteration')
-        plt.ylabel('log residual')
-        cbar.ax.set_ylabel('distance from steady state')
-        
-        # cbar_ax.set_title()
+            plt.xlabel('Iteration')
+            plt.ylabel('log residual')
+            # cbar.ax.set_ylabel('distance from steady state')
+        return ResidualProfile(iteration, log_residual)
+            
             
         
         
