@@ -1172,11 +1172,7 @@ class StageEquilibrium(Unit):
                     y = mol_top / bulk_top
                     x = mol_bottom / bulk_bottom
                     K = K_model(y, x, T, P)
-                    # mol_out = mol_top + mol_bottom
                     eq_mol_top = K * mol_bottom * bulk_top / bulk_bottom
-                    # mask = eq_mol_top > mol_out
-                    # mol_out = mol_out[mask]
-                    # eq_mol_top[mask] = mol_out + np.log(eq_mol_top[mask] - mol_out + 1)
                     error = eq_mol_top - mol_top
                 elif self.B == 0 or bulk_top:
                     error = -0.1 * mol_top
@@ -1197,11 +1193,7 @@ class StageEquilibrium(Unit):
             x = mol_bottom / bulk_bottom
             K_model = self.K_model
             K = K_model(y, x, T, self.P)
-            # mol_out = mol_top + mol_bottom
             eq_mol_top = K * mol_bottom * bulk_top / bulk_bottom
-            # mask = eq_mol_top > mol_out
-            # mol_out = mol_out[mask]
-            # eq_mol_top[mask] = mol_out + np.log(eq_mol_top[mask] - mol_out + 1)
             error = eq_mol_top - mol_top
         elif self.B == 0 or bulk_top:
             error = -0.1 * mol_top
@@ -1702,16 +1694,19 @@ class PhasePartition(Unit):
         self.Q = None
         self.specified_variable = None
         self.dmol = SparseVector.from_size(self.chemicals.size)
-        for i, j in zip(self.outs, self.phases): i.phase = j 
+        if phases == ('L', 'g', 'l'):
+            top, bottom = self.outs
+            top.phase = 'g'
+            bottom.phases = ('L', 'l')
+        else:
+            for i, j in zip(self.outs, phases): i.phase = j 
         
     def _get_mixture(self, linked=True):
         if linked:
             try:
                 ms = self._linked_multistream 
             except:
-                outs = self.outs
-                for i, j in zip(self.outs, self.phases): i.phase = j 
-                self._linked_multistream = ms = tmo.MultiStream.from_streams(outs)
+                self._linked_multistream = ms = tmo.MultiStream.from_streams(self.outs)
             if self.specified_variable == 'T': ms.T = self.T
             return ms
         else:
@@ -3050,10 +3045,15 @@ class MultiStageEquilibrium(Unit):
         partitions = self.partitions
         N_stages = self.N_stages
         chemicals = self.chemicals
-        top_phase, bottom_phase = ms.phases
-        eq = 'vle' if top_phase == 'g' else 'lle'
+        match ms.phases:
+            case ('g', 'l'):
+                eq = 'vle'
+            case ('L', 'l'):
+                eq = 'lle'
+            case ('L', 'g', 'l'):
+                eq = 'vlle'
         ms.mix_from(feeds)
-        if eq == 'lle':
+        if 'lle' in eq:
             self.top_chemical = top_chemical = self.top_chemical or feeds[1].main_chemical
             for i in partitions: i.top_chemical = top_chemical
         data = self.partition_data
@@ -3240,24 +3240,17 @@ class MultiStageEquilibrium(Unit):
                 z[z == 0] = 1e-32
                 x = dp.x.copy()
                 x[x == 0] = 1e-32
-                K_dew = dp.z / dp.x
-                K_bubble = bp.y / bp.z
-                K_dew[K_dew > 1e9] = 1e9
-                K_bubble[K_bubble > 1e9] = 1e9
-                K_dew[K_dew < 1e-9] = 1e-9
-                K_bubble[K_bubble < 1e-9] = 1e-9
-                dK_stage = (K_bubble - K_dew) / N_stages
                 top_flows = np.ones((N_stages, N_chemicals))
                 bottom_flows = np.ones((N_stages, N_chemicals))
                 for i, partition in enumerate(partitions):
                     partition.T = T = T_top + i * dT_stage
-                    partition.K = K_dew + i * dK_stage
                     a = i / N_stages
                     b = 1 - a
-                    x = a * bp.x + b * dp.x
+                    x = a * dp.x + b * bp.x
                     x /= x.sum()
-                    y = a * bp.y + b * dp.y
+                    y = a * dp.y + b * bp.y
                     y /= y.sum()
+                    partition.K = K = y / x
                     bottom_flows[i] = partition.x = x
                     top_flows[i] = partition.y = y
                     for s in partition.outs: s.T = T
