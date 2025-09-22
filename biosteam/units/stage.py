@@ -1085,20 +1085,16 @@ class StageEquilibrium(Unit):
     
     # %% Equation-oriented simulation
     
-    def _stage_data(self, x, H_feed, mol_feed, H_magnitude):
+    def _stage_data(self, x, H_feed, mol_feed, H_magnitude, H_model):
         IDs = self.partition.IDs
-        chemicals = self.chemicals[IDs]
         P = self.P
         phase_top, phase_bot = self.phases
         N_chemicals = len(IDs)
         mol_top = x[:N_chemicals]
         T = x[N_chemicals]
         mol_bot = x[-N_chemicals:]
-        # TODO: Use property package to estimate H
-        htop = np.array([i.H(phase_top, T, P) for i in chemicals]) / H_magnitude
-        hbot = np.array([i.H(phase_bot, T, P) for i in chemicals]) / H_magnitude
-        Htop = (htop * mol_top).sum()
-        Hbot = (hbot * mol_bot).sum()
+        Htop = H_model(phase_top, mol_top, T, P) / H_magnitude
+        Hbot = H_model(phase_bot, mol_bot, T, P) / H_magnitude
         return StageData(
             T=T,
             top=InterstageData(Htop, mol_top, self.top_split),
@@ -1106,7 +1102,7 @@ class StageEquilibrium(Unit):
             feed=FeedData(H_feed / H_magnitude, mol_feed),
         )
     
-    def _jacobian_data(self, x, H_magnitude):
+    def _jacobian_data(self, x, H_magnitude, mixture):
         IDs = self.partition.IDs
         chemicals = self.chemicals[IDs]
         P = self.P
@@ -1115,12 +1111,25 @@ class StageEquilibrium(Unit):
         mol_top = x[:N_chemicals]
         T = x[N_chemicals]
         mol_bot = x[-N_chemicals:]
-        Ctop = (np.array([i.Cn(phase_top, T, P) for i in chemicals]) * mol_top).sum() / H_magnitude
-        Cbot = (np.array([i.Cn(phase_bot, T, P) for i in chemicals]) * mol_bot).sum() / H_magnitude
+        htop = np.array([i.H(phase_top, T, P) for i in chemicals]) 
+        hbot = np.array([i.H(phase_bot, T, P) for i in chemicals])
         # dEdx = jacobian(self._equilibrium_residuals_vectorized, x).df
         dEdx = approx_derivative(self._equilibrium_residuals_vectorized, x)
-        htop = np.array([i.H(phase_top, T, P) for i in chemicals]) / H_magnitude
-        hbot = np.array([i.H(phase_bot, T, P) for i in chemicals]) / H_magnitude
+        if hasattr(mixture, 'active_eos'):
+            try:
+                mixture.active_eos[phase_top] = mixture.eos_args(phase_top, mol_top, T, P)
+                mixture.active_eos[phase_bot] = mixture.eos_args(phase_bot, mol_bot, T, P)
+                Ctop = mixture.Cn(phase_top, mol_top, T, P) / H_magnitude
+                Cbot = mixture.Cn(phase_bot, mol_bot, T, P) / H_magnitude
+                htop += mixture.dh_dep_dzs(phase_top, mol_top, T, P)
+                hbot += mixture.dh_dep_dzs(phase_bot, mol_bot, T, P)
+            finally:
+                mixture.active_eos.clear()
+        else:
+            Ctop = mixture.Cn(phase_top, mol_top, T, P) / H_magnitude
+            Cbot = mixture.Cn(phase_bot, mol_bot, T, P) / H_magnitude
+        htop /= H_magnitude
+        hbot /= H_magnitude
         JD = JacobianData(
             dEdx=dEdx,
             dHdFtop=htop,
@@ -1133,43 +1142,6 @@ class StageEquilibrium(Unit):
             value=getattr(self, self.specified_variable),
         )
         return JD
-    
-    def _simultaneous_correction_data(self, x, H_feed, mol_feed, H_magnitude):
-        IDs = self.partition.IDs
-        chemicals = self.chemicals[IDs]
-        P = self.P
-        phase_top, phase_bot = self.phases
-        N_chemicals = len(IDs)
-        mol_top = x[:N_chemicals]
-        T = x[N_chemicals]
-        mol_bot = x[-N_chemicals:]
-        Ctop = (np.array([i.Cn(phase_top, T, P) for i in chemicals]) * mol_top).sum() / H_magnitude
-        Cbot = (np.array([i.Cn(phase_bot, T, P) for i in chemicals]) * mol_bot).sum() / H_magnitude
-        # dEdx = jacobian(self._equilibrium_residuals_vectorized, x).df
-        dEdx = approx_derivative(self._equilibrium_residuals_vectorized, x)
-        htop = np.array([i.H(phase_top, T, P) for i in chemicals]) / H_magnitude
-        hbot = np.array([i.H(phase_bot, T, P) for i in chemicals]) / H_magnitude
-        Htop = (htop * mol_top).sum()
-        Hbot = (hbot * mol_bot).sum()
-        JD = JacobianData(
-            dEdx=dEdx,
-            dHdFtop=htop,
-            dHdFbot=hbot,
-            dHdTtop=Ctop,
-            dHdTbot=Cbot,
-            split_top=self.top_split,
-            split_bot=self.bottom_split,
-            variable=self.specified_variable,
-            value=getattr(self, self.specified_variable),
-        )
-        SD = StageData(
-            T=T,
-            top=InterstageData(Htop, mol_top, self.top_split),
-            bottom=InterstageData(Hbot, mol_bot, self.bottom_split),
-            feed=FeedData(H_feed / H_magnitude, mol_feed),
-        )
-        return JD, SD
-    
     
     @property
     def K_model(self):
@@ -1200,11 +1172,11 @@ class StageEquilibrium(Unit):
                     y = mol_top / bulk_top
                     x = mol_bottom / bulk_bottom
                     K = K_model(y, x, T, P)
-                    mol_out = mol_top + mol_bottom
+                    # mol_out = mol_top + mol_bottom
                     eq_mol_top = K * mol_bottom * bulk_top / bulk_bottom
-                    mask = eq_mol_top > mol_out
-                    mol_out = mol_out[mask]
-                    eq_mol_top[mask] = mol_out + np.log(eq_mol_top[mask] - mol_out + 1)
+                    # mask = eq_mol_top > mol_out
+                    # mol_out = mol_out[mask]
+                    # eq_mol_top[mask] = mol_out + np.log(eq_mol_top[mask] - mol_out + 1)
                     error = eq_mol_top - mol_top
                 elif self.B == 0 or bulk_top:
                     error = -0.1 * mol_top
@@ -1225,15 +1197,11 @@ class StageEquilibrium(Unit):
             x = mol_bottom / bulk_bottom
             K_model = self.K_model
             K = K_model(y, x, T, self.P)
-            mol_out = mol_top + mol_bottom
-            # net_mol = mol_out.sum()
-            # z = mol_out / net_mol
-            # V = solve_phase_fraction_Rashford_Rice(z, K, 0.5)
-            # x = z / (1. + V * (K - 1.))
-            # error = mol_bottom - net_mol * (1 - V) * x
+            # mol_out = mol_top + mol_bottom
             eq_mol_top = K * mol_bottom * bulk_top / bulk_bottom
-            mask = eq_mol_top > mol_out
-            eq_mol_top[mask] = mol_out[mask]
+            # mask = eq_mol_top > mol_out
+            # mol_out = mol_out[mask]
+            # eq_mol_top[mask] = mol_out + np.log(eq_mol_top[mask] - mol_out + 1)
             error = eq_mol_top - mol_top
         elif self.B == 0 or bulk_top:
             error = -0.1 * mol_top
@@ -2588,8 +2556,9 @@ class MultiStageEquilibrium(Unit):
         stages = self.stages
         residuals = np.zeros(N_variables * N_stages) # H, Mi, Ei
         H_magnitude = self._H_magnitude
+        H_model = self._eq_thermo.mixture.H
         stage_data = [
-            stage._stage_data(xi, H_feed, mol_feed, H_magnitude)
+            stage._stage_data(xi, H_feed, mol_feed, H_magnitude, H_model)
             for xi, stage, H_feed, mol_feed
             in zip(x, stages, self._feed_and_invariable_enthalpies, self.feed_flows)
         ]
@@ -2625,101 +2594,9 @@ class MultiStageEquilibrium(Unit):
         N_stages, N_variables = x.shape
         stages = self.stages
         H_magnitude = self._H_magnitude
-        jacobian_data = [stage._jacobian_data(xi, H_magnitude) for xi, stage in zip(x, stages)]
+        mixture = self._eq_thermo.mixture
+        jacobian_data = [stage._jacobian_data(xi, H_magnitude, mixture) for xi, stage in zip(x, stages)]
         return jacobian_blocks(jacobian_data, N_stages, N_chemicals, N_variables)
-        
-    def _correction(self, x):
-        N_chemicals = self._N_chemicals
-        N_stages, N_variables = x.shape
-        jacobian_data = []
-        stage_data = []       
-        stages = self.stages
-        H_magnitude = self._H_magnitude
-        for i, (xi, stage, H_feed, mol_feed) in enumerate(zip(x, stages, self._feed_and_invariable_enthalpies, self.feed_flows)):
-            JD, SD = stage._simultaneous_correction_data(xi, H_feed, mol_feed, H_magnitude)
-            jacobian_data.append(JD)
-            stage_data.append(SD)
-        center = stage_data[0]
-        lower = stage_data[1]
-        stage = stages[0]
-        H_index = 0
-        M_slice = slice(1, N_chemicals + 1)
-        E_slice = slice(N_chemicals + 1, None)
-        residuals = np.zeros([N_stages, N_variables]) # H, Mi, Ei
-        residuals[0, H_index] = stage._energy_balance_residual(None, center, lower)
-        residuals[0, M_slice] = stage._material_balance_residuals(None, center, lower)
-        stage = stages[1]
-        for i in range(2, N_stages): 
-            upper = center
-            center = lower
-            lower = stage_data[i]
-            ilast = i-1
-            residuals[ilast, H_index] = stage._energy_balance_residual(upper, center, lower)
-            residuals[ilast, M_slice] = stage._material_balance_residuals(upper, center, lower)
-            residuals[ilast, E_slice] = stage._equilibrium_residuals(center)
-            stage = stages[i]
-        upper = center
-        center = lower
-        residuals[i, H_index] = stage._energy_balance_residual(upper, center, None)
-        residuals[i, M_slice] = stage._material_balance_residuals(upper, center, None)
-        residuals[i, E_slice] = stage._equilibrium_residuals(center)
-        A, B, C = jacobian_blocks(jacobian_data, N_stages, N_chemicals, N_variables)
-        correction = MESH.solve_block_tridiagonal_matrix(A, B, C, residuals)
-        return correction
-    
-    def _run_simultaneous_correction(self, x): 
-        # Newton-Raphson with an exact line search.
-        # fsolve (which uses trust-region) is better.
-        # This method marely serves as a baseline to perform numerical analysis.
-        residuals = self._residuals(x)
-        A, B, C = self._jacobian(x)
-        correction = -MESH.solve_block_tridiagonal_matrix(A, B, C, residuals)
-        
-        # N_chemicals = self._N_chemicals
-        # N_stages, N_variables = x.shape
-        # jacobian_data = []
-        # stage_data = []       
-        # stages = self.stages
-        # H_magnitude = self._H_magnitude
-        # residuals = np.zeros([N_stages, N_variables]) # H, Mi, Ei
-        # for i, (xi, stage, H_feed, mol_feed) in enumerate(zip(x, stages, self.feed_enthalpies, self.feed_flows)):
-        #     JD, SD = stage._simultaneous_correction_data(xi, H_feed, mol_feed, H_magnitude)
-        #     jacobian_data.append(JD)
-        #     stage_data.append(SD)
-        # center = stage_data[0]
-        # lower = stage_data[1]
-        # stage = stages[0]
-        # H_index = 0
-        # M_slice = slice(1, N_chemicals + 1)
-        # E_slice = slice(N_chemicals + 1, None)
-        # residuals = np.zeros([N_stages, N_variables]) # H, Mi, Ei
-        # residuals[0, H_index] = stage._energy_balance_residual(None, center, lower)
-        # residuals[0, M_slice] = stage._material_balance_residuals(None, center, lower)
-        # stage = stages[1]
-        # for i in range(2, N_stages): 
-        #     upper = center
-        #     center = lower
-        #     lower = stage_data[i]
-        #     ilast = i-1
-        #     residuals[ilast, H_index] = stage._energy_balance_residual(upper, center, lower)
-        #     residuals[ilast, M_slice] = stage._material_balance_residuals(upper, center, lower)
-        #     residuals[ilast, E_slice] = stage._equilibrium_residuals(center)
-        #     stage = stages[i]
-        # upper = center
-        # center = lower
-        # residuals[i, H_index] = stage._energy_balance_residual(upper, center, None)
-        # residuals[i, M_slice] = stage._material_balance_residuals(upper, center, None)
-        # residuals[i, E_slice] = stage._equilibrium_residuals(center)
-        # A, B, C = jacobian_blocks(jacobian_data, N_stages, N_chemicals, N_variables)
-        # correction = -MESH.solve_block_tridiagonal_matrix(A, B, C, residuals)
-        try:
-            result = flx.inexact_line_search(
-                self._objective, x, correction, t0=1e-3, t1=0.1,
-            )
-        except:
-            return x + 1e-3 * correction
-        else:
-            return result.x
     
     # %% Decoupled phenomena equation oriented simulation
     
@@ -2843,9 +2720,10 @@ class MultiStageEquilibrium(Unit):
                 x0, r0 = record[0]
                 tguess = 1
             correction = x1 - x0
+            t1 = 1 - self.damping
             result = flx.inexact_line_search(
                 self._objective, x0, correction, 
-                fx=r0, t0=0.1, t1=1 - self.damping, tguess=tguess
+                fx=r0, t0=t1 / 10, t1=t1, tguess=tguess
             )
             if verbose: print([self.iter], 'step size', round(result.t, 2), 'residual', result.r)
         elif self.damping:
@@ -3075,6 +2953,10 @@ class MultiStageEquilibrium(Unit):
             f = lambda x: self._residuals(x.reshape(shape)).flatten()
         
         jac = lambda x: MESH.create_block_tridiagonal_matrix(*self._jacobian(x.reshape(shape)))
+        x, *self._simultaneous_correction_info = fsolve(
+            f, x.flatten(), fprime=jac, full_output=True, 
+            maxfev=self.maxiter, xtol=self.tolerance
+        )
         try: 
             if method == 'trf':
                 self._result = result = least_squares(f,
@@ -3095,7 +2977,6 @@ class MultiStageEquilibrium(Unit):
                     f, x.flatten(), fprime=jac, full_output=True, 
                     maxfev=self.maxiter, xtol=self.tolerance
                 )
-                
             else:
                 raise ValueError(f'invalid simultaneous correction method {method!r}')
         except: pass
@@ -3846,6 +3727,7 @@ class MultiStageEquilibrium(Unit):
             xticks=None,
             method=None,
             plot=True,
+            verbose=True,
             solver_kwargs=None,
         ):
         if solver_kwargs is None: solver_kwargs = {}
@@ -3906,7 +3788,7 @@ class MultiStageEquilibrium(Unit):
                         x = self._run_inside_out()
                     else:
                         raise ValueError('invalid algorithm')
-                    x = self._new_point(x)
+                    x = self._new_point(x, verbose)
                     points[self.iter] = x
                     return x
                 
