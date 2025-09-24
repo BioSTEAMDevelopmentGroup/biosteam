@@ -19,6 +19,7 @@ import biosteam as bst
 import flexsolve as flx
 import numpy as np
 import pandas as pd
+import biosteam as bst
 from scipy.optimize import minimize, differential_evolution
 from scipy.interpolate import LinearNDInterpolator, CubicSpline
 from math import inf
@@ -54,6 +55,7 @@ class IterationResult(NamedTuple):
     r: float #: Residual
 
 class ResidualProfile(NamedTuple):
+    time: np.ndarray
     iteration: np.ndarray
     log_residual: np.ndarray
 
@@ -63,14 +65,16 @@ class ResidualProfile(NamedTuple):
 class SurrogateStage:
     _A: float
     _B: float
-    _a: float64[:]
-    _b: float64[:]
+    # _a_gamma: float64[:]
+    # _b_gamma: float64[:]
+    # _a_phi: float64[:]
+    # _b_phi: float64[:]
     _hV_ref: float
     _hL_ref: float
     _CV: float
     _CL: float
     _alpha: float64[:] 
-    _beta: float64[:] #: K / (Kb * gamma) # For highly nonideal liquids
+    # _beta: float64[:] #: K / (Kb * gamma) For highly nonideal liquids
     _Kbmax: float
     _Kbmin: float
     
@@ -82,24 +86,31 @@ class SurrogateStage:
             T: float, 
             T0: float, 
             T1: float,
-            gamma: float64[:], 
-            gamma0: float64[:], 
-            gamma1: float64[:], 
+            # gamma: float64[:], 
+            # gamma0: float64[:], 
+            # gamma1: float64[:], 
+            # phi: float64[:], 
+            # phi0: float64[:], 
+            # phi1: float64[:], 
             K: float64[:], 
             Kb: float64[:], 
             logK0: float64[:],
             logK1: float64[:],
             alpha: float64[:],
-            beta: float64[:],
+            # beta: float64[:],
             w: float64[:],
-            y: float64[:],
+            # y: float64[:],
+            # y0: float64[:],
+            # y1: float64[:],
             hV: float, 
             hL: float, 
             CV: float, 
             CL: float, 
         ):
-        b = (gamma1 - gamma0) / (x1 - x0)
-        a = gamma - b * x
+        # b_gamma = (gamma1 - gamma0) / (x1 - x0)
+        # a_gamma = gamma - b_gamma * x
+        # b_phi = (phi1 - phi0) / (y1 - y0)
+        # a_phi = phi - b_phi * y
         Kb0 = np.exp((logK0 * w).sum())
         Kb1 = np.exp((logK1 * w).sum())
         B = np.log(Kb1 / Kb0) / (1/T1 - 1/T0)
@@ -108,14 +119,16 @@ class SurrogateStage:
         hL_ref = hL - CL * T
         self._A = A
         self._B = B
-        self._a = a
-        self._b = b
+        # self._a_gamma = a_gamma
+        # self._b_gamma = b_gamma
+        # self._a_phi = a_phi
+        # self._b_phi = b_phi
         self._hV_ref = hV_ref
         self._hL_ref = hL_ref
         self._CV = CV
         self._CL = CL
         self._alpha = alpha
-        self._beta = beta
+        # self._beta = beta
         if Kb0 < Kb1: 
             self._Kbmin = Kb0
             self._Kbmax = Kb1
@@ -123,8 +136,11 @@ class SurrogateStage:
             self._Kbmin = Kb1
             self._Kbmax = Kb0
     
-    def gamma(self, x: float64[:], T: float) -> float64[:]:
-        return self._a + self._b * x 
+    # def gamma(self, x: float64[:], T: float) -> float64[:]:
+    #     return self._a_gamma + self._b_gamma * x 
+    
+    # def phi(self, y: float64[:], T: float) -> float64[:]:
+    #     return self._a_phi + self._b_phi * y 
     
     def Kb(self, T: float) -> float:
         return np.exp(self._A + self._B / T)
@@ -135,51 +151,68 @@ class SurrogateStage:
     def bubble_point(self, x: float64[:]) -> types.UniTuple(float, 2):
         Kbmin = self._Kbmin
         Kbmax = self._Kbmax
-        beta = self._beta
-        fgamma = self.gamma
-        fT = self.T
-        zero = x < 0
-        if zero.any():
-            x[zero] = 0
+        alpha = self._alpha
+        mask = x < 0
+        if mask.any():
+            x[mask] = 0
             x /= x.sum()
-        
-        # Initial guess without gamma
-        Kb = 1 / (self._alpha * x).sum()
-        if Kb < Kbmin: Kb = Kbmin
-        if Kb > Kbmax: Kb = Kbmax
-        T0 = fT(Kb)
-        
-        # Guess with gamma
-        alpha = fgamma(x, T0) * beta
         Kb = 1 / (alpha * x).sum()
         if Kb < Kbmin: Kb = Kbmin
         if Kb > Kbmax: Kb = Kbmax
-        T1 = g0 = self.T(Kb)
+        return Kb, self.T(Kb)
+    
+    # def bubble_point(self, x: float64[:]) -> types.UniTuple(float, 2):
+    #     Kbmin = self._Kbmin
+    #     Kbmax = self._Kbmax
+    #     alpha = self._alpha
+    #     beta = self._beta
+    #     fgamma = self.gamma
+    #     fphi = self.phi
+    #     fT = self.T
+    #     zero = x < 0
+    #     if zero.any():
+    #         x[zero] = 0
+    #         x /= x.sum()
         
-        # Solve by accelerated Wegstein iteration
-        for _ in range(100):
-            dT = T1 - T0
-            alpha = fgamma(x, T0) * beta
-            Kb = 1 / (alpha * x).sum()
-            if Kb < Kbmin: Kb = Kbmin
-            if Kb > Kbmax: Kb = Kbmax
-            g1 = fT(Kb)
-            error = np.abs(g1 - T1)
-            if error < 1e-9: 
-                T = g1
-                break
-            T0 = T1
-            denominator = dT - g1 + g0
-            if abs(denominator) > 1e-16:
-                w = (dT / denominator)
-                if not w < 0: w = w ** 0.5
-                T1 = w*g1 + (1.-w)*T1
-            else:
-                T1 = g1
-            g0 = g1
-        else:
-            T = g1
-        return Kb, T
+    #     # Initial guess without gamma
+    #     Kb = 1 / (alpha * x).sum()
+    #     if Kb < Kbmin: Kb = Kbmin
+    #     if Kb > Kbmax: Kb = Kbmax
+    #     T0 = fT(Kb)
+        
+    #     # Guess with gamma and phi
+    #     y = Kb * self._alpha
+    #     alpha = fgamma(x, T0) * beta / fphi(y, T0)
+    #     Kb = 1 / (alpha * x).sum()
+    #     if Kb < Kbmin: Kb = Kbmin
+    #     if Kb > Kbmax: Kb = Kbmax
+    #     T1 = g0 = self.T(Kb)
+        
+    #     # Solve by accelerated Wegstein iteration
+    #     for _ in range(100):
+    #         dT = T1 - T0
+    #         y = Kb * self._alpha
+    #         alpha = fgamma(x, T0) * beta / fphi(y, T0)
+    #         Kb = 1 / (alpha * x).sum()
+    #         if Kb < Kbmin: Kb = Kbmin
+    #         if Kb > Kbmax: Kb = Kbmax
+    #         g1 = fT(Kb)
+    #         error = np.abs(g1 - T1)
+    #         if error < 1e-9: 
+    #             T = g1
+    #             break
+    #         T0 = T1
+    #         denominator = dT - g1 + g0
+    #         if abs(denominator) > 1e-16:
+    #             w = (dT / denominator)
+    #             if not w < 0: w = w ** 0.5
+    #             T1 = w*g1 + (1.-w)*T1
+    #         else:
+    #             T1 = g1
+    #         g0 = g1
+    #     else:
+    #         T = g1
+    #     return Kb, T
 
     def hV(self, T: float) -> float:
         return self._hV_ref + self._CV * T
@@ -213,7 +246,8 @@ class SurrogateColumn:
             T: float, 
             x: float64[:, :], 
             y: float64[:, :], 
-            gamma: float64[:, :], 
+            # gamma: float64[:, :], 
+            # phi: float64[:, :], 
             K: float64[:, :], 
             dlogK_dTinv: float64[:, :],
             hV: float64[:],
@@ -232,12 +266,12 @@ class SurrogateColumn:
             bulk_feed: float,
             point_shape: types.UniTuple(int8, 2),
         ):
-        logK = np.log(K + 1e-34)
+        logK = np.log(K + 1e-64)
         w = y * dlogK_dTinv
         w /= np.expand_dims(w.sum(axis=1), -1)
         Kb = np.exp((logK * w).sum(axis=1))
         alpha = K / np.expand_dims(Kb, -1)
-        beta = alpha / gamma
+        # beta = phi * alpha / gamma
         last = N_stages - 1
         stages = []
         for i in range(N_stages):
@@ -254,9 +288,13 @@ class SurrogateColumn:
                 SurrogateStage(
                     x[i], x[i0], x[i1],
                     T[i], T[i0], T[i1],
-                    gamma[i], gamma[i0], gamma[i1],
+                    # gamma[i], gamma[i0], gamma[i1],
+                    # phi[i], phi[i0], phi[i1],
                     K[i], Kb[i], logK[i0], logK[i1], 
-                    alpha[i], beta[i], w[i], y[i], 
+                    alpha[i], 
+                    # beta[i], 
+                    w[i], 
+                    # y[i], y[i0], y[i1],
                     hV[i], hL[i], CV[i], CL[i],
                 )
             )
@@ -2673,6 +2711,7 @@ class MultiStageEquilibrium(Unit):
             self.attempt = n
             for algorithm, method in zip(algorithms, methods):
                 if algorithm == 'simultaneous correction':
+                    if 'K' in self.partition_data: continue
                     x = self._simultaneous_correction(x, method)
                     if self._best_result.r < 1e-3:
                         optimize_result = False
@@ -2700,7 +2739,7 @@ class MultiStageEquilibrium(Unit):
                     break
             else: continue
             break
-        if optimize_result: x = self._simultaneous_correction(x, 'hybr')
+        if optimize_result and 'K' not in self.partition_data: x = self._simultaneous_correction(x, 'hybr')
         self._set_point(x)
         # Last simulation to force mass balance
         self.update_mass_balance()
@@ -2740,6 +2779,8 @@ class MultiStageEquilibrium(Unit):
             if mean > self._mean_residual * (1 - self.minimum_residual_reduction):
                 raise RuntimeError('residual error is not decreasing sufficiently')
             self._mean_residual = mean
+        else:
+            self._timer.measure()
         return x1
     
     def _iter(self, x0, algorithm):
@@ -2766,6 +2807,7 @@ class MultiStageEquilibrium(Unit):
         x = np.zeros((self.N_stages, self._N_chemicals))
         y = x.copy()
         gamma = x.copy()
+        phi = x.copy()
         K = x.copy()
         dlogK_dTinv = x.copy()
         hV = T.copy()
@@ -2773,7 +2815,8 @@ class MultiStageEquilibrium(Unit):
         CV = T.copy()
         CL = T.copy()
         P = self.P
-        f_gamma = self._gamma
+        # f_gamma = self._gamma
+        # f_phi = self._phi
         mixture = self._eq_thermo.mixture
         H = mixture.H
         C = mixture.Cn
@@ -2794,7 +2837,8 @@ class MultiStageEquilibrium(Unit):
             x[i] = xi = stage.x
             y[i] = yi = stage.y
             K[i] = stage.K
-            gamma[i] = f_gamma(xi, Ti)
+            # gamma[i] = f_gamma(xi, Ti)
+            # phi[i] = f_phi(yi, Ti, Pi)
             hV[i] = H('g', yi, Ti, Pi)
             hL[i] = H('l', xi, Ti, Pi)
             CV[i] = C('g', yi, Ti, Pi)
@@ -2813,7 +2857,8 @@ class MultiStageEquilibrium(Unit):
             self.N_stages, 
             self._N_chemicals,
             T, x, y, 
-            gamma, K, dlogK_dTinv,
+            # gamma, phi, 
+            K, dlogK_dTinv,
             hV, hL,
             CV, CL,
             self._specified_variables,
@@ -3289,6 +3334,7 @@ class MultiStageEquilibrium(Unit):
                 self.set_all_flow_rates(top_flows, bottom_flows)
         if eq == 'vle' and self.vle_decomposition is None: self.default_vle_decomposition()
         self._gamma = self._eq_thermo.Gamma(self._eq_thermo.chemicals)
+        self._phi = self._eq_thermo.Phi(self._eq_thermo.chemicals)
         self._H_magnitude = 100 * sum([i.mixture.Cn('l', i.mol, i.T, i.P) for i in self.ins])
         self.attempt = 0
         self._mean_residual = np.inf
@@ -3697,7 +3743,7 @@ class MultiStageEquilibrium(Unit):
     
     def estimate_liquid_composition(self, Ks, Vs, Ls):
         xs = MESH.liquid_compositions(Vs, Ls, Ks, self.feed_flows, self._neg_asplit, self._neg_bsplit, self.N_stages)
-        xs[xs < 0] = 1e-16
+        xs[xs < 1e-64] = 1e-64
         return xs / xs.sum(axis=1, keepdims=True)
     
     def update_WangHenke(self, mol_vap, Ts, mol_liq):
@@ -3729,6 +3775,8 @@ class MultiStageEquilibrium(Unit):
         if self.vle_decomposition is None: self.default_vle_decomposition()
         if iterations is None: iterations = self.maxiter
         self._convergence_analysis_mode = True
+        self._timer = timer = bst.Timer()
+        timer.start()
         try:
             self._tracked_points = points = np.zeros([iterations + 1, self.N_stages, self._N_chemicals * 2 + 1])
             self._tracked_algorithms = algorithms = []
@@ -3743,8 +3791,11 @@ class MultiStageEquilibrium(Unit):
                     x = x.reshape(shape)
                     self.iter += 1
                     points[self.iter] = x
-                    return self._residuals(x).flatten()
+                    rs = self._residuals(x).flatten()
+                    self._timer.measure()
+                    return rs
                 
+                if method is None: method = 'hybr'
                 if method == 'trf':
                     least_squares(f,
                         x0=x0.flatten(),
@@ -3758,7 +3809,7 @@ class MultiStageEquilibrium(Unit):
                     )
                 elif method == 'hybr':
                     jac = lambda x: MESH.create_block_tridiagonal_matrix(*self._jacobian(x.reshape(shape)))
-                    try: fsolve(f, x0.flatten(), fprime=jac, maxfev=iterations)
+                    try: fsolve(f, x0.flatten(), fprime=jac, maxfev=iterations, xtol=1e-64)
                     except: pass
                 else:
                     raise ValueError('invalid method')
@@ -3785,10 +3836,11 @@ class MultiStageEquilibrium(Unit):
                     points[self.iter] = x
                     return x
                 
-                if method == 'wegstein':
-                    solver = flx.wegstein
-                elif method is None or method == 'fixed-point':
+                if method is None: method = 'fixed-point'
+                if method == 'fixed-point':
                     solver = flx.fixed_point
+                elif method == 'wegstein':
+                    solver = flx.wegstein
                 else:
                     raise ValueError('unknown method')
                 solver(f, x0, xtol=0, 
@@ -3872,7 +3924,9 @@ class MultiStageEquilibrium(Unit):
             plt.xlabel('Iteration')
             plt.ylabel('log residual')
             # cbar.ax.set_ylabel('distance from steady state')
-        return ResidualProfile(iteration, log_residual)
+        time = np.array(timer.record)
+        N = min(time.size, iteration.size, log_residual.size)
+        return ResidualProfile(time[:N], iteration[:N], log_residual[:N])
             
             
         

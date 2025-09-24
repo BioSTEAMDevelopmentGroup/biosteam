@@ -41,7 +41,7 @@ User guide
           :numbered:
           :caption: Thermodynamics
 
-          ThermoSTEAM_101
+          Thermodynamic_engine
           Phase_equilibrium
           Property_packages
           Stoichiometric_reactions
