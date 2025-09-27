@@ -1828,9 +1828,9 @@ class System:
             system_recycles = self.recycle
             if system_recycles:
                 if isinstance(system_recycles, abc.Iterable):
-                    recycles.extend(i)
+                    recycles.extend(system_recycles)
                 else:
-                    recycles.append(i)
+                    recycles.append(system_recycles)
             self.recycle = recycles
         else:
             self._integrated_facilities = False
