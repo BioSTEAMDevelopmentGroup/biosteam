@@ -10,11 +10,10 @@ This module contains abstract classes for modeling stage-wise separations/reacti
 
 """
 import thermosteam as tmo
-from thermosteam.utils import jitdata
+from thermosteam.utils import jitdata, JitSignature
 from thermosteam.base.sparse import SparseVector, sum_sparse_vectors
-# from thermosteam.equilibrium import solve_phase_fraction_Rashford_Rice
+from inspect import signature
 from thermosteam import separations as sep
-from numba import njit
 import biosteam as bst
 import flexsolve as flx
 import numpy as np
@@ -61,375 +60,178 @@ class ResidualProfile(NamedTuple):
 
 # %% Inside-out tools
 
-@jitdata
-class SurrogateStage:
-    _A: float
-    _B: float
-    # _a_gamma: float64[:]
-    # _b_gamma: float64[:]
-    # _a_phi: float64[:]
-    # _b_phi: float64[:]
-    _hV_ref: float
-    _hL_ref: float
-    _CV: float
-    _CL: float
-    _alpha: float64[:] 
-    # _beta: float64[:] #: K / (Kb * gamma) For highly nonideal liquids
-    _Kbmax: float
-    _Kbmin: float
+compiled_surrogate_column_function = JitSignature(
+    # Output variables
+    residuals=float64[:],
+    point=float64[:, :],
     
-    def __init__( 
-            self,
-            x: float64[:], 
-            x0: float64[:], 
-            x1: float64[:],
-            T: float, 
-            T0: float, 
-            T1: float,
-            # gamma: float64[:], 
-            # gamma0: float64[:], 
-            # gamma1: float64[:], 
-            # phi: float64[:], 
-            # phi0: float64[:], 
-            # phi1: float64[:], 
-            K: float64[:], 
-            Kb: float64[:], 
-            logK0: float64[:],
-            logK1: float64[:],
-            alpha: float64[:],
-            # beta: float64[:],
-            w: float64[:],
-            # y: float64[:],
-            # y0: float64[:],
-            # y1: float64[:],
-            hV: float, 
-            hL: float, 
-            CV: float, 
-            CL: float, 
-        ):
-        # b_gamma = (gamma1 - gamma0) / (x1 - x0)
-        # a_gamma = gamma - b_gamma * x
-        # b_phi = (phi1 - phi0) / (y1 - y0)
-        # a_phi = phi - b_phi * y
-        Kb0 = np.exp((logK0 * w).sum())
-        Kb1 = np.exp((logK1 * w).sum())
-        B = np.log(Kb1 / Kb0) / (1/T1 - 1/T0)
-        A = np.log(Kb) - B / T
-        hV_ref = hV - CV * T
-        hL_ref = hL - CL * T
-        self._A = A
-        self._B = B
-        # self._a_gamma = a_gamma
-        # self._b_gamma = b_gamma
-        # self._a_phi = a_phi
-        # self._b_phi = b_phi
-        self._hV_ref = hV_ref
-        self._hL_ref = hL_ref
-        self._CV = CV
-        self._CL = CL
-        self._alpha = alpha
-        # self._beta = beta
-        if Kb0 < Kb1: 
-            self._Kbmin = Kb0
-            self._Kbmax = Kb1
+    # Intermediate variables
+    T=float64[:],  
+    y=float64[:, :], 
+    K=float64[:, :], 
+    dlogK_dTinv=float64[:, :],
+    hV=float64[:],
+    hL=float64[:], 
+    
+    # Input variables
+    Sb=float64[:],
+    logSb1=float64[:],
+    
+    # Column variables
+    N_stages=int8,
+    N_chemicals=int8,
+    specified_variables=types.unicode_type,
+    specified_values=float64[:],
+    neg_asplit=float64[:],
+    neg_bsplit=float64[:],
+    top_split=float64[:],
+    bottom_split=float64[:],
+    feed_and_invariable_enthalpies=float64[:],
+    feed_flows=float64[:, :],
+    total_feed_flows=float64[:],
+    bulk_feed=float64,
+    alpha=float64[:, :],
+    Kb=float64[:],
+    
+    # Stage variables
+    A=float64[:],
+    B=float64[:],
+    hV_ref=float64[:],
+    hL_ref=float64[:],
+    CV=float64[:],
+    CL=float64[:],
+    Kbmax=float64[:],
+    Kbmin=float64[:],
+)
+
+@njit(float64(float64[:], float64[:], float64, float64), cache=True)
+def Kb_bubble_point(x, alpha, Kbmin, Kbmax):
+    mask = x < 0
+    if mask.any():
+        x[mask] = 0
+        x /= x.sum()
+    Kb = 1 / (alpha * x).sum()
+    if Kb < Kbmin: Kb = Kbmin
+    if Kb > Kbmax: Kb = Kbmax
+    return Kb
+
+@compiled_surrogate_column_function(output='Kb, alpha, A, B, hV_ref, hL_ref, CV, CL, Kbmin, Kbmax')
+def fit_surrogate_parameters(
+        N_stages, T, y, K, dlogK_dTinv, hV, hL, CV, CL
+    ):
+    # Column variables
+    logK = np.log(K + 1e-64)
+    w = y * dlogK_dTinv
+    w /= np.expand_dims(w.sum(axis=1), -1)
+    Kb = np.exp((logK * w).sum(axis=1))
+    alpha = K / np.expand_dims(Kb, -1)
+    
+    # Stage model variables
+    A = np.zeros(N_stages)
+    B = A.copy()
+    hV_ref = hV - CV * T
+    hL_ref = hL - CL * T
+    Kbmax = A.copy()
+    Kbmin = A.copy()
+    last = N_stages - 1
+    for i in range(N_stages):
+        if i == 0:
+            i0 = i
+            i1 = i + 1
+        elif i == last:
+            i0 = i - 1
+            i1 = i
         else:
-            self._Kbmin = Kb1
-            self._Kbmax = Kb0
-    
-    # def gamma(self, x: float64[:], T: float) -> float64[:]:
-    #     return self._a_gamma + self._b_gamma * x 
-    
-    # def phi(self, y: float64[:], T: float) -> float64[:]:
-    #     return self._a_phi + self._b_phi * y 
-    
-    def Kb(self, T: float) -> float:
-        return np.exp(self._A + self._B / T)
+            i0 = i - 1
+            i1 = i + 1
+        Kb0 = np.exp((logK[i0] * w[i]).sum())
+        Kb1 = np.exp((logK[i1] * w[i]).sum())
+        B[i] = np.log(Kb1 / Kb0) / (1/T[i1] - 1/T[i0])
+        A[i] = np.log(Kb[i]) - B[i] / T[i]
+        if Kb0 < Kb1: 
+            Kbmin[i] = Kb0
+            Kbmax[i] = Kb1
+        else:
+            Kbmin[i] = Kb1
+            Kbmax[i] = Kb0
+    return Kb, alpha, A, B, hV_ref, hL_ref, CV, CL, Kbmin, Kbmax
 
-    def T(self, Kb: float) -> float:
-        return self._B / (np.log(Kb) - self._A)
-    
-    def bubble_point(self, x: float64[:]) -> types.UniTuple(float, 2):
-        Kbmin = self._Kbmin
-        Kbmax = self._Kbmax
-        alpha = self._alpha
-        mask = x < 0
-        if mask.any():
-            x[mask] = 0
-            x /= x.sum()
-        Kb = 1 / (alpha * x).sum()
-        if Kb < Kbmin: Kb = Kbmin
-        if Kb > Kbmax: Kb = Kbmax
-        return Kb, self.T(Kb)
-    
-    # def bubble_point(self, x: float64[:]) -> types.UniTuple(float, 2):
-    #     Kbmin = self._Kbmin
-    #     Kbmax = self._Kbmax
-    #     alpha = self._alpha
-    #     beta = self._beta
-    #     fgamma = self.gamma
-    #     fphi = self.phi
-    #     fT = self.T
-    #     zero = x < 0
-    #     if zero.any():
-    #         x[zero] = 0
-    #         x /= x.sum()
-        
-    #     # Initial guess without gamma
-    #     Kb = 1 / (alpha * x).sum()
-    #     if Kb < Kbmin: Kb = Kbmin
-    #     if Kb > Kbmax: Kb = Kbmax
-    #     T0 = fT(Kb)
-        
-    #     # Guess with gamma and phi
-    #     y = Kb * self._alpha
-    #     alpha = fgamma(x, T0) * beta / fphi(y, T0)
-    #     Kb = 1 / (alpha * x).sum()
-    #     if Kb < Kbmin: Kb = Kbmin
-    #     if Kb > Kbmax: Kb = Kbmax
-    #     T1 = g0 = self.T(Kb)
-        
-    #     # Solve by accelerated Wegstein iteration
-    #     for _ in range(100):
-    #         dT = T1 - T0
-    #         y = Kb * self._alpha
-    #         alpha = fgamma(x, T0) * beta / fphi(y, T0)
-    #         Kb = 1 / (alpha * x).sum()
-    #         if Kb < Kbmin: Kb = Kbmin
-    #         if Kb > Kbmax: Kb = Kbmax
-    #         g1 = fT(Kb)
-    #         error = np.abs(g1 - T1)
-    #         if error < 1e-9: 
-    #             T = g1
-    #             break
-    #         T0 = T1
-    #         denominator = dT - g1 + g0
-    #         if abs(denominator) > 1e-16:
-    #             w = (dT / denominator)
-    #             if not w < 0: w = w ** 0.5
-    #             T1 = w*g1 + (1.-w)*T1
-    #         else:
-    #             T1 = g1
-    #         g0 = g1
-    #     else:
-    #         T = g1
-    #     return Kb, T
+@compiled_surrogate_column_function(output='point')
+def Sb_to_point(Sb, N_stages, alpha, feed_flows, neg_asplit, neg_bsplit,
+                Kbmin, Kbmax, A, B, N_chemicals):
+    S = alpha * np.expand_dims(Sb, -1)
+    xL = MESH.bottom_flow_rates(
+        S, 
+        feed_flows, 
+        neg_asplit, 
+        neg_bsplit,
+        N_stages,
+    )
+    L = xL.sum(axis=1)
+    x = xL / np.expand_dims(L, -1)
+    yV = xL * S
+    Kb = np.zeros(N_stages)
+    for i in range(N_stages):
+        Kb[i] = Kb_bubble_point(x[i], alpha[i], Kbmin[i], Kbmax[i])
+    T = B / (np.log(Kb) - A)
+    n = N_chemicals
+    point = np.zeros((N_stages, n * 2 + 1))
+    point[:, :n] = yV
+    point[:, n] = T
+    point[:, -n:] = xL
+    return point
 
-    def hV(self, T: float) -> float:
-        return self._hV_ref + self._CV * T
-    
-    def hL(self, T: float) -> float:
-        return self._hL_ref + self._CL * T
-
-@jitdata
-class SurrogateColumn:
-    stages: types.List(SurrogateStage.class_type.instance_type, reflected=True)
-    N_stages: int
-    N_chemicals: int
-    specified_variables: str
-    specified_values: float64[:]
-    neg_asplit: float64[:]
-    neg_bsplit: float64[:]
-    top_split: float64[:]
-    bottom_split: float64[:]
-    feed_and_invariable_enthalpies: float64[:] 
-    feed_flows: float64[:, :]
-    total_feed_flows: float64[:]
-    bulk_feed: float
-    alpha: float64[:, :]
-    Kb: float64[:]
-    point_shape: types.UniTuple(int8, 2)
-    
-    def __init__(
-            self,
-            N_stages: int, 
-            N_chemicals: int,
-            T: float, 
-            x: float64[:, :], 
-            y: float64[:, :], 
-            # gamma: float64[:, :], 
-            # phi: float64[:, :], 
-            K: float64[:, :], 
-            dlogK_dTinv: float64[:, :],
-            hV: float64[:],
-            hL: float64[:], 
-            CV: float64[:],
-            CL: float64[:],
-            specified_variables: str,
-            specified_values: float64[:],
-            neg_asplit: float64[:],
-            neg_bsplit: float64[:],
-            top_split: float64[:],
-            bottom_split: float64[:],
-            feed_and_invariable_enthalpies: float64[:],
-            feed_flows: float64[:, :],
-            total_feed_flows: float64[:],
-            bulk_feed: float,
-            point_shape: types.UniTuple(int8, 2),
-        ):
-        logK = np.log(K + 1e-64)
-        w = y * dlogK_dTinv
-        w /= np.expand_dims(w.sum(axis=1), -1)
-        Kb = np.exp((logK * w).sum(axis=1))
-        alpha = K / np.expand_dims(Kb, -1)
-        # beta = phi * alpha / gamma
-        last = N_stages - 1
-        stages = []
-        for i in range(N_stages):
-            if i == 0:
-                i0 = i
-                i1 = i + 1
-            elif i == last:
-                i0 = i - 1
-                i1 = i
-            else:
-                i0 = i - 1
-                i1 = i + 1
-            stages.append(
-                SurrogateStage(
-                    x[i], x[i0], x[i1],
-                    T[i], T[i0], T[i1],
-                    # gamma[i], gamma[i0], gamma[i1],
-                    # phi[i], phi[i0], phi[i1],
-                    K[i], Kb[i], logK[i0], logK[i1], 
-                    alpha[i], 
-                    # beta[i], 
-                    w[i], 
-                    # y[i], y[i0], y[i1],
-                    hV[i], hL[i], CV[i], CL[i],
-                )
-            )
-        self.stages = stages 
-        self.N_stages = N_stages 
-        self.N_chemicals = N_chemicals
-        self.specified_variables = specified_variables
-        self.specified_values = specified_values
-        self.neg_asplit = neg_asplit
-        self.neg_bsplit = neg_bsplit
-        self.top_split = top_split
-        self.bottom_split = bottom_split
-        self.feed_and_invariable_enthalpies = feed_and_invariable_enthalpies
-        self.feed_flows = feed_flows
-        self.total_feed_flows = total_feed_flows
-        self.bulk_feed = bulk_feed
-        self.alpha = alpha
-        self.Kb = Kb
-        self.point_shape = point_shape
-    
-    def Sb_to_point(self, Sb: float64[:]) -> float64[:, :]:
-        stages = self.stages
-        N_stages = self.N_stages
-        S = self.alpha * np.expand_dims(Sb, -1)
-        xL = MESH.bottom_flow_rates(
-            S, 
-            self.feed_flows, 
-            self.neg_asplit, 
-            self.neg_bsplit,
-            N_stages,
-        )
-        L = xL.sum(axis=1)
-        x = xL / np.expand_dims(L, -1)
-        yV = xL * S
-        T = np.zeros(N_stages)
-        for i, stage in enumerate(stages):
-            _, Ti = stage.bubble_point(x[i])
-            T[i] = Ti
-        n = self.N_chemicals
-        point = np.zeros(self.point_shape)
-        point[:, :n] = yV
-        point[:, n] = T
-        point[:, -n:] = xL
-        return point
-    
-    def residuals(self, logSb1: float64[:]) -> float64[:]:
-        stages = self.stages
-        N_stages = self.N_stages
-        Sb = np.exp(logSb1) - 1
-        S = self.alpha * np.expand_dims(Sb, -1)
-        xL = MESH.bottom_flow_rates(
-            S, 
-            self.feed_flows, 
-            self.neg_asplit, 
-            self.neg_bsplit,
-            N_stages,
-        )
-        L = xL.sum(axis=1)
-        x = xL / np.expand_dims(L, -1)
-        yV = xL * S
-        V = yV.sum(axis=1)
-        T = np.zeros(N_stages)
-        hV = T.copy()
-        hL = T.copy()
-        residuals = T.copy()
-        for i, stage in enumerate(stages):
-            Kb, Ti = stage.bubble_point(x[i])
-            T[i] = Ti
-            hV[i] = stage.hV(Ti)
-            hL[i] = stage.hL(Ti)
-        HV = hV * V
-        HL = hL * L
-        variables = self.specified_variables
-        values = self.specified_values
-        H_feed = self.feed_and_invariable_enthalpies
-        top_split = self.top_split
-        bottom_split = self.bottom_split
-        for i, stage in enumerate(stages):
-            var = variables[i]
-            value = values[i]
-            if var == 'Q':
-                H_out = HV[i] + HL[i]
-                H_in = H_feed[i]
-                i0 = i - 1
-                if i0 != -1: 
-                    H_in += (1 - bottom_split[i0]) * HL[i0]
-                i1 = i + 1
-                if i1 != N_stages: 
-                    H_in += (1 - top_split[i1]) * HV[i1]
-                residuals[i] = H_out - H_in - value
-            elif var == 'T':
-                residuals[i] = value - T[i]
-            elif var == 'B':
-                residuals[i] = V[i] - L[i] * value
-            elif var == 'F':
-                residuals[i] = value * self.bulk_feed - L[i]
-            else:
-                raise RuntimeError('unknown specification')
-        return residuals
-    
-    def phenomena_iter(self, Sb: float64[:]) -> float64[:]:
-        N_stages = self.N_stages
-        S = self.alpha * np.expand_dims(Sb, -1)
-        xL = MESH.bottom_flow_rates(
-            S, 
-            self.feed_flows, 
-            self.neg_asplit, 
-            self.neg_bsplit,
-            N_stages,
-        )
-        L = xL.sum(axis=1)
-        x = xL / np.expand_dims(L, -1)
-        stages = self.stages
-        hL = np.zeros(N_stages)
-        hV = hL.copy() 
-        Kb = hL.copy()
-        T = hL.copy()
-        for i in range(N_stages):
-            stage = stages[i]
-            Kbi, Ti = stage.bubble_point(x[i])
-            Kb[i] = Kbi
-            T[i] = Ti
-            hL[i] = stage.hL(Ti)
-            hV[i] = stage.hV(Ti)
-        V, L = MESH.bulk_vapor_and_liquid_flow_rates(
-            hL, hV,
-            self.neg_asplit, self.neg_bsplit, 
-            self.top_split, self.bottom_split, 
-            N_stages, self.feed_and_invariable_enthalpies, 
-            self.total_feed_flows,
-            self.specified_variables,
-            self.specified_values,
-            self.bulk_feed,
-        )
-        return Kb * V / L
+@compiled_surrogate_column_function(output='residuals')
+def surrogate_residuals(
+        logSb1, N_stages, alpha, feed_flows, neg_asplit, neg_bsplit,
+        Kbmin, Kbmax, A, B, hV_ref, CV, hL_ref, CL,
+        specified_variables, specified_values, feed_and_invariable_enthalpies, top_split, bottom_split,
+        bulk_feed
+    ):
+    Sb = np.exp(logSb1) - 1
+    S = alpha * np.expand_dims(Sb, -1)
+    xL = MESH.bottom_flow_rates(
+        S, 
+        feed_flows, 
+        neg_asplit, 
+        neg_bsplit,
+        N_stages,
+    )
+    L = xL.sum(axis=1)
+    x = xL / np.expand_dims(L, -1)
+    yV = xL * S
+    V = yV.sum(axis=1)
+    residuals = np.zeros(N_stages)
+    Kb = residuals.copy()
+    for i in range(N_stages):
+        Kb[i] = Kb_bubble_point(x[i], alpha[i], Kbmin[i], Kbmax[i])
+    T = B / (np.log(Kb) - A)
+    hV = hV_ref + CV * T
+    hL = hL_ref + CL * T
+    HV = hV * V
+    HL = hL * L
+    for i in range(N_stages):
+        var = specified_variables[i]
+        value = specified_values[i]
+        if var == 'Q':
+            H_out = HV[i] + HL[i]
+            H_in = feed_and_invariable_enthalpies[i]
+            i0 = i - 1
+            if i0 != -1: 
+                H_in += (1 - bottom_split[i0]) * HL[i0]
+            i1 = i + 1
+            if i1 != N_stages: 
+                H_in += (1 - top_split[i1]) * HV[i1]
+            residuals[i] = H_out - H_in - value
+        elif var == 'T':
+            residuals[i] = value - T[i]
+        elif var == 'B':
+            residuals[i] = V[i] - L[i] * value
+        elif var == 'F':
+            residuals[i] = value * bulk_feed - L[i]
+        else:
+            raise RuntimeError('unknown specification')
+    return residuals
 
 # %% Equation-oriented tools
 
@@ -1149,10 +951,10 @@ class StageEquilibrium(Unit):
         mol_top = x[:N_chemicals]
         T = x[N_chemicals]
         mol_bot = x[-N_chemicals:]
-        htop = np.array([i.H(phase_top, T, P) for i in chemicals]) 
-        hbot = np.array([i.H(phase_bot, T, P) for i in chemicals])
         # dEdx = jacobian(self._equilibrium_residuals_vectorized, x).df
         dEdx = approx_derivative(self._equilibrium_residuals_vectorized, x)
+        htop = np.array([i.H(phase_top, T, P) for i in chemicals]) 
+        hbot = np.array([i.H(phase_bot, T, P) for i in chemicals])
         if hasattr(mixture, 'active_eos'):
             try:
                 mixture.active_eos[phase_top] = mixture.eos_args(phase_top, mol_top, T, P)
@@ -1163,6 +965,11 @@ class StageEquilibrium(Unit):
                 hbot += mixture.dh_dep_dzs(phase_bot, mol_bot, T, P)
             finally:
                 mixture.active_eos.clear()
+        elif mixture.include_excess_energies:
+            htop += np.array([i.H_excess(phase_top, T, P) for i in chemicals]) 
+            hbot += np.array([i.H_excess(phase_bot, T, P) for i in chemicals])
+            Ctop = mixture.Cn(phase_top, mol_top, T, P) / H_magnitude
+            Cbot = mixture.Cn(phase_bot, mol_bot, T, P) / H_magnitude
         else:
             Ctop = mixture.Cn(phase_top, mol_top, T, P) / H_magnitude
             Cbot = mixture.Cn(phase_bot, mol_bot, T, P) / H_magnitude
@@ -2806,8 +2613,6 @@ class MultiStageEquilibrium(Unit):
         T = np.zeros(self.N_stages)
         x = np.zeros((self.N_stages, self._N_chemicals))
         y = x.copy()
-        gamma = x.copy()
-        phi = x.copy()
         K = x.copy()
         dlogK_dTinv = x.copy()
         hV = T.copy()
@@ -2815,8 +2620,6 @@ class MultiStageEquilibrium(Unit):
         CV = T.copy()
         CL = T.copy()
         P = self.P
-        # f_gamma = self._gamma
-        # f_phi = self._phi
         mixture = self._eq_thermo.mixture
         H = mixture.H
         C = mixture.Cn
@@ -2837,8 +2640,6 @@ class MultiStageEquilibrium(Unit):
             x[i] = xi = stage.x
             y[i] = yi = stage.y
             K[i] = stage.K
-            # gamma[i] = f_gamma(xi, Ti)
-            # phi[i] = f_phi(yi, Ti, Pi)
             hV[i] = H('g', yi, Ti, Pi)
             hL[i] = H('l', xi, Ti, Pi)
             CV[i] = C('g', yi, Ti, Pi)
@@ -2853,67 +2654,29 @@ class MultiStageEquilibrium(Unit):
             self._specified_values,
             self._bulk_feed,
         )
-        SC = SurrogateColumn(
-            self.N_stages, 
-            self._N_chemicals,
-            T, x, y, 
-            # gamma, phi, 
-            K, dlogK_dTinv,
-            hV, hL,
-            CV, CL,
-            self._specified_variables,
-            self._specified_values,
-            self._neg_asplit,
-            self._neg_bsplit,
-            self._top_split,
-            self._bottom_split,
-            self._feed_and_invariable_enthalpies,
-            self.feed_flows,
-            self._total_feed_flows,
-            self._bulk_feed,
-            self._point_shape,
+        Kb, alpha, A, B, hV_ref, hL_ref, CV, CL, Kbmin, Kbmax = fit_surrogate_parameters(
+            self.N_stages, T, y, K, dlogK_dTinv, hV, hL, CV, CL
         )
-        Kb = SC.Kb
-        algorithm = self.inside_loop_algorithm
         Sb = Kb * V / L
-        if algorithm == 'phenomena + simultaneous correction':
-            f = SC.phenomena_iter
-            Sb = flx.fixed_point(
-                f, Sb, 
-                xtol=self.tolerance, 
-                rtol=self.relative_tolerance, 
-                maxiter=self.maxiter,
-                checkiter=False,
-                checkconvergence=False,
-            )
-            f = SC.residuals
-            jac = lambda logSb1: approx_derivative(f, logSb1)
-            logSb1, *self._inside_info = fsolve(
-                f, np.log(Sb + 1), fprime=jac, full_output=True, 
-                maxfev=self.maxiter, xtol=self.relative_tolerance / 1000
-            )
-            Sb = np.exp(logSb1) - 1
-        elif algorithm == 'phenomena':
-            f = SC.phenomena_iter
-            Sb = flx.fixed_point(
-                f, Sb, 
-                xtol=self.tolerance / 1000, 
-                rtol=self.relative_tolerance / 1000, 
-                maxiter=self.maxiter,
-                checkiter=False,
-                checkconvergence=False,
-            )
-        elif algorithm == 'simultaneous correction': 
-            f = SC.residuals
-            jac = lambda logSb1: approx_derivative(f, logSb1)
-            logSb1, *self._inside_info = fsolve(
-                f, np.log(Sb + 1), fprime=jac, full_output=True, 
-                maxfev=self.maxiter, xtol=self.relative_tolerance / 1000,
-            )
-            Sb = np.exp(logSb1) - 1
-        else:
-            raise RuntimeError('invalid inside loop algorithm')
-        return SC.Sb_to_point(Sb)
+        f = surrogate_residuals
+        args = (
+            self.N_stages, alpha, self.feed_flows, 
+            self._neg_asplit, self._neg_bsplit,
+            Kbmin, Kbmax, A, B, hV_ref, CV, hL_ref, CL,
+            self._specified_variables, self._specified_values, 
+            self._feed_and_invariable_enthalpies, 
+            self._top_split, self._bottom_split,
+            self._bulk_feed
+        )
+        jac = lambda logSb1, *args: approx_derivative(f, logSb1, args=args)
+        logSb1, *self._inside_info = fsolve(
+            f, np.log(Sb + 1), fprime=jac, full_output=True, args=args,
+            maxfev=self.maxiter, xtol=self.relative_tolerance / 1000,
+        )
+        Sb = np.exp(logSb1) - 1
+        return Sb_to_point(Sb, self.N_stages, alpha, self.feed_flows, 
+                           self._neg_asplit, self._neg_bsplit,
+                           Kbmin, Kbmax, A, B, self._N_chemicals)
     
     # %% Normal simulation
     
@@ -3211,7 +2974,7 @@ class MultiStageEquilibrium(Unit):
             H_in = sum([
                 Hother(i.phase, i.mol[other_index], i.T, Pi)
                 + Hother(i.phase, i.mol[other_index], i.T, Pi)
-                for i in stage.ins
+                for i in stage.flat_ins
             ])
             H_out = sum([
                 Hother(i.phase, i.mol[other_index], i.T, Pi)
