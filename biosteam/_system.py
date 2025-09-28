@@ -827,6 +827,7 @@ class System:
         '_temporary_connections_log',
         '_integrated_facilities',
         '_shared_facilities',
+        '_has_parent',
         'maxtime',
         'maxiter',
         'molar_tolerance',
@@ -849,6 +850,7 @@ class System:
         '_unit_path',
         '_cost_units',
         '_streams',
+        '_surface_streams',
         '_feeds',
         '_products',
         '_inlet_names',
@@ -862,9 +864,6 @@ class System:
         # Convergence prediction
         '_responses',
         # Phenomena oriented simulation
-        '_last_flows',
-        '_last_error',
-        '_diverged_count',
         '_aggregated_stage_configuration',
         'adaptive_phenomena_oriented_simulation',
         '_stage_configuration',
@@ -1135,7 +1134,7 @@ class System:
         #: Log for all process specifications checked for temporary connections.
         self._temporary_connections_log = set()
 
-        #: Whether subsystem facilities are shared with the entire system
+        #: Whether subsystem facilities are shared with the entire system.
         self._shared_facilities = True if shared_facilities is None else shared_facilities
 
         #: Whether to simulate system after running all specifications.
@@ -1146,6 +1145,9 @@ class System:
 
         #: Whether facilities have a recycle loop.
         self._integrated_facilities = None
+
+        #: Whether system is a subsystem of a super system.
+        self._has_parent = False
 
         #: Flag to track convergence at each iteration. 
         #: * 0 - no tracking
@@ -1169,9 +1171,6 @@ class System:
         self._DAE = None
         self.dynsim_kwargs = {}
         self.tracked_recycles = {}
-        self._last_error = np.inf
-        self._last_flows = 0
-        self._diverged_count = 0
         subsystems = self.subsystems
         algorithm = self._algorithm
         method = self._method
@@ -1275,6 +1274,12 @@ class System:
     def _update_configuration(self,
             units: Optional[Sequence[str]]=None,
         ):
+        if self._integrated_facilities:
+            raise NotImplementedError(
+                'system configuration changed during simulation; '
+                'cannot update configuration of system with integrated '
+                'facilities with recycles in BioSTEAM (yet)'
+            )
         old_IDs = [i.ID for i in self.subsystems]
         # Warning: This method does not save the configuration.
         if units is None: units = self.units
@@ -1289,7 +1294,7 @@ class System:
         self._reset_errors()
         self._set_path(path)
         self.recycle = network.recycle
-        self._set_facilities(facilities)
+        if not self._has_parent: self._set_facilities(facilities)
         self.set_tolerance(
             mol=self.molar_tolerance,
             rmol=self.relative_molar_tolerance,
@@ -1327,8 +1332,14 @@ class System:
                 subsystems=True,
             )
 
+    def _get_connections(self):
+        if self._integrated_facilities:
+            return [i.get_connection() for i in self.surface_streams]
+        else:
+            return [i.get_connection() for i in self.streams]
+
     def _save_configuration(self):
-        self._connections = [i.get_connection() for i in self.streams]
+        self._connections = self._get_connections()
 
     @ignore_docking_warnings
     def _load_configuration(self):
@@ -1397,7 +1408,7 @@ class System:
 
     def _delete_path_cache(self):
         for i in ('_subsystems', '_units', '_unit_path', '_cost_units',
-                  '_streams', '_feeds', '_products'):
+                  '_surface_streams', '_streams', '_feeds', '_products'):
             if hasattr(self, i): delattr(self, i)
         self._path_cache.clear()
         self._temporary_connections_log.clear()
@@ -1825,6 +1836,7 @@ class System:
         ]
         if recycles:
             self._integrated_facilities = True
+            for i in self.subsystems: i._has_parent = True
             system_recycles = self.recycle
             if system_recycles:
                 if isinstance(system_recycles, abc.Iterable):
@@ -1958,7 +1970,23 @@ class System:
                 elif isa(i, System):
                     units.update(i.cost_units)
             return units
-      
+     
+    @property
+    def surface_streams(self) -> list[Stream]:
+        try:
+            return self._surface_streams
+        except:
+            self._surface_streams = streams = []
+            stream_set = set()
+            for u in self.path:
+                for s in u.ins + u.outs:
+                    if not s: s = s.materialize_connection()
+                    elif s in stream_set: continue
+                    elif s.__class__ is AbstractStream: continue
+                    streams.append(s)
+                    stream_set.add(s)
+            return streams 
+     
     @property
     def streams(self) -> list[Stream]:
         """All streams within the system."""
@@ -2425,14 +2453,19 @@ class System:
     def _setup_units(self):
         """Setup all unit operations."""
         prioritized_units = self._prioritized_units
+        integrated_facilities = self._integrated_facilities
+        decoupled_simulation = not integrated_facilities
         for u in self.units: 
             u._system = self
-            u._setup()
-            u._check_setup()
+            if decoupled_simulation:
+                u._setup()
+                u._check_setup()
             if u not in prioritized_units:
                 for ps in u._specifications: ps.compile_path(u)
                 if u.prioritize: self.prioritize_unit(u)
                 prioritized_units.add(u)
+        # Facilities need to be registered with units within the system
+        if not self._has_parent: self._set_facilities(self._facilities)
                 
     def _setup(self, update_configuration=False, units=None, load_configuration=True):
         """Setup each element of the system."""
@@ -2982,12 +3015,12 @@ class System:
             try: recycle_data.update()
             except AttributeError: raise ValueError('no recycle data to update')
 
-    def _summary(self, force_path=False):
-        simulated_units = set()
-        isa = isinstance
-        Unit = bst.Unit
-        f = try_method_with_object_stamp
-        if not self._integrated_facilities or force_path:
+    def _summary(self):
+        if not self._integrated_facilities: 
+            simulated_units = set()
+            isa = isinstance
+            Unit = bst.Unit
+            f = try_method_with_object_stamp
             for i in self._path:
                 if isa(i, Unit):
                     if i in simulated_units: continue
@@ -3357,7 +3390,7 @@ class System:
                         if design_and_cost: self._summary()
                     except Exception as error:
                         if update_configuration: raise error # Avoid infinite loop
-                        new_connections = [i.get_connection() for i in self.streams]
+                        new_connections = self._get_connections()
                         if self._connections != new_connections:
                             # Connections has been updated within simulation.
                             outputs = self.simulate(
@@ -3369,15 +3402,16 @@ class System:
                             raise error
                     else:
                         if (not update_configuration # Avoid infinite loop
-                            and self._connections != [i.get_connection() for i in self.streams]):
+                            and self._connections != self._get_connections()):
                             # Connections has been updated within simulation.
+                            # Must reset path.
                             outputs = self.simulate(
                                 update_configuration=True,
                                 design_and_cost=design_and_cost,
                                 **kwargs
-                            )
+                            ) 
                 self._simulation_outputs = outputs
-            return outputs
+        return outputs
 
     def dynamic_run(self, **dynsim_kwargs):
         """
