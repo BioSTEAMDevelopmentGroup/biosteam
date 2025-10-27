@@ -339,7 +339,7 @@ class BoilerTurbogenerator(bst.Facility):
                     agent = hu.agent
                     if agent and agent.ID == ID:
                         steam_utilities.append(hu)
-        self.electricity_demand = sum([u.power_utility.consumption for u in units])
+        self.electricity_demand = max(sum([u.power_utility.rate for u in units]), 0)
     
     def _design(self):
         B_eff = self.boiler_efficiency

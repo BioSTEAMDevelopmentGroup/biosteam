@@ -183,10 +183,32 @@ tools for sustainability assessments. Here is a short list of related publicatio
 
   #. `Implications of Biorefinery Policy Incentives and Location-Specific Economic Parameters for the Financial Viability of Biofuels. Environ Sci Technol 2023 <https://doi.org/10.1021/acs.est.2c07936>`_
 
-* **Bioproduct and biofuel studies**:
+* **Waste valorization**:
+
+  #. `Cost-Effective Urine Recycling Enabled by a Synthetic Osteoyeast Platform for Production of Hydroxyapatite. Nat Commun 2025 <https://doi.org/10.1038/s41467-025-59416-8>`_
   
+  #. `Advancing the Economic and Environmental Sustainability of Rare Earth Element Recovery from Phosphogypsum. Environ. Sci. Technol. 2025 <https://doi.org/10.1021/acs.est.5c04952>`_
+    
+  #. `Hydrothermal-Based Wastewater Solids Management for Targeted Resource Recovery and Decarbonization in the Contiguous U.S. Environ. Sci. Technol. 2025 <https://doi.org/10.1021/acs.est.5c07190>`_
+
+  #. `Recycling of Single-Use Multilayer Plastics for Biomanufacturing with Solvent-Targeted Recovery and Precipitation. ACS Sustainable Chem. Eng. 2025 <https://doi.org/10.1021/acssuschemeng.5c06479`_
+  
+  #. `Screening green solvents for multilayer plastic film recycling processes. Computers & Chemical Engineering 2025 <https://doi.org/10.1016/j.compchemeng.2025.109129>`_
+
+  #. `Comparative Techno-Economic Analysis and Life Cycle Assessment of Producing High-Value Chemicals and Fuels from Waste Plastic via Conventional Pyrolysis and Thermal Oxo-Degradation. Energy Fuels 2023 <https://doi.org/10.1021/acs.energyfuels.3c02321>`_
+
+  #. `High-purity polypropylene from disposable face masks via solvent-targeted recovery and precipitation. Green Chemistry 2023 <https://doi.org/10.1039/D3GC00205E>`_
+
+* **Biomanufactureing, bioproducts, and biofuels**:
+  
+  #. `Decompartmentalization of the Yeast Mitochondrial Metabolism to Improve Chemical Production in Issatchenkia Orientalis. Nat Commun 2025 <https://doi.org/10.1038/s41467-025-62304-w>`_
+
+  #. `Rational Multienzyme Architecture Design with iMARS. Cell 2025 <https://doi.org/10.1016/j.cell.2024.12.029>`_
+
   #. `Sustainable potassium sorbate production from triacetic acid lactone in food-grade solvents. Green Chem 2025 <https://doi.org/10.1039/D4GC04832F>`_
   
+  #. `Techno-Economic Analysis and Life Cycle Assessment of Lignin Derived 4-Hydroxy-3,5-Dimethoxyphenylacetic Acid. Chemical Engineering Journal 2025 <https://doi.org/10.1016/j.cej.2025.164954>`_
+
   #. `Integration of plant and microbial oil processing at oilcane biorefineries for more sustainable biofuel production. GCB Bioenergy 2024 <https://doi.org/10.1111/gcbb.13183>`_
 
   #. `Economic and Environmental Sustainability of Bio-Based HMF Production and Recovery from Lignocellulosic Biomass. Green Chem 2024 <https://doi.org/10.1039/D4GC04270K>`_
@@ -216,14 +238,6 @@ tools for sustainability assessments. Here is a short list of related publicatio
   #. `Sustainable Lactic Acid Production from Lignocellulosic Biomass. ACS Sustainable Chem Eng 2021 <https://doi.org/10.1021/acssuschemeng.0c08055>`_
 
   #. `Techno-Economic Evaluation of Biorefineries Based on Low-Value Feedstocks Using the BioSTEAM Software: A Case Study for Animal Bedding. Processes 2020 <https://doi.org/10.3390/pr8080904>`_
-
-* **Plastics and recycling**:
-
-  #. `Screening green solvents for multilayer plastic film recycling processes. Computers & Chemical Engineering 2025 <https://doi.org/10.1016/j.compchemeng.2025.109129>`_
-
-  #. `Comparative Techno-Economic Analysis and Life Cycle Assessment of Producing High-Value Chemicals and Fuels from Waste Plastic via Conventional Pyrolysis and Thermal Oxo-Degradation. Energy Fuels 2023 <https://doi.org/10.1021/acs.energyfuels.3c02321>`_
-
-  #. `High-purity polypropylene from disposable face masks via solvent-targeted recovery and precipitation. Green Chemistry 2023 <https://doi.org/10.1039/D3GC00205E>`_
 
 
 Indices and tables
