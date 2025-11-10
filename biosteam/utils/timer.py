@@ -28,12 +28,16 @@ class TimerOffset:
 
 class Timer: # pragma: no coverage
     """Create a Timer class with functions that measure elapsed time."""
-    __slots__ = ['ID', 'record', '_start']
+    __slots__ = ['ID', 'record', '_start', 'limit']
+    
+    class TimesUpError(Exception): pass
 
-    def __init__(self, ID=None):
+    def __init__(self, ID=None, limit=None):
         self.ID = ID
-        self.record = [] #: [list] elapsed times from tic toc functions
+        self.limit = limit #: [float] Maximum time.
+        self.record = [] #: [list] Elapsed times from measurments
         self._start = None
+        
 
     def offset(self):
         if self._start is None: 
@@ -61,8 +65,10 @@ class Timer: # pragma: no coverage
         try: elapsed_time = self.elapsed_time
         except TypeError:
             if self._start is None:
-                raise RuntimeError("Must run 'tic' before 'toc'.")    
+                raise RuntimeError("Must run 'start' before 'measure'.")    
         if record: self.record.append(elapsed_time)
+        if self.limit is not None and elapsed_time > self.limit:
+            raise self.TimesUpError('elapsed time greater than time limit')
         return elapsed_time
 
     @property

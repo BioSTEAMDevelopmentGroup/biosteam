@@ -3519,9 +3519,25 @@ class MultiStageEquilibrium(Unit):
         
 # %% Convergence analysis
 
+    def stream_table(self):
+        data = []
+        IDs = self.stages[0].partition.IDs
+        for i in self.stages:
+            top, bottom = i.outs
+            data.append([i.T, i.P, *top.imol[IDs], *bottom.imol[IDs]])
+        columns = pd.MultiIndex.from_tuples([
+            ('T', ''),
+            ('P', ''),
+            *[('g', i) for i in IDs],
+            *[('l', i) for i in IDs],
+        ])
+        index = list(range(self.N_stages))
+        return pd.DataFrame(data, index, columns)
+
     def convergence_analysis(
             self, 
             iterations=None, 
+            timelimit=None,
             algorithm=None, 
             x0=None, 
             fillsteps=1,
@@ -3538,7 +3554,7 @@ class MultiStageEquilibrium(Unit):
         if self.vle_decomposition is None: self.default_vle_decomposition()
         if iterations is None: iterations = self.maxiter
         self._convergence_analysis_mode = True
-        self._timer = timer = bst.Timer()
+        self._timer = timer = bst.Timer(limit=timelimit)
         timer.start()
         try:
             self._tracked_points = points = np.zeros([iterations + 1, self.N_stages, self._N_chemicals * 2 + 1])
@@ -3582,7 +3598,7 @@ class MultiStageEquilibrium(Unit):
                 def f(x):
                     self.iter += 1
                     self._set_point(x)
-                    if algorithm == 'phenomena':
+                    if algorithm == 'phenomena' or algorithm == 'Wang-Hanke':
                         self._run_phenomena()
                         x = self._get_point()
                     elif algorithm == 'sequential modular':
@@ -3611,6 +3627,8 @@ class MultiStageEquilibrium(Unit):
                        checkconvergence=False, 
                        checkiter=False,
                        **solver_kwargs)
+        except timer.TimesUpError:
+            iterations = min(self.iter, iterations)
         finally:
             self._convergence_analysis_mode = False
         iterations -= 1
