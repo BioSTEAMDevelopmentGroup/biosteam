@@ -2647,13 +2647,13 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     >>> bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
     >>> feed = bst.Stream('feed', Ethanol=80, Water=100, T=80.215 + 273.15)
     >>> D1 = bst.MESHDistillation(None, N_stages=5, ins=[feed], feed_stages=[2],
-    ...     outs=['vapor', 'liquid', 'distillate'],
+    ...     outs=['distillate', 'liquid'],
     ...     reflux=0.673, boilup=2.57,
     ...     LHK=('Ethanol', 'Water'),
     ...     full_condenser=True,
     ... )
     >>> D1.simulate()
-    >>> vapor, liquid, distillate = D1.outs
+    >>> distillate, liquid = D1.outs
     >>> distillate.imol['Ethanol'] / feed.imol['Ethanol']
     0.81
     >>> distillate.imol['Ethanol'] / distillate.F_mol
@@ -2844,7 +2844,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
             self.auxiliary(
                 'top_split', MockSplitter,
                 ins = self.condenser-0,
-                outs=(self-2, 'condensate'),
+                outs=(self-0, 'condensate'),
                 thermo=thermo,
             )
             self.condensate = self.top_split-1

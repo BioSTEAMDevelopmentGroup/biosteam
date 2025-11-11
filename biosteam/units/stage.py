@@ -2253,9 +2253,26 @@ class MultiStageEquilibrium(Unit):
         self._bottom_split = bottom_splits = np.zeros(N_stages)
         self._convergence_analysis_mode = False
         if stages is None:
+            N_side_draws = len(top_side_draws) + len(bottom_side_draws)
+            outs = self.outs
+            outs = [*outs[:2], *[i for i in outs[2:] if i]]
+            N_outs = len(outs)
             top_mark = 2 + len(top_side_draws)
-            tsd_iter = iter(self.outs[2:top_mark])
-            bsd_iter = iter(self.outs[top_mark:])
+            if N_outs == 1 + N_side_draws:
+                # All streams except empty vapor is given (for full condenser scenario)
+                self.outs._streams[:] = outs
+                tsd_iter = iter(outs[2:top_mark])
+                bsd_iter = iter([outs[0], *outs[top_mark:]])
+                top = None
+                bottom = self-1 # raffinate or liquid
+            elif len(self.outs) == 2 + N_side_draws:
+                # All streams are given
+                tsd_iter = iter(self.outs[2:top_mark])
+                bsd_iter = iter(self.outs[top_mark:])
+                top = self-0 # extract or vapor
+                bottom = self-1 # raffinate or liquid
+            else:
+                raise ValueError('number of outlets must be equal to 2 + number of side draws')
             last_stage = None
             self.stages = stages = []
             for i in range(N_stages):
@@ -2265,15 +2282,11 @@ class MultiStageEquilibrium(Unit):
                     feed = last_stage-1
                 outs = []
                 if i == 0:
-                    outs.append(
-                        self-0, # extract or vapor
-                    )
+                    outs.append(top)
                 else:
                     outs.append(None)
                 if i == N_stages - 1: 
-                    outs.append(
-                        self-1 # raffinate or liquid
-                    )
+                    outs.append(bottom)
                 else:
                     outs.append(None)
                 if i in top_side_draws:
@@ -2315,6 +2328,7 @@ class MultiStageEquilibrium(Unit):
             for i, reaction in stage_reactions.items():
                 stages[i].reaction = reaction
         else:
+            # TODO: Add test to make sure outlet streams correspond with stage outlets and sidedraws
             self.stage_specifications = stage_specifications
             self.stage_reactions = stage_reactions
             self.stages = stages
