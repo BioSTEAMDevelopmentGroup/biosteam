@@ -2255,17 +2255,16 @@ class MultiStageEquilibrium(Unit):
         if stages is None:
             N_side_draws = len(top_side_draws) + len(bottom_side_draws)
             outs = self.outs
-            outs = [*outs[:2], *[i for i in outs[2:] if i]]
-            N_outs = len(outs)
+            N_given = len(outs)
+            N_outs = 2 + N_side_draws 
             top_mark = 2 + len(top_side_draws)
-            if N_outs == 1 + N_side_draws:
-                # All streams except empty vapor is given (for full condenser scenario)
-                self.outs._streams[:] = outs
+            if stage_specifications[0] == ('Reflux', inf) and N_given < N_outs:
+                # Empty vapor is not given (for full condenser scenario)
                 tsd_iter = iter(outs[2:top_mark])
                 bsd_iter = iter([outs[0], *outs[top_mark:]])
                 top = None
                 bottom = self-1 # raffinate or liquid
-            elif len(self.outs) == 2 + N_side_draws:
+            elif N_given == N_outs:
                 # All streams are given
                 tsd_iter = iter(self.outs[2:top_mark])
                 bsd_iter = iter(self.outs[top_mark:])
