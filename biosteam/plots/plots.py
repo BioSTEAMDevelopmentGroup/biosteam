@@ -1444,6 +1444,7 @@ def plot_contour(
         row_bars = True
     elif isinstance(metric_bars[0], MetricBar):
         nrows = len(metric_bars)
+        ncols = None
         row_bars = True
     else:
         nrows = len(metric_bars)
@@ -1458,6 +1459,7 @@ def plot_contour(
             Z = Z[:, :, :, None]
         else:
             Z = Z[:, :, None, :]
+    if ncols is None: ncols = Z.shape[-1]
     assert Z.shape == (*X.shape, nrows, ncols), (
        f"Z was shape {Z.shape}, but expeted shape {(*X.shape, nrows, ncols)}; "
         "Z.shape must be (A, B, M, N), where (A, B) is the shape of both X and Y, "
@@ -1545,7 +1547,11 @@ def plot_contour(
         # set_axes_labels(axes[:, :-1], xlabel, ylabel)
     # else:
         # set_axes_labels(axes, xlabel, ylabel)
-    fig.supxlabel(xlabel, size=label_size)
+    if ncols == 1:
+        plt.sca(axes[-1, 0])
+        plt.xlabel(xlabel, size=label_size)
+    else:
+        fig.supxlabel(xlabel, size=label_size)
     fig.supylabel(ylabel, size=label_size)
     plt.subplots_adjust(hspace=0.1, wspace=0.1)
     return fig, axes, cps, cbs, other_axes

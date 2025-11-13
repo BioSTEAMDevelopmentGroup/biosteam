@@ -69,3 +69,15 @@ User guide
           Aerated bioreactor design <Aerated_bioreactor_design>
           Glacial_acetic_acid_separation
           Adsorption column design <Adsorption_column_design>
+
+    .. grid-item::
+    
+       .. toctree::
+          :maxdepth: 1
+          :numbered:
+          :caption: Equilibrium separators
+          
+          Equations of state & activity models <EOS_gamma>
+          Single-stage phase equilibrium <phase_equilibrium_units>
+          Distillation modeling & design <distillation>
+          Multi-stage mixer-settlers <mixer_settlers>
