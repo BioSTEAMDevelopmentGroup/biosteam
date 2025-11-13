@@ -75,8 +75,8 @@ User guide
        .. toctree::
           :maxdepth: 1
           :numbered:
-          :caption: Separations fundamentals
+          :caption: Separations
           
-          Thermodynamics
-          Distillation modeling & design <distillation>
-          Multi-stage mixer-settlers <mixer_settlers>
+          Thermodynamic fundamentals <Thermodynamics>
+          Distillation modeling & design <Distillation>
+          Multi-stage mixer-settlers <Mixer_settlers>
