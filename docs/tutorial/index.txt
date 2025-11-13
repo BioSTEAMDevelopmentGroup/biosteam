@@ -75,9 +75,8 @@ User guide
        .. toctree::
           :maxdepth: 1
           :numbered:
-          :caption: Equilibrium separators
+          :caption: Separations fundamentals
           
-          Equations of state & activity models <EOS_gamma>
-          Single-stage phase equilibrium <phase_equilibrium_units>
+          Thermodynamics
           Distillation modeling & design <distillation>
           Multi-stage mixer-settlers <mixer_settlers>
