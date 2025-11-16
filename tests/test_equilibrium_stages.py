@@ -293,7 +293,7 @@ def test_distillation():
         N_stages=10,
         ins=[hot_extract],
         feed_stages=[5],
-        outs=['', 'bottoms_product', 'distillate'],
+        outs=['distillate', 'bottoms_product'],
         full_condenser=True,
         reflux=1.0,
         boilup=3.5,
@@ -302,9 +302,8 @@ def test_distillation():
     )
     distillation.simulate()
     flows = [
-        [0.0, 0.0, 0.0],
+        [22.055922550575424, 0.1438997998268773, 87.15249997005776],
         [0.11207744942457795, 4.350500200173122, 22.35850002994225],
-        [22.055922550575424, 0.1438997998268773, 87.15249997005776]
     ]
     for i, j in zip(distillation.outs, flows):    
         assert_allclose(i.mol, j, rtol=1e-3, atol=1e-3)

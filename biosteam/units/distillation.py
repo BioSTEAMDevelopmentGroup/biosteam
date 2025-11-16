@@ -431,6 +431,55 @@ class Distillation(Unit, isabstract=True):
             self.reboiler-0, ('boilup', self-1), thermo=reboiler_thermo,
         )
     
+    def to_rigorous_column(self, dP=None, kwargs_only=False, print_code=False, **kwargs):
+        design = self.design_results
+        feed_stage = int(design['Theoretical feed stage'])
+        N_stages = int(design['Theoretical stages'])
+        R = design['Reflux']
+        flow_split = self.outs[1].F_mol / self.ins[0].F_mol
+        if dP is None:
+            dP = 690.0 # Heuristically, pressure drops are between 0.35 to 1.03 kPa
+        if dP:
+            P_reboiler = self.outs[1].P
+            P = [P_reboiler + i * dP for i in range(N_stages)]
+        else:
+            P = self.P
+        kwargs = dict(
+            N_stages=N_stages, 
+            feed_stages=[feed_stage],
+            LHK=self.LHK,
+            stage_specifications={
+                0: ('Reflux', R), 
+                -1: ('Flow', flow_split),
+            },
+            P=P,
+            **kwargs,
+        )
+        if print_code:
+            kwargs_code = kwargs.copy()
+            kwargs_code['P'] = f'[{self.P} + i*{dP} for i in range({N_stages})]'
+            kwargs_code['stage_specifications'] = {
+                0: ('Reflux', round(R, 3)), 
+                -1: ('Flow', round(flow_split, 5)),
+            }
+            code = (
+                f'MESHDistillation(\n'
+                f"    ins=[{', '.join([i.ID for i in self.ins])}],\n"
+                f"    outs=[{', '.join([i.ID for i in self.outs])}]"
+            )
+            code += bst.repr_kwargs(kwargs_code, dlim=',\n    ')
+            code += '\n)'
+            print(code)
+        if kwargs_only: 
+            return kwargs
+        return MESHDistillation(
+            None,
+            ins=self.ins, 
+            outs=self.outs,
+            thermo=self.thermo,
+            **kwargs
+        )
+    
     @property
     def distillate(self):
         return self.outs[0]
@@ -866,11 +915,7 @@ class Distillation(Unit, isabstract=True):
         liq = reboiler.ins[0]
         liq.mix_from([bottoms_product, boilup], energy_balance=False)
         liq.phase = 'l'
-        liq_T = liq.bubble_point_at_P().T
-        if liq_T > bp.T: liq_T = bp.T - 0.1
-        liq.T = liq_T
-        self.pump.ins[0].copy_like(liq)
-        self.pump.simulate()
+        liq.T = bp.T
         self.bottoms_split.simulate()
         if self._partial_condenser: self.reflux_drum.simulate()
     
@@ -878,24 +923,25 @@ class Distillation(Unit, isabstract=True):
         reboiler = self.reboiler
         condenser = self.condenser
         Q_condenser = condenser.outs[0].H - condenser.ins[0].H
+        condenser_kwargs = dict(duty=Q_condenser)
         H_out = self.H_out
         H_in = self.H_in
         Q_overall_boiler =  H_out - H_in - Q_condenser
-        Q_boiler = reboiler.outs[0].H - reboiler.ins[0].H
-        if Q_boiler < Q_overall_boiler:
-            liquid = reboiler.ins[0]
-            H_out_boiler = reboiler.outs[0].H
-            try:
-                liquid.H = H_out_boiler - Q_overall_boiler
-            except:
-                liquid.phase = 'l'
-                boiler_kwargs = dict(duty=Q_boiler)                
-            else:
-                boiler_kwargs = dict(duty=Q_overall_boiler)
-            condenser_kwargs = dict(duty=Q_condenser)
+        H_out_boiler = reboiler.outs[0].H
+        liquid_in = reboiler.ins[0]
+        vapor = reboiler.outs[0]
+        try:
+            liquid_in.H = H_out_boiler - Q_overall_boiler
+        except:
+            liq_T = liquid_in.bubble_point_at_P().T
+            if liq_T > vapor.T: liq_T = vapor.T - 0.1
+            vapor.T = liq_T
+            Q_boiler = reboiler.outs[0].H - reboiler.ins[0].H
+            boiler_kwargs = dict(duty=Q_boiler)     
         else:
-            boiler_kwargs = dict(duty=Q_boiler)
-            condenser_kwargs = dict(duty=Q_condenser)
+            boiler_kwargs = dict(duty=Q_overall_boiler)
+        self.pump.ins[0].copy_like(liquid_in)
+        self.pump.simulate()
         reboiler.simulate(
             run=False,
             design_kwargs=boiler_kwargs,

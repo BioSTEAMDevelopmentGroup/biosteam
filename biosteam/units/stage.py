@@ -2071,12 +2071,14 @@ class MultiStageEquilibrium(Unit):
     damping = 0 # Damping factor; defined as x_(i+1) = damping * x_i + (1 - damping) * f(x_i)
     minimum_residual_reduction = 0.25 # Minimum fractional reduction in residual for simulation.
     iteration_memory = 10 # Length of recorded iterations.
+    preconditioning_tolerance = 1e-3
+    preconditioning_relative_tolerance = 1e-3
     inside_maxiter = 100
     default_max_attempts = 5
     default_maxiter = 100
-    default_optimize_result = True
-    default_tolerance = 1e-5
-    default_relative_tolerance = 1e-4
+    default_optimize_result = False
+    default_tolerance = 1e-6
+    default_relative_tolerance = 1e-6
     default_algorithms = ('inside out', 'phenomena', 'simultaneous correction', 'sequential modular')
     default_inside_loop_algorithm = 'simultaneous correction'
     decomposition_algorithms = {
@@ -2258,7 +2260,7 @@ class MultiStageEquilibrium(Unit):
             N_given = len(outs)
             N_outs = 2 + N_side_draws 
             top_mark = 2 + len(top_side_draws)
-            if stage_specifications[0] == ('Reflux', inf) and N_given < N_outs:
+            if stage_specifications.get(0) == ('Reflux', inf) and N_given < N_outs:
                 # Empty vapor is not given (for full condenser scenario)
                 tsd_iter = iter(outs[2:top_mark])
                 bsd_iter = iter([outs[0], *outs[top_mark:]])
@@ -2385,6 +2387,9 @@ class MultiStageEquilibrium(Unit):
     
     
     # %% Optimization
+    
+    def residual(self):
+        return self._objective(self._get_point())
     
     def _get_point(self, x=None):
         if x is None: x = np.zeros(self._point_shape)
@@ -2520,12 +2525,12 @@ class MultiStageEquilibrium(Unit):
         x = self.hot_start()
         algorithms = self.algorithms
         methods = self.methods
-        optimize_result = self.optimize_result
+        optimize_result = self.optimize_result and 'K' not in self.partition_data
         f = self._iter
         analysis_mode = self._convergence_analysis_mode
         maxiter = self.maxiter
-        xtol = 100 * self.tolerance if optimize_result else self.tolerance
-        rtol = 100 * self.relative_tolerance if optimize_result else self.relative_tolerance
+        xtol = self.preconditioning_tolerance if optimize_result else self.tolerance
+        rtol = self.preconditioning_relative_tolerance if optimize_result else self.relative_tolerance
         self.iter = 0
         for n in range(self.max_attempts):
             self.attempt = n
@@ -2559,7 +2564,7 @@ class MultiStageEquilibrium(Unit):
                     break
             else: continue
             break
-        if optimize_result and 'K' not in self.partition_data: x = self._simultaneous_correction(x, 'hybr')
+        if optimize_result: x = self._simultaneous_correction(x, 'hybr')
         self._set_point(x)
         # Last simulation to force mass balance
         self.update_mass_balance()
