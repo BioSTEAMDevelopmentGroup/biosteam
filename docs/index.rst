@@ -191,7 +191,7 @@ tools for sustainability assessments. Here is a short list of related publicatio
     
   #. `Hydrothermal-Based Wastewater Solids Management for Targeted Resource Recovery and Decarbonization in the Contiguous U.S. Environ. Sci. Technol. 2025 <https://doi.org/10.1021/acs.est.5c07190>`_
 
-  #. `Recycling of Single-Use Multilayer Plastics for Biomanufacturing with Solvent-Targeted Recovery and Precipitation. ACS Sustainable Chem. Eng. 2025 <https://doi.org/10.1021/acssuschemeng.5c06479`_
+  #. `Recycling of Single-Use Multilayer Plastics for Biomanufacturing with Solvent-Targeted Recovery and Precipitation. ACS Sustainable Chem. Eng. 2025 <https://doi.org/10.1021/acssuschemeng.5c06479>`_
   
   #. `Screening green solvents for multilayer plastic film recycling processes. Computers & Chemical Engineering 2025 <https://doi.org/10.1016/j.compchemeng.2025.109129>`_
 
