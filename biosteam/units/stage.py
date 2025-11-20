@@ -2245,6 +2245,9 @@ class MultiStageEquilibrium(Unit):
             partition_stage = False
         self.N_stages = N_stages
         if not isinstance(P, Iterable): P = [P] * N_stages 
+        if len(P) != N_stages: 
+            dP = P[-1] - P[0] / N_stages
+            P = [P[0] + i * dP for i in range(N_stages)]
         self.multi_stream = tmo.MultiStream(None, P=P[N_stages // 2], phases=phases, thermo=self.thermo)
         self.P = np.array(P)
         self.T = T

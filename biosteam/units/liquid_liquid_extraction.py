@@ -1188,8 +1188,9 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
     
     """
     _side_draw_names = ('extract_side_draws', 'raffinate_side_draws')
+    default_algorithms = ('phenomena',)
     _units = MixerSettler._units
-    default_maxiter = 20
+    default_maxiter = 50
     
     def _init(self, N_stages, feed_stages=None, extract_side_draws=None, 
               raffinate_side_draws=None, partition_data=None, top_chemical=None,  
@@ -1268,8 +1269,10 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
         N_stages = self.N_stages
         mixer = self.mixer
         settler = self.settler
-        mixer._cost()
-        settler._cost()
+        for u in (mixer, settler):
+            u._setup()
+            u._cost()
+            u._summary()
         self.power_utility.copy_like(mixer.power_utility)
         self.power_utility.scale(N_stages)
         purchase_costs = self.purchase_costs
@@ -1279,11 +1282,5 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
         baseline_purchase_costs['Mixers and agitators'] = N_stages * mixer.purchase_cost
         baseline_purchase_costs['Settlers'] = N_stages * settler.purchase_cost
         installed_costs = self.installed_costs
-        installed_costs['Mixers and agitators'] = N_stages * mixer.purchase_cost
-        installed_costs['Settlers'] = N_stages * settler.purchase_cost
-        
-    @property
-    def installed_cost(self):
-        N_stages = self.N_stages
-        return N_stages * (self.mixer.installed_cost + self.settler.installed_cost)
-        
+        installed_costs['Mixers and agitators'] = N_stages * mixer.installed_cost
+        installed_costs['Settlers'] = N_stages * settler.installed_cost
