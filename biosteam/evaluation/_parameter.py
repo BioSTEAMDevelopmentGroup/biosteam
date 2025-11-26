@@ -12,8 +12,40 @@ __all__ = ('Parameter',)
 from ._feature import Feature
 from ..utils import format_title
 import biosteam as bst
-from chaospy import distributions as shape
+from warnings import warn
 from inspect import signature
+
+try:
+    from chaospy import distributions as shape
+except:
+    warn('chaospy not installed; cannot use automation features for uncertainty and optimization', RuntimeWarning, stacklevel=2)
+else:
+    # Fix compatibility with new chaospy version
+    import chaospy as cp
+    version_components = cp.__version__.split('.')
+    CP_MAJOR, CP_MINOR = int(version_components[0]), int(version_components[1])
+    CP4 = (CP_MAJOR, CP_MINOR) >= (4, 0)
+    if CP4:
+        def save_repr_init(f):
+            defaults = list(signature(f).parameters.values())[1:]
+            defaults = {i.name: i.default for i in defaults}
+            def init(self, *args, **kwargs):
+                if not hasattr(self, '_repr'):
+                    self._repr = params = defaults.copy()
+                    for i, j in zip(params, args): params[i] = j
+                    params.update(kwargs)
+                f(self, *args, **kwargs)
+            return init
+        
+        shapes = cp.distributions
+        Distribution = cp.distributions.Distribution
+        baseshapes = set([i for i in cp.distributions.baseclass.__dict__.values()
+                          if isinstance(i, type) and issubclass(i, Distribution)])
+        for i in shapes.__dict__.values():
+            if isinstance(i, type) and issubclass(i, Distribution) and i not in baseshapes:
+                i.__init__ = save_repr_init(i.__init__)
+        del save_repr_init, shapes, baseshapes, Distribution, i
+    del version_components, CP_MAJOR, CP_MINOR, CP4
 
 class Parameter(Feature):
     """

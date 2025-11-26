@@ -117,8 +117,13 @@ Installation
    
       $ git clone --depth 10 git://github.com/BioSTEAMDevelopmentGroup/biosteam
 
-#. BioSTEAM uses `Graphviz <http://www.graphviz.org/>`__ to make flowsheet diagrams. 
-   You will need to install Graphviz separately as follows:
+#. BioSTEAM uses `Graphviz <http://www.graphviz.org/>`__ to make flowsheet diagrams. To properly install Graphviz in an anaconda distribution, run the following line:
+
+   .. code-block:: bash
+    
+      $ conda install python-graphviz
+
+#. If you **do not** have an anaconda distribution, you will need to install Graphviz separately as follows:
 
    * Windows: Download the EXE installer and follow the instructions listed `in this link <https://graphviz.org/download/>`__
 
@@ -133,19 +138,20 @@ Installation
      .. code-block:: bash
     
         $ brew install graphviz
-   
-#. To properly install Graphviz in an anaconda distribution, run the following line:
-
-   .. code-block:: bash
-    
-      $ conda install python-graphviz
 
 Common Issues
 -------------
 
+* **Unit and system diagrams are not displaying:**
+
+  Graphviz may not be properly installed or may be missing from your python path. 
+  Please follow the graphviz installation procedure outlined above.
+
 * **Cannot install/update BioSTEAM:**
 
-  If you are having trouble installing or updating BioSTEAM, it may be due to dependency issues. You can bypass these using:
+  If you are having trouble installing or updating BioSTEAM, it may be due to dependency issues. 
+  Some dependencies like chaospy/numpoly require Microsoft C++ Build Tools. Download and install the `C++ build tools here. <https://visualstudio.microsoft.com/visual-cpp-build-tools/>`__
+  You can also bypass dependency issues using:
   
   .. code-block:: bash
 
@@ -156,11 +162,6 @@ Common Issues
   .. code-block:: bash
 
      $ pip install biosteam==<version>
-
-* **Unit and system diagrams are not displaying:**
-
-  Graphviz may not be properly installed or may be missing from your python path. 
-  Please follow the graphviz installation procedure outlined above.
 
 Scientific Papers
 -----------------

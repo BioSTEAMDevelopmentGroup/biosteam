@@ -16,7 +16,6 @@ from scipy.spatial.distance import cdist
 from scipy.optimize import shgo, differential_evolution
 import numpy as np
 import pandas as pd
-from chaospy import distributions as shape
 from ._indicator import Indicator
 from ._feature import MockFeature
 from ._utils import var_indices, var_columns, indices_to_multiindex
@@ -30,6 +29,12 @@ from typing import Optional, Callable
 from ._parameter import Parameter
 from .evaluation_tools import load_default_parameters
 import pickle
+try:
+    from chaospy import distributions as shape
+    import chaospy as cp
+    Distribution = shape.baseclass.Distribution
+except:
+    Distribution = None
 
 __all__ = ('Model', 'EasyInputModel')
 
@@ -59,35 +64,6 @@ def create_function(code, namespace):
         return f
     function = wrapper_fn(code)
     return function
-
-# %% Fix compatibility with new chaospy version
-
-import chaospy as cp
-version_components = cp.__version__.split('.')
-CP_MAJOR, CP_MINOR = int(version_components[0]), int(version_components[1])
-CP4 = (CP_MAJOR, CP_MINOR) >= (4, 0)
-if CP4:
-    from inspect import signature
-    def save_repr_init(f):
-        defaults = list(signature(f).parameters.values())[1:]
-        defaults = {i.name: i.default for i in defaults}
-        def init(self, *args, **kwargs):
-            if not hasattr(self, '_repr'):
-                self._repr = params = defaults.copy()
-                for i, j in zip(params, args): params[i] = j
-                params.update(kwargs)
-            f(self, *args, **kwargs)
-        return init
-    
-    shapes = cp.distributions
-    Distribution = cp.distributions.Distribution
-    baseshapes = set([i for i in cp.distributions.baseclass.__dict__.values()
-                      if isinstance(i, type) and issubclass(i, Distribution)])
-    for i in shapes.__dict__.values():
-        if isinstance(i, type) and issubclass(i, Distribution) and i not in baseshapes:
-            i.__init__ = save_repr_init(i.__init__)
-    del signature, save_repr_init, shapes, baseshapes, Distribution, i
-del version_components, CP_MAJOR, CP_MINOR, CP4
 
 # %% Simulation of process systems
 
@@ -324,7 +300,7 @@ class Model:
             element: Optional[Unit]=None, 
             coupled: Optional[bool]=None,
             name: Optional[str]=None, 
-            distribution: Optional[str|shape.baseclass.Distribution]=None, 
+            distribution: Optional[str|Distribution]=None, 
             units: Optional[str]=None, 
             baseline: Optional[float]=None, 
             bounds: Optional[tuple[float, float]]=None, 

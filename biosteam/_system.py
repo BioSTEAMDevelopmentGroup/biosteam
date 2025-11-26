@@ -212,14 +212,15 @@ class Configuration:
                 [(f(j) if callable(f:=bi[j]) else f) for j in delayed_index]
                 for bi in b
             ], float)
-            values = solve(A_delayed, b_delayed.T).T
+            values = np.array([solve(A_delayed[i], b_delayed[:, i]) for i in range(b.shape[1])]).T
             values[values < 0] = 0
             for obj, value in zip(objs, values): 
                 obj._update_material_flows(value, delayed_index)
         else:
             A, objs = dictionaries2array(A)
             if np.isnan(A).any(): raise RuntimeError('invalid number encountered')
-            values = solve(A, np.array(b).T).T
+            b = np.array(b)
+            values = np.array([solve(A[i], b[:, i]) for i in range(b.shape[1])]).T
             if np.isnan(values).any(): raise RuntimeError('invalid number encountered')
             values[(values < 0) & (values > -1e-6)] = 0
             masks = values < 0

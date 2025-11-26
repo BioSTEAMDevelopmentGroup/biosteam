@@ -7,7 +7,8 @@
 # for license details.
 """
 """
-from chaospy import distributions as shape
+try: from chaospy import distributions as shape
+except: pass
 import biosteam as bst
 
 __all__ = ('load_default_parameters',
