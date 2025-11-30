@@ -3787,14 +3787,45 @@ class System:
                 + self.get_net_utility_impact(key, displace=displace)
             )
     
-    def get_property_allocated_impact(self, key, name, basis, ignored=None, products=None):
+    def get_product_impact(self, 
+            product, key, allocation_method, 
+            basis, ignored=None, products=None
+        ):
+        if product == 'electricity':
+            power_utility = self.power_utility
+            if allocation_method == 'displacement':
+                return self.get_net_impact(key) / (power_utility.get_property(basis + '/hr') * self.operating_hours)
+            elif allocation_method == 'energy':
+                return self.get_property_allocated_impact(key, allocation_method, basis, ignored, products)
+            else:
+                raise ValueError(f"allocation method for 'electricity' must be either 'energy' or 'displacement', not {allocation_method!r}")
+        elif isinstance(product, Stream):
+            if allocation_method == 'displacement':
+                return self.get_net_impact(key) / (product.get_total_flow(basis + '/hr') * self.operating_hours)
+            else:
+                property_allocated_impact = self.get_property_allocated_impact(key, allocation_method, None, ignored, products)
+                return (
+                    property_allocated_impact 
+                    * self.get_property(product, allocation_method)
+                    / (product.get_total_flow(basis + '/hr') * self.operating_hours)
+                )
+        else:
+            raise ValueError("product must be a stream object or 'electricity'")
+    
+    def get_property_allocated_impact(self, key, name, basis=None, ignored=None, products=None):
         if ignored is None: ignored = frozenset()
         total_property = 0.
         heat_utilities = self.heat_utilities
         power_utility = self.power_utility
         operating_hours = self.operating_hours
         units = None if basis is None else basis + '/hr'
-        if name in bst.allocation_properties: name += '-allocation'
+        if name in bst.allocation_properties: 
+            name += '-allocation'
+        else:
+            raise ValueError(
+                f'allocation method {name!r} not registered in bst.settings.allocation_methods; '
+                 'to define a new allocation method use the bst.settings.define_allocation_property method'
+            )
         if hasattr(bst.PowerUtility, name):
             if power_utility.rate < 0.:
                 total_property += power_utility.get_property(name, units) * operating_hours
