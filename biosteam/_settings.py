@@ -184,6 +184,41 @@ def define_allocation_property(
         )
     bst.allocation_properties[name] = basis
 
+def define_impact_indicator(self, key: str, units: str):
+    """
+    Define the units of measure for an LCA impact indicator key.
+    
+    Parameters
+    ----------
+    key : 
+        Name of impact indicator.
+    units :
+        Units of measure for impact indicator.
+        
+    Notes
+    -----
+    This method is useful for setting characterization factors of 
+    streams and utilities in different units of measure.
+    
+    LCA displacement allocation tables also use the impact indicator 
+    units of measure defined here.
+    
+    Examples
+    --------
+    :doc:`../tutorial/Life_cycle_assessment`
+    
+    """
+    self.impact_indicators[key] = UnitsOfMeasure(units)
+
+def get_impact_indicator_units(self, key):
+    try:
+        return self.impact_indicators[key]
+    except KeyError:
+        raise ValueError(
+            f"impact indicator key '{key}' has no defined units; "
+             "units can be defined through `settings.define_impact_indicator`"
+        )
+
 Settings = settings.__class__
 Settings.CEPCI = CEPCI
 Settings.utility_characterization_factors = utility_characterization_factors
@@ -196,6 +231,8 @@ Settings.skip_simulation_of_units_with_empty_inlets = skip_simulation_of_units_w
 Settings.register_fee = Settings.register_credit = Settings.register_utility = register_utility
 Settings.allocation_properties = allocation_properties
 Settings.define_allocation_property = define_allocation_property
+Settings.define_impact_indicator = define_impact_indicator
+Settings.get_impact_indicator_units = get_impact_indicator_units
 
 # %% Register stream utilities
 
@@ -221,4 +258,7 @@ settings.define_allocation_property(
 )
 settings.define_allocation_property(
     'mass', 'kg', stream=lambda self: np.dot(self.chemicals.MW, self.mol)
+)
+settings.define_impact_indicator(
+    'WU', 'L' # Water usage is a special indicator native to BioSTEAM
 )

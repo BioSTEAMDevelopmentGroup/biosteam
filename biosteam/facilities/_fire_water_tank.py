@@ -19,3 +19,9 @@ __all__ = ('FireWaterTank',)
 class FireWaterTank(bst.Facility):
     ticket_name = 'FWT'
     network_priority = 0
+    _N_ins = _N_outs = 0
+    def _init(self, fire_water_flow_rate=8343):
+        self.fire_water_flow_rate = fire_water_flow_rate # Assumes 4 hr storage capacity
+    
+    def _design(self):
+        self.design_results['Flow rate'] = self.fire_water_flow_rate

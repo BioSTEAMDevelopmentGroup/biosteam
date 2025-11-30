@@ -3717,8 +3717,7 @@ class System:
         the impact indicator key.
         
         """
-        return sum([s.F_mass * s.characterization_factors[key] for s in self.feeds
-                    if key in s.characterization_factors]) * self.operating_hours
+        return sum([s.get_impact(key) for s in self.feeds]) * self.operating_hours
     
     def get_total_products_impact(self, key):
         """
@@ -3726,8 +3725,7 @@ class System:
         the impact indicator key.
         
         """
-        return sum([s.F_mass * s.characterization_factors[key] for s in self.products
-                    if key in s.characterization_factors]) * self.operating_hours
+        return sum([s.get_impact(key) for s in self.products]) * self.operating_hours
     
     def get_material_impact(self, stream, key):
         """
@@ -3814,6 +3812,15 @@ class System:
         if power_utility.rate > 0.:
             impact += power_utility.get_impact(key) * operating_hours
         impact += self.get_process_impact(key)
+        if key == 'WU':
+            # Displace recycled water
+            PWC = self.flowsheet(bst.ProcessWaterCenter)
+            recycles = (
+                PWC.recycled_reverse_osmosis_grade_water,
+                PWC.recycled_process_water
+            )
+            displaced = sum([i.imass['Water'] for i in recycles]) * self.operating_hours
+            impact -= displaced
         return impact / total_property
     
     def get_property_allocation_factors(self, name, basis=None, groups=(), ignored=None, products=None):
@@ -3897,6 +3904,9 @@ class System:
             [self], key, 
             product if isinstance(product, list) else [product],
         )
+    
+    def water_mass_balance_table(self):
+        return bst.report.water_mass_balance_table(self)
     
     @property
     def sales(self) -> float:

@@ -234,7 +234,7 @@ class Unit(AbstractUnit):
             if not cls._run:
                 if cls._N_ins == 1 and cls._N_outs == 1:
                     static(cls)
-                else:
+                elif (cls._N_ins or cls._N_outs):
                     raise UnitInheritanceError(
                         "Unit subclass with multiple inlet or outlet streams "
                         "must implement a '_run' method unless the "

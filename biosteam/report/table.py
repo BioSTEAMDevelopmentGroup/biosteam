@@ -25,6 +25,8 @@ __all__ = ('stream_table', 'stream_tables',
            'lca_inventory_table',
            'lca_property_allocation_factor_table',
            'lca_displacement_allocation_factor_table',
+           'lca_characterization_factor_table',
+           'water_mass_balance_table',
            'FOCTableBuilder')
 
 def _stream_key(s): # pragma: no coverage
@@ -79,8 +81,8 @@ def voc_table(
     if isa(systems, bst.System): systems = [systems]
     if isa(product_IDs, str): product_IDs = [product_IDs]
     product_IDs = [(i.ID if hasattr(i, 'ID') else i) for i in product_IDs]
-    inlet_cost_dct = {}
-    outlet_revenue_dct = {}
+    cost_dct = {}
+    revenue_dct = {}
     prices = bst.stream_prices
     factor = 1 / tmo.units_of_measure.convert(1, 'kg', functional_unit)
     
@@ -94,41 +96,51 @@ def voc_table(
     for sys in systems:
         electricity_cost = sys.power_utility.cost * sys.operating_hours
         if electricity_cost > 0.: 
-            dct = getsubdct(inlet_cost_dct, 'Electricity')
+            dct = getsubdct(cost_dct, 'Electricity')
             dct[sys] = (f"{bst.PowerUtility.price} $/kWh", electricity_cost)
         else:
-            dct = getsubdct(outlet_revenue_dct, 'Electricity production')
+            dct = getsubdct(revenue_dct, 'Electricity production')
             dct[sys] = (f"{bst.PowerUtility.price} $/kWh", -electricity_cost)
         inlet_flows = sys.get_inlet_cost_flows()
         for name, flow in inlet_flows.items():
-            dct = getsubdct(inlet_cost_dct, name)
             price = prices[name]
-            dct[sys] = (price * factor, factor * price * flow)
+            if price > 0:
+                dct = getsubdct(cost_dct, name)
+                dct[sys] = (price * factor, factor * price * flow)
+            else:
+                price *= -1
+                dct = getsubdct(revenue_dct, name)
+                dct[sys] = (price * factor, factor * price * flow)
         outlet_flows = sys.get_outlet_revenue_flows()
         for name, flow in outlet_flows.items():
-            dct = getsubdct(outlet_revenue_dct, name)
             price = prices[name]
-            dct[sys] = (price * factor, factor * price * flow)
+            if price > 0:
+                dct = getsubdct(revenue_dct, name)
+                dct[sys] = (price * factor, factor * price * flow)
+            else:
+                price *= -1
+                dct = getsubdct(cost_dct, name)
+                dct[sys] = (price * factor, factor * price * flow)
         
     def reformat(name):
         name = name.replace('_', ' ')
         if name.islower(): name= name.capitalize()
         return name
     
-    inlet_cost = sorted(inlet_cost_dct)
-    outlet_revenue = sorted(outlet_revenue_dct)
+    cost = sorted(cost_dct)
+    revenue = sorted(revenue_dct)
     system_heat_utilities = [bst.HeatUtility.sum_by_agent(sys.heat_utilities) for sys in systems]
     feeds = sorted({i.ID for i in sum([i.feeds for i in systems], []) if any([sys.has_market_value(i) for sys in systems])})
     coproducts = sorted({i.ID for i in sum([i.products for i in systems], []) if any([sys.has_market_value(i) for sys in systems]) and i.ID not in product_IDs})
     heating_agents = sorted(set(sum([[i.agent.ID for i in hus if i.cost and i.flow * i.duty > 0. and abs(i.flow) > 1e-6] for hus in system_heat_utilities], [])))
     cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if i.cost and i.flow * i.duty < 0. and abs(i.flow) > 1e-6] for hus in system_heat_utilities], [])))
-    index = {j: i for (i, j) in enumerate(feeds + heating_agents + cooling_agents + inlet_cost + coproducts + outlet_revenue)}
+    index = {j: i for (i, j) in enumerate(feeds + heating_agents + cooling_agents + cost + coproducts + revenue)}
     table_index = [*[('Raw materials', reformat(i)) for i in feeds],
                    *[('Heating utilities', reformat(i)) for i in heating_agents],
                    *[('Cooling utilities', reformat(i)) for i in cooling_agents],
-                   *[('Other utilities & fees', i) for i in inlet_cost],
+                   *[('Other utilities & fees', i) for i in cost],
                    *[('Co-products & credits', reformat(i)) for i in coproducts],
-                   *[('Co-products & credits', reformat(i)) for i in outlet_revenue]]
+                   *[('Co-products & credits', reformat(i)) for i in revenue]]
     table_index.append(('Variable operating cost', ''))
     if with_products:
         table_index.extend(
@@ -138,7 +150,7 @@ def voc_table(
     N_cols = len(systems) + 1
     N_rows = len(table_index)
     data = np.zeros([N_rows, N_cols], dtype=object)
-    N_coproducts = len(coproducts) + len(outlet_revenue)
+    N_coproducts = len(coproducts) + len(revenue)
     for col, sys in enumerate(systems):
         for stream in sys.feeds + sys.products:
             if stream.ID in product_IDs and not with_products: continue
@@ -161,7 +173,7 @@ def voc_table(
                 price += f"{hu.agent.regeneration_price} USD/kmol"
             data[ind, 0] = price 
             data[ind, col + 1] = cost / 1e6 # million USD / yr
-        for sysdct in (inlet_cost_dct, outlet_revenue_dct):
+        for sysdct in (cost_dct, revenue_dct):
             for i, dct in sysdct.items():
                 if sys not in dct: continue
                 price, cost = dct[sys]
@@ -187,8 +199,101 @@ def voc_table(
     else:
         return data, table_index, (f'Price [$/{functional_unit}]', *columns)
 
-def lca_inventory_table(systems, key, items=(), system_names=None):
+def lca_characterization_factor_table(systems):
     isa = isinstance
+    if isa(systems, bst.System): systems = [systems]
+    feed_streams = sum([i.feeds for i in systems], [])
+    product_streams = sum([i.products for i in systems], [])
+    impact_indicators = bst.settings.impact_indicators
+    keys = tuple(impact_indicators)
+    PowerUtility = bst.PowerUtility
+    other_utilities = []
+    other_byproducts = []
+    process_items = []
+    other_values = {}
+    def set_value(name, value):
+        other_values[name] = value
+            
+    cfs = [PowerUtility.get_CF(key, production=False) for key in keys]
+    if cfs and any([i.power_utility.rate > 0 for i in systems]):
+        other_utilities.append('Electricity consumption')
+        values = [(f'{i} [{impact_indicators[j]}/kWh]' if i else 0) for i, j in zip(cfs, keys)]
+        set_value('Electricity consumption', values)
+    cfs = [PowerUtility.get_CF(key, consumption=False) for key in keys]
+    if cfs and any([i.power_utility.rate < 0 for i in systems]):
+        other_byproducts.append('Electricity production')
+        values = [(f'{i} [{impact_indicators[j]}/kWh]' if i else 0) for i, j in zip(cfs, keys)]
+        set_value('Electricity production', values)
+    for sys in systems:
+        for key, process_impact_items in sys.process_impact_items.items():
+            for item in process_impact_items:
+                if item.name not in process_items: process_items.append(item.name)
+                value = item.inventory() * item.CF
+                if not value: continue
+                value = [0] * len(keys)    
+                if item.basis != 'kg':
+                    value[keys.index(key)] = f"{item.CF:.3g} [{impact_indicators[key]}/{item.basis}]"
+                else:
+                    value[keys.index(key)] = item.CF
+                set_value(item.name, value)
+        
+    def reformat(name):
+        name = name.replace('_', ' ')
+        if name.islower(): name= name.capitalize()
+        return name
+    
+    feeds = sorted({i.ID for i in feed_streams if any([k in i.characterization_factors for k in keys]) and not i.isempty()})
+    coproducts = sorted({i.ID for i in product_streams if any([k in i.characterization_factors for k in keys]) and not i.isempty()})
+    hus = bst.HeatUtility.sum_by_agent(sum([sys.heat_utilities for sys in systems], []))
+    input_heating_agents = sorted(set([
+        i.agent.ID for i in hus
+        if i.characterization_factors
+        and i.flow * i.duty > 0. and i.flow > 1e-6
+    ]))
+    input_cooling_agents = sorted(set([
+        i.agent.ID for i in hus
+        if i.characterization_factors
+        and i.flow * i.duty < 0. and i.flow > 1e-6
+    ]))
+    output_heating_agents = sorted(set(
+        [i.agent.ID for i in hus
+         if i.characterization_factors
+         and i.flow * i.duty > 0. and i.flow < -1e-6
+    ]))
+    output_cooling_agents = sorted(set([
+        i.agent.ID for i in hus
+        if i.characterization_factors
+        and i.flow * i.duty < 0. and i.flow < -1e-6
+    ]))
+    index = {j: i for (i, j) in enumerate(feeds + input_heating_agents + input_cooling_agents + other_utilities + coproducts + other_byproducts + output_heating_agents + output_cooling_agents + process_items)}
+    table_index = [*[('Inputs', reformat(i)) for i in feeds + input_heating_agents + input_cooling_agents + other_utilities],
+                   *[('Outputs', reformat(i)) for i in coproducts + other_byproducts + output_heating_agents + output_cooling_agents],
+                   *[(i, '') for i in process_items]]
+    N_cols = len(keys)
+    N_rows = len(table_index)
+    data = np.zeros([N_rows, N_cols], dtype=object)
+    for col, key in enumerate(keys):
+        for stream in feed_streams + product_streams:
+            try: ind = index[stream.ID]
+            except: continue
+            data[ind, col] = stream.characterization_factors.get(key, 0)
+        for hu in hus:
+            try: ind = index[hu.agent.ID]
+            except: continue
+            CF, units = hu.get_CF(hu.agent.ID, key)
+            data[ind, col] = f"{CF:.3g} [{impact_indicators[key]}/{units}]"
+        for i, value in other_values.items():
+            ind = index[i]
+            data[ind, col] = value[col]
+    columns = [f'{i} [{j}/kg]' for i, j in impact_indicators.items()]
+    return pd.DataFrame(data, 
+                        index=pd.MultiIndex.from_tuples(table_index),
+                        columns=columns)
+
+def lca_inventory_table(systems, keys=None, items=(), system_names=None):
+    isa = isinstance
+    if isa(keys, str): keys = (keys,)
+    if keys is None: keys = tuple(bst.settings.impact_indicators)
     if items:
         item = items[0]
         if isa(item, list): 
@@ -213,35 +318,34 @@ def lca_inventory_table(systems, key, items=(), system_names=None):
         electricity_consumption = sys.power_utility.rate * sys.operating_hours
         if electricity_consumption > 0.: 
             if 'Electricity [kWhr/yr]' not in other_utilities: other_utilities.append('Electricity [kWhr/yr]')
-            cf = PowerUtility.get_CF(key, production=False)
-            if cf:
+            if any([PowerUtility.get_CF(i, production=False) for i in keys]):
                 set_value('Electricity [kWhr/yr]', sys, electricity_consumption)
         elif electricity_consumption < 0.:
             if 'Electricity [kWhr/yr]' not in other_byproducts: other_byproducts.append('Electricity [kWhr/yr]')
-            cf = PowerUtility.get_CF(key, consumption=False)
-            if cf:
+            if any([PowerUtility.get_CF(i, consumption=False) for i in keys]):
                 set_value('Electricity [kWhr/yr]', sys, -electricity_consumption)
-        try: process_impact_items = sys.process_impact_items[key]
-        except: continue
-        for item in process_impact_items:
-            if item.name not in process_items: process_items.append(item.name)
-            value = item.inventory()
-            if item.basis != 'kg':
-                value = f"{value} [{item.basis}/yr]"
-            set_value(item.name, sys, value)
+        for key in keys:
+            try: process_impact_items = sys.process_impact_items[key]
+            except: continue
+            for item in process_impact_items:
+                if item.name not in process_items: process_items.append(item.name)
+                value = item.inventory()
+                if item.basis != 'kg':
+                    value = f"{value} [{item.basis}/yr]"
+                set_value(item.name, sys, value)
         
     def reformat(name):
         name = name.replace('_', ' ')
         if name.islower(): name= name.capitalize()
         return name
     
-    feeds = sorted({i.ID for i in sum([i.feeds for i in systems], []) if key in i.characterization_factors})
-    coproducts = sorted({i.ID for i in sum([i.products for i in systems], []) if key in i.characterization_factors or i in items})
+    feeds = sorted({i.ID for i in sum([i.feeds for i in systems], []) if any([k in i.characterization_factors for k in keys]) and not i.isempty()})
+    coproducts = sorted({i.ID for i in sum([i.products for i in systems], []) if (any([k in i.characterization_factors for k in keys]) or i in items) and not i.isempty()})
     system_heat_utilities = [bst.HeatUtility.sum_by_agent(sys.heat_utilities) for sys in systems]
-    input_heating_agents = sorted(set(sum([[i.agent.ID for i in hus if (i.agent.ID, key) in i.characterization_factors and i.flow * i.duty > 0. and i.flow > 1e-6] for hus in system_heat_utilities], [])))
-    input_cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if (i.agent.ID, key) in i.characterization_factors and i.flow * i.duty < 0. and i.flow > 1e-6] for hus in system_heat_utilities], [])))
-    output_heating_agents = sorted(set(sum([[i.agent.ID for i in hus if (i.agent.ID, key) in i.characterization_factors and i.flow * i.duty > 0. and i.flow < -1e-6] for hus in system_heat_utilities], [])))
-    output_cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if (i.agent.ID, key) in i.characterization_factors and i.flow * i.duty < 0. and i.flow < -1e-6] for hus in system_heat_utilities], [])))
+    input_heating_agents = sorted(set(sum([[i.agent.ID for i in hus if any([(i.agent.ID, k) in i.characterization_factors for k in keys]) and i.flow * i.duty > 0. and i.flow > 1e-6] for hus in system_heat_utilities], [])))
+    input_cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if any([(i.agent.ID, k) in i.characterization_factors for k in keys]) and i.flow * i.duty < 0. and i.flow > 1e-6] for hus in system_heat_utilities], [])))
+    output_heating_agents = sorted(set(sum([[i.agent.ID for i in hus if any([(i.agent.ID, k) in i.characterization_factors for k in keys]) and i.flow * i.duty > 0. and i.flow < -1e-6] for hus in system_heat_utilities], [])))
+    output_cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if any([(i.agent.ID, k) in i.characterization_factors for k in keys]) and i.flow * i.duty < 0. and i.flow < -1e-6] for hus in system_heat_utilities], [])))
     index = {j: i for (i, j) in enumerate(feeds + input_heating_agents + input_cooling_agents + other_utilities + coproducts + other_byproducts + output_heating_agents + output_cooling_agents + process_items)}
     table_index = [*[('Inputs', reformat(i)) for i in feeds + input_heating_agents + input_cooling_agents + other_utilities],
                    *[('Outputs', reformat(i)) for i in coproducts + other_byproducts + output_heating_agents + output_cooling_agents],
@@ -257,14 +361,16 @@ def lca_inventory_table(systems, key, items=(), system_names=None):
         for hu in system_heat_utilities[col]:
             try: ind = index[hu.agent.ID]
             except: continue
-            flow, units = hu.get_inventory(key)
-            if flow:
-                flow = sys.operating_hours * flow
-                units = units.split('/')[0] + '/yr'
-                if units == 'kg/yr':
-                    data[ind, col] = flow
-                else:
-                    data[ind, col] = f"{flow} [{units}]"
+            for key in keys:
+                flow, units = hu.get_inventory(key)
+                if flow:
+                    flow = sys.operating_hours * flow
+                    units = units.split('/')[0] + '/yr'
+                    if units == 'kg/yr':
+                        data[ind, col] = flow
+                    else:
+                        data[ind, col] = f"{flow} [{units}]"
+                    continue
         for i, subdct in other_values.items():
             if sys not in subdct: continue
             value = subdct[sys]
@@ -329,8 +435,8 @@ def lca_displacement_allocation_table(systems, key, items,
             item_name = item.ID.replace('_', ' ')
         else:
             item_name = item[0].ID.replace('_', ' ')
-    feeds = sorted({i.ID for i in sum([i.feeds for i in systems], []) if key in i.characterization_factors})
-    coproducts = sorted({i.ID for i in sum([i.products for i in systems], []) if key in i.characterization_factors})
+    feeds = sorted({i.ID for i in sum([i.feeds for i in systems], []) if key in i.characterization_factors and not i.isempty()})
+    coproducts = sorted({i.ID for i in sum([i.products for i in systems], []) if key in i.characterization_factors and not i.isempty()})
     system_heat_utilities = [bst.HeatUtility.sum_by_agent(sys.heat_utilities) for sys in systems]
     input_heating_agents = sorted(set(sum([[i.agent.ID for i in hus if (i.agent.ID, key) in i.characterization_factors and i.flow * i.duty > 0. and i.flow > 1e-6] for hus in system_heat_utilities], [])))
     input_cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if (i.agent.ID, key) in i.characterization_factors and i.flow * i.duty < 0. and i.flow > 1e-6] for hus in system_heat_utilities], [])))
@@ -811,4 +917,127 @@ def stream_table(streams, flow='kg/hr', percent=True, chemicals=None, **props):
     )
     return DataFrame(array, columns=IDs, index=index)
 
-
+def water_mass_balance_table(system):
+    ### Example table ###
+    # Inputs, Stream-name:
+    # - dilution water
+    # Treated/recycled water, Stream-name:
+    # - RO water
+    # Lost, Stream-name:
+    # - emissions
+    # - brine
+    # Reacted, Unit-name: 
+    # - boiler combustion
+    # - fermentation
+    # Mass balance error (Inputs - Treated water - Lost - Reacted)
+    name = tmo.utils.format_title
+    index = []
+    values = []
+    ignored = {
+        'cooling_water',
+        'return_cooling_water',
+        'chilled_water',
+        'return_chilled_water',
+        'recirculated_chilled_water',
+        'fire_water',
+    }
+    def feed_(stream):
+        value = stream.imass['Water']
+        if not value or stream.ID in ignored: return 0
+        values.append(
+            value
+        )
+        index.append(
+            ('Feeds', name(stream.ID))
+        )
+        return value
+    
+    def recycle_(stream):
+        value = stream.imass['Water']
+        if not value: return 0
+        values.append(
+            value
+        )
+        index.append(
+            ('Treated/recycled', name(stream.ID))
+        )
+        return value
+        
+    def lost_(stream):
+        value = stream.imass['Water']
+        if abs(value) < 0.01 or stream.ID in ignored: return 0
+        values.append(
+            value
+        )
+        index.append(
+            ('Losses', name(stream.ID))
+        )
+        return value
+    
+    def reacted_(unit):
+        reacted = (
+            sum([i.imass['Water'] for i in unit.ins])
+            - sum([i.imass['Water'] for i in unit.outs])
+        )
+        if abs(reacted) < 0.1: return 0
+        index.append(
+            ('Reacted', name('_'.join([unit.line, unit.ID])))
+        )
+        values.append(
+            reacted
+        )
+        return reacted
+    
+    PWC = system.flowsheet(bst.ProcessWaterCenter)
+    feed = 0
+    for s in system.feeds:
+        if s.sink is PWC: continue
+        feed += feed_(s)
+    # index.append(
+    #     ('Net feeds', '')
+    # )
+    # values.append(
+    #     feed
+    # )
+    recycled = 0
+    for s in (PWC.recycled_reverse_osmosis_grade_water, 
+              PWC.recycled_process_water):
+        if isinstance(s.source, bst.Mixer):
+            for i in s.source.ins: recycled += recycle_(i)
+        else:
+            recycled += recycle_(i)
+    # index.append(
+    #     ('Net treated/recycled', '')
+    # )
+    # values.append(
+    #     recycled
+    # )
+    lost = 0
+    for i in system.products:
+        if i.source is PWC: continue
+        lost += lost_(i)
+    # index.append(
+    #     ('Net lost', '')
+    # )
+    # values.append(
+    #     lost
+    # )
+    reacted = 0
+    for i in system.units:
+        reacted += reacted_(i)
+    # index.append(
+    #     ('Net reacted', '')
+    # )
+    # values.append(
+    #     reacted
+    # )
+    index.append(
+        ('Mass balance error (Feeds - Recycled - Losses - Reacted)', '')
+    )
+    values.append(
+        round(feed - recycled - lost - reacted, 1)
+    )
+    return pd.DataFrame(
+        values, pd.MultiIndex.from_tuples(index)
+    )
+    

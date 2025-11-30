@@ -122,8 +122,15 @@ def create_facilities(
         if HXN: bst.HeatExchangerNetwork(**HXN_kwargs)
         if feedstock is not None:
             if CIP:
-                CIP = bst.Stream('CIP', Water=126, units='kg/hr')
-                CIP_package = bst.CIPpackage(ins=CIP, **CIP_kwargs)
+                CIP = bst.Stream(
+                    'bioreactor_cleaning_chemicals', 
+                    Water=126, units='kg/hr'
+                )
+                CIP_package = bst.CIPpackage(
+                    ins=CIP, 
+                    outs='bioreactor_cleaning_wastewater',
+                    **CIP_kwargs
+                )
                 CIP_package.CIP_over_feedstock = 0.00121 if CIP_over_feedstock is None else CIP_over_feedstock
                 @CIP_package.add_specification(run=True)
                 def adjust_CIP(): CIP.imass['Water'] = feedstock.F_mass * CIP_package.CIP_over_feedstock
@@ -134,11 +141,10 @@ def create_facilities(
                 @ADP.add_specification(run=True)
                 def adjust_plant_air(): plant_air.imass['N2'] = feedstock.F_mass * ADP.plant_air_over_feedstock
             if FWT:
-                fire_water = bst.Stream('fire_water', Water=8343, units='kg/hr')
-                FT = bst.FireWaterTank(ins=fire_water, **FWT_kwargs)
+                FT = bst.FireWaterTank(**FWT_kwargs)
                 FT.fire_water_over_feedstock = 0.08 if fire_water_over_feedstock is None else fire_water_over_feedstock
                 @FT.add_specification(run=True)
-                def adjust_fire_water(): fire_water.imass['Water'] = feedstock.F_mass * FT.fire_water_over_feedstock
+                def adjust_fire_water(): FT.fire_water_flow_rate = feedstock.F_mass * FT.fire_water_over_feedstock
         if CHP:
             if 'autopopulate' not in CHP_kwargs:
                 CHP_kwargs = CHP_kwargs.copy()
@@ -154,7 +160,7 @@ def create_facilities(
             )
         if PWC:
             process_water_mixer = bst.Mixer(area or '',
-                ins=[] if recycle_process_water_streams is None else recycle_process_water_streams
+                ins=[] if recycle_process_water_streams is None else recycle_process_water_streams,
             )
             process_water_mixer.autopopulate = True if recycle_process_water_streams is None else False 
             
@@ -162,21 +168,24 @@ def create_facilities(
             def autopopulate_recycle_process_water_streams():
                 if process_water_mixer.autopopulate and not process_water_mixer.ins:
                     streams = bst.get_streams_from_context_level(0)
-                    process_water_mixer.ins.extend([i for i in streams if i.isproduct() and 'process_water' in i.ID])
-            
+                    process_water_mixer.ins.extend([i for i in streams if i.isproduct() and 'process_water' in i.ID and i.source is not PWC])
             process_water = process_water_mixer.outs[0]
             if treated_water_streams is None:
                 units = bst.main_flowsheet.unit.get_context_level(0)
                 treated_water_streams = [i.RO_treated_water for i in units if hasattr(i, 'RO_treated_water')]
             treated_water_mixer = bst.Mixer(area or '', ins=treated_water_streams)
             treated_water = treated_water_mixer.outs[0]
-            bst.ProcessWaterCenter(ins=[treated_water, 'makeup_RO_water', process_water, 'makeup_process_water'], **PWC_kwargs)
+            PWC = bst.ProcessWaterCenter(
+                ins=[treated_water, 'makeup_RO_water', process_water, 'makeup_process_water'], 
+                outs=['RO_treated_water', 'recycled_process_water', 'excess_water'],
+                **PWC_kwargs
+            )
     return sys.units
 
 @bst.SystemFactory(
     ID='CHP_sys',
-    ins=['makeup_water', 'natural_gas', 'FGD_lime', 'boiler_chemicals', 'air'],
-    outs=['emissions', 'blowdown', 'ash'],
+    ins=['boiler_makeup_water', 'natural_gas', 'FGD_lime', 'boiler_chemicals', 'air'],
+    outs=['emissions', 'boiler_blowdown_water', 'ash'],
     fixed_ins_size=False,
 )
 def create_coheat_and_power_system(
