@@ -323,8 +323,10 @@ class Distillation(Unit, isabstract=True):
             reboiler_thermo=None,
             partial_condenser=True,
             weir_height=0.1,
+            vlle=False,
         ):
         self.check_LHK = True
+        self._vlle = vlle
         
         # Operation specifications
         self.k = k
@@ -843,12 +845,12 @@ class Distillation(Unit, isabstract=True):
         reboiler_bottoms_product = self.reboiler.outs[0]['l']
         condenser_distillate.copy_like(distillate)
         reboiler_bottoms_product.copy_like(bottoms_product)
-        self._boilup_bubble_point = bp = reboiler_bottoms_product.bubble_point_at_P()
+        self._boilup_bubble_point = bp = reboiler_bottoms_product.bubble_point_at_P(lle=self._vlle)
         bottoms_product.T = bp.T
         if self._partial_condenser: 
             self._condenser_operation = p = condenser_distillate.dew_point_at_P()
         else:
-            self._condenser_operation = p = condenser_distillate.bubble_point_at_P()
+            self._condenser_operation = p = condenser_distillate.bubble_point_at_P(lle=self._vlle)
         self.condenser.T = self.condensate.T = condenser_distillate.T = distillate.T = p.T
         self.condenser.P = self.condensate.P = condenser_distillate.P = distillate.P = p.P
         
@@ -863,12 +865,12 @@ class Distillation(Unit, isabstract=True):
         feed = self.mixed_feed
         data = feed.get_data()
         H_feed = feed.H
-        try: dp = feed.dew_point_at_P()
+        try: dp = feed.dew_point_at_P(lle=self._vlle)
         except: pass
         else: feed.T = dp.T
         feed.phase = 'g'
         H_vap = feed.H
-        try: bp = feed.bubble_point_at_P()
+        try: bp = feed.bubble_point_at_P(lle=self._vlle)
         except: pass
         else: feed.T = bp.T
         feed.phase = 'l'
@@ -933,7 +935,7 @@ class Distillation(Unit, isabstract=True):
         try:
             liquid_in.H = H_out_boiler - Q_overall_boiler
         except:
-            liq_T = liquid_in.bubble_point_at_P().T
+            liq_T = liquid_in.bubble_point_at_P(lle=self._vlle).T
             if liq_T > vapor.T: liq_T = vapor.T - 0.1
             vapor.T = liq_T
             Q_boiler = reboiler.outs[0].H - reboiler.ins[0].H
@@ -1233,7 +1235,7 @@ class Distillation(Unit, isabstract=True):
 
 def compute_stages_McCabeThiele(P, operating_line,
                                 x_stages, y_stages, T_stages,
-                                x_limit, solve_Ty):
+                                x_limit, solve_Ty, lle=False):
     """
     Use the McCabe-Thiele method to find the specifications at every stage of
     the operating line before the maximum liquid molar fraction, `x_limit`. 
@@ -1271,7 +1273,7 @@ def compute_stages_McCabeThiele(P, operating_line,
         i += 1
         # Go Up
         x = np.array((xi, 1-xi))
-        T, y = solve_Ty(x, P)
+        T, y = solve_Ty(x, P, lle=lle)
         yi = y[0]
         y_stages.append(yi)
         T_stages.append(T)
@@ -1535,7 +1537,7 @@ class BinaryDistillation(Distillation, new_graphics=False):
         self._q_line_args = dict(q=q, zf=zf)
         
         solve_Ty = bottoms.get_bubble_point(LHK).solve_Ty
-        Rmin_intersection = lambda x: q_line(x) - solve_Ty(np.array((x, 1-x)), P)[1][0]
+        Rmin_intersection = lambda x: q_line(x) - solve_Ty(np.array((x, 1-x)), P, lle=self._vlle)[1][0]
         x_Rmin = brentq(Rmin_intersection, 0, 1)
         y_Rmin = q_line(x_Rmin)
         m = (y_Rmin-y_top)/(x_Rmin-y_top)
@@ -1563,12 +1565,12 @@ class BinaryDistillation(Distillation, new_graphics=False):
         self._y_stages = y_stages = [x_bot]
         self._T_stages = T_stages = []
         error = [None]
-        try: compute_stages_McCabeThiele(P, ss, x_stages, y_stages, T_stages, x_m, solve_Ty)
+        try: compute_stages_McCabeThiele(P, ss, x_stages, y_stages, T_stages, x_m, solve_Ty, lle=self._vlle)
         except RuntimeError as e: error[0] = e
         yi = y_stages[-1]
         xi = rs(yi)
         x_stages[-1] = xi if xi < 1 else 0.99999
-        try: compute_stages_McCabeThiele(P, rs, x_stages, y_stages, T_stages, y_top, solve_Ty)
+        try: compute_stages_McCabeThiele(P, rs, x_stages, y_stages, T_stages, y_top, solve_Ty, lle=self._vlle)
         except RuntimeError as e: error[0] = e
         
         # Find feed stage
@@ -1637,7 +1639,7 @@ class BinaryDistillation(Distillation, new_graphics=False):
         bp = vap.get_bubble_point(IDs=LHK)
         solve_Ty = bp.solve_Ty
         for xi in x_eq:
-            T[n], y = solve_Ty(np.array([xi, 1-xi]), P)
+            T[n], y = solve_Ty(np.array([xi, 1-xi]), P, lle=self._vlle)
             y_eq[n] = y[0]
             n += 1
             
@@ -2171,8 +2173,11 @@ class ShortcutColumn(Distillation, new_graphics=False):
         IDs = self._IDs_vle
         z_distillate = distillate.get_normalized_mol(IDs)
         z_bottoms = bottoms.get_normalized_mol(IDs)
-        dp = (dew_point if self._partial_condenser else bubble_point)(z_distillate, P=self.P)
-        bp = bubble_point(z_bottoms, P=self.P)
+        if self._partial_condenser:
+            dp = dew_point(z_distillate, P=self.P)
+        else:
+            bp = bubble_point(z_distillate, P=self.P, lle=self._vlle)
+        bp = bubble_point(z_bottoms, P=self.P, lle=self._vlle)
         K_distillate = compute_partition_coefficients(dp.y, dp.x)
         K_bottoms = compute_partition_coefficients(bp.y, bp.x)
         HK_index = self._LHK_vle_index[1]
@@ -2421,6 +2426,7 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
             maxiter=None,
             max_attempts=None,
             methods=None,
+            vlle=False,
         ):
         super()._init(N_stages=N_stages, feed_stages=feed_stages,
                       top_side_draws=vapor_side_draws, 
@@ -2430,7 +2436,8 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
                       P=P, T=T, use_cache=use_cache, methods=methods,
                       vle_decomposition=vle_decomposition,
                       maxiter=maxiter,
-                      max_attempts=max_attempts)
+                      max_attempts=max_attempts,
+                      vlle=vlle)
        
         # Construction specifications
         self.solute = solute
@@ -2782,6 +2789,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
             maxiter=None,
             max_attempts=None,
             stage_specifications=None,
+            vlle=False,
         ):
         if full_condenser: 
             if liquid_side_draws is None:
@@ -2809,7 +2817,8 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                       algorithms=algorithms,
                       methods=methods,
                       max_attempts=max_attempts,
-                      maxiter=maxiter)
+                      maxiter=maxiter,
+                      vlle=vlle)
         
         # Construction specifications
         self.weir_height = weir_height

@@ -689,10 +689,11 @@ class StageEquilibrium(Unit):
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
             phases, partition_data=None, top_split=0, bottom_split=0,
-            top_chemical=None, reaction=None, **specifications
+            top_chemical=None, reaction=None, vlle=False, **specifications
         ):
         self._N_outs = 2 + int(top_split) + int(bottom_split)
         self.phases = phases
+        self._vlle = vlle
         Unit.__init__(self, ID, ins, outs, thermo)
         mixer = self.auxiliary(
             'mixer', bst.Mixer, ins=self.ins, 
@@ -705,6 +706,7 @@ class StageEquilibrium(Unit):
                 None if top_split else self.outs[0],
                 None if bottom_split else self.outs[1],
             ),
+            vlle=vlle
         )
         self.reaction = reaction
         self.top_split = top_split
@@ -1524,7 +1526,7 @@ class PhasePartition(Unit):
     gamma_y_relaxation_factor = 0
     fgas_relaxation_factor = 0
     
-    def _init(self, phases, partition_data, top_chemical=None, reaction=None):
+    def _init(self, phases, partition_data, top_chemical=None, reaction=None, vlle=False):
         self.partition_data = partition_data
         self.phases = phases
         self.top_chemical = top_chemical
@@ -1539,6 +1541,7 @@ class PhasePartition(Unit):
         self.Q = None
         self.specified_variable = None
         self.dmol = SparseVector.from_size(self.chemicals.size)
+        self._vlle = vlle
         if phases == ('L', 'g', 'l'):
             top, bottom = self.outs
             top.phase = 'g'
@@ -1752,7 +1755,7 @@ class PhasePartition(Unit):
                 if top.isempty(): return
                 p = top.dew_point_at_P(P)
             else:
-                p = bottom.bubble_point_at_P(P)
+                p = bottom.bubble_point_at_P(P, lle=self._vlle)
             # TODO: Note that solution decomposition method is bubble point
             x = p.x
             x[x == 0] = 1.
@@ -2220,6 +2223,7 @@ class MultiStageEquilibrium(Unit):
             maxiter=None,
             max_attempts=None,
             vle_decomposition=None,
+            vlle=False,
         ):
         # For VLE look for best published algorithm (don't try simple methods that fail often)
         if N_stages is None: N_stages = len(stages)
@@ -2257,6 +2261,7 @@ class MultiStageEquilibrium(Unit):
         self._top_split = top_splits = np.zeros(N_stages)
         self._bottom_split = bottom_splits = np.zeros(N_stages)
         self._convergence_analysis_mode = False
+        self._vlle = vlle
         if stages is None:
             N_side_draws = len(top_side_draws) + len(bottom_side_draws)
             outs = self.outs
@@ -2317,7 +2322,8 @@ class MultiStageEquilibrium(Unit):
                     partition_data=pd,
                     top_split=top_split,
                     bottom_split=bottom_split,
-                    P=P[i]
+                    P=P[i],
+                    vlle=vlle,
                 )
                 if last_stage:
                     last_stage.add_feed(new_stage-0)
@@ -2539,7 +2545,7 @@ class MultiStageEquilibrium(Unit):
             self.attempt = n
             for algorithm, method in zip(algorithms, methods):
                 if algorithm == 'simultaneous correction':
-                    if 'K' in self.partition_data: continue
+                    if 'K' in self.partition_data or self._vlle: continue
                     x = self._simultaneous_correction(x, method)
                     if self._best_result.r < 1e-3:
                         optimize_result = False
@@ -2880,7 +2886,8 @@ class MultiStageEquilibrium(Unit):
             case ('L', 'l'):
                 eq = 'lle'
             case ('L', 'g', 'l'):
-                eq = 'vlle'
+                eq = 'vle' # Detailed vlle not yet implemented
+                self._vlle = True
         ms.mix_from(feeds)
         if 'lle' in eq:
             self.top_chemical = top_chemical = self.top_chemical or feeds[1].main_chemical
@@ -3061,7 +3068,7 @@ class MultiStageEquilibrium(Unit):
                 P = self.P[N_stages // 2]
                 dp = ms.dew_point_at_P(P=P, IDs=IDs)
                 T_bot = dp.T
-                bp = ms.bubble_point_at_P(P=P, IDs=IDs)
+                bp = ms.bubble_point_at_P(P=P, IDs=IDs, lle=self._vlle)
                 T_top = bp.T
                 dT_stage = (T_bot - T_top) / N_stages
                 Ts = np.array([T_top + i * dT_stage for i in range(N_stages)])
@@ -3515,7 +3522,7 @@ class MultiStageEquilibrium(Unit):
     def estimate_bubble_point(self, xs):
         bubble_point = tmo.equilibrium.BubblePoint(thermo=self._eq_thermo)
         P = self.P
-        Tys = [bubble_point.solve_Ty(x, P) for x in xs]
+        Tys = [bubble_point.solve_Ty(x, P, lle=self._vlle) for x in xs]
         Ts = np.zeros(self.N_stages)
         Ks = xs.copy()
         ys = xs.copy()
