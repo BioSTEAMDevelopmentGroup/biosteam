@@ -391,7 +391,7 @@ class TEA:
         
         def entry(self, index: str, cost: list|float, notes: str = ''):
             self.index.append(index)
-            if getattr(cost, 'ndim') == 0: cost = float(cost)
+            if getattr(cost, 'ndim', 0) == 0: cost = float(cost)
             if isinstance(cost, (float, int, str)):
                 self.data.append([notes, cost])
             else:

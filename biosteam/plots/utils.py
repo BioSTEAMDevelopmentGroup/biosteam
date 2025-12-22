@@ -73,7 +73,7 @@ class MetricBar(NamedTuple): # pragma: no coverage
             cbarkwargs['fraction'] = self.forced_size
         if 'pad' not in cbarkwargs:
             cbarkwargs['pad'] = self.pad
-        cbar = fig.colorbar(colorplot, ax=ax, ticks=self.ticks, **cbarkwargs)
+        cbar = fig.colorbar(colorplot, ax=ax, ticks=self.ticks, aspect=10, **cbarkwargs)
         cbar_ax = cbar.ax
         # cbar_ax.locator_params(nbins=self.N_ticks)
         if label:

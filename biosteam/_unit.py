@@ -148,6 +148,7 @@ class Unit(AbstractUnit):
                           does_nothing=None,
                           default_phenomena=None):
         super().__init_subclass__()
+        if getattr(cls, 'decoupled', None): print(cls)
         if does_nothing: return 
         dct = cls.__dict__
         if 'run' in dct:

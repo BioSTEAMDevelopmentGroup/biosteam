@@ -2176,7 +2176,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
         if self._partial_condenser:
             dp = dew_point(z_distillate, P=self.P)
         else:
-            bp = bubble_point(z_distillate, P=self.P, lle=self._vlle)
+            dp = bubble_point(z_distillate, P=self.P, lle=self._vlle)
         bp = bubble_point(z_bottoms, P=self.P, lle=self._vlle)
         K_distillate = compute_partition_coefficients(dp.y, dp.x)
         K_bottoms = compute_partition_coefficients(bp.y, bp.x)

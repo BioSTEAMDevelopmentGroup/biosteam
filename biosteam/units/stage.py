@@ -1542,6 +1542,7 @@ class PhasePartition(Unit):
         self.specified_variable = None
         self.dmol = SparseVector.from_size(self.chemicals.size)
         self._vlle = vlle
+        self.use_cache = True
         if phases == ('L', 'g', 'l'):
             top, bottom = self.outs
             top.phase = 'g'
@@ -1803,10 +1804,10 @@ class PhasePartition(Unit):
             self.IDs = IDs
         else:
             if update:
-                eq(T=ms.T, P=P or self.P, top_chemical=top_chemical, update=update, single_loop=single_loop)
+                eq(T=ms.T, P=P or self.P, top_chemical=top_chemical, update=update, single_loop=single_loop, use_cache=self.use_cache)
                 lle_chemicals, K_new, gamma_y, phi = eq._lle_chemicals, eq._K, eq._gamma_y, eq._phi
             else:
-                lle_chemicals, K_new, gamma_y, phi = eq(T=ms.T, P=P or self.P, top_chemical=top_chemical, update=update)
+                lle_chemicals, K_new, gamma_y, phi = eq(T=ms.T, P=P or self.P, top_chemical=top_chemical, update=update, use_cache=self.use_cache)
             if phi == 1 or phi is None:
                 self.B = np.inf
                 self.T = ms.T
@@ -2541,7 +2542,7 @@ class MultiStageEquilibrium(Unit):
         xtol = self.preconditioning_tolerance if optimize_result else self.tolerance
         rtol = self.preconditioning_relative_tolerance if optimize_result else self.relative_tolerance
         self.iter = 0
-        for n in range(self.max_attempts):
+        for n in range(self.max_attempts or 1):
             self.attempt = n
             for algorithm, method in zip(algorithms, methods):
                 if algorithm == 'simultaneous correction':
@@ -2571,7 +2572,7 @@ class MultiStageEquilibrium(Unit):
                 else: 
                     x = self._best_result.x 
                     break
-            else: continue
+            else: continue # No need to stop, give it another attempt
             break
         if optimize_result: x = self._simultaneous_correction(x, 'hybr')
         self._set_point(x)

@@ -27,6 +27,8 @@ __all__ = ('stream_table', 'stream_tables',
            'lca_displacement_allocation_factor_table',
            'lca_characterization_factor_table',
            'water_mass_balance_table',
+           'mass_balance_table',
+           'environmental_impacts_table',
            'FOCTableBuilder')
 
 def _stream_key(s): # pragma: no coverage
@@ -290,7 +292,7 @@ def lca_characterization_factor_table(systems):
                         index=pd.MultiIndex.from_tuples(table_index),
                         columns=columns)
 
-def lca_inventory_table(systems, keys=None, items=(), system_names=None):
+def lca_inventory_table(systems, keys=None, items=None, system_names=None):
     isa = isinstance
     if isa(keys, str): keys = (keys,)
     if keys is None: keys = tuple(bst.settings.impact_indicators)
@@ -503,7 +505,7 @@ def lca_property_allocation_factor_table(
         systems, property, basis=None, system_names=None, groups=None, products=None,
     ):
     if groups is None: groups = {}
-    system_allocation_factors = [i.get_property_allocation_factors(property, basis, groups, products=products) for i in systems]
+    system_allocation_factors = [i.get_property_allocation_factors(property, groups, products=products) for i in systems]
     table_index = sorted(set(sum([tuple(i) for i in system_allocation_factors], ())))
     index = {j: i for i, j in enumerate(table_index)}
     N_cols = len(systems)
@@ -537,7 +539,7 @@ def lca_displacement_allocation_factor_table(
         for key, value in factors.items():
             data[index[key], col] = value
     if system_names is None and len(systems) == 1:
-        columns = ["Displacement allocation factors"]
+        columns = [f"{key} Displacement allocation factors"]
     else:
         if system_names is None:
             system_names = [i.ID for i in systems]
@@ -547,10 +549,23 @@ def lca_displacement_allocation_factor_table(
                         index=table_index,
                         columns=columns)
 
-def lca_allocation_method_results(
-        systems, key, property_args, items, item_name 
-    ):
-    pass
+def environmental_impacts_table(system, products, units, allocation_method, keys=None):
+    impact_indicators = bst.settings.impact_indicators
+    if keys is None: keys = tuple(impact_indicators)
+    index = []
+    impact = []
+    for product, basis in zip(products, units):
+        for key in keys:
+            index.append(
+                (product if isinstance(product, str) else product.ID, 
+                 f'{key} [{impact_indicators[key]}/{basis}]')
+            )
+            impact.append(
+                system.get_product_impact(
+                    product, key, allocation_method, basis, 
+                )       
+            )
+    return pd.DataFrame(impact, index=pd.MultiIndex.from_tuples(index), columns=['Environmental impacts'])
 
 # %% Helpful functions
 
@@ -918,6 +933,9 @@ def stream_table(streams, flow='kg/hr', percent=True, chemicals=None, **props):
     return DataFrame(array, columns=IDs, index=index)
 
 def water_mass_balance_table(system):
+    return mass_balance_table(system, 'Water')
+
+def mass_balance_table(system, ID):
     ### Example table ###
     # Inputs, Stream-name:
     # - dilution water
@@ -942,7 +960,7 @@ def water_mass_balance_table(system):
         'fire_water',
     }
     def feed_(stream):
-        value = stream.imass['Water']
+        value = stream.imass[ID]
         if not value or stream.ID in ignored: return 0
         values.append(
             value
@@ -953,7 +971,7 @@ def water_mass_balance_table(system):
         return value
     
     def recycle_(stream):
-        value = stream.imass['Water']
+        value = stream.imass[ID]
         if not value: return 0
         values.append(
             value
@@ -964,7 +982,7 @@ def water_mass_balance_table(system):
         return value
         
     def lost_(stream):
-        value = stream.imass['Water']
+        value = stream.imass[ID]
         if abs(value) < 0.01 or stream.ID in ignored: return 0
         values.append(
             value
@@ -976,8 +994,8 @@ def water_mass_balance_table(system):
     
     def reacted_(unit):
         reacted = (
-            sum([i.imass['Water'] for i in unit.ins])
-            - sum([i.imass['Water'] for i in unit.outs])
+            sum([i.imass[ID] for i in unit.ins])
+            - sum([i.imass[ID] for i in unit.outs])
         )
         if abs(reacted) < 0.1: return 0
         index.append(
@@ -1005,7 +1023,7 @@ def water_mass_balance_table(system):
         if isinstance(s.source, bst.Mixer):
             for i in s.source.ins: recycled += recycle_(i)
         else:
-            recycled += recycle_(i)
+            recycled += recycle_(s)
     # index.append(
     #     ('Net treated/recycled', '')
     # )

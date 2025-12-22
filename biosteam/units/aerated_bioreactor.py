@@ -260,7 +260,7 @@ class AeratedBioreactor(AbstractStirredTankReactor):
                 return total_power
             
             f = total_power_at_oxygen_flow
-            minimize_scalar(f, 1.2 * OUR, bounds=[OUR, 10 * OUR], tol=OUR * 1e-3)
+            minimize_scalar(f, 1.2 * OUR, bounds=[OUR, 10 * OUR], options=dict(xtol=OUR * 1e-3))
         else:
             def air_flow_rate_objective(O2):
                 air.set_flow([O2, O2 * 79. / 21.], 'mol/s', ['O2', 'N2'])

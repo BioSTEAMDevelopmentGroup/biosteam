@@ -301,7 +301,7 @@ html_theme_options = {
     },
     "show_toc_level": 2,
     "announcement": (
-        "<p>Virtual BioSTEAM workshop on Friday, November 21, "
+        "<p>Sign up for upcoming workshops and new feature announcements, "
         "<a href='https://docs.google.com/spreadsheets/d/1QlP7iSZrLHkUxhk-2R8_QWomh3qHfkchJK1EvM5cpyo/edit?usp=sharing'>sign up here</a>!</p>"
     ),
     "external_links": [
