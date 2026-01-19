@@ -3013,10 +3013,9 @@ class MultiStageEquilibrium(Unit):
             invariable_enthalpies[n] += H_out - H_in
         self._feed_and_invariable_enthalpies = invariable_enthalpies + feed_enthalpies
         self._specified_variables = variables
-        if (self.use_cache 
-            and all([i.IDs == IDs for i in partitions])): # Use last set of data
-            pass
-        else:
+        if not (self.use_cache 
+            and all([i.IDs == IDs for i in partitions])
+            and np.isfinite(self._get_point()).all()):
             for i in partitions: i.IDs = IDs
             if data and 'K' in data: 
                 top, bottom = ms
