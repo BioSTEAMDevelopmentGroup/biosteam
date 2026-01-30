@@ -2765,7 +2765,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     
     def _init(self, 
             LHK, N_stages, feed_stages, 
-            reflux=None, boilup=None, 
+            reflux=None, boilup=None, bottoms_product_to_feed=None,
             P=101325, 
             vapor_side_draws=None, liquid_side_draws=None,
             stage_reactions=None,
@@ -2806,6 +2806,8 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
             stage_specifications[0] = ('Reflux', reflux)
         if boilup is not None:
             stage_specifications[-1] = ('Boilup', boilup)
+        if bottoms_product_to_feed is not None:
+            stage_specifications[-1] = ('Flow', bottoms_product_to_feed)
         super()._init(N_stages=N_stages, feed_stages=feed_stages,
                       top_side_draws=vapor_side_draws, 
                       bottom_side_draws=liquid_side_draws,              
@@ -2988,7 +2990,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                 Ks = Ua * sqrt(rho_V / (rho_L - rho_V)) # Capacity parameter    
             Phi_e = exp(-4.257 * Ks**0.91) # Effective relative froth density 
             Lw = 0.73 * diameter * 12 # Weir length [in] assuming Ad/A = 0.1
-            # TODO: Compute weir length or other Ad/A
+            # TODO: Compute weir length for other Ad/A
             qL = liquid.get_total_flow('gal/min')
             CL = 0.362 + 0.317 * exp(-3.5 * weir_height)
             hL = Phi_e * (hw + CL * (qL / (Lw * Phi_e)) ** b) # equivalent height of clear liquid holdup [in]

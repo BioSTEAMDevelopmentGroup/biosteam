@@ -75,6 +75,165 @@ def test_multi_stage_adiabatic_vle_non_condensables():
         phases=('g', 'l'),
     )
     MSE.simulate()
+
+def test_small_esterification_column():
+    import biosteam as bst
+    bst.settings.set_thermo(['Water', 'LacticAcid', 'MethylLactate', 'Methanol', 'SuccinicAcid'], cache=True)
+    from math import exp, log
+    from thermosteam.constants import R
+    
+    class Esterification(bst.KineticReaction):
+        catalyst_fraction = 0.5 
+        
+        def volume(self, stream): # kg of catalyst
+            rho_cat = 770 # kg / m3
+            liquid_volume = self.liquid_volume
+            catalyst_volume = self.catalyst_fraction * liquid_volume
+            catalyst_mass = catalyst_volume * rho_cat
+            return catalyst_mass
+        
+        def rate(self, stream):
+            T = stream.T
+            kf = 2.98e4 * exp(-51300 / (R * T))
+            kr = 2.74e2 * exp(-47200 / (R * T))
+            H2O, La, LaMe, MeOH, _ = stream.mol / stream.F_mol
+            return 3600 * (kf * La * MeOH - kr * LaMe * H2O) # kmol / kg-catalyst / hr
+    
+    
+    feed = bst.Stream(
+        'feed',
+        LacticAcid=4.174,
+        Water=5.460,
+        SuccinicAcid=0.531,
+        MethylLactate=1e-6,
+        total_flow=10.165,
+        P=0.106 * 101325,
+        T=72.5 + 273.15
+    )
+    feed.T = feed.bubble_point_at_P(P=0.2 * 101325).T
+    methanol = bst.Stream('methanol', Methanol=16.695, P=0.2 * 101325, phase='g')
+    methanol.T = methanol.dew_point_at_P().T
+    esterification = bst.MESHDistillation(
+        'esterification',
+        ins=(feed, methanol), 
+        outs=('esterification_distillate', 'bottoms'),
+        N_stages=3,
+        feed_stages=(1, 1),
+        reflux=1, # Unknown (update later)
+        boilup=1,
+        # bottoms_product_to_feed=0.0334, # Fraction of feed.
+        full_condenser=True,
+        stage_reactions={
+            i: Esterification('LacticAcid + Methanol -> Water + MethylLactate', reactant='LacticAcid')
+            for i in range(1, 2)
+        },
+        maxiter=50,
+        LHK=('Methanol', 'MethylLactate'),
+        P=0.2 * 101325,
+        use_cache=True,
+        algorithms=('inside out',)
+    )
+    esterification.simulate()
+
+def test_esterification_column():
+    import biosteam as bst
+    bst.settings.set_thermo(['Water', 'LacticAcid', 'MethylLactate', 'Methanol', 'SuccinicAcid'], cache=True)
+    from math import exp, log
+    from thermosteam.constants import R
+    
+    class Esterification(bst.KineticReaction):
+        catalyst_fraction = 0.5 
+        
+        def volume(self, stream): # kg of catalyst
+            rho_cat = 770 # kg / m3
+            liquid_volume = self.liquid_volume
+            catalyst_volume = self.catalyst_fraction * liquid_volume
+            catalyst_mass = catalyst_volume * rho_cat
+            return catalyst_mass
+        
+        def rate(self, stream):
+            T = stream.T
+            kf = 2.98e4 * exp(-51300 / (R * T))
+            kr = 2.74e2 * exp(-47200 / (R * T))
+            H2O, La, LaMe, MeOH, _ = stream.mol / stream.F_mol
+            rate = 3600 * (kf * La * MeOH - kr * LaMe * H2O) # kmol / kg-catalyst / hr
+            print(rate)
+            return 0
+    
+    
+    feed = bst.Stream(
+        'feed',
+        LacticAcid=4.174,
+        Water=5.460,
+        SuccinicAcid=0.531,
+        MethylLactate=1e-6,
+        total_flow=10.165,
+        P=0.106 * 101325,
+        T=72.5 + 273.15
+    )
+    feed.T = feed.bubble_point_at_P(P=0.2 * 101325).T
+    methanol = bst.Stream('methanol', Methanol=16.695, P=0.2 * 101325, phase='g')
+    methanol.T = methanol.dew_point_at_P().T
+    esterification = bst.MESHDistillation(
+        'esterification',
+        ins=(feed, methanol), 
+        outs=('esterification_distillate', 'bottoms'),
+        N_stages=21,
+        feed_stages=(1, 19),
+        reflux=1, # Unknown (update later)
+        boilup=1,
+        # bottoms_product_to_feed=0.0334, # Fraction of feed.
+        full_condenser=True,
+        stage_reactions={
+            i: Esterification('LacticAcid + Methanol -> Water + MethylLactate', reactant='LacticAcid')
+            for i in range(1, 19)
+        },
+        maxiter=50,
+        LHK=('Methanol', 'MethylLactate'),
+        P=0.2 * 101325,
+        use_cache=True,
+        algorithms=('inside out',)
+    )
+    esterification.simulate()
+    
+def test_esterification_column_no_reaction():
+    import biosteam as bst
+    bst.settings.set_thermo(
+        ['Water', 'LacticAcid', 'MethylLactate', 'Methanol', 'SuccinicAcid'],
+        pkg='ideal gas',
+        cache=True
+    )
+    
+    feed = bst.Stream(
+        'feed',
+        LacticAcid=4.174,
+        Water=5.460,
+        SuccinicAcid=0.531,
+        MethylLactate=1e-6,
+        total_flow=10.165,
+        P=0.106 * 101325,
+        T=72.5 + 273.15
+    )
+    feed.T = feed.bubble_point_at_P(P=0.2 * 101325).T
+    methanol = bst.Stream('methanol', Methanol=16.695, P=0.2 * 101325, phase='g')
+    methanol.T = methanol.dew_point_at_P().T
+    esterification = bst.MESHDistillation(
+        'esterification',
+        ins=(feed, methanol), 
+        outs=('esterification_distillate', 'bottoms'),
+        N_stages=21,
+        feed_stages=(1, 19),
+        reflux=1, # Unknown (update later)
+        boilup=1,
+        # bottoms_product_to_feed=0.0334, # Fraction of feed.
+        full_condenser=True,
+        maxiter=50,
+        LHK=('Methanol', 'MethylLactate'),
+        P=0.2 * 101325,
+        use_cache=True,
+        algorithms=('inside out',)
+    )
+    esterification.simulate()
     
    
 # def test_lactic_acid_ethanol_reactive_distillation():
@@ -308,47 +467,9 @@ def test_distillation():
     for i, j in zip(distillation.outs, flows):    
         assert_allclose(i.mol, j, rtol=1e-3, atol=1e-3)
     
-# def test_distillation_inside_out():
-#     import biosteam as bst
-#     bst.settings.set_thermo(
-#         ['Water', 'AceticAcid', 'EthylAcetate'],
-#         cache=True
-#     )
-#     hot_extract = bst.MultiStream(
-#         phases=('g', 'l'), T=358.05, P=101325,
-#         g=[('Water', 20.29), 
-#            ('AceticAcid', 3.872), 
-#            ('EthylAcetate', 105.2)],
-#         l=[('Water', 1.878), 
-#            ('AceticAcid', 0.6224), 
-#            ('EthylAcetate', 4.311)]
-#     )
-#     distillation = bst.MESHDistillation(
-#         N_stages=10,
-#         ins=[hot_extract],
-#         feed_stages=[5],
-#         outs=['', 'bottoms_product', 'distillate'],
-#         full_condenser=True,
-#         reflux=1.0,
-#         boilup=3.5,
-#         use_cache=True,
-#         inside_out=True,
-#         LHK=('Water', 'AceticAcid'),
-#         maxiter=20,
-#         max_attempts=10
-#     )
-#     distillation.simulate()
-#     flows = [
-#         [0.0, 0.0, 0.0],
-#         [0.1120515769040158, 4.350389243860007, 22.350733711834742],
-#         [22.055948423095984, 0.1440107561399934, 87.16026628816522],
-#     ]
-#     for i, j in zip(distillation.outs, flows):    
-#         assert_allclose(i.mol, j, rtol=1e-5, atol=1e-3)
-    
 if __name__ == '__main__':
     test_multi_stage_adiabatic_vle()
     test_distillation()
-    # test_distillation_inside_out()
+    # test_esterification_column()
 
 

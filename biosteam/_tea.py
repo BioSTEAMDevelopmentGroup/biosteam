@@ -403,7 +403,7 @@ class TEA:
                 return sum([i[1] for i in self.data])
             else:
                 N = len(self.data[0])
-                return [sum([i[index] for i in self.data]) for index in range(1, N)]
+                return np.array([sum([i[index] for i in self.data]) for index in range(1, N)])
         
         def table(self):
             names = self.names

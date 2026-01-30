@@ -426,8 +426,8 @@ def get_OSBL(units):
     
     """
     return [i for i in units
-            if isinstance(i, (bst.Facility, bst.StorageTank))
-            or 'storage' in i.line.lower() 
+            if isinstance(i, (bst.Facility, bst.StorageTank)) and not 'surge' in i.line.lower()
+            or 'storage' in i.line.lower()
             or 'wastewater' in i.line.lower()]
 
 def heat_exchanger_operation(units):
