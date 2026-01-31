@@ -921,7 +921,7 @@ class StageEquilibrium(Unit):
         
     def _update_separation_factors(self, f=None):
         if self.B == inf:
-            self.S = np.ones(len(self.partition.IDs)) * np.inf
+            self.S = np.ones(len(self.partition.IDs)) * inf
         elif self.B == 0: 
             self.S = np.zeros(len(self.partition.IDs))
         else:
@@ -1481,7 +1481,7 @@ class StageEquilibrium(Unit):
     def K_node(self):
         if hasattr(self, '_K_node'): return self._K_node
         partition_data = self.partition.partition_data
-        if (self.specified_variable == 'B') and (self.B == 0 or self.B == np.inf):
+        if (self.specified_variable == 'B') and (self.B == 0 or self.B == inf):
             var = None 
         elif  (partition_data and 'K' in partition_data):
             var = None
@@ -1525,7 +1525,7 @@ class PhasePartition(Unit):
     _N_ins = 1
     _N_outs = 2
     strict_infeasibility_check = False
-    conversion_relaxation_factor = 0
+    conversion_relaxation_factor = 0.5
     S_relaxation_factor = 0
     B_relaxation_factor = 0
     K_relaxation_factor = 0
@@ -1805,7 +1805,7 @@ class PhasePartition(Unit):
                 self.strict_infeasibility_check, 1
             )
             if phi == 1:
-                self.B = np.inf
+                self.B = inf
             else:
                 self.B = phi / (1 - phi)
             self.K = K
@@ -1818,7 +1818,7 @@ class PhasePartition(Unit):
             else:
                 lle_chemicals, K_new, gamma_y, phi = eq(T=ms.T, P=P or self.P, top_chemical=top_chemical, update=update, use_cache=self.use_cache)
             if phi == 1 or phi is None:
-                self.B = np.inf
+                self.B = inf
                 self.T = ms.T
                 return
             else:
@@ -2088,8 +2088,9 @@ class MultiStageEquilibrium(Unit):
     iteration_memory = 10 # Length of recorded iterations.
     preconditioning_tolerance = 1e-3
     preconditioning_relative_tolerance = 1e-3
+    homotopy_continuation_steps = 5
     inside_maxiter = 100
-    default_max_attempts = 5
+    default_max_attempts = 2
     default_maxiter = 100
     default_optimize_result = False
     default_tolerance = 1e-6
@@ -2404,6 +2405,7 @@ class MultiStageEquilibrium(Unit):
         else:
             self.methods = methods
         
+        self.homotopy_continuation = bool(stage_reactions)
         self.vle_decomposition = vle_decomposition
     
     
@@ -2438,7 +2440,7 @@ class MultiStageEquilibrium(Unit):
         H_model = self._eq_thermo.mixture.H
         if self.stage_reactions:
             feed_flows = self.feed_flows + self.conversion
-            feed_and_invariable_enthalpies = self._feed_and_invariable_enthalpies + (self.conversion * self._Hf_eq).sum(axis=1)
+            feed_and_invariable_enthalpies = self._feed_and_invariable_enthalpies - (self.conversion * self._Hf_eq).sum(axis=1)
         else:
             feed_flows = self.feed_flows
             feed_and_invariable_enthalpies = self._feed_and_invariable_enthalpies
@@ -2534,6 +2536,15 @@ class MultiStageEquilibrium(Unit):
             )
         return pd.DataFrame(errors, columns=IDs)
     
+    # %% Homotopy for reactive stages
+    
+    @property
+    def conversion(self):
+        if self.homotopy_continuation:
+            return self.conversion_homotopy * self._conversion
+        else:
+            return self._conversion
+    
     # %% Simulation    
     
     def default_vle_decomposition(self):
@@ -2575,14 +2586,39 @@ class MultiStageEquilibrium(Unit):
                     solver = flx.wegstein
                 else:
                     raise ValueError(f'invalid method {method!r}')
-                if self._has_lle and algorithm == 'inside out': continue
+                if self._has_lle and algorithm == 'inside out': 
+                    raise RuntimeError('inside out method does not support liquid extraction yet')
                 if analysis_mode:
                     self._tracked_algorithms.append(
                         (self.iter + 1, algorithm)
                     )
-                try: x = solver(f, x, maxiter=maxiter, xtol=xtol, rtol=rtol, args=(algorithm,))
+                try: 
+                    if self.homotopy_continuation:
+                        if self.conversion_homotopy == 1:
+                            try:
+                                x = solver(f, x, maxiter=maxiter, xtol=xtol, rtol=rtol, args=(algorithm,))
+                            except:
+                                x = self._best_result.x
+                                self._mean_residual = inf
+                                self._iteration_record[0] = IterationResult(None, inf)
+                                self._best_result = IterationResult(x, inf)
+                            else:
+                                break
+                        steps = self.homotopy_continuation_steps
+                        for t in np.linspace(0, 1, steps):
+                            self.conversion_homotopy = t
+                            try:
+                                x = solver(f, x, maxiter=maxiter, xtol=xtol, rtol=rtol, args=(algorithm,))
+                            except:
+                                x = self._best_result.x
+                            self._mean_residual = inf
+                            self._iteration_record[0] = IterationResult(None, inf)
+                            self._best_result = IterationResult(x, inf)
+                    else:
+                        x = solver(f, x, maxiter=maxiter, xtol=xtol, rtol=rtol, args=(algorithm,))
                 except:
-                    self._mean_residual = np.inf
+                    self._mean_residual = inf
+                    self._iteration_record[0] = IterationResult(None, inf)
                     if self._best_result.x is not None: x = self._best_result.x
                     maxiter = self.maxiter - self.iter
                     if maxiter <= 0: break
@@ -2696,7 +2732,7 @@ class MultiStageEquilibrium(Unit):
             feed_flows = self.feed_flows + self.conversion
             total_feed_flows = feed_flows.sum(axis=1)
             bulk_feed = total_feed_flows.sum()
-            feed_and_invariable_enthalpies = self._feed_and_invariable_enthalpies + (self.conversion * self._Hf_eq).sum(axis=1)
+            feed_and_invariable_enthalpies = self._feed_and_invariable_enthalpies - (self.conversion * self._Hf_eq).sum(axis=1)
         else:
             total_feed_flows = self._total_feed_flows
             bulk_feed = self._bulk_feed
@@ -2835,7 +2871,7 @@ class MultiStageEquilibrium(Unit):
                 self._result = result = least_squares(f,
                     x0=x.flatten(),
                     jac=lambda x: MESH.create_block_tridiagonal_matrix(*self._jacobian(x.reshape(shape))),
-                    bounds=(0, np.inf),
+                    bounds=(0, inf),
                     method='trf',
                     max_nfev=self.maxiter,
                     xtol=self.tolerance,
@@ -2973,7 +3009,7 @@ class MultiStageEquilibrium(Unit):
             i._N_chemicals = N_chemicals
         self.feed_flows = feed_flows = np.zeros([N_stages, N_chemicals])
         if self.stage_reactions:
-            self.conversion = conversion = feed_flows.copy()
+            self._conversion = conversion = feed_flows.copy()
             self._Hf_eq = self.chemicals.Hf[index]
             for i, j in zip(partitions, conversion): i.conversion = j
         self.feed_enthalpies = feed_enthalpies = np.zeros(N_stages)
@@ -3136,6 +3172,7 @@ class MultiStageEquilibrium(Unit):
                     for s in partition.outs: s.T = T
                 xs = np.array([i.x for i in partitions])
                 ys = np.array([i.y for i in partitions])
+                self.conversion_homotopy = 0
                 Vs, Ls = self.estimate_bulk_vapor_and_liquid_flow_rates(xs, ys, Ts)
                 phase_ratios = Vs / Ls
                 for partition, B in zip(partitions, phase_ratios):
@@ -3172,8 +3209,8 @@ class MultiStageEquilibrium(Unit):
         self._phi = self._eq_thermo.Phi(self._eq_thermo.chemicals)
         self._H_magnitude = 100 * sum([i.mixture.Cn('l', i.mol, i.T, i.P) for i in self.ins])
         self.attempt = 0
-        self._mean_residual = np.inf
-        self._best_result = empty = IterationResult(None, np.inf)
+        self._mean_residual = inf
+        self._best_result = empty = IterationResult(None, inf)
         self._point_shape = (N_stages, 2 * N_chemicals + 1)
         record = self.iteration_memory * [empty]
         x = self._get_point()
@@ -3328,7 +3365,7 @@ class MultiStageEquilibrium(Unit):
             feed_flows = self.feed_flows + self.conversion
             total_feed_flows = feed_flows.sum(axis=1)
             bulk_feed = total_feed_flows.sum()
-            feed_and_invariable_enthalpies = self._feed_and_invariable_enthalpies + (self.conversion * self._Hf_eq).sum(axis=1)
+            feed_and_invariable_enthalpies = self._feed_and_invariable_enthalpies - (self.conversion * self._Hf_eq).sum(axis=1)
         else:
             total_feed_flows = self._total_feed_flows
             bulk_feed = self._bulk_feed
@@ -3669,7 +3706,7 @@ class MultiStageEquilibrium(Unit):
                     least_squares(f,
                         x0=x0.flatten(),
                         jac=lambda x: MESH.create_block_tridiagonal_matrix(*self._jacobian(x.reshape(shape))),
-                        bounds=(0, np.inf),
+                        bounds=(0, inf),
                         method='trf',
                         max_nfev=iterations,
                         x_scale='jac',
