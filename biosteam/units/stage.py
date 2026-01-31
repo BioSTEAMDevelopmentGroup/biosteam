@@ -1030,10 +1030,10 @@ class StageEquilibrium(Unit):
                     eq_mol_top = K * mol_bottom * bulk_top / bulk_bottom
                     error = eq_mol_top - mol_top
                 elif self.B == 0 or bulk_top:
-                    error = -0.1 * mol_top
+                    error = -mol_top
                 else:
-                    error = 0.1 * mol_bottom
-                return error
+                    error = mol_bottom
+                return 0.1 * error
             self._vectorized_equilibrium_residuals = lambda x: np.apply_along_axis(residuals, axis=0, arr=x)
             return self._vectorized_equilibrium_residuals
     
@@ -1051,10 +1051,10 @@ class StageEquilibrium(Unit):
             eq_mol_top = K * mol_bottom * bulk_top / bulk_bottom
             error = eq_mol_top - mol_top
         elif self.B == 0 or bulk_top:
-            error = -0.1 * mol_top
+            error = -mol_top
         else:
-            error = 0.1 * mol_bottom
-        return error
+            error = mol_bottom
+        return 0.1 * error
     
     def _material_balance_residuals(self, upper, center, lower):
         mol_out = center.top.mol + center.bottom.mol
@@ -2085,7 +2085,7 @@ class MultiStageEquilibrium(Unit):
     _tracked_points = None # For numerical/convergence analysis.
     damping = 0 # Damping factor; defined as x_(i+1) = damping * x_i + (1 - damping) * f(x_i)
     minimum_residual_reduction = 0.25 # Minimum fractional reduction in residual for simulation.
-    iteration_memory = 10 # Length of recorded iterations.
+    iteration_memory = 5 # Length of recorded iterations.
     preconditioning_tolerance = 1e-3
     preconditioning_relative_tolerance = 1e-3
     homotopy_continuation_steps = 5
@@ -2439,8 +2439,22 @@ class MultiStageEquilibrium(Unit):
         H_magnitude = self._H_magnitude
         H_model = self._eq_thermo.mixture.H
         if self.stage_reactions:
-            feed_flows = self.feed_flows + self.conversion
-            feed_and_invariable_enthalpies = self._feed_and_invariable_enthalpies - (self.conversion * self._Hf_eq).sum(axis=1)
+            x_old = self._get_point()
+            conversion = self.conversion.copy()
+            rf = bst.PhasePartition.conversion_relaxation_factor
+            try:
+                bst.PhasePartition.conversion_relaxation_factor = 0
+                self._set_point(x)
+                self.update_liquid_holdup() # Finds liquid volume at each stage
+                partitions = self.partitions
+                for n in self.stage_reactions:
+                    partitions[n]._run_decoupled_reaction()
+                feed_flows = self.feed_flows + self._conversion
+                feed_and_invariable_enthalpies = self._feed_and_invariable_enthalpies - (self._conversion * self._Hf_eq).sum(axis=1)
+            finally:
+                bst.PhasePartition.conversion_relaxation_factor = rf
+                self._set_point(x_old)
+                self._conversion[:] = conversion
         else:
             feed_flows = self.feed_flows
             feed_and_invariable_enthalpies = self._feed_and_invariable_enthalpies
@@ -2474,6 +2488,12 @@ class MultiStageEquilibrium(Unit):
         residuals[i, H_index] = stage._energy_balance_residual(upper, center, None)
         residuals[i, M_slice] = stage._material_balance_residuals(upper, center, None)
         residuals[i, E_slice] = stage._equilibrium_residuals(center)
+        # abs_residuals = np.abs(residuals)
+        # print(
+        #     abs_residuals[:, H_index].max(),
+        #     abs_residuals[:, M_slice].max(),
+        #     abs_residuals[:, E_slice].max(),
+        # )
         return residuals
     
     def _jacobian(self, x): # returns diagonal blocks
@@ -2606,6 +2626,10 @@ class MultiStageEquilibrium(Unit):
                                 break
                         steps = self.homotopy_continuation_steps
                         for t in np.linspace(0, 1, steps):
+                            if analysis_mode:
+                                self._tracked_homotopy.append(
+                                    (self.iter + 1, t)
+                                )
                             self.conversion_homotopy = t
                             try:
                                 x = solver(f, x, maxiter=maxiter, xtol=xtol, rtol=rtol, args=(algorithm,))
@@ -2661,14 +2685,12 @@ class MultiStageEquilibrium(Unit):
         record.rotate()
         record[0] = result
         if self._best_result.r >= result.r: self._best_result = result
-        if not self._convergence_analysis_mode:
-            residuals = np.array([i.r for i in record])
-            mean = np.mean(residuals)
-            if mean > self._mean_residual * (1 - self.minimum_residual_reduction):
-                raise RuntimeError('residual error is not decreasing sufficiently')
-            self._mean_residual = mean
-        else:
-            self._timer.measure()
+        if self._convergence_analysis_mode: self._timer.measure()
+        residuals = np.array([i.r for i in record])
+        mean = np.mean(residuals)
+        if mean > self._mean_residual * (1 - self.minimum_residual_reduction):
+            raise RuntimeError('residual error is not decreasing sufficiently')
+        self._mean_residual = mean
         return x1
     
     def _iter(self, x0, algorithm):
@@ -3558,11 +3580,10 @@ class MultiStageEquilibrium(Unit):
             self._collect_variables('vle_phenomena')
     
     def update_reaction_flows(self):
-        P = self.P
         self.update_liquid_holdup() # Finds liquid volume at each stage
         partitions = self.partitions
         for n in self.stage_reactions:
-            partitions[n]._run_decoupled_reaction(P=P)
+            partitions[n]._run_decoupled_reaction()
         if getattr(self, 'tracking', False):
             self._collect_variables('reaction_phenomena')
     
@@ -3686,6 +3707,7 @@ class MultiStageEquilibrium(Unit):
         try:
             self._tracked_points = points = np.zeros([iterations + 1, self.N_stages, self._N_chemicals * 2 + 1])
             self._tracked_algorithms = algorithms = []
+            self._tracked_homotopy = homotopy = []
             self._get_point(points[0])
             if algorithm is None:
                 self._run()
@@ -3723,22 +3745,19 @@ class MultiStageEquilibrium(Unit):
             else:
                 self.iter = 0
                 def f(x):
-                    self.iter += 1
                     self._set_point(x)
                     if algorithm == 'phenomena' or algorithm == 'Wang-Hanke':
-                        self._run_phenomena()
-                        x = self._get_point()
+                        x = self._run_phenomena()
                     elif algorithm == 'sequential modular':
-                        self._run_sequential()
-                        x = self._get_point()
+                        x = self._run_sequential()
                     elif algorithm == 'phenomena modular':
-                        self._run_phenomena_modular()
-                        x = self._get_point()
+                        x = self._run_phenomena_modular()
                     elif algorithm == 'inside out':
                         x = self._run_inside_out()
                     else:
                         raise ValueError('invalid algorithm')
                     x = self._new_point(x, verbose)
+                    self.iter += 1
                     points[self.iter] = x
                     return x
                 
@@ -3749,16 +3768,45 @@ class MultiStageEquilibrium(Unit):
                     solver = flx.wegstein
                 else:
                     raise ValueError('unknown method')
-                solver(f, x0, xtol=0, 
-                       maxiter=iterations-1, 
-                       checkconvergence=False, 
-                       checkiter=False,
-                       **solver_kwargs)
+                maxiter = iterations - 1
+                if self.homotopy_continuation:
+                    steps = self.homotopy_continuation_steps
+                    xtol = self.tolerance
+                    rtol = self.relative_tolerance
+                    x = x0
+                    for t in np.linspace(0, 1, steps):
+                        homotopy.append(
+                            (self.iter + 1, t)
+                        )
+                        self.conversion_homotopy = t
+                        try: 
+                            x = solver(
+                                f, x, maxiter=int(maxiter / steps), xtol=xtol, rtol=rtol, 
+                                checkconvergence=False, 
+                                checkiter=False,
+                                **solver_kwargs
+                            )
+                        except: 
+                            x = self._best_result.x
+                            self._mean_residual = inf
+                            self._iteration_record[0] = IterationResult(None, inf)
+                            self._best_result = IterationResult(x, inf)
+                else:
+                    try:
+                        x = solver(
+                            f, x0, xtol=0, 
+                            maxiter=maxiter, 
+                            checkconvergence=False, 
+                            checkiter=False,
+                            **solver_kwargs
+                        )
+                    except:
+                        x = self._best_result.x
         except timer.TimesUpError:
-            iterations = min(self.iter, iterations)
+            pass
         finally:
             self._convergence_analysis_mode = False
-        iterations -= 1
+        iterations = min(self.iter, iterations)
         corrections = np.diff(points, axis=0)
         stepsize = 1 / fillsteps
         shape = (iterations, fillsteps)
@@ -3772,7 +3820,10 @@ class MultiStageEquilibrium(Unit):
                 t = j * stepsize
                 x = x0 + t * dx
                 iteration[i, j] = i + t
-                residuals[i, j] = f(x)
+                try:
+                    residuals[i, j] = f(x)
+                except:
+                    breakpoint()
         iteration = iteration.flatten()
         log_residual = np.log(residuals.flatten())
         if plot:
@@ -3810,19 +3861,29 @@ class MultiStageEquilibrium(Unit):
                     'simultaneous correction': 'SC',
                     'inside out': 'IO',
                 }
-                for iteration, algorithm in algorithms:
-                    plt.axvline(iteration, color='silver', zorder=-1)
+                for i, algorithm in algorithms:
+                    plt.axvline(i, color='silver', zorder=-1)
                     ax.text(
-                        iteration, yloc, shorthand[algorithm], 
+                        i, yloc, shorthand[algorithm], 
                         ha='center',
                         fontdict=dict(
                             fontname='arial', 
                             size=10
                         )
                     )
-            else:
+            # else:
+            #     ax.text(
+            #         np.mean(plt.xlim()), yloc, algorithm, 
+            #         ha='center',
+            #         fontdict=dict(
+            #             fontname='arial', 
+            #             size=10
+            #         )
+            #     )
+            for i, h in homotopy:
+                plt.axvline(i, color='silver', zorder=-1)
                 ax.text(
-                    np.mean(plt.xlim()), yloc, algorithm, 
+                    i, yloc, str(round(h,2)), 
                     ha='center',
                     fontdict=dict(
                         fontname='arial', 

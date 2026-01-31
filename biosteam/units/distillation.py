@@ -2977,11 +2977,11 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         for i in self.stage_reactions:
             partition = partitions[i]
             vapor, liquid = partition.outs
-            if vapor.isempty():
-                Ks = 0
-            elif liquid.isempty():
+            if liquid.isempty():
                 partition.reaction.liquid_volume = 0
                 continue
+            elif vapor.isempty():
+                Ks = 0
             else:
                 rho_V = vapor.rho
                 rho_L = liquid.rho
@@ -3019,6 +3019,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
             diameters.append(
                 design.compute_tower_diameter(V_vol, U_f, f, A_dn)
             )
+        if not diameters: return 0
         return max(diameters) * 3.28 # ft
         
     def _design(self):
