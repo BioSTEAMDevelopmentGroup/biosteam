@@ -3827,20 +3827,36 @@ class MultiStageEquilibrium(Unit):
         iteration = iteration.flatten()
         log_residual = np.log(residuals.flatten())
         if plot:
-            # colors = bst.utils.GG_colors
-            # blue = colors.blue.RGBn
-            # red = colors.red.RGBn
-            # cmap = clr.LinearSegmentedColormap.from_list(
-            #     'blue2red',
-            #     [blue, red],
-            #     N=256
-            # )
             fig = plt.figure()
-            ax = plt.gca()
-            plt.scatter(
-                iteration,
-                log_residual,
-            )
+            GG_colors = bst.utils.GG_colors.wheel()
+            if algorithms:
+                start_marks, algorithms = zip(*algorithms)
+                end_marks = [*start_marks[1:], iterations]
+                for start, end, alg, c in zip(start_marks, end_marks, algorithms, GG_colors):
+                    plt.axvline(start, color=c.RGBn, zorder=-1)
+                    plt.scatter(
+                        iteration[start:end],
+                        log_residual[start:end],
+                        color=c.RGBn,
+                        label=alg,
+                    )
+            elif homotopy:
+                start_marks, homotopy = zip(*homotopy)
+                end_marks = [*start_marks[1:], iterations]
+                for start, end, h, c in zip(start_marks, end_marks, homotopy, GG_colors):
+                    plt.axvline(start, color=c.RGBn, zorder=-1)
+                    plt.scatter(
+                        iteration[start:end],
+                        log_residual[start:end],
+                        color=c.RGBn,
+                        label=format(h, '.0%'),
+                    )
+            else:
+                plt.scatter(
+                    iteration,
+                    log_residual,
+                    color=GG_colors[0].RGBn,
+                )
             if yticks is not None: 
                 plt.yticks(yticks)
                 lb, ub = yticks[0], yticks[-1]
@@ -3850,49 +3866,9 @@ class MultiStageEquilibrium(Unit):
             if xticks is not None:
                 plt.xticks(xticks)
                 plt.xlim([xticks[0], xticks[-1]])
-            # sm = cm.ScalarMappable(cmap=cmap)    
-            # cbar = fig.colorbar(sm, ax=ax, ticks=[0, 1])
-            yloc = lb + (ub - lb) * 1.05
-            if algorithms:
-                shorthand = {
-                    'phenomena': 'P',
-                    'phenomena modular': 'PM',
-                    'sequential modular': 'SM',
-                    'simultaneous correction': 'SC',
-                    'inside out': 'IO',
-                }
-                for i, algorithm in algorithms:
-                    plt.axvline(i, color='silver', zorder=-1)
-                    ax.text(
-                        i, yloc, shorthand[algorithm], 
-                        ha='center',
-                        fontdict=dict(
-                            fontname='arial', 
-                            size=10
-                        )
-                    )
-            # else:
-            #     ax.text(
-            #         np.mean(plt.xlim()), yloc, algorithm, 
-            #         ha='center',
-            #         fontdict=dict(
-            #             fontname='arial', 
-            #             size=10
-            #         )
-            #     )
-            for i, h in homotopy:
-                plt.axvline(i, color='silver', zorder=-1)
-                ax.text(
-                    i, yloc, str(round(h,2)), 
-                    ha='center',
-                    fontdict=dict(
-                        fontname='arial', 
-                        size=10
-                    )
-                )
             plt.xlabel('Iteration')
             plt.ylabel('log residual')
-            # cbar.ax.set_ylabel('distance from steady state')
+            plt.legend()
         time = np.array(timer.record)
         N = min(time.size, iteration.size, log_residual.size)
         return ResidualProfile(time[:N], iteration[:N], log_residual[:N])
