@@ -3930,7 +3930,12 @@ class System:
             if products is None: products = self.products
             for stream in products:
                 if stream in ignored: continue
-                total_property += self.get_property(stream, name, units)
+                if stream.isfeed():
+                    total_property -= self.get_property(stream, name, units)
+                elif stream.isproduct():
+                    total_property += self.get_property(stream, name, units)
+                else:
+                    raise ValueError('stream must be a feed or a product')
         impact = self.get_total_feeds_impact(key)
         for hu in heat_utilities:
             if hu.flow > 0.: impact += hu.get_impact(key) * operating_hours

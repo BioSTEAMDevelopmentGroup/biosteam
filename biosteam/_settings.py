@@ -244,6 +244,12 @@ settings.register_utility('Process water', 2.7e-4)
 
 # %% Register predefined allocation methods
 
+def revenue_allocation(stream):
+    revenue = stream.cost
+    if stream.isfeed(): revenue *= -1
+    if revenue < 0: revenue = 0
+    return revenue
+
 settings.define_allocation_property(
     'energy', 'kJ', 
     stream=lambda self: max(self.LHV, 0),
@@ -252,7 +258,7 @@ settings.define_allocation_property(
 )
 settings.define_allocation_property(
     'revenue', 'USD', 
-    stream=lambda self: self.cost if self.price > 0. else 0.,
+    stream=revenue_allocation,
     power_utility=lambda self: max(-self.cost, 0.),
     heat_utility=lambda self: max(self.cost, 0),
 )
