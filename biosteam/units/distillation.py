@@ -2421,7 +2421,6 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
             downcomer_area_fraction=None,
             weir_height=0.1,
             use_cache=None,
-            collapsed_init=False,
             vle_decomposition=None,
             maxiter=None,
             max_attempts=None,
@@ -2432,7 +2431,7 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
                       top_side_draws=vapor_side_draws, 
                       bottom_side_draws=liquid_side_draws,
                       partition_data=partition_data,
-                      phases=("g", "l"), collapsed_init=collapsed_init,
+                      phases=("g", "l"),
                       P=P, T=T, use_cache=use_cache, methods=methods,
                       vle_decomposition=vle_decomposition,
                       maxiter=maxiter,
@@ -2454,14 +2453,14 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
         self._last_args = (
             self.N_stages, self.feed_stages, self.vapor_side_draws, 
             self.liquid_side_draws, self.use_cache, *self._ins, 
-            self.partition_data, self.P, self.collapsed_init,
+            self.partition_data, self.P, 
         )
         
     def _setup(self):
         super()._setup()
         args = (self.N_stages, self.feed_stages, self.vapor_side_draws, 
                 self.liquid_side_draws, self.use_cache, *self._ins, 
-                self.partition_data, self.P, self.collapsed_init)
+                self.partition_data, self.P)
         if args != self._last_args:
             MultiStageEquilibrium._init(
                 self, N_stages=self.N_stages,
@@ -2471,7 +2470,6 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
                 bottom_side_draws=self.liquid_side_draws,
                 partition_data=self.partition_data, 
                 use_cache=self.use_cache, 
-                collapsed_init=self.collapsed_init,
             )
             self._last_args = args
     
@@ -2782,7 +2780,6 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
             vacuum_system_preference='Liquid-ring pump',
             partition_data=None,
             full_condenser=None,
-            collapsed_init=None,
             use_cache=None,
             algorithms=None,
             methods=None,
@@ -2790,6 +2787,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
             max_attempts=None,
             stage_specifications=None,
             vlle=False,
+            specifications_by_weight=False,
         ):
         if full_condenser: 
             if liquid_side_draws is None:
@@ -2815,12 +2813,12 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                       phases=("g", "l"), P=P, use_cache=use_cache,
                       stage_specifications=stage_specifications,
                       stage_reactions=stage_reactions,
-                      collapsed_init=collapsed_init,
                       algorithms=algorithms,
                       methods=methods,
                       max_attempts=max_attempts,
                       maxiter=maxiter,
-                      vlle=vlle)
+                      vlle=vlle,
+                      specifications_by_weight=specifications_by_weight)
         
         # Construction specifications
         self.weir_height = weir_height
@@ -2976,26 +2974,49 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         stages = self.stages
         partitions = self.partitions
         for i in self.stage_reactions:
-            partition = partitions[i]
-            vapor, liquid = partition.outs
-            if liquid.isempty():
-                stages[i].liquid_holdup_volume = 0
-                continue
-            elif vapor.isempty():
-                Ks = 0
-            else:
-                rho_V = vapor.rho
-                rho_L = liquid.rho
-                active_area = area * (1 - 2 * partition.downcomer_area_fraction)
-                Ua = vapor.get_total_flow('ft3/s') / active_area
-                Ks = Ua * sqrt(rho_V / (rho_L - rho_V)) # Capacity parameter    
-            Phi_e = exp(-4.257 * Ks**0.91) # Effective relative froth density 
-            Lw = 0.73 * diameter * 12 # Weir length [in] assuming Ad/A = 0.1
-            # TODO: Compute weir length for other Ad/A
-            qL = liquid.get_total_flow('gal/min')
-            CL = 0.362 + 0.317 * exp(-3.5 * weir_height)
-            hL = Phi_e * (hw + CL * (qL / (Lw * Phi_e)) ** b) # equivalent height of clear liquid holdup [in]
-            stages[i].liquid_holdup_volume = hL * area * 0.00236155 # m3 
+            try:
+                partition = partitions[i]
+                vapor, liquid = partition.outs
+                if liquid.isempty():
+                    stages[i].liquid_holdup_volume = 0
+                    continue
+                elif vapor.isempty():
+                    Ks = 0
+                else:
+                    rho_V = vapor.rho
+                    rho_L = liquid.rho
+                    active_area = area * (1 - 2 * partition.downcomer_area_fraction)
+                    Ua = vapor.get_total_flow('ft3/s') / active_area
+                    Ks = Ua * sqrt(rho_V / (rho_L - rho_V)) # Capacity parameter    
+                Phi_e = exp(-4.257 * Ks**0.91) # Effective relative froth density 
+                Lw = 0.73 * diameter * 12 # Weir length [in] assuming Ad/A = 0.1
+                # TODO: Compute weir length for other Ad/A
+                qL = liquid.get_total_flow('gal/min')
+                CL = 0.362 + 0.317 * exp(-3.5 * weir_height)
+                hL = Phi_e * (hw + CL * (qL / (Lw * Phi_e)) ** b) # equivalent height of clear liquid holdup [in]
+                stages[i].liquid_holdup_volume = hL * area * 0.00236155 # m3 
+            except:
+                breakpoint()
+                partition = partitions[i]
+                vapor, liquid = partition.outs
+                if liquid.isempty():
+                    stages[i].liquid_holdup_volume = 0
+                    continue
+                elif vapor.isempty():
+                    Ks = 0
+                else:
+                    rho_V = vapor.rho
+                    rho_L = liquid.rho
+                    active_area = area * (1 - 2 * partition.downcomer_area_fraction)
+                    Ua = vapor.get_total_flow('ft3/s') / active_area
+                    Ks = Ua * sqrt(rho_V / (rho_L - rho_V)) # Capacity parameter    
+                Phi_e = exp(-4.257 * Ks**0.91) # Effective relative froth density 
+                Lw = 0.73 * diameter * 12 # Weir length [in] assuming Ad/A = 0.1
+                # TODO: Compute weir length for other Ad/A
+                qL = liquid.get_total_flow('gal/min')
+                CL = 0.362 + 0.317 * exp(-3.5 * weir_height)
+                hL = Phi_e * (hw + CL * (qL / (Lw * Phi_e)) ** b) # equivalent height of clear liquid holdup [in]
+                stages[i].liquid_holdup_volume = hL * area * 0.00236155 # m3 
        
     def estimate_diameter(self): # ft
         diameters = []

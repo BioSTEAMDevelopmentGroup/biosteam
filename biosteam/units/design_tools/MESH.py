@@ -395,7 +395,7 @@ def bulk_vapor_and_liquid_flow_rates(
             A[n, L1] = hl[i]
             Q[n] = H_feeds[i] + value
             if i != last: A[n, V2] = hv[inext] * neg_asplit[inext]
-        elif variable == 'B':
+        elif variable in ('B', 'W'):
             A[n, V1] = -1
             A[n, L1] = value
         elif variable == 'F':
@@ -408,7 +408,7 @@ def bulk_vapor_and_liquid_flow_rates(
         L1 += 2
         V2 += 2
     VLs = np.linalg.solve(A, Q)
-    VLs[VLs < 1e-16] = 1e-16
+    VLs[VLs < 1e-32] = 1e-32
     return VLs[::2], VLs[1::2] # V, L
 
 @njit(cache=True)
