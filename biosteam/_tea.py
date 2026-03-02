@@ -149,12 +149,16 @@ def fill_taxable_and_nontaxable_cashflows_without_loans(
     # D: Depreciation
     # C: Annual operating cost (excluding depreciation)
     # S: Sales
-    w0 = startup_time
+    w0 = startup_time % 1
+    end_start = start + int(startup_time)
     w1 = 1. - w0
-    C[start] = (w0 * startup_VOCfrac * VOC + w1 * VOC
-                + w0 * startup_FOCfrac * FOC + w1 * FOC)
-    S[start] = w0 * startup_salesfrac * sales + w1 * sales
-    start1 = start + 1
+    C[end_start] = (w0 * startup_VOCfrac * VOC + w1 * VOC
+                    + w0 * startup_FOCfrac * FOC + w1 * FOC)
+    C[start:end_start] = (startup_VOCfrac * VOC 
+                          + startup_FOCfrac * FOC)
+    S[end_start] = w0 * startup_salesfrac * sales + w1 * sales
+    S[start:end_start] = startup_salesfrac * sales
+    start1 = end_start + 1
     C[start1:] = VOC + FOC
     S[start1:] = sales
     C_FC[:start] = FCI * construction_schedule
@@ -644,8 +648,7 @@ class TEA:
         return self._startup_time * 12.
     @startup_months.setter
     def startup_months(self, months):
-        assert months <= 12., "startup time must be less than a year"
-        self._startup_time = months/12.
+        self._startup_time = months / 12.
     
     @property
     def sales(self) -> float:
@@ -783,12 +786,16 @@ class TEA:
         length = start + years
         C_D, C_FC, C_WC, D, L, LI, LP, LPl, C, S, T, I, TE, FL, NE, CF, DF, NPV, CNPV = data = np.zeros((19, length))
         self._fill_depreciation_array(D, start, years, TDC)
-        w0 = self._startup_time
+        w0 = self._startup_time % 1
         w1 = 1. - w0
-        C[start] = (w0*self.startup_VOCfrac*VOC + w1*VOC
-                    + w0*self.startup_FOCfrac*FOC + w1*FOC)
-        S[start] = w0*self.startup_salesfrac*sales + w1*sales
-        start1 = start + 1
+        end_start = start + int(self._startup_time)
+        C[end_start] = (w0 * self.startup_VOCfrac * VOC + w1 * VOC
+                        + w0 * self.startup_FOCfrac * FOC + w1 * FOC)
+        C[start:end_start] = (self.startup_VOCfrac * VOC 
+                              + self.startup_FOCfrac * FOC)
+        S[end_start] = w0 * self.startup_salesfrac * sales + w1 * sales
+        S[start:end_start] = self.startup_salesfrac * sales
+        start1 = end_start + 1
         C[start1:] = VOC + FOC
         S[start1:] = sales
         WC = self.WC_over_FCI * FCI
@@ -1068,8 +1075,10 @@ class TEA:
         sales_coefficients = np.ones_like(discount_factors, dtype=float)
         start = self._start
         sales_coefficients[:start] = 0
-        w0 = self._startup_time
-        sales_coefficients[start] =  w0*self.startup_salesfrac + (1.-w0)
+        w0 = self._startup_time % 1
+        end_start = start + int(self._startup_time)
+        sales_coefficients[end_start] = w0 * self.startup_salesfrac + (1. - w0) 
+        sales_coefficients[start:end_start] = self.startup_salesfrac
         taxable_cashflow, nontaxable_cashflow, depreciation = self._taxable_nontaxable_depreciation_cashflows()
         if np.isnan(taxable_cashflow).any():
             warn('nan encountered in cashflow array; resimulating system', category=RuntimeWarning)
