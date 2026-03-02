@@ -8,17 +8,17 @@
 """
 """
 from ._utils import *
-from ._feature import *
+from ._variable import *
 from ._parameter import *
 from ._prediction import *
 from ._model import *
 from ._indicator import *
 from . import (_parameter, _prediction, _model,
-              _indicator, evaluation_tools, _feature,
+              _indicator, evaluation_tools, _variable,
               _utils)
 
 __all__ = ('evaluation_tools',
-           *_feature.__all__,
+           *_variable.__all__,
            *_parameter.__all__,
            *_prediction.__all__,
            *_indicator.__all__,

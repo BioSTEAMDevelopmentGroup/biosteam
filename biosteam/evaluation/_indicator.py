@@ -7,11 +7,11 @@
 # for license details.
 """
 """
-from ._feature import Feature
+from ._variable import Variable
 
 __all__ = ('Indicator', 'indicator', 'Metric', 'metric')
 
-class Indicator(Feature):
+class Indicator(Variable):
     """
     Create an Indicator object that serves as an argument for Model objects.
     

@@ -9,7 +9,7 @@
 """
 __all__ = ('Parameter',)
 
-from ._feature import Feature
+from ._variable import Variable
 from ..utils import format_title
 import biosteam as bst
 from warnings import warn
@@ -18,7 +18,7 @@ from inspect import signature
 try:
     from chaospy import distributions as shape
 except:
-    warn('chaospy not installed; cannot use automation features for uncertainty and optimization', RuntimeWarning, stacklevel=2)
+    warn('chaospy not installed; cannot use automation variables for uncertainty and optimization', RuntimeWarning, stacklevel=2)
 else:
     # Fix compatibility with new chaospy version
     import chaospy as cp
@@ -47,7 +47,7 @@ else:
         del save_repr_init, shapes, baseshapes, Distribution, i
     del version_components, CP_MAJOR, CP_MINOR, CP4
 
-class Parameter(Feature):
+class Parameter(Variable):
     """
     Create a Parameter object that, when called, runs the setter and
     the simulate functions.

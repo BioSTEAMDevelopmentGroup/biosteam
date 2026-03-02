@@ -4,7 +4,7 @@
 #                      Yalin Li <mailto.yalin.li@gmail.com>,
 #                      Sarang Bhagwat <sarangb2@gmail.com>
 #
-# This module implements a filtering feature from the stats module of the QSDsan library:
+# This module implements a filtering variable from the stats module of the QSDsan library:
 # QSDsan: Quantitative Sustainable Design for sanitation and resource recovery systems
 # Copyright (C) 2020-, Yalin Li <mailto.yalin.li@gmail.com>
 # 
@@ -17,7 +17,7 @@ from scipy.optimize import shgo, differential_evolution
 import numpy as np
 import pandas as pd
 from ._indicator import Indicator
-from ._feature import MockFeature
+from ._variable import MockVariable
 from ._utils import var_indices, var_columns, indices_to_multiindex
 from ._prediction import ConvergenceModel
 from .._unit import Unit
@@ -154,7 +154,7 @@ class Model:
         isa = isinstance
         for i in parameters:
             assert isa(i, Parameter), 'all elements must be Parameter objects'
-        Parameter.check_indices_unique(self.features)
+        Parameter.check_indices_unique(self.variables)
     
     @property
     def parameters(self):
@@ -170,7 +170,7 @@ class Model:
         isa = isinstance
         for i in parameters:
             assert isa(i, Parameter), 'all elements must be Parameter objects'
-        Parameter.check_indices_unique(self.features)
+        Parameter.check_indices_unique(self.variables)
     
     def parameters_from_df(self, df_or_filename, namespace=None):
         """
@@ -350,7 +350,7 @@ class Model:
             if hook is None: hook = setter.hook
             if description is None: description = setter.description
             setter = setter.setter
-        elif isinstance(setter, MockFeature):
+        elif isinstance(setter, MockVariable):
             if element is None: element = setter.element
             if name is None: name = setter.name
             if units is None: units = setter.units
@@ -362,10 +362,10 @@ class Model:
                       self.system, distribution, units, 
                       baseline, bounds, coupled, hook, description)
         if safe:
-            Parameter.check_index_unique(p, self.features)
+            Parameter.check_index_unique(p, self.variables)
         else:
             key = (p.element_name, p.name)
-            dct = {(i.element_name, i.name): i for i in self.features}
+            dct = {(i.element_name, i.name): i for i in self.variables}
             if key in dct:
                 old_p = dct[key]
                 try:
@@ -375,8 +375,8 @@ class Model:
                         self._parameters.remove(old_p)
                 except:
                     raise ValueError(
-                             "each feature must have a unique element and name; "
-                            f"feature with element {repr(p.element)} "
+                             "each variable must have a unique element and name; "
+                            f"variable with element {repr(p.element)} "
                             f"and name {repr(p.name)} already present"
                         )
         if optimized:
@@ -606,7 +606,7 @@ class Model:
             if not isa(i, Indicator):
                 raise ValueError(f"indicators must be '{Indicator.__name__}' "
                                  f"objects, not '{type(i).__name__}'")
-        Indicator.check_indices_unique(self.features)
+        Indicator.check_indices_unique(self.variables)
     
     # Backwards compatibility
     metrics = indicators
@@ -616,8 +616,9 @@ class Model:
     def _metrics(self, metrics): self._indicators = metrics
     
     @property
-    def features(self):
+    def variables(self):
         return (*self._parameters, *self._optimized_parameters, *self._indicators)
+    features = variables
     
     def indicator(self, getter=None, name=None, units=None, element=None, safe=False):
         """
@@ -645,7 +646,7 @@ class Model:
             if units is None: units = getter.units
             if element is None: element = getter.element
             getter = getter.getter
-        elif isinstance(getter, MockFeature):
+        elif isinstance(getter, MockVariable):
             if element is None: element = getter.element
             if name is None: name = getter.name
             if units is None: units = getter.units
@@ -653,18 +654,18 @@ class Model:
             return lambda getter: self.indicator(getter, name, units, element)
         indicator = Indicator(name, getter, units, element)
         if safe:
-            Indicator.check_index_unique(indicator, self.features, safe)
+            Indicator.check_index_unique(indicator, self.variables, safe)
         else:
             key = (indicator.element_name, indicator.name)
-            dct = {(i.element_name, i.name): i for i in self.features}
+            dct = {(i.element_name, i.name): i for i in self.variables}
             if key in dct:
                 old_indicator = dct[key]
                 try:
                     self._indicators.remove(old_indicator)
                 except:
                     raise ValueError(
-                             "each feature must have a unique element and name; "
-                            f"feature with element {repr(indicator.element)} "
+                             "each variable must have a unique element and name; "
+                            f"variable with element {repr(indicator.element)} "
                             f"and name {repr(indicator.name)} already present"
                         )
         self._indicators.append(indicator)
