@@ -1547,10 +1547,7 @@ class StageEquilibrium(Unit):
     def Phi_node(self):
         if hasattr(self, '_Phi_node'): return self._Phi_node
         if self.phases == ('g', 'l'):
-            if self.specified_variable == 'B':
-                self._Phi_node = var = None
-            else:
-                self._Phi_node = var = VariableNode(f"{self.node_tag}.Phi", lambda: self.B)
+            self._Phi_node = var = VariableNode(f"{self.node_tag}.Phi", lambda: self.B)
         else:
             self._Phi_node = var = VariableNode(f"{self.node_tag}.Phi", lambda: self.B)
         return var
@@ -1923,9 +1920,9 @@ class PhasePartition(Unit):
                 self.B = V_total / L_total
         self.T = ms.T
         if self.reaction:
-            self._set_arrays(IDs, K=K_new, x=x_mol, y=y_mol)
-        else:
             self._set_arrays(IDs, K=K_new, x=x_mol, y=y_mol, conversion=conversion)
+        else:
+            self._set_arrays(IDs, K=K_new, x=x_mol, y=y_mol)
     
     def _simulation_error(self):
         cache = self.T, self.B, copy(self.K), copy(self.conversion), copy(self.S), copy(self.gamma_y)
@@ -2904,7 +2901,6 @@ class MultiStageEquilibrium(Unit):
                 for i in self.stages: i._update_separation_factors()
                 separation_factors = np.array([i.S for i in self._S_stages])
                 self.update_flow_rates(separation_factors, update_B=True)
-                print([round(i.mass_balance_error(), 3) for i in self.stages])
             elif decomp == 'sum rates':
                 self.update_pseudo_vle()
                 separation_factors = np.array([i.S for i in self._S_stages])
@@ -3162,9 +3158,16 @@ class MultiStageEquilibrium(Unit):
             invariable_enthalpies[n] += H_out - H_in
         self._feed_and_invariable_enthalpies = invariable_enthalpies + feed_enthalpies
         self._specified_variables = variables
-        if not (self.use_cache 
+        if self.use_cache: 
+            try:
+                point = self._get_point()
+            except:
+                use_cache = False
+            else:
+                use_cache = True
+        if not (use_cache
             and all([i.IDs == IDs for i in partitions])
-            and np.isfinite(self._get_point()).all()):
+            and np.isfinite(point).all()):
             for i in partitions: i.IDs = IDs
             if data and 'K' in data: 
                 top, bottom = ms
@@ -3287,7 +3290,9 @@ class MultiStageEquilibrium(Unit):
         self._point_shape = (N_stages, 2 * N_chemicals + 1)
         record = self.iteration_memory * [empty]
         x = self._get_point()
-        record[0] = IterationResult(x, self._objective(x))
+        try: error = self._objective(x)
+        except: error = 1e6
+        record[0] = IterationResult(x, error)
         self._iteration_record = record = deque(record)
         return x
     

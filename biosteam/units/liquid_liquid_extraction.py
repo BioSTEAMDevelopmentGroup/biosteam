@@ -1194,12 +1194,12 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
     
     def _init(self, N_stages, feed_stages=None, extract_side_draws=None, 
               raffinate_side_draws=None, partition_data=None, top_chemical=None,  
-              mixer_data={}, settler_data={}, use_cache=None, collapsed_init=None):
+              mixer_data={}, settler_data={}, use_cache=None):
         bst.MultiStageEquilibrium._init(
             self, N_stages=N_stages, feed_stages=feed_stages, phases=('l', 'L'), P=101325,
             top_side_draws=extract_side_draws, bottom_side_draws=raffinate_side_draws,
             stage_specifications=None, partition_data=partition_data, 
-            top_chemical=top_chemical, use_cache=use_cache, collapsed_init=collapsed_init,
+            top_chemical=top_chemical, use_cache=use_cache,
         )
         #: [LiquidsMixingTank] Used to design all mixing tanks. 
         #: All data and settings for the design of mixing tanks are stored here.
@@ -1215,7 +1215,6 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
         self._last_args = (
             self.N_stages, self.feed_stages, self.extract_side_draws, self.use_cache,
             *self._ins, self.raffinate_side_draws, self.top_chemical, self.partition_data,
-            self.collapsed_init,
         )
     
     feed = MixerSettler.feed
@@ -1234,8 +1233,7 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
     def _setup(self):
         super()._setup()
         args = (self.N_stages, self.feed_stages, self.extract_side_draws, self.use_cache,
-                *self._ins, self.raffinate_side_draws, self.top_chemical, self.partition_data,
-                self.collapsed_init)
+                *self._ins, self.raffinate_side_draws, self.top_chemical, self.partition_data)
         if args != self._last_args:
             MultiStageEquilibrium._init(
                 self, N_stages=self.N_stages, feed_stages=self.feed_stages,
@@ -1244,7 +1242,6 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
                 bottom_side_draws=self.raffinate_side_draws,
                 stage_specifications=None, partition_data=self.partition_data, 
                 top_chemical=self.top_chemical, use_cache=self.use_cache, 
-                collapsed_init=self.collapsed_init,
             )
             self.mixer._ins = self._ins
             self.settler._outs = self._outs

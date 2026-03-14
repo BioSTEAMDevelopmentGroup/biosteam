@@ -1121,7 +1121,7 @@ class Distillation(Unit, isabstract=True):
     equation_node_names = (
         'overall_material_balance_node', 
         'separation_material_balance_node',
-        'shortcut_phenomenode',
+        'vle_phenomenode',
     )
     
     def initialize_overall_material_balance_node(self):
@@ -1136,14 +1136,14 @@ class Distillation(Unit, isabstract=True):
             inputs=[self.S_node, self.outs[1].F_node],
         )
         
-    def initialize_shortcut_phenomenode(self):
-        self.shortcut_phenomenode.set_equations(
+    def initialize_vle_phenomenode(self):
+        self.vle_phenomenode.set_equations(
             inputs=(
-                *[i.T_node for i in self.ins], 
-                *[i.F_node for i in self.outs]
+                *[i.F_node for i in self.outs],
             ),
             outputs=(
-                self.S_node, *[i.T_node for i in self.outs]),
+                self.S_node, *[i.T_node for i in self.outs]
+            ),
         )
     
     # def _collect_edge_errors(self):
@@ -2034,6 +2034,10 @@ class ShortcutColumn(Distillation, new_graphics=False):
         self._run_binary_distillation_mass_balance()
 
         # Initialize objects to calculate bubble and dew points
+        mixed_feed = self.mixed_feed
+        LHK = [i.ID for i in self.chemicals[self.LHK]]
+        for i in LHK: 
+            if mixed_feed.imol[i] == 0: mixed_feed.imol[i] = 1e-16
         vle_chemicals = self.mixed_feed.vle_chemicals
         try:
             reset_cache = self._vle_chemicals != vle_chemicals or np.isnan(self._distillate_recoveries).any()
@@ -2046,7 +2050,6 @@ class ShortcutColumn(Distillation, new_graphics=False):
             self._vle_chemicals = vle_chemicals
             
         # Setup light and heavy keys
-        LHK = [i.ID for i in self.chemicals[self.LHK]]
         IDs = self._IDs_vle
         self._LHK_vle_index = np.array([IDs.index(i) for i in LHK], dtype=int)
         
