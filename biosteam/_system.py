@@ -2784,9 +2784,9 @@ class System:
             subgraph_units=subgraph_units,
             **kwargs,
         )
-        if 'phenomenode' in decomposition:
+        if 'phenomena' in decomposition:
             if 'modular' in decomposition:
-                names = [*all_subgraphs, *[(i, 'phenomenode') for i in subgraph_units]]
+                names = [*all_subgraphs, *[(i, 'phenomena') for i in subgraph_units]]
             else:
                 names = all_subgraphs
         elif 'modular' in decomposition:
@@ -2795,7 +2795,7 @@ class System:
             raise ValueError('unknown decompostion')
         
         def equation_match(equation, subgraph):
-            name = equation.name
+            name = equation.name.replace('phenomenode', 'phenomena')
             if isinstance(subgraph, tuple):
                 return all([i in name for i in subgraph])
             else:
