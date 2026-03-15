@@ -2137,6 +2137,7 @@ class MultiStageEquilibrium(Unit):
     _tracked_points = None # For numerical/convergence analysis.
     damping = 0 # Damping factor; defined as x_(i+1) = damping * x_i + (1 - damping) * f(x_i)
     minimum_residual_reduction = 0.1 # Minimum fractional reduction in residual for simulation.
+    early_termination = True # Whether to exit simulation early if no progress.
     iteration_memory = 8 # Length of recorded iterations.
     preconditioning_tolerance = 1e-3
     preconditioning_relative_tolerance = 1e-3
@@ -2729,14 +2730,16 @@ class MultiStageEquilibrium(Unit):
                 fx=r0, t0=t1 / 10, t1=t1, tguess=tguess
             )
             if verbose: print([self.iter], 'step size', round(result.t, 2), 'residual', result.r)
-        elif self.damping:
-            x0, r0 = record[0]
-            w = self.damping
-            x1 = (1 - w) * x1 + w * x0
-            result = IterationResult(x1, self._objective(x1))
-            if verbose: print([self.iter], 'residual', result.r)
         else:
-            result = IterationResult(x1, self._objective(x1))
+            if self.damping:
+                x0, r0 = record[0]
+                w = self.damping
+                x1 = (1 - w) * x1 + w * x0
+            if self.early_termination:
+                error = self._objective(x1)
+            else:
+                error = 1e6
+            result = IterationResult(x1, error)
             if verbose: print([self.iter], 'residual', result.r)
         x1 = result.x
         record.rotate()
@@ -2745,7 +2748,7 @@ class MultiStageEquilibrium(Unit):
         if self._convergence_analysis_mode: self._timer.measure()
         residuals = np.array([i.r for i in record])
         mean = np.mean(residuals)
-        if mean > self._mean_residual * (1 - self.minimum_residual_reduction):
+        if self.early_termination and mean > self._mean_residual * (1 - self.minimum_residual_reduction):
             raise RuntimeError('residual error is not decreasing sufficiently')
         self._mean_residual = mean
         return x1
@@ -3290,8 +3293,11 @@ class MultiStageEquilibrium(Unit):
         self._point_shape = (N_stages, 2 * N_chemicals + 1)
         record = self.iteration_memory * [empty]
         x = self._get_point()
-        try: error = self._objective(x)
-        except: error = 1e6
+        if self.early_termination:
+            try: error = self._objective(x)
+            except: error = 1e6
+        else:
+            error = 1e6
         record[0] = IterationResult(x, error)
         self._iteration_record = record = deque(record)
         return x
@@ -3590,7 +3596,7 @@ class MultiStageEquilibrium(Unit):
         )
         f = PhasePartition.F_relaxation_factor
         if f != 0: raise NotImplementedError('F relaxation factor')
-        self.set_all_flow_rates(top_flows, bottom_flows, feed_flows, reactive)
+        self.set_all_flow_rates(top_flows, bottom_flows, feed_flows, reactive, update_B=update_B)
     
     def run_mass_balance(self):
         S = np.array([i.S for i in self.stages])
@@ -3852,7 +3858,7 @@ class MultiStageEquilibrium(Unit):
                                 checkiter=False,
                                 **solver_kwargs
                             )
-                        except: 
+                        except:
                             x = self._best_result.x
                         self._mean_residual = inf
                         self._iteration_record[0] = IterationResult(None, inf)
