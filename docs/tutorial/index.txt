@@ -69,6 +69,7 @@ User guide
           Aerated bioreactor design <Aerated_bioreactor_design>
           Glacial_acetic_acid_separation
           Adsorption column design <Adsorption_column_design>
+          Waste plastic upcycling <Plastic_dissolution_and_precipitation>
 
     .. grid-item::
     
