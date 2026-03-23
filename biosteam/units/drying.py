@@ -240,7 +240,7 @@ class DrumDryer(Unit):
         design_results['Evaporation'] = evaporation = hot_air.F_mass
         gas_composition = self.gas_composition
         if gas_composition is None:
-            gas_composition = [('N2', 0.78), ('O2', 0.32)]
+            gas_composition = [('N2', 0.79), ('O2', 0.21)]
         total_gas_flow = self.R * evaporation
         for ID, x in gas_composition:
             air.imass[ID] = x * total_gas_flow
