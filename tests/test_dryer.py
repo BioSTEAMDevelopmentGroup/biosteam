@@ -2,7 +2,7 @@
 """
 """
 import biosteam as bst
-from numpy.testing import assert_allclose
+import pytest
 
 def test_dryer_relative_humidity():
     settings = bst.settings
@@ -27,11 +27,12 @@ def test_dryer_relative_humidity():
     p_water = y_water * p_total
 
     ## Relative humidity: rh = p_water / p_saturation
-    p_sat_water = settings.chemicals.Water.Psat(hot_air.T)
+    p_sat_water = hot_air.thermo.chemicals.Water.Psat(hot_air.T)
     rh = p_water/p_sat_water
 
-    assert 0 >= rh >= 1, f"Relative humidity must be between 0 and 1. Current: {rh:.2f}"
+    assert 0 <= rh <= 1, f"Relative humidity must be between 0 and 1. Current: {rh:.2f}"
     assert p_sat_water > 0, "Psat must be > 0."
+    assert rh == pytest.approx(D1.RH, rel=1e-3), f"Relative humidity of hot air ({rh}) did not match DrumDryer RH ({D1.RH})."
 
 if __name__ == '__main__':
     test_dryer_relative_humidity()
