@@ -204,20 +204,20 @@ class DrumDryer(Unit):
         """[Stream] Natural gas to satisfy steam and electricity requirements."""
         return self.ins[2]
     
-    def _init(self, split, R=1.4, H=20., length_to_diameter=25, T=343.15, P=10*101325,
+    def _init(self, split, RH=0.80, H=20., length_to_diameter=25, T=343.15, P=10*101325,
               moisture_content=0.15, utility_agent='Natural gas', gas_composition=None,
               moisture_ID=None):
         self._isplit = self.chemicals.isplit(split)
         self.define_utility('Natural gas', self.natural_gas)
         self.P = P
         self.T = T
-        self.R = R
+        self.RH = RH
         self.H = H
         self.gas_composition = gas_composition
         self.length_to_diameter = length_to_diameter
         self.moisture_content = moisture_content
         self.utility_agent = utility_agent
-        self.moisture_ID = moisture_ID
+        self.moisture_ID = moisture_ID if moisture_ID is not None else "Water"
         
     @property
     def utility_agent(self):
@@ -228,7 +228,18 @@ class DrumDryer(Unit):
         if utility_agent not in ('Natural gas', 'Steam'):
             raise ValueError(f"utility agent must be either 'Steam' or 'Natural gas'; not '{utility_agent}'")
         self._utility_agent = utility_agent
-        
+
+    def _get_moisture_ID_psat(self, T):
+        chemical = self.thermo.chemicals[self.moisture_ID]
+        return chemical.Psat(T)
+
+    def _convert_air_mol_to_mass(self, n_air, gas_composition):
+        mol_weight_air = 0.
+        for chem, x in gas_composition:
+            chem_mol_weight = self.thermo.chemicals[chem].MW
+            mol_weight_air += x / chem_mol_weight
+        return n_air / mol_weight_air
+
     def _run(self):
         wet_solids, air, natural_gas = self.ins
         dry_solids, hot_air, emissions = self.outs
@@ -241,7 +252,22 @@ class DrumDryer(Unit):
         gas_composition = self.gas_composition
         if gas_composition is None:
             gas_composition = [('N2', 0.79), ('O2', 0.21)]
-        total_gas_flow = self.R * evaporation
+
+        # Calculate n_moisture_ID and n_evap_compounds
+        n_moisture_id = hot_air.imol[self.moisture_ID]
+        n_evap_compounds = hot_air.F_mol - n_moisture_id
+
+        # Calculate y_moisture_ID
+        y_moisture_id = self.RH * self._get_moisture_ID_psat(self.T)/self.P
+        if not (0 < y_moisture_id < 1):
+            raise ValueError(
+                f"Invalid partial pressure of moisture_ID compound (expected between 0 and 1). Current: {y_moisture_id}."
+            )
+
+        # Calculate total gas flow (molar basis)
+        n_dry_gas = (n_moisture_id * (1-y_moisture_id)/y_moisture_id - n_evap_compounds)
+
+        total_gas_flow = self._convert_air_mol_to_mass(n_dry_gas, gas_composition)
         for ID, x in gas_composition:
             air.imass[ID] = x * total_gas_flow
         hot_air.mol += air.mol
