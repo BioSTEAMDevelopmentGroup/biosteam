@@ -79,8 +79,8 @@ class DrumDryer(Unit):
         * [2] Emissions
     split : dict[str, float]
         Component splits to hot gas (stream [1]).
-    R : float, optional
-        Flow of hot gas over evaporation. Defaults to 1.4 wt gas / wt evap.
+    RH : float, optional
+        Relative humidity of hot gas [as fraction]. Defaults to 0.80.
     H : float, optional
         Specific evaporation rate [kg/hr/m3]. Defaults to 20. 
     length_to_diameter : float, optional
@@ -92,9 +92,9 @@ class DrumDryer(Unit):
         
     Notes
     -----
-    The flow rate for gas in the inlet is varied to meet the `R` specification
-    (i.e. flow of hot gas over flow rate evaporated). The flow rate of inlet natural
-    gas is also altered to meet the heat demand.
+    The flow rate for gas in the inlet is calculated to meet the `RH` specification
+    (i.e. relative humidity of hot gas depending on moisture_ID evaporated). The flow 
+    rate of inlet natural gas is also altered to meet the heat demand.
     
     The default parameter values are based on heuristics for drying 
     dried distillers grains with solubles (DDGS).
@@ -134,13 +134,13 @@ class DrumDryer(Unit):
                          ----------------  3.27e+04 kg/hr
     [1] dryer_air
         phase: 'g', T: 298.15 K, P: 1.01325e+06 Pa
-        composition (%): O2  29.1
-                         N2  70.9
-                         --  3.22e+04 kg/hr
+        composition (%): O2  21
+                         N2  79
+                         --  1.32e+06 kg/hr
     [2] natural_gas
         phase: 'g', T: 298.15 K, P: 101325 Pa
         composition (%): CH4  100
-                         ---  1.11e+03 kg/hr
+                         ---  2.45e+03 kg/hr
     outs...
     [0] dryed_solids
         phase: 'l', T: 343.15 K, P: 101325 Pa
@@ -156,23 +156,23 @@ class DrumDryer(Unit):
                          ----------------  1.18e+04 kg/hr
     [1] hot_air
         phase: 'g', T: 343.15 K, P: 1.01325e+06 Pa
-        composition (%): Water    39.4
-                         Ethanol  0.000311
-                         O2       17.6
-                         N2       43
-                         -------  5.31e+04 kg/hr
+        composition (%): Water    1.56
+                         Ethanol  1.23e-05
+                         O2       20.7
+                         N2       77.8
+                         -------  1.34e+06 kg/hr
     [2] emissions
         phase: 'g', T: 373.15 K, P: 101325 Pa
         composition (%): Water  45
                          CO2    55
-                         -----  5.56e+03 kg/hr
+                         -----  1.22e+04 kg/hr
                         
     >>> dryer.results()
     Drum dryer                                 Units     D610
     Electricity         Power                     kW      845
                         Cost                  USD/hr       66
-    Natural gas (inlet) Flow                   kg/hr 1.11e+03
-                        Cost                  USD/hr      243
+    Natural gas (inlet) Flow                   kg/hr 2.45e+03
+                        Cost                  USD/hr      534
     Design              Evaporation            kg/hr 2.09e+04
                         Volume                       1.05e+03
                         Diameter                   m     3.76
@@ -180,7 +180,7 @@ class DrumDryer(Unit):
                         Peripheral drum area      m2 1.11e+03
     Purchase cost       Drum dryer               USD  1.2e+06
     Total purchase cost                          USD  1.2e+06
-    Utility cost                              USD/hr      309
+    Utility cost                              USD/hr      600
     
     """
     # auxiliary_unit_names = ('heat_exchanger',)
