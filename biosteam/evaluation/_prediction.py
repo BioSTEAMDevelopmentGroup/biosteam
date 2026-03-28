@@ -18,6 +18,7 @@ from ._parameter import Parameter
 from .._system import System, JointRecycleData
 
 __all__ = (
+    'Response',
     'GenericResponse',
     'ConvergenceModel',
     'NullConvergenceModel',

@@ -200,12 +200,16 @@ tools for sustainability assessments. Here is a short list of related publicatio
   
   #. `Screening green solvents for multilayer plastic film recycling processes. Computers & Chemical Engineering 2025 <https://doi.org/10.1016/j.compchemeng.2025.109129>`_
 
+  #. `Recycling of a Post-Industrial Printed Multilayer Plastic Film Containing Polyurethane Inks by Solvent-Targeted Recovery and Precipitation. Resources, Conservation and Recycling 2023 <https://doi.org/10.1016/j.resconrec.2023.107086>`_
+
   #. `Comparative Techno-Economic Analysis and Life Cycle Assessment of Producing High-Value Chemicals and Fuels from Waste Plastic via Conventional Pyrolysis and Thermal Oxo-Degradation. Energy Fuels 2023 <https://doi.org/10.1021/acs.energyfuels.3c02321>`_
 
   #. `High-purity polypropylene from disposable face masks via solvent-targeted recovery and precipitation. Green Chemistry 2023 <https://doi.org/10.1039/D3GC00205E>`_
 
 * **Biomanufactureing, bioproducts, and biofuels**:
   
+  #. `A KPI-Based Experimental Design Strategy for Bioprocess Development. Biochemical Engineering Journal 2026 <https://doi.org/10.1016/j.bej.2026.110096>`_
+
   #. `Co-Deploying Algal Biocarbon Capture with Coal Power in China Reduces Carbon Emissions and Improves Cost-Effectiveness. Sustainable Production and Consumption 2026 <https://doi.org/10.1016/j.spc.2026.01.007>`_
   
   #. `Integrated Dynamic Control and Enzyme Co-Localization Strategies Enable High-Efficiency Stilbenoid Biosynthesis. Bioresource Technology 2026 <https://doi.org/10.1016/j.biortech.2026.134122>`_
