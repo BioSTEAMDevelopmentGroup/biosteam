@@ -180,11 +180,15 @@ tools for sustainability assessments. Here is a short list of related publicatio
 
 * **Social, economic, and policy studies**:
 
+  #. `Filling the Cellulosic Bio-Economy Gap by Utilizing a Wedge Approach Combined with Stakeholder Collaboration. Renewable Energy 2026 <https://doi.org/10.1016/j.renene.2026.125419>`_
+
   #. `An agent-based modeling tool supporting bioenergy and bio-product community communication regarding cellulosic bioeconomy development. Renewable and Sustainable Energy Reviews 2022 <https://doi.org/10.1016/j.rser.2022.112745>`_
 
   #. `Implications of Biorefinery Policy Incentives and Location-Specific Economic Parameters for the Financial Viability of Biofuels. Environ Sci Technol 2023 <https://doi.org/10.1021/acs.est.2c07936>`_
 
 * **Waste valorization**:
+
+  #. `Production of High-Quality Polyethylene (PE) Films from Post-Consumer Shrink Wrap with Solvent Targeted Recovery and Precipitation (STRAP). Waste Management 2026 <https://doi.org/10.1016/j.wasman.2026.115395>`_
 
   #. `Cost-Effective Urine Recycling Enabled by a Synthetic Osteoyeast Platform for Production of Hydroxyapatite. Nat Commun 2025 <https://doi.org/10.1038/s41467-025-59416-8>`_
   
@@ -201,6 +205,18 @@ tools for sustainability assessments. Here is a short list of related publicatio
   #. `High-purity polypropylene from disposable face masks via solvent-targeted recovery and precipitation. Green Chemistry 2023 <https://doi.org/10.1039/D3GC00205E>`_
 
 * **Biomanufactureing, bioproducts, and biofuels**:
+  
+  #. `Co-Deploying Algal Biocarbon Capture with Coal Power in China Reduces Carbon Emissions and Improves Cost-Effectiveness. Sustainable Production and Consumption 2026 <https://doi.org/10.1016/j.spc.2026.01.007>`_
+  
+  #. `Integrated Dynamic Control and Enzyme Co-Localization Strategies Enable High-Efficiency Stilbenoid Biosynthesis. Bioresource Technology 2026 <https://doi.org/10.1016/j.biortech.2026.134122>`_
+  
+  #. `Conversion of Waste Microalgae into Caproic Acid Using Anaerobic Membrane Bioreactors without External Electron Donors. Green Chem. <https://doi.org/10.1039/D6GC00346J>`_
+
+  #. `Bio-Based Oxalic Acid Production in Issatchenkia Orientalis Enables Sustainable Rare Earth Recovery. Nat Commun 2026 <https://doi.org/10.1038/s41467-026-68957-5>`_
+  
+  #. `Co-Location of Cellulosic Bioethanol and Alcohol-to-Jet (ATJ) Production Facilities for Targeted Scale-Up of Sustainable Aviation Fuel (SAF) Production. Environ. Sci. Technol. 2026 <https://doi.org/10.1021/acs.est.5c17460>`_
+
+  #. `High Yield Production of 3-Hydroxypropionic Acid Using Issatchenkia Orientalis. Nat Commun 2026 <https://doi.org/10.1038/s41467-025-67621-8>`_.
   
   #. `Decompartmentalization of the Yeast Mitochondrial Metabolism to Improve Chemical Production in Issatchenkia Orientalis. Nat Commun 2025 <https://doi.org/10.1038/s41467-025-62304-w>`_
 
