@@ -32,6 +32,8 @@ from .decorators import cost
 from .._unit import Unit
 from math import exp, log
 from thermosteam import separations
+from warnings import warn
+from ..exceptions import DesignWarning
 
 __all__ = ('SprayDryer', 'DrumDryer', 'ThermalOxidizer')
 
@@ -80,7 +82,7 @@ class DrumDryer(Unit):
     split : dict[str, float]
         Component splits to hot gas (stream [1]).
     RH : float, optional
-        Relative humidity of hot gas [as fraction]. Defaults to 0.80.
+        Relative humidity of hot gas as a fraction. Defaults to 0.80.
     H : float, optional
         Specific evaporation rate [kg/hr/m3]. Defaults to 20. 
     length_to_diameter : float, optional
@@ -213,11 +215,11 @@ class DrumDryer(Unit):
         self.T = T
         self.RH = RH
         self.H = H
-        self.gas_composition = gas_composition
+        self.gas_composition = [('N2', 0.79), ('O2', 0.21)] if gas_composition is None else gas_composition
         self.length_to_diameter = length_to_diameter
         self.moisture_content = moisture_content
         self.utility_agent = utility_agent
-        self.moisture_ID = moisture_ID if moisture_ID is not None else "Water"
+        self.moisture_ID = 'Water' if moisture_ID is None else moisture_ID
         
     @property
     def utility_agent(self):
@@ -229,7 +231,7 @@ class DrumDryer(Unit):
             raise ValueError(f"utility agent must be either 'Steam' or 'Natural gas'; not '{utility_agent}'")
         self._utility_agent = utility_agent
 
-    def _get_moisture_ID_psat(self, T):
+    def _get_moisture_vapor_pressure(self, T):
         chemical = self.thermo.chemicals[self.moisture_ID]
         return chemical.Psat(T)
 
@@ -241,36 +243,34 @@ class DrumDryer(Unit):
         return n_air / mol_weight_air
 
     def _run(self):
-        wet_solids, air, natural_gas = self.ins
+        wet_solids, dry_gas, natural_gas = self.ins
         dry_solids, hot_air, emissions = self.outs
         wet_solids.split_to(hot_air, dry_solids, self.split)
         sep.adjust_moisture_content(dry_solids, hot_air, self.moisture_content, self.moisture_ID)
-        hot_air.P = air.P = self.P
-        emissions.phase = air.phase = natural_gas.phase = hot_air.phase = 'g'
+        hot_air.P = dry_gas.P = self.P
+        emissions.phase = dry_gas.phase = natural_gas.phase = hot_air.phase = 'g'
         design_results = self.design_results
-        design_results['Evaporation'] = evaporation = hot_air.F_mass
-        gas_composition = self.gas_composition
-        if gas_composition is None:
-            gas_composition = [('N2', 0.79), ('O2', 0.21)]
+        design_results['Evaporation'] = hot_air.F_mass
 
         # Calculate n_moisture_ID and n_evap_compounds
-        n_moisture_id = hot_air.imol[self.moisture_ID]
-        n_evap_compounds = hot_air.F_mol - n_moisture_id
+        n_moisture = hot_air.imol[self.moisture_ID]
 
         # Calculate y_moisture_ID
-        y_moisture_id = self.RH * self._get_moisture_ID_psat(self.T)/self.P
-        if not (0 < y_moisture_id < 1):
-            raise ValueError(
-                f"Invalid partial pressure of moisture_ID compound (expected between 0 and 1). Current: {y_moisture_id}."
+        Psat = self._get_moisture_vapor_pressure(self.T)
+        P = self.P
+        if Psat > P: 
+            warn(
+                f'saturated pressure of {self.moisture_ID} ({int(Psat)} Pa) '
+                f'is greater than operating pressure ({int(P)} Pa)',
+                category=DesignWarning,
             )
-
+            Psat = P
+        y_moisture = self.RH * Psat / P
+        
         # Calculate total gas flow (molar basis)
-        n_dry_gas = (n_moisture_id * (1-y_moisture_id)/y_moisture_id - n_evap_compounds)
-
-        total_gas_flow = self._convert_air_mol_to_mass(n_dry_gas, gas_composition)
-        for ID, x in gas_composition:
-            air.imass[ID] = x * total_gas_flow
-        hot_air.mol += air.mol
+        n_other = n_moisture * (1 - y_moisture) / y_moisture
+        dry_gas.reset_flow(**dict(self.gas_composition), total_flow=n_other) # In kmol / hr
+        hot_air.mol += dry_gas.mol
         dry_solids.T = hot_air.T = self.T
         emissions.T = self.T + 30.
         natural_gas.empty()
@@ -282,7 +282,7 @@ class DrumDryer(Unit):
                 H2O = 2. * CH4
                 natural_gas.imol['CH4'] = CH4
                 emissions.imol['CO2', 'H2O'] = [CO2, H2O]    
-                duty = (dry_solids.H + hot_air.H + emissions.H) - (wet_solids.H + air.H + natural_gas.H)
+                duty = (dry_solids.H + hot_air.H + emissions.H) - (wet_solids.H + dry_gas.H + natural_gas.H)
                 CH4 = duty / LHV
                 return CH4
             flx.wegstein(f, 0., 1e-3)
