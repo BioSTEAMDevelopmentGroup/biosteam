@@ -9,7 +9,7 @@ def test_dryer_relative_humidity_and_energy_balance():
     settings.set_thermo(['Water', 'Protein', 'O2', 'N2', 'CO2', 'CH4'], cache=True)
     settings.mixture.include_excess_energies = True
 
-    feed = bst.Stream(None,Water=1000,Protein=200,units='kg/hr')
+    feed = bst.Stream(None, Water=1000, Protein=200, units='kg/hr')
     D1 = bst.DrumDryer(None,(feed,),split={"Protein":0.0})
     D1.simulate()
 
