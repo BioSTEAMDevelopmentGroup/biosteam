@@ -32,6 +32,8 @@ from .decorators import cost
 from .._unit import Unit
 from math import exp, log
 from thermosteam import separations
+from warnings import warn
+from ..exceptions import DesignWarning
 
 __all__ = ('SprayDryer', 'DrumDryer', 'ThermalOxidizer')
 
@@ -79,8 +81,8 @@ class DrumDryer(Unit):
         * [2] Emissions
     split : dict[str, float]
         Component splits to hot gas (stream [1]).
-    R : float, optional
-        Flow of hot gas over evaporation. Defaults to 1.4 wt gas / wt evap.
+    RH : float, optional
+        Relative humidity of hot gas as a fraction. Defaults to 0.80.
     H : float, optional
         Specific evaporation rate [kg/hr/m3]. Defaults to 20. 
     length_to_diameter : float, optional
@@ -92,9 +94,9 @@ class DrumDryer(Unit):
         
     Notes
     -----
-    The flow rate for gas in the inlet is varied to meet the `R` specification
-    (i.e. flow of hot gas over flow rate evaporated). The flow rate of inlet natural
-    gas is also altered to meet the heat demand.
+    The flow rate for gas in the inlet is calculated to meet the `RH` specification
+    (i.e. relative humidity of hot gas depending on moisture_ID evaporated). The flow 
+    rate of inlet natural gas is also altered to meet the heat demand.
     
     The default parameter values are based on heuristics for drying 
     dried distillers grains with solubles (DDGS).
@@ -134,13 +136,13 @@ class DrumDryer(Unit):
                          ----------------  3.27e+04 kg/hr
     [1] dryer_air
         phase: 'g', T: 298.15 K, P: 1.01325e+06 Pa
-        composition (%): O2  29.1
-                         N2  70.9
-                         --  3.22e+04 kg/hr
+        composition (%): O2  21
+                         N2  79
+                         --  1.32e+06 kg/hr
     [2] natural_gas
         phase: 'g', T: 298.15 K, P: 101325 Pa
         composition (%): CH4  100
-                         ---  1.11e+03 kg/hr
+                         ---  2.45e+03 kg/hr
     outs...
     [0] dryed_solids
         phase: 'l', T: 343.15 K, P: 101325 Pa
@@ -156,23 +158,23 @@ class DrumDryer(Unit):
                          ----------------  1.18e+04 kg/hr
     [1] hot_air
         phase: 'g', T: 343.15 K, P: 1.01325e+06 Pa
-        composition (%): Water    39.4
-                         Ethanol  0.000311
-                         O2       17.6
-                         N2       43
-                         -------  5.31e+04 kg/hr
+        composition (%): Water    1.56
+                         Ethanol  1.23e-05
+                         O2       20.7
+                         N2       77.8
+                         -------  1.34e+06 kg/hr
     [2] emissions
         phase: 'g', T: 373.15 K, P: 101325 Pa
         composition (%): Water  45
                          CO2    55
-                         -----  5.56e+03 kg/hr
+                         -----  1.22e+04 kg/hr
                         
     >>> dryer.results()
     Drum dryer                                 Units     D610
     Electricity         Power                     kW      845
                         Cost                  USD/hr       66
-    Natural gas (inlet) Flow                   kg/hr 1.11e+03
-                        Cost                  USD/hr      243
+    Natural gas (inlet) Flow                   kg/hr 2.45e+03
+                        Cost                  USD/hr      534
     Design              Evaporation            kg/hr 2.09e+04
                         Volume                       1.05e+03
                         Diameter                   m     3.76
@@ -180,7 +182,7 @@ class DrumDryer(Unit):
                         Peripheral drum area      m2 1.11e+03
     Purchase cost       Drum dryer               USD  1.2e+06
     Total purchase cost                          USD  1.2e+06
-    Utility cost                              USD/hr      309
+    Utility cost                              USD/hr      600
     
     """
     # auxiliary_unit_names = ('heat_exchanger',)
@@ -204,20 +206,20 @@ class DrumDryer(Unit):
         """[Stream] Natural gas to satisfy steam and electricity requirements."""
         return self.ins[2]
     
-    def _init(self, split, R=1.4, H=20., length_to_diameter=25, T=343.15, P=10*101325,
+    def _init(self, split, RH=0.80, H=20., length_to_diameter=25, T=343.15, P=10*101325,
               moisture_content=0.15, utility_agent='Natural gas', gas_composition=None,
               moisture_ID=None):
         self._isplit = self.chemicals.isplit(split)
         self.define_utility('Natural gas', self.natural_gas)
         self.P = P
         self.T = T
-        self.R = R
+        self.RH = RH
         self.H = H
-        self.gas_composition = gas_composition
+        self.gas_composition = [('N2', 0.79), ('O2', 0.21)] if gas_composition is None else gas_composition
         self.length_to_diameter = length_to_diameter
         self.moisture_content = moisture_content
         self.utility_agent = utility_agent
-        self.moisture_ID = moisture_ID
+        self.moisture_ID = 'Water' if moisture_ID is None else moisture_ID
         
     @property
     def utility_agent(self):
@@ -228,23 +230,47 @@ class DrumDryer(Unit):
         if utility_agent not in ('Natural gas', 'Steam'):
             raise ValueError(f"utility agent must be either 'Steam' or 'Natural gas'; not '{utility_agent}'")
         self._utility_agent = utility_agent
-        
+
+    def _get_moisture_vapor_pressure(self, T):
+        chemical = self.thermo.chemicals[self.moisture_ID]
+        return chemical.Psat(T)
+
+    def _convert_air_mol_to_mass(self, n_air, gas_composition):
+        mol_weight_air = 0.
+        for chem, x in gas_composition:
+            chem_mol_weight = self.thermo.chemicals[chem].MW
+            mol_weight_air += x / chem_mol_weight
+        return n_air / mol_weight_air
+
     def _run(self):
-        wet_solids, air, natural_gas = self.ins
+        wet_solids, dry_gas, natural_gas = self.ins
         dry_solids, hot_air, emissions = self.outs
         wet_solids.split_to(hot_air, dry_solids, self.split)
         sep.adjust_moisture_content(dry_solids, hot_air, self.moisture_content, self.moisture_ID)
-        hot_air.P = air.P = self.P
-        emissions.phase = air.phase = natural_gas.phase = hot_air.phase = 'g'
+        hot_air.P = dry_gas.P = self.P
+        emissions.phase = dry_gas.phase = natural_gas.phase = hot_air.phase = 'g'
         design_results = self.design_results
-        design_results['Evaporation'] = evaporation = hot_air.F_mass
-        gas_composition = self.gas_composition
-        if gas_composition is None:
-            gas_composition = [('N2', 0.78), ('O2', 0.32)]
-        total_gas_flow = self.R * evaporation
-        for ID, x in gas_composition:
-            air.imass[ID] = x * total_gas_flow
-        hot_air.mol += air.mol
+        design_results['Evaporation'] = hot_air.F_mass
+
+        # Calculate n_moisture_ID and n_evap_compounds
+        n_moisture = hot_air.imol[self.moisture_ID]
+
+        # Calculate y_moisture_ID
+        Psat = self._get_moisture_vapor_pressure(self.T)
+        P = self.P
+        if Psat > P: 
+            warn(
+                f'saturated pressure of {self.moisture_ID} ({int(Psat)} Pa) '
+                f'is greater than operating pressure ({int(P)} Pa)',
+                category=DesignWarning,
+            )
+            Psat = P
+        y_moisture = self.RH * Psat / P
+        
+        # Calculate total gas flow (molar basis)
+        n_other = n_moisture * (1 - y_moisture) / y_moisture
+        dry_gas.reset_flow(**dict(self.gas_composition), total_flow=n_other) # In kmol / hr
+        hot_air.mol += dry_gas.mol
         dry_solids.T = hot_air.T = self.T
         emissions.T = self.T + 30.
         natural_gas.empty()
@@ -256,7 +282,7 @@ class DrumDryer(Unit):
                 H2O = 2. * CH4
                 natural_gas.imol['CH4'] = CH4
                 emissions.imol['CO2', 'H2O'] = [CO2, H2O]    
-                duty = (dry_solids.H + hot_air.H + emissions.H) - (wet_solids.H + air.H + natural_gas.H)
+                duty = (dry_solids.H + hot_air.H + emissions.H) - (wet_solids.H + dry_gas.H + natural_gas.H)
                 CH4 = duty / LHV
                 return CH4
             flx.wegstein(f, 0., 1e-3)
