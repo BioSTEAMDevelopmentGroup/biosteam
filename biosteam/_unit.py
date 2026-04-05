@@ -706,6 +706,8 @@ class Unit(AbstractUnit):
         
         self._recycle_system = None
         
+        if bst.preferences.ID_inference and ID == '': ID = bst.utils.infer_variable_assignment(self.__class__)
+        
         super().__init__(ID, ins, outs, thermo, **kwargs)
     
         self._assert_compatible_property_package()

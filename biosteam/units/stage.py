@@ -3161,7 +3161,8 @@ class MultiStageEquilibrium(Unit):
             invariable_enthalpies[n] += H_out - H_in
         self._feed_and_invariable_enthalpies = invariable_enthalpies + feed_enthalpies
         self._specified_variables = variables
-        if self.use_cache: 
+        use_cache = self.use_cache
+        if use_cache: 
             try:
                 point = self._get_point()
             except:

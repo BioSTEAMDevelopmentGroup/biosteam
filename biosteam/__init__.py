@@ -90,12 +90,22 @@ __all__ = (
 
 def nbtutorial(dark=False):
     global print_error
+    
+    # Only works in Jupyter Notebook
+    from IPython import get_ipython
+    try:
+        shell = get_ipython().__class__.__name__
+        if shell != 'ZMQInteractiveShell': return # not Jupyter Notebook
+    except NameError:
+        return # Probably standard Python interpreter
+    
     main_flowsheet.clear()
     preferences.reset()
     if dark: 
         preferences.dark_mode(bg='#111111')
     else:
         preferences.light_mode(bg='#ffffffaa')
+    preferences.ID_inference = True
     preferences.tooltips_full_results = False
     preferences.graphviz_format = 'html'
     preferences.show_all_streams = True

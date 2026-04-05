@@ -433,7 +433,7 @@ class Distillation(Unit, isabstract=True):
             self.reboiler-0, ('boilup', self-1), thermo=reboiler_thermo,
         )
     
-    def to_rigorous_column(self, dP=None, kwargs_only=False, print_code=False, **kwargs):
+    def to_rigorous_column(self, ID='', dP=None, kwargs_only=False, print_code=False, **kwargs):
         design = self.design_results
         feed_stage = int(design['Theoretical feed stage'])
         N_stages = int(design['Theoretical stages'])
@@ -474,8 +474,9 @@ class Distillation(Unit, isabstract=True):
             print(code)
         if kwargs_only: 
             return kwargs
+        if bst.preferences.ID_inference and ID == '': ID = bst.utils.infer_variable_assignment(self.to_rigorous_column)
         return MESHDistillation(
-            None,
+            ID,
             ins=self.ins, 
             outs=self.outs,
             thermo=self.thermo,
@@ -2999,7 +3000,6 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                 hL = Phi_e * (hw + CL * (qL / (Lw * Phi_e)) ** b) # equivalent height of clear liquid holdup [in]
                 stages[i].liquid_holdup_volume = hL * area * 0.00236155 # m3 
             except:
-                breakpoint()
                 partition = partitions[i]
                 vapor, liquid = partition.outs
                 if liquid.isempty():

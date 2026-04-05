@@ -12,8 +12,8 @@ from thermosteam.units_of_measure import (
     convert, DisplayUnits, UnitsOfMeasure, get_dimensionality,
     heat_utility_units_of_measure
 )
-from thermosteam.utils import unregistered, define_units_of_measure
-from thermosteam import Thermo, Stream, ThermalCondition, settings
+from thermosteam.utils import unregistered, define_units_of_measure, infer_variable_assignment
+from thermosteam import Thermo, Stream, ThermalCondition, settings, preferences
 from .exceptions import DimensionError
 from math import copysign
 from collections import deque
@@ -104,6 +104,7 @@ class UtilityAgent(Stream):
         self.mol.read_only = True # Flow rate cannot change anymore
         self._sink = self._source = None
         self.reset_cache()
+        if preferences.ID_inference and ID == '': ID = infer_variable_assignment(self.__class__, '-')
         self._register(ID)
         self.T_limit = T_limit
         self.heat_transfer_price = heat_transfer_price

@@ -332,17 +332,19 @@ class ThermalOxidizer(Unit):
         """[Stream] Natural gas to satisfy steam and electricity requirements."""
         return self.ins[2]
     
-    def _init(self, tau=0.00014, duty_per_kg=61., V_wf=0.95):
+    def _init(self, tau=0.00014, duty_per_kg=61.):
         self.define_utility('Natural gas', self.natural_gas)
         self.tau = tau
         self.duty_per_kg = duty_per_kg
-        self.V_wf = V_wf
 
     def _run(self):
         feed, air, ng = self.ins
         ng.imol['CH4'] = self.duty_per_kg * feed.F_mass / self.chemicals.CH4.LHV
         ng.phase = 'g'
+        air.phase = 'g'
         emissions, = self.outs
+        ng.P = air.P = emissions.P = feed.P
+        emissions.phase = 'g'
         ng_burned = ng.copy()
         combustion_rxns = self.chemicals.get_combustion_reactions()
         # Enough oxygen must be present in air to burn natural gas
@@ -361,7 +363,7 @@ class ThermalOxidizer(Unit):
         
     def _design(self):
         design_results = self.design_results
-        volume = self.tau * self.outs[0].F_vol / self.V_wf
+        volume = self.tau * self.ins[0].F_vol
         V_max = self.max_volume
         design_results['Number of vessels'] = N = np.ceil(volume / V_max)
         design_results['Vessel volume'] = volume / N

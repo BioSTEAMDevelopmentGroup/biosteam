@@ -83,6 +83,7 @@ class ProcessWaterCenter(bst.Facility):
             reverse_osmosis_water_price=None,
             process_water_price=None
         ):
+        self.materialize_connections()
         if process_water_streams and makeup_water_streams:
             process_water_streams = list(process_water_streams)
             for i in makeup_water_streams:

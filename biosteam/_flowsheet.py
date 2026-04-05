@@ -252,6 +252,8 @@ class Flowsheet:
             on a per year basis.
         
         """
+        if bst.preferences.ID_inference and ID == '':
+            ID = bst.utils.infer_variable_assignment(self.create_system)
         return System.from_units(ID, self.unit, ends, 
                                  operating_hours, **kwargs)
     
@@ -315,7 +317,22 @@ class MainFlowsheet(Flowsheet):
     __slots__ = ()
     
     line = "Main flowsheet"
-        
+    
+    def open(self, dct):
+        F = self
+        registries = [F.system, F.unit, F.stream]
+        for registry in registries: 
+            dct.update(registry.data)
+            registry.data = dct
+
+    def close(self):
+        F = self
+        if F.system.data is F.unit.data is F.stream.data:
+            data = F.system.data
+            F.system.data = {i: j for i, j in data.items() if isinstance(j, System)}
+            F.stream.data = {i: j for i, j in data.items() if isinstance(j, AbstractStream)}
+            F.unit.data = {i: j for i, j in data.items() if isinstance(j, AbstractUnit)}
+    
     def set_flowsheet(self, flowsheet, new=False):
         """Set main flowsheet that is updated with new biosteam objects."""
         if isinstance(flowsheet, Flowsheet):

@@ -160,7 +160,6 @@ def test_esterification_column():
             print(rate)
             return 0
     
-    
     feed = bst.Stream(
         'feed',
         LacticAcid=4.174,
