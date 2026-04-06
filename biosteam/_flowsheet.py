@@ -252,7 +252,7 @@ class Flowsheet:
             on a per year basis.
         
         """
-        if bst.preferences.ID_inference and ID == '':
+        if bst.settings.ID_magic and ID == '':
             ID = bst.utils.infer_variable_assignment(self.create_system)
         return System.from_units(ID, self.unit, ends, 
                                  operating_hours, **kwargs)

@@ -1252,6 +1252,7 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
         
     def _design(self):
         mixer = self.mixer
+        mixer._setup()
         mixer._run()
         mixer._design()
         settler = self.settler

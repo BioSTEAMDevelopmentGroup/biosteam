@@ -474,7 +474,7 @@ class Distillation(Unit, isabstract=True):
             print(code)
         if kwargs_only: 
             return kwargs
-        if bst.preferences.ID_inference and ID == '': ID = bst.utils.infer_variable_assignment(self.to_rigorous_column)
+        if bst.settings.ID_magic and ID == '': ID = bst.utils.infer_variable_assignment(self.to_rigorous_column)
         return MESHDistillation(
             ID,
             ins=self.ins, 

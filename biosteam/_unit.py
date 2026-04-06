@@ -623,7 +623,6 @@ class Unit(AbstractUnit):
             thermo: Optional[tmo.Thermo]=None,
             **kwargs
         ):
-        
         ### Initialize utilities
     
         #: All heat utilities associated to unit. Cooling and heating requirements 
@@ -706,7 +705,7 @@ class Unit(AbstractUnit):
         
         self._recycle_system = None
         
-        if bst.preferences.ID_inference and ID == '': ID = bst.utils.infer_variable_assignment(self.__class__)
+        if bst.settings.ID_magic and ID == '': ID = bst.utils.infer_variable_assignment(self.__class__)
         
         super().__init__(ID, ins, outs, thermo, **kwargs)
     

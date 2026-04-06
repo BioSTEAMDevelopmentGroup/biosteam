@@ -35,3 +35,4 @@ class EnzymeTreatment(MixTank):
     def _design(self):
         super()._design()
         self.heat_exchanger.simulate_as_auxiliary_exchanger(self.ins, self.outs, self.Hnet)
+        self.parallel['heat_exchanger'] = 1

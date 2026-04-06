@@ -993,7 +993,7 @@ class System:
         """
         if feedstock is None: raise ValueError('must pass feedstock stream')
         network = Network.from_feedstock(feedstock, feeds, ends)
-        if bst.preferences.ID_inference and ID == '': ID = bst.utils.infer_variable_assignment(cls.from_feedstock)
+        if bst.settings.ID_magic and ID == '': ID = bst.utils.infer_variable_assignment(cls.from_feedstock)
         return cls._from_network(ID, network, facilities,
                                 operating_hours,
                                 **kwargs)
@@ -1025,7 +1025,7 @@ class System:
         """
         facilities = facilities_from_units(units)
         network = Network.from_units(units, ends)
-        if bst.preferences.ID_inference and ID == '': ID = bst.utils.infer_variable_assignment(cls.from_units)
+        if bst.settings.ID_magic and ID == '': ID = bst.utils.infer_variable_assignment(cls.from_units)
         return cls._from_network(ID, network, facilities,
                                 operating_hours,
                                 **kwargs)
@@ -1065,7 +1065,7 @@ class System:
         if inclusive:
             if start is not None: units.add(start)
             if end is not None: units.add(end)
-        if bst.preferences.ID_inference and ID == '': ID = bst.utils.infer_variable_assignment(cls.from_segment)
+        if bst.settings.ID_magic and ID == '': ID = bst.utils.infer_variable_assignment(cls.from_segment)
         return bst.System.from_units(ID, units, operating_hours=operating_hours,
                                      **kwargs)
          
@@ -1180,7 +1180,7 @@ class System:
         #: Relaxation factor for energy balance in phenomena-based simulation.
         self.energy_relaxation_factor = None
         
-        if bst.preferences.ID_inference and ID == '': ID = bst.utils.infer_variable_assignment(self.__class__)
+        if bst.settings.ID_magic and ID == '': ID = bst.utils.infer_variable_assignment(self.__class__)
         
         self._register(ID)
         self._set_path(path)
@@ -1330,7 +1330,11 @@ class System:
             maxiter=self.maxiter,
             subsystems=True,
         )
-        for i, j in zip(self.subsystems, old_IDs): i.ID = j
+        registry = self.registry
+        data = registry.data
+        for i, ID in zip(self.subsystems, old_IDs): 
+            if ID in data: del data[ID]
+            i.ID = ID
 
     def __enter__(self):
         if self._path or self._recycle or self._facilities:

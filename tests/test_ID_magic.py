@@ -18,6 +18,12 @@ def test_variable_assignment():
     with bst.System() as sys: pass
     assert sys.ID == 'sys'
     
+    @bst.SystemFactory
+    def f(ins, outs): pass
+    
+    sys = f()
+    assert sys.ID == 'sys'
+    
 def test_commas():
     bst.settings.set_thermo(['Water'], cache=True)
     bst.main_flowsheet.clear()

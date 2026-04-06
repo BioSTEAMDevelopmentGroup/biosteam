@@ -181,7 +181,7 @@ class SystemFactory:
     
     """
     
-    def __new__(cls, f=None, ID=None, ins=None, outs=None,
+    def __new__(cls, f=None, ID='', ins=None, outs=None,
                 fixed_ins_size=True, fixed_outs_size=True,
                 fthermo=None):
         if f:
@@ -219,7 +219,7 @@ class SystemFactory:
     
     def __call__(self, ID=None, ins=None, outs=None,
             mockup=False, area=None, udct=None, 
-            autorename=None, operating_hours=None,
+            autorename=True, operating_hours=None,
             lang_factor=None, algorithm=None, 
             method=None, maxiter=None,
             molar_tolerance=None,
@@ -243,8 +243,11 @@ class SystemFactory:
         ins = create_streams(self.ins, ins, 'inlets', self.fixed_ins_size)
         outs = create_streams(self.outs, outs, 'outlets', self.fixed_outs_size)
         rename = area is not None
+        if ID is None: ID = self.ID
+        if bst.settings.ID_magic and ID == '': 
+            ID = bst.utils.infer_variable_assignment(self)
         options = dict(
-            ID=ID or self.ID,
+            ID=ID,
             operating_hours=operating_hours,
             lang_factor=lang_factor, algorithm=algorithm, 
             method=method, maxiter=maxiter,
@@ -253,6 +256,7 @@ class SystemFactory:
             temperature_tolerance=temperature_tolerance,
             relative_temperature_tolerance=relative_temperature_tolerance,
         )
+        # Box system as a facility module in the special case of a recycle facility system
         if network_priority is not None: box = True
         if box:
             if mockup: raise ValueError('cannot box mockup system')
@@ -273,7 +277,7 @@ class SystemFactory:
             with bst.Flowsheet(ID), bst.System(**options) as system:
                 self.f(ins, outs, **kwargs)
             module._init(system=system)
-        else:        
+        else: # Create system
             with (bst.MockSystem() if mockup else bst.System(**options)) as system:
                 if rename: 
                     unit_registry = system.flowsheet.unit
@@ -333,14 +337,23 @@ class SystemFactory:
         dct_dlim = "," + newline + 5 * " "
         outs = repr_items(outs) if outs else str(outs)
         name = f"<{f.__name__}{signature(f)}>" if hasattr(f, '__name__') else str(f)
-        print(
-            f"SystemFactory(\n"
-            f"    f={name},\n"
-            f"    ID={repr(ID)},\n"
-            f"    ins={ins},\n"
-            f"    outs={outs}\n"
-             ")"
-        )    
+        if ID is None:
+            print(
+                f"SystemFactory(\n"
+                f"    f={name},\n"
+                f"    ins={ins},\n"
+                f"    outs={outs}\n"
+                 ")"
+            )    
+        else:
+            print(
+                f"SystemFactory(\n"
+                f"    f={name},\n"
+                f"    ID={repr(ID)},\n"
+                f"    ins={ins},\n"
+                f"    outs={outs}\n"
+                 ")"
+            )    
         
     _ipython_display_ = show
         

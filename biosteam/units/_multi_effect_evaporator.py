@@ -396,6 +396,7 @@ class MultiEffectEvaporator(Unit):
             V_overall = self.V
         else: 
             V_overall = self._V_overall(self.V)
+            self._reload_components = True
             
         evaporators = self.evaporators
         condenser = self.condenser
