@@ -57,7 +57,6 @@ from math import inf, sqrt, exp, pi
 from .heat_exchange import HXutility
 from ._flash import Flash
 from .stage import MultiStageEquilibrium
-from thermosteam import separations as sep
 from typing import Iterable
 
 __all__ = (

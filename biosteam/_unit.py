@@ -81,8 +81,10 @@ class Unit(AbstractUnit):
     Parameters
     ----------
     ID :
-        A unique identification. If ID is None, unit will not be
-        registered in flowsheet. By default, a unique ID will be chosen.
+        A unique identification. If ID is None, the unit will not be
+        registered in flowsheet. The ID defaults to the variable assigned in 
+        the source code. If no variable is assigned, a unique ID will be 
+        chosen.
     ins :
         Inlet streams or IDs to initialize inlet streams.
         If empty tuple, streams with default IDs will be created.

@@ -30,7 +30,7 @@ BioSTEAM: Los Modulos de Simulación y Análisis Tecno-Económico de Biorefineri
 -----------------
 
 BioSTEAM es un projecto para llevar a cabo el diseño, simulación, 
-análisis tecno-económico, y análisis de cyclo de vida de biorrefinerías bajo
+análisis tecno-económico, y análisis de cyclo de vida de procesos químicos bajo
 incertidumbre [1]_. BioSTEAM esta diseñada para facilitar la toma de decisiones
 al simular múltiples escenarios que podrían surgir dentro del desarrollo e
 implementación de una biorrefinería. Configuraciones de biorrefinerías
