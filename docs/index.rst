@@ -1,5 +1,5 @@
-A Fast & Flexible Process Simulation Platform
-=============================================
+A Fast and Flexible Process Simulation Platform
+===============================================
 
 .. toctree::
    :maxdepth: 2
@@ -26,7 +26,12 @@ A Fast & Flexible Process Simulation Platform
 
         BioSTEAM is an open-source platform that streamlines the design, simulation, techno-economic 
         analysis (TEA) and life-cycle assessment (LCA) of chemical processes across thousands 
-        of scenarios. BioSTEAM is also leveraged by `QSDsan <https://qsdsan.readthedocs.io/en/latest/>`_,
+        of scenarios. BioSTEAM has been used to model a range of fermentation-based bioproduct pathways
+        going from conventional/cellulosic crops, municipal solid waste, and flue gas all
+        the way to diols, organic acids, oleochemicals, and biofuels. Newer applications
+        for BioSTEAM include thermochemical upcycling of waste plastics through
+        pyrolysis and solvent-based dissolution and precipitation.
+        BioSTEAM is also leveraged by `QSDsan <https://qsdsan.readthedocs.io/en/latest/>`_,
         a library for the quantitative sustainable design of sanitation and resource recovery
         systems. The long-term growth and maintenance of BioSTEAM is supported
         through both community-led development and the research institutions invested in BioSTEAM, 
