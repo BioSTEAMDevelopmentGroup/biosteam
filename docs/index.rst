@@ -171,8 +171,7 @@ going from conventional/cellulosic crops, municipal solid waste, and flue gas al
 the way to diols, organic acids, oleochemicals, and biofuels. Newer applications
 for BioSTEAM include thermochemical upcycling of waste plastics through
 pyrolysis and solvent-based dissolution and precipitation. Several studies have leveraged the BioSTEAM platform to compare conversion 
-technologies, chart development pathways, and build new tools for sustainability 
-assessments:
+technologies, inform policy making, and build new modeling tools:
 
 * **Software tools**:
 
