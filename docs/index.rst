@@ -26,12 +26,7 @@ A Fast and Flexible Process Simulation Platform
 
         BioSTEAM is an open-source platform that streamlines the design, simulation, techno-economic 
         analysis (TEA) and life-cycle assessment (LCA) of chemical processes across thousands 
-        of scenarios. BioSTEAM has been used to model a range of fermentation-based bioproduct pathways
-        going from conventional/cellulosic crops, municipal solid waste, and flue gas all
-        the way to diols, organic acids, oleochemicals, and biofuels. Newer applications
-        for BioSTEAM include thermochemical upcycling of waste plastics through
-        pyrolysis and solvent-based dissolution and precipitation.
-        BioSTEAM is also leveraged by `QSDsan <https://qsdsan.readthedocs.io/en/latest/>`_,
+        of scenarios. BioSTEAM is also leveraged by `QSDsan <https://qsdsan.readthedocs.io/en/latest/>`_,
         a library for the quantitative sustainable design of sanitation and resource recovery
         systems. The long-term growth and maintenance of BioSTEAM is supported
         through both community-led development and the research institutions invested in BioSTEAM, 
@@ -171,9 +166,13 @@ Common Issues
 Scientific Papers
 -----------------
 
-Several studies have leveraged the BioSTEAM platform to compare conversion 
-technologies, chart development pathways for various bioproducts, and build new
-tools for sustainability assessments. Here is a short list of related publications:
+BioSTEAM has been used to model a range of fermentation-based bioproduct pathways
+going from conventional/cellulosic crops, municipal solid waste, and flue gas all
+the way to diols, organic acids, oleochemicals, and biofuels. Newer applications
+for BioSTEAM include thermochemical upcycling of waste plastics through
+pyrolysis and solvent-based dissolution and precipitation. Several studies have leveraged the BioSTEAM platform to compare conversion 
+technologies, chart development pathways, and build new tools for sustainability 
+assessments:
 
 * **Software tools**:
 
