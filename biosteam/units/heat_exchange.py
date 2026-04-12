@@ -68,7 +68,6 @@ def compute_double_pipe_purchase_cost(A, CE):
 def compute_furnace_purchase_cost(Q, CE):  # Q - duty Btu/hr
     return exp(-0.15241 + 0.785*ln(Q))*CE/567
 
-
 # Purchase price
 Cb_dict = {'Floating head': compute_floating_head_purchase_cost,
            'Fixed head': compute_fixed_head_purchase_cost,
@@ -174,12 +173,12 @@ class HX(Unit, isabstract=True):
         if not ft:
             N_shells = self.N_shells
             ft = ht.compute_Fahkeri_LMTD_correction_factor(
-                Tci, Thi, Tco, Tho, N_shells)
-
+                Tci, Thi, Tco, Tho, N_shells
+            )
         # Get overall heat transfer coefficient
         U = self.U or ht.heuristic_overall_heat_transfer_coefficient(
-            ci, hi, co, ho)
-
+            ci, hi, co, ho
+        )
         # TODO: Complete design of heat exchanger to find L
         # For now assume length is 20 ft
         L = 20

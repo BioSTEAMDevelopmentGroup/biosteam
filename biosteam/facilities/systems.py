@@ -126,7 +126,7 @@ def create_facilities(
                     'bioreactor_cleaning_chemicals', 
                     Water=126, units='kg/hr'
                 )
-                CIP_package = bst.CIPpackage(
+                CIP_package = bst.CIPpackage('-',
                     ins=CIP, 
                     outs='bioreactor_cleaning_wastewater',
                     **CIP_kwargs
@@ -141,10 +141,10 @@ def create_facilities(
                 @ADP.add_specification(run=True)
                 def adjust_plant_air(): plant_air.imass['N2'] = feedstock.F_mass * ADP.plant_air_over_feedstock
             if FWT:
-                FT = bst.FireWaterTank(**FWT_kwargs)
-                FT.fire_water_over_feedstock = 0.08 if fire_water_over_feedstock is None else fire_water_over_feedstock
-                @FT.add_specification(run=True)
-                def adjust_fire_water(): FT.fire_water_flow_rate = feedstock.F_mass * FT.fire_water_over_feedstock
+                FWT = bst.FireWaterTank('-', **FWT_kwargs)
+                FWT.fire_water_over_feedstock = 0.08 if fire_water_over_feedstock is None else fire_water_over_feedstock
+                @FWT.add_specification(run=True)
+                def adjust_fire_water(): FWT.fire_water_flow_rate = feedstock.F_mass * FWT.fire_water_over_feedstock
         if CHP:
             if 'autopopulate' not in CHP_kwargs:
                 CHP_kwargs = CHP_kwargs.copy()

@@ -12,7 +12,7 @@ General functional algorithms for batch design.
 
 __all__ = ('size_batch',)
 
-def size_batch(F_vol, tau_reaction, tau_cleaning, N_reactors, V_wf) -> dict:
+def size_batch(F_vol, tau_reaction, tau_cleaning, N_reactors, V_wf, loading_time) -> dict:
     r"""
     Solve for batch reactor volume, cycle time, and loading time.
     
@@ -28,7 +28,10 @@ def size_batch(F_vol, tau_reaction, tau_cleaning, N_reactors, V_wf) -> dict:
         Number of reactors.
     V_wf : float
         Fraction of working volume.
-    
+    loading_time :
+        Loading time of batch reactor. If not given, it will assume each vessel is constantly
+        being filled.
+        
     Returns
     -------
     dict
@@ -85,14 +88,22 @@ def size_batch(F_vol, tau_reaction, tau_cleaning, N_reactors, V_wf) -> dict:
     can be considered the cycle time in this scenario.
     
     """
-    # Total volume of all reactors, assuming no downtime
-    V_T = F_vol * (tau_reaction + tau_cleaning) / (1 - 1 / N_reactors)
-    
-    # Volume of an individual reactor
-    V_i = V_T/N_reactors
-    
-    # Time required to load a reactor
-    tau_loading = V_i/F_vol
+    if loading_time is None:
+        # Total volume of all reactors, assuming no downtime
+        V_T = F_vol * (tau_reaction + tau_cleaning) / (1 - 1 / N_reactors)
+        
+        # Volume of an individual reactor
+        V_i = V_T/N_reactors
+        
+        # Time required to load a reactor
+        tau_loading = V_i/F_vol
+        
+    else:
+        # Total volume of all reactors
+        V_T = F_vol * (tau_reaction + tau_cleaning + tau_loading)
+        
+        # Volume of an individual reactor
+        V_i = V_T/N_reactors
     
     # Total batch time
     tau_batch = tau_reaction + tau_cleaning + tau_loading

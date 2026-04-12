@@ -8,8 +8,8 @@
 """
 .. contents:: :local:
 
-.. autoclass:: biosteam.units.nrel_bioreactor.NRELBatchBioreactor
-.. autoclass:: biosteam.units.nrel_bioreactor.NRELFermentation
+.. autoclass:: biosteam.units.nrel_bioreactor.NRELAnaerobicBatchBioreactor
+.. autoclass:: biosteam.units.nrel_bioreactor.NRELEthanolFermentation
 
 References
 ----------
@@ -49,7 +49,8 @@ from scipy.integrate import odeint
 from thermosteam.reaction import Reaction, ParallelReaction
 
 __all__ = (
-    'NRELBatchBioreactor', 'NRELFermentation',
+    'NRELAnaerobicBatchBioreactor', 
+    'NRELEthanolFermentation',
     'BatchBioreactor', 'Fermentation', # For backwards compatibility
 ) 
 
@@ -66,7 +67,7 @@ __all__ = (
 @cost('Reactor duty', 'Heat exchangers', CE=522, cost=23900,
       S=20920000.0, n=0.7, BM=2.2, N='Number of reactors',
       magnitude=True) # Based on a similar heat exchanger
-class NRELBatchBioreactor(Unit, isabstract=True):
+class NRELAnaerobicBatchBioreactor(Unit, isabstract=True):
     """
     Abstract Bioreactor class. Conversion is based on reaction time, `tau`.
     Cleaning and unloading time,`tau_0`, fraction of working volume, `V_wf`,
@@ -240,7 +241,7 @@ class NRELBatchBioreactor(Unit, isabstract=True):
         self.add_heat_utility(duty, self.T)
 
 
-class NRELFermentation(NRELBatchBioreactor):
+class NRELEthanolFermentation(NRELAnaerobicBatchBioreactor):
     """
     Create a Fermentation object which models large-scale batch fermentation
     for the production of 1st generation ethanol using yeast
@@ -288,7 +289,7 @@ class NRELFermentation(NRELBatchBioreactor):
     production of 1st generation ethanol using yeast.
     
     >>> from biorefineries.cane import create_sugarcane_chemicals
-    >>> from biosteam.units import Fermentation
+    >>> from biosteam.units import NRELEthanolFermentation
     >>> from biosteam import Stream, settings
     >>> settings.set_thermo(create_sugarcane_chemicals())
     >>> feed = Stream('feed',
@@ -298,7 +299,7 @@ class NRELFermentation(NRELBatchBioreactor):
     ...               DryYeast=1.03e+04,
     ...               units='kg/hr',
     ...               T=32+273.15)
-    >>> F1 = NRELFermentation('F1',
+    >>> F1 = NRELEthanolFermentation('F1',
     ...                   ins=feed, outs=('CO2', 'product'),
     ...                   tau=8, efficiency=0.90, N=8)
     >>> F1.simulate()
@@ -365,7 +366,7 @@ class NRELFermentation(NRELBatchBioreactor):
     def _init(self, tau, N=None, V=None, T=305.15, P=101325., Nmin=2, Nmax=36,
               efficiency=None, iskinetic=False, fermentation_reaction=None,
               cell_growth_reaction=None):
-        NRELBatchBioreactor._init(self, tau=tau, N=N, V=V, T=T, P=P, Nmin=Nmin, Nmax=Nmax)
+        NRELAnaerobicBatchBioreactor._init(self, tau=tau, N=N, V=V, T=T, P=P, Nmin=Nmin, Nmax=Nmax)
         self._load_components()
         self.iskinetic = iskinetic
         chemicals = self.chemicals
@@ -474,5 +475,5 @@ class NRELFermentation(NRELBatchBioreactor):
         vent.empty()
         vent.receive_vent(effluent, energy_balance=False)
 
-BatchBioreactor = NRELBatchBioreactor
-Fermentation = NRELFermentation
+BatchBioreactor = NRELAnaerobicBatchBioreactor
+Fermentation = NRELEthanolFermentation

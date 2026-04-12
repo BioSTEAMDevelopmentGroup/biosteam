@@ -403,7 +403,8 @@ def kla_bubcol_Suh(D, mu_l, rho_l, D_l, g, sigma_l, epsilon_g, V_g, V_l, coeffic
 @register
 def kla_bubcol_Dewes(V_g, mu_l, rho_g):
     """
-    Returns the KLa coefficient for a bubble column reactor based on the Dewes & Schumpe (1997) correlation [12]_.
+    Returns the KLa coefficient for a bubble column reactor based on the 
+    Dewes & Schumpe (1997) correlation [12]_.
     
     Parameters
     ----------

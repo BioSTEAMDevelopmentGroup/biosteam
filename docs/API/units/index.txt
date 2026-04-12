@@ -6,8 +6,10 @@ units
 
    decorators
    design_tools/index
+   abstract_stirred_tank_reactor
    adsorption
    aerated_bioreactor
+   anaerobic_bioreactor
    compressor
    distillation
    drying
@@ -18,7 +20,6 @@ units
    tank
    solids_separation
    splitting
-   stirred_tank_reactor
    single_phase_reactor
    vacuum_system
    valve

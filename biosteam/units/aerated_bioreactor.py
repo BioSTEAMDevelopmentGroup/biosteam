@@ -18,13 +18,18 @@ References
 
 """
 import biosteam as bst
-from .stirred_tank_reactor import AbstractStirredTankReactor
+from .abstract_stirred_tank_reactor import (
+    AbstractStirredTankReactor, 
+    description_doc,
+    parameters_doc, 
+    notes_doc,
+)
 from math import pi
 import numpy as np
 from scipy.constants import g
 import flexsolve as flx
 from warnings import filterwarnings, catch_warnings
-from scipy.optimize import minimize_scalar, minimize, least_squares, differential_evolution
+from scipy.optimize import minimize_scalar, minimize, least_squares
 from biosteam.units.design_tools import aeration
 
 __all__ = (
@@ -33,10 +38,43 @@ __all__ = (
 )
 
 class AeratedBioreactor(AbstractStirredTankReactor):
-    """
-    Same as StirredTankReactor but includes aeration. The agitator power may
-    vary to minimize the total power requirement of both the compressor and agitator
-    yet achieve the required oxygen transfer rate.
+    f"""
+    Create an aerated bioreactor which satisfies the oxygen mass tranfer 
+    requirement of the mass balance.
+    
+    {description_doc}
+
+    Parameters
+    ----------
+    theta_O2 : 
+        Fraction of oxygen saturation in the broth. Defaults to 0.5.
+    Q_O2_consumption :
+        Forced duty per O2 consummed [kJ/kmol].
+    optimize_power :
+        If true, the agitator power is solved to minimize the total power 
+        requirement of both the compressor and agitator such that the 
+        required oxygen transfer rate is met.
+    design : 
+        Bioreactor design configuration. Valid options include 'Stirred tank'
+        and 'Bubble column'. Defaults to the former.
+    method :
+        Method to calculate the overall mass transfer coefficient, kLa. 
+        Can be a name or a function. Valid method names are listed in 
+        `biosteam.aeration.kLa_methods`.
+        For stirred tanks, defaults to the 'Riet'. 
+        For bubble columns, defaults to 'Dewes'.
+    kLa_kwargs:
+        Additional arguments to pass to the kLa method.
+    cooler_pressure_drop :
+        Pressure drop at the cooler [Pa]. Defaults to 20684.28 Pa, 
+        a heuristic value for a gas.
+    compressor_isentropic_efficiency :
+        Isentropic efficiency of the compressor. Defaults to 0.85.
+    {parameters_doc}
+        
+    Notes
+    -----
+    {notes_doc}
     
     Examples
     --------
@@ -49,9 +87,13 @@ class AeratedBioreactor(AbstractStirredTankReactor):
     ...                   units='kg/hr',
     ...                   T=32+273.15)
     >>> # Model oxygen uptake as combustion
-    >>> rxn = bst.Rxn('Glucose + O2 -> H2O + CO2', reactant='Glucose', X=0.5, correct_atomic_balance=True) 
+    >>> rxn = bst.Rxn(
+    ...     'Glucose + O2 -> H2O + CO2', reactant='Glucose', X=0.5,
+    ...     correct_atomic_balance=True
+    ... ) 
     >>> R1 = bst.AeratedBioreactor(
-    ...     'R1', ins=[feed, bst.Stream('air', phase='g')], outs=('vent', 'product'), tau=12, V_max=500,
+    ...     ins=[feed, bst.Stream('air', phase='g')],
+    ...     outs=('vent', 'product'), tau=12, V_max=500,
     ...     reactions=rxn,
     ... )
     >>> R1.simulate()
@@ -96,7 +138,7 @@ class AeratedBioreactor(AbstractStirredTankReactor):
         'Bubble column': 'Dewes',
     }
     def _init(
-            self, reactions, theta_O2=0.5, Q_O2_consumption=None,
+            self, theta_O2=0.5, Q_O2_consumption=None,
             optimize_power=None, design=None, method=None, kLa_kwargs=None,
             cooler_pressure_drop=None, compressor_isentropic_efficiency=None,
             **kwargs,
@@ -107,7 +149,6 @@ class AeratedBioreactor(AbstractStirredTankReactor):
         #: Pressure drop at the cooler [Pa]. Defaults to 20684.28 Pa, a heuristic value for a gas.
         self.cooler_pressure_drop = 20684.28 if cooler_pressure_drop is None else cooler_pressure_drop
         AbstractStirredTankReactor._init(self, **kwargs)
-        self.reactions = reactions
         self.theta_O2 = theta_O2 # Average concentration of O2 in the liquid as a fraction of saturation.
         self.Q_O2_consumption = Q_O2_consumption # Forced duty per O2 consummed [kJ/kmol].
         self.optimize_power = True if optimize_power is None else optimize_power

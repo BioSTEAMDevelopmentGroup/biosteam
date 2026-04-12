@@ -6,7 +6,7 @@
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 """
-.. contents:: :local:
+.. contents:: :local: 
 
 .. autoclass:: biosteam.units.stirred_tank_reactor.AbstractStirredTankReactor
 
@@ -22,34 +22,30 @@ from math import ceil
 from biosteam.units.design_tools.geometry import cylinder_diameter_from_volume
 import biosteam as bst
 from biosteam.units.design_tools import (
-    PressureVessel, compute_closed_vessel_turbine_purchase_cost, size_batch
+    PressureVessel, size_batch
 )
 
 __all__ = (
     'AbstractStirredTankReactor', 
-    'StirredTankReactor', 'STR',
-    'ContinuousStirredTankReactor', 'CSTR',
+    'ContinuousStirredTankReactor',
+    'CSTR', 'STR',
 )
 
+description_doc = '''
+    The reactor is designed as a pressure vessel with a given aspect ratio and 
+    residence time. A pump-heat exchanger recirculation loop can be used to satisfy 
+    the duty, if any. By default, a turbine agitator is also included if the 
+    power usage,`kW_per_m3` , is positive. A vacuum system is also 
+    automatically added if the operating pressure is at a vacuum. 
+'''
 
-class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
-    '''    
-    Abstract class for a stirred tank reactor, modeled as a pressure vessel with 
-    a given aspect ratio and residence time. A pump-heat exchanger recirculation 
-    loop is used to satisfy the duty, if any. By default, a turbine agitator is
-    also included if the power usage,`kW_per_m3` , is positive. A vacuum 
-    system is also automatically added if the operating pressure is at a vacuum. 
-
-    Parameters
-    ----------
+parameters_doc ='''
     tau :
         Residence time [hr].
     T : 
         Operating temperature [K].
     P : 
         Operating pressure [Pa].
-    dT_hx_loop : 
-        Maximum change in temperature for the heat exchanger loop. Defaults to 5 K.
     V_wf : 
         Fraction of working volume over total volume. Defaults to 0.8.
     V_max :
@@ -68,8 +64,23 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
         Cleaning and unloading time (if batch mode). Defaults to 3 hr.
     N_reactors :
         Number of reactors.
-    Notes
-    -----
+    heat_exchanger_configuration: 
+        What kind of heat exchanger to default to (if any). Valid options include 
+        'jacketed', 'recirculation loop', and 'internal coil'. 
+        Defaults to 'recirculation loop'.
+    dT_hx_loop : 
+        Maximum change in temperature for the heat exchanger loop. Defaults to 5 K.
+    jacket_annular_diameter :
+        Annular diameter of heat exchanger jacket to vessel [m]. Defaults to 0.1 m.
+    loading_time :
+        Loading time of batch reactor. If not given, it will assume each vessel is constantly
+        being filled.
+'''
+
+notes_doc = '''
+The heat exchanger configuration can be one of the following:
+
+* 'recirculation loop': 
     The recirculation loop takes into account the required flow rate needed to
     reach the maximum temperature change of the heat exchanger, `dT_hx_loop`. 
     Increasing `dT_hx_loop` decreases the required recirculation flow rate and
@@ -79,8 +90,33 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
     pump and heat exchanger) is assumed. Although it is possible to use the
     same recirculation loop for all reactors, this conservative assumption allows
     for each reactor to be operated independently from each other.
+
+* 'jacketed':
+    The jacket does not account for the heat transfer area requirement. 
+    It simply assumes that a full jacket can provide the necessary heat transfer
+    area to meet the duty requirement. A heuristic annular diameter is assumed
+    through `jacket_annular_diameter` (which can be adjusted by the user).
+    The temperature at the wall is assumed to be the operating temperature.
+    The weight of the jacket is added to the weight of the vessel and the
+    cost is compounded together as a jacketed vessel.
     
-    The capital cost for agitators are not yet included in 
+* 'internal coil':
+    The internal coil is costed as an ordinary helical tube heat exchanger
+    with the added assumption that the temperature at the wall is the 
+    operating temperature. This method is still not implemented in BioSTEAM
+    yet.
+'''
+
+class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
+    f'''{description_doc}
+    
+    Parameters
+    ----------
+    {parameters_doc}
+    
+    Notes
+    -----
+    {notes_doc}
     
     Examples
     --------
@@ -89,26 +125,17 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
     juice:
         
     >>> import biosteam as bst
-    >>> class ContinuousFermentation(bst.CSTR):
+    >>> class ContinuousFermentation(bst.AbstractStirredTankReactor):
     ...     _N_ins = 1
     ...     _N_outs = 2
     ...     T_default = 32. + 273.15
     ...     P_default = 101325.
     ...     tau_default = 8.
-    ...    
-    ...     def _setup(self):
-    ...         super()._setup()        
-    ...         chemicals = self.chemicals
-    ...         self.hydrolysis_reaction = bst.Reaction('Sucrose + Water -> 2Glucose', 'Sucrose', 1.00, chemicals)
-    ...         self.fermentation_reaction = bst.Reaction('Glucose -> 2Ethanol + 2CO2',  'Glucose', 0.9, chemicals)
-    ...         self.cell_growth_reaction = cell_growth = bst.Reaction('Glucose -> Yeast', 'Glucose', 0.70, chemicals, basis='wt')
     ...     
     ...     def _run(self):
     ...         vent, effluent = self.outs
     ...         effluent.mix_from(self.ins, energy_balance=False)
-    ...         self.hydrolysis_reaction(effluent)
-    ...         self.fermentation_reaction(effluent)
-    ...         self.cell_growth_reaction(effluent)
+    ...         self.reactions(effluent)
     ...         effluent.T = vent.T = self.T
     ...         effluent.P = vent.P = self.P
     ...         vent.phase = 'g'
@@ -117,14 +144,23 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
     ...
     >>> from biorefineries.sugarcane import chemicals
     >>> bst.settings.set_thermo(chemicals)
-    >>> feed = bst.Stream('feed',
-    ...                   Water=1.20e+05,
-    ...                   Glucose=1.89e+03,
-    ...                   Sucrose=2.14e+04,
-    ...                   DryYeast=1.03e+04,
-    ...                   units='kg/hr',
-    ...                   T=32+273.15)
-    >>> R1 = ContinuousFermentation('R1', ins=feed, outs=('CO2', 'product'))
+    >>> feed = bst.Stream(
+    ...     Water=1.20e+05,
+    ...     Glucose=1.89e+03,
+    ...     Sucrose=2.14e+04,
+    ...     DryYeast=1.03e+04,
+    ...     units='kg/hr',
+    ...     T=32+273.15
+    ... )
+    >>> R1 = ContinuousFermentation(
+    ...     ins=feed, outs=('CO2', 'product'), 
+    ...     reactions = bst.ReactionSystem(
+    ...         bst.Reaction('Sucrose + Water -> 2Glucose', 'Sucrose', 1.00),  # Hydrolysis
+    ...         bst.Reaction('Glucose -> 2Ethanol + 2CO2',  'Glucose', 0.9),   # Production
+    ...         bst.Reaction('Glucose -> Yeast', 'Glucose', 0.70, basis='wt'), # Growth
+    ...         basis='mol',
+    ...     )
+    ... )
     >>> R1.simulate()
     >>> R1.show()
     ContinuousFermentation: R1
@@ -198,26 +234,38 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
     #: Default residence time [hr]
     tau_default: Optional[float] = None
     
-    #: Default maximum change in temperature for the heat exchanger loop.
-    dT_hx_loop_default: Optional[float] = 5
-    
     #: Default fraction of working volume over total volume.
-    V_wf_default: Optional[float] = 0.8
+    V_wf_default: float = 0.8
     
     #: Default maximum volume of a reactor in m3.
-    V_max_default: Optional[float] = 355
+    V_max_default: float = 355
     
     #: Default length to diameter ratio.
-    length_to_diameter_default: Optional[float] = 3
+    length_to_diameter_default: float = 3
     
     #: Default power consumption for agitation [kW/m3].
-    kW_per_m3_default: Optional[float] = 0.985
+    kW_per_m3_default: float = 0.985
     
     #: Default cleaning and unloading time (hr).
-    tau_0_default: Optional[float]  = 3
+    tau_0_default: float = 3
     
-    #: Whether to default operation in batch mode or continuous
-    batch_default = False
+    #: Whether to default operation in batch mode or continuous.
+    batch_default: bool = False
+    
+    #: What kind of heat exchanger configuration to default to (if any).
+    #: Valid options include 'jacketed', 'recirculation loop', and 'internal coil'.
+    heat_exchanger_configuration_default: str = 'recirculation loop'
+    
+    #: Default maximum change in temperature for the heat exchanger loop.
+    dT_hx_loop_default: float = 5
+    
+    #: Default annular diameter of heat exchanger jacket [m].
+    jacket_annular_diameter_default: float = 0.05
+    
+    #: Available heat exchanger configurations.
+    heat_exchanger_configurations: set[str] = {
+        'jacketed', 'recirculation loop', 'internal coil'
+    }
     
     @property
     def effluent(self):
@@ -228,7 +276,6 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
             self, 
             T: Optional[float]=None, 
             P: Optional[float]=None, 
-            dT_hx_loop: Optional[float]=None,
             tau: Optional[float]=None,
             V_wf: Optional[float]=None, 
             V_max: Optional[float]=None,
@@ -239,35 +286,128 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
             batch: Optional[bool]=None,
             tau_0: Optional[float]=None,
             adiabatic: Optional[bool]=None,
+            heat_exchanger_configuration: Optional[str]=None,
+            dT_hx_loop: Optional[float]=None,
+            jacket_annular_diameter: Optional[float]=None,
+            reactions: Optional[bst.ReactionSystem]=None,
+            loading_time: Optional[float]=None,
         ):
         if adiabatic is None: adiabatic = False
-        self.T = self.T_default if (T is None and not adiabatic) else T
         self.adiabatic = adiabatic
-        self.P = self.P_default if P is None else P
-        self.dT_hx_loop = self.dT_hx_loop_default if dT_hx_loop is None else abs(dT_hx_loop)
-        self.tau = self.tau_default if tau is None else tau
-        self.V_wf = self.V_wf_default if V_wf is None else V_wf
-        self.V_max = self.V_max_default if V_max is None else V_max
-        self.length_to_diameter = self.length_to_diameter_default if length_to_diameter is None else length_to_diameter
-        self.kW_per_m3 = self.kW_per_m3_default if kW_per_m3 is None else kW_per_m3
-        self.vessel_material = 'Stainless steel 316' if vessel_material is None else vessel_material
-        self.vessel_type = 'Vertical' if vessel_type is None else vessel_type
-        self.tau_0 = self.tau_0_default if tau_0 is None else tau_0
-        self.batch = self.batch_default if batch is None else batch
-        self.load_auxiliaries()
+        self.reactions = reactions
+        self.T = (
+            self.T_default 
+            if (T is None and not adiabatic) else 
+            T
+        )
+        self.P = (
+            self.P_default 
+            if P is None else 
+            P
+        )
+        self.tau = (
+            self.tau_default 
+            if tau is None else 
+            tau
+        )
+        self.V_wf = (
+            self.V_wf_default 
+            if V_wf is None else 
+            V_wf
+        )
+        self.V_max = (
+            self.V_max_default 
+            if V_max is None else 
+            V_max
+        )
+        self.length_to_diameter = (
+            self.length_to_diameter_default
+            if length_to_diameter is None else 
+            length_to_diameter
+        )
+        self.kW_per_m3 = (
+            self.kW_per_m3_default 
+            if kW_per_m3 is None else 
+            kW_per_m3
+        )
+        self.vessel_material = (
+            'Stainless steel 316' 
+            if vessel_material is None else 
+            vessel_material
+        )
+        self.vessel_type = (
+            'Vertical'
+            if vessel_type is None else 
+            vessel_type
+        )
+        self.tau_0 = (
+            self.tau_0_default 
+            if tau_0 is None else
+            tau_0
+        )
+        self.batch = (
+            self.batch_default 
+            if batch is None else 
+            batch
+        )
+        self.dT_hx_loop = (
+            self.dT_hx_loop_default 
+            if dT_hx_loop is None else 
+            abs(dT_hx_loop)
+        )
+        self.jacket_annular_diameter = (
+            self.jacket_annular_diameter_default 
+            if jacket_annular_diameter is None else 
+            jacket_annular_diameter
+        )
+        self.heat_exchanger_configuration = (
+            self.heat_exchanger_configuration_default 
+            if heat_exchanger_configuration is None else
+            heat_exchanger_configuration
+        )
+        self.loading_time = loading_time
 
+    @property
+    def heat_exchanger_configuration(self):
+        return self._heat_exchanger_configuration
+    
+    @heat_exchanger_configuration.setter
+    def heat_exchanger_configuration(self, configuration):
+        if configuration not in self.heat_exchanger_configurations:
+            raise AttributeError(
+                f'invalid heat exchanger configuration {configuration!r}; '
+                "configuration must be either 'jacketed', "
+                "'recirculation loop', or 'internal coil'"
+            )
+        elif configuration == 'internal coil':
+            raise AttributeError(
+                "'internal coil' heat exchanger configuration not implemented "
+                " in BioSTEAM yet"
+            )
+        else:
+            self._heat_exchanger_configuration = configuration
+        self.load_auxiliaries()
+                
     def load_auxiliaries(self):
-        if self.adiabatic: return
+        if self.adiabatic or not self.heat_exchanger_configuration == 'recirculation loop': 
+            self.recirculation_loop = None
+            self.heat_exchanger = None
+            self.scaler = None
+            self.splitter = None
+            return
         pump = self.auxiliary('recirculation_pump', bst.Pump)
         if self.batch:
             self.auxiliary('heat_exchanger', bst.HXutility, pump-0) 
+            self.recirculation_loop = None
+            self.scaler = None
+            self.splitter = None
         else:
             # Split is updated later
             splitter = self.auxiliary('splitter', bst.Splitter, pump-0, split=0.5)
             self.auxiliary('heat_exchanger', bst.HXutility, splitter-0) 
             self.auxiliary('scaler', bst.Scaler, splitter-1, self.outs[-1])
 
-    def _get_duty(self):
+    def _get_duty(self): # User can replace
         return self.Hnet
 
     def _design(self, size_only=False):
@@ -288,7 +428,7 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
                 N = 2
             else:
                 N = ceil(N)
-            Design.update(size_batch(v_0, tau, tau_0, N, V_wf))
+            Design.update(size_batch(v_0, tau, tau_0, N, V_wf, loading_time))
             V_reactor = Design['Reactor volume']
         else:
             V_total = ins_F_vol * self.tau / self.V_wf
@@ -303,13 +443,20 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
         D *= 3.28084 # Convert from m to ft
         L = D * length_to_diameter
         Design['Residence time'] = self.tau
-        Design.update(self._vessel_design(float(P_psi), float(D), float(L)))
+        hx_config = self.heat_exchanger_configuration
+        if hx_config == 'jacketed':
+            annular_diameter = self.jacket_annular_diameter * 3.28084 # Annular diameter [ft]
+            dct = self._vessel_design(P_psi, D, L, annular_diameter)
+        else:
+            dct = self._vessel_design(P_psi, D, L)
+        Design.update(dct)
         self.vacuum_system = bst.VacuumSystem(self) if P_pascal < 1e5 else None
         self.parallel['self'] = N
         self.parallel['vacuum_system'] = 1 # Not in parallel
         if self.adiabatic or size_only: return
         duty = self._get_duty()
-        if duty:
+        if not duty: return
+        if hx_config == 'recirculation loop':
             # Note: Flow and duty are rescaled to simulate an individual
             # heat exchanger, then BioSTEAM accounts for number of units in parallel
             # through the `parallel` attribute.
@@ -341,18 +488,34 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
                 self.scaler.simulate()
             self.heat_exchanger.T = hx_outlet.T
             self.heat_exchanger.simulate()
+        elif hx_config == 'jacketed':
+            self.add_heat_utility(duty, self.effluent.T)
+        else:
+            raise RuntimeError(
+                f"heat exchanger configuration {hx_config!r} not yet implemented"
+            )
             
     def _cost(self):
         Design = self.design_results
         baseline_purchase_costs = self.baseline_purchase_costs
         volume = Design['Reactor volume']
         if volume != 0:
-            baseline_purchase_costs.update(
-                self._vessel_purchase_cost(
-                    Design['Weight'], Design['Diameter'], Design['Length'],
+            if self.heat_exchanger_configuration == 'jacketed':
+                baseline_purchase_costs.update(
+                    self._vessel_purchase_cost(
+                        Design['Weight'], 
+                        Design['Diameter'], 
+                        Design['Length'], 
+                        jacketed=True,
+                    )
                 )
-            )
+            else:
+                baseline_purchase_costs.update(
+                    self._vessel_purchase_cost(
+                        Design['Weight'], Design['Diameter'], Design['Length'], 
+                    )
+                )
             kW = self.kW_per_m3 * volume * self.V_wf
-            if kW > 0: self.agitator = bst.Agitator(kW)        
+            if kW > 0: self.agitator = bst.Agitator(kW)
 
 ContinuousStirredTankReactor = CSTR = STR = StirredTankReactor = AbstractStirredTankReactor

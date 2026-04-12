@@ -45,8 +45,9 @@ from .adsorption import *
 from .auxiliary import *
 from .agitator import *
 from .nrel_bioreactor import *
-from .stirred_tank_reactor import *
+from .abstract_stirred_tank_reactor import *
 from .aerated_bioreactor import *
+from .anaerobic_bioreactor import *
 from .auxiliary_pressure_vessel import *
 from .fluidized_catalytic_cracking import *
 from .single_phase_reactor import *
@@ -66,8 +67,9 @@ from . import (
     _balance,  
     _screw_feeder,
     nrel_bioreactor,
-    stirred_tank_reactor,
+    abstract_stirred_tank_reactor,
     aerated_bioreactor,
+    anaerobic_bioreactor,
     molecular_sieve,
     vacuum_system,
     adsorption,
@@ -112,7 +114,7 @@ __all__ = ('Unit',
            *_multi_effect_evaporator.__all__,
            *distillation.__all__,
            *tank.__all__,
-           *stirred_tank_reactor.__all__,
+           *abstract_stirred_tank_reactor.__all__,
            *_conveying_belt.__all__,
            *_vent_scrubber.__all__,
            *_vibrating_screen.__all__,
@@ -131,6 +133,7 @@ __all__ = ('Unit',
            *_carbon_capture.__all__,
            *drying.__all__,
            *aerated_bioreactor.__all__,
+           *anaerobic_bioreactor.__all__,
            *nrel_bioreactor.__all__,
            *adsorption.__all__,
            *compressor.__all__,
