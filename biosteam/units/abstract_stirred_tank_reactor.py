@@ -37,7 +37,7 @@ residence time. A pump-heat exchanger recirculation loop can be used to satisfy
 the duty, if any. By default, a turbine agitator is also included if the 
 power usage,`kW_per_m3` , is positive. A vacuum system is also 
 automatically added if the operating pressure is at a vacuum. 
-'''[1:]
+'''[1:-1]
 
 parameters_doc ='''
 tau :
@@ -74,8 +74,8 @@ jacket_annular_diameter :
     Annular diameter of heat exchanger jacket to vessel [m]. Defaults to 0.1 m.
 loading_time :
     Loading time of batch reactor. If not given, it will assume each vessel is constantly
-        being filled.
-'''[1:]
+    being filled.
+'''[1:-1]
 
 notes_doc = '''
 The heat exchanger configuration can be one of the following:
@@ -105,10 +105,11 @@ The heat exchanger configuration can be one of the following:
     with the added assumption that the temperature at the wall is the 
     operating temperature. This method is still not implemented in BioSTEAM
     yet.
-'''[1:]
+'''[1:-1]
 
 class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
-    '''{description_doc}
+    '''
+    {description_doc}
     
     Parameters
     ----------

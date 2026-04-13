@@ -25,7 +25,7 @@ __all__ = (
 
 class AnaerobicBioreactor(AbstractStirredTankReactor):
     """
-    Create an anaerobic bioreactor with a vented stream and an effluent stream .
+    Create an anaerobic bioreactor with a vented stream and an effluent stream.
     
     {description_doc}
 
