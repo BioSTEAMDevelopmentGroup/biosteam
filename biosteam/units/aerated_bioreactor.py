@@ -18,12 +18,7 @@ References
 
 """
 import biosteam as bst
-from .abstract_stirred_tank_reactor import (
-    AbstractStirredTankReactor, 
-    description_doc,
-    parameters_doc, 
-    notes_doc,
-)
+from .abstract_stirred_tank_reactor import AbstractStirredTankReactor
 from math import pi
 import numpy as np
 from scipy.constants import g
@@ -38,7 +33,7 @@ __all__ = (
 )
 
 class AeratedBioreactor(AbstractStirredTankReactor):
-    f"""
+    """
     Create an aerated bioreactor which satisfies the oxygen mass tranfer 
     requirement of the mass balance.
     
@@ -399,9 +394,54 @@ class AeratedBioreactor(AbstractStirredTankReactor):
 
 class GasFedBioreactor(AbstractStirredTankReactor):
     """
-    Same as AbstractStirredTankReactor but includes multiple gas feeds. The agitator power may
-    vary to minimize the total power requirement of both the compressor and agitator
-    yet achieve the required oxygen transfer rate.
+    Create an gas-fed bioreactor which satisfies the substrate mass tranfer 
+    requirement of the mass balance. The gas-fed bioreactor may include 
+    multiple gas feeds. The user-specified `titer` will be satisfied by varying
+    the flow rates of the `variable_gas_feeds` so long as the 
+    `backward_reactions` are specified. Otherwise, the titer will be estimated
+    assuming constant gas flow rates.
+    
+    {description_doc}
+
+    Parameters
+    ----------
+    gas_substrates : 
+        Substrates within the gas phase.
+    titer :
+        Dictionary of substrate/titer pairs [g / L].
+    backward_reactions :
+        Backwards reactions to get the substrate mass transfer requirement.
+    variable_gas_feeds :
+        Feeds that can be varied to meet mass transfer requirement.
+    theta : 
+        Fraction of gas substrate saturation in the broth. Defaults to 0.5.
+    Q_consumption :
+        Forced duty per gas substrate consummed [kJ/kmol].
+    optimize_power :
+        If true, the agitator power is solved to minimize the total power 
+        requirement of both the compressor and agitator such that the 
+        required oxygen transfer rate is met.
+    design : 
+        Bioreactor design configuration. Valid options include 'Stirred tank'
+        and 'Bubble column'. Defaults to the former.
+    method :
+        Method to calculate the overall mass transfer coefficient, kLa. 
+        Can be a name or a function. Valid method names are listed in 
+        `biosteam.aeration.kLa_methods`.
+        For stirred tanks, defaults to the 'Riet'. 
+        For bubble columns, defaults to 'Dewes'.
+    kLa_kwargs:
+        Additional arguments to pass to the kLa method.
+    cooler_pressure_drop :
+        Pressure drop at the cooler [Pa]. Defaults to 20684.28 Pa, 
+        a heuristic value for a gas.
+    compressor_isentropic_efficiency :
+        Isentropic efficiency of the compressor. Defaults to 0.85.
+    {parameters_doc}
+        
+    Notes
+    -----
+    {notes_doc}
     
     Examples
     --------
@@ -417,7 +457,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     ...     'R1', ins=[media, H2, fluegas], outs=('vent', 'product'), tau=68, V_max=500,
     ...     reactions=rxn, backward_reactions=brxn,
     ...     gas_substrates=('H2', 'CO2'),
-    ...     titer={'AceticAcid': 5},
+    ...     titer=dict(AceticAcid=5),
     ...     optimize_power=False,
     ...     kW_per_m3=0.,
     ... )
@@ -479,10 +519,14 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             design=None, method=None, kLa_kwargs=None,
             theta=0.5, Q_consumption=None,
             cooler_pressure_drop=None,
+            compressor_isentropic_efficiency=None,
             # Only for agitated bioreactors (not bubble column)
             optimize_power=None, 
             **kwargs,
         ):
+        if compressor_isentropic_efficiency is None: compressor_isentropic_efficiency = 0.85
+        #: Isentropic efficiency of the compressor. Defaults to 0.85.
+        self.compressor_isentropic_efficiency = compressor_isentropic_efficiency
         self.cooler_pressure_drop = 20684.28 if cooler_pressure_drop is None else cooler_pressure_drop
         self.reactions = reactions
         self.backward_reactions = backward_reactions
@@ -562,7 +606,8 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         for inlet in self.ins:
             if inlet.phase != 'g': continue
             compressor = self.auxiliary(
-                'compressors', bst.IsentropicCompressor, inlet, eta=0.85, P=2 * 101325
+                'compressors', bst.IsentropicCompressor, inlet, 
+                eta=self.compressor_isentropic_efficiency, P=2 * 101325
             )
             self.auxiliary(
                 'gas_coolers', bst.HXutility, compressor-0, T=self.T

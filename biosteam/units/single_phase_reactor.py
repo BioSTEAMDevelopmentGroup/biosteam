@@ -16,19 +16,14 @@ References
     Ng, M. K. Product and Process Design Principles. Wiley 2017.
 
 """
-from .abstract_stirred_tank_reactor import (
-    AbstractStirredTankReactor,
-    description_doc,
-    parameters_doc, 
-    notes_doc,
-)
+from .abstract_stirred_tank_reactor import AbstractStirredTankReactor
 
 __all__ = (
     'SinglePhaseReactor', 
 )
 
 class SinglePhaseReactor(AbstractStirredTankReactor):
-    f'''    
+    '''    
     Create a stirred tank reactor which assumes a single outlet stream with 
     no phase equilibrium. 
     

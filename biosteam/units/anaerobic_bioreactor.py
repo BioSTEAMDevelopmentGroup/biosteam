@@ -17,19 +17,14 @@ References
     & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
 
 """
-from .abstract_stirred_tank_reactor import (
-    AbstractStirredTankReactor, 
-    description_doc,
-    parameters_doc, 
-    notes_doc,
-)
+from .abstract_stirred_tank_reactor import AbstractStirredTankReactor
 
 __all__ = (
     'AnaerobicBioreactor', 'AnBR',
 )
 
 class AnaerobicBioreactor(AbstractStirredTankReactor):
-    f"""
+    """
     Create an anaerobic bioreactor with a vented stream and an effluent stream .
     
     {description_doc}

@@ -8,7 +8,7 @@
 """
 .. contents:: :local: 
 
-.. autoclass:: biosteam.units.stirred_tank_reactor.AbstractStirredTankReactor
+.. autoclass:: biosteam.units.abstract_stirred_tank_reactor.AbstractStirredTankReactor
 
 References
 ----------
@@ -32,50 +32,50 @@ __all__ = (
 )
 
 description_doc = '''
-    The reactor is designed as a pressure vessel with a given aspect ratio and 
-    residence time. A pump-heat exchanger recirculation loop can be used to satisfy 
-    the duty, if any. By default, a turbine agitator is also included if the 
-    power usage,`kW_per_m3` , is positive. A vacuum system is also 
-    automatically added if the operating pressure is at a vacuum. 
-'''
+The reactor is designed as a pressure vessel with a given aspect ratio and 
+residence time. A pump-heat exchanger recirculation loop can be used to satisfy 
+the duty, if any. By default, a turbine agitator is also included if the 
+power usage,`kW_per_m3` , is positive. A vacuum system is also 
+automatically added if the operating pressure is at a vacuum. 
+'''[1:]
 
 parameters_doc ='''
-    tau :
-        Residence time [hr].
-    T : 
-        Operating temperature [K].
-    P : 
-        Operating pressure [Pa].
-    V_wf : 
-        Fraction of working volume over total volume. Defaults to 0.8.
-    V_max :
-        Maximum volume of a reactor [m3]. Defaults to 355.
-    kW_per_m3: 
-        Power usage of agitator. Defaults to 0.985 [kW / m3] converted from 
-        5 hp/1000 gal as in [1]_, for liquid–liquid reaction or extraction.
-    vessel_material : 
-        Vessel material. Defaults to 'Stainless steel 316'.
-    vessel_type : 
-        Vessel type. Valid options are 'Horizontal' or 'Vertical'. Defaults to 'Vertical'
-    batch :
-        Whether to use batch operation mode. If False, operation mode is continuous.
-        Defaults to `continuous`.
-    tau_0 : 
-        Cleaning and unloading time (if batch mode). Defaults to 3 hr.
-    N_reactors :
-        Number of reactors.
-    heat_exchanger_configuration: 
-        What kind of heat exchanger to default to (if any). Valid options include 
-        'jacketed', 'recirculation loop', and 'internal coil'. 
-        Defaults to 'recirculation loop'.
-    dT_hx_loop : 
-        Maximum change in temperature for the heat exchanger loop. Defaults to 5 K.
-    jacket_annular_diameter :
-        Annular diameter of heat exchanger jacket to vessel [m]. Defaults to 0.1 m.
-    loading_time :
-        Loading time of batch reactor. If not given, it will assume each vessel is constantly
+tau :
+    Residence time [hr].
+T : 
+    Operating temperature [K].
+P : 
+    Operating pressure [Pa].
+V_wf : 
+    Fraction of working volume over total volume. Defaults to 0.8.
+V_max :
+    Maximum volume of a reactor [m3]. Defaults to 355.
+kW_per_m3: 
+    Power usage of agitator. Defaults to 0.985 [kW / m3] converted from 
+    5 hp/1000 gal as in [1]_, for liquid–liquid reaction or extraction.
+vessel_material : 
+    Vessel material. Defaults to 'Stainless steel 316'.
+vessel_type : 
+    Vessel type. Valid options are 'Horizontal' or 'Vertical'. Defaults to 'Vertical'
+batch :
+    Whether to use batch operation mode. If False, operation mode is continuous.
+    Defaults to `continuous`.
+tau_0 : 
+    Cleaning and unloading time (if batch mode). Defaults to 3 hr.
+N_reactors :
+    Number of reactors.
+heat_exchanger_configuration: 
+    What kind of heat exchanger to default to (if any). Valid options include 
+    'jacketed', 'recirculation loop', and 'internal coil'. 
+    Defaults to 'recirculation loop'.
+dT_hx_loop : 
+    Maximum change in temperature for the heat exchanger loop. Defaults to 5 K.
+jacket_annular_diameter :
+    Annular diameter of heat exchanger jacket to vessel [m]. Defaults to 0.1 m.
+loading_time :
+    Loading time of batch reactor. If not given, it will assume each vessel is constantly
         being filled.
-'''
+'''[1:]
 
 notes_doc = '''
 The heat exchanger configuration can be one of the following:
@@ -105,10 +105,10 @@ The heat exchanger configuration can be one of the following:
     with the added assumption that the temperature at the wall is the 
     operating temperature. This method is still not implemented in BioSTEAM
     yet.
-'''
+'''[1:]
 
 class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
-    f'''{description_doc}
+    '''{description_doc}
     
     Parameters
     ----------
@@ -209,6 +209,14 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
     Utility cost                                              USD/hr                  152
     
     '''
+    @classmethod
+    def _finalize_doc(cls):
+        cls.__doc__ = cls.__doc__.format(
+            description_doc=description_doc,
+            parameters_doc=parameters_doc,
+            notes_doc=notes_doc
+        )
+    
     auxiliary_unit_names = (
         'heat_exchanger', 
         'vacuum_system', 
@@ -428,7 +436,7 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
                 N = 2
             else:
                 N = ceil(N)
-            Design.update(size_batch(v_0, tau, tau_0, N, V_wf, loading_time))
+            Design.update(size_batch(v_0, tau, tau_0, N, V_wf, self.loading_time))
             V_reactor = Design['Reactor volume']
         else:
             V_total = ins_F_vol * self.tau / self.V_wf

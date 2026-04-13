@@ -145,10 +145,11 @@ class Unit(AbstractUnit):
     max_parallel_units = int(10e3)
     
     def __init_subclass__(cls,
-                          isabstract=False,
-                          new_graphics=True,
-                          does_nothing=None,
-                          default_phenomena=None):
+            isabstract=False,
+            new_graphics=True,
+            does_nothing=None,
+            default_phenomena=None,
+        ):
         super().__init_subclass__()
         if getattr(cls, 'decoupled', None): print(cls)
         if does_nothing: return 
@@ -250,6 +251,8 @@ class Unit(AbstractUnit):
                 bst.units.__dict__[name] = cls
             if name not in bst.__dict__:
                 bst.__dict__[name] = cls
+        if hasattr(cls, '_finalize_doc'):
+            cls._finalize_doc()
         
     ### Abstract Attributes ###
     #: **class-attribute** Units of measure for :attr:`~Unit.design_results` dictionary.
@@ -287,7 +290,7 @@ class Unit(AbstractUnit):
     #: Add itemized purchase costs to the :attr:`~Unit.baseline_purchase_costs` dictionary.
     _cost = AbstractMethod
 
-    #: Add embodied emissions (e.g., unit construction) in LCA
+    #: Add embodied emissions (e.g., unit construction) in LCA.
     _lca = AbstractMethod
     
     def _collect_variables(self, key):
