@@ -35,7 +35,7 @@ description_doc = '''
 The reactor is designed as a pressure vessel with a given aspect ratio and 
 residence time. A pump-heat exchanger recirculation loop can be used to satisfy 
 the duty, if any. By default, a turbine agitator is also included if the 
-power usage,`kW_per_m3` , is positive. A vacuum system is also 
+power usage, `kW_per_m3`, is positive. A vacuum system is also 
 automatically added if the operating pressure is at a vacuum. 
 '''[1:-1]
 
@@ -50,7 +50,7 @@ V_wf :
     Fraction of working volume over total volume. Defaults to 0.8.
 V_max :
     Maximum volume of a reactor [m3]. Defaults to 355.
-kW_per_m3: 
+kW_per_m3 : 
     Power usage of agitator. Defaults to 0.985 [kW / m3] converted from 
     5 hp/1000 gal as in [1]_, for liquid–liquid reaction or extraction.
 vessel_material : 
@@ -64,10 +64,9 @@ tau_0 :
     Cleaning and unloading time (if batch mode). Defaults to 3 hr.
 N_reactors :
     Number of reactors.
-heat_exchanger_configuration: 
+heat_exchanger_configuration : 
     What kind of heat exchanger to default to (if any). Valid options include 
-    'jacketed', 'recirculation loop', and 'internal coil'. 
-    Defaults to 'recirculation loop'.
+    'jacketed', 'recirculation loop', and 'internal coil'. Defaults to 'recirculation loop'.
 dT_hx_loop : 
     Maximum change in temperature for the heat exchanger loop. Defaults to 5 K.
 jacket_annular_diameter :

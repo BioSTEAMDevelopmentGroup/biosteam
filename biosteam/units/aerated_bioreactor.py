@@ -56,7 +56,7 @@ class AeratedBioreactor(AbstractStirredTankReactor):
         `biosteam.aeration.kLa_methods`.
         For stirred tanks, defaults to the 'Riet'. 
         For bubble columns, defaults to 'Dewes'.
-    kLa_kwargs:
+    kLa_kwargs :
         Additional arguments to pass to the kLa method.
     cooler_pressure_drop :
         Pressure drop at the cooler [Pa]. Defaults to 20684.28 Pa, 
