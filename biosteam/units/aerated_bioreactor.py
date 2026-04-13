@@ -134,26 +134,26 @@ class AeratedBioreactor(AbstractStirredTankReactor):
 
     Examples
     --------
-    import biosteam as bst
-    from biorefineries.sugarcane import chemicals
-    bst.settings.set_thermo(chemicals)
-    feed = bst.Stream('feed',
-                      Water=1.20e+05,
-                      Glucose=2.5e+04,
-                      units='kg/hr',
-                      T=32+273.15)
-    # Model oxygen uptake as combustion
-    rxn = bst.Rxn(
-        'Glucose + O2 -> H2O + CO2', reactant='Glucose', X=0.5,
-        correct_atomic_balance=True
-    ) 
-    R1 = bst.AeratedBioreactor(
-        ins=[feed, bst.Stream('air', phase='g')],
-        outs=('vent', 'product'), tau=12, V_max=500,
-        reactions=rxn,
-    )
-    R1.simulate()
-    R1.show()
+    >>> import biosteam as bst
+    >>> from biorefineries.sugarcane import chemicals
+    >>> bst.settings.set_thermo(chemicals)
+    >>> feed = bst.Stream('feed',
+    ...                   Water=1.20e+05,
+    ...                   Glucose=2.5e+04,
+    ...                   units='kg/hr',
+    ...                   T=32+273.15)
+    >>> # Model oxygen uptake as combustion
+    >>> rxn = bst.Rxn(
+    ...     'Glucose + O2 -> H2O + CO2', reactant='Glucose', X=0.5,
+    ...     correct_atomic_balance=True
+    ... ) 
+    >>> R1 = bst.AeratedBioreactor(
+    ...     ins=[feed, bst.Stream('air', phase='g')],
+    ...     outs=('vent', 'product'), tau=12, V_max=500,
+    ...     reactions=rxn,
+    ... )
+    >>> R1.simulate()
+    >>> R1.show()
     AeratedBioreactor: R1
     ins...
     [0] feed  
