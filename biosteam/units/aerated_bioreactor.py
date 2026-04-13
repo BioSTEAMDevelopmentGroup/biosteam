@@ -35,9 +35,7 @@ __all__ = (
 class AeratedBioreactor(AbstractStirredTankReactor):
     """
     Create an aerated bioreactor which satisfies the oxygen mass tranfer 
-    requirement of the mass balance.
-    
-    {description_doc}
+    requirement of the mass balance. {description_doc}
 
     Parameters
     ----------
