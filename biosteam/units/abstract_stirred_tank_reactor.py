@@ -105,7 +105,7 @@ The heat exchanger configuration can be one of the following:
     with the added assumption that the temperature at the wall is the 
     operating temperature. This method is still not implemented in BioSTEAM
     yet.
-'''[1:-1]
+'''[1:]
 
 class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
     '''
