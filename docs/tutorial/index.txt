@@ -41,6 +41,7 @@ User guide
           :numbered:
           :caption: Thermodynamics
 
+          Thermodynamic fundamentals <Thermodynamics>
           Thermodynamic_engine
           Phase_equilibrium
           Property_packages
@@ -63,21 +64,21 @@ User guide
        .. toctree::
           :maxdepth: 1
           :numbered:
-          :caption: Case studies
+          :caption: Advanced UnitOps
           
-          Sugarcane_ethanol_biorefinery
           Aerated bioreactor design <Aerated_bioreactor_design>
-          Glacial_acetic_acid_separation
+          Distillation modeling & design <Distillation>
+          Multi-stage mixer-settlers <Mixer_settlers>
           Adsorption column design <Adsorption_column_design>
-          Waste plastic upcycling <Plastic_dissolution_and_precipitation>
-
+          
     .. grid-item::
     
        .. toctree::
           :maxdepth: 1
           :numbered:
-          :caption: Separations
+          :caption: Case Studies
           
-          Thermodynamic fundamentals <Thermodynamics>
-          Distillation modeling & design <Distillation>
-          Multi-stage mixer-settlers <Mixer_settlers>
+          Sugarcane_ethanol_biorefinery
+          Glacial_acetic_acid_separation
+          Waste plastic upcycling <Plastic_dissolution_and_precipitation>
+
