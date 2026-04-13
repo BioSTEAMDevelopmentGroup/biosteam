@@ -16,7 +16,7 @@ setup(
     long_description=open('README.rst', encoding='utf-8').read(),
     author='Yoel Cortes-Pena',
     install_requires=['IPython>=7.9.0',
-                      'thermosteam>=0.53.1S', 
+                      'thermosteam>=0.53.1', 
                       'graphviz>=0.17',
                       'chaospy>=4.3.21',
                       'pyyaml'],
