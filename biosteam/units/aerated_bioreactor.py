@@ -35,7 +35,11 @@ __all__ = (
 class AeratedBioreactor(AbstractStirredTankReactor):
     """
     Create an aerated bioreactor which satisfies the oxygen mass tranfer 
-    requirement of the mass balance. {description_doc}
+    requirement of the mass balance. The reactor is designed as a pressure vessel with a given aspect ratio and 
+    residence time. A pump-heat exchanger recirculation loop can be used to satisfy 
+    the duty, if any. By default, a turbine agitator is also included if the 
+    power usage, `kW_per_m3`, is positive. A vacuum system is also 
+    automatically added if the operating pressure is at a vacuum. 
 
     Parameters
     ----------
@@ -63,34 +67,93 @@ class AeratedBioreactor(AbstractStirredTankReactor):
         a heuristic value for a gas.
     compressor_isentropic_efficiency :
         Isentropic efficiency of the compressor. Defaults to 0.85.
-    {parameters_doc}
+    tau :
+        Residence time [hr].
+    T : 
+        Operating temperature [K].
+    P : 
+        Operating pressure [Pa].
+    V_wf : 
+        Fraction of working volume over total volume. Defaults to 0.8.
+    V_max :
+        Maximum volume of a reactor [m3]. Defaults to 355.
+    kW_per_m3 : 
+        Power usage of agitator. Defaults to 0.985 [kW / m3] converted from 
+        5 hp/1000 gal as in [1]_, for liquid–liquid reaction or extraction.
+    vessel_material : 
+        Vessel material. Defaults to 'Stainless steel 316'.
+    vessel_type : 
+        Vessel type. Valid options are 'Horizontal' or 'Vertical'. Defaults to 'Vertical'
+    batch :
+        Whether to use batch operation mode. If False, operation mode is continuous.
+        Defaults to `continuous`.
+    tau_0 : 
+        Cleaning and unloading time (if batch mode). Defaults to 3 hr.
+    N_reactors :
+        Number of reactors.
+    heat_exchanger_configuration : 
+        What kind of heat exchanger to default to (if any). Valid options include 
+        'jacketed', 'recirculation loop', and 'internal coil'. Defaults to 'recirculation loop'.
+    dT_hx_loop : 
+        Maximum change in temperature for the heat exchanger loop. Defaults to 5 K.
+    jacket_annular_diameter :
+        Annular diameter of heat exchanger jacket to vessel [m]. Defaults to 0.1 m.
+    loading_time :
+        Loading time of batch reactor. If not given, it will assume each vessel is constantly
+        being filled.
         
     Notes
     -----
-    {notes_doc}
-    
+    The heat exchanger configuration can be one of the following:
+
+    * 'recirculation loop': 
+        The recirculation loop takes into account the required flow rate needed to
+        reach the maximum temperature change of the heat exchanger, `dT_hx_loop`. 
+        Increasing `dT_hx_loop` decreases the required recirculation flow rate and
+        therefore decreases pump costs.
+        
+        When parallel reactors are required, one recirculation loop (each with a
+        pump and heat exchanger) is assumed. Although it is possible to use the
+        same recirculation loop for all reactors, this conservative assumption allows
+        for each reactor to be operated independently from each other.
+
+    * 'jacketed':
+        The jacket does not account for the heat transfer area requirement. 
+        It simply assumes that a full jacket can provide the necessary heat transfer
+        area to meet the duty requirement. A heuristic annular diameter is assumed
+        through `jacket_annular_diameter` (which can be adjusted by the user).
+        The temperature at the wall is assumed to be the operating temperature.
+        The weight of the jacket is added to the weight of the vessel and the
+        cost is compounded together as a jacketed vessel.
+        
+    * 'internal coil':
+        The internal coil is costed as an ordinary helical tube heat exchanger
+        with the added assumption that the temperature at the wall is the 
+        operating temperature. This method is still not implemented in BioSTEAM
+        yet.
+
     Examples
     --------
-    >>> import biosteam as bst
-    >>> from biorefineries.sugarcane import chemicals
-    >>> bst.settings.set_thermo(chemicals)
-    >>> feed = bst.Stream('feed',
-    ...                   Water=1.20e+05,
-    ...                   Glucose=2.5e+04,
-    ...                   units='kg/hr',
-    ...                   T=32+273.15)
-    >>> # Model oxygen uptake as combustion
-    >>> rxn = bst.Rxn(
-    ...     'Glucose + O2 -> H2O + CO2', reactant='Glucose', X=0.5,
-    ...     correct_atomic_balance=True
-    ... ) 
-    >>> R1 = bst.AeratedBioreactor(
-    ...     ins=[feed, bst.Stream('air', phase='g')],
-    ...     outs=('vent', 'product'), tau=12, V_max=500,
-    ...     reactions=rxn,
-    ... )
-    >>> R1.simulate()
-    >>> R1.show()
+    import biosteam as bst
+    from biorefineries.sugarcane import chemicals
+    bst.settings.set_thermo(chemicals)
+    feed = bst.Stream('feed',
+                      Water=1.20e+05,
+                      Glucose=2.5e+04,
+                      units='kg/hr',
+                      T=32+273.15)
+    # Model oxygen uptake as combustion
+    rxn = bst.Rxn(
+        'Glucose + O2 -> H2O + CO2', reactant='Glucose', X=0.5,
+        correct_atomic_balance=True
+    ) 
+    R1 = bst.AeratedBioreactor(
+        ins=[feed, bst.Stream('air', phase='g')],
+        outs=('vent', 'product'), tau=12, V_max=500,
+        reactions=rxn,
+    )
+    R1.simulate()
+    R1.show()
     AeratedBioreactor: R1
     ins...
     [0] feed  
@@ -112,7 +175,6 @@ class AeratedBioreactor(AbstractStirredTankReactor):
         phase: 'l', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water    6.94e+03
                         Glucose  69.4
-    
     """
     _N_ins = 2
     _N_outs = 2
@@ -398,8 +460,12 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     the flow rates of the `variable_gas_feeds` so long as the 
     `backward_reactions` are specified. Otherwise, the titer will be estimated
     assuming constant gas flow rates.
-    
-    {description_doc}
+
+    The reactor is designed as a pressure vessel with a given aspect ratio and 
+    residence time. A pump-heat exchanger recirculation loop can be used to satisfy 
+    the duty, if any. By default, a turbine agitator is also included if the 
+    power usage, `kW_per_m3`, is positive. A vacuum system is also 
+    automatically added if the operating pressure is at a vacuum. 
 
     Parameters
     ----------
@@ -435,11 +501,71 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         a heuristic value for a gas.
     compressor_isentropic_efficiency :
         Isentropic efficiency of the compressor. Defaults to 0.85.
-    {parameters_doc}
+    tau :
+        Residence time [hr].
+    T : 
+        Operating temperature [K].
+    P : 
+        Operating pressure [Pa].
+    V_wf : 
+        Fraction of working volume over total volume. Defaults to 0.8.
+    V_max :
+        Maximum volume of a reactor [m3]. Defaults to 355.
+    kW_per_m3 : 
+        Power usage of agitator. Defaults to 0.985 [kW / m3] converted from 
+        5 hp/1000 gal as in [1]_, for liquid–liquid reaction or extraction.
+    vessel_material : 
+        Vessel material. Defaults to 'Stainless steel 316'.
+    vessel_type : 
+        Vessel type. Valid options are 'Horizontal' or 'Vertical'. Defaults to 'Vertical'
+    batch :
+        Whether to use batch operation mode. If False, operation mode is continuous.
+        Defaults to `continuous`.
+    tau_0 : 
+        Cleaning and unloading time (if batch mode). Defaults to 3 hr.
+    N_reactors :
+        Number of reactors.
+    heat_exchanger_configuration : 
+        What kind of heat exchanger to default to (if any). Valid options include 
+        'jacketed', 'recirculation loop', and 'internal coil'. Defaults to 'recirculation loop'.
+    dT_hx_loop : 
+        Maximum change in temperature for the heat exchanger loop. Defaults to 5 K.
+    jacket_annular_diameter :
+        Annular diameter of heat exchanger jacket to vessel [m]. Defaults to 0.1 m.
+    loading_time :
+        Loading time of batch reactor. If not given, it will assume each vessel is constantly
+        being filled.
         
     Notes
     -----
-    {notes_doc}
+    The heat exchanger configuration can be one of the following:
+
+    * 'recirculation loop': 
+        The recirculation loop takes into account the required flow rate needed to
+        reach the maximum temperature change of the heat exchanger, `dT_hx_loop`. 
+        Increasing `dT_hx_loop` decreases the required recirculation flow rate and
+        therefore decreases pump costs.
+        
+        When parallel reactors are required, one recirculation loop (each with a
+        pump and heat exchanger) is assumed. Although it is possible to use the
+        same recirculation loop for all reactors, this conservative assumption allows
+        for each reactor to be operated independently from each other.
+
+    * 'jacketed':
+        The jacket does not account for the heat transfer area requirement. 
+        It simply assumes that a full jacket can provide the necessary heat transfer
+        area to meet the duty requirement. A heuristic annular diameter is assumed
+        through `jacket_annular_diameter` (which can be adjusted by the user).
+        The temperature at the wall is assumed to be the operating temperature.
+        The weight of the jacket is added to the weight of the vessel and the
+        cost is compounded together as a jacketed vessel.
+        
+    * 'internal coil':
+        The internal coil is costed as an ordinary helical tube heat exchanger
+        with the added assumption that the temperature at the wall is the 
+        operating temperature. This method is still not implemented in BioSTEAM
+        yet.
+
     
     Examples
     --------

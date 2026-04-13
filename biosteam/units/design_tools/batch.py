@@ -12,7 +12,7 @@ General functional algorithms for batch design.
 
 __all__ = ('size_batch',)
 
-def size_batch(F_vol, tau_reaction, tau_cleaning, N_reactors, V_wf, loading_time) -> dict:
+def size_batch(F_vol, tau_reaction, tau_cleaning, N_reactors, V_wf, loading_time=None) -> dict:
     r"""
     Solve for batch reactor volume, cycle time, and loading time.
     

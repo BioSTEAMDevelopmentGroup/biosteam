@@ -251,8 +251,6 @@ class Unit(AbstractUnit):
                 bst.units.__dict__[name] = cls
             if name not in bst.__dict__:
                 bst.__dict__[name] = cls
-        if hasattr(cls, '_finalize_doc') and cls.__doc__:
-            cls._finalize_doc()
         
     ### Abstract Attributes ###
     #: **class-attribute** Units of measure for :attr:`~Unit.design_results` dictionary.
