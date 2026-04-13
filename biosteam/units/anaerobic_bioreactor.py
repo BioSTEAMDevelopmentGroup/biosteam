@@ -2,8 +2,7 @@
 """
 .. contents:: :local:
 
-.. autoclass:: biosteam.units.aerated_bioreactor.AeratedBioreactor
-.. autoclass:: biosteam.units.aerated_bioreactor.GasFedBioreactor
+.. autoclass:: biosteam.units.anaerobic_bioreactor.AnaerobicBioreactor
 
 References
 ----------
