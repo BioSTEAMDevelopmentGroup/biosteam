@@ -633,7 +633,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     get_agitation_power = AeratedBioreactor.get_agitation_power
     
     def _init(self, 
-            reactions, gas_substrates, 
+            gas_substrates, 
             # Can vary either liquid or gas flows
             titer=None, 
             # Only for variable gas flows
@@ -652,7 +652,6 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         #: Isentropic efficiency of the compressor. Defaults to 0.85.
         self.compressor_isentropic_efficiency = compressor_isentropic_efficiency
         self.cooler_pressure_drop = 20684.28 if cooler_pressure_drop is None else cooler_pressure_drop
-        self.reactions = reactions
         self.backward_reactions = backward_reactions
         self.theta = theta # Average concentration of gas substrate in the liquid as a fraction of saturation.
         self.Q_consumption = Q_consumption # Forced duty per gas substrate consummed [kJ/kmol].

@@ -121,7 +121,7 @@ class DrumDryer(Unit):
     >>> dryer.show('cwt100')
     DrumDryer: D610
     ins...
-    [0] feed
+    [0] feed  
         phase: 'l', T: 352.33 K, P: 101325 Pa
         composition (%): Water             67.5
                          Ethanol           0.000504
@@ -134,17 +134,17 @@ class DrumDryer(Unit):
                          SolubleProtein    4.8
                          InsolubleProtein  6.97
                          ----------------  3.27e+04 kg/hr
-    [1] dryer_air
+    [1] dryer_air  
         phase: 'g', T: 298.15 K, P: 1.01325e+06 Pa
-        composition (%): O2  21
-                         N2  79
-                         --  1.32e+06 kg/hr
-    [2] natural_gas
+        composition (%): O2  23.3
+                         N2  76.7
+                         --  1.33e+06 kg/hr
+    [2] natural_gas  
         phase: 'g', T: 298.15 K, P: 101325 Pa
         composition (%): CH4  100
                          ---  2.45e+03 kg/hr
     outs...
-    [0] dryed_solids
+    [0] dryed_solids  
         phase: 'l', T: 343.15 K, P: 101325 Pa
         composition (%): Water             10
                          Ash               5.48
@@ -156,14 +156,14 @@ class DrumDryer(Unit):
                          SolubleProtein    13.3
                          InsolubleProtein  19.3
                          ----------------  1.18e+04 kg/hr
-    [1] hot_air
+    [1] hot_air  
         phase: 'g', T: 343.15 K, P: 1.01325e+06 Pa
-        composition (%): Water    1.56
+        composition (%): Water    1.55
                          Ethanol  1.23e-05
-                         O2       20.7
-                         N2       77.8
-                         -------  1.34e+06 kg/hr
-    [2] emissions
+                         O2       22.9
+                         N2       75.5
+                         -------  1.35e+06 kg/hr
+    [2] emissions  
         phase: 'g', T: 373.15 K, P: 101325 Pa
         composition (%): Water  45
                          CO2    55

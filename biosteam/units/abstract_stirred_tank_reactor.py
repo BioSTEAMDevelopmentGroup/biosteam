@@ -133,7 +133,7 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
     ...
     >>> from biorefineries.sugarcane import chemicals
     >>> bst.settings.set_thermo(chemicals)
-    >>> feed = bst.Stream(
+    >>> feed = bst.Stream('feed',
     ...     Water=1.20e+05,
     ...     Glucose=1.89e+03,
     ...     Sucrose=2.14e+04,
@@ -141,7 +141,7 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
     ...     units='kg/hr',
     ...     T=32+273.15
     ... )
-    >>> R1 = ContinuousFermentation(
+    >>> R1 = ContinuousFermentation('R1',
     ...     ins=feed, outs=('CO2', 'product'), 
     ...     reactions = bst.ReactionSystem(
     ...         bst.Reaction('Sucrose + Water -> 2Glucose', 'Sucrose', 1.00),  # Hydrolysis

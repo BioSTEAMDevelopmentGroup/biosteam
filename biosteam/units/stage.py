@@ -2661,7 +2661,7 @@ class MultiStageEquilibrium(Unit):
                 else:
                     raise ValueError(f'invalid method {method!r}')
                 if self._has_lle and algorithm == 'inside out': 
-                    raise RuntimeError('inside out method does not support liquid extraction yet')
+                    algorithm = 'phenomena' # Inside out method does not support liquid extraction yet
                 if analysis_mode:
                     self._tracked_algorithms.append(
                         (self.iter + 1, algorithm)
