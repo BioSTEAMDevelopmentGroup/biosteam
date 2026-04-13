@@ -78,8 +78,7 @@ class AeratedBioreactor(AbstractStirredTankReactor):
     V_max :
         Maximum volume of a reactor [m3]. Defaults to 355.
     kW_per_m3 : 
-        Power usage of agitator. Defaults to 0.985 [kW / m3] converted from 
-        5 hp/1000 gal as in [1]_, for liquid–liquid reaction or extraction.
+        Power usage of agitator. Defaults to 0.2955 [kW / m3] from [1]_.
     vessel_material : 
         Vessel material. Defaults to 'Stainless steel 316'.
     vessel_type : 
