@@ -97,8 +97,9 @@ def size_batch(F_vol, tau_reaction, tau_cleaning, N_reactors, V_wf, loading_time
         
         # Time required to load a reactor
         tau_loading = V_i/F_vol
-        
     else:
+        tau_loading = loading_time
+        
         # Total volume of all reactors
         V_T = F_vol * (tau_reaction + tau_cleaning + tau_loading)
         
