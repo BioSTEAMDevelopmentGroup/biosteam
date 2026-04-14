@@ -1,5 +1,5 @@
-A Fast and Flexible Process Simulation Platform
-===============================================
+Fast and Flexible Process Simulation
+====================================
 
 .. toctree::
    :maxdepth: 2
