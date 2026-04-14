@@ -41,6 +41,8 @@ class AnaerobicBioreactor(AbstractStirredTankReactor):
         Operating pressure [Pa].
     V_wf : 
         Fraction of working volume over total volume. Defaults to 0.8.
+    length_to_diameter :
+        Length to diameter ratio of bioreactor.
     V_max :
         Maximum volume of a reactor [m3]. Defaults to 355.
     kW_per_m3 : 

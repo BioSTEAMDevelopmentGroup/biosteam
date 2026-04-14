@@ -75,6 +75,8 @@ class AeratedBioreactor(AbstractStirredTankReactor):
         Operating pressure [Pa].
     V_wf : 
         Fraction of working volume over total volume. Defaults to 0.8.
+    length_to_diameter :
+        Length to diameter ratio of bioreactor.
     V_max :
         Maximum volume of a reactor [m3]. Defaults to 355.
     kW_per_m3 : 
@@ -205,14 +207,22 @@ class AeratedBioreactor(AbstractStirredTankReactor):
         AbstractStirredTankReactor._init(self, **kwargs)
         self.theta_O2 = theta_O2 # Average concentration of O2 in the liquid as a fraction of saturation.
         self.Q_O2_consumption = Q_O2_consumption # Forced duty per O2 consummed [kJ/kmol].
-        self.optimize_power = True if optimize_power is None else optimize_power
         if design is None: 
-            design = 'Stirred tank'
+            if self.kW_per_m3 == 0:
+                design = 'Bubble column'
+            else:
+                design = 'Stirred tank'
         elif design not in aeration.kLa_method_names:
             raise ValueError(
                 f"{design!r} is not a valid design; only "
                 f"{list(aeration.kLa_method_names)} are valid"
             )
+        self.design = design
+        self.optimize_power = (
+            design == 'Stirred tank' 
+            if optimize_power is None else
+            optimize_power
+        )
         self.design = design
         if method is None:
             method = self.default_methods[design]
@@ -271,7 +281,10 @@ class AeratedBioreactor(AbstractStirredTankReactor):
             self.superficial_gas_flow = U = F / A # m / s
             return aeration.P_at_kLa_Riet(kLa, V, U, **self.kLa_kwargs)
         else:
-            raise NotImplementedError('kLa method has not been implemented in BioSTEAM yet')
+            raise NotImplementedError(
+                'cannot solve for the required agitation power using the '
+               f'kLa method {self.kLa!r} in BioSTEAM yet'
+            )
     
     def _get_duty(self):
         if self.Q_O2_consumption is None:
@@ -368,11 +381,31 @@ class AeratedBioreactor(AbstractStirredTankReactor):
                 return OUR - self.get_OTR()
             
             f = air_flow_rate_objective
+            x0 = OUR
             y0 = air_flow_rate_objective(OUR)
-            if y0 <= 0.: # Correlation is not perfect and special cases lead to OTR > OUR
-                return
-            flx.IQ_interpolation(f, x0=OUR, x1=10 * OUR, 
-                                 y0=y0, ytol=1e-3, xtol=1e-3)
+            
+            # Correlation is not perfect and special cases lead to OTR > OUR
+            if y0 <= 0.: return 
+            
+            f = air_flow_rate_objective
+            x1 = 10 * OUR
+            y1 = air_flow_rate_objective(x1)
+            
+            # It is possible an infinite flow rate of air is not enough to 
+            # satisfy mass transfer if the titer is super high or gas O2 concentration
+            # is too low.
+            if y1 > 0: 
+                raise RuntimeError(
+                    'bioreactor conversion/titer cannot be satisfied; '
+                    'even an infinite flow rate of gas is not enough'
+                )
+            
+            # There is a known solution because y1 < 0 < y0
+            flx.IQ_interpolation(
+                f, x0=x0, x1=x1, 
+                y0=y0, y1=y1, 
+                ytol=1e-3, xtol=1e-3
+            )
         
     def _run_reactions(self, effluent):
         self.reactions.force_reaction(effluent)
@@ -422,7 +455,7 @@ class AeratedBioreactor(AbstractStirredTankReactor):
         return OTR
         
     def _inlet_air_pressure(self):
-        AbstractStirredTankReactor._design(self)
+        AbstractStirredTankReactor._design(self, size_only=True)
         liquid = bst.Stream(None, thermo=self.thermo)
         liquid.mix_from([i for i in self.ins if i.phase != 'g'], energy_balance=False)
         liquid.copy_thermal_condition(self.outs[0])
@@ -433,14 +466,7 @@ class AeratedBioreactor(AbstractStirredTankReactor):
     def _design(self):
         AbstractStirredTankReactor._design(self)
         if self.air.isempty(): return
-        liquid = bst.Stream(None, thermo=self.thermo)
-        liquid.mix_from([i for i in self.ins if i.phase != 'g'], energy_balance=False)
-        liquid.copy_thermal_condition(self.outs[0])
-        rho = liquid.rho
-        length = self.get_design_result('Length', 'm') * self.V_wf
-        compressor = self.compressor
-        compressor.P = g * rho * length + 101325
-        compressor.simulate()
+        self.compressor.simulate()
         air_cooler = self.air_cooler
         air_cooler.T = self.T
         air_cooler.simulate()
@@ -508,6 +534,8 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         Operating pressure [Pa].
     V_wf : 
         Fraction of working volume over total volume. Defaults to 0.8.
+    length_to_diameter :
+        Length to diameter ratio of bioreactor.
     V_max :
         Maximum volume of a reactor [m3]. Defaults to 355.
     kW_per_m3 : 
@@ -762,7 +790,8 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         vent.T = effluent.T = self.T
         vent.empty()
         vent.phase = 'g'
-        if not self.titer:
+        if not self.titer: 
+            # Titer is given by the mass transfer.
             liquid_feeds = [i for i in self.ins if i.phase != 'g']
             T = self.T
             P = self._inlet_gas_pressure()
@@ -776,6 +805,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             vent.empty()
             self._run_vent(vent, effluent)
         elif variable_gas_feeds:
+            # Solve gas flow rates to meet titer.
             liquid_feeds = [i for i in self.ins if i.phase != 'g']
             effluent.mix_from(liquid_feeds, energy_balance=False)
             T = self.T
@@ -806,7 +836,13 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             
             baseline_feed = bst.Stream.sum(self.normal_gas_feeds, energy_balance=False)
             baseline_flows = baseline_feed.get_flow('mol/s', self.gas_substrates)
-            bounds = np.array([[max(1.01 * SURs[i] - baseline_flows[i], 1e-6), 10 * SURs[i]] for i in index])
+            
+            # Bounds must meet substrate uptake rate (minimally).
+            # At most, 10x the substrate uptake rate as an abritrarily high number.
+            bounds = np.array([
+                [max(1.01 * SURs[i] - baseline_flows[i], 1e-6), 10 * SURs[i]] 
+                for i in index
+            ])
             if self.optimize_power:
                 def total_power_at_substrate_flow(F_substrates):
                     load_flow_rates(F_substrates)
@@ -837,8 +873,13 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                     bounds = bounds.T
                     results = least_squares(f, 1.2 * SURs, bounds=bounds, ftol=SURs.min() * 1e-6)
                 self._results = results
+                if not results.success:
+                    raise RuntimeError(
+                        'bioreactor conversion/titer could not be satisfied'
+                    )
                 load_flow_rates(results.x / x_substrates)
-        else:
+        else: 
+            # Titer given, must adjust liquid flows to meet mass transfer.
             try:
                 feed, = [i for i in self.ins if i.phase != 'g']
             except:
@@ -871,8 +912,6 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                 return effluent.imass[product] / effluent.ivol['Water'] - titer
                 
             flx.IQ_interpolation(liquid_flow_rate_objective, 0.05 * F_liquid_max, F_liquid_max, ytol=1e-3)
-        # self.show()
-        # breakpoint()
         
     def _run_reactions(self, effluent):
         data = effluent.get_data()

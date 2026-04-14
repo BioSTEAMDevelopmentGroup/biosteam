@@ -51,6 +51,8 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
         Fraction of working volume over total volume. Defaults to 0.8.
     V_max :
         Maximum volume of a reactor [m3]. Defaults to 355.
+    length_to_diameter :
+        Length to diameter ratio of bioreactor.
     kW_per_m3 : 
         Power usage of agitator. Defaults to 0.985 [kW / m3] converted from 
         5 hp/1000 gal as in [1]_, for liquid–liquid reaction or extraction.
