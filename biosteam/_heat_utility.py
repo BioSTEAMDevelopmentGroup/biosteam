@@ -12,12 +12,14 @@ from thermosteam.units_of_measure import (
     convert, DisplayUnits, UnitsOfMeasure, get_dimensionality,
     heat_utility_units_of_measure
 )
+from thermosteam._phase import valid_phases
 from thermosteam.utils import unregistered, define_units_of_measure, infer_variable_assignment
 from thermosteam import Thermo, Stream, ThermalCondition, settings
 from .exceptions import DimensionError
 from math import copysign
 from collections import deque
 from typing import Optional, TYPE_CHECKING, Iterable, Literal, Sequence
+import pandas as pd
 if TYPE_CHECKING: from biosteam import Unit
 
 __all__ = ('HeatUtility', 'UtilityAgent')
@@ -92,7 +94,7 @@ class UtilityAgent(Stream):
                  heat_transfer_efficiency: float=1.,
                  isfuel: bool=False,
                  dT: Optional[float]=0,
-                 **chemical_flows: float):
+                 **chemical_flows: float,):
         self._thermal_condition = ThermalCondition(T, P)
         thermo = self._load_thermo(thermo)
         self._init_indexer(None, phase, thermo.chemicals, chemical_flows)
@@ -104,7 +106,7 @@ class UtilityAgent(Stream):
         self.mol.read_only = True # Flow rate cannot change anymore
         self._sink = self._source = None
         self.reset_cache()
-        if settings.ID_magic and ID == '': ID = infer_variable_assignment(self.__class__, '-')
+        if settings.ID_magic and ID == '': ID = infer_variable_assignment(self.__class__)
         self._register(ID)
         self.T_limit = T_limit
         self.heat_transfer_price = heat_transfer_price
@@ -212,33 +214,148 @@ class UtilityAgent(Stream):
     def regeneration_price(self, price: float):
         assert price >= 0, "regeneration price cannot be negative"
         self._regeneration_price = price
-    
-    def _info_phaseTP(self, phase, units, notation):
-        T_notation = notation['T']
-        P_notation = notation['P']
+        
+    def _info_df(self, units, notation, composition, N_max, all_IDs, indexer, factor):
+        if not all_IDs:
+            return pd.DataFrame(
+                [0],
+                columns=[self.ID.replace('_', ' ')],
+                index=['Flow']
+            )
+        
         T_units = units['T']
         P_units = units['P']
-        if self.T_limit is None:
-            T_limit = "None"
-        else:
-            T_limit = convert(self.T_limit, 'K', T_units)
-            T_limit = f"{T_limit:.3g} K" if T_limit else "None"
+        flow_units = units['flow']
+        T_notation = notation['T']
+        P_notation = notation['P']
+        flow_notation = notation['flow']
+        
         T = convert(self.T, 'K', T_units)
         P = convert(self.P, 'Pa', P_units)
-        s = '' if isinstance(phase, str) else 's'
+        
+        data = []
+        index = []
+        
+        index.append('Heat transfer price [USD/kJ]')
+        data.append(f"{self.heat_transfer_price:.3g}")
+        
+        index.append('Regeneration price [USD/kmol]')
+        data.append(f"{self.regeneration_price:.3g}")
+        
+        index.append('Heat transfer efficiency [%]')
+        data.append(f"{int(100 * self.heat_transfer_efficiency)}")
+        
+        if self.T_limit is not None:
+            index.append(f'Temperature limit [{T_units}]')
+            data.append(f"{self.T_limit:{T_notation}}")
+        
+        index.append(f'Temperature [{T_units}]')
+        data.append(f"{T:{T_notation}}")
+        
+        index.append(f'Pressure [{P_units}]')
+        data.append(f"{P:{P_notation}}")
+        
+        for phase in self.phases:
+            if indexer.data.ndim == 2:
+                flow_array = factor * indexer[phase, all_IDs]
+            else:
+                flow_array = factor * indexer[all_IDs]
+        
+            phase = valid_phases[phase]
+            if phase.islower():
+                phase = phase.capitalize()
+        
+            total_flow = flow_array.sum()
+        
+            index.append(f"{phase} flow rate [{flow_units}]")
+            data.append(f"{total_flow:{flow_notation}}")
+        
+            if total_flow == 0:
+                comp_array = flow_array
+            else:
+                comp_array = 100 * flow_array / total_flow
+        
+            for i, (ID, comp) in enumerate(zip(all_IDs, comp_array)):
+                if not comp:
+                    continue
+        
+                if i >= N_max:
+                    index.append('Remainder [%]')
+                    data.append(f"{comp_array[N_max:].sum():{flow_notation}}")
+                    break
+        
+                index.append(f'{ID} [%]')
+                data.append(f"{comp:{flow_notation}}")
+        
+        return pd.DataFrame(
+            data,
+            columns=[self.ID.replace('_', ' ')],
+            index=index,
+        )
+        
+    def _info_phaseTP(self, phase, units, notation):
+        T_units = units['T']
+        P_units = units['P']
+        T = convert(self.T, 'K', T_units)
+        P = convert(self.P, 'Pa', P_units)
+        if self.T_limit is None:
+            return f"phase: {repr(phase)}, T: {T:{notation['T']}} {T_units}, P: {P:{notation['P']}} {P_units}\n"
+        else:
+            return f"phase: {repr(phase)}, T: {T:{notation['T']}} up to {self.T_limit:{notation['T']}} {T_units}, P: {P:{notation['P']}} {P_units}\n"
+    
+    def _info_str(self, units, notation, composition, N_max, all_IDs, indexer, factor):
         ht_price = self.heat_transfer_price
         rg_price = self.regeneration_price
         ht_eff = self.heat_transfer_efficiency
-        return (f"heat_transfer_efficiency: {ht_eff:.3f}\n"
-                f"heat_transfer_price: {ht_price:.3g} USD/kJ\n"
-                f"regeneration_price: {rg_price:.3g} USD/kmol\n"
-                f"T_limit: {T_limit}\n"
-                f"phase{s}: {repr(phase)}\n"
-                f"T: {T:{T_notation}} {T_units}\n"
-                f"P: {P:{P_notation}} {P_units}\n"
-        )
-    def __repr__(self):
-        return f"<{type(self).__name__}: {self.ID}>"
+        if ht_price and not rg_price:
+            price = f"price: {ht_price:.3g} USD/kJ at {ht_eff:.0%} efficiency\n"
+        elif rg_price and not ht_price:
+            price = f"price: {rg_price:.3g} USD/kmol at {ht_eff:.0%} efficiency\n"
+        elif ht_price and rg_price:
+            price = f"price: {rg_price:.3g} USD/kmol + {ht_price:.3g} USD/kJ at {ht_eff:.0%} efficiency\n"
+        else:
+            price = f"price: 0 at {ht_eff:.0%} efficiency\n"
+        basic_info = self._basic_info()
+        TP_info = self._info_phaseTP(self.phase, units, notation)
+        flow_units = units['flow']
+        flow_notation = notation['flow']
+        if N_max == 0:
+            return basic_info[:-1]
+        N_IDs = len(all_IDs)
+        if N_IDs == 1:
+            beginning = ''
+            flow_rates = f'composition: 100% {all_IDs[0]}'
+        else:
+            # Remaining lines (all flow rates)
+            flow_array = factor * indexer[all_IDs]
+            total_flow = flow_array.sum()
+            beginning = "composition (%): "
+            new_line = '\n' + len(beginning) * ' '
+            flow_array = 100 * flow_array/total_flow
+            flow_rates = ''
+            too_many_chemicals = N_IDs > N_max
+            if not too_many_chemicals: N_max = N_IDs
+            lengths = [len(i) for i in all_IDs[:N_max]]
+            maxlen = max(lengths) + 2
+            for i in range(N_max):
+                spaces = ' ' * (maxlen - lengths[i])
+                if i:
+                    flow_rates += new_line
+                flow_rates += all_IDs[i] + spaces + \
+                    f'{flow_array[i]:{flow_notation}}'
+            if too_many_chemicals:
+                spaces = ' ' * (maxlen - 3)
+                flow_rates += new_line + '...' + spaces + \
+                    f'{flow_array[N_max:].sum():{flow_notation}}'
+            dashes = '-' * (maxlen - 2)
+            flow_rates += f"{new_line}{dashes}  {total_flow:{flow_notation}} {flow_units}"
+        return (basic_info
+                + price
+                + TP_info
+                + beginning
+                + flow_rates)
+        
+        
 
 
 # %%
