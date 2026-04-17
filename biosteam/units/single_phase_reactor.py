@@ -59,7 +59,7 @@ class SinglePhaseReactor(AbstractStirredTankReactor):
         Defaults to `continuous`.
     tau_0 : 
         Cleaning and unloading time (if batch mode). Defaults to 3 hr.
-    N_reactors :
+    N :
         Number of reactors.
     heat_exchanger_configuration : 
         What kind of heat exchanger to default to (if any). Valid options include 

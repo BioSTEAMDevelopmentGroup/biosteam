@@ -119,9 +119,6 @@ class NRELAnaerobicBatchBioreactor(Unit, isabstract=True):
               'Recirculation flow rate': 'm3/hr'}
     _N_ins = _N_outs = 2
     
-    #: [bool] If True, number of reactors (N) is chosen as to minimize installation cost in every simulation. Otherwise, N remains constant.
-    autoselect_N = False
-    
     #: [float] Cleaning and unloading time (hr).
     tau_0 = 3
     
@@ -212,22 +209,6 @@ class NRELAnaerobicBatchBioreactor(Unit, isabstract=True):
     @tau.setter
     def tau(self, tau):
         self._tau = tau
-    
-    @property
-    def N_at_minimum_capital_cost(self):
-        cost_old = np.inf
-        self.autoselect_N = False
-        self._N, N = 2, self._N
-        cost_new = self.purchase_cost
-        self._summary()
-        while cost_new < cost_old:
-            self._N += 1
-            self._summary()
-            cost_old = cost_new
-            cost_new = self.purchase_cost
-        self._N, N = N, self._N
-        self.autoselect_N = True
-        return N - 1
         
     def _design(self):
         effluent = self.effluent
@@ -236,19 +217,13 @@ class NRELAnaerobicBatchBioreactor(Unit, isabstract=True):
         tau_0 = self.tau_0
         V_wf = self.V_wf
         Design = self.design_results
-        if self.autoselect_N:
-            N = self.N_at_minimum_capital_cost
-        elif self.V_max:
-            N = v_0 / self.V_max / V_wf * (tau + tau_0) + 1
-            if N < 2:
-                N = 2
-            else:
-                N = ceil(N)
-        else:
-            N = self._N
-        Design.update(size_batch(v_0, tau, tau_0, N, V_wf, self.loading_time))
-        Design['Number of reactors'] = N
-        Design['Recirculation flow rate'] = v_0 / N
+        Design.update(
+            size_batch(
+                v_0, tau, tau_0, V_wf, 
+                self.V_max, self.N, self.loading_time
+            )
+        )
+        Design['Recirculation flow rate'] = v_0 / Design['Number of reactors']
         duty = self.Hnet
         Design['Reactor duty'] = duty
         self.add_heat_utility(duty, self.T)

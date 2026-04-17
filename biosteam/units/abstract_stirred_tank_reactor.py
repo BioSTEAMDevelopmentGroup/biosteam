@@ -65,7 +65,7 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
         Defaults to `continuous`.
     tau_0 : 
         Cleaning and unloading time (if batch mode). Defaults to 3 hr.
-    N_reactors :
+    N :
         Number of reactors.
     heat_exchanger_configuration : 
         What kind of heat exchanger to default to (if any). Valid options include 
@@ -77,6 +77,8 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
     loading_time :
         Loading time of batch reactor. If not given, it will assume each vessel is constantly
         being filled.
+    N_vessels :
+        Number of vessels.
 
     Notes
     -----
@@ -232,6 +234,9 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
     #: Default maximum volume of a reactor in m3.
     V_max_default: float = 355
     
+    #: Default number of vessels.
+    N_default: Optional[int] = None
+    
     #: Default length to diameter ratio.
     length_to_diameter_default: float = 3
     
@@ -283,10 +288,16 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
             jacket_annular_diameter: Optional[float]=None,
             reactions: Optional[bst.ReactionSystem]=None,
             loading_time: Optional[float]=None,
+            N: Optional[int]=None, 
         ):
         if adiabatic is None: adiabatic = False
         self.adiabatic = adiabatic
         self.reactions = reactions
+        self.N = (
+            self.N_default 
+            if (N is None and not adiabatic) else 
+            N
+        )
         self.T = (
             self.T_default 
             if (T is None and not adiabatic) else 
@@ -414,23 +425,27 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
             tau_0 = self.tau_0
             V_wf = self.V_wf
             Design = self.design_results
-            V_max = self.V_max
-            N = v_0 / V_max / V_wf * (tau + tau_0) + 1
-            if N < 2:
-                N = 2
-            else:
-                N = ceil(N)
-            Design.update(size_batch(v_0, tau, tau_0, N, V_wf, self.loading_time))
+            Design.update(
+                size_batch(
+                    v_0, tau, tau_0, V_wf, 
+                    self.V_max, self.N, self.loading_time
+                )
+            )
             V_reactor = Design['Reactor volume']
+            N = Design['Number of reactors']
         else:
-            V_total = ins_F_vol * self.tau / self.V_wf
-            N = ceil(V_total/self.V_max)
-            if N == 0:
-                V_reactor = 0
+            if self.N is None:
+                V_total = ins_F_vol * self.tau / self.V_wf
+                N = ceil(V_total/self.V_max)
+                if N == 0:
+                    V_reactor = 0
+                else:
+                    V_reactor = V_total / N
             else:
-                V_reactor = V_total / N
+                V_total = ins_F_vol * self.tau / self.V_wf
+                V_reactor = V_total / self.N
             Design['Reactor volume'] = V_reactor
-        self.N_reactors = N
+            Design['Number of reactors'] = N
         D = cylinder_diameter_from_volume(V_reactor, self.length_to_diameter)
         D *= 3.28084 # Convert from m to ft
         L = D * length_to_diameter

@@ -3853,7 +3853,7 @@ class System:
 
         .. code-block:: python
             
-           >>> bst.settings.define_impact_indicator('GWP', 'kgCO2e')
+           >>> bst.settings.define_impact_indicator('GWP', 'kg*CO2e')
            >>> system.get_property_allocated_impact(
            ...     product, key='GWP', allocation_method='mass', basis='kg'
            ... ) # -> GWP [kgCO2e / kg-product]
@@ -3910,7 +3910,7 @@ class System:
 
         .. code-block:: python
             
-           >>> bst.settings.define_impact_indicator('GWP', 'kgCO2e')
+           >>> bst.settings.define_impact_indicator('GWP', 'kg*CO2e')
            >>> system.get_property_allocated_impact(
            ...     key='GWP', name='mass', basis='kg'
            ... ) # -> GWP [kgCO2e / kg-products]
