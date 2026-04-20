@@ -496,7 +496,7 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
             self.heat_exchanger.T = hx_outlet.T
             self.heat_exchanger.simulate()
         elif hx_config == 'jacketed':
-            self.add_heat_utility(duty, self.effluent.T)
+            self.add_heat_utility(duty / N, self.effluent.T)
         else:
             raise RuntimeError(
                 f"heat exchanger configuration {hx_config!r} not yet implemented"
