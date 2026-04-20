@@ -24,6 +24,7 @@ class PressureVessel:
               'Horizontal vessel weight': 'lb',
               'Length': 'ft',
               'Diameter': 'ft',
+              'Jacketed diameter': 'ft',
               'Weight': 'lb',
               'Wall thickness': 'in',
               'Pressure': 'psi'}    

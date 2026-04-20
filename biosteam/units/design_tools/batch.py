@@ -165,14 +165,13 @@ def size_batch(F_vol, tau_reaction, tau_cleaning, V_wf,
         if N_reactors is None:
             # Solve iteratively
             def f(tau_loading):
-                N_reactors = ceil(F_vol * (tau_reaction + tau_cleaning + tau_loading) / (V_max * V_wf))
-                if N_reactors == 1: N_reactors = 2 # Minimum
+                N_reactors = F_vol * (tau_reaction + tau_cleaning + tau_loading) / (V_max * V_wf)
                 V_T = F_vol * (tau_reaction + tau_cleaning) / (1 - 1 / N_reactors)
                 V_i = V_T/N_reactors
                 tau_loading = V_i/F_vol
                 return tau_loading
             
-            tau_loading = wegstein(f, 0)
+            tau_loading = wegstein(f, 0.5, checkconvergence=False, checkiter=False)
             N_reactors = ceil(F_vol * (tau_reaction + tau_cleaning + tau_loading) / (V_max * V_wf))
             V_T = F_vol * (tau_reaction + tau_cleaning + tau_loading)
             V_i = V_T / N_reactors

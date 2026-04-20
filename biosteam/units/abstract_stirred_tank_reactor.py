@@ -69,7 +69,7 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
         Number of reactors.
     heat_exchanger_configuration : 
         What kind of heat exchanger to default to (if any). Valid options include 
-        'jacketed', 'recirculation loop', and 'internal coil'. Defaults to 'recirculation loop'.
+        'jacketed', 'recirculation loop', and 'internal'. Defaults to 'recirculation loop'.
     dT_hx_loop : 
         Maximum change in temperature for the heat exchanger loop. Defaults to 5 K.
     jacket_annular_diameter :
@@ -104,8 +104,8 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
         The weight of the jacket is added to the weight of the vessel and the
         cost is compounded together as a jacketed vessel.
         
-    * 'internal coil':
-        The internal coil is costed as an ordinary helical tube heat exchanger
+    * 'internal':
+        The internal is costed as an ordinary helical tube heat exchanger
         with the added assumption that the temperature at the wall is the 
         operating temperature. This method is still not implemented in BioSTEAM
         yet.
@@ -250,7 +250,7 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
     batch_default: bool = False
     
     #: What kind of heat exchanger configuration to default to (if any).
-    #: Valid options include 'jacketed', 'recirculation loop', and 'internal coil'.
+    #: Valid options include 'jacketed', 'recirculation loop', and 'internal'.
     heat_exchanger_configuration_default: str = 'recirculation loop'
     
     #: Default maximum change in temperature for the heat exchanger loop.
@@ -261,7 +261,7 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
     
     #: Available heat exchanger configurations.
     heat_exchanger_configurations: set[str] = {
-        'jacketed', 'recirculation loop', 'internal coil'
+        'jacketed', 'recirculation loop', 'internal'
     }
     
     @property
@@ -380,11 +380,11 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
             raise AttributeError(
                 f'invalid heat exchanger configuration {configuration!r}; '
                 "configuration must be either 'jacketed', "
-                "'recirculation loop', or 'internal coil'"
+                "'recirculation loop', or 'internal'"
             )
-        elif configuration == 'internal coil':
+        elif configuration == 'internal':
             raise AttributeError(
-                "'internal coil' heat exchanger configuration not implemented "
+                "'internal' heat exchanger configuration not implemented "
                 " in BioSTEAM yet"
             )
         else:
