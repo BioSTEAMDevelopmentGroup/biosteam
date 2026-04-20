@@ -47,6 +47,7 @@ from .decorators import cost
 from math import ceil
 from scipy.integrate import odeint
 from thermosteam.reaction import Reaction, ParallelReaction
+import biosteam as bst
 
 __all__ = (
     'NRELAnaerobicBatchBioreactor', 
@@ -130,7 +131,8 @@ class NRELAnaerobicBatchBioreactor(Unit, isabstract=True):
                 ('Working volume fraction', self.V_wf, ''))
     
     def _init(self, tau=None, N=None, V_max=None, T=305.15, P=101325,
-              Nmin=2, Nmax=36, loading_time=None):
+              Nmin=2, Nmax=36, loading_time=None, reactions=None, 
+              tau_0=None, V_wf=None):
         self._N = N; self._V_max = V_max
         
         #: [float] Reaction time [hr].
@@ -157,6 +159,12 @@ class NRELAnaerobicBatchBioreactor(Unit, isabstract=True):
         #: [int] Loading time of batch reactor.
         #: If not given, it will assume each vessel is constantly being filled.
         self.loading_time = loading_time
+        
+        #: [Reaction|ReactionSystem] Stoichiomentric reactions.
+        self.reactions = reactions
+        
+        if tau_0 is not None: self.tau_0 = tau_0
+        if V_wf is not None: self.V_wf = V_wf
         
     def _setup(self):
         super()._setup()
@@ -209,6 +217,13 @@ class NRELAnaerobicBatchBioreactor(Unit, isabstract=True):
     @tau.setter
     def tau(self, tau):
         self._tau = tau
+        
+    def _run(self):
+        vent, effluent = self.outs
+        effluent.mix_from(self.ins)
+        self.reactions(effluent)
+        stream = bst.MultiStream.from_streams([effluent, vent])
+        stream.vle(T=stream.T, P=stream.P)
         
     def _design(self):
         effluent = self.effluent

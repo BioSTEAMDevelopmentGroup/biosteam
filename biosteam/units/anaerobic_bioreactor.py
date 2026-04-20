@@ -16,6 +16,7 @@ References
     & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
 
 """
+import biosteam as bst
 from .abstract_stirred_tank_reactor import AbstractStirredTankReactor
 
 __all__ = (
@@ -190,7 +191,8 @@ class AnaerobicBioreactor(AbstractStirredTankReactor):
         
     def _run_vent(self, vent, effluent):
         vent.phase = 'g'
-        vent.receive_vent(effluent, energy_balance=False, ideal=True)
+        stream = bst.MultiStream.from_streams([effluent, vent])
+        stream.vle(T=stream.T, P=stream.P)
         
     def _run(self):
         vent, effluent = self.outs

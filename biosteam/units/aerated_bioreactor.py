@@ -325,7 +325,8 @@ class AeratedBioreactor(AbstractStirredTankReactor):
         )
         
     def _run_vent(self, vent, effluent):
-        vent.receive_vent(effluent, energy_balance=False, ideal=True)
+        stream = bst.MultiStream.from_streams([effluent, vent])
+        stream.vle(T=stream.T, P=stream.P)
         
     def _run(self):
         air = self.air
@@ -767,7 +768,8 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         )
         
     def _run_vent(self, vent, effluent):
-        vent.receive_vent(effluent, energy_balance=False, ideal=True)
+        stream = bst.MultiStream.from_streams([effluent, vent])
+        stream.vle(T=stream.T, P=stream.P)
         
     def get_SURs(self, effluent):
         F_vol = effluent.ivol['Water'] # m3 / hr

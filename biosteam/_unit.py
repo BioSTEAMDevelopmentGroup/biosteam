@@ -1481,7 +1481,7 @@ class Unit(AbstractUnit):
         return df
 
     def results(self, with_units=True, include_utilities=True,
-                include_total_cost=True, include_installed_cost=False,
+                include_total_cost=True, include_installed_cost=True,
                 include_zeros=True, external_utilities=None, key_hook=None,
                 basis=None):
         """
