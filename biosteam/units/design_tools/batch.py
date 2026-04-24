@@ -140,10 +140,7 @@ def size_batch(F_vol, tau_reaction, tau_cleaning, V_wf,
     ...     F_vol, tau_reaction, tau_cleaning, V_wf, 
     ...     V_max=1000,
     ... )    
-    {'Reactor volume': 992.4812030075188,
-     'Batch time': 33.94285714285714,
-     'Loading time': 0.9428571428571428,
-     'Number of reactors': 36}
+    {'Reactor volume': 992.6900584795799, 'Batch time': 33.95000000000163, 'Loading time': 0.950000000001627, 'Number of reactors': 36}
     
     Size batch given 36 reactors and assume
     the constant loading:

@@ -18,6 +18,7 @@ References
 """
 import biosteam as bst
 from .abstract_stirred_tank_reactor import AbstractStirredTankReactor
+from .design_tools.aeration import vent_broth
 
 __all__ = (
     'AnaerobicBioreactor', 'AnBR',
@@ -124,9 +125,9 @@ class AnaerobicBioreactor(AbstractStirredTankReactor):
     ... )
     >>> F1.simulate()
     >>> F1.show()
-    AnaerobicBioreactor: F1
+    AnaerobicBioreactor: R3
     ins...
-    [0] feed  
+    [0] s10  
         phase: 'l', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water    6.66e+03
                         Glucose  10.5
@@ -135,37 +136,39 @@ class AnaerobicBioreactor(AbstractStirredTankReactor):
     outs...
     [0] CO2  
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water    9.92
-                        Ethanol  0.901
+        flow (kmol/hr): Water    11.8
+                        Ethanol  4.35
                         CO2      244
     [1] product  
         phase: 'l', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water    6.59e+03
-                        Ethanol  243
+                        Ethanol  240
                         Glucose  4.07
                         Yeast    532
     
     >>> F1.results()
-    Anaerobic bioreactor                                       Units                   F1
-    Electricity         Power                                     kW                  301
-                        Cost                                  USD/hr                 23.6
-    Chilled water       Duty                                   kJ/hr            -1.42e+07
-                        Flow                                 kmol/hr              9.5e+03
-                        Cost                                  USD/hr                 70.9
-    Design              Reactor volume                            m3             1.28e+03
-                        Residence time                            hr                    8
-                        Vessel type                                              Vertical
-                        Length                                    ft                 80.2
-                        Diameter                                  ft                 26.7
-                        Weight                                    lb             3.35e+05
-                        Wall thickness                            in                0.508
-                        Jacketed diameter                                            27.1
-                        Vessel material                               Stainless steel 316
-    Purchase cost       Vertical pressure vessel (jacketed)      USD              5.3e+05
-                        Platform and ladders                     USD             1.03e+05
-                        Agitator - Agitator                      USD             1.26e+05
-    Total purchase cost                                          USD             7.59e+05
-    Utility cost                                              USD/hr                 94.5
+    Anaerobic bioreactor                                            Units                   R3
+    Electricity              Power                                     kW                 10.2
+                             Cost                                  USD/hr                0.798
+    Chilled water            Duty                                   kJ/hr             -1.4e+07
+                             Flow                                 kmol/hr             9.35e+03
+                             Cost                                  USD/hr                 69.8
+    Design                   Reactor volume                            m3             1.28e+03
+                             Number of reactors                                              1
+                             Residence time                            hr                    8
+                             Vessel type                                              Vertical
+                             Length                                    ft                 80.2
+                             Diameter                                  ft                 26.7
+                             Weight                                    lb             3.35e+05
+                             Wall thickness                            in                0.508
+                             Jacketed diameter                         ft                 27.1
+                             Vessel material                               Stainless steel 316
+    Purchase cost            Vertical pressure vessel (jacketed)      USD              5.3e+05
+                             Platform and ladders                     USD             1.03e+05
+                             Agitator - Agitator                      USD             1.83e+04
+    Total purchase cost                                               USD             6.52e+05
+    Installed equipment cost                                          USD             2.33e+06
+    Utility cost                                                   USD/hr                 70.5
     
     """
     _N_ins = 1
@@ -175,7 +178,7 @@ class AnaerobicBioreactor(AbstractStirredTankReactor):
     P_default = 101325
     jacket_annular_diameter_default = 0.1 # [m]
     V_max_default = 3785 # 1 million gallon is not unheard of for anaerobic bioreactors
-    kW_per_m3_default = 0.2955 # Reaction in homogeneous liquid; reference [1]
+    kW_per_m3_default = 0.01 # Significantly less than aerobic, based on NREL 2011 report on cellulosic ethanol production.
     batch_default = True
     
     def _get_duty(self):
@@ -190,9 +193,7 @@ class AnaerobicBioreactor(AbstractStirredTankReactor):
         return self._outs[0]
         
     def _run_vent(self, vent, effluent):
-        vent.phase = 'g'
-        stream = bst.MultiStream.from_streams([effluent, vent])
-        stream.vle(T=stream.T, P=stream.P)
+        vent_broth(vent, effluent)
         
     def _run(self):
         vent, effluent = self.outs

@@ -118,7 +118,8 @@ class NRELAnaerobicBatchBioreactor(Unit, isabstract=True):
               'Total dead time': 'hr',
               'Reactor duty': 'kJ/hr',
               'Recirculation flow rate': 'm3/hr'}
-    _N_ins = _N_outs = 2
+    _N_outs = 2
+    _N_ins = 1
     
     #: [float] Cleaning and unloading time (hr).
     tau_0 = 3
@@ -307,48 +308,49 @@ class NRELEthanolFermentation(NRELAnaerobicBatchBioreactor):
     ...                   tau=8, efficiency=0.90, N=8)
     >>> F1.simulate()
     >>> F1.show()
-    NRELFermentation: F1
+    NRELEthanolFermentation: F1
     ins...
-    [0] feed
+    [0] feed  
         phase: 'l', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water    6.66e+03
                         Glucose  10.5
                         Sucrose  62.5
                         Yeast    456
     outs...
-    [0] CO2
+    [0] CO2  
         phase: 'g', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water    9.95
                         Ethanol  3.71
                         CO2      244
-    [1] product
+    [1] product  
         phase: 'l', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water    6.59e+03
                         Ethanol  240
                         Glucose  4.07
                         Yeast    532
     >>> F1.results()
-    Fermentation                                       Units        F1
-    Electricity         Power                             kW      66.6
-                        Cost                          USD/hr       5.2
-    Chilled water       Duty                           kJ/hr -1.41e+07
-                        Flow                         kmol/hr  9.42e+03
-                        Cost                          USD/hr      70.3
-    Design              Reactor volume                    m3       247
-                        Batch time                        hr      12.6
-                        Loading time                      hr      1.57
-                        Number of reactors                           8
-                        Recirculation flow rate        m3/hr      17.7
-                        Reactor duty                   kJ/hr -1.41e+07
-                        Cleaning and unloading time       hr         3
-                        Working volume fraction                    0.9
-    Purchase cost       Heat exchangers (x8)             USD  1.57e+05
-                        Reactors (x8)                    USD  1.87e+06
-                        Agitators (x8)                   USD  1.17e+05
-                        Cleaning in place                USD  8.89e+04
-                        Recirculation pumps (x8)         USD  1.26e+05
-    Total purchase cost                                  USD  2.36e+06
-    Utility cost                                      USD/hr      75.5
+    Fermentation                                            Units        F1
+    Electricity              Power                             kW      66.6
+                             Cost                          USD/hr       5.2
+    Chilled water            Duty                           kJ/hr -1.41e+07
+                             Flow                         kmol/hr  9.42e+03
+                             Cost                          USD/hr      70.3
+    Design                   Reactor volume                    m3       247
+                             Batch time                        hr      12.6
+                             Loading time                      hr      1.57
+                             Number of reactors                           8
+                             Recirculation flow rate        m3/hr      17.7
+                             Reactor duty                   kJ/hr -1.41e+07
+                             Cleaning and unloading time       hr         3
+                             Working volume fraction                    0.9
+    Purchase cost            Heat exchangers (x8)             USD  1.57e+05
+                             Reactors (x8)                    USD  1.87e+06
+                             Agitators (x8)                   USD  1.17e+05
+                             Cleaning in place                USD  8.89e+04
+                             Recirculation pumps (x8)         USD  1.26e+05
+    Total purchase cost                                       USD  2.36e+06
+    Installed equipment cost                                  USD  3.78e+06
+    Utility cost                                           USD/hr      75.5
     
     
     """

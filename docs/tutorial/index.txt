@@ -66,7 +66,7 @@ User guide
           :numbered:
           :caption: Advanced UnitOps
           
-          Aerated bioreactor design <Aerated_bioreactor_design>
+          Oleochemical fermentation process <Aerated_bioreactor_design>
           Distillation modeling & design <Distillation>
           Multi-stage mixer-settlers <Mixer_settlers>
           Adsorption column design <Adsorption_column_design>

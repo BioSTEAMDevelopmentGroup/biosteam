@@ -73,23 +73,23 @@ class HeatExchangerNetwork(bst.Facility):
     >>> HXN.stream_life_cycles
     [<StreamLifeCycle: Stream_0, cold
     	life_cycle = [
-    		<LifeStage: <HXprocess: HX_0_2_hs>, H_in = 5.75e+06 kJ, H_out = 4.25e+07 kJ>
-    		<LifeStage: <HXutility: Util_0_hs>, H_in = 4.25e+07 kJ, H_out = 7.09e+07 kJ>
+    		<LifeStage: <HXprocess: HX_0_2_hs>, H_in = 5.38e+06 kJ, H_out = 4.24e+07 kJ>
+    		<LifeStage: <HXutility: Util_0_hs>, H_in = 4.24e+07 kJ, H_out = 6.92e+07 kJ>
     	]>, <StreamLifeCycle: Stream_1, cold
     	life_cycle = [
     		<LifeStage: <HXprocess: HX_1_4_hs>, H_in = 0 kJ, H_out = 3.34e+04 kJ>
-    		<LifeStage: <HXprocess: HX_1_2_hs>, H_in = 3.34e+04 kJ, H_out = 5.39e+06 kJ>
-    		<LifeStage: <HXprocess: HX_1_3_hs>, H_in = 5.39e+06 kJ, H_out = 2.46e+07 kJ>
-    		<LifeStage: <HXutility: Util_1_hs>, H_in = 2.46e+07 kJ, H_out = 2.79e+08 kJ>
+    		<LifeStage: <HXprocess: HX_1_2_hs>, H_in = 3.34e+04 kJ, H_out = 5.06e+06 kJ>
+    		<LifeStage: <HXprocess: HX_1_3_hs>, H_in = 5.06e+06 kJ, H_out = 2.3e+07 kJ>
+    		<LifeStage: <HXutility: Util_1_hs>, H_in = 2.3e+07 kJ, H_out = 2.79e+08 kJ>
     	]>, <StreamLifeCycle: Stream_2, hot
     	life_cycle = [
-    		<LifeStage: <HXprocess: HX_0_2_hs>, H_in = 4.52e+07 kJ, H_out = 8.46e+06 kJ>
-    		<LifeStage: <HXprocess: HX_1_2_hs>, H_in = 8.46e+06 kJ, H_out = 3.1e+06 kJ>
+    		<LifeStage: <HXprocess: HX_0_2_hs>, H_in = 4.52e+07 kJ, H_out = 8.12e+06 kJ>
+    		<LifeStage: <HXprocess: HX_1_2_hs>, H_in = 8.12e+06 kJ, H_out = 3.1e+06 kJ>
     		<LifeStage: <HXutility: Util_2_cs>, H_in = 3.1e+06 kJ, H_out = 1.14e+06 kJ>
     	]>, <StreamLifeCycle: Stream_3, hot
     	life_cycle = [
-    		<LifeStage: <HXprocess: HX_1_3_hs>, H_in = 2.18e+07 kJ, H_out = 2.6e+06 kJ>
-    		<LifeStage: <HXutility: Util_3_cs>, H_in = 2.6e+06 kJ, H_out = 2.6e+06 kJ>
+    		<LifeStage: <HXprocess: HX_1_3_hs>, H_in = 2.04e+07 kJ, H_out = 2.47e+06 kJ>
+    		<LifeStage: <HXutility: Util_3_cs>, H_in = 2.47e+06 kJ, H_out = 2.47e+06 kJ>
     	]>, <StreamLifeCycle: Stream_4, hot
     	life_cycle = [
     		<LifeStage: <HXprocess: HX_1_4_hs>, H_in = 7.51e+05 kJ, H_out = 7.18e+05 kJ>

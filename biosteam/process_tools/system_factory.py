@@ -134,13 +134,13 @@ class SystemFactory:
     >>> heating_sys.show()
     System: heating_sys
     ins...
-    [0] cold_stream
+    [0] cold_stream  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Water  100
+        flow: 100 kmol/hr Water
     outs...
-    [0] hot_stream
+    [0] hot_stream  
         phase: 'l', T: 350 K, P: 101325 Pa
-        flow (kmol/hr): Water  100
+        flow: 100 kmol/hr Water
     
     Create a mockup version, add a tank, then create the system:
     
@@ -158,13 +158,13 @@ class SystemFactory:
     >>> heating_sys.show() 
     System: heating_sys
     ins...
-    [0] cold_stream
+    [0] cold_stream  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Water  100
+        flow: 100 kmol/hr Water
     outs...
-    [0] hot_stream_from_storage
+    [0] hot_stream_from_storage  
         phase: 'l', T: 350 K, P: 101325 Pa
-        flow (kmol/hr): Water  100
+        flow: 100 kmol/hr Water
     
     Create the system and assign unit operation IDs by area convention:
     

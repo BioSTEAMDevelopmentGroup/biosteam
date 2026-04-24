@@ -56,14 +56,14 @@ class Mixer(Unit):
     >>> M1.show()
     Mixer: M1
     ins...
-    [0] s1
+    [0] s1  
         phase: 'l', T: 350 K, P: 101325 Pa
-        flow (kmol/hr): Water  20
-    [1] s2
+        flow: 20 kmol/hr Water
+    [1] s2  
         phase: 'l', T: 300 K, P: 101325 Pa
-        flow (kmol/hr): Ethanol  30
+        flow: 30 kmol/hr Ethanol
     outs...
-    [0] s3
+    [0] s3  
         phase: 'l', T: 315.14 K, P: 101325 Pa
         flow (kmol/hr): Ethanol  30
                         Water    20
@@ -279,50 +279,46 @@ class SteamMixer(Unit):
     >>> M1.show('cwt100') # Note that outlet solids loading is not exactly 0.3 because of the steam requirement.
     SteamMixer
     ins...
-    [0] feed
+    [0] feed  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        composition (%): Water    9.09
-                         Glucose  90.9
-                         -------  1.98e+03 kg/hr
-    [1] steam
+        flow (%): Water    9.09
+                  Glucose  90.9
+                  -------  1.98e+03 kg/hr
+    [1] steam  
         phase: 'g', T: 454.77 K, P: 1.041e+06 Pa
-        composition (%): Water  100
-                         -----  1.28e+03 kg/hr
-    [2] process_water
+        flow: 1.29e+03 kg/hr Water
+    [2] process_water  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        composition (%): Water  100
-                         -----  4.02e+03 kg/hr
+        flow: 4.02e+03 kg/hr Water
     outs...
-    [0] outlet
+    [0] outlet  
         phase: 'l', T: 431.15 K, P: 557288 Pa
-        composition (%): Water    75.3
-                         Glucose  24.7
-                         -------  7.29e+03 kg/hr
+        flow (%): Water    75.3
+                  Glucose  24.7
+                  -------  7.29e+03 kg/hr
     
     >>> M1.solids_loading_includes_steam = True
     >>> M1.simulate()
     >>> M1.show('cwt100') # Now the outlet solids content is exactly 0.3
     SteamMixer
     ins...
-    [0] feed
+    [0] feed  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        composition (%): Water    9.09
-                         Glucose  90.9
-                         -------  1.98e+03 kg/hr
-    [1] steam
+        flow (%): Water    9.09
+                  Glucose  90.9
+                  -------  1.98e+03 kg/hr
+    [1] steam  
         phase: 'g', T: 454.77 K, P: 1.041e+06 Pa
-        composition (%): Water  100
-                         -----  1.02e+03 kg/hr
-    [2] process_water
+        flow: 1.02e+03 kg/hr Water
+    [2] process_water  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        composition (%): Water  100
-                         -----  3.01e+03 kg/hr
+        flow: 3e+03 kg/hr Water
     outs...
-    [0] outlet
+    [0] outlet  
         phase: 'l', T: 431.15 K, P: 557288 Pa
-        composition (%): Water    70
-                         Glucose  30
-                         -------  6.01e+03 kg/hr
+        flow (%): Water    70
+                  Glucose  30
+                  -------  6.01e+03 kg/hr
     
     """
     _N_outs = 1

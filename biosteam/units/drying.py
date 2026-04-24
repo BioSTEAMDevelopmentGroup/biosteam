@@ -123,66 +123,66 @@ class DrumDryer(Unit):
     ins...
     [0] feed  
         phase: 'l', T: 352.33 K, P: 101325 Pa
-        composition (%): Water             67.5
-                         Ethanol           0.000504
-                         Ash               1.98
-                         Yeast             0.845
-                         CaO               0.0145
-                         TriOlein          2.7
-                         H2SO4             0.12
-                         Fiber             15.1
-                         SolubleProtein    4.8
-                         InsolubleProtein  6.97
-                         ----------------  3.27e+04 kg/hr
+        flow (%): Water             67.5
+                  Ethanol           0.000504
+                  Ash               1.98
+                  Yeast             0.845
+                  CaO               0.0145
+                  TriOlein          2.7
+                  H2SO4             0.12
+                  Fiber             15.1
+                  SolubleProtein    4.8
+                  InsolubleProtein  6.97
+                  ----------------  3.27e+04 kg/hr
     [1] dryer_air  
         phase: 'g', T: 298.15 K, P: 1.01325e+06 Pa
-        composition (%): O2  23.3
-                         N2  76.7
-                         --  1.33e+06 kg/hr
+        flow (%): O2  23.3
+                  N2  76.7
+                  --  1.33e+06 kg/hr
     [2] natural_gas  
         phase: 'g', T: 298.15 K, P: 101325 Pa
-        composition (%): CH4  100
-                         ---  2.45e+03 kg/hr
+        flow: 2.45e+03 kg/hr CH4
     outs...
     [0] dryed_solids  
         phase: 'l', T: 343.15 K, P: 101325 Pa
-        composition (%): Water             10
-                         Ash               5.48
-                         Yeast             2.34
-                         CaO               0.04
-                         TriOlein          7.48
-                         H2SO4             0.334
-                         Fiber             41.7
-                         SolubleProtein    13.3
-                         InsolubleProtein  19.3
-                         ----------------  1.18e+04 kg/hr
+        flow (%): Water             10
+                  Ash               5.48
+                  Yeast             2.34
+                  CaO               0.04
+                  TriOlein          7.48
+                  H2SO4             0.334
+                  Fiber             41.7
+                  SolubleProtein    13.3
+                  InsolubleProtein  19.3
+                  ----------------  1.18e+04 kg/hr
     [1] hot_air  
         phase: 'g', T: 343.15 K, P: 1.01325e+06 Pa
-        composition (%): Water    1.55
-                         Ethanol  1.23e-05
-                         O2       22.9
-                         N2       75.5
-                         -------  1.35e+06 kg/hr
+        flow (%): Water    1.55
+                  Ethanol  1.23e-05
+                  O2       22.9
+                  N2       75.5
+                  -------  1.35e+06 kg/hr
     [2] emissions  
         phase: 'g', T: 373.15 K, P: 101325 Pa
-        composition (%): Water  45
-                         CO2    55
-                         -----  1.22e+04 kg/hr
+        flow (%): Water  45
+                  CO2    55
+                  -----  1.22e+04 kg/hr
                         
     >>> dryer.results()
-    Drum dryer                                 Units     D610
-    Electricity         Power                     kW      845
-                        Cost                  USD/hr       66
-    Natural gas (inlet) Flow                   kg/hr 2.45e+03
-                        Cost                  USD/hr      534
-    Design              Evaporation            kg/hr 2.09e+04
-                        Volume                       1.05e+03
-                        Diameter                   m     3.76
-                        Length                             94
-                        Peripheral drum area      m2 1.11e+03
-    Purchase cost       Drum dryer               USD  1.2e+06
-    Total purchase cost                          USD  1.2e+06
-    Utility cost                              USD/hr      600
+    Drum dryer                                      Units     D610
+    Electricity              Power                     kW      845
+                             Cost                  USD/hr       66
+    Natural gas (inlet)      Flow                   kg/hr 2.45e+03
+                             Cost                  USD/hr      534
+    Design                   Evaporation            kg/hr 2.09e+04
+                             Volume                       1.05e+03
+                             Diameter                   m     3.76
+                             Length                             94
+                             Peripheral drum area      m2 1.11e+03
+    Purchase cost            Drum dryer               USD  1.2e+06
+    Total purchase cost                               USD  1.2e+06
+    Installed equipment cost                          USD 2.46e+06
+    Utility cost                                   USD/hr      600
     
     """
     # auxiliary_unit_names = ('heat_exchanger',)

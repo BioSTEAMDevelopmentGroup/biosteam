@@ -114,7 +114,7 @@ class BoilerTurbogenerator(bst.Facility):
         flow: 0
     [2] -  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Water  488
+        flow: 488 kmol/hr Water
     [3] -  
         phase: 'g', T: 288.71 K, P: 101560 Pa
         flow: 0
@@ -123,7 +123,7 @@ class BoilerTurbogenerator(bst.Facility):
         flow: 0
     [5] -  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Ash  0.567
+        flow: 0.567 kmol/hr Ash
     [6] -  
         phase: 'g', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): O2  9.85e+03
@@ -137,37 +137,38 @@ class BoilerTurbogenerator(bst.Facility):
                         N2     4.23e+04
     [1] rejected_water_and_blowdown  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Water  488
+        flow: 488 kmol/hr Water
     [2] ash_disposal  
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): Water  0.00944
                         Ash    0.567
     
     >>> BT.results() # Steam and electricity are produced, so costs are negative
-    Boiler turbogenerator                                      Units        BT
-    Electricity           Power                                   kW -1.31e+05
-                          Cost                                USD/hr -1.02e+04
-    Low pressure steam    Duty                                 kJ/hr -7.32e+07
-                          Flow                               kmol/hr -1.89e+03
-                          Cost                                USD/hr      -450
-    Cooling water         Duty                                 kJ/hr -8.42e+07
-                          Flow                               kmol/hr  5.75e+04
-                          Cost                                USD/hr      28.1
-    Fuel (inlet)          Flow                                 kg/hr         0
-                          Cost                                USD/hr         0
-    Ash disposal (outlet) Flow                                 kg/hr     0.737
-                          Cost                                USD/hr    0.0234
-    Design                Work                                    kW  1.33e+05
-                          Flow rate                            kg/hr  2.93e+05
-                          Ash disposal                         kg/hr     0.737
-    Purchase cost         Baghouse bags                          USD      81.1
-                          Boiler                                 USD  3.33e+07
-                          Deaerator                              USD  3.58e+05
-                          Amine addition pkg                     USD  4.69e+04
-                          Hot process water softener system      USD  9.16e+04
-                          Turbogenerator                         USD  1.94e+07
-    Total purchase cost                                          USD  5.32e+07
-    Utility cost                                              USD/hr -1.07e+04
+    Boiler turbogenerator                                         Units        BT
+    Electricity              Power                                   kW -1.31e+05
+                             Cost                                USD/hr -1.02e+04
+    Low pressure steam       Duty                                 kJ/hr -7.33e+07
+                             Flow                               kmol/hr -1.89e+03
+                             Cost                                USD/hr      -450
+    Cooling water            Duty                                 kJ/hr -8.42e+07
+                             Flow                               kmol/hr  5.75e+04
+                             Cost                                USD/hr      28.1
+    Fuel (inlet)             Flow                                 kg/hr         0
+                             Cost                                USD/hr         0
+    Ash disposal (outlet)    Flow                                 kg/hr     0.737
+                             Cost                                USD/hr    0.0234
+    Design                   Work                                    kW  1.33e+05
+                             Flow rate                            kg/hr  2.93e+05
+                             Ash disposal                         kg/hr     0.737
+    Purchase cost            Baghouse bags                          USD      81.1
+                             Boiler                                 USD  3.33e+07
+                             Deaerator                              USD  3.58e+05
+                             Amine addition pkg                     USD  4.69e+04
+                             Hot process water softener system      USD  9.16e+04
+                             Turbogenerator                         USD  1.94e+07
+    Total purchase cost                                             USD  5.32e+07
+    Installed equipment cost                                        USD  9.62e+07
+    Utility cost                                                 USD/hr -1.07e+04
     
     Notes
     -----
@@ -591,7 +592,7 @@ class Boiler(bst.Facility):
         flow: 0
     [2] -  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Water  488
+        flow: 488 kmol/hr Water
     [3] -  
         phase: 'g', T: 288.71 K, P: 101560 Pa
         flow: 0
@@ -600,7 +601,7 @@ class Boiler(bst.Facility):
         flow: 0
     [5] -  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Ash  0.567
+        flow: 0.567 kmol/hr Ash
     [6] -  
         phase: 'g', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): O2  9.85e+03
@@ -614,32 +615,33 @@ class Boiler(bst.Facility):
                         N2     4.23e+04
     [1] rejected_water_and_blowdown  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Water  488
+        flow: 488 kmol/hr Water
     [2] ash_disposal  
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): Water  0.00944
                         Ash    0.567
     
     >>> B.results() # Steam is produced, so utility cost is negative
-    Boiler                                                     Units         B
-    Electricity           Power                                   kW  1.68e+03
-                          Cost                                USD/hr       132
-    Low pressure steam    Duty                                 kJ/hr -7.32e+07
-                          Flow                               kmol/hr -1.89e+03
-                          Cost                                USD/hr      -450
-    Fuel (inlet)          Flow                                 kg/hr         0
-                          Cost                                USD/hr         0
-    Ash disposal (outlet) Flow                                 kg/hr     0.737
-                          Cost                                USD/hr    0.0234
-    Design                Flow rate                            kg/hr  2.93e+05
-                          Ash disposal                         kg/hr     0.737
-    Purchase cost         Baghouse bags                          USD      81.1
-                          Boiler                                 USD  3.33e+07
-                          Deaerator                              USD  3.58e+05
-                          Amine addition pkg                     USD  4.69e+04
-                          Hot process water softener system      USD  9.16e+04
-    Total purchase cost                                          USD  3.38e+07
-    Utility cost                                              USD/hr      -319
+    Boiler                                                        Units         B
+    Electricity              Power                                   kW  1.68e+03
+                             Cost                                USD/hr       132
+    Low pressure steam       Duty                                 kJ/hr -7.33e+07
+                             Flow                               kmol/hr -1.89e+03
+                             Cost                                USD/hr      -450
+    Fuel (inlet)             Flow                                 kg/hr         0
+                             Cost                                USD/hr         0
+    Ash disposal (outlet)    Flow                                 kg/hr     0.737
+                             Cost                                USD/hr    0.0234
+    Design                   Flow rate                            kg/hr  2.93e+05
+                             Ash disposal                         kg/hr     0.737
+    Purchase cost            Baghouse bags                          USD      81.1
+                             Boiler                                 USD  3.33e+07
+                             Deaerator                              USD  3.58e+05
+                             Amine addition pkg                     USD  4.69e+04
+                             Hot process water softener system      USD  9.16e+04
+    Total purchase cost                                             USD  3.38e+07
+    Installed equipment cost                                        USD  6.12e+07
+    Utility cost                                                 USD/hr      -319
     
     Notes
     -----

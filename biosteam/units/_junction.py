@@ -46,13 +46,13 @@ class Junction(Unit):
     >>> J1.show()
     Junction: J1
     ins...
-    [0] s1
+    [0] s1  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Water  20
+        flow: 20 kmol/hr Water
     outs...
-    [0] s2
+    [0] s2  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Water  20
+        flow: 20 kmol/hr Water
         
     """
     _stacklevel = Unit._stacklevel

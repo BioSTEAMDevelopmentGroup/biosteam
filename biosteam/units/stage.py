@@ -2128,7 +2128,7 @@ class MultiStageEquilibrium(Unit):
     >>> distillate.imol['Ethanol'] / feed.imol['Ethanol']
     0.81
     >>> distillate.imol['Ethanol'] / distillate.F_mol
-    0.70
+    0.711695248386583
     
     """
     _N_ins = 2

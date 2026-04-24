@@ -155,7 +155,7 @@ class AeratedBioreactor(AbstractStirredTankReactor):
     ... )
     >>> R1.simulate()
     >>> R1.show()
-    AeratedBioreactor: R1
+    AeratedBioreactor: R2
     ins...
     [0] feed  
         phase: 'l', T: 305.15 K, P: 101325 Pa
@@ -163,18 +163,18 @@ class AeratedBioreactor(AbstractStirredTankReactor):
                         Glucose  139
     [1] air  
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): O2  1.02e+03
-                        N2  3.85e+03
+        flow (kmol/hr): O2  1.03e+03
+                        N2  3.86e+03
     outs...
     [0] vent  
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water  135
+        flow (kmol/hr): Water  241
                         CO2    416
-                        O2     606
-                        N2     3.85e+03
+                        O2     611
+                        N2     3.86e+03
     [1] product  
         phase: 'l', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water    6.94e+03
+        flow (kmol/hr): Water    6.84e+03
                         Glucose  69.4
     """
     _N_ins = 2
@@ -325,8 +325,7 @@ class AeratedBioreactor(AbstractStirredTankReactor):
         )
         
     def _run_vent(self, vent, effluent):
-        stream = bst.MultiStream.from_streams([effluent, vent])
-        stream.vle(T=stream.T, P=stream.P)
+        aeration.vent_broth(vent, effluent)
         
     def _run(self):
         air = self.air
@@ -606,12 +605,14 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     >>> rxn = bst.Rxn('H2 + CO2 -> AceticAcid + H2O', reactant='H2', correct_atomic_balance=True) 
     >>> brxn = rxn.backwards(reactant='AceticAcid')
     >>> R1 = bst.GasFedBioreactor(
-    ...     'R1', ins=[media, H2, fluegas], outs=('vent', 'product'), tau=68, V_max=500,
+    ...     'R1', ins=[media, H2, fluegas], outs=('vent', 'product'), 
+    ...     tau=68, V_max=500,
     ...     reactions=rxn, backward_reactions=brxn,
     ...     gas_substrates=('H2', 'CO2'),
     ...     titer=dict(AceticAcid=5),
     ...     optimize_power=False,
     ...     kW_per_m3=0.,
+    ...     T=305.15
     ... )
     >>> R1.simulate()
     >>> R1.show()
@@ -619,10 +620,10 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     ins...
     [0] media  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): H2O  188
+        flow: 88.8 kmol/hr H2O
     [1] H2  
         phase: 'g', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): H2  49.6
+        flow: 49.6 kmol/hr H2
     [2] fluegas  
         phase: 'g', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): CO2  0.568
@@ -632,15 +633,20 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     outs...
     [0] vent  
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): H2          48.5
+        flow (kmol/hr): H2          49
+                        CO2         0.29
                         N2          2.5
                         O2          0.0625
-                        H2O         1.89
-                        AceticAcid  0.00183
+                        H2O         2.55
+                        AceticAcid  0.0082
     [1] product  
         phase: 'l', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): H2O         187
-                        AceticAcid  0.282
+        flow (kmol/hr): H2          0.00107
+                        CO2         0.000242
+                        N2          4.13e-05
+                        O2          2.11e-06
+                        H2O         86.7
+                        AceticAcid  0.131
     
     """
     _N_ins = 2
@@ -659,6 +665,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     default_methods = AeratedBioreactor.default_methods
     get_kLa = AeratedBioreactor.get_kLa
     get_agitation_power = AeratedBioreactor.get_agitation_power
+    _run_vent = AeratedBioreactor._run_vent
     
     def _init(self, 
             gas_substrates, 
@@ -766,10 +773,6 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         self.auxiliary(
             'sparger', bst.Mixer, [i-0 for i in self.gas_coolers]
         )
-        
-    def _run_vent(self, vent, effluent):
-        stream = bst.MultiStream.from_streams([effluent, vent])
-        stream.vle(T=stream.T, P=stream.P)
         
     def get_SURs(self, effluent):
         F_vol = effluent.ivol['Water'] # m3 / hr
@@ -912,7 +915,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                     
                 flx.aitken(f, self.vent.mol.to_array(), checkiter=False, xtol=1e-3, checkconvergence=False)
                 return effluent.imass[product] / effluent.ivol['Water'] - titer
-                
+            
             flx.IQ_interpolation(liquid_flow_rate_objective, 0.05 * F_liquid_max, F_liquid_max, ytol=1e-3)
         
     def _run_reactions(self, effluent):
@@ -933,7 +936,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                 break
         
     def _initialize_variable_liquid_guess(self, feed, effluent, vent):
-        effluent.mix_from(self.ins)
+        effluent.mix_from(self.ins, energy_balance=False)
         data = vent.get_data()
         vent.empty()
         self._run_reactions(effluent)

@@ -61,6 +61,9 @@ References
     Chemical Engineering Science, 52(21–22), 4105–4109. https://doi.org/10.1016/S0009-2509(97)00252-2
 
 """
+from math import exp, log, sqrt
+from chemicals.identifiers import ChemicalDataDictionary
+import biosteam as bst
 
 __all__ = (
     'C_L',
@@ -68,19 +71,47 @@ __all__ = (
     'kLa_stirred_Riet',
     'P_at_kLa_Riet',
     'log_mean_driving_force',
+    'vent_broth',
 )
 
-# from inspect import signature
-from math import exp, log, sqrt
+def vent_broth(vent, broth):
+    """
+    Perform vapor-liquid equilibrium of an aqueous-based fermentation 
+    broth, accounting for Henry's coefficients assuming that only a small
+    fraction of gas is retained in the broth.
 
+    Parameters
+    ----------
+    vent : Stream
+        Vapor phase outlet.
+    broth : Stream
+        Liquid phase outlet.
+
+    """
+    vent.phase = 'g'
+    stream = bst.MultiStream.from_streams([broth, vent])
+    stream.vle(T=stream.T, P=stream.P)
+    mol_g = vent.F_mol
+    if mol_g < 1e-9: return
+    P_div_mol_g = vent.P / mol_g / 1e5 # P in bar
+    kg_L = broth.F_mass
+    for i in stream.vle_chemicals:
+        if i.ID in H_coefficients:
+            total_kmol = stream.imol[i.ID] 
+            Py = P_div_mol_g * vent.imol[i.ID] 
+            mol_per_kg = C_L(vent.T, Py, i.ID)
+            broth.imol[i.ID] = kmol = mol_per_kg * kg_L / 1e3
+            vent.imol[i.ID] = total_kmol - kmol
+            
 #: Henry's law coefficients. Data from NIST Standard Reference Database 69: NIST Chemistry WebBook:
 #: https://webbook.nist.gov/cgi/cbook.cgi?ID=C7782447&Mask=10#Notes
-H_coefficients = { # k_H, A
-    'O2': (0.0013, 1500),
-    'CO2': (0.035, 2400),
-    'CO': (0.00099, 1300),
-    'H2': (0.00078, 500), 
-}
+H_coefficients = ChemicalDataDictionary( # k_H, A
+    O2=(0.0013, 1500), 
+    CO2=(0.035, 2400), 
+    CO=(0.00099, 1300),
+    H2=(0.00078, 500),
+    N2=(0.000625, 1300),
+)
 
 def Henrys_law_constant(T, k_H, A):
     """

@@ -264,22 +264,23 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
        :alt: Adsorption column fluid concentration profile over time.
     
     >>> A1.results()
-    Single component adsorption column                  Units                   A1
-    Electricity         Power                              kW                0.241
-                        Cost                           USD/hr               0.0188
-    Design              Diameter                           ft                 1.22
-                        Length                             ft                 12.2
-                        Vessel type                                       Vertical
-                        Weight                             lb                  521
-                        Wall thickness                     in                 0.25
-                        Pressure drop                      Pa                  103
-                        Vessel material                        Stainless steel 316
-    Purchase cost       Vertical pressure vessel (x3)     USD             6.12e+04
-                        Platform and ladders (x3)         USD             8.37e+03
-                        Pump - Pump (x3)                  USD             1.31e+04
-                        Pump - Motor (x3)                 USD                  174
-    Total purchase cost                                   USD             8.28e+04
-    Utility cost                                       USD/hr               0.0188
+    Single component adsorption column                       Units                   A1
+    Electricity              Power                              kW                0.241
+                             Cost                           USD/hr               0.0188
+    Design                   Diameter                           ft                 1.22
+                             Length                             ft                 12.2
+                             Vessel type                                       Vertical
+                             Weight                             lb                  521
+                             Wall thickness                     in                 0.25
+                             Pressure drop                      Pa                  103
+                             Vessel material                        Stainless steel 316
+    Purchase cost            Vertical pressure vessel (x3)     USD             6.12e+04
+                             Platform and ladders (x3)         USD             8.37e+03
+                             Pump - Pump (x3)                  USD             1.31e+04
+                             Pump - Motor (x3)                 USD                  174
+    Total purchase cost                                        USD             8.28e+04
+    Installed equipment cost                                   USD             2.05e+05
+    Utility cost                                            USD/hr               0.0188
     
     >>> A1.show('wt')
     SingleComponentAdsorptionColumn: A1
@@ -293,17 +294,17 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
         flow: 0
     [2] -  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kg/hr): ActivatedCarbon  0.154
+        flow: 0.154 kg/hr ActivatedCarbon
     outs...
     [0] effluent  
         phase: 'l', T: 298 K, P: 101325 Pa
-        flow (kg/hr): Water  1e+03
+        flow: 1e+03 kg/hr Water
     [1] -  
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow: 0
     [2] -  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kg/hr): ActivatedCarbon  0.154
+        flow: 0.154 kg/hr ActivatedCarbon
     
     """
     auxiliary_unit_names = (
