@@ -66,7 +66,6 @@ User guide
           :numbered:
           :caption: Advanced UnitOps
           
-          Oleochemical fermentation process <Aerated_bioreactor_design>
           Distillation modeling & design <Distillation>
           Multi-stage mixer-settlers <Mixer_settlers>
           Adsorption column design <Adsorption_column_design>
@@ -79,6 +78,7 @@ User guide
           :caption: Case Studies
           
           Sugarcane_ethanol_biorefinery
+          Aerated fermentation process <Aerated_bioreactor_design>
           Glacial_acetic_acid_separation
           Waste plastic upcycling <Plastic_dissolution_and_precipitation>
 
