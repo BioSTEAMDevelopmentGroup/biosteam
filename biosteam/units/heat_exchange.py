@@ -193,14 +193,14 @@ class HX(Unit, isabstract=True):
         Design['Total tube length'] = L
         if len(self.outs) == 1:
             dP = self.outs[0].P - self.ins[0].P
-            if dP: Design['Pressure drop'] = dP
+            if dP: Design['Pressure drop'] = -dP
         else:
             # Just assume 0th stream is the tube side.
             dP_tube, dP_shell = [
                 o.P - i.P for o, i in zip(self.outs, self.ins)
             ]
-            if dP_tube: Design['Tube side pressure drop'] = dP_tube
-            if dP_shell: Design['Shell side pressure drop'] = dP_shell
+            if dP_tube: Design['Tube side pressure drop'] = -dP_tube
+            if dP_shell: Design['Shell side pressure drop'] = -dP_shell
 
     def _cost(self):
         Design = self.design_results

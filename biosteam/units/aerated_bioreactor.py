@@ -176,6 +176,7 @@ class AeratedBioreactor(AbstractStirredTankReactor):
         phase: 'l', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water    6.84e+03
                         Glucose  69.4
+    
     """
     _N_ins = 2
     _N_outs = 2
@@ -352,7 +353,8 @@ class AeratedBioreactor(AbstractStirredTankReactor):
             return
         air_cc = self.sparged_gas
         air_cc.copy_like(air)
-        air_cc.P = compressor.P = self._inlet_air_pressure()
+        compressor.P = self._inlet_air_pressure()
+        air_cc.P = compressor.P - self.cooler_pressure_drop
         air_cc.T = self.T
         
         if self.optimize_power:
@@ -373,7 +375,6 @@ class AeratedBioreactor(AbstractStirredTankReactor):
             def air_flow_rate_objective(O2):
                 air.set_flow([O2, O2 * 79. / 21.], 'mol/s', ['O2', 'N2'])
                 air_cc.copy_flow(air) # Skip simulation of air cooler
-                compressor.simulate()
                 effluent.set_data(effluent_no_air_data)
                 effluent.mix_from([effluent, air_cc], energy_balance=False)
                 vent.empty()
@@ -469,6 +470,7 @@ class AeratedBioreactor(AbstractStirredTankReactor):
         self.compressor.simulate()
         air_cooler = self.air_cooler
         air_cooler.T = self.T
+        air_cooler.dP = self.cooler_pressure_drop
         air_cooler.simulate()
         self.parallel['compressor'] = 1
         self.parallel['air_cooler'] = 1
