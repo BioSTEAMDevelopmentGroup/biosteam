@@ -66,6 +66,7 @@ User guide
           :numbered:
           :caption: Advanced UnitOps
           
+          Bioreactor design <Bioreactor_modeling>
           Distillation modeling & design <Distillation>
           Multi-stage mixer-settlers <Mixer_settlers>
           Adsorption column design <Adsorption_column_design>
