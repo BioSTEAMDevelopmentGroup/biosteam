@@ -667,7 +667,6 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     default_methods = AeratedBioreactor.default_methods
     get_kLa = AeratedBioreactor.get_kLa
     get_agitation_power = AeratedBioreactor.get_agitation_power
-    _run_vent = AeratedBioreactor._run_vent
     
     def _init(self, 
             gas_substrates, 
@@ -790,6 +789,11 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         for i in self.gas_coolers: i.simulate()
         self.sparger.simulate()
     
+    def _run_vent(self, vent, effluent):
+        vent.copy_flow(self.sparged_gas)
+        vent.imol[self.gas_substrates] = 0
+        aeration.vent_broth(vent, effluent)
+    
     def _run(self):
         variable_gas_feeds = self.variable_gas_feeds
         vent, effluent = self.outs
@@ -809,7 +813,6 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             effluent.mix_from(liquid_feeds, energy_balance=False)
             effluent.set_flow(STRs, units='mol/s', key=self.gas_substrates)
             self._run_reactions(effluent)
-            vent.empty()
             self._run_vent(vent, effluent)
         elif variable_gas_feeds:
             # Solve gas flow rates to meet titer.
