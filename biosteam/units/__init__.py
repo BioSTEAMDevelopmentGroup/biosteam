@@ -51,6 +51,7 @@ from .anaerobic_bioreactor import *
 from .auxiliary_pressure_vessel import *
 from .fluidized_catalytic_cracking import *
 from .single_phase_reactor import *
+from .equilibrium_reactor import *
 
 from . import (
     _flash, 
@@ -98,6 +99,7 @@ from . import (
     auxiliary_pressure_vessel,
     fluidized_catalytic_cracking,
     single_phase_reactor,
+    equilibrium_reactor,
 )
 
 
@@ -145,6 +147,7 @@ __all__ = ('Unit',
            *auxiliary_pressure_vessel.__all__,
            *fluidized_catalytic_cracking.__all__,
            *single_phase_reactor.__all__,
+           *equilibrium_reactor.__all__,
            'adsorption',
            'drying',
            'tank',

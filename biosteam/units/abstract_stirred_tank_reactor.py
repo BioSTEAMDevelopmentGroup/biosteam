@@ -266,6 +266,9 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
         'jacketed', 'recirculation loop', 'internal'
     }
     
+    #: Phases accounted for in residence time
+    tau_phases_default: str = 'l'
+    
     @property
     def effluent(self):
         return self.outs[-1]
@@ -291,6 +294,7 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
             reactions: Optional[bst.ReactionSystem]=None,
             loading_time: Optional[float]=None,
             N: Optional[int]=None, 
+            tau_phases: Optional[int]=None,
         ):
         if adiabatic is None: adiabatic = False
         self.adiabatic = adiabatic
@@ -370,6 +374,11 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
             if heat_exchanger_configuration is None else
             heat_exchanger_configuration
         )
+        self.tau_phases = (
+            self.tau_phases_default 
+            if tau_phases is None 
+            else tau_phases
+        )
         self.loading_time = loading_time
 
     @property
@@ -417,7 +426,7 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
 
     def _design(self, size_only=False):
         Design = self.design_results
-        ins_F_vol = sum([i.F_vol for i in self.ins if i.phase != 'g'])
+        ins_F_vol = sum([i.F_vol for i in self.ins if i.phase in self.tau_phases])
         P_pascal = (self.P if self.P else self.outs[0].P)
         P_psi = P_pascal * 0.000145038 # Pa to psi
         length_to_diameter = self.length_to_diameter
