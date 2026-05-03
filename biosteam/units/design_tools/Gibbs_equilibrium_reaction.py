@@ -82,6 +82,7 @@ def minimize_Gibbs_free_energy(
         constraints=[linear_constraint],
         polish=polish,
         tol=1e-6,
+        seed=0,
     )
     product.empty()
     product[main_phase].imol[IDs] = solution.x
@@ -118,7 +119,7 @@ def test_Gibbs_equilibrium_reaction_surface():
         lb = np.zeros(1)
         ub = np.ones(1)
         bounds = Bounds(lb, ub)
-        solution = differential_evolution(g, bounds=bounds, tol=1e-6)
+        solution = differential_evolution(g, bounds=bounds, tol=1e-6, seed=0)
         X_actual = solution.x
         g(X_actual)
         return product.mol.to_array()
