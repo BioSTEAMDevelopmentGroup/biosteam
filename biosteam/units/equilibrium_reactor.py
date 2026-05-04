@@ -98,16 +98,16 @@ class EquilibriumReactor(AbstractStirredTankReactor):
     Examples
     --------
     >>> import biosteam as bst
-    >>> bst.settings.set_thermo(['N2O4', 'NO2'] pkg='ideal gas')
+    >>> bst.settings.set_thermo(['N2O4', 'NO2'], pkg='ideal gas')
     >>> feed = bst.Stream(N2O4=100, phase='g', T=273.15 + 25, P=10 * 101325)
-    >>> EqR = bst.EquilibriumReactor(
+    >>> EqR = bst.EquilibriumReactor('EqR',
     ...     ins=feed, outs=('gas',), T=feed.T, P=feed.P 
     ... )
     >>> EqR.simulate()
     >>> EqR.show()
     EquilibriumReactor: EqR
     ins...
-    [0] feed  
+    [0] s41  
         phase: 'g', T: 298.15 K, P: 1.01325e+06 Pa
         flow: 100 kmol/hr N2O4
     outs...

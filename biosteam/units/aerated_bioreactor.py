@@ -163,15 +163,15 @@ class AeratedBioreactor(AbstractStirredTankReactor):
                         Glucose  139
     [1] air  
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): O2  1.03e+03
-                        N2  3.86e+03
+        flow (kmol/hr): O2  1.02e+03
+                        N2  3.84e+03
     outs...
     [0] vent  
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water  241
+        flow (kmol/hr): Water  240
                         CO2    416
-                        O2     611
-                        N2     3.86e+03
+                        O2     605
+                        N2     3.84e+03
     [1] product  
         phase: 'l', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water    6.84e+03
@@ -790,8 +790,9 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         self.sparger.simulate()
     
     def _run_vent(self, vent, effluent):
+        flows = vent.imol[self.gas_substrates]
         vent.copy_flow(self.sparged_gas)
-        vent.imol[self.gas_substrates] = 0
+        vent.imol[self.gas_substrates] = flows
         aeration.vent_broth(vent, effluent)
     
     def _run(self):
@@ -801,22 +802,26 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         vent.T = effluent.T = self.T
         vent.empty()
         vent.phase = 'g'
+        liquid_feeds = [i for i in self.ins if i.phase != 'g']
         if not self.titer: 
             # Titer is given by the mass transfer.
-            liquid_feeds = [i for i in self.ins if i.phase != 'g']
             T = self.T
             P = self._inlet_gas_pressure()
             for i in self.compressors: i.P = P
             for i in self.gas_coolers: i.T = T
             self._load_gas_feeds()
             STRs = self.get_STRs()
+            substrates = sum([i.get_flow(units='mol/s', key=self.gas_substrates) for i in self.ins])
+            STRs = np.minimum(STRs, substrates)
             effluent.mix_from(liquid_feeds, energy_balance=False)
             effluent.set_flow(STRs, units='mol/s', key=self.gas_substrates)
+            remaining = substrates - STRs
             self._run_reactions(effluent)
+            vent.empty()
+            self.vent.set_flow(remaining, units='mol/s', key=self.gas_substrates)
             self._run_vent(vent, effluent)
         elif variable_gas_feeds:
             # Solve gas flow rates to meet titer.
-            liquid_feeds = [i for i in self.ins if i.phase != 'g']
             effluent.mix_from(liquid_feeds, energy_balance=False)
             T = self.T
             P = self._inlet_gas_pressure()
@@ -909,7 +914,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                     self.vent.mol = vent_flow_rates
                     STRs = self.get_STRs()
                     STRs = np.minimum(STRs, substrates)
-                    effluent.mix_from(self.ins, energy_balance=False)
+                    effluent.copy_flow(feed)
                     effluent.set_flow(STRs, units='mol/s', key=self.gas_substrates)
                     remaining = substrates - STRs
                     self._run_reactions(effluent)
