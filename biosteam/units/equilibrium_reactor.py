@@ -8,6 +8,7 @@
 import biosteam as bst
 from .abstract_stirred_tank_reactor import AbstractStirredTankReactor
 from .design_tools.Gibbs_equilibrium_reaction import minimize_Gibbs_free_energy
+from typing import Optional, Iterable
 
 __all__ = (
     'EquilibriumReactor',
@@ -24,6 +25,10 @@ class EquilibriumReactor(AbstractStirredTankReactor):
 
     Parameters
     ----------
+    phases:
+        Phases of products. Defaults to the phases of inlets.
+    products:
+        Names of all products. Defaults to all possible chemicals.
     tau :
         Residence time [hr].
     T : 
@@ -147,7 +152,11 @@ class EquilibriumReactor(AbstractStirredTankReactor):
     batch_default = False
     tau_phases_default = 'lg'
     
-    def _init(self, phases=None, products=None, **kwargs):
+    def _init(self, 
+            phases: Optional[str]=None, 
+            products: Optional[Iterable[str]]=None, 
+            **kwargs
+        ):
         AbstractStirredTankReactor._init(self, **kwargs)
         self.phases = phases
         self.products = products
