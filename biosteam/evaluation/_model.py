@@ -102,10 +102,12 @@ class Model:
     )
     default_optimizer_options = {
         'shgo': dict(f_tol=1e-3, minimizer_kwargs=dict(f_tol=1e-3)),
-        'differential evolution': {'seed': 0, 'popsize': 12, 'tol': 1e-3},
-        'COBYLA': {},
+        'differential evolution': dict(seed=0),
     }
-    default_optimizer = 'COBYLA'
+    for method in ('cobyla', 'cobyqa', 'trust-constr', 'slsqp', 'L-BFGS-B'):
+        default_optimizer_options[method] = {}
+        
+    default_optimizer = 'cobyla'
     default_convergence_model = None # Optional[str] Default convergence model
     load_default_parameters = load_default_parameters
     
@@ -365,7 +367,8 @@ class Model:
         elif not setter:
             return lambda setter: self.parameter(setter, element, coupled, name,
                                                  distribution, units, baseline,
-                                                 bounds, hook, description, optimized)
+                                                 bounds, hook, description, optimized,
+                                                 kind, safe)
         p = Parameter(name, setter, element,
                       self.system, distribution, units, 
                       baseline, bounds, coupled, hook, description)
@@ -920,7 +923,7 @@ class Model:
         for i, p in enumerate(parameters):
             lb[i], ub[i] = p.bounds
         bounds = Bounds(lb, ub)
-        if method == 'COBYLA':
+        if method in ('cobyla', 'cobyqa', 'trust-constr', 'slsqp', 'l-bfgs-b'):
             result = minimize(
                 objective_function,
                 args=args, 
@@ -939,7 +942,10 @@ class Model:
             )
         else:
             raise ValueError(f'invalid optimization method {method!r}')
-        return result, convergence_model
+        if isinstance(convergence_model, str):
+            return result, convergence_model
+        else:
+            return result
     
     def evaluate(self, notify=0, file=None, autosave=0, autoload=False,
                  convergence_model=None, **kwargs):

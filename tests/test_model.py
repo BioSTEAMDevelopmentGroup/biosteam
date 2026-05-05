@@ -202,7 +202,7 @@ def test_model_index():
         H1.T = temperature
     
     with pytest.raises(ValueError):
-        @model.parameter(element=H1)
+        @model.parameter(element=H1, safe=True)
         def set_efficiency(temperature):
             H1.T = temperature
     
@@ -343,7 +343,7 @@ def test_model_optimization_differential_evolution():
     import biosteam as bst
     import numpy as np
     model = bst.Model(bst.System())
-    inputs = np.array([0, 0, 0])
+    inputs = np.array([0, 0], float)
     
     @model.optimized_parameter(bounds=(-2, 1))
     def P0(x0):
@@ -353,19 +353,20 @@ def test_model_optimization_differential_evolution():
     def P1(x1):
         inputs[1] = x1
     
-    @model.optimized_parameter(bounds=(-1, 3))
-    def P2(x2):
-        inputs[2] = x2
-    
     @model.indicator
     def objective():
-        x0, x1, x2 = inputs
-        return x0**2 - x0 + x1**4 - x1**2 + x0 * x1 + x2
+        x0, x1 = inputs
+        return x0**2 - x0 + x1**2 - x1
     
-    solution = model.optimize(
-        objective, 
-        method='differential evolution',
-    )
+    for method in ('cobyla', 'cobyqa', 
+                   'trust-constr', 'slsqp',
+                   'L-BFGS-B', 'shgo',
+                   'differential evolution'):
+        solution = model.optimize(
+            objective, 
+            method=method,
+        )
+        assert_allclose(solution.x, [0.5, 0.5], rtol=1e-3, atol=1e-3)
     
 if __name__ == '__main__':
     test_parameter_hook()

@@ -81,7 +81,7 @@ def minimize_Gibbs_free_energy(
         polish = lambda *args, **kwargs: minimize(
             *args, **kwargs, 
             args=f_args,
-            method='COBYQA', 
+            method='COBYLA', 
         )
         solution = differential_evolution(
             Gibbs_equilibrium_objective,
