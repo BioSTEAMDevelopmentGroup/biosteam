@@ -85,7 +85,23 @@ class Variable:
     def short_description(self):
         element, name = self.index
         name, *_ = name.split(' [')
-        if element not in name:
+        if element != '-' and element not in name:
+            name = ' '.join([element, name])
+        if len(name) > 31:
+            words = name.split(' ')
+            words = [(i[:4]+'.' if len(i) > 5 else i) for i in words]
+            name = ' '.join(words)
+        name = name.strip(' ')
+        if len(name) > 31: name = name[:31]
+        return name
+    
+    @property
+    def short_description_with_units(self):
+        name = self.name
+        units = self.units
+        if units: name += f" [{units}]"
+        element = self.element_name
+        if element != '-' and element not in name:
             name = ' '.join([element, name])
         if len(name) > 31:
             words = name.split(' ')

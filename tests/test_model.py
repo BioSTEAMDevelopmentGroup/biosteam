@@ -339,6 +339,34 @@ def test_kolmogorov_smirnov_d():
     D, p = model.kolmogorov_smirnov_d(thresholds=[1, 1.5]) # Just make sure it works for now
     # TODO: Add tests that make sense for comparing statistics
     
+def test_model_optimization_differential_evolution():
+    import biosteam as bst
+    import numpy as np
+    model = bst.Model(bst.System())
+    inputs = np.array([0, 0, 0])
+    
+    @model.optimized_parameter(bounds=(-2, 1))
+    def P0(x0):
+        inputs[0] = x0
+        
+    @model.optimized_parameter(bounds=(-1, 3))
+    def P1(x1):
+        inputs[1] = x1
+    
+    @model.optimized_parameter(bounds=(-1, 3))
+    def P2(x2):
+        inputs[2] = x2
+    
+    @model.indicator
+    def objective():
+        x0, x1, x2 = inputs
+        return x0**2 - x0 + x1**4 - x1**2 + x0 * x1 + x2
+    
+    solution = model.optimize(
+        objective, 
+        method='differential evolution',
+    )
+    
 if __name__ == '__main__':
     test_parameter_hook()
     test_pearson_r()
@@ -350,3 +378,4 @@ if __name__ == '__main__':
     test_model_exception_hook()
     test_parameters_from_df()
     test_kolmogorov_smirnov_d()
+    test_model_optimization_differential_evolution()

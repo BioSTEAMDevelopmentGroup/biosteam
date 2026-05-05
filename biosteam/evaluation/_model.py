@@ -13,7 +13,7 @@
 # for license details.
 
 from scipy.spatial.distance import cdist
-from scipy.optimize import shgo, differential_evolution
+from scipy.optimize import minimize, shgo, differential_evolution, Bounds
 import numpy as np
 import pandas as pd
 from ._indicator import Indicator
@@ -21,13 +21,13 @@ from ._variable import MockVariable
 from ._utils import var_indices, var_columns, indices_to_multiindex
 from ._prediction import ConvergenceModel
 from .._unit import Unit
-from biosteam.exceptions import FailedEvaluation
+from biosteam.exceptions import FailedScenario
 from warnings import warn
 from collections.abc import Sized
 from biosteam.utils import Timer
 from typing import Optional, Callable
 from ._parameter import Parameter
-from .evaluation_tools import load_default_parameters
+from .evaluation_tools import load_default_parameters, AttributeSetter 
 import pickle
 try:
     from chaospy import distributions as shape
@@ -102,9 +102,10 @@ class Model:
     )
     default_optimizer_options = {
         'shgo': dict(f_tol=1e-3, minimizer_kwargs=dict(f_tol=1e-3)),
-        'differential evolution': {'seed': 0, 'popsize': 12, 'tol': 1e-3}
+        'differential evolution': {'seed': 0, 'popsize': 12, 'tol': 1e-3},
+        'COBYLA': {},
     }
-    default_optimizer = 'shgo'
+    default_optimizer = 'COBYLA'
     default_convergence_model = None # Optional[str] Default convergence model
     load_default_parameters = load_default_parameters
     
@@ -296,7 +297,7 @@ class Model:
         return self.parameter(*args, **kwargs, optimized=True, coupled=True)
     
     def parameter(self, 
-            setter: Optional[Callable]=None,
+            setter: Optional[Callable|str]=None,
             element: Optional[Unit]=None, 
             coupled: Optional[bool]=None,
             name: Optional[str]=None, 
@@ -314,9 +315,10 @@ class Model:
         Define and register parameter.
         
         Parameters
-        ---------*    
+        ----------    
         setter : 
-            Should set parameter in the element.
+            Function that sets the element parameter or the attribute name of an
+            element parameter.
         element : 
             Element in the system being altered.
         coupled : 
@@ -354,6 +356,12 @@ class Model:
             if element is None: element = setter.element
             if name is None: name = setter.name
             if units is None: units = setter.units
+        elif isinstance(setter, str):
+            if element is None:
+                raise ValueError('attribute name of parameter has no element')
+            if name is None:
+                name = setter
+            setter = AttributeSetter(element, setter)
         elif not setter:
             return lambda setter: self.parameter(setter, element, coupled, name,
                                                  distribution, units, baseline,
@@ -486,10 +494,11 @@ class Model:
         return samples
     
     def _objective_function(self, sample, loss, parameters, convergence_model=None, **kwargs):
-        for f, s in zip(parameters, sample): 
-            f.setter(s if f.scale is None else f.scale * s)
+        for i, (f, value) in enumerate(zip(parameters, sample)): 
+            f.setter(value)
+            f.last_value = value
         if convergence_model:
-            with convergence_model.practice(sample, parameters):
+            with convergence_model.practice(sample):
                 self._specification() if self._specification else self._system.simulate(**kwargs)
         return loss()
     
@@ -584,9 +593,18 @@ class Model:
             if exception_hook == 'ignore':
                 self._exception_hook = lambda exception, sample: None
             elif exception_hook == 'warn':
-                self._exception_hook = lambda exception, sample: warn(FailedEvaluation(f"[{type(exception).__name__}] {exception}"), stacklevel=6)
+                self._exception_hook = lambda exception, sample: warn(
+                    FailedScenario(
+                        exception,
+                        self.parameters,
+                        sample
+                    ),  
+                    stacklevel=4,
+                )
             elif exception_hook == 'raise':
-                def raise_exception(exception, sample): raise exception from None
+                def raise_exception(exception, sample): 
+                    exception.failed_scenario = sample
+                    raise exception
                 self._exception_hook = raise_exception
             else:
                 raise ValueError(f"invalid exception hook name '{exception_hook}'; "
@@ -872,38 +890,57 @@ class Model:
             parameters=None, 
             method=None, 
             convergence_model=None, 
-            options=None,
+            optimizer_options=None,
+            convergence_options=None,
         ):
         if parameters is None:
-            parameters = self._optimized_parameters
+            parameters = self._optimized_parameters or self._parameters
         if method is None:
             method = self.default_optimizer
         else:
             method = method.lower()
-        if options is None and method in self.default_optimizer_options: 
-            options = self.default_optimizer_options[method]
+        if optimizer_options is None:
+            if method in self.default_optimizer_options: 
+                optimizer_options = self.default_optimizer_options[method]
+            else:
+                optimizer_options = {}
         if isinstance(convergence_model, str):
             convergence_model = ConvergenceModel(
                 system=self.system,
-                predictors=parameters,
+                parameters=parameters,
                 model_type=convergence_model,
+                **convergence_options
             )
         elif convergence_model is None:
             convergence_model = ConvergenceModel(
                 system=self.system,
-                predictors=parameters,
+                parameters=parameters,
                 model_type=self.default_convergence_model,
+                **convergence_options
             )
         objective_function = self._objective_function
         args = (loss, parameters, convergence_model)
-        bounds = np.array([p.bounds for p in parameters])
-        if method == 'shgo':
+        lb = np.zeros(len(parameters))
+        ub = lb.copy()
+        for i, p in enumerate(parameters):
+            lb[i], ub[i] = p.bounds
+        bounds = Bounds(lb, ub)
+        if method == 'COBYLA':
+            result = minimize(
+                objective_function,
+                args=args, 
+                x0=np.array([i.baseline for i in parameters]),
+                bounds=bounds,
+                method=method, 
+                **optimizer_options,
+            )
+        elif method == 'shgo':
             result = shgo(
-                objective_function, bounds, args, options=options,
+                objective_function, bounds, args, options=optimizer_options,
             )
         elif method == 'differential evolution':
             result = differential_evolution(
-                objective_function, bounds, args, **options
+                objective_function, bounds, args, **optimizer_options
             )
         else:
             raise ValueError(f'invalid optimization method {method!r}')
@@ -945,7 +982,7 @@ class Model:
         if isinstance(convergence_model, str):
             convergence_model = ConvergenceModel(
                 system=self.system,
-                predictors=self.parameters,
+                parameters=self.parameters,
                 model_type=convergence_model,
             )
         if notify:

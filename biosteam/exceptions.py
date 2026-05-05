@@ -13,8 +13,8 @@ from warnings import warn
 
 __all__ = (
     'DesignError', 
-    'FailedEvaluation',
     'Converged',
+    'FailedScenario',
     'UnitWarning',
     'DesignWarning', 
     'CostWarning',
@@ -29,13 +29,28 @@ del exceptions
 class DesignError(RuntimeError):
     """RuntimeError regarding unit design."""
     
-class FailedEvaluation(RuntimeWarning):
-    """RuntimeWarning regarding failed model evaluation."""
-    
 class Converged(Exception):
     """Exception to stop iteration early."""
     
 # %% BioSTEAM warnings
+
+class FailedScenario(RuntimeWarning):
+    """RuntimeWarning regarding a failed model scenario."""
+
+    def __init__(self, exception, parameters, sample):
+        if parameters:
+            super().__init__(
+                f"[{type(exception).__name__}] {exception}\n" + 
+                'Parameter values:\n- ' +
+                '\n- '.join([
+                    f"{i.short_description_with_units} = {j:.5g}"
+                    for i, j in zip(parameters, sample)
+                ])
+            )
+        else:
+            super().__init__(
+                f"[{type(exception).__name__}] {exception}"
+            )
 
 class UnitWarning(Warning):
     """Warning regarding unit operations."""
@@ -43,7 +58,7 @@ class UnitWarning(Warning):
     @classmethod
     def from_source(cls, source, msg):
         """Return a DesignWarning object with source description."""
-        msg= message_with_object_stamp(source, msg)
+        msg = message_with_object_stamp(source, msg)
         return cls(msg)
     
 class DesignWarning(UnitWarning):
@@ -56,7 +71,7 @@ class CostWarning(UnitWarning):
 
 def design_warning_with_source(source, msg): # pragma: no cover
     """Return a DesignWarning object with source description."""
-    msg= message_with_object_stamp(source, msg)
+    msg = message_with_object_stamp(source, msg)
     return DesignWarning(msg)
             
 def lb_warning(source, key, value, units, lb, stacklevel=2): # pragma: no cover

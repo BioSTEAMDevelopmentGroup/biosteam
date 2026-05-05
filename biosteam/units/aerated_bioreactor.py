@@ -392,6 +392,10 @@ class AeratedBioreactor(AbstractStirredTankReactor):
             x1 = 10 * OUR
             y1 = air_flow_rate_objective(x1)
             
+            if y1 > 0:
+                x1 = 50 * OUR
+                y1 = air_flow_rate_objective(x1)
+            
             # It is possible an infinite flow rate of air is not enough to 
             # satisfy mass transfer if the titer is super high or gas O2 concentration
             # is too low.
