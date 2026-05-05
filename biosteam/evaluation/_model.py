@@ -494,12 +494,14 @@ class Model:
         return samples
     
     def _objective_function(self, sample, loss, parameters, convergence_model=None, **kwargs):
-        for i, (f, value) in enumerate(zip(parameters, sample)): 
+        for f, value in zip(parameters, sample): 
             f.setter(value)
             f.last_value = value
         if convergence_model:
             with convergence_model.practice(sample):
                 self._specification() if self._specification else self._system.simulate(**kwargs)
+        else:
+            self._specification() if self._specification else self._system.simulate(**kwargs)
         return loss()
     
     def _update_state(self, sample, convergence_model=None, **kwargs):
@@ -909,13 +911,6 @@ class Model:
                 system=self.system,
                 parameters=parameters,
                 model_type=convergence_model,
-                **convergence_options
-            )
-        elif convergence_model is None:
-            convergence_model = ConvergenceModel(
-                system=self.system,
-                parameters=parameters,
-                model_type=self.default_convergence_model,
                 **convergence_options
             )
         objective_function = self._objective_function
