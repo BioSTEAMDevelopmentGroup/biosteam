@@ -3198,6 +3198,9 @@ class System:
         if self._state is None:
             for ws in self.feeds:
                 if not ws.state.all(): ws._init_state()
+            if self.recycle:
+                for ws in self.recycle:
+                    if not ws.state.all(): ws._init_state()
             for inf in units[0].ins:
                 if not inf.state.all(): inf._init_state()
             y = np.array([])
@@ -3507,9 +3510,9 @@ class System:
         # Load initial states
         self.converge()
         y0, idx, nr = self._load_state()
-        dk['y0'] = y0
-        # Integrate
+        self.dynsim_kwargs['y0'] = y0.copy()
         self.dynsim_kwargs['print_t'] = print_t # self.dynsim_kwargs might be reset by `state_reset_hook`
+        # Integrate
         self.scope.sol = sol = solve_ivp(fun=self.DAE, y0=y0, **dk_cp)
         if print_msg:
             if sol.status == 0:

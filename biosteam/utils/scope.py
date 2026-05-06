@@ -40,10 +40,7 @@ class Scope():
         self._ts = []
         self._header = header
         rcd = {}
-        for var in variables:
-            if hasattr(subject, var): rcd[var] = []
-            else: warn(f'Variable {var} ignored in {self.__repr__()} because '
-                       f'{self.subject} has no attribute {var}.')
+        for var in variables: rcd[var] = []
         self._record = rcd
         for k, v in kwargs:
             setattr(self, k, v)
