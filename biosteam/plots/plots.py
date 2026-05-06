@@ -23,6 +23,7 @@ from collections import deque
 from itertools import product
 from matplotlib import colormaps
 import matplotlib.colors as clr
+import matplotlib.cm as cm
 
 __all__ = (
     'rounded_linspace',
@@ -45,12 +46,12 @@ __all__ = (
     'plot_bars', 
     'plot_vertical_line', 
     'plot_scatter_points',
+    'plot_contour',
     'plot_contour_2d', 
     'plot_contour_single_metric',
     'plot_heatmap',
-    'plot_uncertainty_pairs_2d',
-    'plot_uncertainty_pairs_1d',
-    'plot_uncertainty_pairs',
+    'plot_scatter',
+    'plot_scatter_1d',
     'plot_kde_2d',
     'plot_kde_1d',
     'plot_kde',
@@ -60,6 +61,7 @@ __all__ = (
     'default_colors_and_hatches',
     'modify_stacked_bars',
     'title_color',
+    'contour_subplots',
 )
 
 # %% Utilities
@@ -68,7 +70,7 @@ plt.rcParams['figure.dpi'] = 300 # High DPI (default is 100; so low!)
 default_light_color = c.orange_tint.RGBn
 default_dark_color = c.orange_shade.RGBn
 title_color = c.neutral.shade(25).RGBn
-color_wheel = GG_colors.wheel(keys=['red', 'blue', 'purple', 'orange', 'green'])
+default_color_wheel = GG_colors.wheel(keys=['red', 'blue', 'purple', 'orange', 'green'])
 
 def annotate_point(
         text, x, y, dx=0, dy=0.2, dx_text=0, dy_text=0.22,
@@ -668,7 +670,8 @@ def plot_spearman_1d(rhos, top=None, name=None, color=None,
     return fig, ax
 
 def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
-                     cutoff=None, sort=True, xlabel=None, sort_index=None, w=None): # pragma: no coverage
+                     cutoff=None, sort=True, xlabel=None, sort_index=None, w=None,
+                     edgecolors=None): # pragma: no coverage
     """
     Display Spearman's rank correlation plot.
     
@@ -696,10 +699,13 @@ def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
         indices = [indices[i] for i in cutoff_index]
     if sort:
         if sort_index is None:
-            rhos_max = np.abs(values).max(axis=0)
+            if callable(sort):
+                rhos_sorted = sort(values)
+            else:
+                rhos_sorted = np.mean(np.abs(values), axis=0)
         else:
-            rhos_max = np.abs(values)[sort_index]
-        indices.sort(key=lambda x: rhos_max[x])
+            rhos_sorted = np.abs(values)[sort_index]
+        indices.sort(key=lambda x: rhos_sorted[x])
     if top is not None: indices = indices[-top:]
     rhos = [[rho[i] for i in indices] for rho in values]
     index = [index[i] for i in indices]
@@ -708,9 +714,17 @@ def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
     if not color_wheel: color_wheel = CABBI_colors.wheel()
     fig, ax = plt.subplots()
     for i, rho in enumerate(rhos):
+        if edgecolors:
+            edgecolor = edgecolors[N - i - 1]
+            if hasattr(edgecolor, 'RGBn'): edgecolor = edgecolor.RGBn
+        else:
+            edgecolor = None
         color = color_wheel[N - i - 1]
-        if hasattr(color, 'RGBn'): color = color.RGBn
-        plot_spearman_1d(rho, color=color, s=s, offset=i, w=w,
+        if hasattr(color, 'RGBn'): 
+            if edgecolor is None:
+                edgecolor = color.shade(50).RGBn
+            color = color.RGBn
+        plot_spearman_1d(rho, color=color, s=s, offset=i, w=w, edgecolors=edgecolor,
                          fig=fig, ax=ax, style=False, sort=False, top=None)
     # Plot central line
     yranges = [(s/2 + s*i - 1., 1.) for i in range(len(rhos[0]))]
@@ -930,21 +944,34 @@ plot_montecarlo_across_coordinate = plot_uncertainty_across_coordinate
 
 # %% KDE
 
-def plot_uncertainty_pairs(
+def plot_kde(*args, **kwargs):
+    return plot_scatter(*args, **kwargs, kde=True)
+
+def plot_scatter(
         x, y, axes=None, fig=None,
         xticks=None, yticks=None, xticklabels=None, yticklabels=None,
         xtick0=True, ytick0=True, xtickf=True, ytickf=True,
         xbox=None, ybox=None, xbox_kwargs=None, ybox_kwargs=None, 
         aspect_ratio=1.25, colors=None, xbox_width=None,
         ybox_width=None, zorders=None, xlabel=None, ylabel=None,
-        ax=None, kde= None, transparency=None, **kwargs
+        ax=None, kde=False, transparency=None, color_wheel=None,
+        z=None, zticks=None, zticklabels=None, zbar=True, zlabel=None,
+        norm=None,
+        **kwargs
     ):
-    if kde is None: kde = True
+    if color_wheel is None: color_wheel = default_color_wheel
     axis_not_given = axes is None and ax is None
     xs = x if isinstance(x, (tuple, list)) or x.ndim == 2 else (x,)
     ys = y if isinstance(y, (tuple, list)) or y.ndim == 2 else (y,)
     N_xs = len(xs)
     N_ys = len(ys)
+    if z is not None: 
+        zs = z if isinstance(z, (tuple, list)) or z.ndim == 2 else (z,)
+        N_zs = len(zs)
+        if not (N_xs == N_ys == N_zs): raise ValueError('x and y shapes must be the same')
+    else:
+        zs = None
+        if not (N_xs == N_ys): raise ValueError('x and y shapes must be the same')
     if axis_not_given:
         # grid_kw = dict(height_ratios=[0.4 * N_internal_x, 4], width_ratios=[4, 0.4 * N_internal_y])
         grid_kw = dict(height_ratios=[1, 8], width_ratios=[8, aspect_ratio])
@@ -999,11 +1026,20 @@ def plot_uncertainty_pairs(
                     )
                     for i in range(N_xs)
                 ]
-        else:
+        elif z is None:
             if transparency is None: transparency = 1
             colors = [color_wheel[i].RGBn for i in range(len(xs))]
+        else:
+            colors = [colormaps['managua']] * N_xs
     if zorders is None: zorders = len(xs) * [5]
-    for x, y, color, zorder, xbox, ybox in zip(xs, ys, colors, zorders, xboxes, yboxes):
+    for i in range(N_xs):
+        x = xs[i]
+        y = ys[i]
+        if zs is not None: z = zs[i]
+        color = colors[i]
+        xbox = xboxes[i]
+        ybox = yboxes[i]
+        zorder = zorders[i]
         plt.sca(ax)
         scatter_kwargs = kwargs.copy()
         if kde:
@@ -1018,11 +1054,14 @@ def plot_uncertainty_pairs(
             # 2D Density with shading
             scatter_kwargs['cmap'] = color
             scatter_kwargs['c'] = z
-        else:
+        elif z is None:
             scatter_kwargs['c'] = color
+        else:
+            scatter_kwargs['cmap'] = color
+            scatter_kwargs['c'] = z
         if 's' not in scatter_kwargs and 'size' not in scatter_kwargs:
             scatter_kwargs['s'] = 1.
-        plt.scatter(x, y, zorder=zorder, **scatter_kwargs)
+        plt.scatter(x, y, zorder=zorder, norm=norm, **scatter_kwargs)
         if xbox:
             plt.sca(xbox.axis)
             if xbox.fill is None and xbox.edge is None:
@@ -1032,57 +1071,23 @@ def plot_uncertainty_pairs(
                 else:
                     fill = color
                     edge = Color(fg=color).shade(60).RGBn
+            else:
+                fill = xbox.fill
+                edge = xbox.edge
             plot_uncertainty_boxes(x, fill, edge, positions=(xbox.get_position(-1),), vertical=False, outliers=False, width=xbox_width, bounds=True)
         if ybox:
             plt.sca(ybox.axis)
-            if xbox.fill is None and xbox.edge is None:
+            if ybox.fill is None and ybox.edge is None:
                 if kde:
-                    fill = xbox.fill
-                    edge = xbox.edge
+                    fill = ybox.fill
+                    edge = ybox.edge
                 else:
                     fill = color
                     edge = Color(fg=color).shade(60).RGBn
+            else:
+                fill = ybox.fill
+                edge = ybox.edge
             plot_uncertainty_boxes(y, fill, edge, positions=(ybox.get_position(-1),), vertical=True, outliers=False, width=ybox_width, bounds=True)
-    # if xboxes:
-    #     plt.sca(xbox_ax)
-    #     fill_colors = []
-    #     edge_colors = []
-    #     for xbox, color in zip(xboxes, colors):
-    #         if xbox.fill is None and xbox.edge is None:
-    #             if kde:
-    #                 fill = xbox.fill
-    #                 edge = xbox.edge
-    #             else:
-    #                 fill = color
-    #                 edge = Color(fg=color).shade(60).RGBn
-    #         fill_colors.append(fill)
-    #         edge_colors.append(edge)
-    #     plot_uncertainty_boxes(
-    #         xs, fill_colors, edge_colors, 
-    #         positions=[*range(0, -len(xs), -1)],
-    #         vertical=False, outliers=False, 
-    #         width=xbox_width, bounds=True
-    #     )
-    # if yboxes:
-    #     fill_colors = []
-    #     edge_colors = []
-    #     for ybox, color in zip(yboxes, colors):
-    #         if ybox.fill is None and ybox.edge is None:
-    #             if kde:
-    #                 fill = ybox.fill
-    #                 edge = ybox.edge
-    #             else:
-    #                 fill = color
-    #                 edge = Color(fg=color).shade(60).RGBn
-    #         fill_colors.append(fill)
-    #         edge_colors.append(edge)
-    #     plt.sca(ybox_ax)
-    #     plot_uncertainty_boxes(
-    #         ys, fill_colors, edge_colors, 
-    #         positions=[*range(len(ys))],
-    #         vertical=True, outliers=False, 
-    #         width=ybox_width, bounds=True
-    #     )
     style_axis(ax, xticks, yticks, xticklabels, yticklabels, trim_to_limits=True,
                xtick0=xtick0, ytick0=ytick0, xtickf=xtickf, ytickf=ytickf)
     plt.sca(ax)
@@ -1111,15 +1116,21 @@ def plot_uncertainty_pairs(
             top=0.95, bottom=0.12,
             left=0.1, right=0.96,
         )
+    if zs is not None and zbar:
+        sm = cm.ScalarMappable(norm=norm, cmap=colors[0])
+        sm.set_array(z)
+        fig.colorbar(sm, ax=ax, zlabel=zlabel)
     return fig, ax, axes
   
-plot_kde = plot_uncertainty_pairs  
+def plot_kde_1d(*args, **kwargs):
+    return plot_scatter_1d(*args, **kwargs, kde=True)
   
-def plot_uncertainty_pairs_1d(
+def plot_scatter_1d(
         xs, ys, axes=None, xboxes=None, yboxes=None,
         xticks=None, yticks=None, xticklabels=None, yticklabels=None,
         autobox=True, xbox_kwargs=None, ybox_kwargs=None, aspect_ratio=1.,
-        xlabel=None, ylabel=None, fs=None, colors=None, kde=None, **kwargs
+        xlabel=None, ylabel=None, fs=None, colors=None, kde=False, color_wheel=None, 
+        zs=None, zbar=True, zlabel=None, zticks=None, norm=None, **kwargs
     ):
     if kde is None: kde = True
     N_cols = len(xs)
@@ -1128,13 +1139,18 @@ def plot_uncertainty_pairs_1d(
         xticklabels = N_cols * [xticklabels]
     if xticks is not None and len(xticks) != N_cols:
         xticks = N_cols * [xticks]
+    if color_wheel is None: color_wheel = default_color_wheel
     if axes is None:
         if autobox:
             N_internal_x = sum([(1 if hasattr(x, 'ndim') and x.ndim == 1 else len(x))
                                 for x in xs]) / N_cols
             N_internal_y = sum([(1 if hasattr(y, 'ndim') and y.ndim == 1 else len(y))
                                 for y in ys])
-            grid_kw = dict(height_ratios=[0.4 * N_internal_x, *N_rows*[4]], width_ratios=[*N_cols*[4], 0.4 * N_internal_y])
+            grid_kw = dict(
+                height_ratios=[0.3 * N_internal_x, *N_rows*[4]], 
+                width_ratios=[*N_cols*[4], 0.3 * N_internal_y]
+            )
+            if zbar: grid_kw['width_ratios'].append(0.30)
             fig, all_axes = plt.subplots(
                 ncols=N_cols + 1, nrows=N_rows + 1, 
                 gridspec_kw=grid_kw,
@@ -1142,7 +1158,11 @@ def plot_uncertainty_pairs_1d(
             ax_empty = all_axes[0, -1]
             axes = all_axes[1:, :-1]
             xbox_axes = all_axes[0, :-1]
-            ybox_axis = all_axes[1, -1]
+            if zbar:
+                ybox_axis = all_axes[1, -2]
+                cax = all_axes[1, -1]
+            else:
+                ybox_axis = all_axes[1, -1]
             if xbox_kwargs is None: 
                 xbox_kwargs = N_cols*[{}]
             elif isinstance(xbox_kwargs, dict):
@@ -1167,28 +1187,51 @@ def plot_uncertainty_pairs_1d(
                 try: plt.ylim([yticks[0], yticks[-1]])
                 except: pass
         else:
-            fig, axes = plt.subplots(ncols=N_cols, nrows=N_rows)
-            axes = axes.reshape([N_rows, N_cols])
+            xbox = ybox = None
+            if zbar:
+                grid_kw = dict(
+                    height_ratios=N_rows*[5], 
+                    width_ratios=[*N_cols*[4], 0.3]
+                )
+                fig, all_axes = plt.subplots(
+                    ncols=N_cols + 1, nrows=N_rows, 
+                    gridspec_kw=grid_kw,
+                )
+                axes = all_axes[:-1].reshape([N_rows, N_cols])
+                cax = all_axes[-1]
+            else:
+                fig, axes = plt.subplots(ncols=N_cols, nrows=N_rows)
+                axes = axes.reshape([N_rows, N_cols])
+    if zs is not None and zbar:
+        norm = clr.Normalize(vmin=zs.min(), vmax=zs.max()) 
     for i in range(N_cols):
         x = xs[i]
         y = ys[i]
+        if zs is not None: z = zs[i]
         ax = axes[0, i]
         xticksi = None if xticks is None else xticks[i]
         xticklabelsi = None if xticklabels is None else xticklabels[i]
-        plot_uncertainty_pairs(x, y, ax=ax, fig=fig,
-                 xbox=[False] if hasattr(x, 'ndim') and x.ndim == 1 else len(x) * [False],
-                 ybox=[False] if hasattr(y, 'ndim') and y.ndim == 1 else len(y) * [False],
-                 xticks=xticksi,
-                 yticks=yticks,
-                 xticklabels=xticklabelsi,
-                 yticklabels=yticklabels if i == 0 else False,
-                 xtick0=True,
-                 ytick0=True,
-                 xtickf=i==N_cols-1,
-                 ytickf=True,
-                 colors=colors,
-                 kde=kde,
-                 **kwargs)
+        plot_scatter(
+            x, y, ax=ax, fig=fig,
+            xbox=[False] if hasattr(x, 'ndim') and x.ndim == 1 else len(x) * [False],
+            ybox=[False] if hasattr(y, 'ndim') and y.ndim == 1 else len(y) * [False],
+            xticks=xticksi,
+            yticks=yticks,
+            xticklabels=xticklabelsi,
+            yticklabels=yticklabels if i == 0 else False,
+            xtick0=True,
+            ytick0=True,
+            xtickf=i==N_cols-1,
+            ytickf=True,
+            colors=colors,
+            kde=kde,
+            z=z,
+            color_wheel=color_wheel,
+            zbar=False,
+            zlabel=None,
+            norm=norm,
+            **kwargs
+        )
     if xboxes is not None:
         for i, xbox in enumerate(xboxes):
             x = xs[i]
@@ -1251,15 +1294,19 @@ def plot_uncertainty_pairs_1d(
     plt.subplots_adjust(hspace=0, wspace=0)
     plt.sca(axes[0, 0])
     if ylabel is not None: plt.ylabel(ylabel, fontsize=fs)
+    if zs is not None and zbar:
+        norm = clr.Normalize(vmin=zs.min(), vmax=zs.max()) 
+        sm = cm.ScalarMappable(norm=norm, cmap=colors[0] if colors else 'managua')
+        # sm.set_array(zs)
+        cbar = fig.colorbar(sm, cax=cax, label=zlabel, location='right', pad=0.15, shrink=0.5, ticks=zticks)
     return fig, axes
   
-plot_kde_1d = plot_uncertainty_pairs_1d
-  
-def plot_uncertainty_pairs_2d(
+def plot_kde_2d(
         xs, ys, axes=None, xboxes=None, yboxes=None,
         xticks=None, yticks=None, xticklabels=None, yticklabels=None,
-        autobox=True, xbox_kwargs=None, ybox_kwargs=None, aspect_ratio=1.,
-        xlabel=None, ylabel=None, fs=None, **kwargs
+        autobox=True, xbox_kwargs=None, ybox_kwargs=None, 
+        xlabel=None, ylabel=None, fs=None, zs=None, zticks=None, 
+        **kwargs
     ):
     xs = np.asarray(xs)
     ys = np.asarray(ys)
@@ -1269,6 +1316,9 @@ def plot_uncertainty_pairs_2d(
     if ys.ndim == 2:
         N, M = ys.shape
         ys = ys.reshape([1, N, M])
+    if zs is not None and zs.ndim == 2:
+        N, M = zs.shape
+        zs = zs.reshape([1, N, M])
     N_rows, N_cols, *_ = xs.shape
     if xticklabels and not hasattr(xticklabels, '__len__'):
         xticklabels = N_cols * [xticklabels]
@@ -1324,6 +1374,7 @@ def plot_uncertainty_pairs_2d(
         for j in range(N_cols):
             x = xs[i, j]
             y = ys[i, j]
+            z = zs[i, j]
             ax = axes[i, j]
             xticksj = None if xticks is None else xticks[j]
             yticksi = None if yticks is None else yticks[i]
@@ -1331,7 +1382,7 @@ def plot_uncertainty_pairs_2d(
             yticklabelsi = None if yticklabels is None else yticklabels[i]
             xticklabelsj = i == N_rows - 1
             yticklabelsi = j == 0
-            plot_uncertainty_pairs(x, y, ax=ax, fig=fig,
+            plot_kde(x, y, ax=ax, fig=fig,
                      xbox=[False],
                      ybox=[False],
                      xticks=xticksj,
@@ -1342,6 +1393,7 @@ def plot_uncertainty_pairs_2d(
                      ytick0=i==N_rows-1,
                      xtickf=j==N_cols-1,
                      ytickf=i==0,
+                     z=z,
                      **kwargs)
     if xboxes is not None:
         for i, xbox in enumerate(xboxes):
@@ -1373,8 +1425,6 @@ def plot_uncertainty_pairs_2d(
     plt.subplots_adjust(hspace=0, wspace=0)
     plt.sca(ax)
     return fig, axes
-
-plot_kde_2d = plot_uncertainty_pairs_2d
 
 # %% Contours
 
@@ -1417,40 +1467,44 @@ def generate_contour_data(
     if file and save and not load: np.save(file, Z)
     return X, Y, Z
 
-def plot_contour_2d(X, Y, Z, 
-                    xlabel, ylabel, xticks, yticks, 
-                    metric_bars, titles=None, 
-                    fillcolor=None, styleaxiskw=None, label_size=10,
-                    label=False, wbar=1, contour_label_interval=2,
-                    highlight_levels=None, 
-                    highlight_color=None): # pragma: no coverage
+def plot_contour(
+        X, Y, Z, 
+        xlabel, ylabel, xticks, yticks, 
+        metric_bars, titles=None, 
+        fillcolor=None, styleaxiskw=None, label_size=10,
+        label=False, wbar=1, contour_label_interval=2,
+        highlight_levels=None, 
+        highlight_color=None,
+        pad=None,
+    ): # pragma: no coverage
     """Create contour plots and return the figure and the axes."""
-    if isinstance(metric_bars[0], MetricBar):
+    if isinstance(metric_bars, MetricBar):
+        metric_bars = [metric_bars]
+        nrows = 1
+        row_bars = True
+    elif isinstance(metric_bars[0], MetricBar):
         nrows = len(metric_bars)
-        ncols = Z.shape[-1] if titles is None else len(titles)
+        ncols = None
         row_bars = True
     else:
         nrows = len(metric_bars)
         ncols = len(metric_bars[0])
         row_bars = False
-    if Z.ndim == 3:
+    A, B = Z.shape[:2]
+    if Z.ndim == 2:
+        ncols = 1
+        Z = Z[:, :, None, None]
+    elif Z.ndim == 3:
         if Z.shape == (*X.shape, nrows):
             Z = Z[:, :, :, None]
-        elif Z.shape == (*X.shape, ncols):
-            Z = Z[:, :, None, :]
         else:
-            raise ValueError(
-           f"Z was shape {Z.shape}, but expeted shape {(*X.shape, nrows)}; "
-            "Z.shape must be (X, Y, M), where (X, Y) is the shape of both X and Y, "
-            "M is the number of metrics"  
-        )
-        
-    else:
-        assert Z.shape == (*X.shape, nrows, ncols), (
-           f"Z was shape {Z.shape}, but expeted shape {(*X.shape, nrows, ncols)}; "
-            "Z.shape must be (X, Y, M, N), where (X, Y) is the shape of both X and Y, "
-            "M is the number of metrics, and N is the number of elements in titles (if given)"  
-        )
+            Z = Z[:, :, None, :]
+    if ncols is None: ncols = Z.shape[-1]
+    assert Z.shape == (*X.shape, nrows, ncols), (
+       f"Z was shape {Z.shape}, but expeted shape {(*X.shape, nrows, ncols)}; "
+        "Z.shape must be (A, B, M, N), where (A, B) is the shape of both X and Y, "
+        "M is the number of metrics, and N is the number of elements in titles (if given)"  
+    )
     if row_bars:
         fig, axes = contour_subplots(nrows, ncols, wbar=wbar)
         cbs = np.zeros([nrows], dtype=object)
@@ -1508,10 +1562,11 @@ def plot_contour_2d(X, Y, Z,
             cps[row, col] = cp
             if not row_bars:
                 clabel = col == ncols - 1
-                if clabel: 
-                    pad = 0.175
-                else:
-                    pad = 0.05
+                if pad is None:
+                    if clabel: 
+                        pad = 0.175
+                    else:
+                        pad = 0.05
                 cbs[row, col] = metric_bar.colorbar(fig, ax, cp, shrink=metric_bar.shrink, label=clabel, pad=pad)
             other_axes[row].append(
                 style_axis(ax, xticks, yticks, xticklabels, yticklabels, **styleaxiskw[col])
@@ -1533,26 +1588,38 @@ def plot_contour_2d(X, Y, Z,
         # set_axes_labels(axes[:, :-1], xlabel, ylabel)
     # else:
         # set_axes_labels(axes, xlabel, ylabel)
-    fig.supxlabel(xlabel, size=label_size)
+    if ncols == 1:
+        plt.sca(axes[-1, 0])
+        plt.xlabel(xlabel, size=label_size)
+    else:
+        fig.supxlabel(xlabel, size=label_size)
     fig.supylabel(ylabel, size=label_size)
     plt.subplots_adjust(hspace=0.1, wspace=0.1)
     return fig, axes, cps, cbs, other_axes
-       
+plot_contour_2d = plot_contour       
+
 def plot_contour_single_metric(
         X, Y, Z, xlabel, ylabel, xticks, yticks, metric_bar,
         titles=None, fillcolor=None, styleaxiskw=None, label=False,
-        contour_label_interval=2,
+        contour_label_interval=2, highlight_levels=None, highlight_color=None,
+        label_fs=None, fraction=0.5,
     ): # pragma: no coverage
     """Create contour plots and return the figure and the axes."""
+    if Z.ndim < 4:
+        if Z.ndim == 3:
+            Z = Z[:, :, :, None]
+        elif Z.ndim == 2:
+            Z = Z[:, :, None, None]
     *_, nrows, ncols = Z.shape
     assert Z.shape == (*X.shape, nrows, ncols), (
-        "Z.shape must be (X, Y, M, N), where (X, Y) is the shape of both X and Y"
+        "the first 2 dimensions of Z must have the same shape as X and Y"
     )
     fig, axes, ax_colorbar = contour_subplots(nrows, ncols, single_colorbar=True)
     if styleaxiskw is None: styleaxiskw = dict(xtick0=False, ytick0=False)
     cps = np.zeros([nrows, ncols], dtype=object)
     linecolor = np.array([*c.neutral_shade.RGBn, 0.1])
     other_axes = []
+    if highlight_color is None: highlight_color = 'r'
     for row in range(nrows):
         for col in range(ncols):
             ax = axes[row, col]
@@ -1574,22 +1641,32 @@ def plot_contour_single_metric(
                 clabels = ax.clabel(
                     cs, levels=levels,
                     inline=True, fmt=metric_bar.fmt,
-                    colors=['k'], zorder=1
+                    colors=['k'], zorder=1, fontsize=label_fs,
                 )
                 for i in clabels: i.set_rotation(0)
             cps[row, col] = cp
             
-            if row == nrows - 1 and not styleaxiskw.get('ytick0', True):
+            if highlight_levels:
+                cs = plt.contour(cp, zorder=1, linewidths=0.8,
+                                 levels=highlight_levels, colors=[highlight_color])
+                clabels = ax.clabel(
+                    cs, levels=highlight_levels,
+                    inline=True, fmt=metric_bar.fmt,
+                    colors=[highlight_color], zorder=1
+                )
+                for i in clabels: i.set_rotation(0)
+            
+            if row == nrows - 1 and 'ytick0' not in styleaxiskw:
                 sak = styleaxiskw.copy()
                 sak['ytick0'] = True
             else:
                 sak = styleaxiskw
-            if col == 0 and not styleaxiskw.get('xtick0', True):
+            if col == 0 and 'xtick0' not in styleaxiskw:
                 sak = sak.copy()
                 sak['xtick0'] = True
             dct = style_axis(ax, xticks, yticks, xticklabels, yticklabels, **sak)
             other_axes.append(dct)
-    cb = metric_bar.colorbar(fig, ax_colorbar, cp, fraction=0.5)
+    cb = metric_bar.colorbar(fig, ax_colorbar, cp, fraction=fraction)
     plt.sca(ax_colorbar)
     plt.axis('off')
     if titles:
@@ -1597,13 +1674,15 @@ def plot_contour_single_metric(
             ax = axes[0, col]
             ax.set_title(title, color=title_color, fontsize=10, fontweight='bold')
     fig = plt.gcf()
-    fig.supxlabel(xlabel)
-    fig.supylabel(ylabel)
+    if xlabel: fig.supxlabel(xlabel)
+    if ylabel: fig.supylabel(ylabel)
     plt.subplots_adjust(hspace=0.1, wspace=0.1, bottom=0.2)
     return fig, axes, cps, cb, other_axes
             
 def color_quadrants(color=None, x=None, y=None, xlim=None, ylim=None, 
-                    line_color=None, fill_color=None, linewidth=1.0):
+                    line_color=None, fill_color=None, linewidth=None):
+    if linewidth is None:
+        linewidth = 1.0
     if x is None: 
         xlb = 0
         xub = 0
@@ -1618,8 +1697,8 @@ def color_quadrants(color=None, x=None, y=None, xlim=None, ylim=None,
         ylb, yub = y
     else:
         ylb = yub = y
-    if line_color is None: line_color = c.grey.RGBn
-    if fill_color is None: fill_color = CABBI_colors.green_dirty.tint(85).RGBn
+    if line_color is None: line_color = c.neutral_tint.RGBn
+    if fill_color is None: fill_color = c.CABBI_grey.RGBn
     if xlim is None: xlim = plt.xlim()
     if ylim is None: ylim = plt.ylim()
     x0, x1 = xlim
@@ -1650,23 +1729,19 @@ def color_quadrants(color=None, x=None, y=None, xlim=None, ylim=None,
                          linewidth=linewidth,
                          zorder=0)
     if yub == ylb: 
-        plot_horizontal_line(ylb, line_color, zorder=0)
+        plot_horizontal_line(ylb, line_color, zorder=0, ls='--')
     else:
         plt.fill_between([x0, x1], ylb, yub,
                          color=fill_color,
                          linewidth=linewidth,
                          zorder=0)
-        plot_horizontal_line(ylb, line_color, zorder=0)
-        plot_horizontal_line(yub, line_color, zorder=0)
     if xub == xlb: 
-        plot_vertical_line(xlb, line_color, zorder=0)
+        plot_vertical_line(xlb, line_color, zorder=0, ls='--')
     else:
         plt.fill_between([xlb, xub], y0, y1,
                          color=fill_color,
                          linewidth=linewidth,
                          zorder=0)
-        plot_vertical_line(xlb, line_color, zorder=0)
-        plot_vertical_line(xub, line_color, zorder=0)
     
 def label_quadrants(
         x=None, y=None, xr=None, yr=None, text=None, color=None,
@@ -1738,12 +1813,16 @@ def label_quadrants(
     return labeled
 
 def plot_quadrants(
-        text, data=None, x=None, y=None, rotate=0, fs=None,
+        text=None, data=None, x=None, y=None, rotate=0, fs=None,
+        quadrant_color=None, line_color=None, fill_color=None, linewidth=None,
     ):
-    quadrant_color = deque([
-        (*c.CABBI_teal.tint(90).RGBn, 0.9), None,
-        None, (*c.red.tint(80).RGBn, 0.9)
-    ])
+    if quadrant_color is None:
+        quadrant_color = deque([
+            (*c.CABBI_teal.tint(90).RGBn, 0.9), None,
+            None, (*c.red.tint(80).RGBn, 0.9)
+        ])
+    else:
+        quadrant_color = deque(quadrant_color)
     text_color = deque([
         CABBI_colors.teal.shade(50).RGBn, CABBI_colors.grey.shade(75).RGBn, 
         CABBI_colors.grey.shade(75).RGBn, c.red.shade(50).RGBn
@@ -1751,7 +1830,8 @@ def plot_quadrants(
     quadrant_color.rotate(rotate)
     text_color.rotate(rotate)
     labeled_quadrants = format_quadrants(
-        data, x, y, text, text_color, quadrant_color, fs
+        data, x, y, text, text_color, quadrant_color, fs=fs,
+        line_color=line_color, fill_color=fill_color, linewidth=linewidth
     )
     for i, labeled in enumerate(labeled_quadrants):
         if labeled: text[i] = '()' if text[i].endswith('()') else None
@@ -1765,13 +1845,18 @@ def format_quadrants(
         text_color=None,
         quadrant_color=None,
         xlim=None, ylim=None,
-        fs=None,
+        fs=None, line_color=None, 
+        fill_color=None, linewidth=None,
     ):
     if data is None: data = (None, None) 
-    color_quadrants(quadrant_color, x, y, xlim, ylim)
-    return label_quadrants(
-        *data, x, y, text, text_color, fs
-    )
+    color_quadrants(quadrant_color, x, y, xlim, ylim,
+                    line_color, fill_color, linewidth)
+    if text is None:
+        return 4 * [False] # none labeled
+    else:
+        return label_quadrants(
+            *data, x, y, text, text_color, fs
+        )
     
 def add_titles(axes, titles, color):
     if titles:

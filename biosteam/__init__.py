@@ -13,7 +13,7 @@
 
 """
 from __future__ import annotations
-__version__ = '2.51.19'
+__version__ = '2.53.10'
 
 #: Chemical engineering plant cost index (defaults to 567.5 at 2017).
 CE: float = 567.5 
@@ -89,23 +89,55 @@ __all__ = (
 )
 
 def nbtutorial(dark=False):
+    global print_error
+    
+    # Only works in Jupyter Notebook
+    from IPython import get_ipython
+    try:
+        shell = get_ipython().__class__.__name__
+        if shell != 'ZMQInteractiveShell': return # not Jupyter Notebook
+    except NameError:
+        return # Probably standard Python interpreter
+    
     main_flowsheet.clear()
     preferences.reset()
     if dark: 
         preferences.dark_mode(bg='#111111')
     else:
         preferences.light_mode(bg='#ffffffaa')
+    settings.ID_magic = True
     preferences.tooltips_full_results = False
     preferences.graphviz_format = 'html'
     preferences.show_all_streams = True
     from warnings import filterwarnings
     filterwarnings('ignore')
+    
+    import pandas as pd
+    from IPython.display import display
 
-# %% 
-import pandas as pd
-from IPython.display import display
+    def display_table_as_html(series):
+        return display(series.to_frame())
 
-def display_table_as_html(series):
-    return display(pd.DataFrame(series))
+    pd.Series._ipython_display_ = display_table_as_html
 
-pd.Series._ipython_display_ = display_table_as_html
+    try:
+        from _pytest.python_api import RaisesContext
+    except:
+        class PrintError:
+            def __enter__(self):
+                return self
+            
+            def __exit__(self, type, exception, traceback):
+                if exception is not None: print(f"{colors.exception(type.__name__)}: {exception}")
+                return None
+    else:       
+        class PrintError(RaisesContext):
+            def __init__(self):
+                super().__init__(Exception, 'did not raise exception')
+            
+            def __exit__(self, type, exception, traceback):
+                if exception is not None: print(f"{colors.exception(type.__name__)}: {exception}")
+                return super().__exit__(type, exception, traceback)
+    
+    print_error = PrintError()
+    

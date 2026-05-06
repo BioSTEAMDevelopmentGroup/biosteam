@@ -305,13 +305,14 @@ class LLECentrifuge(LLEUnit, LiquidsCentrifuge):
                     Biodiesel  26.9
                     TriOlein   0.996
     >>> C1.results()
-    Liquids centrifuge                       Units       C1
-    Electricity         Power                   kW     17.5
-                        Cost                USD/hr     1.37
-    Design              Flow rate           m^3/hr     12.5
-    Purchase cost       Liquids centrifuge     USD 1.29e+05
-    Total purchase cost                        USD 1.29e+05
-    Utility cost                            USD/hr     1.37
+    Liquids centrifuge                            Units       C1
+    Electricity              Power                   kW     17.5
+                             Cost                USD/hr     1.37
+    Design                   Flow rate           m^3/hr     12.5
+    Purchase cost            Liquids centrifuge     USD 1.29e+05
+    Total purchase cost                             USD 1.29e+05
+    Installed equipment cost                        USD 2.62e+05
+    Utility cost                                 USD/hr     1.37
     
     """
     line = 'Liquids centrifuge'
@@ -381,13 +382,14 @@ class SLLECentrifuge(Unit):
                         Solids  10
     
     >>> C1.results()
-    3-Phase decanter centrifuge                       Units       C1
-    Electricity         Power                            kW   0.0101
-                        Cost                         USD/hr 0.000792
-    Design              Flow rate                     L/min      250
-    Purchase cost       3-Phase decanter centrifuge     USD 2.88e+05
-    Total purchase cost                                 USD 2.88e+05
-    Utility cost                                     USD/hr 0.000792
+    3-Phase decanter centrifuge                            Units       C1
+    Electricity              Power                            kW   0.0101
+                             Cost                         USD/hr 0.000792
+    Design                   Flow rate                     L/min      250
+    Purchase cost            3-Phase decanter centrifuge     USD 2.88e+05
+    Total purchase cost                                      USD 2.88e+05
+    Installed equipment cost                                 USD 5.84e+05
+    Utility cost                                          USD/hr 0.000792
 
     """
     line = '3-Phase decanter centrifuge'
@@ -493,13 +495,14 @@ class SolidLiquidsSplitCentrifuge(Unit):
                       Solids  9
     
     >>> C1.results()
-    3-Phase decanter centrifuge                       Units       C1
-    Electricity         Power                            kW   0.0101
-                        Cost                         USD/hr 0.000792
-    Design              Flow rate                     L/min      250
-    Purchase cost       3-Phase decanter centrifuge     USD 2.88e+05
-    Total purchase cost                                 USD 2.88e+05
-    Utility cost                                     USD/hr 0.000792
+    3-Phase decanter centrifuge                            Units       C1
+    Electricity              Power                            kW   0.0101
+                             Cost                         USD/hr 0.000792
+    Design                   Flow rate                     L/min      250
+    Purchase cost            3-Phase decanter centrifuge     USD 2.88e+05
+    Total purchase cost                                      USD 2.88e+05
+    Installed equipment cost                                 USD 5.84e+05
+    Utility cost                                          USD/hr 0.000792
     
     """
     line = SLLECentrifuge.line
@@ -1188,17 +1191,18 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
     
     """
     _side_draw_names = ('extract_side_draws', 'raffinate_side_draws')
+    default_algorithms = ('phenomena',)
     _units = MixerSettler._units
-    default_maxiter = 20
+    default_maxiter = 50
     
     def _init(self, N_stages, feed_stages=None, extract_side_draws=None, 
               raffinate_side_draws=None, partition_data=None, top_chemical=None,  
-              mixer_data={}, settler_data={}, use_cache=None, collapsed_init=None):
+              mixer_data={}, settler_data={}, use_cache=None):
         bst.MultiStageEquilibrium._init(
             self, N_stages=N_stages, feed_stages=feed_stages, phases=('l', 'L'), P=101325,
             top_side_draws=extract_side_draws, bottom_side_draws=raffinate_side_draws,
             stage_specifications=None, partition_data=partition_data, 
-            top_chemical=top_chemical, use_cache=use_cache, collapsed_init=collapsed_init,
+            top_chemical=top_chemical, use_cache=use_cache,
         )
         #: [LiquidsMixingTank] Used to design all mixing tanks. 
         #: All data and settings for the design of mixing tanks are stored here.
@@ -1214,7 +1218,6 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
         self._last_args = (
             self.N_stages, self.feed_stages, self.extract_side_draws, self.use_cache,
             *self._ins, self.raffinate_side_draws, self.top_chemical, self.partition_data,
-            self.collapsed_init,
         )
     
     feed = MixerSettler.feed
@@ -1233,8 +1236,7 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
     def _setup(self):
         super()._setup()
         args = (self.N_stages, self.feed_stages, self.extract_side_draws, self.use_cache,
-                *self._ins, self.raffinate_side_draws, self.top_chemical, self.partition_data,
-                self.collapsed_init)
+                *self._ins, self.raffinate_side_draws, self.top_chemical, self.partition_data)
         if args != self._last_args:
             MultiStageEquilibrium._init(
                 self, N_stages=self.N_stages, feed_stages=self.feed_stages,
@@ -1243,7 +1245,6 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
                 bottom_side_draws=self.raffinate_side_draws,
                 stage_specifications=None, partition_data=self.partition_data, 
                 top_chemical=self.top_chemical, use_cache=self.use_cache, 
-                collapsed_init=self.collapsed_init,
             )
             self.mixer._ins = self._ins
             self.settler._outs = self._outs
@@ -1254,6 +1255,7 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
         
     def _design(self):
         mixer = self.mixer
+        mixer._setup()
         mixer._run()
         mixer._design()
         settler = self.settler
@@ -1268,8 +1270,10 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
         N_stages = self.N_stages
         mixer = self.mixer
         settler = self.settler
-        mixer._cost()
-        settler._cost()
+        for u in (mixer, settler):
+            u._setup()
+            u._cost()
+            u._summary()
         self.power_utility.copy_like(mixer.power_utility)
         self.power_utility.scale(N_stages)
         purchase_costs = self.purchase_costs
@@ -1279,11 +1283,5 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
         baseline_purchase_costs['Mixers and agitators'] = N_stages * mixer.purchase_cost
         baseline_purchase_costs['Settlers'] = N_stages * settler.purchase_cost
         installed_costs = self.installed_costs
-        installed_costs['Mixers and agitators'] = N_stages * mixer.purchase_cost
-        installed_costs['Settlers'] = N_stages * settler.purchase_cost
-        
-    @property
-    def installed_cost(self):
-        N_stages = self.N_stages
-        return N_stages * (self.mixer.installed_cost + self.settler.installed_cost)
-        
+        installed_costs['Mixers and agitators'] = N_stages * mixer.installed_cost
+        installed_costs['Settlers'] = N_stages * settler.installed_cost

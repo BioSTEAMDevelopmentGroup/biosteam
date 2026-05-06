@@ -21,7 +21,7 @@ __all__ = ('ProcessWaterCenter',)
 class ProcessWaterCenter(bst.Facility):
     """
     Create a ProcessWaterCenter object that takes care of balancing the amount
-    of make-up process and reverse osmosis (RO) -grade water required for the
+    of make-up process and reverse osmosis (RO)-grade water required for the
     process. The capital cost and power are based on the flow rate of process
     and make-up water as given in[1]_.
     
@@ -76,12 +76,14 @@ class ProcessWaterCenter(bst.Facility):
     _N_outs = 3
     _units = {'Makeup water flow rate': 'kg/hr',
               'Process water flow rate': 'kg/hr'}
+    
     def _init(self, 
             makeup_water_streams=None,
             process_water_streams=None,
             reverse_osmosis_water_price=None,
             process_water_price=None
         ):
+        self.materialize_connections()
         if process_water_streams and makeup_water_streams:
             process_water_streams = list(process_water_streams)
             for i in makeup_water_streams:
@@ -92,6 +94,9 @@ class ProcessWaterCenter(bst.Facility):
         self.define_utility('Process water', self.makeup_process_water)
         if reverse_osmosis_water_price: self.reverse_osmosis_water_price = reverse_osmosis_water_price
         if process_water_price: self.process_water_price = process_water_price
+        self.makeup_reverse_osmosis_grade_water.set_CF('WU', 1)
+        self.makeup_process_water.set_CF('WU', 1)
+        for i in self.outs: i.set_CF('WU', 1)
     
     @property
     def reverse_osmosis_water_price(self):

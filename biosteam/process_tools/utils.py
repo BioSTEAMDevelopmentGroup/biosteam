@@ -240,6 +240,8 @@ def ID_number(ID):
     """
     for i, letter in enumerate(ID):
         if letter.isdigit(): break
+    else:
+        return ''
     for j, letter in enumerate(ID[i:], start=i+1):
         if not letter.isdigit(): 
             j -= 1
@@ -424,8 +426,8 @@ def get_OSBL(units):
     
     """
     return [i for i in units
-            if isinstance(i, (bst.Facility, bst.StorageTank))
-            or 'storage' in i.line.lower() 
+            if isinstance(i, (bst.Facility, bst.StorageTank)) and not 'surge' in i.line.lower()
+            or 'storage' in i.line.lower()
             or 'wastewater' in i.line.lower()]
 
 def heat_exchanger_operation(units):

@@ -18,13 +18,13 @@ References
 
 """
 import biosteam as bst
-from .stirred_tank_reactor import AbstractStirredTankReactor
+from .abstract_stirred_tank_reactor import AbstractStirredTankReactor
 from math import pi
 import numpy as np
 from scipy.constants import g
 import flexsolve as flx
 from warnings import filterwarnings, catch_warnings
-from scipy.optimize import minimize_scalar, minimize, least_squares, differential_evolution
+from scipy.optimize import minimize_scalar, minimize, least_squares
 from biosteam.units.design_tools import aeration
 
 __all__ = (
@@ -34,10 +34,105 @@ __all__ = (
 
 class AeratedBioreactor(AbstractStirredTankReactor):
     """
-    Same as StirredTankReactor but includes aeration. The agitator power may
-    vary to minimize the total power requirement of both the compressor and agitator
-    yet achieve the required oxygen transfer rate.
-    
+    Create an aerated bioreactor which satisfies the oxygen mass tranfer 
+    requirement of the mass balance. The reactor is designed as a pressure vessel with a given aspect ratio and 
+    residence time. A pump-heat exchanger recirculation loop can be used to satisfy 
+    the duty, if any. By default, a turbine agitator is also included if the 
+    power usage, `kW_per_m3`, is positive. A vacuum system is also 
+    automatically added if the operating pressure is at a vacuum. 
+
+    Parameters
+    ----------
+    theta_O2 : 
+        Fraction of oxygen saturation in the broth. Defaults to 0.5.
+    Q_O2_consumption :
+        Forced duty per O2 consummed [kJ/kmol].
+    optimize_power :
+        If true, the agitator power is solved to minimize the total power 
+        requirement of both the compressor and agitator such that the 
+        required oxygen transfer rate is met.
+    design : 
+        Bioreactor design configuration. Valid options include 'Stirred tank'
+        and 'Bubble column'. Defaults to the former.
+    method :
+        Method to calculate the overall mass transfer coefficient, kLa. 
+        Can be a name or a function. Valid method names are listed in 
+        `biosteam.aeration.kLa_methods`.
+        For stirred tanks, defaults to the 'Riet'. 
+        For bubble columns, defaults to 'Dewes'.
+    kLa_kwargs :
+        Additional arguments to pass to the kLa method.
+    cooler_pressure_drop :
+        Pressure drop at the cooler [Pa]. Defaults to 20684.28 Pa, 
+        a heuristic value for a gas.
+    compressor_isentropic_efficiency :
+        Isentropic efficiency of the compressor. Defaults to 0.85.
+    tau :
+        Residence time [hr].
+    T : 
+        Operating temperature [K].
+    P : 
+        Operating pressure [Pa].
+    V_wf : 
+        Fraction of working volume over total volume. Defaults to 0.8.
+    length_to_diameter :
+        Length to diameter ratio of bioreactor.
+    V_max :
+        Maximum volume of a reactor [m3]. Defaults to 355.
+    kW_per_m3 : 
+        Power usage of agitator. Defaults to 0.2955 [kW / m3] from [1]_.
+    vessel_material : 
+        Vessel material. Defaults to 'Stainless steel 316'.
+    vessel_type : 
+        Vessel type. Valid options are 'Horizontal' or 'Vertical'. Defaults to 'Vertical'
+    batch :
+        Whether to use batch operation mode. If False, operation mode is continuous.
+        Defaults to `continuous`.
+    tau_0 : 
+        Cleaning and unloading time (if batch mode). Defaults to 3 hr.
+    N :
+        Number of reactors.
+    heat_exchanger_configuration : 
+        What kind of heat exchanger to default to (if any). Valid options include 
+        'jacketed', 'recirculation loop', and 'internal coil'. Defaults to 'recirculation loop'.
+    dT_hx_loop : 
+        Maximum change in temperature for the heat exchanger loop. Defaults to 5 K.
+    jacket_annular_diameter :
+        Annular diameter of heat exchanger jacket to vessel [m]. Defaults to 0.1 m.
+    loading_time :
+        Loading time of batch reactor. If not given, it will assume each vessel is constantly
+        being filled.
+        
+    Notes
+    -----
+    The heat exchanger configuration can be one of the following:
+
+    * 'recirculation loop': 
+        The recirculation loop takes into account the required flow rate needed to
+        reach the maximum temperature change of the heat exchanger, `dT_hx_loop`. 
+        Increasing `dT_hx_loop` decreases the required recirculation flow rate and
+        therefore decreases pump costs.
+        
+        When parallel reactors are required, one recirculation loop (each with a
+        pump and heat exchanger) is assumed. Although it is possible to use the
+        same recirculation loop for all reactors, this conservative assumption allows
+        for each reactor to be operated independently from each other.
+
+    * 'jacketed':
+        The jacket does not account for the heat transfer area requirement. 
+        It simply assumes that a full jacket can provide the necessary heat transfer
+        area to meet the duty requirement. A heuristic annular diameter is assumed
+        through `jacket_annular_diameter` (which can be adjusted by the user).
+        The temperature at the wall is assumed to be the operating temperature.
+        The weight of the jacket is added to the weight of the vessel and the
+        cost is compounded together as a jacketed vessel.
+        
+    * 'internal coil':
+        The internal coil is costed as an ordinary helical tube heat exchanger
+        with the added assumption that the temperature at the wall is the 
+        operating temperature. This method is still not implemented in BioSTEAM
+        yet.
+
     Examples
     --------
     >>> import biosteam as bst
@@ -49,14 +144,18 @@ class AeratedBioreactor(AbstractStirredTankReactor):
     ...                   units='kg/hr',
     ...                   T=32+273.15)
     >>> # Model oxygen uptake as combustion
-    >>> rxn = bst.Rxn('Glucose + O2 -> H2O + CO2', reactant='Glucose', X=0.5, correct_atomic_balance=True) 
+    >>> rxn = bst.Rxn(
+    ...     'Glucose + O2 -> H2O + CO2', reactant='Glucose', X=0.5,
+    ...     correct_atomic_balance=True
+    ... ) 
     >>> R1 = bst.AeratedBioreactor(
-    ...     'R1', ins=[feed, bst.Stream('air', phase='g')], outs=('vent', 'product'), tau=12, V_max=500,
+    ...     ins=[feed, bst.Stream('air', phase='g')],
+    ...     outs=('vent', 'product'), tau=12, V_max=500,
     ...     reactions=rxn,
     ... )
     >>> R1.simulate()
     >>> R1.show()
-    AeratedBioreactor: R1
+    AeratedBioreactor: R2
     ins...
     [0] feed  
         phase: 'l', T: 305.15 K, P: 101325 Pa
@@ -65,17 +164,17 @@ class AeratedBioreactor(AbstractStirredTankReactor):
     [1] air  
         phase: 'g', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): O2  1.02e+03
-                        N2  3.85e+03
+                        N2  3.84e+03
     outs...
     [0] vent  
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water  135
+        flow (kmol/hr): Water  240
                         CO2    416
-                        O2     606
-                        N2     3.85e+03
+                        O2     605
+                        N2     3.84e+03
     [1] product  
         phase: 'l', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water    6.94e+03
+        flow (kmol/hr): Water    6.84e+03
                         Glucose  69.4
     
     """
@@ -96,7 +195,7 @@ class AeratedBioreactor(AbstractStirredTankReactor):
         'Bubble column': 'Dewes',
     }
     def _init(
-            self, reactions, theta_O2=0.5, Q_O2_consumption=None,
+            self, theta_O2=0.5, Q_O2_consumption=None,
             optimize_power=None, design=None, method=None, kLa_kwargs=None,
             cooler_pressure_drop=None, compressor_isentropic_efficiency=None,
             **kwargs,
@@ -107,17 +206,24 @@ class AeratedBioreactor(AbstractStirredTankReactor):
         #: Pressure drop at the cooler [Pa]. Defaults to 20684.28 Pa, a heuristic value for a gas.
         self.cooler_pressure_drop = 20684.28 if cooler_pressure_drop is None else cooler_pressure_drop
         AbstractStirredTankReactor._init(self, **kwargs)
-        self.reactions = reactions
         self.theta_O2 = theta_O2 # Average concentration of O2 in the liquid as a fraction of saturation.
         self.Q_O2_consumption = Q_O2_consumption # Forced duty per O2 consummed [kJ/kmol].
-        self.optimize_power = True if optimize_power is None else optimize_power
         if design is None: 
-            design = 'Stirred tank'
+            if self.kW_per_m3 == 0:
+                design = 'Bubble column'
+            else:
+                design = 'Stirred tank'
         elif design not in aeration.kLa_method_names:
             raise ValueError(
                 f"{design!r} is not a valid design; only "
                 f"{list(aeration.kLa_method_names)} are valid"
             )
+        self.design = design
+        self.optimize_power = (
+            design == 'Stirred tank' 
+            if optimize_power is None else
+            optimize_power
+        )
         self.design = design
         if method is None:
             method = self.default_methods[design]
@@ -176,7 +282,10 @@ class AeratedBioreactor(AbstractStirredTankReactor):
             self.superficial_gas_flow = U = F / A # m / s
             return aeration.P_at_kLa_Riet(kLa, V, U, **self.kLa_kwargs)
         else:
-            raise NotImplementedError('kLa method has not been implemented in BioSTEAM yet')
+            raise NotImplementedError(
+                'cannot solve for the required agitation power using the '
+               f'kLa method {self.kLa!r} in BioSTEAM yet'
+            )
     
     def _get_duty(self):
         if self.Q_O2_consumption is None:
@@ -217,7 +326,7 @@ class AeratedBioreactor(AbstractStirredTankReactor):
         )
         
     def _run_vent(self, vent, effluent):
-        vent.receive_vent(effluent, energy_balance=False, ideal=True)
+        aeration.vent_broth(vent, effluent)
         
     def _run(self):
         air = self.air
@@ -244,7 +353,8 @@ class AeratedBioreactor(AbstractStirredTankReactor):
             return
         air_cc = self.sparged_gas
         air_cc.copy_like(air)
-        air_cc.P = compressor.P = self._inlet_air_pressure()
+        compressor.P = self._inlet_air_pressure()
+        air_cc.P = compressor.P - self.cooler_pressure_drop
         air_cc.T = self.T
         
         if self.optimize_power:
@@ -260,12 +370,11 @@ class AeratedBioreactor(AbstractStirredTankReactor):
                 return total_power
             
             f = total_power_at_oxygen_flow
-            minimize_scalar(f, 1.2 * OUR, bounds=[OUR, 10 * OUR], tol=OUR * 1e-3)
+            minimize_scalar(f, 1.2 * OUR, bounds=[OUR, 10 * OUR], options=dict(xtol=OUR * 1e-3))
         else:
             def air_flow_rate_objective(O2):
                 air.set_flow([O2, O2 * 79. / 21.], 'mol/s', ['O2', 'N2'])
                 air_cc.copy_flow(air) # Skip simulation of air cooler
-                compressor.simulate()
                 effluent.set_data(effluent_no_air_data)
                 effluent.mix_from([effluent, air_cc], energy_balance=False)
                 vent.empty()
@@ -273,11 +382,35 @@ class AeratedBioreactor(AbstractStirredTankReactor):
                 return OUR - self.get_OTR()
             
             f = air_flow_rate_objective
+            x0 = OUR
             y0 = air_flow_rate_objective(OUR)
-            if y0 <= 0.: # Correlation is not perfect and special cases lead to OTR > OUR
-                return
-            flx.IQ_interpolation(f, x0=OUR, x1=10 * OUR, 
-                                 y0=y0, ytol=1e-3, xtol=1e-3)
+            
+            # Correlation is not perfect and special cases lead to OTR > OUR
+            if y0 <= 0.: return 
+            
+            f = air_flow_rate_objective
+            x1 = 10 * OUR
+            y1 = air_flow_rate_objective(x1)
+            
+            if y1 > 0:
+                x1 = 50 * OUR
+                y1 = air_flow_rate_objective(x1)
+            
+            # It is possible an infinite flow rate of air is not enough to 
+            # satisfy mass transfer if the titer is super high or gas O2 concentration
+            # is too low.
+            if y1 > 0: 
+                raise RuntimeError(
+                    'bioreactor conversion/titer cannot be satisfied; '
+                    'even an infinite flow rate of gas is not enough'
+                )
+            
+            # There is a known solution because y1 < 0 < y0
+            flx.IQ_interpolation(
+                f, x0=x0, x1=x1, 
+                y0=y0, y1=y1, 
+                ytol=1e-3, xtol=1e-3
+            )
         
     def _run_reactions(self, effluent):
         self.reactions.force_reaction(effluent)
@@ -327,7 +460,7 @@ class AeratedBioreactor(AbstractStirredTankReactor):
         return OTR
         
     def _inlet_air_pressure(self):
-        AbstractStirredTankReactor._design(self)
+        AbstractStirredTankReactor._design(self, size_only=True)
         liquid = bst.Stream(None, thermo=self.thermo)
         liquid.mix_from([i for i in self.ins if i.phase != 'g'], energy_balance=False)
         liquid.copy_thermal_condition(self.outs[0])
@@ -338,16 +471,10 @@ class AeratedBioreactor(AbstractStirredTankReactor):
     def _design(self):
         AbstractStirredTankReactor._design(self)
         if self.air.isempty(): return
-        liquid = bst.Stream(None, thermo=self.thermo)
-        liquid.mix_from([i for i in self.ins if i.phase != 'g'], energy_balance=False)
-        liquid.copy_thermal_condition(self.outs[0])
-        rho = liquid.rho
-        length = self.get_design_result('Length', 'm') * self.V_wf
-        compressor = self.compressor
-        compressor.P = g * rho * length + 101325
-        compressor.simulate()
+        self.compressor.simulate()
         air_cooler = self.air_cooler
         air_cooler.T = self.T
+        air_cooler.dP = self.cooler_pressure_drop
         air_cooler.simulate()
         self.parallel['compressor'] = 1
         self.parallel['air_cooler'] = 1
@@ -358,9 +485,120 @@ class AeratedBioreactor(AbstractStirredTankReactor):
 
 class GasFedBioreactor(AbstractStirredTankReactor):
     """
-    Same as AbstractStirredTankReactor but includes multiple gas feeds. The agitator power may
-    vary to minimize the total power requirement of both the compressor and agitator
-    yet achieve the required oxygen transfer rate.
+    Create an gas-fed bioreactor which satisfies the substrate mass tranfer 
+    requirement of the mass balance. The gas-fed bioreactor may include 
+    multiple gas feeds. The user-specified `titer` will be satisfied by varying
+    the flow rates of the `variable_gas_feeds` so long as the 
+    `backward_reactions` are specified. Otherwise, the titer will be estimated
+    assuming constant gas flow rates.
+
+    The reactor is designed as a pressure vessel with a given aspect ratio and 
+    residence time. A pump-heat exchanger recirculation loop can be used to satisfy 
+    the duty, if any. By default, a turbine agitator is also included if the 
+    power usage, `kW_per_m3`, is positive. A vacuum system is also 
+    automatically added if the operating pressure is at a vacuum. 
+
+    Parameters
+    ----------
+    gas_substrates : 
+        Substrates within the gas phase.
+    titer :
+        Dictionary of substrate/titer pairs [g / L].
+    backward_reactions :
+        Backwards reactions to get the substrate mass transfer requirement.
+    variable_gas_feeds :
+        Feeds that can be varied to meet mass transfer requirement.
+    theta : 
+        Fraction of gas substrate saturation in the broth. Defaults to 0.5.
+    Q_consumption :
+        Forced duty per gas substrate consummed [kJ/kmol].
+    optimize_power :
+        If true, the agitator power is solved to minimize the total power 
+        requirement of both the compressor and agitator such that the 
+        required oxygen transfer rate is met.
+    design : 
+        Bioreactor design configuration. Valid options include 'Stirred tank'
+        and 'Bubble column'. Defaults to the former.
+    method :
+        Method to calculate the overall mass transfer coefficient, kLa. 
+        Can be a name or a function. Valid method names are listed in 
+        `biosteam.aeration.kLa_methods`.
+        For stirred tanks, defaults to the 'Riet'. 
+        For bubble columns, defaults to 'Dewes'.
+    kLa_kwargs:
+        Additional arguments to pass to the kLa method.
+    cooler_pressure_drop :
+        Pressure drop at the cooler [Pa]. Defaults to 20684.28 Pa, 
+        a heuristic value for a gas.
+    compressor_isentropic_efficiency :
+        Isentropic efficiency of the compressor. Defaults to 0.85.
+    tau :
+        Residence time [hr].
+    T : 
+        Operating temperature [K].
+    P : 
+        Operating pressure [Pa].
+    V_wf : 
+        Fraction of working volume over total volume. Defaults to 0.8.
+    length_to_diameter :
+        Length to diameter ratio of bioreactor.
+    V_max :
+        Maximum volume of a reactor [m3]. Defaults to 355.
+    kW_per_m3 : 
+        Power usage of agitator. Defaults to 0.985 [kW / m3] converted from 
+        5 hp/1000 gal as in [1]_, for liquid–liquid reaction or extraction.
+    vessel_material : 
+        Vessel material. Defaults to 'Stainless steel 316'.
+    vessel_type : 
+        Vessel type. Valid options are 'Horizontal' or 'Vertical'. Defaults to 'Vertical'
+    batch :
+        Whether to use batch operation mode. If False, operation mode is continuous.
+        Defaults to `continuous`.
+    tau_0 : 
+        Cleaning and unloading time (if batch mode). Defaults to 3 hr.
+    N :
+        Number of reactors.
+    heat_exchanger_configuration : 
+        What kind of heat exchanger to default to (if any). Valid options include 
+        'jacketed', 'recirculation loop', and 'internal coil'. Defaults to 'recirculation loop'.
+    dT_hx_loop : 
+        Maximum change in temperature for the heat exchanger loop. Defaults to 5 K.
+    jacket_annular_diameter :
+        Annular diameter of heat exchanger jacket to vessel [m]. Defaults to 0.1 m.
+    loading_time :
+        Loading time of batch reactor. If not given, it will assume each vessel is constantly
+        being filled.
+        
+    Notes
+    -----
+    The heat exchanger configuration can be one of the following:
+
+    * 'recirculation loop': 
+        The recirculation loop takes into account the required flow rate needed to
+        reach the maximum temperature change of the heat exchanger, `dT_hx_loop`. 
+        Increasing `dT_hx_loop` decreases the required recirculation flow rate and
+        therefore decreases pump costs.
+        
+        When parallel reactors are required, one recirculation loop (each with a
+        pump and heat exchanger) is assumed. Although it is possible to use the
+        same recirculation loop for all reactors, this conservative assumption allows
+        for each reactor to be operated independently from each other.
+
+    * 'jacketed':
+        The jacket does not account for the heat transfer area requirement. 
+        It simply assumes that a full jacket can provide the necessary heat transfer
+        area to meet the duty requirement. A heuristic annular diameter is assumed
+        through `jacket_annular_diameter` (which can be adjusted by the user).
+        The temperature at the wall is assumed to be the operating temperature.
+        The weight of the jacket is added to the weight of the vessel and the
+        cost is compounded together as a jacketed vessel.
+        
+    * 'internal coil':
+        The internal coil is costed as an ordinary helical tube heat exchanger
+        with the added assumption that the temperature at the wall is the 
+        operating temperature. This method is still not implemented in BioSTEAM
+        yet.
+
     
     Examples
     --------
@@ -373,12 +611,14 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     >>> rxn = bst.Rxn('H2 + CO2 -> AceticAcid + H2O', reactant='H2', correct_atomic_balance=True) 
     >>> brxn = rxn.backwards(reactant='AceticAcid')
     >>> R1 = bst.GasFedBioreactor(
-    ...     'R1', ins=[media, H2, fluegas], outs=('vent', 'product'), tau=68, V_max=500,
+    ...     'R1', ins=[media, H2, fluegas], outs=('vent', 'product'), 
+    ...     tau=68, V_max=500,
     ...     reactions=rxn, backward_reactions=brxn,
     ...     gas_substrates=('H2', 'CO2'),
-    ...     titer={'AceticAcid': 5},
+    ...     titer=dict(AceticAcid=5),
     ...     optimize_power=False,
     ...     kW_per_m3=0.,
+    ...     T=305.15
     ... )
     >>> R1.simulate()
     >>> R1.show()
@@ -386,10 +626,10 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     ins...
     [0] media  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): H2O  188
+        flow: 88.8 kmol/hr H2O
     [1] H2  
         phase: 'g', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): H2  49.6
+        flow: 49.6 kmol/hr H2
     [2] fluegas  
         phase: 'g', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): CO2  0.568
@@ -399,15 +639,20 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     outs...
     [0] vent  
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): H2          48.5
+        flow (kmol/hr): H2          49
+                        CO2         0.29
                         N2          2.5
                         O2          0.0625
-                        H2O         1.89
-                        AceticAcid  0.00183
+                        H2O         2.55
+                        AceticAcid  0.0082
     [1] product  
         phase: 'l', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): H2O         187
-                        AceticAcid  0.282
+        flow (kmol/hr): H2          0.00107
+                        CO2         0.000242
+                        N2          4.13e-05
+                        O2          2.11e-06
+                        H2O         86.7
+                        AceticAcid  0.131
     
     """
     _N_ins = 2
@@ -428,7 +673,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     get_agitation_power = AeratedBioreactor.get_agitation_power
     
     def _init(self, 
-            reactions, gas_substrates, 
+            gas_substrates, 
             # Can vary either liquid or gas flows
             titer=None, 
             # Only for variable gas flows
@@ -438,12 +683,15 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             design=None, method=None, kLa_kwargs=None,
             theta=0.5, Q_consumption=None,
             cooler_pressure_drop=None,
+            compressor_isentropic_efficiency=None,
             # Only for agitated bioreactors (not bubble column)
             optimize_power=None, 
             **kwargs,
         ):
+        if compressor_isentropic_efficiency is None: compressor_isentropic_efficiency = 0.85
+        #: Isentropic efficiency of the compressor. Defaults to 0.85.
+        self.compressor_isentropic_efficiency = compressor_isentropic_efficiency
         self.cooler_pressure_drop = 20684.28 if cooler_pressure_drop is None else cooler_pressure_drop
-        self.reactions = reactions
         self.backward_reactions = backward_reactions
         self.theta = theta # Average concentration of gas substrate in the liquid as a fraction of saturation.
         self.Q_consumption = Q_consumption # Forced duty per gas substrate consummed [kJ/kmol].
@@ -521,7 +769,8 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         for inlet in self.ins:
             if inlet.phase != 'g': continue
             compressor = self.auxiliary(
-                'compressors', bst.IsentropicCompressor, inlet, eta=0.85, P=2 * 101325
+                'compressors', bst.IsentropicCompressor, inlet, 
+                eta=self.compressor_isentropic_efficiency, P=2 * 101325
             )
             self.auxiliary(
                 'gas_coolers', bst.HXutility, compressor-0, T=self.T
@@ -529,9 +778,6 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         self.auxiliary(
             'sparger', bst.Mixer, [i-0 for i in self.gas_coolers]
         )
-        
-    def _run_vent(self, vent, effluent):
-        vent.receive_vent(effluent, energy_balance=False, ideal=True)
         
     def get_SURs(self, effluent):
         F_vol = effluent.ivol['Water'] # m3 / hr
@@ -547,6 +793,12 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         for i in self.gas_coolers: i.simulate()
         self.sparger.simulate()
     
+    def _run_vent(self, vent, effluent):
+        flows = vent.imol[self.gas_substrates]
+        vent.copy_flow(self.sparged_gas)
+        vent.imol[self.gas_substrates] = flows
+        aeration.vent_broth(vent, effluent)
+    
     def _run(self):
         variable_gas_feeds = self.variable_gas_feeds
         vent, effluent = self.outs
@@ -554,21 +806,26 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         vent.T = effluent.T = self.T
         vent.empty()
         vent.phase = 'g'
-        if not self.titer:
-            liquid_feeds = [i for i in self.ins if i.phase != 'g']
+        liquid_feeds = [i for i in self.ins if i.phase != 'g']
+        if not self.titer: 
+            # Titer is given by the mass transfer.
             T = self.T
             P = self._inlet_gas_pressure()
             for i in self.compressors: i.P = P
             for i in self.gas_coolers: i.T = T
             self._load_gas_feeds()
             STRs = self.get_STRs()
+            substrates = sum([i.get_flow(units='mol/s', key=self.gas_substrates) for i in self.ins])
+            STRs = np.minimum(STRs, substrates)
             effluent.mix_from(liquid_feeds, energy_balance=False)
             effluent.set_flow(STRs, units='mol/s', key=self.gas_substrates)
+            remaining = substrates - STRs
             self._run_reactions(effluent)
             vent.empty()
+            self.vent.set_flow(remaining, units='mol/s', key=self.gas_substrates)
             self._run_vent(vent, effluent)
         elif variable_gas_feeds:
-            liquid_feeds = [i for i in self.ins if i.phase != 'g']
+            # Solve gas flow rates to meet titer.
             effluent.mix_from(liquid_feeds, energy_balance=False)
             T = self.T
             P = self._inlet_gas_pressure()
@@ -598,7 +855,13 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             
             baseline_feed = bst.Stream.sum(self.normal_gas_feeds, energy_balance=False)
             baseline_flows = baseline_feed.get_flow('mol/s', self.gas_substrates)
-            bounds = np.array([[max(1.01 * SURs[i] - baseline_flows[i], 1e-6), 10 * SURs[i]] for i in index])
+            
+            # Bounds must meet substrate uptake rate (minimally).
+            # At most, 10x the substrate uptake rate as an abritrarily high number.
+            bounds = np.array([
+                [max(1.01 * SURs[i] - baseline_flows[i], 1e-6), 10 * SURs[i]] 
+                for i in index
+            ])
             if self.optimize_power:
                 def total_power_at_substrate_flow(F_substrates):
                     load_flow_rates(F_substrates)
@@ -629,8 +892,13 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                     bounds = bounds.T
                     results = least_squares(f, 1.2 * SURs, bounds=bounds, ftol=SURs.min() * 1e-6)
                 self._results = results
+                if not results.success:
+                    raise RuntimeError(
+                        'bioreactor conversion/titer could not be satisfied'
+                    )
                 load_flow_rates(results.x / x_substrates)
-        else:
+        else: 
+            # Titer given, must adjust liquid flows to meet mass transfer.
             try:
                 feed, = [i for i in self.ins if i.phase != 'g']
             except:
@@ -640,24 +908,31 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             for i in self.compressors: i.P = P
             for i in self.gas_coolers: i.T = T
             self._load_gas_feeds()
+            substrates = sum([i.get_flow(units='mol/s', key=self.gas_substrates) for i in self.ins])
             F_liquid_max = self._initialize_variable_liquid_guess(feed, effluent, vent)
             product, titer = next(iter(self.titer.items()))
             def liquid_flow_rate_objective(F_feed):
                 feed.F_mass = F_feed
-                STRs = self.get_STRs()
-                effluent.copy_flow(feed)
-                effluent.set_flow(STRs, units='mol/s', key=self.gas_substrates)
-                self._run_reactions(effluent)
-                vent.empty()
-                self._run_vent(vent, effluent)
-                return effluent.imass[product] / effluent.ivol['Water'] - titer
                 
+                def f(vent_flow_rates):
+                    self.vent.mol = vent_flow_rates
+                    STRs = self.get_STRs()
+                    STRs = np.minimum(STRs, substrates)
+                    effluent.copy_flow(feed)
+                    effluent.set_flow(STRs, units='mol/s', key=self.gas_substrates)
+                    remaining = substrates - STRs
+                    self._run_reactions(effluent)
+                    vent.empty()
+                    self.vent.set_flow(remaining, units='mol/s', key=self.gas_substrates)
+                    self._run_vent(vent, effluent)
+                    return self.vent.mol.to_array()
+                    
+                flx.aitken(f, self.vent.mol.to_array(), checkiter=False, xtol=1e-3, checkconvergence=False)
+                return effluent.imass[product] / effluent.ivol['Water'] - titer
+            
             flx.IQ_interpolation(liquid_flow_rate_objective, 0.05 * F_liquid_max, F_liquid_max, ytol=1e-3)
-        # self.show()
-        # breakpoint()
         
     def _run_reactions(self, effluent):
-        effluent.mix_from(self.ins)
         data = effluent.get_data()
         rxns = self.reactions
         rxns.force_reaction(effluent)
@@ -675,14 +950,13 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                 break
         
     def _initialize_variable_liquid_guess(self, feed, effluent, vent):
-        effluent.copy_flow(feed)
+        effluent.mix_from(self.ins, energy_balance=False)
+        data = vent.get_data()
+        vent.empty()
         self._run_reactions(effluent)
         product, titer = next(iter(self.titer.items()))
         F_liquid_max = 1000 * effluent.imass[product] / titer # kg / hr
-        feed.F_mass = F_liquid_max
-        effluent.mix_from(self.ins, energy_balance=False)
-        vent.empty()
-        self._run_vent(vent, effluent)
+        vent.set_data(data)
         return F_liquid_max
         
     def _solve_total_power(self, SURs): # For STR = SUR [mol / s]
@@ -726,7 +1000,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         STRs = []
         for ID in self.gas_substrates:
             Py_gas = P_gas * gas_in.imol[ID] / gas_in.F_mol
-            Py_vent = P_vent * vent.imol[ID] / vent.F_mol
+            Py_vent = P_vent * vent.imol[ID] / (vent.F_mol or 1)
             C_sat_gas = aeration.C_L(self.T, Py_gas, ID) # mol / kg
             C_sat_vent = aeration.C_L(self.T, Py_vent, ID) # mol / kg
             theta = self.theta

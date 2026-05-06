@@ -56,14 +56,14 @@ class Mixer(Unit):
     >>> M1.show()
     Mixer: M1
     ins...
-    [0] s1
+    [0] s1  
         phase: 'l', T: 350 K, P: 101325 Pa
-        flow (kmol/hr): Water  20
-    [1] s2
+        flow: 20 kmol/hr Water
+    [1] s2  
         phase: 'l', T: 300 K, P: 101325 Pa
-        flow (kmol/hr): Ethanol  30
+        flow: 30 kmol/hr Ethanol
     outs...
-    [0] s3
+    [0] s3  
         phase: 'l', T: 315.14 K, P: 101325 Pa
         flow (kmol/hr): Ethanol  30
                         Water    20
@@ -75,6 +75,8 @@ class Mixer(Unit):
     _N_ins = 2
     _ins_size_is_fixed = False
     
+    Q = 0
+    specified_variable = 'Q'
     equation_node_names = (
         'overall_material_balance_node', 
         'energy_balance_node',
@@ -103,10 +105,15 @@ class Mixer(Unit):
         if hasattr(self, '_T_node'): return self._T_node
         self._T_node = var = bst.VariableNode(f"{self.node_tag}.T", lambda: self.outs[0].T)
         return var 
-        
+    
     @property
-    def E_node(self):
-        return self.T_node    
+    def B_node(self):
+        if hasattr(self, '_B_node'): return self._B_node
+        self._B_node = var = bst.VariableNode(f"{self.node_tag}.B", lambda: self.B)
+        return var
+        
+    def get_E_node(self, stream):
+        return self.B_node if self.outs[0].phases == ('g', 'l') else self.T_node
     
     def _assert_compatible_property_package(self): 
         pass # Not necessary for mixing streams
@@ -122,42 +129,70 @@ class Mixer(Unit):
                        conserve_phases=getattr(self, 'conserve_phases', None))
         V = s_out.vapor_fraction
         if V == 0:
-            self._B = 0
+            self.B = 0
         elif V == 1:
-            self._B = np.inf
+            self.B = np.inf
         else:
-            self._B = V / (1 - V)
+            self.B = V / (1 - V)
     
-    def _get_energy_departure_coefficient(self, stream):
-        if stream.phases == ('g', 'l'):
-            vapor, liquid = stream
-            if vapor.isempty():
-                with liquid.temporary_phase('g'): coeff = liquid.H
-            else:
-                coeff = -vapor.h * liquid.F_mol
+    def _update_nonlinearities(self): self._run()
+    
+    def _update_energy_coefficient(self, stream, coefficients):
+        if self.outs[0].phases != ('g', 'l'):
+            C = stream.C
+            coefficients[self, 'T'] = -C
+            H_ref = C * stream.T
         else:
-            coeff = -stream.C
-        return (self, coeff)
+            H_ref = 0
+        return H_ref
     
-    def _create_energy_departure_equations(self):
-        # Ll: C1dT1 - Ce2*dT2 - Cr0*dT0 - hv2*L2*dB2 = Q1 - H_out + H_in
-        # gl: hV1*L1*dB1 - hv2*L2*dB2 - Ce2*dT2 - Cr0*dT0 = Q1 + H_in - H_out
+    def _create_energy_balance_equations(self):
+        fresh_inlets, process_inlets, equations = self._begin_energy_equations()
+        Q = self.Q + sum([i.H for i in fresh_inlets])
         outlet = self.outs[0]
-        phases = outlet.phases
-        if phases == ('g', 'l'):
-            vapor, liquid = outlet
+        if outlet == ('g', 'l'):
             coeff = {}
-            if vapor.isempty():
-                with liquid.temporary_phase('g'): coeff[self] = liquid.H
-            else:
-                coeff[self] = vapor.h * liquid.F_mol
+            for i in self.flat_outs: coeff[i, 'F_mol'] = i.h
         else:
-            coeff = {self: outlet.C}
-        for i in self.ins: i._update_energy_departure_coefficient(coeff)
-        return [(coeff, self.H_in - self.H_out)]
+            coeff = {(outlet, 'F_mol'): outlet.h}
+            coeff[self, 'T'] = C = outlet.C
+            Q += C * outlet.T
+        for i in process_inlets: 
+            if i.isempty(): continue
+            coeff[i, 'F_mol'] = -i.h
+            Q -= i._update_energy_coefficient(coeff)
+        return [(coeff, Q)]
+    
+    def _create_bulk_balance_equations(self):
+        fresh_inlets, process_inlets, equations = self._begin_bulk_equations()
+        eq_overall = {}
+        outlet = self.outs[0]
+        eq_overall[outlet, 'F_mol'] = 1
+        for i in process_inlets:
+            if i in eq_overall: del eq_overall[i, 'F_mol']
+            else: eq_overall[i, 'F_mol'] = -1
+        equations.append(
+            (eq_overall, sum([i.F_mol for i in fresh_inlets]))
+        )
+        if outlet.phases == ('g', 'l'):
+            top, bottom = self.flat_outs
+            eq_outs = {}
+            eq_outs[top, 'F_mol'] = 1
+            eq_outs[bottom, 'F_mol'] = -top.F_mol / bottom.F_mol
+            equations.append(
+                (eq_outs, 0)
+            )
+        return equations
+    
+    def _reset_bulk_variable(self):
+        if self.outs[0].phases == ('g', 'l'):
+            partition = self.partition
+            top, bottom = self.partition.outs
+            IDs = partition.IDs
+            partition.B = top.imol[IDs].sum() / bottom.imol[IDs].sum()
     
     def _create_material_balance_equations(self, composition_sensitive):
-        fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
+        fresh_inlets, process_inlets, equations = self._begin_material_equations(composition_sensitive)
         outlet, = self.outs
         if len(outlet) == 1:
             ones = np.ones(self.chemicals.size)
@@ -187,7 +222,7 @@ class Mixer(Unit):
             )
             
             # Top to bottom flows
-            B = self._B
+            B = self.B
             eq_outs = {}
             if B == np.inf:
                 eq_outs[bottom] = ones
@@ -204,14 +239,11 @@ class Mixer(Unit):
             )
         return equations
     
-    def _update_energy_variable(self, departure):
-        phases = self.outs[0].phases
-        if phases == ('g', 'l'):
-            self._B += departure
+    def _update_variable(self, variable, value):
+        if variable == 'T':
+            self.outs[0].T = value
         else:
-            self.outs[0].T += departure
-
-    def _update_nonlinearities(self): pass
+            raise ValueError('cannot update variable')
 
 
 class SteamMixer(Unit):
@@ -247,50 +279,46 @@ class SteamMixer(Unit):
     >>> M1.show('cwt100') # Note that outlet solids loading is not exactly 0.3 because of the steam requirement.
     SteamMixer
     ins...
-    [0] feed
+    [0] feed  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        composition (%): Water    9.09
-                         Glucose  90.9
-                         -------  1.98e+03 kg/hr
-    [1] steam
+        flow (%): Water    9.09
+                  Glucose  90.9
+                  -------  1.98e+03 kg/hr
+    [1] steam  
         phase: 'g', T: 454.77 K, P: 1.041e+06 Pa
-        composition (%): Water  100
-                         -----  1.28e+03 kg/hr
-    [2] process_water
+        flow: 1.29e+03 kg/hr Water
+    [2] process_water  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        composition (%): Water  100
-                         -----  4.02e+03 kg/hr
+        flow: 4.02e+03 kg/hr Water
     outs...
-    [0] outlet
+    [0] outlet  
         phase: 'l', T: 431.15 K, P: 557288 Pa
-        composition (%): Water    75.3
-                         Glucose  24.7
-                         -------  7.29e+03 kg/hr
+        flow (%): Water    75.3
+                  Glucose  24.7
+                  -------  7.29e+03 kg/hr
     
     >>> M1.solids_loading_includes_steam = True
     >>> M1.simulate()
     >>> M1.show('cwt100') # Now the outlet solids content is exactly 0.3
     SteamMixer
     ins...
-    [0] feed
+    [0] feed  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        composition (%): Water    9.09
-                         Glucose  90.9
-                         -------  1.98e+03 kg/hr
-    [1] steam
+        flow (%): Water    9.09
+                  Glucose  90.9
+                  -------  1.98e+03 kg/hr
+    [1] steam  
         phase: 'g', T: 454.77 K, P: 1.041e+06 Pa
-        composition (%): Water  100
-                         -----  1.02e+03 kg/hr
-    [2] process_water
+        flow: 1.02e+03 kg/hr Water
+    [2] process_water  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        composition (%): Water  100
-                         -----  3.01e+03 kg/hr
+        flow: 3e+03 kg/hr Water
     outs...
-    [0] outlet
+    [0] outlet  
         phase: 'l', T: 431.15 K, P: 557288 Pa
-        composition (%): Water    70
-                         Glucose  30
-                         -------  6.01e+03 kg/hr
+        flow (%): Water    70
+                  Glucose  30
+                  -------  6.01e+03 kg/hr
     
     """
     _N_outs = 1

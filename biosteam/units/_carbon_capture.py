@@ -76,45 +76,46 @@ class AmineAbsorption(Unit):
     >>> U1.show()
     AmineAbsorption: U1
     ins...
-    [0] flue_gas
+    [0] flue_gas  
         phase: 'l', T: 321.15 K, P: 101325 Pa
         flow (kmol/hr): CO2  2.9e+03
                         O2   3.62e+03
                         N2   1.76e+04
-    [1] makeup_MEA
+    [1] makeup_MEA  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): MEA  2.82
-    [2] makeup_water
+        flow: 2.82 kmol/hr MEA
+    [2] makeup_water  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Water  22.3
+        flow: 22.3 kmol/hr Water
     outs...
-    [0] vent
+    [0] vent  
         phase: 'l', T: 313.15 K, P: 101325 Pa
         flow (kmol/hr): CO2  290
                         O2   3.62e+03
                         N2   1.76e+04
-    [1] CO2
+    [1] CO2  
         phase: 'l', T: 313.15 K, P: 101325 Pa
-        flow (kmol/hr): CO2  2.61e+03
+        flow: 2.61e+03 kmol/hr CO2
     >>> U1.results()
-    Amine absorption                            Units       U1
-    Electricity         Power                      kW 1.23e+03
-                        Cost                   USD/hr     96.4
-    Low pressure steam  Duty                    kJ/hr 4.36e+08
-                        Flow                  kmol/hr 1.12e+04
-                        Cost                   USD/hr 2.67e+03
-    Design              Total flow            kmol/hr 2.41e+04
-                        CO2 flow              kmol/hr 2.61e+03
-    Purchase cost       Makeup tank               USD  2.5e+05
-                        Cooler                    USD 9.78e+04
-                        Cross heat exchanger      USD 2.48e+06
-                        Reboiler                  USD 5.76e+05
-                        Condenser                 USD 2.94e+05
-                        Pumps                     USD  1.2e+05
-                        Stripper                  USD 4.35e+06
-                        Absorber                  USD 5.23e+06
-    Total purchase cost                           USD 1.34e+07
-    Utility cost                               USD/hr 2.77e+03
+    Amine absorption                                 Units       U1
+    Electricity              Power                      kW 1.23e+03
+                             Cost                   USD/hr     96.4
+    Low pressure steam       Duty                    kJ/hr 4.36e+08
+                             Flow                  kmol/hr 1.13e+04
+                             Cost                   USD/hr 2.68e+03
+    Design                   Total flow            kmol/hr 2.41e+04
+                             CO2 flow              kmol/hr 2.61e+03
+    Purchase cost            Makeup tank               USD  2.5e+05
+                             Cooler                    USD 9.78e+04
+                             Cross heat exchanger      USD 2.48e+06
+                             Reboiler                  USD 5.76e+05
+                             Condenser                 USD 2.94e+05
+                             Pumps                     USD  1.2e+05
+                             Stripper                  USD 4.35e+06
+                             Absorber                  USD 5.23e+06
+    Total purchase cost                                USD 1.34e+07
+    Installed equipment cost                           USD 5.34e+07
+    Utility cost                                    USD/hr 2.78e+03
     
     References
     ----------
@@ -190,21 +191,22 @@ class CO2Compression(Unit):
     >>> U1.show()
     CO2Compression: U1
     ins...
-    [0] gaseous_CO2
+    [0] gaseous_CO2  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): CO2  2.61e+03
+        flow: 2.61e+03 kmol/hr CO2
     outs...
-    [0] compressed_CO2
+    [0] compressed_CO2  
         phase: 'l', T: 303.15 K, P: 1.1e+07 Pa
-        flow (kmol/hr): CO2  2.61e+03
+        flow: 2.61e+03 kmol/hr CO2
     >>> U1.results()
-    CO2Compression                    Units       U1
-    Electricity         Power            kW      360
-                        Cost         USD/hr     28.2
-    Design              Total flow  kmol/hr 2.61e+03
-    Purchase cost       Compressor      USD 1.45e+06
-    Total purchase cost                 USD 1.45e+06
-    Utility cost                     USD/hr     28.2
+    CO2Compression                         Units       U1
+    Electricity              Power            kW      360
+                             Cost         USD/hr     28.2
+    Design                   Total flow  kmol/hr 2.61e+03
+    Purchase cost            Compressor      USD 1.45e+06
+    Total purchase cost                      USD 1.45e+06
+    Installed equipment cost                 USD  4.8e+06
+    Utility cost                          USD/hr     28.2
 
     References
     ----------

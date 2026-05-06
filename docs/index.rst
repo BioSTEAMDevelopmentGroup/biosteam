@@ -1,5 +1,5 @@
-The Biorefinery Simulation and TEA Modules
-==========================================
+Fast and Flexible Process Simulation
+====================================
 
 .. toctree::
    :maxdepth: 2
@@ -25,7 +25,7 @@ The Biorefinery Simulation and TEA Modules
     .. grid-item::
 
         BioSTEAM is an open-source platform that streamlines the design, simulation, techno-economic 
-        analysis (TEA) and life-cycle assessment (LCA) of biorefineries across thousands 
+        analysis (TEA) and life-cycle assessment (LCA) of chemical processes across thousands 
         of scenarios. BioSTEAM is also leveraged by `QSDsan <https://qsdsan.readthedocs.io/en/latest/>`_,
         a library for the quantitative sustainable design of sanitation and resource recovery
         systems. The long-term growth and maintenance of BioSTEAM is supported
@@ -117,8 +117,13 @@ Installation
    
       $ git clone --depth 10 git://github.com/BioSTEAMDevelopmentGroup/biosteam
 
-#. BioSTEAM uses `Graphviz <http://www.graphviz.org/>`__ to make flowsheet diagrams. 
-   You will need to install Graphviz separately as follows:
+#. BioSTEAM uses `Graphviz <http://www.graphviz.org/>`__ to make flowsheet diagrams. To properly install Graphviz in an anaconda distribution, run the following line:
+
+   .. code-block:: bash
+    
+      $ conda install python-graphviz
+
+#. If you **do not** have an anaconda distribution, you will need to install Graphviz separately as follows:
 
    * Windows: Download the EXE installer and follow the instructions listed `in this link <https://graphviz.org/download/>`__
 
@@ -133,19 +138,20 @@ Installation
      .. code-block:: bash
     
         $ brew install graphviz
-   
-#. To properly install Graphviz in an anaconda distribution, run the following line:
-
-   .. code-block:: bash
-    
-      $ conda install python-graphviz
 
 Common Issues
 -------------
 
+* **Unit and system diagrams are not displaying:**
+
+  Graphviz may not be properly installed or may be missing from your python path. 
+  Please follow the graphviz installation procedure outlined above.
+
 * **Cannot install/update BioSTEAM:**
 
-  If you are having trouble installing or updating BioSTEAM, it may be due to dependency issues. You can bypass these using:
+  If you are having trouble installing or updating BioSTEAM, it may be due to dependency issues. 
+  Some dependencies like chaospy/numpoly require Microsoft C++ Build Tools. Download and install the `C++ build tools here. <https://visualstudio.microsoft.com/visual-cpp-build-tools/>`__
+  You can also bypass dependency issues using:
   
   .. code-block:: bash
 
@@ -157,17 +163,15 @@ Common Issues
 
      $ pip install biosteam==<version>
 
-* **Unit and system diagrams are not displaying:**
-
-  Graphviz may not be properly installed or may be missing from your python path. 
-  Please follow the graphviz installation procedure outlined above.
-
 Scientific Papers
 -----------------
 
-Several studies have leveraged the BioSTEAM platform to compare conversion 
-technologies, chart development pathways for various bioproducts, and build new
-tools for sustainability assessments. Here is a short list of related publications:
+BioSTEAM has been used to model a range of fermentation-based bioproduct pathways
+going from conventional/cellulosic crops, municipal solid waste, and flue gas all
+the way to diols, organic acids, oleochemicals, and biofuels. Newer applications
+for BioSTEAM include thermochemical upcycling of waste plastics through
+pyrolysis and solvent-based dissolution and precipitation. Several studies have leveraged the BioSTEAM platform to compare conversion 
+technologies, inform policy making, and build new modeling tools:
 
 * **Software tools**:
 
@@ -179,14 +183,62 @@ tools for sustainability assessments. Here is a short list of related publicatio
 
 * **Social, economic, and policy studies**:
 
+  #. `Filling the Cellulosic Bio-Economy Gap by Utilizing a Wedge Approach Combined with Stakeholder Collaboration. Renewable Energy 2026 <https://doi.org/10.1016/j.renene.2026.125419>`_
+
   #. `An agent-based modeling tool supporting bioenergy and bio-product community communication regarding cellulosic bioeconomy development. Renewable and Sustainable Energy Reviews 2022 <https://doi.org/10.1016/j.rser.2022.112745>`_
 
   #. `Implications of Biorefinery Policy Incentives and Location-Specific Economic Parameters for the Financial Viability of Biofuels. Environ Sci Technol 2023 <https://doi.org/10.1021/acs.est.2c07936>`_
 
-* **Bioproduct and biofuel studies**:
+* **Waste valorization**:
+
+  #. `Production of High-Quality Polyethylene (PE) Films from Post-Consumer Shrink Wrap with Solvent Targeted Recovery and Precipitation (STRAP). Waste Management 2026 <https://doi.org/10.1016/j.wasman.2026.115395>`_
+
+  #. `An Agile Benchmarking Framework for Wastewater Resource Recovery Technologies. npj Clean Water 2025 <https://doi.org/10.1038/s41545-025-00537-4>`_
+
+  #. `Cost-Effective Urine Recycling Enabled by a Synthetic Osteoyeast Platform for Production of Hydroxyapatite. Nat Commun 2025 <https://doi.org/10.1038/s41467-025-59416-8>`_
   
+  #. `Advancing the Economic and Environmental Sustainability of Rare Earth Element Recovery from Phosphogypsum. Environ. Sci. Technol. 2025 <https://doi.org/10.1021/acs.est.5c04952>`_
+    
+  #. `Hydrothermal-Based Wastewater Solids Management for Targeted Resource Recovery and Decarbonization in the Contiguous U.S. Environ. Sci. Technol. 2025 <https://doi.org/10.1021/acs.est.5c07190>`_
+
+  #. `Recycling of Single-Use Multilayer Plastics for Biomanufacturing with Solvent-Targeted Recovery and Precipitation. ACS Sustainable Chem. Eng. 2025 <https://doi.org/10.1021/acssuschemeng.5c06479>`_
+  
+  #. `Screening green solvents for multilayer plastic film recycling processes. Computers & Chemical Engineering 2025 <https://doi.org/10.1016/j.compchemeng.2025.109129>`_
+
+  #. `Recycling of a Post-Industrial Printed Multilayer Plastic Film Containing Polyurethane Inks by Solvent-Targeted Recovery and Precipitation. Resources, Conservation and Recycling 2023 <https://doi.org/10.1016/j.resconrec.2023.107086>`_
+
+  #. `Comparative Techno-Economic Analysis and Life Cycle Assessment of Producing High-Value Chemicals and Fuels from Waste Plastic via Conventional Pyrolysis and Thermal Oxo-Degradation. Energy Fuels 2023 <https://doi.org/10.1021/acs.energyfuels.3c02321>`_
+
+  #. `High-purity polypropylene from disposable face masks via solvent-targeted recovery and precipitation. Green Chemistry 2023 <https://doi.org/10.1039/D3GC00205E>`_
+
+* **Biomanufactureing, bioproducts, and biofuels**:
+
+  #. `Lifecycle Cost, Environmental, and Machine-Learning Value Assessment for Synthetic Spider Silk Production from E. Coli. Green Chem. 2026 <https://doi.org/10.1039/D5GC05082K>`_
+  
+  #. `A KPI-Based Experimental Design Strategy for Bioprocess Development. Biochemical Engineering Journal 2026 <https://doi.org/10.1016/j.bej.2026.110096>`_
+
+  #. `Co-Deploying Algal Biocarbon Capture with Coal Power in China Reduces Carbon Emissions and Improves Cost-Effectiveness. Sustainable Production and Consumption 2026 <https://doi.org/10.1016/j.spc.2026.01.007>`_
+  
+  #. `Integrated Dynamic Control and Enzyme Co-Localization Strategies Enable High-Efficiency Stilbenoid Biosynthesis. Bioresource Technology 2026 <https://doi.org/10.1016/j.biortech.2026.134122>`_
+  
+  #. `Conversion of Waste Microalgae into Caproic Acid Using Anaerobic Membrane Bioreactors without External Electron Donors. Green Chem. 2026 <https://doi.org/10.1039/D6GC00346J>`_
+
+  #. `Bio-Based Oxalic Acid Production in Issatchenkia Orientalis Enables Sustainable Rare Earth Recovery. Nat Commun 2026 <https://doi.org/10.1038/s41467-026-68957-5>`_
+  
+  #. `Co-Location of Cellulosic Bioethanol and Alcohol-to-Jet (ATJ) Production Facilities for Targeted Scale-Up of Sustainable Aviation Fuel (SAF) Production. Environ. Sci. Technol. 2026 <https://doi.org/10.1021/acs.est.5c17460>`_
+
+  #. `High Yield Production of 3-Hydroxypropionic Acid Using Issatchenkia Orientalis. Nat Commun 2026 <https://doi.org/10.1038/s41467-025-67621-8>`_.
+  
+  #. `Technoeconomic and Life Cycle Assessment of a Modular Bioprocess System for Producing Polyhydroxyalkanoates from Food Waste via Heterogeneous Fermentation. Journal of Cleaner Production 2025 <https://doi.org/10.1016/j.jclepro.2025.147224>`_
+  
+  #. `Decompartmentalization of the Yeast Mitochondrial Metabolism to Improve Chemical Production in Issatchenkia Orientalis. Nat Commun 2025 <https://doi.org/10.1038/s41467-025-62304-w>`_
+
+  #. `Rational Multienzyme Architecture Design with iMARS. Cell 2025 <https://doi.org/10.1016/j.cell.2024.12.029>`_
+
   #. `Sustainable potassium sorbate production from triacetic acid lactone in food-grade solvents. Green Chem 2025 <https://doi.org/10.1039/D4GC04832F>`_
   
+  #. `Techno-Economic Analysis and Life Cycle Assessment of Lignin Derived 4-Hydroxy-3,5-Dimethoxyphenylacetic Acid. Chemical Engineering Journal 2025 <https://doi.org/10.1016/j.cej.2025.164954>`_
+
   #. `Integration of plant and microbial oil processing at oilcane biorefineries for more sustainable biofuel production. GCB Bioenergy 2024 <https://doi.org/10.1111/gcbb.13183>`_
 
   #. `Economic and Environmental Sustainability of Bio-Based HMF Production and Recovery from Lignocellulosic Biomass. Green Chem 2024 <https://doi.org/10.1039/D4GC04270K>`_
@@ -216,14 +268,6 @@ tools for sustainability assessments. Here is a short list of related publicatio
   #. `Sustainable Lactic Acid Production from Lignocellulosic Biomass. ACS Sustainable Chem Eng 2021 <https://doi.org/10.1021/acssuschemeng.0c08055>`_
 
   #. `Techno-Economic Evaluation of Biorefineries Based on Low-Value Feedstocks Using the BioSTEAM Software: A Case Study for Animal Bedding. Processes 2020 <https://doi.org/10.3390/pr8080904>`_
-
-* **Plastics and recycling**:
-
-  #. `Screening green solvents for multilayer plastic film recycling processes. Computers & Chemical Engineering 2025 <https://doi.org/10.1016/j.compchemeng.2025.109129>`_
-
-  #. `Comparative Techno-Economic Analysis and Life Cycle Assessment of Producing High-Value Chemicals and Fuels from Waste Plastic via Conventional Pyrolysis and Thermal Oxo-Degradation. Energy Fuels 2023 <https://doi.org/10.1021/acs.energyfuels.3c02321>`_
-
-  #. `High-purity polypropylene from disposable face masks via solvent-targeted recovery and precipitation. Green Chemistry 2023 <https://doi.org/10.1039/D3GC00205E>`_
 
 
 Indices and tables

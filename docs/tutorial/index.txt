@@ -41,7 +41,8 @@ User guide
           :numbered:
           :caption: Thermodynamics
 
-          ThermoSTEAM_101
+          Thermodynamic fundamentals <Thermodynamics>
+          Thermodynamic_engine
           Phase_equilibrium
           Property_packages
           Stoichiometric_reactions
@@ -63,9 +64,22 @@ User guide
        .. toctree::
           :maxdepth: 1
           :numbered:
-          :caption: Case studies
+          :caption: Advanced UnitOps
+          
+          Bioreactor design <Bioreactor_modeling>
+          Distillation modeling & design <Distillation>
+          Multi-stage mixer-settlers <Mixer_settlers>
+          Adsorption column design <Adsorption_column_design>
+          
+    .. grid-item::
+    
+       .. toctree::
+          :maxdepth: 1
+          :numbered:
+          :caption: Case Studies
           
           Sugarcane_ethanol_biorefinery
-          Aerated bioreactor design <Aerated_bioreactor_design>
+          Aerated fermentation process <Aerated_bioreactor_design>
           Glacial_acetic_acid_separation
-          Adsorption column design <Adsorption_column_design>
+          Waste plastic upcycling <Plastic_dissolution_and_precipitation>
+

@@ -113,21 +113,22 @@ class Flash(design.PressureVessel, Unit):
         flow (kmol/hr): Water     42.4
                         Glycerol  298
     >>> F1.results()
-    Flash                                                   Units            F1
-    Medium pressure steam Duty                              kJ/hr      4.81e+07
-                          Flow                            kmol/hr      1.33e+03
-                          Cost                             USD/hr           366
-    Design                Vessel type                                Horizontal
-                          Length                               ft          8.46
-                          Diameter                             ft           5.5
-                          Weight                               lb      2.51e+03
-                          Wall thickness                       in         0.312
-                          Vessel material                          Carbon steel
-    Purchase cost         Horizontal pressure vessel          USD      1.47e+04
-                          Platform and ladders                USD      3.22e+03
-                          Heat exchanger - Floating head      USD      4.48e+04
-    Total purchase cost                                       USD      6.26e+04
-    Utility cost                                           USD/hr           366
+    Flash                                                      Units            F1
+    Medium pressure steam    Duty                              kJ/hr      4.81e+07
+                             Flow                            kmol/hr      1.33e+03
+                             Cost                             USD/hr           366
+    Design                   Vessel type                                Horizontal
+                             Length                               ft          8.46
+                             Diameter                             ft           5.5
+                             Weight                               lb      2.51e+03
+                             Wall thickness                       in         0.312
+                             Vessel material                          Carbon steel
+    Purchase cost            Horizontal pressure vessel          USD      1.47e+04
+                             Platform and ladders                USD      3.22e+03
+                             Heat exchanger - Floating head      USD      4.48e+04
+    Total purchase cost                                          USD      6.26e+04
+    Installed equipment cost                                     USD      1.89e+05
+    Utility cost                                              USD/hr           366
 
 
     References

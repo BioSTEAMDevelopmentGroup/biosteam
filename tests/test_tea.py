@@ -92,6 +92,86 @@ def test_cashflow_consistency():
     assert_allclose(ethanol.price, 0.6837971746118124)
     assert_allclose(tea.NPV, 0, atol=100)
 
+def test_tea_startup_months():   
+    cost = bst.decorators.cost
+    # Total installed equipment cost to be $1 MM
+    bst.CE = CE = bst.design_tools.CEPCI_by_year[2013]
+    @cost('Fake scaler', 'Lumped cost', CE=CE, cost=1e6, S=1, n=1, BM=1)
+    class LumpedCost(bst.Unit):
+        '''Does nothing but adding given costs.'''
+        _units = {'Fake scaler': ''}
+        
+        def _design(self):
+            self.design_results['Fake scaler'] = 1
+        
+    class TEA(bst.TEA):
+        def __init__(
+                self,
+                system,
+                FOC_over_installed=0.5, # annual O&M
+                DPI_over_installed=(1+1),
+                TDC_over_DPI=(1+0.2)*(1+0.4), # 20% non-installed & 40% indirect
+                FCI_over_TDC=1,
+                **kwargs,
+                ):
+            self.FOC_over_installed = FOC_over_installed
+            self.DPI_over_installed = DPI_over_installed
+            self.TDC_over_DPI = TDC_over_DPI
+            self.FCI_over_TDC = FCI_over_TDC
+            bst.TEA.__init__(self, system, **kwargs)
+    
+        def _FOC(self, installed_equipment_cost): # fixed operating cost
+            return installed_equipment_cost*self.FOC_over_installed
+        
+        def _DPI(self, installed_equipment_cost): # direct permanent investment
+            return installed_equipment_cost*self.DPI_over_installed
+    
+        def _TDC(self, DPI): # total depreciable cost
+            return DPI*self.TDC_over_DPI
+    
+        def _FCI(self, TDC): # fixed capital investment
+            return TDC*self.FCI_over_TDC
+        
+    bst.settings.set_thermo([bst.Chemical('Water')])
+    reactant = bst.Stream('reactant', Water=1, units='kg/hr')
+    # Total annual sales to be $2.5 MM
+    annual_sales = 2.51e6
+    product = bst.Stream('product', Water=1, price=annual_sales/365/24, units='kg/hr')
+    
+    U101 = LumpedCost('U101', ins=reactant, outs=product)
+    sys = bst.System('sys', path=(U101,))
+    sys.simulate()
+    startup_salesfrac = 0.5
+    startup_months = 16
+    tea = TEA(
+        system=sys,
+        IRR=0.1,
+        duration=(2013, 2013+8), # 8 years
+        income_tax=0.21,
+        construction_schedule=(1,),
+        depreciation='MACRS7',
+        operating_days=365,
+        startup_months=startup_months,
+        startup_FOCfrac=0.5,
+        startup_VOCfrac=0.5,
+        startup_salesfrac=startup_salesfrac,
+        lang_factor=None,
+        WC_over_FCI=0.05,
+        finance_interest=0,
+        finance_years=0,
+        finance_fraction=0,
+    )
+    # Below test NPV and discounted cashflow calculation
+    table = tea.get_cashflow_table()
+    sales = table['Sales [MM$]']
+    w0 = (startup_months/12) % 1 # fraction of the year operating below full capacity
+    values = np.ones(9) * annual_sales 
+    values[0] = 0 # Construction
+    values[1] = annual_sales * startup_salesfrac
+    values[2] = w0 * annual_sales * startup_salesfrac + (1 - w0) * annual_sales
+    assert_allclose(sales, values / 1e6, atol=1e-4)
+    assert_allclose(tea.NPV, table.iloc[-1,-1]*1e6, atol=1e-4)
+
 def test_tea():   
     cost = bst.decorators.cost
     # Total installed equipment cost to be $1 MM
@@ -159,7 +239,7 @@ def test_tea():
         finance_years=10,
         finance_fraction =0.6,
         accumulate_interest_during_construction=False,
-        )
+    )
 
     # Below test NPV and discounted cashflow calculation
     table = tea.get_cashflow_table()
@@ -261,3 +341,4 @@ if __name__ == '__main__':
     test_depreciation_schedule()
     test_cashflow_consistency()
     test_tea()
+    test_tea_startup_months()

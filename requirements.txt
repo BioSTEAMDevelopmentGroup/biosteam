@@ -4,6 +4,7 @@ sphinxcontrib-jquery
 sphinx_multitoc_numbering
 sphinx_autodoc_typehints
 biorefineries>=2.34.1
+cuwp>=0.0.3
 sphinx_design
 pyyaml
 ipykernel

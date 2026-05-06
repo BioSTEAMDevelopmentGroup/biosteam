@@ -233,7 +233,6 @@ class Flowsheet:
     
     def create_system(self, ID: Optional[str]="", 
                       ends: Optional[Iterable[AbstractStream]]=None,
-                      facility_recycle: Optional[AbstractStream]=None, 
                       operating_hours: Optional[float]=None,
                       **kwargs):
         """
@@ -247,16 +246,15 @@ class Flowsheet:
             End streams of the system which are not products. Specify this
             argument if only a section of the complete system is wanted, or if
             recycle streams should be ignored.
-        facility_recycle : 
-            Recycle stream between facilities and system path. This argument
-            defaults to the outlet of a BlowdownMixer facility (if any).
         operating_hours : 
             Number of operating hours in a year. This parameter is used to
             compute annualized properties such as utility cost and material cost
             on a per year basis.
         
         """
-        return System.from_units(ID, self.unit, ends, facility_recycle,
+        if bst.settings.ID_magic and ID == '':
+            ID = bst.utils.infer_variable_assignment(self.create_system)
+        return System.from_units(ID, self.unit, ends, 
                                  operating_hours, **kwargs)
     
     def __call__(self, ID: str|type[AbstractUnit], strict: Optional[bool]=False):
@@ -319,7 +317,22 @@ class MainFlowsheet(Flowsheet):
     __slots__ = ()
     
     line = "Main flowsheet"
-        
+    
+    def open(self, dct):
+        F = self
+        registries = [F.system, F.unit, F.stream]
+        for registry in registries: 
+            dct.update(registry.data)
+            registry.data = dct
+
+    def close(self):
+        F = self
+        if F.system.data is F.unit.data is F.stream.data:
+            data = F.system.data
+            F.system.data = {i: j for i, j in data.items() if isinstance(j, System)}
+            F.stream.data = {i: j for i, j in data.items() if isinstance(j, AbstractStream)}
+            F.unit.data = {i: j for i, j in data.items() if isinstance(j, AbstractUnit)}
+    
     def set_flowsheet(self, flowsheet, new=False):
         """Set main flowsheet that is updated with new biosteam objects."""
         if isinstance(flowsheet, Flowsheet):

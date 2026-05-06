@@ -57,7 +57,7 @@ from math import inf, sqrt, exp, pi
 from .heat_exchange import HXutility
 from ._flash import Flash
 from .stage import MultiStageEquilibrium
-from thermosteam import separations as sep
+from typing import Iterable
 
 __all__ = (
     'Distillation', 
@@ -322,8 +322,10 @@ class Distillation(Unit, isabstract=True):
             reboiler_thermo=None,
             partial_condenser=True,
             weir_height=0.1,
+            vlle=False,
         ):
         self.check_LHK = True
+        self._vlle = vlle
         
         # Operation specifications
         self.k = k
@@ -428,6 +430,56 @@ class Distillation(Unit, isabstract=True):
         self.reboiler.outs[0].phases = ('g', 'l')
         self.auxiliary('bottoms_split', bst.PhaseSplitter,
             self.reboiler-0, ('boilup', self-1), thermo=reboiler_thermo,
+        )
+    
+    def to_rigorous_column(self, ID='', dP=None, kwargs_only=False, print_code=False, **kwargs):
+        design = self.design_results
+        feed_stage = int(design['Theoretical feed stage'])
+        N_stages = int(design['Theoretical stages'])
+        R = design['Reflux']
+        flow_split = self.outs[1].F_mol / self.ins[0].F_mol
+        if dP is None:
+            dP = 690.0 # Heuristically, pressure drops are between 0.35 to 1.03 kPa
+        if dP:
+            P_reboiler = self.outs[1].P
+            P = [P_reboiler + i * dP for i in range(N_stages)]
+        else:
+            P = self.P
+        kwargs = dict(
+            N_stages=N_stages, 
+            feed_stages=[feed_stage],
+            LHK=self.LHK,
+            stage_specifications={
+                0: ('Reflux', R), 
+                -1: ('Flow', flow_split),
+            },
+            P=P,
+            **kwargs,
+        )
+        if print_code:
+            kwargs_code = kwargs.copy()
+            kwargs_code['P'] = f'[{self.P} + i*{dP} for i in range({N_stages})]'
+            kwargs_code['stage_specifications'] = {
+                0: ('Reflux', round(R, 3)), 
+                -1: ('Flow', round(flow_split, 5)),
+            }
+            code = (
+                f'MESHDistillation(\n'
+                f"    ins=[{', '.join([i.ID for i in self.ins])}],\n"
+                f"    outs=[{', '.join([i.ID for i in self.outs])}]"
+            )
+            code += bst.repr_kwargs(kwargs_code, dlim=',\n    ')
+            code += '\n)'
+            print(code)
+        if kwargs_only: 
+            return kwargs
+        if bst.settings.ID_magic and ID == '': ID = bst.utils.infer_variable_assignment(self.to_rigorous_column)
+        return MESHDistillation(
+            ID,
+            ins=self.ins, 
+            outs=self.outs,
+            thermo=self.thermo,
+            **kwargs
         )
     
     @property
@@ -793,12 +845,12 @@ class Distillation(Unit, isabstract=True):
         reboiler_bottoms_product = self.reboiler.outs[0]['l']
         condenser_distillate.copy_like(distillate)
         reboiler_bottoms_product.copy_like(bottoms_product)
-        self._boilup_bubble_point = bp = reboiler_bottoms_product.bubble_point_at_P()
+        self._boilup_bubble_point = bp = reboiler_bottoms_product.bubble_point_at_P(lle=self._vlle)
         bottoms_product.T = bp.T
         if self._partial_condenser: 
             self._condenser_operation = p = condenser_distillate.dew_point_at_P()
         else:
-            self._condenser_operation = p = condenser_distillate.bubble_point_at_P()
+            self._condenser_operation = p = condenser_distillate.bubble_point_at_P(lle=self._vlle)
         self.condenser.T = self.condensate.T = condenser_distillate.T = distillate.T = p.T
         self.condenser.P = self.condensate.P = condenser_distillate.P = distillate.P = p.P
         
@@ -813,12 +865,12 @@ class Distillation(Unit, isabstract=True):
         feed = self.mixed_feed
         data = feed.get_data()
         H_feed = feed.H
-        try: dp = feed.dew_point_at_P()
+        try: dp = feed.dew_point_at_P(lle=self._vlle)
         except: pass
         else: feed.T = dp.T
         feed.phase = 'g'
         H_vap = feed.H
-        try: bp = feed.bubble_point_at_P()
+        try: bp = feed.bubble_point_at_P(lle=self._vlle)
         except: pass
         else: feed.T = bp.T
         feed.phase = 'l'
@@ -865,11 +917,7 @@ class Distillation(Unit, isabstract=True):
         liq = reboiler.ins[0]
         liq.mix_from([bottoms_product, boilup], energy_balance=False)
         liq.phase = 'l'
-        liq_T = liq.bubble_point_at_P().T
-        if liq_T > bp.T: liq_T = bp.T - 0.1
-        liq.T = liq_T
-        self.pump.ins[0].copy_like(liq)
-        self.pump.simulate()
+        liq.T = bp.T
         self.bottoms_split.simulate()
         if self._partial_condenser: self.reflux_drum.simulate()
     
@@ -877,24 +925,25 @@ class Distillation(Unit, isabstract=True):
         reboiler = self.reboiler
         condenser = self.condenser
         Q_condenser = condenser.outs[0].H - condenser.ins[0].H
+        condenser_kwargs = dict(duty=Q_condenser)
         H_out = self.H_out
         H_in = self.H_in
         Q_overall_boiler =  H_out - H_in - Q_condenser
-        Q_boiler = reboiler.outs[0].H - reboiler.ins[0].H
-        if Q_boiler < Q_overall_boiler:
-            liquid = reboiler.ins[0]
-            H_out_boiler = reboiler.outs[0].H
-            try:
-                liquid.H = H_out_boiler - Q_overall_boiler
-            except:
-                liquid.phase = 'l'
-                boiler_kwargs = dict(duty=Q_boiler)                
-            else:
-                boiler_kwargs = dict(duty=Q_overall_boiler)
-            condenser_kwargs = dict(duty=Q_condenser)
+        H_out_boiler = reboiler.outs[0].H
+        liquid_in = reboiler.ins[0]
+        vapor = reboiler.outs[0]
+        try:
+            liquid_in.H = H_out_boiler - Q_overall_boiler
+        except:
+            liq_T = liquid_in.bubble_point_at_P(lle=self._vlle).T
+            if liq_T > vapor.T: liq_T = vapor.T - 0.1
+            vapor.T = liq_T
+            Q_boiler = reboiler.outs[0].H - reboiler.ins[0].H
+            boiler_kwargs = dict(duty=Q_boiler)     
         else:
-            boiler_kwargs = dict(duty=Q_boiler)
-            condenser_kwargs = dict(duty=Q_condenser)
+            boiler_kwargs = dict(duty=Q_overall_boiler)
+        self.pump.ins[0].copy_like(liquid_in)
+        self.pump.simulate()
         reboiler.simulate(
             run=False,
             design_kwargs=boiler_kwargs,
@@ -985,7 +1034,9 @@ class Distillation(Unit, isabstract=True):
         if A_dn is None:
             A_dn = design.compute_downcomer_area_fraction(F_LV)
         S_diameter = design.compute_tower_diameter(V_vol, U_f, f, A_dn) * 3.28
-        Po = self.P * 0.000145078 # to psi
+        P = self.P
+        if isinstance(P, Iterable): P = P.max()
+        Po = P * 0.000145078 # to psi
         rho_M = material_densities_lb_per_in3[self.vessel_material]
         if Po < 14.68:
             warn('vacuum pressure vessel ASME codes not implemented yet; '
@@ -1070,7 +1121,7 @@ class Distillation(Unit, isabstract=True):
     equation_node_names = (
         'overall_material_balance_node', 
         'separation_material_balance_node',
-        'phenomena_node',
+        'vle_phenomenode',
     )
     
     def initialize_overall_material_balance_node(self):
@@ -1085,109 +1136,106 @@ class Distillation(Unit, isabstract=True):
             inputs=[self.S_node, self.outs[1].F_node],
         )
         
-    def initialize_phenomena_node(self):
-        self.phenomena_node.set_equations(
+    def initialize_vle_phenomenode(self):
+        self.vle_phenomenode.set_equations(
             inputs=(
-                *[i.T_node for i in self.ins], 
-                *[i.F_node for i in self.outs]
+                *[i.F_node for i in self.outs],
             ),
             outputs=(
-                self.S_node, *[i.T_node for i in self.outs]),
+                self.S_node, *[i.T_node for i in self.outs]
+            ),
         )
     
-    def _collect_phenomena_variables(self):
-        return [self.S_node, *[i.T_node for i in self.outs]] # list[VariableNode] 
-    
-    def _collect_edge_errors(self):
-        equation_name = self.overall_material_balance_node.name
-        outs = self.outs
-        results = []
-        error = np.abs(sum([i.mol for i in outs]) - sum([i.mol for i in self.ins])).sum()
-        for i, outlet in enumerate(outs):
-            index = (equation_name, outlet.F_node.name)
-            results.append((index, error))
-        return results # list[tuple[tuple[equation_name, variable_name], value]]
+    # def _collect_edge_errors(self):
+    #     equation_name = self.overall_material_balance_node.name
+    #     outs = self.outs
+    #     results = []
+    #     error = np.abs(sum([i.mol for i in outs]) - sum([i.mol for i in self.ins])).sum()
+    #     for i, outlet in enumerate(outs):
+    #         index = (equation_name, outlet.F_node.name)
+    #         results.append((index, error))
+    #     return results # list[tuple[tuple[equation_name, variable_name], value]]
 
-    def _collect_equation_errors(self):
-        equation_name = self.overall_material_balance_node.name
-        outs = self.outs
-        results = []
-        flows_out = sum([i.mol for i in outs])
-        error = np.abs(flows_out - sum([i.mol for i in self.ins])).sum() / flows_out.sum()
-        results.append((equation_name, error))
+    # def _collect_equation_errors(self):
+    #     equation_name = self.overall_material_balance_node.name
+    #     outs = self.outs
+    #     results = []
+    #     flows_out = sum([i.mol for i in outs])
+    #     error = np.abs(flows_out - sum([i.mol for i in self.ins])).sum() / flows_out.sum()
+    #     results.append((equation_name, error))
         
-        equation_name = self.separation_material_balance_node.name
-        S = (self.K * self.B)
-        flows_by_phase = {i.phase: 0 for i in outs}
-        for i in outs: flows_by_phase[i.phase] += i.mol
-        top, bottom = flows_by_phase.values()
-        expected = S * bottom
-        actual = top
-        error = np.abs(expected - actual).sum() / (top + bottom).sum()
-        index = equation_name
-        results.append((index, error))
+    #     equation_name = self.separation_material_balance_node.name
+    #     S = (self.K * self.B)
+    #     flows_by_phase = {i.phase: 0 for i in outs}
+    #     for i in outs: flows_by_phase[i.phase] += i.mol
+    #     top, bottom = flows_by_phase.values()
+    #     expected = S * bottom
+    #     actual = top
+    #     error = np.abs(expected - actual).sum() / (top + bottom).sum()
+    #     index = equation_name
+    #     results.append((index, error))
         
-        ms = bst.MultiStream.sum(self.outs, conserve_phases=True)
-        if self.phases == ('g', 'l'):
-            equation_name = self.vle_phenomena_node.name
-            if self.T_specification:
-                ms.vle(T=self.T_specification, P=self.P)
-                gas = ms.imol['g']
-                liq = ms.imol['l']
-                B = gas.sum() / liq.sum()
-                K = gas / (liq * B)
-                expected = np.array([*K, B])
-                actual = np.array([*np.log1p(self.K), self.B])
-            else:
-                bp = ms['l'].bubble_point_at_P()
-                expected = np.array([*bp.K, bp.T])
-                actual = np.array([*np.log1p(self.K), self.T])
-        else:
-            equation_name = self.lle_phenomena_node.name
-            # ms.lle._lle_chemicals = ms.lle_chemicals
-            # ms.lle._K = self.K
-            # ms.lle._phi = self.B / (1 + self.B)
-            # try:
-            #     breakpoint()
-            #     lle_chemicals, K, _, phi = ms.lle(T=self.T, update=False, top_chemical=self.partition.top_chemical, use_cache=False, single_loop=True)
-            # except Exception as e:
-            #     breakpoint()
-            # if phi == 1: phi = 1 - 1e-16
-            Gamma = self.thermo.Gamma(ms.lle_chemicals)
-            IDs = [i.ID for i in ms.lle_chemicals]
-            x_liquid = ms.imol['l', IDs]
-            x_liquid /= x_liquid.sum()
-            x_LIQUID = ms.imol['L', IDs]
-            x_LIQUID /= x_LIQUID.sum()
-            K = Gamma(x=x_liquid, T=self.T) / Gamma(x=x_LIQUID, T=self.T)
-            z = ms.imol[IDs]
-            z /= z.sum()
-            phi = tmo.equilibrium.phase_fraction(z, K, 0.5)
-            if phi == 1: phi = 1 - 1e-16
-            try:
-                expected = np.array([*np.log1p(K), phi / (1. - phi)])
-            except:
-                breakpoint()
-            actual = np.array([*np.log1p(self.K), self.B])
-        try:
-            error = np.abs(expected - actual).sum()
-        except:
-            breakpoint()
-        results.append((equation_name, error))
+    #     ms = bst.MultiStream.sum(self.outs, conserve_phases=True)
+    #     if self.phases == ('g', 'l'):
+    #         equation_name = self.vle_phenomenode.name
+    #         if self.T_specification:
+    #             ms.vle(T=self.T_specification, P=self.P)
+    #             gas = ms.imol['g']
+    #             liq = ms.imol['l']
+    #             B = gas.sum() / liq.sum()
+    #             K = gas / (liq * B)
+    #             expected = np.array([*K, B])
+    #             actual = np.array([*np.log1p(self.K), self.B])
+    #         else:
+    #             bp = ms['l'].bubble_point_at_P()
+    #             expected = np.array([*bp.K, bp.T])
+    #             actual = np.array([*np.log1p(self.K), self.T])
+    #     else:
+    #         equation_name = self.lle_phenomenode.name
+    #         # ms.lle._lle_chemicals = ms.lle_chemicals
+    #         # ms.lle._K = self.K
+    #         # ms.lle._phi = self.B / (1 + self.B)
+    #         # try:
+    #         #     breakpoint()
+    #         #     lle_chemicals, K, _, phi = ms.lle(T=self.T, update=False, top_chemical=self.partition.top_chemical, use_cache=False, single_loop=True)
+    #         # except Exception as e:
+    #         #     breakpoint()
+    #         # if phi == 1: phi = 1 - 1e-16
+    #         Gamma = self.thermo.Gamma(ms.lle_chemicals)
+    #         IDs = [i.ID for i in ms.lle_chemicals]
+    #         x_liquid = ms.imol['l', IDs]
+    #         x_liquid /= x_liquid.sum()
+    #         x_LIQUID = ms.imol['L', IDs]
+    #         x_LIQUID /= x_LIQUID.sum()
+    #         K = Gamma(x=x_liquid, T=self.T) / Gamma(x=x_LIQUID, T=self.T)
+    #         z = ms.imol[IDs]
+    #         z /= z.sum()
+    #         phi = tmo.equilibrium.phase_fraction(z, K, 0.5)
+    #         if phi == 1: phi = 1 - 1e-16
+    #         try:
+    #             expected = np.array([*np.log1p(K), phi / (1. - phi)])
+    #         except:
+    #             breakpoint()
+    #         actual = np.array([*np.log1p(self.K), self.B])
+    #     try:
+    #         error = np.abs(expected - actual).sum()
+    #     except:
+    #         breakpoint()
+    #     results.append((equation_name, error))
         
-        if self._energy_variable is not None:
-            equation_name = self.energy_balance_node.name
-            error = (sum([i.H for i in outs]) - sum([i.H for i in self.ins])) / sum([i.C for i in outs])
-            results.append((equation_name, np.abs(error)))
+    #     if self._energy_variable is not None:
+    #         equation_name = self.energy_balance_node.name
+    #         error = (sum([i.H for i in outs]) - sum([i.H for i in self.ins])) / sum([i.C for i in outs])
+    #         results.append((equation_name, np.abs(error)))
             
-        return results # list[tuple[equation_name, value]]
+    #     return results # list[tuple[equation_name, value]]
 
 
 # %% McCabe-Thiele distillation model utilities
 
 def compute_stages_McCabeThiele(P, operating_line,
                                 x_stages, y_stages, T_stages,
-                                x_limit, solve_Ty):
+                                x_limit, solve_Ty, lle=False):
     """
     Use the McCabe-Thiele method to find the specifications at every stage of
     the operating line before the maximum liquid molar fraction, `x_limit`. 
@@ -1225,7 +1273,7 @@ def compute_stages_McCabeThiele(P, operating_line,
         i += 1
         # Go Up
         x = np.array((xi, 1-xi))
-        T, y = solve_Ty(x, P)
+        T, y = solve_Ty(x, P, lle=lle)
         yi = y[0]
         y_stages.append(yi)
         T_stages.append(T)
@@ -1329,62 +1377,63 @@ class BinaryDistillation(Distillation, new_graphics=False):
     >>> D1.show(T='degC', P='atm', composition=True)
     BinaryDistillation: D1
     ins...
-    [0] feed
+    [0] feed  
         phase: 'l', T: 76.082 degC, P: 1 atm
-        composition (%): Water     39
-                         Methanol  48.8
-                         Glycerol  12.2
-                         --------  205 kmol/hr
+        flow (%): Water     39
+                  Methanol  48.8
+                  Glycerol  12.2
+                  --------  205 kmol/hr
     outs...
-    [0] distillate
+    [0] distillate  
         phase: 'g', T: 64.854 degC, P: 1 atm
-        composition (%): Water     1
-                         Methanol  99
-                         --------  100 kmol/hr
-    [1] bottoms_product
+        flow (%): Water     1
+                  Methanol  99
+                  --------  100 kmol/hr
+    [1] bottoms_product  
         phase: 'l', T: 100.02 degC, P: 1 atm
-        composition (%): Water     75.4
-                         Methanol  0.761
-                         Glycerol  23.9
-                         --------  105 kmol/hr
+        flow (%): Water     75.4
+                  Methanol  0.761
+                  Glycerol  23.9
+                  --------  105 kmol/hr
     >>> D1.results()
-    Divided Distillation Column                                Units        D1
-    Electricity         Power                                     kW     0.644
-                        Cost                                  USD/hr    0.0504
-    Cooling water       Duty                                   kJ/hr -4.88e+06
-                        Flow                                 kmol/hr  3.33e+03
-                        Cost                                  USD/hr      1.63
-    Low pressure steam  Duty                                   kJ/hr  1.02e+07
-                        Flow                                 kmol/hr       263
-                        Cost                                  USD/hr      62.6
-    Design              Theoretical feed stage                               9
-                        Theoretical stages                                  13
-                        Minimum reflux                         Ratio     0.687
-                        Reflux                                 Ratio      1.37
-                        Rectifier stages                                    15
-                        Stripper stages                                     13
-                        Rectifier height                          ft      34.7
-                        Stripper height                           ft      31.7
-                        Rectifier diameter                        ft      3.93
-                        Stripper diameter                         ft      3.19
-                        Rectifier wall thickness                  in     0.312
-                        Stripper wall thickness                   in     0.312
-                        Rectifier weight                          lb     6e+03
-                        Stripper weight                           lb  4.43e+03
-    Purchase cost       Rectifier trays                          USD   1.5e+04
-                        Stripper trays                           USD  1.25e+04
-                        Rectifier tower                          USD  4.56e+04
-                        Stripper platform and ladders            USD  1.39e+04
-                        Stripper tower                           USD  3.83e+04
-                        Rectifier platform and ladders           USD  1.14e+04
-                        Condenser - Floating head                USD  3.33e+04
-                        Reflux drum - Horizontal pressur...      USD  1.02e+04
-                        Reflux drum - Platform and ladders       USD  3.02e+03
-                        Pump - Pump                              USD  4.37e+03
-                        Pump - Motor                             USD       368
-                        Reboiler - Floating head                 USD  2.71e+04
-    Total purchase cost                                          USD  2.15e+05
-    Utility cost                                              USD/hr      64.3
+    Divided Distillation Column                                     Units        D1
+    Electricity              Power                                     kW     0.663
+                             Cost                                  USD/hr    0.0518
+    Cooling water            Duty                                   kJ/hr -4.88e+06
+                             Flow                                 kmol/hr  3.33e+03
+                             Cost                                  USD/hr      1.63
+    Low pressure steam       Duty                                   kJ/hr  9.06e+06
+                             Flow                                 kmol/hr       234
+                             Cost                                  USD/hr      55.7
+    Design                   Theoretical feed stage                               9
+                             Theoretical stages                                  13
+                             Minimum reflux                         Ratio     0.687
+                             Reflux                                 Ratio      1.37
+                             Rectifier stages                                    15
+                             Stripper stages                                     13
+                             Rectifier height                          ft      34.7
+                             Stripper height                           ft      31.7
+                             Rectifier diameter                        ft      3.93
+                             Stripper diameter                         ft      3.19
+                             Rectifier wall thickness                  in     0.312
+                             Stripper wall thickness                   in     0.312
+                             Rectifier weight                          lb     6e+03
+                             Stripper weight                           lb  4.43e+03
+    Purchase cost            Rectifier trays                          USD   1.5e+04
+                             Stripper trays                           USD  1.25e+04
+                             Rectifier tower                          USD  4.56e+04
+                             Stripper platform and ladders            USD  1.39e+04
+                             Stripper tower                           USD  3.83e+04
+                             Rectifier platform and ladders           USD  1.14e+04
+                             Condenser - Floating head                USD  3.33e+04
+                             Reflux drum - Horizontal pressur...      USD  1.02e+04
+                             Reflux drum - Platform and ladders       USD  3.02e+03
+                             Pump - Pump                              USD  4.37e+03
+                             Pump - Motor                             USD       370
+                             Reboiler - Floating head                 USD  3.52e+04
+    Total purchase cost                                               USD  2.23e+05
+    Installed equipment cost                                          USD  7.74e+05
+    Utility cost                                                   USD/hr      57.4
     
     Binary distillation with full-condenser
     
@@ -1489,7 +1538,7 @@ class BinaryDistillation(Distillation, new_graphics=False):
         self._q_line_args = dict(q=q, zf=zf)
         
         solve_Ty = bottoms.get_bubble_point(LHK).solve_Ty
-        Rmin_intersection = lambda x: q_line(x) - solve_Ty(np.array((x, 1-x)), P)[1][0]
+        Rmin_intersection = lambda x: q_line(x) - solve_Ty(np.array((x, 1-x)), P, lle=self._vlle)[1][0]
         x_Rmin = brentq(Rmin_intersection, 0, 1)
         y_Rmin = q_line(x_Rmin)
         m = (y_Rmin-y_top)/(x_Rmin-y_top)
@@ -1517,12 +1566,12 @@ class BinaryDistillation(Distillation, new_graphics=False):
         self._y_stages = y_stages = [x_bot]
         self._T_stages = T_stages = []
         error = [None]
-        try: compute_stages_McCabeThiele(P, ss, x_stages, y_stages, T_stages, x_m, solve_Ty)
+        try: compute_stages_McCabeThiele(P, ss, x_stages, y_stages, T_stages, x_m, solve_Ty, lle=self._vlle)
         except RuntimeError as e: error[0] = e
         yi = y_stages[-1]
         xi = rs(yi)
         x_stages[-1] = xi if xi < 1 else 0.99999
-        try: compute_stages_McCabeThiele(P, rs, x_stages, y_stages, T_stages, y_top, solve_Ty)
+        try: compute_stages_McCabeThiele(P, rs, x_stages, y_stages, T_stages, y_top, solve_Ty, lle=self._vlle)
         except RuntimeError as e: error[0] = e
         
         # Find feed stage
@@ -1591,7 +1640,7 @@ class BinaryDistillation(Distillation, new_graphics=False):
         bp = vap.get_bubble_point(IDs=LHK)
         solve_Ty = bp.solve_Ty
         for xi in x_eq:
-            T[n], y = solve_Ty(np.array([xi, 1-xi]), P)
+            T[n], y = solve_Ty(np.array([xi, 1-xi]), P, lle=self._vlle)
             y_eq[n] = y[0]
             n += 1
             
@@ -1680,7 +1729,7 @@ class BinaryDistillation(Distillation, new_graphics=False):
         if hasattr(self, '_vle_chemicals'): 
             IDs_vle = tuple([i.ID for i in self._vle_chemicals])
             if IDs != IDs_vle: split = self.chemicals.array(IDs_vle, split)
-        fresh_inlets, process_inlets, equations = self._begin_equations(composition_sensitive)
+        fresh_inlets, process_inlets, equations = self._begin_material_equations(composition_sensitive)
         top, bottom = self.outs
         ones = np.ones(self.chemicals.size)
         minus_ones = -ones
@@ -1708,17 +1757,37 @@ class BinaryDistillation(Distillation, new_graphics=False):
         )
         return equations
     
-    def _get_energy_departure_coefficient(self, stream):
-        return None
-    
-    def _create_energy_departure_equations(self):
+    def _create_energy_balance_equations(self): 
         return []
+    
+    def _update_energy_coefficient(self, stream, coefficients):
+        return 0
+    
+    def _create_bulk_balance_equations(self):
+        fresh_inlets, process_inlets, equations = self._begin_bulk_equations()
+        eq_overall = {}
+        for i in self.outs: eq_overall[i, 'F_mol'] = 1
+        for i in process_inlets:
+            if i in eq_overall: del eq_overall[i, 'F_mol']
+            else: eq_overall[i, 'F_mol'] = -1
+        equations.append(
+            (eq_overall, sum([i.F_mol for i in fresh_inlets]))
+        )
+        top, bottom = self.outs
+        eq_outs = {}
+        eq_outs[top, 'F_mol'] = 1
+        eq_outs[bottom, 'F_mol'] = -top.F_mol / bottom.F_mol
+        equations.append(
+            (eq_outs, 0)
+        )
+        return equations
     
     def _update_nonlinearities(self):
         outs = self.outs
         data = [i.get_data() for i in outs]
         self._run()
         for i, j in zip(outs, data): i.set_data(j)
+
 
 # %% Fenske-Underwook-Gilliland distillation model utilities
 
@@ -1872,62 +1941,63 @@ class ShortcutColumn(Distillation, new_graphics=False):
     >>> D1.show(T='degC', P='atm', composition=True)
     ShortcutColumn: D1
     ins...
-    [0] feed
+    [0] feed  
         phase: 'l', T: 76.082 degC, P: 1 atm
-        composition (%): Water     39
-                         Methanol  48.8
-                         Glycerol  12.2
-                         --------  205 kmol/hr
+        flow (%): Water     39
+                  Methanol  48.8
+                  Glycerol  12.2
+                  --------  205 kmol/hr
     outs...
-    [0] distillate
+    [0] distillate  
         phase: 'g', T: 64.854 degC, P: 1 atm
-        composition (%): Water     1
-                         Methanol  99
-                         --------  100 kmol/hr
-    [1] bottoms_product
+        flow (%): Water     1
+                  Methanol  99
+                  --------  100 kmol/hr
+    [1] bottoms_product  
         phase: 'l', T: 100.02 degC, P: 1 atm
-        composition (%): Water     75.4
-                         Methanol  0.761
-                         Glycerol  23.9
-                         --------  105 kmol/hr
+        flow (%): Water     75.4
+                  Methanol  0.761
+                  Glycerol  23.9
+                  --------  105 kmol/hr
     >>> D1.results()
-    Divided Distillation Column                                Units        D1
-    Electricity         Power                                     kW     0.761
-                        Cost                                  USD/hr    0.0595
-    Cooling water       Duty                                   kJ/hr -7.54e+06
-                        Flow                                 kmol/hr  5.15e+03
-                        Cost                                  USD/hr      2.51
-    Low pressure steam  Duty                                   kJ/hr  1.34e+07
-                        Flow                                 kmol/hr       346
-                        Cost                                  USD/hr      82.4
-    Design              Theoretical feed stage                               8
-                        Theoretical stages                                  16
-                        Minimum reflux                         Ratio      1.06
-                        Reflux                                 Ratio      2.12
-                        Rectifier stages                                    13
-                        Stripper stages                                     26
-                        Rectifier height                          ft      31.7
-                        Stripper height                           ft      50.9
-                        Rectifier diameter                        ft      4.52
-                        Stripper diameter                         ft      3.64
-                        Rectifier wall thickness                  in     0.312
-                        Stripper wall thickness                   in     0.312
-                        Rectifier weight                          lb  6.45e+03
-                        Stripper weight                           lb  7.93e+03
-    Purchase cost       Rectifier trays                          USD  1.52e+04
-                        Stripper trays                           USD  2.01e+04
-                        Rectifier tower                          USD  4.76e+04
-                        Stripper platform and ladders            USD  1.42e+04
-                        Stripper tower                           USD  5.38e+04
-                        Rectifier platform and ladders           USD  1.81e+04
-                        Condenser - Floating head                USD  4.07e+04
-                        Reflux drum - Horizontal pressur...      USD  1.03e+04
-                        Reflux drum - Platform and ladders       USD  3.02e+03
-                        Pump - Pump                              USD  4.37e+03
-                        Pump - Motor                             USD       379
-                        Reboiler - Floating head                 USD  2.98e+04
-    Total purchase cost                                          USD  2.57e+05
-    Utility cost                                              USD/hr      84.9
+    Divided Distillation Column                                     Units        D1
+    Electricity              Power                                     kW     0.787
+                             Cost                                  USD/hr    0.0615
+    Cooling water            Duty                                   kJ/hr -7.54e+06
+                             Flow                                 kmol/hr  5.15e+03
+                             Cost                                  USD/hr      2.51
+    Medium pressure steam    Duty                                   kJ/hr  1.25e+07
+                             Flow                                 kmol/hr       346
+                             Cost                                  USD/hr      95.4
+    Design                   Theoretical feed stage                               8
+                             Theoretical stages                                  16
+                             Minimum reflux                         Ratio      1.06
+                             Reflux                                 Ratio      2.12
+                             Rectifier stages                                    13
+                             Stripper stages                                     26
+                             Rectifier height                          ft      31.7
+                             Stripper height                           ft      50.9
+                             Rectifier diameter                        ft      4.52
+                             Stripper diameter                         ft      3.64
+                             Rectifier wall thickness                  in     0.312
+                             Stripper wall thickness                   in     0.312
+                             Rectifier weight                          lb  6.45e+03
+                             Stripper weight                           lb  7.93e+03
+    Purchase cost            Rectifier trays                          USD  1.52e+04
+                             Stripper trays                           USD  2.01e+04
+                             Rectifier tower                          USD  4.76e+04
+                             Stripper platform and ladders            USD  1.42e+04
+                             Stripper tower                           USD  5.38e+04
+                             Rectifier platform and ladders           USD  1.81e+04
+                             Condenser - Floating head                USD  4.07e+04
+                             Reflux drum - Horizontal pressur...      USD  1.03e+04
+                             Reflux drum - Platform and ladders       USD  3.02e+03
+                             Pump - Pump                              USD  4.36e+03
+                             Pump - Motor                             USD       381
+                             Reboiler - Floating head                 USD  2.59e+04
+    Total purchase cost                                               USD  2.54e+05
+    Installed equipment cost                                          USD  8.82e+05
+    Utility cost                                                   USD/hr      97.9
     
     """
     line = 'Distillation'
@@ -1966,6 +2036,10 @@ class ShortcutColumn(Distillation, new_graphics=False):
         self._run_binary_distillation_mass_balance()
 
         # Initialize objects to calculate bubble and dew points
+        mixed_feed = self.mixed_feed
+        LHK = [i.ID for i in self.chemicals[self.LHK]]
+        for i in LHK: 
+            if mixed_feed.imol[i] == 0: mixed_feed.imol[i] = 1e-16
         vle_chemicals = self.mixed_feed.vle_chemicals
         try:
             reset_cache = self._vle_chemicals != vle_chemicals or np.isnan(self._distillate_recoveries).any()
@@ -1978,7 +2052,6 @@ class ShortcutColumn(Distillation, new_graphics=False):
             self._vle_chemicals = vle_chemicals
             
         # Setup light and heavy keys
-        LHK = [i.ID for i in self.chemicals[self.LHK]]
         IDs = self._IDs_vle
         self._LHK_vle_index = np.array([IDs.index(i) for i in LHK], dtype=int)
         
@@ -2105,8 +2178,11 @@ class ShortcutColumn(Distillation, new_graphics=False):
         IDs = self._IDs_vle
         z_distillate = distillate.get_normalized_mol(IDs)
         z_bottoms = bottoms.get_normalized_mol(IDs)
-        dp = (dew_point if self._partial_condenser else bubble_point)(z_distillate, P=self.P)
-        bp = bubble_point(z_bottoms, P=self.P)
+        if self._partial_condenser:
+            dp = dew_point(z_distillate, P=self.P)
+        else:
+            dp = bubble_point(z_distillate, P=self.P, lle=self._vlle)
+        bp = bubble_point(z_bottoms, P=self.P, lle=self._vlle)
         K_distillate = compute_partition_coefficients(dp.y, dp.x)
         K_bottoms = compute_partition_coefficients(bp.y, bp.x)
         HK_index = self._LHK_vle_index[1]
@@ -2147,8 +2223,9 @@ class ShortcutColumn(Distillation, new_graphics=False):
         self._distillate_recoveries = distillate_recoveries
         return distillate_recoveries
     
-    _get_energy_departure_coefficient = BinaryDistillation._get_energy_departure_coefficient
-    _create_energy_departure_equations = BinaryDistillation._create_energy_departure_equations
+    _update_energy_coefficient = BinaryDistillation._update_energy_coefficient
+    _create_energy_balance_equations = BinaryDistillation._create_energy_balance_equations
+    _create_bulk_balance_equations = BinaryDistillation._create_bulk_balance_equations
     _create_material_balance_equations = BinaryDistillation._create_material_balance_equations
     # _update_net_flow_parameters = BinaryDistillation._update_net_flow_parameters
 
@@ -2273,7 +2350,7 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
                         MTBE        20
     [1] steam  
         phase: 'g', T: 390 K, P: 101325 Pa
-        flow (kmol/hr): Water  100
+        flow: 100 kmol/hr Water
     outs...
     [0] vapor  
         phase: 'g', T: 366.33 K, P: 101325 Pa
@@ -2284,21 +2361,22 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
         phase: 'l', T: 372.87 K, P: 101325 Pa
         flow (kmol/hr): AceticAcid  1.29
                         Water       101
-                        MTBE        0.00031
+                        MTBE        0.000309
     
     >>> stripper.results()
-    Stripper                                   Units         
-    Design              Theoretical stages                  2
-                        Actual stages                       4
-                        Height                    ft     19.9
-                        Diameter                  ft        3
-                        Wall thickness            in    0.312
-                        Weight                    lb 2.71e+03
-    Purchase cost       Trays                    USD 5.59e+03
-                        Tower                    USD 2.91e+04
-                        Platform and ladders     USD 7.52e+03
-    Total purchase cost                          USD 4.23e+04
-    Utility cost                              USD/hr        0
+    Stripper                                        Units         
+    Design                   Theoretical stages                  2
+                             Actual stages                       4
+                             Height                    ft     19.9
+                             Diameter                  ft        3
+                             Wall thickness            in    0.312
+                             Weight                    lb 2.71e+03
+    Purchase cost            Trays                    USD 5.59e+03
+                             Tower                    USD 2.91e+04
+                             Platform and ladders     USD 7.52e+03
+    Total purchase cost                               USD 4.23e+04
+    Installed equipment cost                          USD 1.57e+05
+    Utility cost                                   USD/hr        0
     
     """
     _graphics = vertical_column_graphics
@@ -2349,15 +2427,22 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
             downcomer_area_fraction=None,
             weir_height=0.1,
             use_cache=None,
-            collapsed_init=False,
-            method=None,
+            vle_decomposition=None,
+            maxiter=None,
+            max_attempts=None,
+            methods=None,
+            vlle=False,
         ):
         super()._init(N_stages=N_stages, feed_stages=feed_stages,
                       top_side_draws=vapor_side_draws, 
                       bottom_side_draws=liquid_side_draws,
                       partition_data=partition_data,
-                      phases=("g", "l"), collapsed_init=collapsed_init,
-                      P=P, T=T, use_cache=use_cache, method=method)
+                      phases=("g", "l"),
+                      P=P, T=T, use_cache=use_cache, methods=methods,
+                      vle_decomposition=vle_decomposition,
+                      maxiter=maxiter,
+                      max_attempts=max_attempts,
+                      vlle=vlle)
        
         # Construction specifications
         self.solute = solute
@@ -2374,14 +2459,14 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
         self._last_args = (
             self.N_stages, self.feed_stages, self.vapor_side_draws, 
             self.liquid_side_draws, self.use_cache, *self._ins, 
-            self.partition_data, self.P, self.collapsed_init,
+            self.partition_data, self.P, 
         )
         
     def _setup(self):
         super()._setup()
         args = (self.N_stages, self.feed_stages, self.vapor_side_draws, 
                 self.liquid_side_draws, self.use_cache, *self._ins, 
-                self.partition_data, self.P, self.collapsed_init)
+                self.partition_data, self.P)
         if args != self._last_args:
             MultiStageEquilibrium._init(
                 self, N_stages=self.N_stages,
@@ -2391,7 +2476,6 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
                 bottom_side_draws=self.liquid_side_draws,
                 partition_data=self.partition_data, 
                 use_cache=self.use_cache, 
-                collapsed_init=self.collapsed_init,
             )
             self._last_args = args
     
@@ -2470,7 +2554,9 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
         if A_dn is None:
             A_dn = design.compute_downcomer_area_fraction(F_LV)
         diameter = design.compute_tower_diameter(V_vol, U_f, f, A_dn) * 3.28
-        Po = self.P * 0.000145078 # to psi
+        P = self.P
+        if isinstance(P, Iterable): P = P.max()
+        Po = P * 0.000145078 # to psi
         rho_M = material_densities_lb_per_in3[self.vessel_material]
        
         if Po < 14.68:
@@ -2584,32 +2670,33 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     0.69
     
     >>> D1.results()
-    Distillation                                               Units          
-    Electricity         Power                                     kW     0.574
-                        Cost                                  USD/hr    0.0449
-    Cooling water       Duty                                   kJ/hr -2.98e+06
-                        Flow                                 kmol/hr  2.03e+03
-                        Cost                                  USD/hr     0.992
-    Low pressure steam  Duty                                   kJ/hr   7.8e+06
-                        Flow                                 kmol/hr       202
-                        Cost                                  USD/hr        48
-    Design              Theoretical stages                                   5
-                        Actual stages                                        7
-                        Height                                    ft      24.3
-                        Diameter                                  ft      3.32
-                        Wall thickness                            in     0.312
-                        Weight                                    lb  3.63e+03
-    Purchase cost       Trays                                    USD  8.11e+03
-                        Tower                                    USD  3.43e+04
-                        Platform and ladders                     USD  9.43e+03
-                        Condenser - Floating head                USD  2.36e+04
-                        Reflux drum - Vertical pressure ...      USD  1.29e+04
-                        Reflux drum - Platform and ladders       USD  3.89e+03
-                        Pump - Pump                              USD  4.35e+03
-                        Pump - Motor                             USD       358
-                        Reboiler - Floating head                 USD  2.34e+04
-    Total purchase cost                                          USD   1.2e+05
-    Utility cost                                              USD/hr        49
+    Distillation                                                    Units          
+    Electricity              Power                                     kW     0.575
+                             Cost                                  USD/hr     0.045
+    Cooling water            Duty                                   kJ/hr -2.98e+06
+                             Flow                                 kmol/hr  2.03e+03
+                             Cost                                  USD/hr     0.992
+    Low pressure steam       Duty                                   kJ/hr   7.8e+06
+                             Flow                                 kmol/hr       202
+                             Cost                                  USD/hr      47.9
+    Design                   Theoretical stages                                   5
+                             Actual stages                                        7
+                             Height                                    ft      24.3
+                             Diameter                                  ft      3.32
+                             Wall thickness                            in     0.312
+                             Weight                                    lb  3.63e+03
+    Purchase cost            Trays                                    USD  8.11e+03
+                             Tower                                    USD  3.43e+04
+                             Platform and ladders                     USD  9.44e+03
+                             Condenser - Floating head                USD  2.36e+04
+                             Reflux drum - Vertical pressure ...      USD  1.29e+04
+                             Reflux drum - Platform and ladders       USD  3.89e+03
+                             Pump - Pump                              USD  4.35e+03
+                             Pump - Motor                             USD       358
+                             Reboiler - Floating head                 USD  2.34e+04
+    Total purchase cost                                               USD   1.2e+05
+    Installed equipment cost                                          USD  4.15e+05
+    Utility cost                                                   USD/hr        49
     
     Simulate distillation column with a full condenser, 5 stages, a 0.673 reflux ratio, 
     2.57 boilup ratio, and feed at stage 2:
@@ -2618,59 +2705,30 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     >>> bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
     >>> feed = bst.Stream('feed', Ethanol=80, Water=100, T=80.215 + 273.15)
     >>> D1 = bst.MESHDistillation(None, N_stages=5, ins=[feed], feed_stages=[2],
-    ...     outs=['vapor', 'liquid', 'distillate'],
+    ...     outs=['distillate', 'liquid'],
     ...     reflux=0.673, boilup=2.57,
     ...     LHK=('Ethanol', 'Water'),
     ...     full_condenser=True,
     ... )
     >>> D1.simulate()
-    >>> vapor, liquid, distillate = D1.outs
+    >>> distillate, liquid = D1.outs
     >>> distillate.imol['Ethanol'] / feed.imol['Ethanol']
     0.81
     >>> distillate.imol['Ethanol'] / distillate.F_mol
-    0.70
-    
-    >>> D1.results()
-    Distillation                                     Units          
-    Electricity         Power                           kW     0.918
-                        Cost                        USD/hr    0.0718
-    Cooling water       Duty                         kJ/hr -9.13e+06
-                        Flow                       kmol/hr  6.24e+03
-                        Cost                        USD/hr      3.04
-    Low pressure steam  Duty                         kJ/hr  9.62e+06
-                        Flow                       kmol/hr       249
-                        Cost                        USD/hr      59.2
-    Design              Theoretical stages                         5
-                        Actual stages                              6
-                        Height                          ft      22.9
-                        Diameter                        ft      3.82
-                        Wall thickness                  in     0.312
-                        Weight                          lb     4e+03
-    Purchase cost       Trays                          USD  7.58e+03
-                        Tower                          USD  3.62e+04
-                        Platform and ladders           USD   9.8e+03
-                        Condenser - Floating head      USD   3.5e+04
-                        Pump - Pump                    USD  4.33e+03
-                        Pump - Motor                   USD       390
-                        Reboiler - Floating head       USD  2.41e+04
-    Total purchase cost                                USD  1.17e+05
-    Utility cost                                    USD/hr      62.3
+    0.711695248386583
     
     Notes
     -----
     The convergence algorithm decouples the equilibrium relationships, 
     mass balances, and energy balances using a custom version of the Wang-Henke 
-    bubble point method. This algorithm is authored by Yoel Cortes-Pena, but is 
-    not yet peer reviewed. The main difference is that the tridiagonal matrix of 
-    mass balances across stages is used to solve for flow rates instead of mass 
-    fractions. 
+    bubble point method. 
     
-    The initialization algorithm first converges a "collapsed" column without 
-    adiabatic stages which have no feeds or side draws. This collapsed column 
-    is initialized by solving for liquid and vapor flow rates assuming no phase 
+    The initialization algorithm first flashes the feed to collect partition
+    coefficients, bubble and dew point temperatures, and the feed quality.
+    Then, we solve for liquid and vapor flow rates assuming no phase 
     change across adiabatic stages and unity partition coefficients at 
     reboilers/condensers (in which case the stripping factor is equal to the 
-    boil-up ratio). Then, top and bottom stage temperatures are assumed to be
+    boil-up ratio). Top and bottom stage temperatures are assumed to be
     the bubble point and dew point of the fed mixture and the temperature 
     across stages are linearly interpolated. The partition coefficients in 
     all stages are assumed to be equal to the feed bubble point.
@@ -2712,7 +2770,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     
     def _init(self, 
             LHK, N_stages, feed_stages, 
-            reflux=None, boilup=None, 
+            reflux=None, boilup=None, bottoms_product_to_feed=None,
             P=101325, 
             vapor_side_draws=None, liquid_side_draws=None,
             stage_reactions=None,
@@ -2729,13 +2787,14 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
             vacuum_system_preference='Liquid-ring pump',
             partition_data=None,
             full_condenser=None,
-            collapsed_init=None,
             use_cache=None,
-            algorithm=None,
-            method=None,
-            inside_out=None,
+            algorithms=None,
+            methods=None,
             maxiter=None,
+            max_attempts=None,
             stage_specifications=None,
+            vlle=False,
+            specifications_by_weight=False,
         ):
         if full_condenser: 
             if liquid_side_draws is None:
@@ -2752,6 +2811,8 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
             stage_specifications[0] = ('Reflux', reflux)
         if boilup is not None:
             stage_specifications[-1] = ('Boilup', boilup)
+        if bottoms_product_to_feed is not None:
+            stage_specifications[-1] = ('Flow', bottoms_product_to_feed)
         super()._init(N_stages=N_stages, feed_stages=feed_stages,
                       top_side_draws=vapor_side_draws, 
                       bottom_side_draws=liquid_side_draws,              
@@ -2759,11 +2820,12 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                       phases=("g", "l"), P=P, use_cache=use_cache,
                       stage_specifications=stage_specifications,
                       stage_reactions=stage_reactions,
-                      collapsed_init=collapsed_init,
-                      inside_out=inside_out,
-                      algorithm=algorithm,
-                      method=method,
-                      maxiter=maxiter)
+                      algorithms=algorithms,
+                      methods=methods,
+                      max_attempts=max_attempts,
+                      maxiter=maxiter,
+                      vlle=vlle,
+                      specifications_by_weight=specifications_by_weight)
         
         # Construction specifications
         self.weir_height = weir_height
@@ -2844,7 +2906,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
             self.auxiliary(
                 'top_split', MockSplitter,
                 ins = self.condenser-0,
-                outs=(self-2, 'condensate'),
+                outs=(self-0, 'condensate'),
                 thermo=thermo,
             )
             self.condensate = self.top_split-1
@@ -2916,28 +2978,51 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         hw = weir_height = self._TS * self.weir_height * 0.0393701 # mm to inches
         area = diameter * diameter * pi / 4
         b = 2/3
+        stages = self.stages
         partitions = self.partitions
         for i in self.stage_reactions:
-            partition = partitions[i]
-            vapor, liquid = partition.outs
-            if vapor.isempty():
-                Ks = 0
-            elif liquid.isempty():
-                partition.reaction.liquid_volume = 0
-                continue
-            else:
-                rho_V = vapor.rho
-                rho_L = liquid.rho
-                active_area = area * (1 - 2 * partition.downcomer_area_fraction)
-                Ua = vapor.get_total_flow('ft3/s') / active_area
-                Ks = Ua * sqrt(rho_V / (rho_L - rho_V)) # Capacity parameter    
-            Phi_e = exp(-4.257 * Ks**0.91) # Effective relative froth density 
-            Lw = 0.73 * diameter * 12 # Weir length [in] assuming Ad/A = 0.1
-            # TODO: Compute weir length or other Ad/A
-            qL = liquid.get_total_flow('gal/min')
-            CL = 0.362 + 0.317 * exp(-3.5 * weir_height)
-            hL = Phi_e * (hw + CL * (qL / (Lw * Phi_e)) ** b) # equivalent height of clear liquid holdup [in]
-            partition.reaction.liquid_volume = hL * area * 0.00236155 # m3 
+            try:
+                partition = partitions[i]
+                vapor, liquid = partition.outs
+                if liquid.isempty():
+                    stages[i].liquid_holdup_volume = 0
+                    continue
+                elif vapor.isempty():
+                    Ks = 0
+                else:
+                    rho_V = vapor.rho
+                    rho_L = liquid.rho
+                    active_area = area * (1 - 2 * partition.downcomer_area_fraction)
+                    Ua = vapor.get_total_flow('ft3/s') / active_area
+                    Ks = Ua * sqrt(rho_V / (rho_L - rho_V)) # Capacity parameter    
+                Phi_e = exp(-4.257 * Ks**0.91) # Effective relative froth density 
+                Lw = 0.73 * diameter * 12 # Weir length [in] assuming Ad/A = 0.1
+                # TODO: Compute weir length for other Ad/A
+                qL = liquid.get_total_flow('gal/min')
+                CL = 0.362 + 0.317 * exp(-3.5 * weir_height)
+                hL = Phi_e * (hw + CL * (qL / (Lw * Phi_e)) ** b) # equivalent height of clear liquid holdup [in]
+                stages[i].liquid_holdup_volume = hL * area * 0.00236155 # m3 
+            except:
+                partition = partitions[i]
+                vapor, liquid = partition.outs
+                if liquid.isempty():
+                    stages[i].liquid_holdup_volume = 0
+                    continue
+                elif vapor.isempty():
+                    Ks = 0
+                else:
+                    rho_V = vapor.rho
+                    rho_L = liquid.rho
+                    active_area = area * (1 - 2 * partition.downcomer_area_fraction)
+                    Ua = vapor.get_total_flow('ft3/s') / active_area
+                    Ks = Ua * sqrt(rho_V / (rho_L - rho_V)) # Capacity parameter    
+                Phi_e = exp(-4.257 * Ks**0.91) # Effective relative froth density 
+                Lw = 0.73 * diameter * 12 # Weir length [in] assuming Ad/A = 0.1
+                # TODO: Compute weir length for other Ad/A
+                qL = liquid.get_total_flow('gal/min')
+                CL = 0.362 + 0.317 * exp(-3.5 * weir_height)
+                hL = Phi_e * (hw + CL * (qL / (Lw * Phi_e)) ** b) # equivalent height of clear liquid holdup [in]
+                stages[i].liquid_holdup_volume = hL * area * 0.00236155 # m3 
        
     def estimate_diameter(self): # ft
         diameters = []
@@ -2962,6 +3047,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
             diameters.append(
                 design.compute_tower_diameter(V_vol, U_f, f, A_dn)
             )
+        if not diameters: return 0
         return max(diameters) * 3.28 # ft
         
     def _design(self):
@@ -2969,7 +3055,9 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         Design = self.design_results
         
         ### Get maximum required diameter of column across stages ###
-        Po = self.P * 0.000145078 # to psi
+        P = self.P
+        if isinstance(P, Iterable): P = P.max()
+        Po = P * 0.000145078 # to psi
         rho_M = material_densities_lb_per_in3[self.vessel_material]
         if Po < 14.68:
             warn('vacuum pressure vessel ASME codes not implemented yet; '

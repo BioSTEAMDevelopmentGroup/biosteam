@@ -62,6 +62,8 @@ __all__ = ('System', 'AgileSystem', 'MockSystem',
            'AgileSystem', 'OperationModeResults',
            'mark_disjunction', 'unmark_disjunction')
 
+# %% Miscillaneous
+
 def _reformat(name):
     name = name.replace('_', ' ')
     if name.islower(): name= name.capitalize()
@@ -82,29 +84,42 @@ class SystemSpecification:
 # %% Reconfiguration for phenomena oriented simulation and convergence
 
 ObjectType = np.dtype('O')
+TRACK_CONDITION_NUMBER = 2
+TRACK_VARIABLES = 1
+
+def get_material_values(indexer_phases):
+    containers = []
+    for indexer, phase in indexer_phases:
+        index = indexer._phase_indexer(phase)
+        containers.append(indexer.data.rows[index])
+    return containers, SparseArray.from_rows(containers).to_array()
 
 class Configuration:
-    __slots__ = ('path', 'stages', 'nodes', 'streams',
+    __slots__ = ('path', 'stages', 'streams',
                  'stream_ref', 'connections', 'aggregated',
                  'composition_sensitive_path', 
-                 'composition_sensitive_nodes',
-                 '_has_dynamic_coefficients')
+                 'composition_sensitive_stages',
+                 '_has_dynamic_coefficients',
+                 'material_relaxation_factor',
+                 'energy_relaxation_factor')
     
-    def __init__(self, path, stages, nodes, streams, stream_ref, connections, aggregated):
+    def __init__(self, path, stages, streams, stream_ref, connections, 
+                 aggregated, material_relaxation_factor, energy_relaxation_factor):
         self.path = path
         self.stages = stages
-        self.nodes = nodes
         self.streams = streams
         self.stream_ref = stream_ref
         self.connections = connections
         self.aggregated = aggregated
         self.composition_sensitive_path = [i for i in path if getattr(i, 'composition_sensitive', False)]
-        self.composition_sensitive_nodes =  [i for i in nodes if getattr(i, 'composition_sensitive', False) or isinstance(i, Stream)]
+        self.composition_sensitive_stages =  [i for i in stages if getattr(i, 'composition_sensitive', False) or isinstance(i, Stream)]
+        self.material_relaxation_factor = material_relaxation_factor
+        self.energy_relaxation_factor = energy_relaxation_factor
     
     def get_composition_sensitive_flows(self):
         streams = []
         past_streams = set()
-        for i in self.composition_sensitive_nodes:
+        for i in self.composition_sensitive_stages:
             for stream in (i.ins + i.outs):
                 if stream in past_streams: continue
                 past_streams.add(stream)
@@ -116,7 +131,7 @@ class Configuration:
     def get_composition_sensitive_data(self):
         streams = []
         past_streams = set()
-        for i in self.composition_sensitive_nodes:
+        for i in self.composition_sensitive_stages:
             for stream in (i.ins + i.outs):
                 if stream in past_streams: continue
                 past_streams.add(stream)
@@ -133,39 +148,46 @@ class Configuration:
                     i._update_nonlinearities()
         else:
             for i in self.path: 
-                if getattr(i, 'decoupled', False): 
-                    assert False
-                    i.run()
                 i._update_nonlinearities()
+        
         if self.composition_sensitive_path:
-            # streams, phases, flows = self.get_composition_sensitive_flows()
-            # streams, data = self.get_composition_sensitive_data()
-            # for i in self.composition_sensitive_path: i.run()
-            # for i in range(10):
-            containers, flows = self.solve_material_flows(composition_sensitive=True, full_output=True)
+            stages = self.composition_sensitive_stages
+            A = []
+            b = []
+            for stage in stages:
+                f = stage._create_material_balance_equations
+                try: eqs = f(True)
+                except TypeError as e: 
+                    try: eqs = f()
+                    except: raise e from None
+                for coefficients, value in eqs:
+                    coefficients = {
+                        i.material_reference: j for i, j in coefficients.items()
+                    }
+                    A.append(coefficients)
+                    b.append(value)
+            A, objs = dictionaries2array(A)
+            containers, flows = get_material_values(objs)            
+            
             def update_inner_material_balance_parameters(flows):
-                for i in self.composition_sensitive_path: i._update_composition_parameters()
+                for i in self.composition_sensitive_stages: i._update_composition_parameters()
                 return self.solve_material_flows(composition_sensitive=True)
             
             flx.fixed_point(
                 update_inner_material_balance_parameters,
-                flows, xtol=tmo.LLE.pseudo_equilibrium_inner_loop_options['xtol'] * flows.max(), 
+                flows, 
+                xtol=tmo.LLE.pseudo_equilibrium_inner_loop_options['xtol'], 
+                rtol=tmo.LLE.pseudo_equilibrium_inner_loop_options['rtol'], 
                 maxiter=100, checkiter=False,
                 checkconvergence=False,
             )
             for i in self.composition_sensitive_path: i._update_net_flow_parameters()
-            # flows = flx.fixed_point(
-            #     outer_loop,
-            #     flows, xtol=tmo.LLE.pseudo_equilibrium_inner_loop_options['xtol'] * flows.max(), 
-            #     maxiter=30, checkiter=False,
-            #     checkconvergence=False,
-            # )
-            for i, j in zip(containers, flows): i[:] = j
-            # for i, j, k in zip(streams, phases, flows):
-            #     i.phases = j
-            #     i.imol.data[:] = k
-            for i in self.composition_sensitive_nodes: 
-                if hasattr(i, '_update_auxiliaries'): i._update_auxiliaries()
+            # self.solve_material_flows(composition_sensitive=True)
+            for obj, value in zip(objs, flows): # reset material flows
+                indexer, phase = obj
+                index = indexer._phase_indexer(phase)
+                mol = indexer.data.rows[index]
+                mol[:] = value
     
     def dynamic_coefficients(self, b):
         try:
@@ -179,13 +201,15 @@ class Configuration:
     
     def solve_material_flows(self, composition_sensitive=False, full_output=False):
         if composition_sensitive:
-            nodes = self.composition_sensitive_nodes
+            stages = self.composition_sensitive_stages
+            relaxation_factor = None
         else:
-            nodes = self.nodes
+            stages = self.stages
+            relaxation_factor = self.material_relaxation_factor
         A = []
         b = []
-        for node in nodes:
-            f = node._create_material_balance_equations
+        for stage in stages:
+            f = stage._create_material_balance_equations
             try: eqs = f(composition_sensitive)
             except TypeError as e: 
                 try: eqs = f()
@@ -199,66 +223,56 @@ class Configuration:
         delayed = self.dynamic_coefficients(b)
         if delayed:
             raise NotImplementedError('delayed coefficients')
-            delayed_index = []
-            for _, t in delayed:
-                delayed_index.extend([i for i, j in enumerate(t) if callable(j)])
-            delayed_set = set(delayed_index)
-            delayed_index = list(delayed_set)
-            ready_index = [i for i in range(len(t)) if i not in delayed_set]
-            A_ready = [{i: j[ready_index] for i, j in dct.items()} for dct in A]
-            A_ready, objs = dictionaries2array(A_ready)
-            b_ready = np.array([i[ready_index] for i in b], float)
-            values = solve(A_ready, b_ready.T).T
-            values[values < 0] = 0
-            for obj, value in zip(objs, values): # update material flows
-                indexer, phase = obj
-                index = indexer._phase_indexer(phase)
-                mol = indexer.data.rows[index]
-                mol[ready_index] = value
-            A_delayed = [{i: j[delayed_index] for i, j in dct.items()} for dct in A]
-            A_delayed, objs = dictionaries2array(A_delayed)
-            b_delayed = np.array([
-                [(f(j) if callable(f:=bi[j]) else f) for j in delayed_index]
-                for bi in b
-            ], float)
-            values = solve(A_delayed, b_delayed.T).T
-            values[values < 0] = 0
-            for obj, value in zip(objs, values): 
-                obj._update_material_flows(value, delayed_index)
+            # delayed_index = []
+            # for _, t in delayed:
+            #     delayed_index.extend([i for i, j in enumerate(t) if callable(j)])
+            # delayed_set = set(delayed_index)
+            # delayed_index = list(delayed_set)
+            # ready_index = [i for i in range(len(t)) if i not in delayed_set]
+            # A_ready = [{i: j[ready_index] for i, j in dct.items()} for dct in A]
+            # A_ready, objs = dictionaries2array(A_ready)
+            # b_ready = np.array([i[ready_index] for i in b], float)
+            # values = solve(A_ready, b_ready.T).T
+            # values[values < 0] = 0
+            # for obj, value in zip(objs, values): # update material flows
+            #     indexer, phase = obj
+            #     index = indexer._phase_indexer(phase)
+            #     mol = indexer.data.rows[index]
+            #     mol[ready_index] = value
+            # A_delayed = [{i: j[delayed_index] for i, j in dct.items()} for dct in A]
+            # A_delayed, objs = dictionaries2array(A_delayed)
+            # b_delayed = np.array([
+            #     [(f(j) if callable(f:=bi[j]) else f) for j in delayed_index]
+            #     for bi in b
+            # ], float)
+            # values = np.array([solve(A_delayed[i], b_delayed[:, i]) for i in range(b.shape[1])]).T
+            # values[values < 0] = 0
+            # for obj, value in zip(objs, values): 
+            #     obj._update_material_flows(value, delayed_index)
         else:
             A, objs = dictionaries2array(A)
             if np.isnan(A).any(): raise RuntimeError('invalid number encountered')
-            values = solve(A, np.array(b).T).T
+            b = np.array(b)
+            values = np.array([solve(A[i], b[:, i]) for i in range(b.shape[1])]).T
             if np.isnan(values).any(): raise RuntimeError('invalid number encountered')
-            values[(values < 0) & (values > -1e-6)] = 0
-            masks = values < 0
+            if relaxation_factor is not None:
+                containers, old_values = get_material_values(objs)
+                values = relaxation_factor * old_values + (1 - relaxation_factor) * values
+            masks = values < -1e-6
             if masks.any():
-                containers = []
-                for obj in objs:
-                    indexer, phase = obj
-                    index = indexer._phase_indexer(phase)
-                    containers.append(indexer.data.rows[index])
+                if relaxation_factor is None:
+                    containers, old_values = get_material_values(objs)
                 new_values = values[masks] 
-                old_values = SparseArray.from_rows(containers).to_array()
                 denominator = (old_values[masks] - new_values)
                 denominator[denominator == 0] = 1
                 weights = -new_values / denominator
                 relaxation_factor = weights.max()
                 values = relaxation_factor * old_values + (1 - relaxation_factor) * values
+                values[values < 0] = 0
                 for mol, value in zip(containers, values): # update material flows
                     mol[:] = value
-                # for obj, mask, value in zip(objs, masks, values): # update material flows
-                #     indexer, phase = obj
-                #     index = indexer._phase_indexer(phase)
-                #     mol = indexer.data.rows[index]
-                #     if mask.any():
-                #         new_mol = value[mask]
-                #         relaxation_factor = (-new_mol / (mol[mask] - new_mol)).max()
-                #         print(relaxation_factor)
-                #         mol[:] = relaxation_factor * mol + (1 - relaxation_factor) * value
-                #     else:
-                #         mol[:] = value
             else:
+                values[values < 0] = 0
                 if full_output:
                     containers = []
                     for obj, value in zip(objs, values): # update material flows
@@ -273,41 +287,44 @@ class Configuration:
                         index = indexer._phase_indexer(phase)
                         mol = indexer.data.rows[index]
                         mol[:] = value
-            # masks = values >= 0
-            # mask = (values < 0) & (values > -1e-9)
-            # if (values < 0).any(): 
-            #     raise RuntimeError('material balance could not be solved')
-            
-            # for obj, mask, value in zip(objs, masks, values): # update material flows
-            #     indexer, phase = obj
-            #     index = indexer._phase_indexer(phase)
-            #     mol = indexer.data.rows[index]
-            #     mol[mask] = value[mask]
-        for i in nodes: 
-            if hasattr(i, '_update_auxiliaries'): i._update_auxiliaries()
+        for stage in stages: 
+            if hasattr(stage, '_update_auxiliaries'): stage._update_auxiliaries()
         if full_output:
             return containers, values
         else:
             return values
         
-    def solve_energy_departures(self):
-        nodes = self.nodes
+    def solve_energy_flows(self):
+        stages = self.stages
         A = []
         b = []
-        for node in nodes:
-            for coefficients, value in node._create_energy_departure_equations():
+        for stage in stages:
+            for coefficients, value in stage._create_energy_balance_equations():
                 A.append(coefficients)
                 b.append(value)
+        if not A: return
+        for stage in stages:
+            for coefficients, value in stage._create_bulk_balance_equations():
+                A.append(coefficients)
+                b.append(value)
+        A = [{(getattr(i, 'material_reference', i), v): j for (i, v), j in x.items()} for x in A]
         A, objs = dictionaries2array(A)
-        departures = solve(A, np.array(b).T).T
-        try:
-            for obj, departure in zip(objs, departures): 
-                obj._update_energy_variable(departure)
-        except AttributeError as e:
-            if obj._update_energy_variable:
-                raise e
+        values = solve(A, np.array(b).T).T
+        if np.isnan(values).any(): raise RuntimeError('invalid number encountered')
+        for (obj, var), value in zip(objs, values):
+            if var == 'F_mol':
+                indexer, phase = obj
+                index = indexer._phase_indexer(phase)
+                mol = indexer.data.rows[index]
+                if value == 0:
+                    mol[:] = 0
+                else:
+                    total = mol.sum()
+                    if total != 0: mol[:] *= value / total
             else:
-                raise NotImplementedError(f'{obj!r} has no method `_update_energy_variable`')
+                obj._update_variable(var, value)
+        for stage in stages:
+            if hasattr(stage, '_reset_bulk_variable'): stage._reset_bulk_variable()
         
     def __enter__(self):
         units = self.stages
@@ -320,9 +337,6 @@ class Configuration:
             for i in ins: 
                 i._sink = u
                 sinks[i.imol] = u
-            if getattr(u, 'decoupled', False): 
-                breakpoint()
-                u = None
             for i in outs: 
                 i._source = u
                 sources[i.imol] = u
@@ -799,8 +813,6 @@ class System:
     facilities : 
         Offsite facilities that are simulated only after
         completing the path simulation.
-    facility_recycle : 
-        Recycle stream between facilities and system path.
     N_runs : 
         Number of iterations to converge the system.
     operating_hours :
@@ -817,7 +829,6 @@ class System:
         '_ID',
         '_path',
         '_facilities',
-        '_facility_loop',
         '_recycle',
         '_N_runs',
         '_method',
@@ -832,6 +843,9 @@ class System:
         '_path_cache',
         '_prioritized_units',
         '_temporary_connections_log',
+        '_integrated_facilities',
+        '_shared_facilities',
+        '_has_parent',
         'maxtime',
         'maxiter',
         'molar_tolerance',
@@ -854,9 +868,9 @@ class System:
         '_unit_path',
         '_cost_units',
         '_streams',
+        '_surface_streams',
         '_feeds',
         '_products',
-        '_facility_recycle',
         '_inlet_names',
         '_outlet_names',
         # Specifications
@@ -868,16 +882,14 @@ class System:
         # Convergence prediction
         '_responses',
         # Phenomena oriented simulation
-        '_last_flows',
-        '_last_error',
-        '_diverged_count',
+        'material_relaxation_factor',
+        'energy_relaxation_factor',
         '_aggregated_stage_configuration',
-        'adaptive_phenomena_oriented_simulation',
         '_stage_configuration',
         'grouped_variables',
-        'tracking',
-        'tracking_gap',
+        'tracking_flag',
         'variable_profiles',
+        'condition_number_profile',
         'equation_profiles',
         'edge_profiles',
         'variable_nodes',
@@ -919,7 +931,7 @@ class System:
     #: Default method for convergence algorithm.
     default_methods: dict[str] = {
         'Sequential modular': 'Aitken',
-        'Phenomena oriented': 'fixed-point',
+        'Phenomena based': 'fixed-point',
         'Phenomena modular': 'fixed-point',
     }
     
@@ -953,7 +965,6 @@ class System:
             feeds: Optional[Iterable[Stream]]=None, 
             facilities: Iterable[Facility]=(),
             ends: Iterable[Stream]=None,
-            facility_recycle: Optional[Stream]=None,
             operating_hours: Optional[float]=None,
             **kwargs,
         ):
@@ -974,8 +985,6 @@ class System:
         ends : 
             Streams that not products, but are ultimately specified through
             process requirements and not by its unit source.
-        facility_recycle : 
-            Recycle stream between facilities and system path.
         operating_hours : 
             Number of operating hours in a year. This parameter is used to
             compute annualized properties such as utility cost and material cost
@@ -984,15 +993,15 @@ class System:
         """
         if feedstock is None: raise ValueError('must pass feedstock stream')
         network = Network.from_feedstock(feedstock, feeds, ends)
+        if bst.settings.ID_magic and ID == '': ID = bst.utils.infer_variable_assignment(cls.from_feedstock)
         return cls._from_network(ID, network, facilities,
-                                facility_recycle, operating_hours,
+                                operating_hours,
                                 **kwargs)
 
     @classmethod
     def from_units(cls, ID: Optional[str]="",
                    units: Optional[Iterable[Unit]]=None, 
                    ends: Optional[Iterable[Stream]]=None,
-                   facility_recycle: Optional[Stream]=None, 
                    operating_hours: Optional[float]=None,
                    **kwargs):
         """
@@ -1008,9 +1017,6 @@ class System:
             End streams of the system which are not products. Specify this
             argument if only a section of the complete system is wanted, or if
             recycle streams should be ignored.
-        facility_recycle : 
-            Recycle stream between facilities and system path. This argument
-            defaults to the outlet of a BlowdownMixer facility (if any).
         operating_hours : 
             Number of operating hours in a year. This parameter is used to
             compute annualized properties such as utility cost and material cost
@@ -1019,8 +1025,9 @@ class System:
         """
         facilities = facilities_from_units(units)
         network = Network.from_units(units, ends)
+        if bst.settings.ID_magic and ID == '': ID = bst.utils.infer_variable_assignment(cls.from_units)
         return cls._from_network(ID, network, facilities,
-                                facility_recycle, operating_hours,
+                                operating_hours,
                                 **kwargs)
 
     @classmethod
@@ -1058,11 +1065,12 @@ class System:
         if inclusive:
             if start is not None: units.add(start)
             if end is not None: units.add(end)
+        if bst.settings.ID_magic and ID == '': ID = bst.utils.infer_variable_assignment(cls.from_segment)
         return bst.System.from_units(ID, units, operating_hours=operating_hours,
                                      **kwargs)
          
     @classmethod
-    def _from_network(cls, ID, network, facilities=(), facility_recycle=None,
+    def _from_network(cls, ID, network, facilities=(),
                      operating_hours=None, **kwargs):
         """
         Create a System object from a network.
@@ -1076,8 +1084,6 @@ class System:
         facilities : Iterable[Facility]
             Offsite facilities that are simulated only after
             completing the path simulation.
-        facility_recycle : [:class:`~thermosteam.Stream`], optional
-            Recycle stream between facilities and system path.
         operating_hours : float, optional
             Number of operating hours in a year. This parameter is used to
             compute annualized properties such as utility cost and material cost
@@ -1085,12 +1091,11 @@ class System:
 
         """
         facilities = Facility.ordered_facilities(facilities)
-        if facility_recycle is None: facility_recycle = find_blowdown_recycle(facilities)
         isa = isinstance
         ID_subsys = None if ID is None else ''
         path = [(cls._from_network(ID_subsys, i) if isa(i, Network) else i)
                 for i in network.path]
-        return cls(ID, path, network.recycle, facilities, facility_recycle, None,
+        return cls(ID, path, network.recycle, facilities, None,
                    operating_hours, **kwargs)
 
     def __init__(self, 
@@ -1098,7 +1103,6 @@ class System:
             path: Optional[Iterable[Unit|System]]=(), 
             recycle: Optional[Stream]=None, 
             facilities: Iterable[Facility]=(),
-            facility_recycle: Optional[Stream]=None, 
             N_runs: Optional[int]=None,
             operating_hours: Optional[float]=None,
             lang_factor: Optional[float]=None,
@@ -1111,6 +1115,7 @@ class System:
             temperature_tolerance: Optional[float]=None,
             relative_temperature_tolerance: Optional[float]=None,
             maxtime: Optional[float]=None,
+            shared_facilities=None,
         ):
         self.N_runs = N_runs
         
@@ -1151,24 +1156,40 @@ class System:
         #: Log for all process specifications checked for temporary connections.
         self._temporary_connections_log = set()
 
+        #: Whether subsystem facilities are shared with the entire system.
+        self._shared_facilities = True if shared_facilities is None else shared_facilities
+
         #: Whether to simulate system after running all specifications.
         self.simulate_after_specifications = False
 
-        #: Whether to run sequential modular simulation when phenomena oriented simulation is not converging.
-        self.adaptive_phenomena_oriented_simulation = True
+        #: Whether facilities have a recycle loop.
+        self._integrated_facilities = None
 
-        #: Whether to track convergence variables at each iteration.
-        self.tracking = False
+        #: Whether system is a subsystem of a super system.
+        self._has_parent = False
 
+        #: Flag to track convergence at each iteration. 
+        #: * 0 - no tracking
+        #: * 1 - track variables
+        #: * 2 - track variables and condition number
+        self.tracking_flag = 0
+        
+        #: Relaxation factor for material balance in phenomena-based simulation.
+        self.material_relaxation_factor = None
+        
+        #: Relaxation factor for energy balance in phenomena-based simulation.
+        self.energy_relaxation_factor = None
+        
+        if bst.settings.ID_magic and ID == '': ID = bst.utils.infer_variable_assignment(self.__class__)
+        
+        self._register(ID)
         self._set_path(path)
+        self.recycle = recycle
+        self._set_facilities(facilities)
         self._specifications = []
         self._running_specifications = False
         self._load_flowsheet()
         self._reset_errors()
-        self._set_facilities(facilities)
-        self.recycle = recycle
-        self._set_facility_recycle(facility_recycle)
-        self._register(ID)
         self._save_configuration()
         self._load_stream_links()
         self._state = None
@@ -1177,9 +1198,6 @@ class System:
         self._DAE = None
         self.dynsim_kwargs = {}
         self.tracked_recycles = {}
-        self._last_error = np.inf
-        self._last_flows = 0
-        self._diverged_count = 0
         subsystems = self.subsystems
         algorithm = self._algorithm
         method = self._method
@@ -1282,8 +1300,13 @@ class System:
 
     def _update_configuration(self,
             units: Optional[Sequence[str]]=None,
-            facility_recycle: Optional[Stream]=None,
         ):
+        if self._integrated_facilities:
+            raise NotImplementedError(
+                'system configuration changed during simulation; '
+                'cannot update configuration of system with integrated '
+                'facilities with recycles in BioSTEAM (yet)'
+            )
         old_IDs = [i.ID for i in self.subsystems]
         # Warning: This method does not save the configuration.
         if units is None: units = self.units
@@ -1298,8 +1321,7 @@ class System:
         self._reset_errors()
         self._set_path(path)
         self.recycle = network.recycle
-        self._set_facilities(facilities)
-        self._set_facility_recycle(facility_recycle or find_blowdown_recycle(facilities))
+        if not self._has_parent: self._set_facilities(facilities)
         self.set_tolerance(
             mol=self.molar_tolerance,
             rmol=self.relative_molar_tolerance,
@@ -1308,7 +1330,11 @@ class System:
             maxiter=self.maxiter,
             subsystems=True,
         )
-        for i, j in zip(self.subsystems, old_IDs): i.ID = j
+        registry = self.registry
+        data = registry.data
+        for i, ID in zip(self.subsystems, old_IDs): 
+            if ID in data: del data[ID]
+            i.ID = ID
 
     def __enter__(self):
         if self._path or self._recycle or self._facilities:
@@ -1337,8 +1363,14 @@ class System:
                 subsystems=True,
             )
 
+    def _get_connections(self):
+        if self._integrated_facilities:
+            return [i.get_connection() for i in self.surface_streams]
+        else:
+            return [i.get_connection() for i in self.streams]
+
     def _save_configuration(self):
-        self._connections = [i.get_connection() for i in self.streams]
+        self._connections = self._get_connections()
 
     @ignore_docking_warnings
     def _load_configuration(self):
@@ -1407,7 +1439,7 @@ class System:
 
     def _delete_path_cache(self):
         for i in ('_subsystems', '_units', '_unit_path', '_cost_units',
-                  '_streams', '_feeds', '_products'):
+                  '_surface_streams', '_streams', '_feeds', '_products'):
             if hasattr(self, i): delattr(self, i)
         self._path_cache.clear()
         self._temporary_connections_log.clear()
@@ -1423,8 +1455,6 @@ class System:
         """Copy path, facilities and recycle from other system."""
         self._path = other._path
         self._facilities = other._facilities
-        self._facility_loop = other._facility_loop
-        self._facility_recycle = other._facility_recycle
         self._recycle = other._recycle
         self._connections = other._connections
 
@@ -1741,41 +1771,6 @@ class System:
         if inclusive: segment = [*segment, end]
         return segment
 
-    # def simulation_number(self, obj):
-    #     """Return the simulation number of either a Unit or System object as 
-    #     it would appear in the system diagram."""
-    #     numbers = []
-    #     isa = isinstance
-    #     if isa(obj, System):
-    #         sys = obj
-    #         for i, other in enumerate(self.path):
-    #             if isa(other, System):
-    #                 if sys is other: 
-    #                     numbers.append(i)
-    #                     break
-    #                 elif sys in other.subsystems:
-    #                     numbers.append(i)
-    #                     numbers.append(other.simulation_number(sys))
-    #                     break
-    #         else:
-    #             raise ValueError(f"system {repr(sys)} not within system {repr(self)}")
-    #     else: # Must be unit
-    #         unit = obj
-    #         for i, other in enumerate(self.path):
-    #             if isa(other, System):
-    #                 if unit in other.unit_set: 
-    #                     numbers.append(i)
-    #                     numbers.append(other.simulation_number(unit))
-    #                     break
-    #             elif other is unit:
-    #                 numbers.append(i)
-    #                 break
-    #         else:
-    #             raise ValueError(f"unit {repr(unit)} not within system {repr(self)}")
-    #     number = 0
-    #     for i, n in enumerate(numbers): number += n * 10 ** -i
-    #     return number
-
     def split(self, 
               stream: Stream,
               ID_upstream: Optional[str]=None,
@@ -1853,38 +1848,35 @@ class System:
         self._path = path = tuple(path)
 
     def _set_facilities(self, facilities):
-        facilities_path = []
-        units = set(get_units(self))
-        for i in facilities: get_missing_units(i, units, facilities_path)
-        
         #: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the path simulation.
-        self._facilities = tuple(facilities_path)
-        self._load_facilities()
-
-    def _load_facilities(self):
+        self._facilities = facilities = tuple(facilities)
+        if self._shared_facilities: facilities = sum([i.facilities for i in self.subsystems], facilities)
         isa = isinstance
         units = self.cost_units
-        for i in self._facilities:
+        for i in facilities:
             if isa(i, Facility):
                 i._other_units = other_units = units.copy()
                 other_units.discard(i)
-
-    def _set_facility_recycle(self, recycle):
-        if recycle:
-            try:
-                sys = self._downstream_system(recycle._sink)
-                for i in sys.units: i._system = self
-                self._load_facilities()
-                sys.recycle = recycle
-                sys.__class__ = FacilityLoop
-                #: [FacilityLoop] Recycle loop for converging facilities
-                self._facility_loop = sys
-                self._facility_recycle = recycle
-            except:
-                self._facility_loop = None
-                self._facility_recycle = recycle
+        units = set(self.units)
+        for i in facilities: units.discard(i)
+        recycles = [
+            outlet 
+            for facility in facilities
+            for outlet in facility.outs
+            if outlet.sink in units
+        ]
+        if recycles:
+            self._integrated_facilities = True
+            for i in self.subsystems: i._has_parent = True
+            system_recycles = self.recycle
+            if system_recycles:
+                if isinstance(system_recycles, abc.Iterable):
+                    recycles.extend(system_recycles)
+                else:
+                    recycles.append(system_recycles)
+            self.recycle = recycles
         else:
-            self._facility_loop = self._facility_recycle = None
+            self._integrated_facilities = False
 
     # Forward pipping
     __sub__ = Unit.__sub__
@@ -2009,7 +2001,23 @@ class System:
                 elif isa(i, System):
                     units.update(i.cost_units)
             return units
-      
+     
+    @property
+    def surface_streams(self) -> list[Stream]:
+        try:
+            return self._surface_streams
+        except:
+            self._surface_streams = streams = []
+            stream_set = set()
+            for u in self.path:
+                for s in u.ins + u.outs:
+                    if not s: s = s.materialize_connection()
+                    elif s in stream_set: continue
+                    elif s.__class__ is AbstractStream: continue
+                    streams.append(s)
+                    stream_set.add(s)
+            return streams 
+     
     @property
     def streams(self) -> list[Stream]:
         """All streams within the system."""
@@ -2058,8 +2066,8 @@ class System:
     @recycle.setter
     def recycle(self, recycle):
         isa = isinstance
-        if recycle is None:
-            self._recycle = recycle
+        if not recycle:
+            self._recycle = None
         elif isa(recycle, Stream):
             self._recycle = recycle
         elif isa(recycle, abc.Iterable):
@@ -2142,7 +2150,7 @@ class System:
 
     @property
     def algorithm(self) -> str:
-        """Iterative convergence algorithm ('Sequatial modular', or 'Phenomena oriented').
+        """Iterative convergence algorithm ('Sequatial modular', or 'Phenomena based').
         
         Notes
         -----
@@ -2310,7 +2318,7 @@ class System:
             elif kind == 3 or kind == 'minimal':
                 f = self._minimal_digraph(facilities, graph_attrs)
             elif kind == 4 or kind == 'stage':
-                f = self._stage_digraph(facilities, graph_attrs)
+                f = self._stage_digraph(graph_attrs)
             else:
                 raise ValueError("kind must be one of the following: "
                                  "0 or 'cluster', 1 or 'thorough', 2 or 'surface', "
@@ -2476,14 +2484,19 @@ class System:
     def _setup_units(self):
         """Setup all unit operations."""
         prioritized_units = self._prioritized_units
+        integrated_facilities = self._integrated_facilities
+        decoupled_simulation = not integrated_facilities
         for u in self.units: 
             u._system = self
-            u._setup()
-            u._check_setup()
+            if decoupled_simulation:
+                u._setup()
+                u._check_setup()
             if u not in prioritized_units:
                 for ps in u._specifications: ps.compile_path(u)
                 if u.prioritize: self.prioritize_unit(u)
                 prioritized_units.add(u)
+        # Facilities need to be registered with units within the system
+        if not self._has_parent: self._set_facilities(self._facilities)
                 
     def _setup(self, update_configuration=False, units=None, load_configuration=True):
         """Setup each element of the system."""
@@ -2508,7 +2521,6 @@ class System:
                 self._save_configuration()
             else:
                 self._setup_units()
-        self._load_facilities()
 
     @piping.ignore_docking_warnings
     def _remove_temporary_units(self):
@@ -2527,39 +2539,76 @@ class System:
         algorithm = self.algorithm 
         if algorithm == 'Sequential modular':
             self.run_sequential_modular()
-        elif algorithm == 'Phenomena oriented':
-            self.run_phenomena()
-        elif algorithm == 'Phenomena modular':
-            self.run_phenomena_modular()
         else:
-            raise RuntimeError(f'unknown algorithm {algorithm!r}')
+            if self._iter == 0:
+                self.run_sequential_modular()
+                with self.stage_configuration(aggregated=False) as conf:
+                    conf.solve_material_flows()
+                    if self.tracking_flag: self._collect_variables('material')
+            elif algorithm == 'Phenomena based':
+                self.run_phenomena()
+            elif algorithm == 'Phenomena modular':
+                self.run_phenomena_modular()
+            else:
+                raise RuntimeError(f'unknown algorithm {algorithm!r}')
+
+    def run_sequential_modular(self):
+        """Run mass and energy balances for each element in the path
+        without costing unit operations."""
+        isa = isinstance
+        f = try_method_with_object_stamp
+        flag = self.tracking_flag
+        integrated = self._integrated_facilities
+        for i in self._path:
+            if isa(i, Unit):
+                if integrated: f(i, i.simulate)
+                else: f(i, i.run)
+                if flag: self._collect_variables(i.ID)
+            elif isa(i, System): 
+                if integrated: f(i, i.simulate) 
+                else: f(i, i.converge)
+            else: raise RuntimeError('path elements must be either a unit or a system')
+        if flag == TRACK_CONDITION_NUMBER:
+            self._collect_recycle_condition_number()
+
+    def run_phenomena(self):
+        """Decouple and linearize material, equilibrium, summation, enthalpy,
+        and reaction phenomena and iteratively solve them."""
+        path = self.unit_path
+        flag = self.tracking_flag
+        with self.stage_configuration(aggregated=False) as conf:
+            try:
+                conf.solve_nonlinearities()
+                if flag: self._collect_variables('phenomenode')
+                conf.solve_energy_flows()
+                if flag: self._collect_variables('energy')
+                conf.solve_material_flows()
+                if flag: self._collect_variables('material')
+            except (NotImplementedError, UnboundLocalError, KeyError) as error:
+                raise error
+            except Exception as e:
+                print('FAILED!')
+                print(e)
+                print('-------')
+                for i in path: 
+                    i.run()
+                    if flag: self._collect_variables(i.ID)
+                conf.solve_material_flows()
+                if flag: self._collect_variables('material')
 
     def run_phenomena_modular(self):
         path = self.unit_path
-        tracking = self.tracking
+        flag = self.tracking_flag
         with self.stage_configuration(aggregated=False) as conf:
             try:
                 for n, i in enumerate(path): 
-                    # if hasattr(i, 'stages'):
-                    #     stages = i.stages
-                    # else:
-                    #     stages = [i]
-                    # streams = [outlet for stage in stages for outlet in stage.outs]
-                    # energy_variables = [
-                    #     (s, j, getattr(s, j)) 
-                    #     for s in self.stages 
-                    #     if (j:=getattr(s, '_energy_variable', None))
-                    # ]
-                    # flows = [s.mol.copy() for s in streams]
                     if isinstance(i, (bst.Mixer, bst.Splitter)) and not i.specifications: continue
                     i.run()
-                    # for s, mol in zip(streams, flows): s.mol[:] = mol
-                    # for stage, name, value in energy_variables: setattr(stage, name, value)
-                    if tracking: self._collect_variables((i.ID, 'phenomena'))
+                    if flag: self._collect_variables((i.ID, 'phenomenode'))
                     conf.solve_material_flows()
-                    if tracking: self._collect_variables('material')
-                    conf.solve_energy_departures()
-                    if tracking: self._collect_variables('energy')
+                    if flag: self._collect_variables('material')
+                    conf.solve_energy_flows()
+                    if flag: self._collect_variables('energy')
             except (NotImplementedError, UnboundLocalError, KeyError) as error:
                 raise error
             except Exception as e:
@@ -2568,22 +2617,7 @@ class System:
                 print(e)
                 for i in path[n+1:]: 
                     i.run()
-                    if tracking: self._collect_variables(i.ID)
-
-    def run_sequential_modular(self):
-        """Run mass and energy balances for each element in the path
-        without costing unit operations."""
-        isa = isinstance
-        f = try_method_with_object_stamp
-        tracking = self.tracking
-        for i in self._path:
-            # self.assert_tracking_ok()
-            if isa(i, Unit): 
-                f(i, i.run)
-                if tracking: self._collect_variables(i.ID)
-            elif isa(i, System): f(i, i.converge)
-            else: raise RuntimeError('path elements must be either a unit or a system')
-        # self.assert_tracking_ok()
+                    if flag: self._collect_variables(i.ID)
 
     def stage_configuration(self, aggregated=False):
         try:
@@ -2599,28 +2633,27 @@ class System:
                 stages = self.aggregated_stages
                 streams = [i for u in stages for i in u.flat_ins + u.flat_outs]
                 stream_ref = {i.material_reference: i for u in stages for i in (*u.flat_ins, *u.flat_outs)}
-                nodes = [i for i in stages if not getattr(i, 'decoupled', False)]
                 self._aggregated_stage_configuration = conf = Configuration(
-                    self.path, stages, nodes, streams, stream_ref, connections, aggregated
+                    self.path, stages, streams, stream_ref, connections, 
+                    aggregated, self.material_relaxation_factor,
+                    self.energy_relaxation_factor,
                 )
             else:
                 stream_ref = {i.material_reference: i for i in streams}
-                nodes = [i for i in stages if not getattr(i, 'decoupled', False)]
                 self._stage_configuration = conf = Configuration(
-                    self.path, stages, nodes, streams, stream_ref, connections, aggregated
+                    self.path, stages, streams, stream_ref, connections,
+                    aggregated, self.material_relaxation_factor,
+                    self.energy_relaxation_factor
                 )
             return conf
         
     def track_convergence(
             self, 
             track=True, 
-            system_tracking_gap=None, 
-            unit_tracking_gap=None,
+            condition_number=False,
         ):
         if track:
-            if system_tracking_gap is None: system_tracking_gap = 1
-            if unit_tracking_gap is None: unit_tracking_gap = 1
-            self.tracking = True
+            self.tracking_flag = track + condition_number
             with self.stage_configuration(aggregated=False) as conf:
                 for i in self.stages: 
                     i.create_equation_nodes(conf.stream_ref)
@@ -2628,34 +2661,41 @@ class System:
                 self.equation_nodes = equations = tuple(set(sum([i.equation_nodes for i in self.stages], ())))
                 self.variable_nodes = variables = tuple(set(sum([i.variables for i in equations], ())))
                 self.variable_profiles = variable_profiles = {i: [] for i in variables}
-                for i in conf.nodes:
+                for i in conf.stages:
                     specification_variables = [j for i in i.material_balance_specifications_nodes for j in i.variables]
                     for variable in specification_variables:
                         if variable not in variable_profiles: variable_profiles[variable] = []
             for i in self.units:
-                i.tracking_gap = unit_tracking_gap
                 i._system_collect_variables = self._collect_variables
                 i.tracking = True
             self.equation_profiles = {}
             self.edge_profiles = {}
             self.grouped_variables = {}
-            self.tracking_gap = system_tracking_gap
+            if condition_number:
+                if self.algorithm == 'Sequential modular':
+                    self.condition_number_profile = {
+                        'recycle': [],
+                    }
+                else:
+                    self.condition_number_profile = {
+                        'material': [],
+                        'energy': [],
+                        'phenomenode': [],
+                    }
             if not self.recycle:
                 self.timer = Timer()
                 self.timer.start()
+                
         else:
             for i in self.variable_profiles: i.getter = None
-            self.tracking = False
+            self.tracking_flag = False
             self.equation_nodes = None
             self.variable_nodes = None
             self.variable_profiles = None
             self.equation_profiles = None
             self.edge_profiles = None
-            self.tracking_gap = None
             self.grouped_variables = None
-            for i in self.units:
-                i.tracking_gap = None
-                i.tracking = False
+            for i in self.units: i.tracking = False
     
     def get_profiles(self, equation_profiles, edge_profiles):
         time, variable_profiles = self.get_variable_profiles()
@@ -2668,14 +2708,17 @@ class System:
             stages = []
             for name in column_names:
                 directory, chemical = name
-                if directory[-1] == 'F':
-                    directory = directory[:-1] + 'mol'
-                if '.outs[' in directory:
-                    dot_index = directory.rindex('.outs[')
-                elif '.ins[' in directory:
-                    dot_index = directory.rindex('.ins[')
+                if directory[-1] == 'R':
+                    directory = directory[:-1] + 'dmol'
                 else:
-                    dot_index = directory.rindex('.')
+                    if directory[-1] == 'F':
+                        directory = directory[:-1] + 'mol'
+                    if '.outs[' in directory:
+                        dot_index = directory.rindex('.outs[')
+                    elif '.ins[' in directory:
+                        dot_index = directory.rindex('.ins[')
+                    else:
+                        dot_index = directory.rindex('.')
                 stages.append(directory[:dot_index])
                 if chemical != '-':
                     index = chemicals.index(chemical)
@@ -2695,9 +2738,9 @@ class System:
     def get_monopartite_phenomegraph(self, decomposition=None, dotfile=None):
         if decomposition is None: decomposition = self.algorithm.lower()
         subgraph_units = [i.ID for i in self.path]
-        if 'phenomena' in decomposition:
+        if 'phenomenode' in decomposition:
             if 'modular' in decomposition:
-                criteria = [*all_subgraphs, *[(i, 'phenomena') for i in subgraph_units]]
+                criteria = [*all_subgraphs, *[(i, 'phenomenode') for i in subgraph_units]]
             else:
                 criteria = all_subgraphs
         elif 'modular' in decomposition:
@@ -2720,7 +2763,7 @@ class System:
             **kwargs,
         ):
         if decomposition is None: decomposition = self.algorithm.lower()
-        if not getattr(self, 'tracking', False):
+        if not getattr(self, 'tracking_flag', False):
             with self.stage_configuration(aggregated=False) as conf:
                 for i in self.stages: 
                     i.create_equation_nodes(conf.stream_ref)
@@ -2728,7 +2771,7 @@ class System:
                 self.equation_nodes = equations = tuple(set(sum([i.equation_nodes for i in self.stages], ())))
                 self.variable_nodes = variables = tuple(set(sum([i.variables for i in equations], ())))
                 self.variable_profiles = variable_profiles = {i: [] for i in variables}
-                for i in conf.nodes:
+                for i in conf.stages:
                     specification_variables = [j for i in i.material_balance_specifications_nodes for j in i.variables]
                     for variable in specification_variables:
                         if variable not in variable_profiles: variable_profiles[variable] = []
@@ -2761,7 +2804,7 @@ class System:
             raise ValueError('unknown decompostion')
         
         def equation_match(equation, subgraph):
-            name = equation.name
+            name = equation.name.replace('phenomenode', 'phenomena')
             if isinstance(subgraph, tuple):
                 return all([i in name for i in subgraph])
             else:
@@ -2856,11 +2899,8 @@ class System:
     def get_equation_profiles(self, variable_profiles_table, directories, stages, namespace):
         equation_profiles = self.equation_profiles
         M = variable_profiles_table.shape[0]
-        # print('------')
-        # print('M', M)
         for i in range(M):
             row = variable_profiles_table.iloc[i]
-            # print(i)
             for directory, value in zip(directories, row):
                 exec(f"{directory} = {value}", namespace)
             for stage in stages:
@@ -2883,77 +2923,55 @@ class System:
                 values_i = lst[i]
                 values[i, j] = values_i
         return pd.DataFrame(values, columns=columns)
-    
-    def run_phenomena(self):
-        """Decouple and linearize material, equilibrium, summation, enthalpy,
-        and reaction phenomena and iteratively solve them."""
-        path = self.unit_path
-        tracking = self.tracking and (not self.tracking_gap or not self._iter % self.tracking_gap)
-        with self.stage_configuration(aggregated=False) as conf:
-            try:
-                mass_balance_error = sum([abs(i.mass_balance_error()) for i in conf.nodes])
-                if mass_balance_error > 1e-3:
-                    raise RuntimeError('mass balance error greater than tolerance')
-                conf.solve_nonlinearities()
-                if tracking:
-                    self._collect_variables('phenomena')
-                    # self.assert_tracking_ok()
-                conf.solve_energy_departures()
-                if tracking: 
-                    self._collect_variables('energy')
-                    # self.assert_tracking_ok()
-                conf.solve_material_flows()
-                if tracking: 
-                    self._collect_variables('material')
-                    # self.assert_tracking_ok()
-            except (NotImplementedError, UnboundLocalError, KeyError) as error:
-                raise error
-            except Exception as e:
-                print('FAILED!')
-                print(e)
-                print('-------')
-                for i in path: 
-                    # self.assert_tracking_ok()
-                    i.run()
-                    if tracking: self._collect_variables(i.ID)
-                # self.assert_tracking_ok()
-                conf.solve_material_flows()
-                if tracking: self._collect_variables('material')
-                    # self.assert_tracking_ok()
-                # conf.solve_energy_departures()
-                # if tracking: self._collect_variables('energy')
-                #     # self.assert_tracking_ok()
-                # conf.solve_material_flows()
-                # if tracking: self._collect_variables('material')
-                #     # self.assert_tracking_ok()
             
     def assert_tracking_ok(self):
-        if not self.tracking: return
+        if not self.tracking_flag: return
         N, = set([len(i) for i in self.variable_profiles.values()])
         M = len(self.timer.record)
         assert M == N
+
+    # TODO: Decide whether to remove condition number analysis.
+    def _collect_recycle_condition_number(self):
+        pass
+
+    def _collect_material_condition_number(self):
+        pass
+    
+    def _collect_energy_condition_number(self):
+        pass
+    
+    def _collect_phenomena_condition_number(self):
+        pass
             
     def _collect_variables(self, key):
-        grouped_variables = self.grouped_variables
-        if isinstance(key, str): key = (key,)
-        if key in grouped_variables:
-            group = grouped_variables[key]
-        else:
-            equations = [
-                eq for eq in self.equation_nodes
-                if all([i in eq.name for i in key])
-            ]
-            group = [i for eq in equations for i in eq.tracked_outputs]
-            grouped_variables[key] = group = set(group)
-        variables = self.variable_profiles
-        for variable, values in variables.items(): 
-            if variable in group: 
-                value = variable.get_value()
-            else:
-                value = variable.last_value
-            values.append(value)
         self.timer.measure()
-            
+        with self.timer.offset():
+            if self.tracking_flag == TRACK_CONDITION_NUMBER:
+                if key == 'material':
+                    self._collect_material_condition_number()
+                elif key == 'energy':
+                    self._collect_energy_condition_number()
+                elif key == 'phenomenode':
+                    self._collect_phenomena_condition_number()
+            grouped_variables = self.grouped_variables
+            if isinstance(key, str): key = (key,)
+            if key in grouped_variables:
+                group = grouped_variables[key]
+            else:
+                equations = [
+                    eq for eq in self.equation_nodes
+                    if all([i in eq.name for i in key])
+                ]
+                group = [i for eq in equations for i in eq.tracked_outputs]
+                grouped_variables[key] = group = set(group)
+            variables = self.variable_profiles
+            for variable, values in variables.items(): 
+                if variable in group: 
+                    value = variable.get_value()
+                else:
+                    value = variable.last_value
+                values.append(value)
+                
     def _mock_collect_variables(self, key, variable_errors, convergence_rate):
         grouped_variables = self.grouped_variables
         if isinstance(key, str): key = (key,)
@@ -3019,9 +3037,6 @@ class System:
         """
         if recycle_data is not None: recycle_data.reset()
         if self._recycle:
-            for i in self.path:
-                if isinstance(i, Unit) and hasattr(i, 'recycle_system_hook'):
-                    i.recycle_system_hook(self)
             method = self._solve
         else:
             method = self.run_sequential_modular
@@ -3034,15 +3049,16 @@ class System:
             except AttributeError: raise ValueError('no recycle data to update')
 
     def _summary(self):
-        simulated_units = set()
-        isa = isinstance
-        Unit = bst.Unit
-        f = try_method_with_object_stamp
-        for i in self._path:
-            if isa(i, Unit):
-                if i in simulated_units: continue
-                simulated_units.add(i)
-            f(i, i._summary)
+        if not self._integrated_facilities: 
+            simulated_units = set()
+            isa = isinstance
+            Unit = bst.Unit
+            f = try_method_with_object_stamp
+            for i in self._path:
+                if isa(i, Unit):
+                    if i in simulated_units: continue
+                    simulated_units.add(i)
+                f(i, i._summary)
         for i in self._facilities:
             if isa(i, Unit): f(i, i.simulate)
             elif isa(i, System):
@@ -3054,7 +3070,7 @@ class System:
 
     def _reset_iter(self):
         self._iter = 0
-        if self.maxtime or self.tracking: 
+        if self.maxtime or self.tracking_flag: 
             self.timer = Timer()
             self.timer.start()
         for j in self.tracked_recycles.values(): j.clear()
@@ -3281,7 +3297,7 @@ class System:
         algorithm = self.algorithm 
         if algorithm == 'Sequential modular':
             method = self._mock_run_sequential
-        elif algorithm == 'Phenomena oriented':
+        elif algorithm == 'Phenomena based':
             method = self._mock_run_phenomena
         elif algorithm == 'Phenomena modular':
             method = self._mock_run_phenomena_modular
@@ -3291,11 +3307,11 @@ class System:
         while sum(variable_errors.values()): method(variable_errors, convergence_rate)
         
     def _mock_run_phenomena(self, variable_errors, convergence_rate):
-        for i in ('phenomena', 'energy', 'material'):
+        for i in ('phenomenode', 'energy', 'material'):
             self._mock_collect_variables(i, variable_errors, convergence_rate)
         
     def _mock_run_sequential(self, variable_errors, convergence_rate):
-        subgraphs = ('phenomena', 'energy', 'material')
+        subgraphs = ('phenomenode', 'energy', 'material')
         for i in self._path:
             if hasattr(i, 'stages'):
                 for factor in (0.75, 0.25):
@@ -3321,13 +3337,13 @@ class System:
                 for factor in (3 / 4, 3 / 16, 1 / 16):
                     inner_rate = factor * convergence_rate
                     self._mock_collect_variables(
-                        (i.ID, 'phenomena'), 
+                        (i.ID, 'phenomenode'), 
                         variable_errors, 
                         inner_rate
                     )
             else:
                 self._mock_collect_variables(
-                    (i.ID, 'phenomena'), 
+                    (i.ID, 'phenomenode'), 
                     variable_errors, 
                     convergence_rate
                 )
@@ -3410,7 +3426,7 @@ class System:
                         if design_and_cost: self._summary()
                     except Exception as error:
                         if update_configuration: raise error # Avoid infinite loop
-                        new_connections = [i.get_connection() for i in self.streams]
+                        new_connections = self._get_connections()
                         if self._connections != new_connections:
                             # Connections has been updated within simulation.
                             outputs = self.simulate(
@@ -3422,17 +3438,16 @@ class System:
                             raise error
                     else:
                         if (not update_configuration # Avoid infinite loop
-                            and self._connections != [i.get_connection() for i in self.streams]):
+                            and self._connections != self._get_connections()):
                             # Connections has been updated within simulation.
+                            # Must reset path.
                             outputs = self.simulate(
                                 update_configuration=True,
                                 design_and_cost=design_and_cost,
                                 **kwargs
-                            )
-                        elif self._facility_loop: 
-                            self._facility_loop.converge()
+                            ) 
                 self._simulation_outputs = outputs
-            return outputs
+        return outputs
 
     def dynamic_run(self, **dynsim_kwargs):
         """
@@ -3737,8 +3752,7 @@ class System:
         the impact indicator key.
         
         """
-        return sum([s.F_mass * s.characterization_factors[key] for s in self.feeds
-                    if key in s.characterization_factors]) * self.operating_hours
+        return sum([s.get_impact(key) for s in self.feeds]) * self.operating_hours
     
     def get_total_products_impact(self, key):
         """
@@ -3746,8 +3760,7 @@ class System:
         the impact indicator key.
         
         """
-        return sum([s.F_mass * s.characterization_factors[key] for s in self.products
-                    if key in s.characterization_factors]) * self.operating_hours
+        return sum([s.get_impact(key) for s in self.products]) * self.operating_hours
     
     def get_material_impact(self, stream, key):
         """
@@ -3809,14 +3822,116 @@ class System:
                 + self.get_net_utility_impact(key, displace=displace)
             )
     
-    def get_property_allocated_impact(self, key, name, basis, ignored=None, products=None):
+    def get_product_impact(self, 
+            product, key, allocation_method=None, 
+            basis=None, ignored=None, products=None
+        ):
+        """
+        Return the environmental impact of a product.
+
+        Parameters
+        ----------
+        product : Stream|str
+            Product stream. Specify as 'electricity' if the product is 
+            excess electricity sold to the grid.
+        key : str
+            Environmental impact indicator key, as defined using `bst.settings.define_impact_indicator`.
+        allocation_method : str, optional
+            Allocation method used to distribute environmental impacts to products.
+            Defaults to 'displacement'.
+            Predefined allocation methods include 'revenue', 'mass', 'energy', and 'displacement'.
+            To define a new allocation property, use `bst.settings.define_allocation_property`.
+        basis : str, optional
+            Units of measure for described unit, defaults to 'kg' for streams and 'kWh' for electricity.
+        ignored : Iterable[Stream], optional
+            Products which are not allocated any environmental burdens. Typically,
+            no impacts are allocated to waste products in life cycle assessments.
+        products : Iterable[Stream], optional
+            Products with environmental burdens. Defaults to all products.
+
+        Examples
+        --------
+        In the following example, we get the environmental impact of a product 
+        under mass-based allocation at a per kg basis.
+
+        .. code-block:: python
+            
+           >>> bst.settings.define_impact_indicator('GWP', 'kg*CO2e')
+           >>> system.get_property_allocated_impact(
+           ...     product, key='GWP', allocation_method='mass', basis='kg'
+           ... ) # -> GWP [kgCO2e / kg-product]
+
+        """
+        if allocation_method is None: allocation_method = 'displacement'
+        if product == 'electricity':
+            if basis is None: basis = 'kWh'
+            power_utility = self.power_utility
+            if allocation_method == 'displacement':
+                return self.get_net_impact(key) / (power_utility.get_property(basis + '/hr') * self.operating_hours)
+            elif allocation_method == 'energy':
+                return self.get_property_allocated_impact(key, allocation_method, basis, ignored, products)
+            else:
+                raise ValueError(f"allocation method for 'electricity' must be either 'energy' or 'displacement', not {allocation_method!r}")
+        elif isinstance(product, Stream):
+            if basis is None: basis = 'kg'
+            if allocation_method == 'displacement':
+                return self.get_net_impact(key) / (product.get_total_flow(basis + '/hr') * self.operating_hours)
+            else:
+                property_allocated_impact = self.get_property_allocated_impact(key, allocation_method, None, ignored, products)
+                return (
+                    property_allocated_impact 
+                    * self.get_property(product, allocation_method + '-allocation')
+                    / (product.get_total_flow(basis + '/hr') * self.operating_hours)
+                )
+        else:
+            raise ValueError("product must be a stream object or 'electricity'")
+    
+    def get_property_allocated_impact(self, key, name, basis=None, ignored=None, products=None):
+        """
+        Return the environmental impact per unit property. 
+
+        Parameters
+        ----------
+        key : str
+            Environmental impact indicator key, as defined using `bst.settings.define_impact_indicator`.
+        name : str
+            Allocation property basis for the environmental impact.
+            Predefined allocation methods include 'revenue', 'mass', and 'energy'.
+            To define a new allocation property, use `bst.settings.define_allocation_property`.
+        basis : str
+            Units of measure for allocation property, defaults to pairs in `bst.settings.allocation_properties`.
+        ignored : Iterable[Stream], optional
+            Products which are not allocated any environmental burdens. Typically,
+            no impacts are allocated to waste products in life cycle assessments.
+        products : Iterable[Stream], optional
+            Products with environmental burdens. Defaults to all products.
+
+        Examples
+        --------
+        In the following example, we get the environmental impact under 
+        mass-based allocation at a per kg of product(s) basis.
+
+        .. code-block:: python
+            
+           >>> bst.settings.define_impact_indicator('GWP', 'kg*CO2e')
+           >>> system.get_property_allocated_impact(
+           ...     key='GWP', name='mass', basis='kg'
+           ... ) # -> GWP [kgCO2e / kg-products]
+
+        """
         if ignored is None: ignored = frozenset()
         total_property = 0.
         heat_utilities = self.heat_utilities
         power_utility = self.power_utility
         operating_hours = self.operating_hours
         units = None if basis is None else basis + '/hr'
-        if name in bst.allocation_properties: name += '-allocation'
+        if name in bst.allocation_properties: 
+            name += '-allocation'
+        else:
+            raise ValueError(
+                f'allocation method {name!r} not registered in bst.settings.allocation_methods; '
+                 'to define a new allocation method use the bst.settings.define_allocation_property method'
+            )
         if hasattr(bst.PowerUtility, name):
             if power_utility.rate < 0.:
                 total_property += power_utility.get_property(name, units) * operating_hours
@@ -3827,44 +3942,130 @@ class System:
             if products is None: products = self.products
             for stream in products:
                 if stream in ignored: continue
-                total_property += self.get_property(stream, name, units)
+                if stream.isfeed():
+                    total_property -= self.get_property(stream, name, units)
+                elif stream.isproduct():
+                    total_property += self.get_property(stream, name, units)
+                else:
+                    raise ValueError('stream must be a feed or a product')
         impact = self.get_total_feeds_impact(key)
         for hu in heat_utilities:
             if hu.flow > 0.: impact += hu.get_impact(key) * operating_hours
         if power_utility.rate > 0.:
             impact += power_utility.get_impact(key) * operating_hours
         impact += self.get_process_impact(key)
+        if key == 'WU':
+            # Displace recycled water
+            PWC = self.flowsheet(bst.ProcessWaterCenter)
+            recycles = (
+                PWC.recycled_reverse_osmosis_grade_water,
+                PWC.recycled_process_water
+            )
+            displaced = sum([i.imass['Water'] for i in recycles]) * self.operating_hours
+            impact -= displaced
         return impact / total_property
     
-    def get_property_allocation_factors(self, name, basis=None, groups=(), ignored=None, products=None):
+    def get_property_allocation_factors(self, name, groups=(), ignored=None, products=None):
+        """
+        Return a dictionary of allocation factors for all products.
+
+        Parameters
+        ----------
+        name : str
+            Allocation property basis for the environmental impact.
+            Predefined allocation methods include 'revenue', 'mass', and 'energy'.
+            To define a new allocation property, use `bst.settings.define_allocation_property`.
+        groups : Iterable[str], optional
+            Names of groups to combine allocation factors. Products with contain a group name in their ID will be
+            grouped.
+        ignored : Iterable[Stream], optional
+            Products which are not allocated any environmental burdens. Typically,
+            no impacts are allocated to waste products in life cycle assessments.
+        products : Iterable[Stream], optional
+            Products with environmental burdens. Defaults to all products.
+
+        Examples
+        --------
+        In this example, we get the mass-based allocation factors for a system
+        with two products.
+        
+        >>> import biosteam as bst
+        >>> bst.settings.set_thermo(['Water'], cache=True)
+        >>> splitter = bst.Splitter(
+        ...     '.splitter', 
+        ...     ins=bst.Stream('.feed', Water=1), 
+        ...     outs=('.a', '.b'), 
+        ...     split=0.3,
+        ... )
+        >>> sys = bst.System.from_units('.sys', units=[splitter])
+        >>> sys.simulate()
+        >>> sys.get_property_allocation_factors('mass')
+        {'A': 0.3, 'B': 0.7}
+        
+        """
         if ignored is None: ignored = frozenset()
         heat_utilities = self.heat_utilities
         power_utility = self.power_utility
-        operating_hours = self.operating_hours
-        units = None if basis is None else basis + '/hr'
         properties = {}
         if name in bst.allocation_properties: name += '-allocation'
         if isinstance(groups, str): groups = [groups]
         if hasattr(bst.PowerUtility, name):
             if power_utility.rate < 0.:
-                value = power_utility.get_property(name, units)
-                set_impact_value(properties, 'Electricity', value * operating_hours, groups)
+                value = power_utility.get_property(name, None)
+                set_impact_value(properties, 'Electricity', value, groups)
         if hasattr(bst.HeatUtility, name):
             for hu in heat_utilities:
                 if hu.flow < 0.: 
-                    value = hu.get_property(name, units)
-                    set_impact_value(properties, hu.agent.ID, value * operating_hours, groups)
+                    value = hu.get_property(name, None)
+                    set_impact_value(properties, hu.agent.ID, value, groups)
         if hasattr(bst.Stream, name):
             if products is None: products = self.products
             for stream in products:
                 if stream in ignored: continue
-                value = self.get_property(stream, name, units)
+                value = stream.get_property(name, None)
                 set_impact_value(properties, stream.ID, value, groups)
         total_property = sum(properties.values())
         allocation_factors = {i: j / total_property for i, j in properties.items()}
         return allocation_factors
     
     def get_displacement_allocation_factors(self, main_products, key, groups=()):
+        """
+        Return a dictionary of allocation factors for all products.
+
+        Parameters
+        ----------
+        name : str
+            Allocation property basis for the environmental impact.
+            Predefined allocation methods include 'revenue', 'mass', and 'energy'.
+            To define a new allocation property, use `bst.settings.define_allocation_property`.
+        groups : Iterable[str], optional
+            Names of groups to combine allocation factors. Products with contain a group name in their ID will be
+            grouped.
+        ignored : Iterable[Stream], optional
+            Products which are not allocated any environmental burdens. Typically,
+            no impacts are allocated to waste products in life cycle assessments.
+        products : Iterable[Stream], optional
+            Products with environmental burdens. Defaults to all products.
+
+        Examples
+        --------
+        In this example, we get the mass-based allocation factors for a system
+        with two products.
+        
+        >>> import biosteam as bst
+        >>> bst.settings.set_thermo(['Water'], cache=True)
+        >>> splitter = bst.Splitter(
+        ...     '.splitter', 
+        ...     ins=bst.Stream('.feed', Water=1), 
+        ...     outs=('.a', '.b'), 
+        ...     split=0.3,
+        ... )
+        >>> sys = bst.System.from_units('.sys', units=[splitter])
+        >>> sys.simulate()
+        >>> sys.get_property_allocation_factors('mass')
+        {'A': 0.3, 'B': 0.7}
+        
+        """
         heat_utilities = self.heat_utilities
         power_utility = self.power_utility
         allocation_factors = {}
@@ -3913,10 +4114,23 @@ class System:
         return {i: j / total for i, j in allocation_factors.items()}
     
     def displacement_allocation_table(self, key, product):
+        """
+        Return a table of allocation factors for all products under displacement
+        allocation (i.e., system expansion), assuming one product stream.
+
+        """
         return bst.report.lca_displacement_allocation_table(
             [self], key, 
             product if isinstance(product, list) else [product],
         )
+    
+    def water_mass_balance_table(self):
+        """
+        Return a table of water mass balances accounting for all 
+        inputs, recycles, outputs, and reactions.
+
+        """
+        return bst.report.water_mass_balance_table(self)
     
     @property
     def sales(self) -> float:
@@ -4087,8 +4301,12 @@ class System:
             self, 
             file: Optional[str]='report.xlsx', 
             dpi: Optional[str]='900', 
-            sheets=None,
-            stage=False,
+            sheets: Optional[Iterable[str]]=None,
+            stage: Optional[bool]=False,
+            allocation_method: Optional[str]=None,
+            products: Optional[Iterable[Stream|str]]=None, 
+            described_units: Optional[Iterable[Stream]]=None,
+            main_product: Optional[Stream]=None,
             **stream_properties
         ): 
         """
@@ -4097,13 +4315,37 @@ class System:
         Parameters
         ----------
         file : 
-            File name to save report
+            File name to save report.
         dpi : 
-            Resolution of the flowsheet. Defaults to '300'
+            Resolution of the flowsheet. Defaults to '300'.
+        sheets :
+            Names of spreadsheets to save. Valid inputs include the following:
+            * 'Flowsheet': Diagram of the full flow sheet.
+            * 'Itemized costs': Equipiment costs for all unit operations.
+            * 'Stream table': Material flow rates and thermal conditions of all streams.
+            * 'Utilities': Utility requirements and costs for each unit operation.
+            * 'Design requirements': Detailed design results for each unit operation.
+            * 'Reactions': Stoichiometric reactions modeled in the system.
+            * 'Water mass balance': Mass balance of water including input, output, and reacted streams.
+            * 'CAPEX': Capital expenditures accounting.
+            * 'OPEX': Operating expenditures accounting.
+            * 'LCA Inventory': All input/output flows with environmental impacts.
+            * 'Allocation factors': Allocation factors for each product.
+            * 'Environmental impacts': Environmental impacts for each product.
+        allocation_method :
+            Name of allocation method for life cycle assessment. 
+            Valid names include 'mass', 'energy', 'revenue', and 'displacement'.
+            This argument is required for life cycle assessement tables.
+        products :
+            Products with allocated environmental impacts for life cycle assessment.
+        main_product :
+            Main product is excluded from variable operating costs. Defaults
+            to first product.
         **stream_properties : str
             Additional stream properties and units as key-value pairs (e.g. T='degC', flow='gpm', H='kW', etc..)
             
         """
+        tea = self.TEA
         if sheets is None:
             sheets = {
                 'Flowsheet',
@@ -4112,8 +4354,27 @@ class System:
                 'Utilities',
                 'Design requirements',
                 'Reactions',
-                # 'Specifications'
+                'Water mass balance',
             }
+            if tea is not None:
+                sheets.update([
+                    'CAPEX',
+                    'OPEX',
+                ])
+            if allocation_method and not products:
+                raise ValueError('products needed for life cycle assessment')
+            if allocation_method is not None:
+                sheets.update([
+                    'LCA Inventory',
+                    'Allocation factors',
+                    'Environmental impacts',
+                ])
+        if products:
+            main_product = products[0]
+            stream_products = [i for i in products if isinstance(i, Stream)]
+        else:
+            main_product = None
+            stream_products = ()
         writer = pd.ExcelWriter(file)
         units = sorted(self.units, key=lambda x: x.line)
         cost_units = [i for i in units if i._design or i._cost]
@@ -4206,6 +4467,72 @@ class System:
                 specifications, writer, 
                 'Specifications'
             )
+        
+        if 'Water mass balance' in sheets:
+            water_mass_balance = report.water_mass_balance_table(self)
+            report.tables_to_excel(
+                [water_mass_balance], writer, 
+                'Water mass balance'
+            )
+        
+        if 'CAPEX' in sheets:
+            CAPEX = tea.CAPEX_table()
+            if not (CAPEX is NotImplemented):
+                report.tables_to_excel(
+                    [CAPEX], writer, 
+                    'CAPEX'
+                )
+        
+        if 'OPEX' in sheets:
+            VOC = tea.VOC_table(products=main_product or ())
+            FOC = tea.FOC_table()
+            if FOC is NotImplemented:
+                OPEX = [VOC]
+            else:
+                OPEX = [VOC, FOC]
+            report.tables_to_excel(
+                OPEX, writer, 
+                'OPEX'
+            )
+        
+        if 'LCA Inventory' in sheets:
+            inventory = [report.lca_inventory_table([self], items=stream_products)]
+            if allocation_method == 'displacement':
+                inventory.append( 
+                    bst.report.lca_displacement_allocation_table([self], items=stream_products)
+                )
+            report.tables_to_excel(
+                inventory, writer, 
+                'LCA Inventory'
+            )
+        
+        if 'Allocation factors' in sheets:
+            if allocation_method =='displacement':
+                allocation_factors = [
+                    report.lca_displacement_allocation_factor_table(
+                        [self], [main_product], key, 
+                    ) for key in bst.settings.impact_indicators
+                ]
+            else:
+                allocation_factors = [report.lca_property_allocation_factor_table(
+                    [self], property=allocation_method, products=stream_products,
+                )]
+            report.tables_to_excel(
+                allocation_factors, writer, 
+                'Allocation factors'
+            )
+        
+        if 'Environmental impacts' in sheets:
+            if described_units is None:
+                described_units = [('kWh' if i == 'electricity' else 'kg') for i in products]
+            impacts = report.environmental_impacts_table(
+                self, products, described_units, allocation_method
+            )
+            report.tables_to_excel(
+                [impacts], writer, 
+                'Environmental impacts'
+            )
+        
         writer.close()
         if diagram_completed: os.remove("flowsheet.png")
 
@@ -4362,15 +4689,6 @@ class System:
                     + ins_and_outs)
         else:
             return f"System: {self.ID}\n{ins_and_outs}"
-
-class FacilityLoop(System):
-    __slots__ = ()
-
-    def run(self):
-        obj = super()
-        for i in self.units: i._setup()
-        obj.run()
-        self._summary()
 
 del ignore_docking_warnings
 

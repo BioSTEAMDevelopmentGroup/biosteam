@@ -240,7 +240,7 @@ nbsphinx_execute = 'never'
 
 # Specify the baseurls for the projects I want to link to
 intersphinx_mapping = {
-    'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None),
+    'scipy': ('https://docs.scipy.org/doc/scipy/', None),
     'python': ('https://docs.python.org/3', None),
     'qsdsan': ('https://qsdsan.readthedocs.io/en/latest/', None),
     'thermo': ('https://thermo.readthedocs.io/', None),
@@ -301,7 +301,7 @@ html_theme_options = {
     },
     "show_toc_level": 2,
     "announcement": (
-        "<p>Virtual BioSTEAM workshop in October, "
+        "<p>Bioreactor modeling workshop on May 22, "
         "<a href='https://docs.google.com/spreadsheets/d/1QlP7iSZrLHkUxhk-2R8_QWomh3qHfkchJK1EvM5cpyo/edit?usp=sharing'>sign up here</a>!</p>"
     ),
     "external_links": [

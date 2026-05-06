@@ -12,18 +12,18 @@ from ._name import element_name
 from ..utils import format_title
 from thermosteam import units_of_measure
 
-class Feature:
+class Variable:
     """
-    Abstract class for a feature in BioSTEAM.
+    Abstract class for a variable in BioSTEAM.
     
     Attributes
     ----------
     name : str
-        Name of feature.
+        Name of variable.
     units : str
         Units of measure.
     element : object
-        Element corresponding to feature.
+        Element corresponding to variable.
         
     """
     __slots__ = ('name', 'units', 'element')
@@ -38,20 +38,20 @@ class Feature:
         return MockFeature(self.name, self.units, self.element)
     
     @classmethod
-    def check_index_unique(cls, feature, features):
-        key = (feature.element_name, feature.name)
-        keys = {(i.element_name, i.name) for i in features}
+    def check_index_unique(cls, variable, variables):
+        key = (variable.element_name, variable.name)
+        keys = {(i.element_name, i.name) for i in variables}
         if key in keys:
             raise ValueError(
-                     "each feature must have a unique element and name; "
-                    f"feature with element {repr(feature.element)} "
-                    f"and name {repr(feature.name)} already present"
+                     "each variable must have a unique element and name; "
+                    f"variable with element {repr(variable.element)} "
+                    f"and name {repr(variable.name)} already present"
                 )
     
     @classmethod
-    def check_indices_unique(cls, features):
+    def check_indices_unique(cls, variables):
         keys = set()
-        for i in features:
+        for i in variables:
             key = (i.element, i.name)
             if key in keys:
                 kind = cls.__name__.lower()
@@ -85,7 +85,23 @@ class Feature:
     def short_description(self):
         element, name = self.index
         name, *_ = name.split(' [')
-        if element not in name:
+        if element != '-' and element not in name:
+            name = ' '.join([element, name])
+        if len(name) > 31:
+            words = name.split(' ')
+            words = [(i[:4]+'.' if len(i) > 5 else i) for i in words]
+            name = ' '.join(words)
+        name = name.strip(' ')
+        if len(name) > 31: name = name[:31]
+        return name
+    
+    @property
+    def short_description_with_units(self):
+        name = self.name
+        units = self.units
+        if units: name += f" [{units}]"
+        element = self.element_name
+        if element != '-' and element not in name:
             name = ' '.join([element, name])
         if len(name) > 31:
             words = name.split(' ')
@@ -112,7 +128,7 @@ class Feature:
             number_format='.3g', 
             element=True,
         ) -> str:
-        """Return description of feature."""
+        """Return description of variable."""
         name = self.name
         if element and self.element:
             name = self.element_name + element_dlim + name
@@ -161,7 +177,7 @@ class Feature:
         print(self._info())
      
 
-class MockFeature(Feature):
+class MockVariable(Variable):
     __slots__ = ()
     
     def __init__(self, name, units, element):
@@ -170,5 +186,5 @@ class MockFeature(Feature):
     def __repr__(self):
         return f"{type(self).__name__}('{self.name}', '{self.units}', '{self.element}')"
 
-Variable = Feature
-MockVariable = MockFeature 
+Feature = Variable
+MockFeature = MockVariable 

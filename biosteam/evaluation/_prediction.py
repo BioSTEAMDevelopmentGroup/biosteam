@@ -16,8 +16,10 @@ from scipy.spatial.distance import cdist
 from itertools import combinations, product
 from ._parameter import Parameter
 from .._system import System, JointRecycleData
+from ..exceptions import FailedScenario
 
 __all__ = (
+    'Response',
     'GenericResponse',
     'ConvergenceModel',
     'NullConvergenceModel',
@@ -123,13 +125,13 @@ def recycle_response(recycle, name, model):
 
 class Response:
     __slots__ = (
-        'element', 'model', 'predictors',
+        'element', 'model', 'parameters',
         'max', 'min',
     )
     def __init__(self, element, model):
         self.element = element
         self.model = model
-        self.predictors = [] # Indices of predictors
+        self.parameters = [] # Indices of parameters
         self.max = self.min = None
     
     def __hash__(self):
@@ -139,17 +141,17 @@ class Response:
         return (self.element, self.name) == other
     
     def fit(self, X, y):
-        self.model.fit(X[:, self.predictors], y)
+        self.model.fit(X[:, self.parameters], y)
 
     def predict(self, x):
         return self.filter_value(
-            float(self.model.predict(x[None, self.predictors]))
+            float(self.model.predict(x[None, self.parameters]))
         )
     
     def predict_locally(
             self, x, X, y, distance, weight
         ):
-        index = self.predictors
+        index = self.parameters
         x = x[None, index]
         X = X[:, index]
         model = self.model
@@ -264,7 +266,7 @@ class RecycleFlow(Response):
 class ConvergenceModel:
     __slots__ = (
         'system',
-        'predictors', 
+        'parameters', 
         'responses', 
         'data',
         'case_study',
@@ -280,13 +282,13 @@ class ConvergenceModel:
         'local_weighted',
         'normalization',
         'interaction_pairs',
-        'predictor_index',
+        'parameter_index',
         'save_prediction',
     )
     absolute_response_tolerance = 0.001
     relative_response_tolerance = 0.01
     def __init__(self, 
-            predictors: tuple[Parameter],
+            parameters: tuple[Parameter],
             model_type: Optional[Callable]=None,
             recess: Optional[int]=None, 
             distance: Optional[str]=None,
@@ -298,21 +300,21 @@ class ConvergenceModel:
             interaction_pairs: Optional[bool] = None,
             normalization: Optional[bool] = None,
             load_responses: Optional[bool] = None,
-            save_prediction: Optional[bool] = True,
+            save_prediction: Optional[bool] = False,
         ):
         if system is None:
-            systems = set([i.system for i in predictors])
+            systems = set([i.system for i in parameters])
             try:
                 system, = systems
             except:
                 if systems:
-                    raise ValueError('predictors must share the same system')
+                    raise ValueError('parameters must share the same system')
                 else:
                     raise ValueError('no system available')
         self.system = system
         self.responses = set() if responses is None else responses
         if model_type is None: 
-            if len(predictors) > 10:
+            if len(parameters) > 10:
                 model_type = LinearRegressor
             else:
                 model_type = InterceptLinearRegressor
@@ -339,7 +341,7 @@ class ConvergenceModel:
                     StandardScaler(),
                     SVR()
                 )
-                if nfits is None: nfits = 10
+                if nfits is None: nfits = 100
             elif model_type == 'average':
                 model_type = Average
             else:
@@ -348,7 +350,7 @@ class ConvergenceModel:
             if model_type in fast_fit_model_types:
                 recess = 0
             else:
-                recess = 5 * sum([i.coupled for i in predictors])
+                recess = 5 * sum([i.coupled for i in parameters])
         if interaction_pairs is None: interaction_pairs = False
         if local_weighted is None:
             if model_type in fast_fit_model_types:
@@ -370,9 +372,9 @@ class ConvergenceModel:
         self.local_weighted = local_weighted
         self.interaction_pairs = interaction_pairs
         self.normalization = normalization
-        self.load_predictors(predictors)
+        self.load_parameters(parameters)
         self.save_prediction = save_prediction
-        if load_responses is None or load_responses: self.load_responses()
+        if responses is None or load_responses: self.load_responses()
         
     def with_interactions(self, sample):
         n = len(sample)
@@ -385,13 +387,9 @@ class ConvergenceModel:
     def normalize_sample(self, sample):
         return (sample - self.sample_min) / self.sample_range
     
-    def reframe_sample(self, sample, predictors=None):
-        if predictors is not None and predictors != self.predictors:
-            index = {j: i for i, j in enumerate(self.predictors)}
-            sample = self.data['samples'][-1]
-            for p, s in zip(predictors, sample): sample[index[p]] = s
-        if self.predictor_index is not None:
-            sample = np.asarray(sample)[self.predictor_index]
+    def reframe_sample(self, sample):
+        if self.parameter_index is not None:
+            sample = np.asarray(sample)[self.parameter_index]
         if self.normalization:
             sample = self.normalize_sample(sample)
         if self.interaction_pairs:
@@ -453,7 +451,7 @@ class ConvergenceModel:
     def R2_fitted(self):
         return self._R2('fitted')
     
-    def practice(self, case_study, predictors=None):
+    def practice(self, case_study):
         """
         Predict and set recycle responses given the sample, then append actual
         simulation result to data.
@@ -479,18 +477,18 @@ class ConvergenceModel:
         Does nothing if not used in with statement containing simulation.
         
         """
-        self.case_study = self.reframe_sample(case_study, predictors)
+        self.case_study = self.reframe_sample(case_study)
         return self
         
     def __enter__(self):
         data = self.data
-        if self.save_prediction: predicted = data['predicted']
         actual = data['actual']
         sample_list = data['samples']
         n_samples = len(sample_list)
         samples = np.array(sample_list)
         case_study = self.case_study
         if self.save_prediction: 
+            predicted = data['predicted']
             if self.local_weighted:
                 for response in self.responses:
                     prediction = response.predict_locally(
@@ -532,11 +530,18 @@ class ConvergenceModel:
         sample_list.append(case_study)
     
     def __exit__(self, type, exception, traceback, total=[]):
-        del self.case_study
         data = self.data
-        if exception and self.fitted:
-            del data['samples'][-1]
+        if exception: 
+            exception.parameter_values = data['samples'].pop()
+            if self.save_prediction:
+                exception.predicted_values = []
+                predicted = data['predicted']
+                for response in self.responses:
+                    exception.predicted_values.append(
+                        predicted[response].pop()
+                    )
             raise exception
+        del self.case_study
         actual = data['actual']
         for response in self.responses:
             value = response.get()
@@ -545,7 +550,7 @@ class ConvergenceModel:
         
     def evaluate_system_convergence(self, sample, default=None, **kwargs):
         system = self.system
-        for p, value in zip(self.predictors, sample): 
+        for p, value in zip(self.parameters, sample): 
             p.setter(value)
             p.last_value = value
         try:
@@ -563,13 +568,13 @@ class ConvergenceModel:
             recycles_data = system.get_recycle_data()
         return recycles_data
        
-    def load_predictors(self, predictors):
-        predictor_index = np.array([i.coupled for i in predictors])
-        self.predictor_index = predictor_index = None if predictor_index.all() else np.where(predictor_index)[0]
-        if predictor_index is not None: predictors = [predictors[i] for i in predictor_index]
-        self.predictors = predictors
-        bounds = [i.bounds for i in predictors]
-        n = len(predictors)
+    def load_parameters(self, parameters):
+        parameter_index = np.array([i.coupled for i in parameters])
+        self.parameter_index = parameter_index = None if parameter_index.all() else np.where(parameter_index)[0]
+        if parameter_index is not None: parameters = [parameters[i] for i in parameter_index]
+        self.parameters = parameters
+        bounds = [i.bounds for i in parameters]
+        n = len(parameters)
         if self.interaction_pairs:
             self.interaction_pairs = [*enumerate(combinations(range(n), 2), n)]
             self.sample_length = int(n * (n - 1) / 2) + n
@@ -584,20 +589,20 @@ class ConvergenceModel:
     
     def load_responses(self): 
         """
-        Select material responses and their respective predictors through single point 
+        Select material responses and their respective parameters through single point 
         sensitivity. Also store the simulation data for fitting later.
         """
-        predictors = self.predictors
+        parameters = self.parameters
         responses = self.responses
-        hooks = [i.hook for i in predictors]
-        all_bounds = [i.bounds for i in predictors]
-        sample = [i.baseline for i in predictors]
+        hooks = [i.hook for i in parameters]
+        all_bounds = [i.bounds for i in parameters]
+        sample = [i.baseline for i in parameters]
         evaluate = self.evaluate_system_convergence        
         baseline_1 = evaluate(sample)
         values = []
         values_at_bounds = []
         samples = [sample]
-        for i, p in enumerate(predictors):
+        for i, p in enumerate(parameters):
             hook = hooks[i]
             bounds = all_bounds[i]
             for limit in bounds:
@@ -658,10 +663,10 @@ class ConvergenceModel:
         self.data = data = {'samples': []}
         for name in ('actual', 'predicted'): 
             data[name] = {key: [] for key in responses}
-        predictor_index = self.predictor_index
-        self.predictor_index = None
+        parameter_index = self.parameter_index
+        self.parameter_index = None
         self.extend_data(samples, values)
-        self.predictor_index = predictor_index
+        self.parameter_index = parameter_index
         
     def add_sensitive_reponses(self, 
             baseline: JointRecycleData,
@@ -692,14 +697,14 @@ class ConvergenceModel:
                             response = recycle_response(*key, model_type())
                         responses_dct[key] = response
                         responses.add(response)
-                    response.predictors.append(p)
+                    response.parameters.append(p)
         interaction_pairs = self.interaction_pairs
         for response in responses:
             if interaction_pairs:
-                predictors_set = set(response.predictors)
-                response.predictors.extend(
+                parameters_set = set(response.parameters)
+                response.parameters.extend(
                     [i for i, (a, b) in interaction_pairs
-                     if a in predictors_set and b in predictors_set]
+                     if a in parameters_set and b in parameters_set]
                 )
             if response.model is None: 
                 response.model = model_type()
@@ -733,46 +738,49 @@ class ConvergenceModel:
 class NullConvergenceModel:
     __slots__ = (
         'system',
-        'predictors', 
-        'predictor_index',
+        'parameters', 
+        'parameter_index',
         'responses', 
         'data',
         'case_study',
         'interaction_pairs',
         'normalization',
+        'save_prediction',
     )
     absolute_response_tolerance = ConvergenceModel.absolute_response_tolerance
     relative_response_tolerance = ConvergenceModel.relative_response_tolerance
     practice = ConvergenceModel.practice
     evaluate_system_convergence = ConvergenceModel.evaluate_system_convergence
     load_responses = ConvergenceModel.load_responses
-    load_predictors = ConvergenceModel.load_predictors
+    load_parameters = ConvergenceModel.load_parameters
     add_sensitive_reponses = ConvergenceModel.add_sensitive_reponses
     append_data = ConvergenceModel.append_data
     extend_data = ConvergenceModel.extend_data
     reframe_sample = ConvergenceModel.reframe_sample
     
     def __init__(self, 
-            predictors: tuple[Parameter],
+            parameters: tuple[Parameter],
             system: Optional[System] = None,
             responses: Optional[set[Response]]=None,
-            load_responses: Optional[bool] = None,
+            load_responses: Optional[bool]=None,
+            save_prediction: Optional[bool]=False,
         ):
         if system is None:
-            systems = set([i.system for i in predictors])
+            systems = set([i.system for i in parameters])
             try:
                 system, = systems
             except:
                 if systems:
-                    raise ValueError('predictors do not share the same system')
+                    raise ValueError('parameters do not share the same system')
                 else:
                     raise ValueError('no system available')
         self.system = system
         self.interaction_pairs = None
         self.normalization = None
-        self.load_predictors(predictors)
+        self.load_parameters(parameters)
         self.responses = set() if responses is None else responses
-        if load_responses is None or load_responses: self.load_responses()
+        self.save_prediction = save_prediction
+        if responses is None or load_responses: self.load_responses()
     
     def model_type(self): return None
     
@@ -798,25 +806,13 @@ class NullConvergenceModel:
         return {'min': lb, 'mean': mean, 'max': ub}, results
         
     def __enter__(self):
-        data = self.data
-        null_responses = data['predicted']
-        sample_list = data['samples']
-        sample_list.append(self.case_study)
-        for response in self.responses:
-            null_responses[response].append(response.get())
-    
-    def __exit__(self, type, exception, traceback, total=[]):
-        del self.case_study
-        data = self.data
-        if exception: 
+        if self.save_prediction:
             data = self.data
-            if exception:
-                del data['samples'][-1]
-                null_responses = data['predicted']
-                for response in self.responses:
-                    del null_responses[response][-1]
-                raise exception
-        actual = data['actual']
-        for response in self.responses:
-            actual[response].append(response.get())
+            null_responses = data['predicted']
+            sample_list = data['samples']
+            sample_list.append(self.case_study)
+            for response in self.responses:
+                null_responses[response].append(response.get())
+    
+    __exit__ = ConvergenceModel.__exit__
     

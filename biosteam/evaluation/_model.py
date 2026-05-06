@@ -4,7 +4,7 @@
 #                      Yalin Li <mailto.yalin.li@gmail.com>,
 #                      Sarang Bhagwat <sarangb2@gmail.com>
 #
-# This module implements a filtering feature from the stats module of the QSDsan library:
+# This module implements a filtering variable from the stats module of the QSDsan library:
 # QSDsan: Quantitative Sustainable Design for sanitation and resource recovery systems
 # Copyright (C) 2020-, Yalin Li <mailto.yalin.li@gmail.com>
 # 
@@ -13,23 +13,28 @@
 # for license details.
 
 from scipy.spatial.distance import cdist
-from scipy.optimize import shgo, differential_evolution
+from scipy.optimize import minimize, shgo, differential_evolution, Bounds
 import numpy as np
 import pandas as pd
-from chaospy import distributions as shape
 from ._indicator import Indicator
-from ._feature import MockFeature
+from ._variable import MockVariable
 from ._utils import var_indices, var_columns, indices_to_multiindex
 from ._prediction import ConvergenceModel
 from .._unit import Unit
-from biosteam.exceptions import FailedEvaluation
+from biosteam.exceptions import FailedScenario
 from warnings import warn
 from collections.abc import Sized
 from biosteam.utils import Timer
 from typing import Optional, Callable
 from ._parameter import Parameter
-from .evaluation_tools import load_default_parameters
+from .evaluation_tools import load_default_parameters, AttributeSetter 
 import pickle
+try:
+    from chaospy import distributions as shape
+    import chaospy as cp
+    Distribution = shape.baseclass.Distribution
+except:
+    Distribution = None
 
 __all__ = ('Model', 'EasyInputModel')
 
@@ -59,35 +64,6 @@ def create_function(code, namespace):
         return f
     function = wrapper_fn(code)
     return function
-
-# %% Fix compatibility with new chaospy version
-
-import chaospy as cp
-version_components = cp.__version__.split('.')
-CP_MAJOR, CP_MINOR = int(version_components[0]), int(version_components[1])
-CP4 = (CP_MAJOR, CP_MINOR) >= (4, 0)
-if CP4:
-    from inspect import signature
-    def save_repr_init(f):
-        defaults = list(signature(f).parameters.values())[1:]
-        defaults = {i.name: i.default for i in defaults}
-        def init(self, *args, **kwargs):
-            if not hasattr(self, '_repr'):
-                self._repr = params = defaults.copy()
-                for i, j in zip(params, args): params[i] = j
-                params.update(kwargs)
-            f(self, *args, **kwargs)
-        return init
-    
-    shapes = cp.distributions
-    Distribution = cp.distributions.Distribution
-    baseshapes = set([i for i in cp.distributions.baseclass.__dict__.values()
-                      if isinstance(i, type) and issubclass(i, Distribution)])
-    for i in shapes.__dict__.values():
-        if isinstance(i, type) and issubclass(i, Distribution) and i not in baseshapes:
-            i.__init__ = save_repr_init(i.__init__)
-    del signature, save_repr_init, shapes, baseshapes, Distribution, i
-del version_components, CP_MAJOR, CP_MINOR, CP4
 
 # %% Simulation of process systems
 
@@ -126,9 +102,12 @@ class Model:
     )
     default_optimizer_options = {
         'shgo': dict(f_tol=1e-3, minimizer_kwargs=dict(f_tol=1e-3)),
-        'differential evolution': {'seed': 0, 'popsize': 12, 'tol': 1e-3}
+        'differential evolution': dict(seed=0),
     }
-    default_optimizer = 'shgo'
+    for method in ('cobyla', 'cobyqa', 'trust-constr', 'slsqp', 'L-BFGS-B'):
+        default_optimizer_options[method] = {}
+        
+    default_optimizer = 'cobyla'
     default_convergence_model = None # Optional[str] Default convergence model
     load_default_parameters = load_default_parameters
     
@@ -178,7 +157,7 @@ class Model:
         isa = isinstance
         for i in parameters:
             assert isa(i, Parameter), 'all elements must be Parameter objects'
-        Parameter.check_indices_unique(self.features)
+        Parameter.check_indices_unique(self.variables)
     
     @property
     def parameters(self):
@@ -194,7 +173,7 @@ class Model:
         isa = isinstance
         for i in parameters:
             assert isa(i, Parameter), 'all elements must be Parameter objects'
-        Parameter.check_indices_unique(self.features)
+        Parameter.check_indices_unique(self.variables)
     
     def parameters_from_df(self, df_or_filename, namespace=None):
         """
@@ -320,11 +299,11 @@ class Model:
         return self.parameter(*args, **kwargs, optimized=True, coupled=True)
     
     def parameter(self, 
-            setter: Optional[Callable]=None,
+            setter: Optional[Callable|str]=None,
             element: Optional[Unit]=None, 
             coupled: Optional[bool]=None,
             name: Optional[str]=None, 
-            distribution: Optional[str|shape.baseclass.Distribution]=None, 
+            distribution: Optional[str|Distribution]=None, 
             units: Optional[str]=None, 
             baseline: Optional[float]=None, 
             bounds: Optional[tuple[float, float]]=None, 
@@ -338,9 +317,10 @@ class Model:
         Define and register parameter.
         
         Parameters
-        ---------*    
+        ----------    
         setter : 
-            Should set parameter in the element.
+            Function that sets the element parameter or the attribute name of an
+            element parameter.
         element : 
             Element in the system being altered.
         coupled : 
@@ -374,22 +354,29 @@ class Model:
             if hook is None: hook = setter.hook
             if description is None: description = setter.description
             setter = setter.setter
-        elif isinstance(setter, MockFeature):
+        elif isinstance(setter, MockVariable):
             if element is None: element = setter.element
             if name is None: name = setter.name
             if units is None: units = setter.units
+        elif isinstance(setter, str):
+            if element is None:
+                raise ValueError('attribute name of parameter has no element')
+            if name is None:
+                name = setter
+            setter = AttributeSetter(element, setter)
         elif not setter:
             return lambda setter: self.parameter(setter, element, coupled, name,
                                                  distribution, units, baseline,
-                                                 bounds, hook, description, optimized)
+                                                 bounds, hook, description, optimized,
+                                                 kind, safe)
         p = Parameter(name, setter, element,
                       self.system, distribution, units, 
                       baseline, bounds, coupled, hook, description)
         if safe:
-            Parameter.check_index_unique(p, self.features)
+            Parameter.check_index_unique(p, self.variables)
         else:
             key = (p.element_name, p.name)
-            dct = {(i.element_name, i.name): i for i in self.features}
+            dct = {(i.element_name, i.name): i for i in self.variables}
             if key in dct:
                 old_p = dct[key]
                 try:
@@ -399,8 +386,8 @@ class Model:
                         self._parameters.remove(old_p)
                 except:
                     raise ValueError(
-                             "each feature must have a unique element and name; "
-                            f"feature with element {repr(p.element)} "
+                             "each variable must have a unique element and name; "
+                            f"variable with element {repr(p.element)} "
                             f"and name {repr(p.name)} already present"
                         )
         if optimized:
@@ -510,11 +497,14 @@ class Model:
         return samples
     
     def _objective_function(self, sample, loss, parameters, convergence_model=None, **kwargs):
-        for f, s in zip(parameters, sample): 
-            f.setter(s if f.scale is None else f.scale * s)
+        for f, value in zip(parameters, sample): 
+            f.setter(value)
+            f.last_value = value
         if convergence_model:
-            with convergence_model.practice(sample, parameters):
+            with convergence_model.practice(sample):
                 self._specification() if self._specification else self._system.simulate(**kwargs)
+        else:
+            self._specification() if self._specification else self._system.simulate(**kwargs)
         return loss()
     
     def _update_state(self, sample, convergence_model=None, **kwargs):
@@ -608,9 +598,18 @@ class Model:
             if exception_hook == 'ignore':
                 self._exception_hook = lambda exception, sample: None
             elif exception_hook == 'warn':
-                self._exception_hook = lambda exception, sample: warn(FailedEvaluation(f"[{type(exception).__name__}] {exception}"), stacklevel=6)
+                self._exception_hook = lambda exception, sample: warn(
+                    FailedScenario(
+                        exception,
+                        self.parameters,
+                        sample
+                    ),  
+                    stacklevel=4,
+                )
             elif exception_hook == 'raise':
-                def raise_exception(exception, sample): raise exception from None
+                def raise_exception(exception, sample): 
+                    exception.failed_scenario = sample
+                    raise exception
                 self._exception_hook = raise_exception
             else:
                 raise ValueError(f"invalid exception hook name '{exception_hook}'; "
@@ -630,7 +629,7 @@ class Model:
             if not isa(i, Indicator):
                 raise ValueError(f"indicators must be '{Indicator.__name__}' "
                                  f"objects, not '{type(i).__name__}'")
-        Indicator.check_indices_unique(self.features)
+        Indicator.check_indices_unique(self.variables)
     
     # Backwards compatibility
     metrics = indicators
@@ -640,8 +639,9 @@ class Model:
     def _metrics(self, metrics): self._indicators = metrics
     
     @property
-    def features(self):
+    def variables(self):
         return (*self._parameters, *self._optimized_parameters, *self._indicators)
+    features = variables
     
     def indicator(self, getter=None, name=None, units=None, element=None, safe=False):
         """
@@ -669,7 +669,7 @@ class Model:
             if units is None: units = getter.units
             if element is None: element = getter.element
             getter = getter.getter
-        elif isinstance(getter, MockFeature):
+        elif isinstance(getter, MockVariable):
             if element is None: element = getter.element
             if name is None: name = getter.name
             if units is None: units = getter.units
@@ -677,18 +677,18 @@ class Model:
             return lambda getter: self.indicator(getter, name, units, element)
         indicator = Indicator(name, getter, units, element)
         if safe:
-            Indicator.check_index_unique(indicator, self.features, safe)
+            Indicator.check_index_unique(indicator, self.variables, safe)
         else:
             key = (indicator.element_name, indicator.name)
-            dct = {(i.element_name, i.name): i for i in self.features}
+            dct = {(i.element_name, i.name): i for i in self.variables}
             if key in dct:
                 old_indicator = dct[key]
                 try:
                     self._indicators.remove(old_indicator)
                 except:
                     raise ValueError(
-                             "each feature must have a unique element and name; "
-                            f"feature with element {repr(indicator.element)} "
+                             "each variable must have a unique element and name; "
+                            f"variable with element {repr(indicator.element)} "
                             f"and name {repr(indicator.name)} already present"
                         )
         self._indicators.append(indicator)
@@ -895,42 +895,57 @@ class Model:
             parameters=None, 
             method=None, 
             convergence_model=None, 
-            options=None,
+            optimizer_options=None,
+            convergence_options=None,
         ):
         if parameters is None:
-            parameters = self._optimized_parameters
+            parameters = self._optimized_parameters or self._parameters
         if method is None:
             method = self.default_optimizer
         else:
             method = method.lower()
-        if options is None and method in self.default_optimizer_options: 
-            options = self.default_optimizer_options[method]
+        if optimizer_options is None:
+            if method in self.default_optimizer_options: 
+                optimizer_options = self.default_optimizer_options[method]
+            else:
+                optimizer_options = {}
         if isinstance(convergence_model, str):
             convergence_model = ConvergenceModel(
                 system=self.system,
-                predictors=parameters,
+                parameters=parameters,
                 model_type=convergence_model,
-            )
-        elif convergence_model is None:
-            convergence_model = ConvergenceModel(
-                system=self.system,
-                predictors=parameters,
-                model_type=self.default_convergence_model,
+                **convergence_options
             )
         objective_function = self._objective_function
         args = (loss, parameters, convergence_model)
-        bounds = np.array([p.bounds for p in parameters])
-        if method == 'shgo':
+        lb = np.zeros(len(parameters))
+        ub = lb.copy()
+        for i, p in enumerate(parameters):
+            lb[i], ub[i] = p.bounds
+        bounds = Bounds(lb, ub)
+        if method in ('cobyla', 'cobyqa', 'trust-constr', 'slsqp', 'l-bfgs-b'):
+            result = minimize(
+                objective_function,
+                args=args, 
+                x0=np.array([i.baseline for i in parameters]),
+                bounds=bounds,
+                method=method, 
+                **optimizer_options,
+            )
+        elif method == 'shgo':
             result = shgo(
-                objective_function, bounds, args, options=options,
+                objective_function, bounds, args, options=optimizer_options,
             )
         elif method == 'differential evolution':
             result = differential_evolution(
-                objective_function, bounds, args, **options
+                objective_function, bounds, args, **optimizer_options
             )
         else:
             raise ValueError(f'invalid optimization method {method!r}')
-        return result, convergence_model
+        if isinstance(convergence_model, str):
+            return result, convergence_model
+        else:
+            return result
     
     def evaluate(self, notify=0, file=None, autosave=0, autoload=False,
                  convergence_model=None, **kwargs):
@@ -968,7 +983,7 @@ class Model:
         if isinstance(convergence_model, str):
             convergence_model = ConvergenceModel(
                 system=self.system,
-                predictors=self.parameters,
+                parameters=self.parameters,
                 model_type=convergence_model,
             )
         if notify:

@@ -134,13 +134,13 @@ class SystemFactory:
     >>> heating_sys.show()
     System: heating_sys
     ins...
-    [0] cold_stream
+    [0] cold_stream  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Water  100
+        flow: 100 kmol/hr Water
     outs...
-    [0] hot_stream
+    [0] hot_stream  
         phase: 'l', T: 350 K, P: 101325 Pa
-        flow (kmol/hr): Water  100
+        flow: 100 kmol/hr Water
     
     Create a mockup version, add a tank, then create the system:
     
@@ -158,13 +158,13 @@ class SystemFactory:
     >>> heating_sys.show() 
     System: heating_sys
     ins...
-    [0] cold_stream
+    [0] cold_stream  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Water  100
+        flow: 100 kmol/hr Water
     outs...
-    [0] hot_stream_from_storage
+    [0] hot_stream_from_storage  
         phase: 'l', T: 350 K, P: 101325 Pa
-        flow (kmol/hr): Water  100
+        flow: 100 kmol/hr Water
     
     Create the system and assign unit operation IDs by area convention:
     
@@ -181,7 +181,7 @@ class SystemFactory:
     
     """
     
-    def __new__(cls, f=None, ID=None, ins=None, outs=None,
+    def __new__(cls, f=None, ID='', ins=None, outs=None,
                 fixed_ins_size=True, fixed_outs_size=True,
                 fthermo=None):
         if f:
@@ -219,7 +219,7 @@ class SystemFactory:
     
     def __call__(self, ID=None, ins=None, outs=None,
             mockup=False, area=None, udct=None, 
-            autorename=None, operating_hours=None,
+            autorename=True, operating_hours=None,
             lang_factor=None, algorithm=None, 
             method=None, maxiter=None,
             molar_tolerance=None,
@@ -243,8 +243,11 @@ class SystemFactory:
         ins = create_streams(self.ins, ins, 'inlets', self.fixed_ins_size)
         outs = create_streams(self.outs, outs, 'outlets', self.fixed_outs_size)
         rename = area is not None
+        if ID is None: ID = self.ID
+        if bst.settings.ID_magic and ID == '': 
+            ID = bst.utils.infer_variable_assignment(self)
         options = dict(
-            ID=ID or self.ID,
+            ID=ID,
             operating_hours=operating_hours,
             lang_factor=lang_factor, algorithm=algorithm, 
             method=method, maxiter=maxiter,
@@ -253,13 +256,17 @@ class SystemFactory:
             temperature_tolerance=temperature_tolerance,
             relative_temperature_tolerance=relative_temperature_tolerance,
         )
+        # Box system as a facility module in the special case of a recycle facility system
         if network_priority is not None: box = True
         if box:
             if mockup: raise ValueError('cannot box mockup system')
             if rename: 
                 unit_registry = bst.main_flowsheet.unit
-                irrelevant_units = tuple(unit_registry)
+                irrelevant_units = set(unit_registry)
                 unit_registry.untrack(irrelevant_units)
+            elif udct:
+                unit_registry = bst.main_flowsheet.unit
+                irrelevant_units = set(unit_registry)
             if network_priority is None:
                 module = bst.Module(ins=ins, outs=outs)
             else:
@@ -269,13 +276,16 @@ class SystemFactory:
             outs = tuple([module.auxout(i) for i in module.outs])
             with bst.Flowsheet(ID), bst.System(**options) as system:
                 self.f(ins, outs, **kwargs)
-            module.register_auxiliary(system, 'auxiliary_system')     
-        else:        
+            module._init(system=system)
+        else: # Create system
             with (bst.MockSystem() if mockup else bst.System(**options)) as system:
                 if rename: 
                     unit_registry = system.flowsheet.unit
-                    irrelevant_units = tuple(unit_registry)
+                    irrelevant_units = set(unit_registry)
                     unit_registry.untrack(irrelevant_units)
+                elif udct:
+                    unit_registry = system.flowsheet.unit
+                    irrelevant_units = set(unit_registry)
                 self.f(ins, outs, **kwargs)
         system.load_inlet_ports(ins, {k: i for i, j in enumerate(self.ins) if (k:=get_name(j)) is not None})
         system.load_outlet_ports(outs, {k: i for i, j in enumerate(self.outs) if (k:=get_name(j)) is not None})
@@ -292,10 +302,10 @@ class SystemFactory:
                 else:
                     unit_dct[key] = unit
             
-            for unit in system.units:
-                cls = unit.__class__
-                add(unit._ID, unit)
-                add(cls.line, unit)
+            for ID, unit in system.flowsheet.unit.data.items():
+                if unit in irrelevant_units: continue
+                add(ID, unit)
+                add(unit.line, unit)
         if rename: 
             unit_registry.track(irrelevant_units)
             utils.rename_units(system.units, area)
@@ -327,14 +337,23 @@ class SystemFactory:
         dct_dlim = "," + newline + 5 * " "
         outs = repr_items(outs) if outs else str(outs)
         name = f"<{f.__name__}{signature(f)}>" if hasattr(f, '__name__') else str(f)
-        print(
-            f"SystemFactory(\n"
-            f"    f={name},\n"
-            f"    ID={repr(ID)},\n"
-            f"    ins={ins},\n"
-            f"    outs={outs}\n"
-             ")"
-        )    
+        if ID is None:
+            print(
+                f"SystemFactory(\n"
+                f"    f={name},\n"
+                f"    ins={ins},\n"
+                f"    outs={outs}\n"
+                 ")"
+            )    
+        else:
+            print(
+                f"SystemFactory(\n"
+                f"    f={name},\n"
+                f"    ID={repr(ID)},\n"
+                f"    ins={ins},\n"
+                f"    outs={outs}\n"
+                 ")"
+            )    
         
     _ipython_display_ = show
         

@@ -315,4 +315,5 @@ class PowerUtility:
     
 PowerUtility.default_price()
 settings.__class__.set_electricity_CF = PowerUtility.set_CF
+settings.__class__.get_electricity_CF = PowerUtility.get_CF
 del define_units_of_measure, UnitsOfMeasure

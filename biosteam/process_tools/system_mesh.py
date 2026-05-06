@@ -148,11 +148,12 @@ class SystemMesh:
             raise ValueError('outlet {repr(outlet)} does not exist')
         self._connections.pop(outlet)
     
-    def __call__(self, ID, **streams):
+    def __call__(self, ID='', **streams):
         connections = self._connections
         inlets = self._inlets 
         outlets = self._outlets
         objs = {}
+        if bst.settings.ID_magic and ID == '': ID = bst.utils.infer_variable_assignment(self)
         with bst.System(ID) as sys:
             old_units = []
             for name, (obj, N, kwargs) in self._objects.items(): 

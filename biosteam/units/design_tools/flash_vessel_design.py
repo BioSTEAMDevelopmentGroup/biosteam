@@ -301,7 +301,12 @@ def HNATable(Type, X):
     return Y
 
 @njit(cache=True)
-def compute_vessel_weight_and_wall_thickness(P, D, L, rho_M, Je=0.85):
+def compute_vessel_weight_and_wall_thickness(
+        P, D, L, rho_M, 
+        Da=0, # Annular diameter for jacketed vessels; assume no jacket by default
+        Je=0.85, # Joint efficiency; assume carbon-steel 
+        S=15000, # Vessel material stress coefficient; assume carbon-steel by default
+    ):
     """
     Return vessel weight and wall thickness.
     
@@ -310,13 +315,19 @@ def compute_vessel_weight_and_wall_thickness(P, D, L, rho_M, Je=0.85):
     P : float 
      Pressure [psia].
     D : float
-        Diameter [ft].
+        Internal diameter [ft].
     L: float
         Vessel length [ft].
     rho_M: float
         Density of Material [lb/ft^3].
     Je: float
-        Joint efficiency (1.0 for X-Rayed joints, 0.85 for thin carbon steel),
+        Joint efficiency (1.0 for X-Rayed joints, 0.85 for thin carbon steel).
+        Defaults to carbon steel.
+    S: float
+        Vessel material stress coefficient. Defaults to 15000 for carbon-steel.
+    Da: float 
+        Annular diameter for jacketed vessels. Defaults to 0, which
+        assumes no jacket.
     
     Examples
     --------
@@ -333,9 +344,13 @@ def compute_vessel_weight_and_wall_thickness(P, D, L, rho_M, Je=0.85):
     Vacuum pressure vessels may require stiffening rings and higher vessel thickness.
     
     """
-    S = 15000.0     # Vessel material stress value (assume carbon-steel)
+    S = 15000.0     # Vessel material stress coefficient (assume carbon-steel)
     Ca = 1.0/8.0    # Corrosion Allowance in inches
-    
+    if Da:
+        # The size of the entire vessel increases to the outside diameter.
+        # The internal wall is the original size.
+        Di = D
+        D = Di + Da
     P_gauge = abs(P - 14.7)
     P1 = P_gauge + 30.0
     P2 = 1.1 * P_gauge
@@ -382,6 +397,7 @@ def compute_vessel_weight_and_wall_thickness(P, D, L, rho_M, Je=0.85):
         ts_min = ts
     if ts < ts_min:
         ts = ts_min
+    if Da: SSA += pi * (Di + ts/12) * L   
     VW = rho_M * ts/12 * (SSA + 2.0 * HSA)  # in lb
     VW = round(VW, 2)
     return VW, ts

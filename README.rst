@@ -30,13 +30,19 @@ What is BioSTEAM?
 -----------------
 
 BioSTEAM is a fast and flexible package for the design, simulation, 
-techno-economic analysis, and life cycle assessment of biorefineries under uncertainty [1]_. 
+techno-economic analysis, and life cycle assessment of chemical processes under uncertainty [1]_. 
 BioSTEAM is built to streamline and automate early-stage technology evaluations 
-and to enable rigorous sensitivity and uncertainty analyses. Complete 
+and to enable rigorous sensitivity and uncertainty analyses. BioSTEAM has been 
+used to model a range of fermentation-based bioproduct pathways
+going from conventional/cellulosic crops, municipal solid waste, and flue gas all
+the way to diols, organic acids, oleochemicals, and biofuels. Complete 
 biorefinery configurations are available at the `Bioindustrial-Park 
 <https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park>`_ GitHub repository, 
-BioSTEAM's premier repository for biorefinery models and results. The long-term 
-growth and maintenance of BioSTEAM is supported through both community-led 
+BioSTEAM's premier repository for biorefinery models and results. Newer applications
+for BioSTEAM include thermochemical upcycling of waste plastics through
+pyrolysis and solvent-based dissolution and precipitation. 
+
+The long-term growth and maintenance of BioSTEAM is supported through both community-led 
 development and the research institutions invested in BioSTEAM, including the 
 `Center for Advanced Bioenergy and Bioproducts Innovations (CABBI) <https://cabbi.bio/>`_. 
 Through its open-source and community-lead platform, BioSTEAM aims to foster 

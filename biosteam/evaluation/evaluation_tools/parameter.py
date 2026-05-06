@@ -7,18 +7,22 @@
 # for license details.
 """
 """
-from chaospy import distributions as shape
+try: from chaospy import distributions as shape
+except: pass
 import biosteam as bst
 
-__all__ = ('load_default_parameters',
-           'add_all_cost_item_params',
-           'add_flow_rate_param',
-           'add_all_stream_price_params',
-           'add_stream_price_param',
-           'add_power_utility_price_param',
-           'add_basic_TEA_params',
-           'triang',
-           'bounded_triang',)
+__all__ = (
+    'AttributeSetter',
+    'load_default_parameters',
+    'add_all_cost_item_params',
+    'add_flow_rate_param',
+    'add_all_stream_price_params',
+    'add_stream_price_param',
+    'add_power_utility_price_param',
+    'add_basic_TEA_params',
+    'triang',
+    'bounded_triang',
+)
 
 # %% Predefined shapes
 
@@ -121,11 +125,13 @@ def add_heat_utility_price_params(model, shape): # pragma: no cover
     for agent in agents:
         add_agent_price_params(model, agent.ID, agent, shape)
         
-class Setter: # pragma: no cover
+class AttributeSetter: # pragma: no cover
     __slots__ = ('obj', 'attr')
+    
     def __init__(self, obj, attr):
         self.obj = obj
         self.attr = attr
+    
     def __call__(self, value):
         setattr(self.obj, self.attr, value)
 
@@ -140,18 +146,18 @@ class FeedstockSetter: # pragma: no cover
 def add_agent_price_params(model, name, agent, shape): # pragma: no cover
     if agent.heat_transfer_price:
         baseline = agent.heat_transfer_price
-        model.parameter(Setter(agent, 'heat_transfer_price'), element=name, units='USD/kJ',
+        model.parameter(AttributeSetter(agent, 'heat_transfer_price'), element=name, units='USD/kJ',
                         name='Price', distribution=shape(baseline), baseline=baseline)
     elif agent.regeneration_price:
         baseline = agent.regeneration_price
-        model.parameter(Setter(agent, 'regeneration_price'),
+        model.parameter(AttributeSetter(agent, 'regeneration_price'),
                         element=name, units='USD/kmol',
                         name='Price', distribution=shape(baseline),
                         baseline=baseline)
         
 def add_flow_rate_param(model, feed, shape): # pragma: no cover
     baseline = feed.F_mass
-    model.parameter(Setter(feed, 'F_mass'), element=feed, units='kg/hr',
+    model.parameter(AttributeSetter(feed, 'F_mass'), element=feed, units='kg/hr',
                     distribution=shape(baseline), kind='coupled',
                     name='Flow rate', baseline=baseline)
     
@@ -167,13 +173,13 @@ def add_basic_TEA_params(model, shape, operating_days): # pragma: no cover
     
     if operating_days:
         baseline = TEA.operating_days
-        param(Setter(TEA, 'operating_days'), element='TEA', 
+        param(AttributeSetter(TEA, 'operating_days'), element='TEA', 
               distribution=shape(baseline),
               baseline=baseline,
               name='Operating days')
     
     baseline = TEA.income_tax
-    param(Setter(TEA, 'income_tax'),
+    param(AttributeSetter(TEA, 'income_tax'),
                  element='TEA',
                  distribution=shape(baseline),
                  baseline=baseline,
@@ -181,7 +187,7 @@ def add_basic_TEA_params(model, shape, operating_days): # pragma: no cover
         
     if TEA.startup_months:
         baseline = TEA.startup_months
-        param(Setter(TEA, 'startup_months'), element='TEA', 
+        param(AttributeSetter(TEA, 'startup_months'), element='TEA', 
               baseline=baseline,
               distribution=shape(baseline), name='startup_months')
             
@@ -192,7 +198,7 @@ def add_basic_TEA_params(model, shape, operating_days): # pragma: no cover
 def add_stream_price_param(model, stream, shape): # pragma: no cover
     mid = stream.price
     if not mid: return
-    model.parameter(Setter(stream, 'price'),
+    model.parameter(AttributeSetter(stream, 'price'),
                     element=stream, units='USD/kg',
                     distribution=shape(mid),
                     baseline=mid,

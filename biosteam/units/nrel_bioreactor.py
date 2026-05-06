@@ -8,8 +8,8 @@
 """
 .. contents:: :local:
 
-.. autoclass:: biosteam.units.nrel_bioreactor.NRELBatchBioreactor
-.. autoclass:: biosteam.units.nrel_bioreactor.NRELFermentation
+.. autoclass:: biosteam.units.nrel_bioreactor.NRELAnaerobicBatchBioreactor
+.. autoclass:: biosteam.units.nrel_bioreactor.NRELEthanolFermentation
 
 References
 ----------
@@ -47,9 +47,11 @@ from .decorators import cost
 from math import ceil
 from scipy.integrate import odeint
 from thermosteam.reaction import Reaction, ParallelReaction
+import biosteam as bst
 
 __all__ = (
-    'NRELBatchBioreactor', 'NRELFermentation',
+    'NRELAnaerobicBatchBioreactor', 
+    'NRELEthanolFermentation',
     'BatchBioreactor', 'Fermentation', # For backwards compatibility
 ) 
 
@@ -66,7 +68,7 @@ __all__ = (
 @cost('Reactor duty', 'Heat exchangers', CE=522, cost=23900,
       S=20920000.0, n=0.7, BM=2.2, N='Number of reactors',
       magnitude=True) # Based on a similar heat exchanger
-class NRELBatchBioreactor(Unit, isabstract=True):
+class NRELAnaerobicBatchBioreactor(Unit, isabstract=True):
     """
     Abstract Bioreactor class. Conversion is based on reaction time, `tau`.
     Cleaning and unloading time,`tau_0`, fraction of working volume, `V_wf`,
@@ -100,10 +102,13 @@ class NRELBatchBioreactor(Unit, isabstract=True):
         Minimum number of fermentors.
     Nmax=36: int
         Maximum number of fermentors.  
+    loading_time : float, optional
+        Loading time of batch reactor. If not given, it will assume each vessel is constantly
+        being filled.
     
     Notes
     -----
-    Either N or V must be given.
+    Either N or V_max must be given.
     
     """
     _units = {'Reactor volume': 'm3',
@@ -113,10 +118,8 @@ class NRELBatchBioreactor(Unit, isabstract=True):
               'Total dead time': 'hr',
               'Reactor duty': 'kJ/hr',
               'Recirculation flow rate': 'm3/hr'}
-    _N_ins = _N_outs = 2
-    
-    #: [bool] If True, number of reactors (N) is chosen as to minimize installation cost in every simulation. Otherwise, N remains constant.
-    autoselect_N = False
+    _N_outs = 2
+    _N_ins = 1
     
     #: [float] Cleaning and unloading time (hr).
     tau_0 = 3
@@ -128,18 +131,19 @@ class NRELBatchBioreactor(Unit, isabstract=True):
         return (('Cleaning and unloading time', self.tau_0, 'hr'),
                 ('Working volume fraction', self.V_wf, ''))
     
-    def _init(self, tau=None, N=None, V=None, T=305.15, P=101325,
-              Nmin=2, Nmax=36):
-        self._N = N; self._V = V
+    def _init(self, tau=None, N=None, V_max=None, T=305.15, P=101325,
+              Nmin=2, Nmax=36, loading_time=None, reactions=None, 
+              tau_0=None, V_wf=None):
+        self._N = N; self._V_max = V_max
         
         #: [float] Reaction time [hr].
         self.tau = tau
         
-        #: [int] Number of batch reactors
+        #: [int] Number of batch reactors.
         if N: self.N = N
         
-        #: [float] Target volume of a fermentor
-        if V: self.V = V
+        #: [float] Maximum volume of a fermentor [m3].
+        if V_max: self.V_max = V_max
         
         #: [float] Operating temperature of reactor [K].
         self.T = T
@@ -147,11 +151,21 @@ class NRELBatchBioreactor(Unit, isabstract=True):
         #: [float] Operating pressure of reactor [Pa].
         self.P = P
         
-        #: [int] Minimum number of fermentors
+        #: [int] Minimum number of fermentors.
         self.Nmin = Nmin
         
-        #: [int] Maximum number of fermentors
+        #: [int] Maximum number of fermentors.
         self.Nmax = Nmax
+        
+        #: [int] Loading time of batch reactor.
+        #: If not given, it will assume each vessel is constantly being filled.
+        self.loading_time = loading_time
+        
+        #: [Reaction|ReactionSystem] Stoichiomentric reactions.
+        self.reactions = reactions
+        
+        if tau_0 is not None: self.tau_0 = tau_0
+        if V_wf is not None: self.V_wf = V_wf
         
     def _setup(self):
         super()._setup()
@@ -177,20 +191,26 @@ class NRELBatchBioreactor(Unit, isabstract=True):
             self._N = N
             return
         if N <= 1:
-            raise ValueError(f"number of reactors must be greater than 1, value {N} is infeasible")
-        assert not self._V, 'cannot specify both reactor volume and number of reactors'
+            raise ValueError(
+                 "number of reactors must be greater than 1, "
+                f"value {N} is infeasible"
+            )
+        assert not self._V_max, 'cannot specify both reactor volume and number of reactors'
         self._N = ceil(N)
 
     @property
-    def V(self):
-        """[float] Reactor volume."""
-        return self._V
-    @V.setter
-    def V(self, V):
-        if V <= 1:
-            raise ValueError(f"reactor volume must be greater than 1, value {V} is infeasible")
+    def V_max(self):
+        """[float] Maximum reactor volume."""
+        return self._V_max
+    @V_max.setter
+    def V_max(self, V_max):
+        if V_max <= 1:
+            raise ValueError(
+                "maximum reactor volume must be greater than 1 m3, "
+               f"{V_max} is infeasible"
+            )
         assert not self._N, 'cannot specify both reactor volume and number of reactors'
-        self._V = V
+        self._V_max = V_max
 
     @property
     def tau(self):
@@ -198,22 +218,13 @@ class NRELBatchBioreactor(Unit, isabstract=True):
     @tau.setter
     def tau(self, tau):
         self._tau = tau
-    
-    @property
-    def N_at_minimum_capital_cost(self):
-        cost_old = np.inf
-        self.autoselect_N = False
-        self._N, N = 2, self._N
-        cost_new = self.purchase_cost
-        self._summary()
-        while cost_new < cost_old:
-            self._N += 1
-            self._summary()
-            cost_old = cost_new
-            cost_new = self.purchase_cost
-        self._N, N = N, self._N
-        self.autoselect_N = True
-        return N - 1
+        
+    def _run(self):
+        vent, effluent = self.outs
+        effluent.mix_from(self.ins)
+        self.reactions(effluent)
+        stream = bst.MultiStream.from_streams([effluent, vent])
+        stream.vle(T=stream.T, P=stream.P)
         
     def _design(self):
         effluent = self.effluent
@@ -222,25 +233,19 @@ class NRELBatchBioreactor(Unit, isabstract=True):
         tau_0 = self.tau_0
         V_wf = self.V_wf
         Design = self.design_results
-        if self.autoselect_N:
-            N = self.N_at_minimum_capital_cost
-        elif self.V:
-            N = v_0 / self.V / V_wf * (tau + tau_0) + 1
-            if N < 2:
-                N = 2
-            else:
-                N = ceil(N)
-        else:
-            N = self._N
-        Design.update(size_batch(v_0, tau, tau_0, N, V_wf))
-        Design['Number of reactors'] = N
-        Design['Recirculation flow rate'] = v_0 / N
+        Design.update(
+            size_batch(
+                v_0, tau, tau_0, V_wf, 
+                self.V_max, self.N, self.loading_time
+            )
+        )
+        Design['Recirculation flow rate'] = v_0 / Design['Number of reactors']
         duty = self.Hnet
         Design['Reactor duty'] = duty
         self.add_heat_utility(duty, self.T)
 
 
-class NRELFermentation(NRELBatchBioreactor):
+class NRELEthanolFermentation(NRELAnaerobicBatchBioreactor):
     """
     Create a Fermentation object which models large-scale batch fermentation
     for the production of 1st generation ethanol using yeast
@@ -263,7 +268,7 @@ class NRELFermentation(NRELBatchBioreactor):
         Reaction time.
     N : int, optional
         Number of batch reactors
-    V : float, optional
+    V_max : float, optional
         Target volume of reactors [m^3].
     T=305.15 : float
         Temperature of reactor [K].
@@ -280,7 +285,7 @@ class NRELFermentation(NRELBatchBioreactor):
     
     Notes
     -----
-    Either N or V must be given.
+    Either N or V_max must be given.
     
     Examples
     --------
@@ -288,7 +293,7 @@ class NRELFermentation(NRELBatchBioreactor):
     production of 1st generation ethanol using yeast.
     
     >>> from biorefineries.cane import create_sugarcane_chemicals
-    >>> from biosteam.units import Fermentation
+    >>> from biosteam.units import NRELEthanolFermentation
     >>> from biosteam import Stream, settings
     >>> settings.set_thermo(create_sugarcane_chemicals())
     >>> feed = Stream('feed',
@@ -298,53 +303,54 @@ class NRELFermentation(NRELBatchBioreactor):
     ...               DryYeast=1.03e+04,
     ...               units='kg/hr',
     ...               T=32+273.15)
-    >>> F1 = NRELFermentation('F1',
+    >>> F1 = NRELEthanolFermentation('F1',
     ...                   ins=feed, outs=('CO2', 'product'),
     ...                   tau=8, efficiency=0.90, N=8)
     >>> F1.simulate()
     >>> F1.show()
-    NRELFermentation: F1
+    NRELEthanolFermentation: F1
     ins...
-    [0] feed
+    [0] feed  
         phase: 'l', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water    6.66e+03
                         Glucose  10.5
                         Sucrose  62.5
                         Yeast    456
     outs...
-    [0] CO2
+    [0] CO2  
         phase: 'g', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water    9.95
                         Ethanol  3.71
                         CO2      244
-    [1] product
+    [1] product  
         phase: 'l', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water    6.59e+03
                         Ethanol  240
                         Glucose  4.07
                         Yeast    532
     >>> F1.results()
-    Fermentation                                       Units        F1
-    Electricity         Power                             kW      66.6
-                        Cost                          USD/hr       5.2
-    Chilled water       Duty                           kJ/hr -1.41e+07
-                        Flow                         kmol/hr  9.42e+03
-                        Cost                          USD/hr      70.3
-    Design              Reactor volume                    m3       247
-                        Batch time                        hr      12.6
-                        Loading time                      hr      1.57
-                        Number of reactors                           8
-                        Recirculation flow rate        m3/hr      17.7
-                        Reactor duty                   kJ/hr -1.41e+07
-                        Cleaning and unloading time       hr         3
-                        Working volume fraction                    0.9
-    Purchase cost       Heat exchangers (x8)             USD  1.57e+05
-                        Reactors (x8)                    USD  1.87e+06
-                        Agitators (x8)                   USD  1.17e+05
-                        Cleaning in place                USD  8.89e+04
-                        Recirculation pumps (x8)         USD  1.26e+05
-    Total purchase cost                                  USD  2.36e+06
-    Utility cost                                      USD/hr      75.5
+    Fermentation                                            Units        F1
+    Electricity              Power                             kW      66.6
+                             Cost                          USD/hr       5.2
+    Chilled water            Duty                           kJ/hr -1.41e+07
+                             Flow                         kmol/hr  9.42e+03
+                             Cost                          USD/hr      70.3
+    Design                   Reactor volume                    m3       247
+                             Batch time                        hr      12.6
+                             Loading time                      hr      1.57
+                             Number of reactors                           8
+                             Recirculation flow rate        m3/hr      17.7
+                             Reactor duty                   kJ/hr -1.41e+07
+                             Cleaning and unloading time       hr         3
+                             Working volume fraction                    0.9
+    Purchase cost            Heat exchangers (x8)             USD  1.57e+05
+                             Reactors (x8)                    USD  1.87e+06
+                             Agitators (x8)                   USD  1.17e+05
+                             Cleaning in place                USD  8.89e+04
+                             Recirculation pumps (x8)         USD  1.26e+05
+    Total purchase cost                                       USD  2.36e+06
+    Installed equipment cost                                  USD  3.78e+06
+    Utility cost                                           USD/hr      75.5
     
     
     """
@@ -362,10 +368,10 @@ class NRELFermentation(NRELBatchBioreactor):
                          0.45,  # Y_PS
                          0.18)  # a
     
-    def _init(self, tau, N=None, V=None, T=305.15, P=101325., Nmin=2, Nmax=36,
+    def _init(self, tau, N=None, V_max=None, T=305.15, P=101325., Nmin=2, Nmax=36,
               efficiency=None, iskinetic=False, fermentation_reaction=None,
-              cell_growth_reaction=None):
-        NRELBatchBioreactor._init(self, tau=tau, N=N, V=V, T=T, P=P, Nmin=Nmin, Nmax=Nmax)
+              cell_growth_reaction=None, loading_time=None):
+        NRELAnaerobicBatchBioreactor._init(self, tau=tau, N=N, V_max=V_max, T=T, P=P, Nmin=Nmin, Nmax=Nmax, loading_time=loading_time)
         self._load_components()
         self.iskinetic = iskinetic
         chemicals = self.chemicals
@@ -474,5 +480,5 @@ class NRELFermentation(NRELBatchBioreactor):
         vent.empty()
         vent.receive_vent(effluent, energy_balance=False)
 
-BatchBioreactor = NRELBatchBioreactor
-Fermentation = NRELFermentation
+BatchBioreactor = NRELAnaerobicBatchBioreactor
+Fermentation = NRELEthanolFermentation

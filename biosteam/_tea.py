@@ -105,9 +105,11 @@ def add_replacement_cost_to_cashflow_array(equipment_installed_cost,
                                            cashflow_array, 
                                            venture_years,
                                            start):
-    N_purchases = ceil(venture_years / equipment_lifetime) 
+    N_purchases = ceil(venture_years / equipment_lifetime) - 1
+    equipment_lifetime_index = start + equipment_lifetime
     for i in range(1, N_purchases):
-        cashflow_array[start + i * equipment_lifetime] += equipment_installed_cost
+        equipment_lifetime_index += equipment_lifetime
+        cashflow_array[int(equipment_lifetime_index)] += equipment_installed_cost
 
 def add_all_replacement_costs_to_cashflow_array(unit_capital_cost, cashflow_array, 
                                                 venture_years, start,
@@ -149,12 +151,16 @@ def fill_taxable_and_nontaxable_cashflows_without_loans(
     # D: Depreciation
     # C: Annual operating cost (excluding depreciation)
     # S: Sales
-    w0 = startup_time
+    w0 = startup_time % 1
+    end_start = start + int(startup_time)
     w1 = 1. - w0
-    C[start] = (w0 * startup_VOCfrac * VOC + w1 * VOC
-                + w0 * startup_FOCfrac * FOC + w1 * FOC)
-    S[start] = w0 * startup_salesfrac * sales + w1 * sales
-    start1 = start + 1
+    C[end_start] = (w0 * startup_VOCfrac * VOC + w1 * VOC
+                    + w0 * startup_FOCfrac * FOC + w1 * FOC)
+    C[start:end_start] = (startup_VOCfrac * VOC 
+                          + startup_FOCfrac * FOC)
+    S[end_start] = w0 * startup_salesfrac * sales + w1 * sales
+    S[start:end_start] = startup_salesfrac * sales
+    start1 = end_start + 1
     C[start1:] = VOC + FOC
     S[start1:] = sales
     C_FC[:start] = FCI * construction_schedule
@@ -391,7 +397,7 @@ class TEA:
         
         def entry(self, index: str, cost: list|float, notes: str = ''):
             self.index.append(index)
-            if getattr(cost, 'ndim') == 0: cost = float(cost)
+            if getattr(cost, 'ndim', 0) == 0: cost = float(cost)
             if isinstance(cost, (float, int, str)):
                 self.data.append([notes, cost])
             else:
@@ -403,7 +409,7 @@ class TEA:
                 return sum([i[1] for i in self.data])
             else:
                 N = len(self.data[0])
-                return [sum([i[index] for i in self.data]) for index in range(1, N)]
+                return np.array([sum([i[index] for i in self.data]) for index in range(1, N)])
         
         def table(self):
             names = self.names
@@ -644,8 +650,7 @@ class TEA:
         return self._startup_time * 12.
     @startup_months.setter
     def startup_months(self, months):
-        assert months <= 12., "startup time must be less than a year"
-        self._startup_time = months/12.
+        self._startup_time = months / 12.
     
     @property
     def sales(self) -> float:
@@ -783,12 +788,16 @@ class TEA:
         length = start + years
         C_D, C_FC, C_WC, D, L, LI, LP, LPl, C, S, T, I, TE, FL, NE, CF, DF, NPV, CNPV = data = np.zeros((19, length))
         self._fill_depreciation_array(D, start, years, TDC)
-        w0 = self._startup_time
+        w0 = self._startup_time % 1
         w1 = 1. - w0
-        C[start] = (w0*self.startup_VOCfrac*VOC + w1*VOC
-                    + w0*self.startup_FOCfrac*FOC + w1*FOC)
-        S[start] = w0*self.startup_salesfrac*sales + w1*sales
-        start1 = start + 1
+        end_start = start + int(self._startup_time)
+        C[end_start] = (w0 * self.startup_VOCfrac * VOC + w1 * VOC
+                        + w0 * self.startup_FOCfrac * FOC + w1 * FOC)
+        C[start:end_start] = (self.startup_VOCfrac * VOC 
+                              + self.startup_FOCfrac * FOC)
+        S[end_start] = w0 * self.startup_salesfrac * sales + w1 * sales
+        S[start:end_start] = self.startup_salesfrac * sales
+        start1 = end_start + 1
         C[start1:] = VOC + FOC
         S[start1:] = sales
         WC = self.WC_over_FCI * FCI
@@ -980,24 +989,37 @@ class TEA:
         else:
             return self.AOC - coproduct_sales
     
-    def solve_IRR(self, financing=True):
+    def solve_IRR(self, financing=True, bounds=None):
         """Return the IRR at the break even point (NPV = 0) through cash flow analysis."""
         IRR = self._IRR
-        if not IRR or np.isnan(IRR) or IRR < 0.: IRR = self.IRR
-        if not IRR or np.isnan(IRR) or IRR < 0.: IRR = 0.10
+        if not IRR or np.isnan(IRR) or IRR < 0.: IRR = 0.01
         if financing:
             args = (self.cashflow_array, self._get_duration_array())
-            IRR = flx.aitken_secant(NPV_at_IRR,
-                                    IRR, 1.0001 * IRR + 1e-3, xtol=1e-6, ytol=10.,
-                                    maxiter=200, args=args, checkiter=False)
+            if bounds:
+                IRR = flx.IQ_interpolation(
+                    NPV_at_IRR, *bounds, x=IRR, xtol=1e-6, ytol=10.,
+                    maxiter=200, args=args, checkiter=False
+                )
+            else:
+                IRR = flx.aitken_secant(
+                    NPV_at_IRR, IRR, 1.0001 * IRR + 1e-3, xtol=1e-6, ytol=10.,
+                    maxiter=200, args=args, checkiter=False
+                )
         else:
             financing_values = self.finance_fraction, self.finance_interest
             self.finance_fraction = self.finance_interest = None
             try:
                 args = (self.cashflow_array, self._get_duration_array())
-                IRR = flx.aitken_secant(NPV_at_IRR,
-                                        IRR, 1.0001 * IRR + 1e-3, xtol=1e-6, ytol=10.,
-                                        maxiter=200, args=args, checkiter=False)
+                if bounds:
+                    IRR = flx.IQ_interpolation(
+                        NPV_at_IRR, *bounds, x=IRR, xtol=1e-6, ytol=10.,
+                        maxiter=200, args=args, checkiter=False
+                    )
+                else:
+                    IRR = flx.aitken_secant(
+                        NPV_at_IRR, IRR, 1.0001 * IRR + 1e-3, xtol=1e-6, ytol=10.,
+                        maxiter=200, args=args, checkiter=False
+                    )
             finally:
                 self.finance_fraction, self.finance_interest = financing_values
         self._IRR = IRR
@@ -1055,8 +1077,10 @@ class TEA:
         sales_coefficients = np.ones_like(discount_factors, dtype=float)
         start = self._start
         sales_coefficients[:start] = 0
-        w0 = self._startup_time
-        sales_coefficients[start] =  w0*self.startup_salesfrac + (1.-w0)
+        w0 = self._startup_time % 1
+        end_start = start + int(self._startup_time)
+        sales_coefficients[end_start] = w0 * self.startup_salesfrac + (1. - w0) 
+        sales_coefficients[start:end_start] = self.startup_salesfrac
         taxable_cashflow, nontaxable_cashflow, depreciation = self._taxable_nontaxable_depreciation_cashflows()
         if np.isnan(taxable_cashflow).any():
             warn('nan encountered in cashflow array; resimulating system', category=RuntimeWarning)

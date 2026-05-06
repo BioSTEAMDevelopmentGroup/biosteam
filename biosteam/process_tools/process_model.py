@@ -237,7 +237,7 @@ class ProcessModel:
         if 'Scenario' in cls.__dict__:
             cls.Scenario = scenario(cls.Scenario)
     
-    def __new__(cls, scenario=None, *, simulate=True, load=True, save=None, **kwargs):
+    def __new__(cls, scenario=None, *, simulate=True, load=True, save=True, **kwargs):
         scenario = cls.scenario_hook(scenario, kwargs)
         if load and scenario in cls.cache: 
             process_model = cls.cache[scenario]

@@ -98,20 +98,21 @@ def tank_factory(name, *, CE, cost, S, tau, n=0.6, kW_per_m3=0., V_wf=0.9,
     >>> T101.show()
     CornStorage: T101
     ins...
-    [0] corn
+    [0] corn  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Corn  4.64e+04
+        flow: 4.64e+04 kmol/hr Corn
     outs...
-    [0] outlet
+    [0] outlet  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Corn  4.64e+04
+        flow: 4.64e+04 kmol/hr Corn
     >>> T101.results()
-    Corn storage                         Units     T101
-    Design              Residence time      hr      259
-                        Total volume       m^3 1.33e+04
-    Purchase cost       Tank               USD 7.62e+04
-    Total purchase cost                    USD 7.62e+04
-    Utility cost                        USD/hr        0
+    Corn storage                              Units     T101
+    Design                   Residence time      hr      259
+                             Total volume       m^3 1.33e+04
+    Purchase cost            Tank               USD 7.62e+04
+    Total purchase cost                         USD 7.62e+04
+    Installed equipment cost                    USD 1.75e+05
+    Utility cost                             USD/hr        0
 
     """
     dct = {
@@ -326,20 +327,21 @@ class StorageTank(Tank):
     >>> T1.show(flow='kg/hr')
     StorageTank: T1
     ins...
-    [0] feed
+    [0] feed  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kg/hr): Ethanol  2.3e+04
+        flow: 2.3e+04 kg/hr Ethanol
     outs...
-    [0] effluent
+    [0] effluent  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kg/hr): Ethanol  2.3e+04
+        flow: 2.3e+04 kg/hr Ethanol
     >>> T1.results()
-    Storage tank                         Units       T1
-    Design              Residence time      hr      168
-                        Total volume       m^3 4.92e+03
-    Purchase cost       Tank (x2)          USD 8.41e+05
-    Total purchase cost                    USD 8.41e+05
-    Utility cost                        USD/hr        0
+    Storage tank                              Units       T1
+    Design                   Residence time      hr      168
+                             Total volume       m^3 4.92e+03
+    Purchase cost            Tank (x2)          USD 8.42e+05
+    Total purchase cost                         USD 8.42e+05
+    Installed equipment cost                    USD 1.94e+06
+    Utility cost                             USD/hr        0
     
     """
     _outs_size_is_fixed = _ins_size_is_fixed = True

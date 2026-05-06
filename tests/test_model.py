@@ -202,7 +202,7 @@ def test_model_index():
         H1.T = temperature
     
     with pytest.raises(ValueError):
-        @model.parameter(element=H1)
+        @model.parameter(element=H1, safe=True)
         def set_efficiency(temperature):
             H1.T = temperature
     
@@ -339,6 +339,35 @@ def test_kolmogorov_smirnov_d():
     D, p = model.kolmogorov_smirnov_d(thresholds=[1, 1.5]) # Just make sure it works for now
     # TODO: Add tests that make sense for comparing statistics
     
+def test_model_optimization_differential_evolution():
+    import biosteam as bst
+    import numpy as np
+    model = bst.Model(bst.System())
+    inputs = np.array([0, 0], float)
+    
+    @model.optimized_parameter(bounds=(-2, 1))
+    def P0(x0):
+        inputs[0] = x0
+        
+    @model.optimized_parameter(bounds=(-1, 3))
+    def P1(x1):
+        inputs[1] = x1
+    
+    @model.indicator
+    def objective():
+        x0, x1 = inputs
+        return x0**2 - x0 + x1**2 - x1
+    
+    for method in ('cobyla', 'cobyqa', 
+                   'trust-constr', 'slsqp',
+                   'L-BFGS-B', 'shgo',
+                   'differential evolution'):
+        solution = model.optimize(
+            objective, 
+            method=method,
+        )
+        assert_allclose(solution.x, [0.5, 0.5], rtol=1e-3, atol=1e-3)
+    
 if __name__ == '__main__':
     test_parameter_hook()
     test_pearson_r()
@@ -350,3 +379,4 @@ if __name__ == '__main__':
     test_model_exception_hook()
     test_parameters_from_df()
     test_kolmogorov_smirnov_d()
+    test_model_optimization_differential_evolution()

@@ -9,6 +9,7 @@
 """
 from ._unit import Unit
 from .exceptions import UnitInheritanceError
+import biosteam as bst
 
 __all__ = ('Facility',)
 
@@ -40,6 +41,7 @@ class Facility(Unit, isabstract=True,
             )
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, **kwargs):
+        if bst.settings.ID_magic and ID == '': ID = bst.utils.infer_variable_assignment(self.__class__)
         Unit.__init__(self, ID, ins, outs, thermo, **kwargs)
         self._system = None
         self._other_units = None

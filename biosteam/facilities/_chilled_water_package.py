@@ -36,13 +36,11 @@ class ChilledWaterPackage(bst.Facility):
     """
     ticket_name = 'CWP'
     network_priority = -1
+    _N_ins = _N_outs = 0
     _units = {'Duty': 'kJ/hr'}
     def __init__(self, ID='', agent=None):
         self.agent = chilled_water = agent or bst.settings.get_cooling_agent('chilled_water')
-        super().__init__(ID,
-                         ins='.recirculated_chilled_water',
-                         outs=chilled_water.to_stream(),
-                         thermo=chilled_water.thermo)
+        super().__init__(ID, thermo=chilled_water.thermo)
     
     def _load_chilled_water_utilities(self):
         self.chilled_water_utilities = cwu = []
@@ -61,8 +59,4 @@ class ChilledWaterPackage(bst.Facility):
         hu_chilled.mix_from(cwu)
         hu_chilled.reverse()
         self.add_heat_utility(duty, 330) # Cooling water
-        used = self.ins[0]
-        used.mol[0] = sum([i.flow for i in cwu])
-        Ts = [i.outlet_utility_stream.T for i in cwu]
-        if Ts: used.T = np.array(Ts).mean()
         
