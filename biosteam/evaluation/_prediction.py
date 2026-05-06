@@ -599,7 +599,7 @@ class ConvergenceModel:
         sample = [i.baseline for i in parameters]
         evaluate = self.evaluate_system_convergence        
         baseline_1 = evaluate(sample)
-        values = []
+        values = [baseline_1]
         values_at_bounds = []
         samples = [sample]
         for i, p in enumerate(parameters):
