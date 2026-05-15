@@ -910,6 +910,7 @@ class Model:
             else:
                 optimizer_options = {}
         if isinstance(convergence_model, str):
+            if convergence_options is None: convergence_options = {}
             convergence_model = ConvergenceModel(
                 system=self.system,
                 parameters=parameters,
@@ -942,10 +943,8 @@ class Model:
             )
         else:
             raise ValueError(f'invalid optimization method {method!r}')
-        if isinstance(convergence_model, str):
-            return result, convergence_model
-        else:
-            return result
+        result.convergence_model = convergence_model
+        return result
     
     def evaluate(self, notify=0, file=None, autosave=0, autoload=False,
                  convergence_model=None, **kwargs):

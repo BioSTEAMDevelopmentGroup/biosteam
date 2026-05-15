@@ -339,7 +339,7 @@ def test_kolmogorov_smirnov_d():
     D, p = model.kolmogorov_smirnov_d(thresholds=[1, 1.5]) # Just make sure it works for now
     # TODO: Add tests that make sense for comparing statistics
     
-def test_model_optimization_differential_evolution():
+def test_model_optimization_no_system():
     import biosteam as bst
     import numpy as np
     model = bst.Model(bst.System())
@@ -368,6 +368,80 @@ def test_model_optimization_differential_evolution():
         )
         assert_allclose(solution.x, [0.5, 0.5], rtol=1e-3, atol=1e-3)
     
+def test_model_optimization_with_system():
+    import biosteam as bst
+    from numpy.testing import assert_allclose
+    bst.settings.set_thermo([
+        bst.Chemical('F', default=True, search_db=False, phase='l')
+    ])
+    with bst.System() as sys:
+        feed = bst.Stream(F=1)
+        recycle = bst.Stream()
+        product1 = bst.Stream()
+        product2 = bst.Stream()
+        mixer = bst.Mixer(ins=(feed, recycle))
+        splitter1 = bst.Splitter(ins=mixer-0, outs=('stream', product1), split=0.5)
+        splitter2 = bst.Splitter(ins=splitter1-0, outs=(recycle, product2), split=0.5)
+    
+    sys.set_tolerance(mol=1e-16, rmol=1e-16)
+    model = bst.Model(sys)
+    
+    @model.optimized_parameter(bounds=(0.01, 0.99), baseline=0.1)
+    def split1(x1):
+        splitter1.split = x1
+    
+    @model.indicator
+    def objective():
+        y1 = product1.imol['F']
+        y2 = product2.imol['F']
+        return y1**2 - y1 + y2**2 - y2
+    
+    simple_convergence_models = (
+        None, 'linear regressor', 'intercept linear regressor',
+    )
+    methods = (
+        'cobyla', 'cobyqa', 'trust-constr', 'slsqp',
+        'L-BFGS-B', 'shgo', 'differential evolution'
+    )
+    results = {}
+    for method in methods:
+        for convergence_model in simple_convergence_models:
+            for local_weighted in (True, False):
+                recycle.empty()
+                solution = model.optimize(
+                    objective, 
+                    method=method,
+                    convergence_model=convergence_model,
+                    convergence_options=dict(save_prediction=True,
+                                             local_weighted=local_weighted)
+                )
+                y1 = product1.imol['F']
+                y2 = product2.imol['F']
+                assert_allclose([y1, y2], [0.5, 0.5], rtol=1e-3, atol=1e-3)
+                assert_allclose(solution.x, [0.6666667451749273], rtol=1e-3, atol=1e-3)
+                if convergence_model is None: continue
+                _, summary = solution.convergence_model.R2()
+                results[method, convergence_model, local_weighted] = R2 = summary['predicted']['recycle.F']
+                assert R2 > 0.7
+    advanced_convergence_models = ('svr', 'linear svr')
+    results = {}
+    for method in methods:
+        for convergence_model in advanced_convergence_models:
+            recycle.empty()
+            solution = model.optimize(
+                objective, 
+                method=method,
+                convergence_model=convergence_model,
+                convergence_options=dict(save_prediction=True, nfits=None, recess=0)
+            )
+            y1 = product1.imol['F']
+            y2 = product2.imol['F']
+            assert_allclose([y1, y2], [0.5, 0.5], rtol=1e-3, atol=1e-3)
+            assert_allclose(solution.x, [0.6666667451749273], rtol=1e-3, atol=1e-3)
+            _, summary = solution.convergence_model.R2()
+            results[method, convergence_model] = R2 = summary['predicted']['recycle.F']
+            assert R2 > 0.7
+    
 if __name__ == '__main__':
     test_parameter_hook()
     test_pearson_r()
@@ -379,4 +453,5 @@ if __name__ == '__main__':
     test_model_exception_hook()
     test_parameters_from_df()
     test_kolmogorov_smirnov_d()
-    test_model_optimization_differential_evolution()
+    test_model_optimization_no_system()
+    test_model_optimization_with_system()
