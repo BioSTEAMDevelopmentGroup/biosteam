@@ -8,7 +8,7 @@ from numpy.testing import assert_allclose
 from scipy.optimize import differential_evolution, Bounds
 
 def test_equilibrium_reactor_NO2_N2O4():
-    bst.settings.set_thermo(['N2O4', 'NO2'], pkg='ideal gas', cache=True)
+    bst.settings.set_thermo(['N2O4', 'NO2', 'H2O'], pkg='ideal gas', cache=True)
     scenarios = [
         (273.15, 101325),
     ]
