@@ -32,7 +32,7 @@ def test_convergence_model():
         
     # Compare linear model against unsorted
     convergence_model = bst.NullConvergenceModel(
-        predictors=[set_ethanol_fraction], system=sys,
+        parameters=[set_ethanol_fraction], system=sys,
         save_prediction=True,
     )
     model.load_samples(model.sample(100, rule='L', seed=1), sort=False)
@@ -40,7 +40,7 @@ def test_convergence_model():
     R2_null, _ = convergence_model.R2()
         
     convergence_model = bst.ConvergenceModel(
-        predictors=[set_ethanol_fraction], local_weighted=False,
+        parameters=[set_ethanol_fraction], local_weighted=False,
         model_type=bst.InterceptLinearRegressor, save_prediction=True,
         system=sys, 
     )
