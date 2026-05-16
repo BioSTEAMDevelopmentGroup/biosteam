@@ -237,9 +237,6 @@ class SystemFactory:
                 bst.settings.set_thermo(fthermo(chemicals=chemicals))
             elif not hasattr(bst.settings, '_thermo'):
                 bst.settings.set_thermo(fthermo())
-        if autorename is not None: 
-            original_autorename = tmo.utils.Registry.AUTORENAME
-            tmo.utils.Registry.AUTORENAME = autorename
         ins = create_streams(self.ins, ins, 'inlets', self.fixed_ins_size)
         outs = create_streams(self.outs, outs, 'outlets', self.fixed_outs_size)
         rename = area is not None
@@ -275,7 +272,13 @@ class SystemFactory:
             ins = tuple([module.auxin(i) for i in module.ins])
             outs = tuple([module.auxout(i) for i in module.outs])
             with bst.Flowsheet(ID), bst.System(**options) as system:
-                self.f(ins, outs, **kwargs)
+                if autorename is None:
+                    self.f(ins, outs, **kwargs)
+                else:
+                    original_autorename = tmo.utils.Registry.AUTORENAME
+                    tmo.utils.Registry.AUTORENAME = autorename
+                    try: self.f(ins, outs, **kwargs)
+                    finally: tmo.utils.Registry.AUTORENAME = original_autorename
             module._init(system=system)
         else: # Create system
             with (bst.MockSystem() if mockup else bst.System(**options)) as system:
@@ -286,10 +289,15 @@ class SystemFactory:
                 elif udct:
                     unit_registry = system.flowsheet.unit
                     irrelevant_units = set(unit_registry)
-                self.f(ins, outs, **kwargs)
+                if autorename is None:
+                    self.f(ins, outs, **kwargs)
+                else:
+                    original_autorename = tmo.utils.Registry.AUTORENAME
+                    tmo.utils.Registry.AUTORENAME = autorename
+                    try: self.f(ins, outs, **kwargs)
+                    finally: tmo.utils.Registry.AUTORENAME = original_autorename
         system.load_inlet_ports(ins, {k: i for i, j in enumerate(self.ins) if (k:=get_name(j)) is not None})
         system.load_outlet_ports(outs, {k: i for i, j in enumerate(self.outs) if (k:=get_name(j)) is not None})
-        if autorename is not None: tmo.utils.Registry.AUTORENAME = original_autorename
         if udct: 
             unit_dct = {}
             def add(key, unit):
