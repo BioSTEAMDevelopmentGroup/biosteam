@@ -8,7 +8,7 @@
 import biosteam as bst
 from .abstract_stirred_tank_reactor import AbstractStirredTankReactor
 from .design_tools.Gibbs_equilibrium_reaction import minimize_Gibbs_free_energy
-from typing import Optional, Iterable
+from typing import Optional, Iterable, Callable
 
 __all__ = (
     'EquilibriumReactor',
@@ -153,18 +153,21 @@ class EquilibriumReactor(AbstractStirredTankReactor):
     kW_per_m3_default = 0
     batch_default = False
     tau_phases_default = 'lg'
+    tau_basis = 'outs' # Alternatively, 'ins'
     method_default = 'differential evolution' # Alternatively 'COBYLA'
     
     def _init(self, 
             phases: Optional[str]=None, 
             products: Optional[Iterable[str]]=None, 
             method: Optional[str]=None,
+            phase_hook: Optional[Callable]=None,
             **kwargs
         ):
         AbstractStirredTankReactor._init(self, **kwargs)
         self.phases = phases
         self.products = products
         self.method = self.method_default if method is None else method
+        self.phase_hook = phase_hook
     
     def _get_duty(self): return self.Hnet
     
@@ -186,5 +189,5 @@ class EquilibriumReactor(AbstractStirredTankReactor):
         product.P = self.P
         product.empty()
         outs[0].mix_flows(ins)
-        minimize_Gibbs_free_energy(product, self.products, method=self.method)
+        minimize_Gibbs_free_energy(product, self.products, method=self.method, phase_hook=self.phase_hook)
         
