@@ -165,22 +165,23 @@ def define_allocation_property(
         self, name: str, basis: float, 
         stream: Callable=None, 
         power_utility: Callable=None,
-        heat_utility: Callable=None
+        heat_utility: Callable=None,
+        safe: bool=True,
     ):
     """Define a new allocation property by property getters."""
     allocation_name = name + '-allocation'
     units = basis + '/hr'
     if stream is not None:
         bst.Stream.define_property(
-            allocation_name, units, stream,
+            allocation_name, units, stream, safe=safe
         )
     if power_utility is not None:
         bst.PowerUtility.define_property(
-            allocation_name, units, power_utility,
+            allocation_name, units, power_utility, safe=safe
         )
     if heat_utility is not None:
         bst.HeatUtility.define_property(
-            allocation_name, units, heat_utility,
+            allocation_name, units, heat_utility, safe=safe
         )
     bst.allocation_properties[name] = basis
 
@@ -255,16 +256,19 @@ settings.define_allocation_property(
     stream=lambda self: max(self.LHV, 0),
     power_utility=lambda self: max(-self.rate * 3600, 0.),
     heat_utility=lambda self: max(self.duty, 0),
+    safe=False,
 )
 settings.define_allocation_property(
     'revenue', 'USD', 
     stream=revenue_allocation,
     power_utility=lambda self: max(-self.cost, 0.),
     heat_utility=lambda self: max(self.cost, 0),
+    safe=False,
 )
 settings.define_allocation_property(
-    'mass', 'kg', stream=lambda self: np.dot(self.chemicals.MW, self.mol)
+    'mass', 'kg', stream=lambda self: np.dot(self.chemicals.MW, self.mol),
+    safe=False,
 )
 settings.define_impact_indicator(
-    'WU', 'L' # Water usage is a special indicator native to BioSTEAM
+    'WU', 'L', # Water usage is a special indicator native to BioSTEAM
 )

@@ -107,7 +107,7 @@ class Model:
     for method in ('cobyla', 'cobyqa', 'trust-constr', 'slsqp', 'L-BFGS-B'):
         default_optimizer_options[method] = {}
         
-    default_optimizer = 'cobyla'
+    default_optimizer = 'l-bfgs-b'
     default_convergence_model = None # Optional[str] Default convergence model
     load_default_parameters = load_default_parameters
     
