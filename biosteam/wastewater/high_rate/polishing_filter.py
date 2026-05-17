@@ -181,6 +181,14 @@ class PolishingFilter(bst.Unit):
 
         self.growth_rxns(mixed.mol)
         self.decomp_rxns.force_reaction(mixed.mol)
+        biogas.phase = air_in.phase = air_out.phase = 'g'
+        if self.filter_type == 'aerobic' and mixed.imol['O2'] < 0:
+            O2 = -mixed.imol['O2']
+            air_in.imol['O2'] = O2
+            air_in.imol['N2'] = 0.79/0.21 * O2
+            mixed.imol['O2'] = 0
+        else:
+            air_in.empty()
         mixed.split_to(eff, waste, self._isplit.data)
 
         sludge_conc = self._sludge_conc
@@ -190,15 +198,6 @@ class PolishingFilter(bst.Unit):
             diff = waste.ivol['Water'] - m_insolubles/sludge_conc
             waste.ivol['Water'] = m_insolubles/sludge_conc
             eff.ivol['Water'] += diff
-
-        biogas.phase = air_in.phase = air_out.phase = 'g'
-
-        if mixed.imol['O2'] < 0:
-            air_in.imol['O2'] = - mixed.imol['O2']
-            air_in.imol['N2'] = - 0.79/0.21 * mixed.imol['O2']
-            mixed.imol['O2'] = 0
-        else:
-            air_in.empty()
 
         if self.filter_type == 'anaerobic':
             degassing(eff, biogas)
@@ -211,7 +210,6 @@ class PolishingFilter(bst.Unit):
             degassing(eff, air_out)
             degassing(waste, air_out)
             air_out.imol['N2'] += air_in.imol['N2']
-            air_out.imol['O2'] += air_in.imol['O2']
             self._recir_ratio = None
 
         if self.T is not None: biogas.T = eff.T = waste.T = air_out.T = self.T
