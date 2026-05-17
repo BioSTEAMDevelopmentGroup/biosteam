@@ -8,8 +8,6 @@
 """
 """
 
-# TODO: Revisit convergence models
-
 def test_convergence_model():
     import biosteam as bst
     from chaospy import distributions as shape
@@ -22,7 +20,7 @@ def test_convergence_model():
         F1 = bst.Flash(ins=M1.outlet, outs=['vapor', 'liquid_product'], V=0.5, P=101325)
         S1 = bst.Splitter(ins=F1.vapor, outs=['vapor_product', recycle], split=0.5)
     
-    sys.set_tolerance(mol=1e-6, rmol=1e-6, rT=1e-6, T=1e-6, method='aitken', maxiter=500)
+    sys.set_tolerance(mol=1e-6, rmol=1e-6, rT=1e-6, T=1e-6, method='aitken', maxiter=100)
     model = bst.Model(sys)
     total_flow = feed.F_mol
     @model.parameter(distribution=shape.Uniform(0.1, 0.4), kind='coupled')
@@ -32,15 +30,16 @@ def test_convergence_model():
         
     # Compare linear model against unsorted
     convergence_model = bst.NullConvergenceModel(
-        predictors=[set_ethanol_fraction], system=sys,
+        parameters=[set_ethanol_fraction], 
         save_prediction=True,
+        system=sys,
     )
     model.load_samples(model.sample(100, rule='L', seed=1), sort=False)
     model.evaluate(design_and_cost=False, convergence_model=convergence_model)
     R2_null, _ = convergence_model.R2()
         
     convergence_model = bst.ConvergenceModel(
-        predictors=[set_ethanol_fraction], local_weighted=False,
+        parameters=[set_ethanol_fraction], local_weighted=False,
         model_type=bst.InterceptLinearRegressor, save_prediction=True,
         system=sys, 
     )
@@ -51,7 +50,7 @@ def test_convergence_model():
     assert R2f['min'] > R2p['min'] > R2_null['min']
     assert R2f['max'] > R2p['max'] > R2_null['max']
     
-    
+
 if __name__ == '__main__':
     test_convergence_model()
     

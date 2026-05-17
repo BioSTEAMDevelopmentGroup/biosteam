@@ -423,6 +423,7 @@ def test_model_optimization_with_system():
                 _, summary = solution.convergence_model.R2()
                 results[method, convergence_model, local_weighted] = R2 = summary['predicted']['recycle.F']
                 assert R2 > 0.7
+    
     advanced_convergence_models = ('svr', 'linear svr')
     results = {}
     for method in methods:
@@ -441,7 +442,7 @@ def test_model_optimization_with_system():
             _, summary = solution.convergence_model.R2()
             results[method, convergence_model] = R2 = summary['predicted']['recycle.F']
             assert R2 > 0.7
-    
+
 if __name__ == '__main__':
     test_parameter_hook()
     test_pearson_r()
