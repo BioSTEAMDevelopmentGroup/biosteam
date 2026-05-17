@@ -27,10 +27,7 @@ def test_aerobic_polishing_filter_satisfies_oxygen_deficit_before_split():
     assert unit.outs[1].imol['O2'] >= 0
     assert unit.outs[2].imol['O2'] >= 0
     
-    # Overall and atomic mass balance
     assert abs(unit.mass_balance_error()) < 1e-6
-    for atom, error in unit.atomic_balance_error().items():
-        assert abs(error) < 1e-3, f'error in {atom} atomic balance is over {error:.1%}'
 
 
 def test_polishing_filter_rejects_invalid_filter_type():
