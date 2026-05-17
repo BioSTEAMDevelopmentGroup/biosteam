@@ -269,6 +269,9 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
     #: Phases accounted for in residence time
     tau_phases_default: str = 'l'
     
+    #: Basis of residence time. Defaults to inlet flow rates
+    tau_basis: str = 'ins' # Alternatively, 'outs'
+    
     @property
     def effluent(self):
         return self.outs[-1]
@@ -426,12 +429,14 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
 
     def _design(self, size_only=False):
         Design = self.design_results
-        ins_F_vol = sum([i.F_vol for i in self.ins if i.phase in self.tau_phases])
+        tau_basis = self.tau_basis
+        streams = getattr(self, tau_basis)
+        F_vol = sum([i.F_vol for i in streams if i.phase in self.tau_phases])
         P_pascal = (self.P if self.P else self.outs[0].P)
         P_psi = P_pascal * 0.000145038 # Pa to psi
         length_to_diameter = self.length_to_diameter
         if self.batch:
-            v_0 = ins_F_vol
+            v_0 = F_vol
             tau = self.tau
             tau_0 = self.tau_0
             V_wf = self.V_wf
@@ -446,14 +451,14 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
             N = Design['Number of reactors']
         else:
             if self.N is None:
-                V_total = ins_F_vol * self.tau / self.V_wf
+                V_total = F_vol * self.tau / self.V_wf
                 N = ceil(V_total/self.V_max)
                 if N == 0:
                     V_reactor = 0
                 else:
                     V_reactor = V_total / N
             else:
-                V_total = ins_F_vol * self.tau / self.V_wf
+                V_total = F_vol * self.tau / self.V_wf
                 V_reactor = V_total / self.N
             Design['Reactor volume'] = V_reactor
             Design['Number of reactors'] = N

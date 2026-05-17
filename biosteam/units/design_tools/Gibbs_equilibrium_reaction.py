@@ -16,30 +16,41 @@ def Gibbs_equilibrium_objective(
         product, # Product stream (constant T and P)
         main_phase, # Initial guess phase
         phase_equilibrium, # Name of phase equilibrium. Valid inputs include None, 'vle', 'lle', and 'vlle'
+        phase_hook,
     ):
     mask = mass < 0
     penalty = mask.any()
     if penalty: mass[mask] = 0
     product.empty()
     product[main_phase].imol[IDs] = mass / MWs
-    if phase_equilibrium is not None:
-        eq = getattr(product, phase_equilibrium)
-        eq(T=eq.T, P=eq.P)
+    if phase_hook is None:
+        if phase_equilibrium is not None:
+            eq = getattr(product, phase_equilibrium)
+            eq(T=eq.T, P=eq.P)
+    else:
+        phase_hook(product)
     return product.G
 
 def minimize_Gibbs_free_energy(
         product, 
         IDs=None, # Names of potential products
         method=None,
+        phase_hook=None,
     ):
     if method is None: method = 'differential evolution'
+    
+    # Normalize to 1 kg/hr
     F_mass = product.F_mass
-    mol_norm = product.mol / F_mass # Normalize
+    mol_norm = product.mol / F_mass
+    
+    # Get atomic flows 
     chemicals = product.chemicals
     atoms = chemicals.formula_array @ mol_norm 
     index, = np.where(atoms)
     atoms = atoms[index]
     formula_array = chemicals.formula_array[index]
+    
+    # Reduce to only possible products (such that all atoms exist in feed)
     if IDs is None: 
         IDs = chemicals.IDs
         MWs = chemicals.MW
@@ -47,6 +58,12 @@ def minimize_Gibbs_free_energy(
         index = chemicals.get_index(IDs)
         formula_array = formula_array[:, index]
         MWs = chemicals.MW[index]
+    index, = np.where(formula_array.any(axis=0))
+    IDs = [IDs[i] for i in index]
+    formula_array = formula_array[:, index]
+    MWs = MWs[index]
+    
+    # Specify atomic and mass constraints
     N = len(IDs)
     lb = np.zeros(N)
     ub = np.ones(N)
@@ -59,24 +76,41 @@ def minimize_Gibbs_free_energy(
     atomic_balance = LinearConstraint(
         formula_array / MWs, atoms, atoms
     )
-    match product.phases:
-        case ('g', 'l'):
-            phase_equilibrium = 'vle' 
+    
+    # Choose main phase and phase equilibrium algorithm
+    if phase_hook:
+        phases = product.phases
+        if 'g' in phases:
             main_phase = 'g'
-        case ('L', 'l'):
-            phase_equilibrium = 'lle' 
+        elif 'l' in phases:
             main_phase = 'l'
-        case ('L', 'g', 'l'):
-            phase_equilibrium = 'vlle'
-            main_phase = 'l'
-        case ('l', 's'):
-            phase_equilibrium = 'sle'
-            main_phase = 'l'
-        case [main_phase]:
-            phase_equilibrium = None
-        case _:
-            raise RuntimeError(f'phase equilibrium for {product.phases!r} not supported')
-    f_args = (MWs, IDs, product, main_phase, phase_equilibrium)
+        elif 'L' in phases:
+            main_phase = 'L'
+        elif 's' in phases:
+            main_phase = 's'
+        else:
+            raise RuntimeError('main phase could not be found')
+    else:
+        match product.phases:
+            case ('g', 'l'):
+                phase_equilibrium = 'vle' 
+                main_phase = 'g'
+            case ('L', 'l'):
+                phase_equilibrium = 'lle' 
+                main_phase = 'l'
+            case ('L', 'g', 'l'):
+                phase_equilibrium = 'vlle'
+                main_phase = 'l'
+            case ('l', 's'):
+                phase_equilibrium = 'sle'
+                main_phase = 'l'
+            case [main_phase]:
+                phase_equilibrium = None
+            case _:
+                raise RuntimeError(f'phase equilibrium for {product.phases!r} not supported')
+                
+    # Solve
+    f_args = (MWs, IDs, product, main_phase, phase_equilibrium, phase_hook)
     if method == 'differential evolution':
         polish = lambda *args, **kwargs: minimize(
             *args, **kwargs, 
@@ -89,7 +123,7 @@ def minimize_Gibbs_free_energy(
             bounds=bounds,
             constraints=[atomic_balance],
             polish=polish,
-            tol=1e-5,
+            tol=1e-6,
             seed=0,
         )
     elif method == 'COBYLA':
@@ -107,9 +141,13 @@ def minimize_Gibbs_free_energy(
             "only 'SHGO' and 'differential evolution' "
             "are valid methods"
         )
+    
+    # Set solution
     product.empty()
     product[main_phase].imol[IDs] = solution.x / MWs
-    if phase_equilibrium is not None:
+    if phase_hook:
+        phase_hook(product)
+    elif phase_equilibrium is not None:
         eq = getattr(product, phase_equilibrium)
         eq(T=eq.T, P=eq.P)
     product.F_mass = F_mass

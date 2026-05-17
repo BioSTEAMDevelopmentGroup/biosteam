@@ -26,8 +26,8 @@ def test_flash():
     for i in range(10):
         sys.run_phenomena()
     phenomena_graph = sys.get_phenomegraph()
-    shape = phenomena_graph.variable_profiles.shape
-    assert shape == (30, 8)
+    shape = np.shape(phenomena_graph.profiles)
+    assert shape == (3, 28)
         
 
 def test_2_stage_flash():
@@ -51,8 +51,8 @@ def test_2_stage_flash():
     for i in range(10):
         sys.run_phenomena()
     phenomena_graph = sys.get_phenomegraph()
-    shape = phenomena_graph.variable_profiles.shape
-    assert shape == (30, 15)
+    shape = np.shape(phenomena_graph.profiles)
+    assert shape == (4, 37)
 
 def test_column():
     import biosteam as bst
@@ -64,14 +64,14 @@ def test_column():
         outs=['vapor', 'liquid'],
         reflux=0.673, boilup=2.57,
         LHK=('Ethanol', 'Water') )
-    D1.set_flow_rates(D1.hot_start())
+    D1.hot_start()
     sys = bst.System('sys', path=[D1])
     sys.track_convergence(True)
     for i in range(10):
         sys.run_phenomena()
     phenomena_graph = sys.get_phenomegraph()
-    shape = phenomena_graph.variable_profiles.shape
-    assert shape == (30, 38)
+    shape = np.shape(phenomena_graph.profiles)
+    assert shape == (7, 28)
  
 def test_system():
     import biosteam as bst
@@ -135,7 +135,7 @@ def test_system():
                  recycle: r},
                  v
             )
-    sys = system(algorithm='phenomena oriented', 
+    sys = system(algorithm='phenomena based', 
                     molar_tolerance=1e-9,
                     relative_molar_tolerance=1e-9,
                     maxiter=2000,
@@ -144,7 +144,7 @@ def test_system():
     for i in range(10):
         sys.run_phenomena()
     phenomena_graph = sys.get_phenomegraph()
-    shape = phenomena_graph.variable_profiles.shape
+    shape = np.shape(phenomena_graph.profiles)
     assert shape == (37, 133)
  
 if __name__ == '__main__':

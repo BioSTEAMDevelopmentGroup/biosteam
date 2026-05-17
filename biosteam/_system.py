@@ -2682,9 +2682,8 @@ class System:
                         'energy': [],
                         'phenomenode': [],
                     }
-            if not self.recycle:
-                self.timer = Timer()
-                self.timer.start()
+            self.timer = Timer()
+            self.timer.start()
                 
         else:
             for i in self.variable_profiles: i.getter = None
@@ -2696,6 +2695,7 @@ class System:
             self.edge_profiles = None
             self.grouped_variables = None
             for i in self.units: i.tracking = False
+            self.timer = None
     
     def get_profiles(self, equation_profiles, edge_profiles):
         time, variable_profiles = self.get_variable_profiles()
@@ -2738,9 +2738,9 @@ class System:
     def get_monopartite_phenomegraph(self, decomposition=None, dotfile=None):
         if decomposition is None: decomposition = self.algorithm.lower()
         subgraph_units = [i.ID for i in self.path]
-        if 'phenomenode' in decomposition:
+        if 'phenomena' in decomposition:
             if 'modular' in decomposition:
-                criteria = [*all_subgraphs, *[(i, 'phenomenode') for i in subgraph_units]]
+                criteria = [*all_subgraphs, *[(i, 'phenomena') for i in subgraph_units]]
             else:
                 criteria = all_subgraphs
         elif 'modular' in decomposition:
@@ -2804,7 +2804,7 @@ class System:
             raise ValueError('unknown decompostion')
         
         def equation_match(equation, subgraph):
-            name = equation.name.replace('phenomenode', 'phenomena')
+            name = equation.name
             if isinstance(subgraph, tuple):
                 return all([i in name for i in subgraph])
             else:
