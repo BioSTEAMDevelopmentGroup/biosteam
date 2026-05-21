@@ -99,7 +99,7 @@ def taxable_earnings_with_fowarded_losses(taxable_cashflow): # Forwards losses t
     if taxed_earnings[-1] < 0: taxed_earnings[-1] = 0
     return taxed_earnings
 
-# @njit(cache=True)
+@njit(cache=True)
 def add_replacement_cost_to_cashflow_array(equipment_installed_cost, 
                                            equipment_lifetime, 
                                            cashflow_array, 
