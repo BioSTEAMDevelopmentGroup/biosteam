@@ -4,7 +4,7 @@
 #                      Yalin Li <mailto.yalin.li@gmail.com>,
 #                      Sarang Bhagwat <sarangb2@gmail.com>
 #
-# This module implements a filtering variable from the stats module of the QSDsan library:
+# This module implements a filtering variable feature from the stats module of the QSDsan library:
 # QSDsan: Quantitative Sustainable Design for sanitation and resource recovery systems
 # Copyright (C) 2020-, Yalin Li <mailto.yalin.li@gmail.com>
 # 
@@ -1106,7 +1106,6 @@ class Model:
             samples = self._samples
             if samples is None: raise RuntimeError('must load samples before evaluating')
             evaluate_sample = self._evaluate_sample
-            table = self.table
             if notify:
                 timer = Timer()
                 timer.start()

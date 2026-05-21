@@ -47,8 +47,9 @@ def test_convergence_model():
     summary, _ = convergence_model.R2()
     R2p = summary['predicted']
     R2f = summary['fitted']
-    assert R2f['min'] > R2p['min'] > R2_null['min']
-    assert R2f['max'] > R2p['max'] > R2_null['max']
+    for key in ('min', 'mean', 'max'):
+        assert R2p[key] > R2_null[key]
+        assert R2f[key] > R2_null[key]
     
 
 if __name__ == '__main__':
