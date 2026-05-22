@@ -394,7 +394,7 @@ class MultiEffectEvaporator(Unit):
             self.P = P
             self._V_first_effect = flx.IQ_interpolation(self._V_overall_objective_function,
                                                         0., 1., None, None, self._V_first_effect, 
-                                                        xtol=1e-9, ytol=1e-6,
+                                                        xtol=1e-12, ytol=1e-9,
                                                         checkiter=False)
             V_overall = self.V
         else: 

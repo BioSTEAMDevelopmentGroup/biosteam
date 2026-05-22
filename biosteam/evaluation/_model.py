@@ -4,7 +4,7 @@
 #                      Yalin Li <mailto.yalin.li@gmail.com>,
 #                      Sarang Bhagwat <sarangb2@gmail.com>
 #
-# This module implements a filtering variable from the stats module of the QSDsan library:
+# This module implements a filtering variable feature from the stats module of the QSDsan library:
 # QSDsan: Quantitative Sustainable Design for sanitation and resource recovery systems
 # Copyright (C) 2020-, Yalin Li <mailto.yalin.li@gmail.com>
 # 
@@ -107,7 +107,7 @@ class Model:
     for method in ('cobyla', 'cobyqa', 'trust-constr', 'slsqp', 'L-BFGS-B'):
         default_optimizer_options[method] = {}
         
-    default_optimizer = 'cobyla'
+    default_optimizer = 'l-bfgs-b'
     default_convergence_model = None # Optional[str] Default convergence model
     load_default_parameters = load_default_parameters
     
@@ -1106,7 +1106,6 @@ class Model:
             samples = self._samples
             if samples is None: raise RuntimeError('must load samples before evaluating')
             evaluate_sample = self._evaluate_sample
-            table = self.table
             if notify:
                 timer = Timer()
                 timer.start()

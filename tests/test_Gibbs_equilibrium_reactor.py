@@ -41,12 +41,12 @@ def test_equilibrium_reactor_NO2_N2O4():
         assert_allclose(actual_product.mol, desired_product.mol, rtol=1e-2, atol=1e-2)
     
 def test_equilibrium_reactor_gas_reforming_and_water_gas_shift():
-    bst.settings.set_thermo(['CH4', 'H2O', 'CO', 'H2', 'CO2'], pkg='ideal gas', cache=True)
+    bst.settings.set_thermo(['CH4', 'H2O', 'CO', 'H2', 'CO2', bst.Chemical('Ash', db='BioSTEAM')], pkg='ideal gas', cache=True)
     scenarios = [
         (273.15 + 1000, 101325),
     ]
     for T, P in scenarios:
-        feed = bst.Stream(CH4=100, H2O=300, phase='g', T=T, P=P)
+        feed = bst.Stream(CH4=100, H2O=300, Ash=1, phase='g', T=T, P=P)
         EqR = bst.EquilibriumReactor(
             ins=feed, outs=('gas',), T=T, P=P,
             method='differential evolution'
@@ -90,7 +90,7 @@ def test_equilibrium_reactor_gas_reforming_and_water_gas_shift():
             desired_product.copy_like(feed)
             rxs(desired_product)
             imol = desired_product.imol
-            F_mol = desired_product.F_mol
+            F_mol = desired_product.F_mol - desired_product.imol['Ash']
             Kp_gas_reforming_actual = (imol['CO'] * imol['H2']**3) / (imol['CH4'] * imol['H2O']) * (P / 1e5 / F_mol)**2
             Kp_water_gas_shift_actual = (imol['CO2'] * imol['H2']) / (imol['CO'] * imol['H2O'])
             return (Kp_gas_reforming_actual - Kp_gas_reforming) ** 2 + (Kp_water_gas_shift_actual - Kp_water_gas_shift) ** 2

@@ -38,6 +38,10 @@ def minimize_Gibbs_free_energy(
         phase_hook=None,
     ):
     if method is None: method = 'differential evolution'
+    try: 
+        Ash = product.imol['Ash']
+        product.imol['Ash'] = 0
+    except: Ash = 0
     
     # Normalize to 1 kg/hr
     F_mass = product.F_mass
@@ -145,12 +149,13 @@ def minimize_Gibbs_free_energy(
     # Set solution
     product.empty()
     product[main_phase].imol[IDs] = solution.x / MWs
+    product.F_mass = F_mass
+    if Ash: product[main_phase].imol['Ash'] = Ash
     if phase_hook:
         phase_hook(product)
     elif phase_equilibrium is not None:
         eq = getattr(product, phase_equilibrium)
         eq(T=eq.T, P=eq.P)
-    product.F_mass = F_mass
     return solution
     
 def plot_Gibbs_equilibrium_reaction_surface():

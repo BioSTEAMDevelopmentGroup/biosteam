@@ -38,7 +38,7 @@ def test_unit_convinience_properties():
     bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
     ins = [bst.Stream(None, Water=1, Ethanol=2),
            bst.Stream(None, Water=2, Ethanol=5)]
-    U = TestUnit(None, ins=ins, outs=(None, None))
+    U = TestUnit(None, ins=ins, outs=(bst.Stream(None), bst.Stream(None)))
     U.run()
     assert (U.mol_in == [3, 7]).all()
     assert (U.mol_in == U.mol_out).all()

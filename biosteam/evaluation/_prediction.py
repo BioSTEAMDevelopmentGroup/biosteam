@@ -806,11 +806,11 @@ class NullConvergenceModel:
         return {'min': lb, 'mean': mean, 'max': ub}, results
         
     def __enter__(self):
+        data = self.data
         if self.save_prediction:
             data = self.data
             null_responses = data['predicted']
-            sample_list = data['samples']
-            sample_list.append(self.case_study)
+            data['samples'].append(self.case_study)
             for response in self.responses:
                 null_responses[response].append(response.get())
     
