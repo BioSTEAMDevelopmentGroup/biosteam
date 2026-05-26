@@ -596,7 +596,7 @@ def tables_to_excel(tables, writer, sheet='Sheet1', n_row=1, row_spacing=2):
     row_spacing += 1 # Account for Python index offset
     for t in tables:
         label = t.columns.name
-        t.to_excel(writer, sheet, 
+        t.to_excel(writer, sheet_name=sheet,
                    startrow=n_row, index_label=label)
         n_row += len(t.index) + row_spacing
     return n_row
