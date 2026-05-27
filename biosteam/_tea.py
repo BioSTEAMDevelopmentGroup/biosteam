@@ -220,6 +220,16 @@ def taxable_and_nontaxable_cashflows(
         nontaxable_cashflow = D - C_FC - C_WC
     return taxable_cashflow, nontaxable_cashflow
 
+def build_nominal_factors_operating(factors, start, years, rate):
+    operating_index = np.arange(years)
+    factors[start:] = (1.0 + rate)**operating_index
+    return factors
+
+def build_nominal_factors_construction(factors, start, rate):
+    construction_index = np.arange(start, 0, -1)
+    factors[:start] = (1.0 + rate)**(-construction_index)
+    return factors
+
 def NPV_with_sales(
         sales, 
         taxable_cashflow, 
