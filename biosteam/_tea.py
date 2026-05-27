@@ -1150,6 +1150,7 @@ class TEA:
         end_start = start + int(self._startup_time)
         sales_coefficients[end_start] = w0 * self.startup_salesfrac + (1. - w0) 
         sales_coefficients[start:end_start] = self.startup_salesfrac
+        sales_coefficients *= self.f_inflation
         taxable_cashflow, nontaxable_cashflow, depreciation = self._taxable_nontaxable_depreciation_cashflows()
         if np.isnan(taxable_cashflow).any():
             warn('nan encountered in cashflow array; resimulating system', category=RuntimeWarning)
