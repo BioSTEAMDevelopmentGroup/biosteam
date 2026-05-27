@@ -838,16 +838,16 @@ class TEA:
         # DF: Discount factor
         # NPV: Net present value
         # CNPV: Cumulative NPV
-        TDC = self.TDC
-        FCI = self._FCI(TDC)
+        TDC0 = self.TDC
+        FCI = self._FCI(TDC0)
         start = self._start
         years = self._years
+        f_inflation = self.f_inflation
         FOC = self._FOC(FCI)
         VOC = self.VOC
         sales = self.sales
         length = start + years
         C_D, C_FC, C_WC, D, L, LI, LP, LPl, C, S, T, I, TE, FL, NE, CF, DF, NPV, CNPV = data = np.zeros((19, length))
-        self._fill_depreciation_array(D, start, years, TDC)
         w0 = self._startup_time % 1
         w1 = 1. - w0
         end_start = start + int(self._startup_time)
@@ -860,15 +860,21 @@ class TEA:
         start1 = end_start + 1
         C[start1:] = VOC + FOC
         S[start1:] = sales
+        C *= f_inflation
+        S *= f_inflation
         WC = self.WC_over_FCI * FCI
-        C_D[:start] = TDC*self._construction_schedule
+        C_D[:start] = TDC0*self._construction_schedule
+        C_D *= f_inflation
+        self._fill_depreciation_array(D, start, years, C_D[:start].sum())
         C_FC[:start] = FCI*self._construction_schedule
         C_WC[start-1] = WC
         C_WC[-1] = -WC
+        C_WC *= f_inflation
         system = self.system
         lang_factor = system.lang_factor
         unit_capital_costs = system.unit_capital_costs.values() if isinstance(system, bst.AgileSystem) else system.cost_units
         for i in unit_capital_costs: add_all_replacement_costs_to_cashflow_array(i, C_FC, years, start, lang_factor)
+        C_FC *= f_inflation
         if self.finance_interest:
             interest = self.finance_interest
             years = self.finance_years
