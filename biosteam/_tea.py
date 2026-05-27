@@ -182,6 +182,7 @@ def taxable_and_nontaxable_cashflows(
         start, years,
         lang_factor,
         accumulate_interest_during_construction,
+        f_inflation,
     ):
     # Cash flow data and parameters
     # C_FC: Fixed capital
@@ -202,6 +203,13 @@ def taxable_and_nontaxable_cashflows(
     )
     for i in unit_capital_costs:
         add_all_replacement_costs_to_cashflow_array(i, C_FC, years, start, lang_factor)
+    
+    # Multiply for inflation factors, if inflation None the factors are 1.
+    C *= f_inflation
+    S *= f_inflation
+    C_FC *= f_inflation
+    C_WC *= f_inflation
+
     if finance_interest:
         interest = finance_interest
         years = finance_years
@@ -220,14 +228,9 @@ def taxable_and_nontaxable_cashflows(
         nontaxable_cashflow = D - C_FC - C_WC
     return taxable_cashflow, nontaxable_cashflow
 
-def build_nominal_factors_operating(factors, start, years, rate):
-    operating_index = np.arange(years)
-    factors[start:] = (1.0 + rate)**operating_index
-    return factors
-
-def build_nominal_factors_construction(factors, start, rate):
-    construction_index = np.arange(start, 0, -1)
-    factors[:start] = (1.0 + rate)**(-construction_index)
+def build_nominal_factors(factors, rate):
+    operating_index = np.arange(factors.size)
+    factors[:] = (1.0 + rate)**operating_index
     return factors
 
 def NPV_with_sales(
@@ -343,7 +346,8 @@ class TEA:
                  '_startup_schedule', '_operating_days',
                  '_duration', '_depreciation_key', '_depreciation',
                  '_years', '_duration', '_start',  'IRR', '_IRR', '_sales',
-                 '_duration_array_cache', 'accumulate_interest_during_construction')
+                 '_duration_array_cache', 'accumulate_interest_during_construction', 
+                 '_inflation_rate', '_f_inflation')
     
     #: Available depreciation schedules. Defaults include modified 
     #: accelerated cost recovery system from U.S. IRS publication 946 (MACRS),
@@ -456,7 +460,8 @@ class TEA:
                 startup_months: float, startup_FOCfrac: float, startup_VOCfrac: float,
                 startup_salesfrac: float, WC_over_FCI: float,  finance_interest: float,
                 finance_years: int, finance_fraction: float,
-                accumulate_interest_during_construction: bool=False):
+                accumulate_interest_during_construction: bool=False,
+                inflation_rate: float|NDArray[float] = None):
         #: System being evaluated.
         self.system: System = system
         
@@ -504,6 +509,11 @@ class TEA:
         #: Whether to immediately pay interest before operation or to accumulate interest during construction
         self.accumulate_interest_during_construction = accumulate_interest_during_construction
         
+        # Inflation
+        self._inflation_rate = None
+        self._f_inflation = None
+        self.inflation_rate = inflation_rate
+
         #: For convenience, set a TEA attribute for the system
         system._TEA = self
 
@@ -738,6 +748,46 @@ class TEA:
         net_earnings = self.net_earnings
         return FCI/net_earnings
 
+    @property
+    def inflation_rate(self):
+        return self._inflation_rate
+    
+    @inflation_rate.setter
+    def inflation_rate(self, value):
+        self._inflation_rate = value
+        self._f_inflation = self._build_f_inflation()
+
+    @property
+    def f_inflation(self):
+        return self._f_inflation
+
+    def _build_f_inflation(self):
+        """Nominal inflation factors aligned with TEA cashflow arrays"""
+        length = self._start + self._years
+        inflation = self.inflation_rate
+
+        if inflation is None:
+            return np.ones(length, dtype=float)
+        
+        if isinstance(inflation, (int, float)):
+            return build_nominal_factors(np.ones(length, dtype=float), inflation)
+        
+        if isinstance(inflation, np.ndarray):
+            factors = inflation
+
+            if factors.ndim != 1:
+                raise ValueError("inflation factors must be a 1D array.")
+            
+            if factors.size != length:
+                raise ValueError(f"inflation factors must have length {length}; got {factors.size}.")
+            
+            if not np.isclose(factors[0], 1.0):
+                raise ValueError("inflation factor at index 0 must be 1.0.")
+            
+            return factors
+
+        raise TypeError("inflation_rate must be None, float annual rate or 1D numpy array of nominal factors.")
+
     def _get_duration_array(self):
         key = start, years = (self._start, self._years)
         if key in _duration_array_cache:
@@ -896,21 +946,23 @@ class TEA:
         # S: Sales
         # NE: Net earnings
         # CF: Cash flow
-        TDC = self.TDC
-        FCI = self._FCI(TDC)
+        TDC0 = self.TDC
+        FCI = self._FCI(TDC0)
         start = self._start
         years = self._years
+        inflation_factors = self.f_inflation
+        TDC_nom = (TDC0 * self.construction_schedule * inflation_factors[:start]).sum()
         FOC = self._FOC(FCI)
         VOC = self.VOC
         D, C_FC, C_WC, Loan, LP, C, S = np.zeros((7, start + years))
-        self._fill_depreciation_array(D, start, years, TDC)
+        self._fill_depreciation_array(D, start, years, TDC_nom)
         WC = self.WC_over_FCI * FCI
         system = self.system
         return (
             *taxable_and_nontaxable_cashflows(
                 system.unit_capital_costs if isinstance(system, bst.AgileSystem) else system.cost_units,
                 D, C, S, C_FC, C_WC, Loan, LP,
-                FCI, WC, TDC, VOC, FOC, self.sales,
+                FCI, WC, TDC0, VOC, FOC, self.sales,
                 self._startup_time,
                 self.startup_VOCfrac,
                 self.startup_FOCfrac,
@@ -922,6 +974,7 @@ class TEA:
                 start, years,
                 self.lang_factor,
                 self.accumulate_interest_during_construction,
+                inflation_factors,
             ),
             D
         )
