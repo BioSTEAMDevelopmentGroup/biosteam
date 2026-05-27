@@ -587,6 +587,7 @@ class TEA:
         start, end = [int(i) for i in duration]
         self._duration = (start, end)
         self._years = end - start
+        self._f_inflation = self._build_f_inflation()
 
     @property
     def depreciation(self) -> str|NDArray[float]:
@@ -664,6 +665,7 @@ class TEA:
     def construction_schedule(self, schedule):
         self._construction_schedule = np.array(schedule, dtype=float)
         self._start = len(schedule)
+        self._f_inflation = self._build_f_inflation()
     
     @property
     def startup_months(self) -> float:
