@@ -337,6 +337,118 @@ def test_tea():
             table['Loan principal [MM$]'].iloc[0])
     assert_allclose(total_interest_payment1, total_interest_payment2, atol=1e-4)
 
+def test_tea_with_inflation():
+    cost = bst.decorators.cost
+    bst.CE = CE = bst.design_tools.CEPCI_by_year[2013]
+
+    @cost('Fake scaler', 'Lumped cost', CE=CE, cost=1e6, S=1, n=1, BM=1)
+    class LumpedCost(bst.Unit):
+        '''Does nothing but adding given costs.'''
+        _units = {'Fake scaler': ''}
+        
+        def _design(self):
+            self.design_results['Fake scaler'] = 1
+        
+    class TEA(bst.TEA):
+        def __init__(
+                self,
+                system,
+                FOC_over_installed=0.5,
+                DPI_over_installed=2,
+                TDC_over_DPI=1.2*1.4,
+                FCI_over_TDC=1,
+                **kwargs,
+                ):
+            self.FOC_over_installed = FOC_over_installed
+            self.DPI_over_installed = DPI_over_installed
+            self.TDC_over_DPI = TDC_over_DPI
+            self.FCI_over_TDC = FCI_over_TDC
+            bst.TEA.__init__(self, system, **kwargs)
+    
+        def _FOC(self, installed_equipment_cost):
+            return installed_equipment_cost * self.FOC_over_installed
+        
+        def _DPI(self, installed_equipment_cost):
+            return installed_equipment_cost * self.DPI_over_installed
+    
+        def _TDC(self, DPI):
+            return DPI * self.TDC_over_DPI
+    
+        def _FCI(self, TDC):
+            return TDC * self.FCI_over_TDC
+        
+    bst.settings.set_thermo([bst.Chemical('Water')])
+    reactant = bst.Stream('reactant', Water=1, units='kg/hr')
+    product = bst.Stream('product', Water=1, price=2.5e6/365/24, units='kg/hr')
+    
+    U101 = LumpedCost('U101', ins=reactant, outs=product)
+    sys = bst.System('sys_inflation', path=(U101,))
+    sys.simulate()
+
+    IRR = 0.10
+    inflation_rate = 0.03
+    nominal_IRR = (1 + IRR) * (1 + inflation_rate) - 1
+
+    tea = TEA(
+        system=sys,
+        IRR=IRR,
+        inflation_rate=inflation_rate,
+        duration=(2013, 2013+15),
+        income_tax=0.31,
+        construction_schedule=(1,),
+        depreciation='MACRS7',
+        operating_days=365,
+        startup_months=0,
+        startup_FOCfrac=1,
+        startup_VOCfrac=1,
+        startup_salesfrac=1,
+        lang_factor=None,
+        WC_over_FCI=0.05,
+        finance_interest=0.08,
+        finance_years=10,
+        finance_fraction=0.6,
+        accumulate_interest_during_construction=False,
+    )
+
+    table = tea.get_cashflow_table()
+    factors = (1 + inflation_rate) ** np.arange(tea._start + tea._years)
+
+    assert_allclose(tea.inflation_factors, factors)
+    assert_allclose(tea._get_discount_rate(), nominal_IRR)
+
+    # Check nominal escalation of representative cashflows.
+    assert_allclose(table['Sales [MM$]'].values[0], 0.0)
+    assert_allclose(table['Sales [MM$]'].values[1:], 2.5 * factors[1:])
+
+    assert_allclose(table['Annual operating cost (excluding depreciation) [MM$]'].values[0], 0.0)
+    assert_allclose(
+        table['Annual operating cost (excluding depreciation) [MM$]'].values[1:],
+        1.68 * factors[1:],
+    )
+
+    # Check construction-year capital and final working capital recovery.
+    assert_allclose(table['Fixed capital investment [MM$]'].iloc[0], 3.36)
+    assert_allclose(table['Working capital [MM$]'].iloc[0], 0.168)
+    assert_allclose(table['Working capital [MM$]'].iloc[-1], -0.168 * factors[-1])
+
+    # Check nominal discounting.
+    assert_allclose(
+        table['Discount factor'],
+        1 / (1 + nominal_IRR) ** tea._get_duration_array(),
+    )
+
+    # Table and NPV property should be consistent.
+    assert_allclose(
+        tea.NPV,
+        table['Cumulative NPV [MM$]'].iloc[-1] * 1e6,
+        atol=1e-4,
+    )
+
+    # Check solve_price with inflation; indirectly checks solve_sales.
+    price = tea.solve_price(product)
+    product.price = price
+    assert_allclose(tea.NPV, 0, atol=100)
+
 def test_add_replacement_cost():
     cashflow_array = np.zeros(12)
 
@@ -358,5 +470,6 @@ if __name__ == '__main__':
     test_depreciation_schedule()
     test_cashflow_consistency()
     test_tea()
+    test_tea_with_inflation()
     test_tea_startup_months()
     test_add_replacement_cost()
