@@ -289,7 +289,7 @@ class TEA:
     IRR : 
         Real internal rate of return (fraction). If `inflation_rate` is given,
         cashflows are escalated to nominal values and this real IRR is internally
-        converted to a nominal dicount rate for NPV calculations. This is done by
+        converted to a nominal discount rate for NPV calculations. This is done by
         using Fisher equation: nom_IRR = (1 + IRR)*(1 + inflation_rate) - 1. 
     duration : 
         Start and end year of venture (e.g. (2018, 2038)).
@@ -322,7 +322,9 @@ class TEA:
     WC_over_FCI : 
         Working capital as a fraction of fixed capital investment.
     finance_interest : 
-        Yearly interest of capital cost financing as a fraction.
+        Yearly interest of capital cost financing as a fraction. If `inflation_rate`
+        is provided, nominal yearly interest of capiltal cost financing must be 
+        given.
     finance_years : 
         Number of years the loan is paid for.
     finance_fraction :
@@ -1242,7 +1244,7 @@ class TEA:
     
     def _info(self):
         return (f'{type(self).__name__}: {self.system}\n'
-                f'NPV: {self.NPV:,.0f} USD at {self.IRR:.1%} IRR')
+                f'NPV: {self.NPV:,.0f} USD at {self.IRR:.1%} real IRR')
     
     def show(self):
         """Prints information on unit."""
