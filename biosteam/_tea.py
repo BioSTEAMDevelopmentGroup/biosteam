@@ -347,7 +347,7 @@ class TEA:
                  '_duration', '_depreciation_key', '_depreciation',
                  '_years', '_duration', '_start',  'IRR', '_IRR', '_sales',
                  '_duration_array_cache', 'accumulate_interest_during_construction', 
-                 '_inflation_rate', '_f_inflation')
+                 '_inflation_rate', '_inflation_factors')
     
     #: Available depreciation schedules. Defaults include modified 
     #: accelerated cost recovery system from U.S. IRS publication 946 (MACRS),
@@ -461,16 +461,23 @@ class TEA:
                 startup_salesfrac: float, WC_over_FCI: float,  finance_interest: float,
                 finance_years: int, finance_fraction: float,
                 accumulate_interest_during_construction: bool=False,
-                inflation_rate: float|NDArray[float] = None):
+                inflation_rate: float|None = None):
         #: System being evaluated.
         self.system: System = system
         
+        # Inflation
+        self._inflation_rate = None
+        self._inflation_factors = None
+
+        # Time periods 
         self.duration = duration
         self.depreciation = depreciation
         self.construction_schedule = construction_schedule
         self.startup_months = startup_months
         self.operating_days = operating_days
         
+        self.update_inflation_factors()
+
         #: Internal rate of return (fraction).
         self.IRR: float = IRR
         
@@ -508,11 +515,6 @@ class TEA:
         
         #: Whether to immediately pay interest before operation or to accumulate interest during construction
         self.accumulate_interest_during_construction = accumulate_interest_during_construction
-        
-        # Inflation
-        self._inflation_rate = None
-        self._f_inflation = None
-        self.inflation_rate = inflation_rate
 
         #: For convenience, set a TEA attribute for the system
         system._TEA = self
@@ -587,7 +589,7 @@ class TEA:
         start, end = [int(i) for i in duration]
         self._duration = (start, end)
         self._years = end - start
-        self._f_inflation = self._build_f_inflation()
+        self.update_inflation_factors()
 
     @property
     def depreciation(self) -> str|NDArray[float]:
@@ -665,7 +667,7 @@ class TEA:
     def construction_schedule(self, schedule):
         self._construction_schedule = np.array(schedule, dtype=float)
         self._start = len(schedule)
-        self._f_inflation = self._build_f_inflation()
+        self.update_inflation_factors()
     
     @property
     def startup_months(self) -> float:
@@ -752,18 +754,24 @@ class TEA:
 
     @property
     def inflation_rate(self):
+        """Inflation rate to escalate cashflows to nominal dollars"""
         return self._inflation_rate
     
     @inflation_rate.setter
     def inflation_rate(self, value):
         self._inflation_rate = value
-        self._f_inflation = self._build_f_inflation()
+        self.update_inflation_factors()
 
     @property
-    def f_inflation(self):
-        return self._f_inflation
+    def inflation_factors(self):
+        """Multiplicative factors to scalate cashflows"""
+        return self._inflation_factors
 
-    def _build_f_inflation(self):
+    def update_inflation_factors(self):
+        """Update inflation factors"""
+        self._inflation_factors = self._build_inflation_factors()
+        
+    def _build_inflation_factors(self):
         """Nominal inflation factors aligned with TEA cashflow arrays"""
         length = self._start + self._years
         inflation = self.inflation_rate
@@ -773,22 +781,14 @@ class TEA:
         
         if isinstance(inflation, (int, float)):
             return build_nominal_factors(np.ones(length, dtype=float), inflation)
-        
-        if isinstance(inflation, np.ndarray):
-            factors = inflation
 
-            if factors.ndim != 1:
-                raise ValueError("inflation factors must be a 1D array.")
-            
-            if factors.size != length:
-                raise ValueError(f"inflation factors must have length {length}; got {factors.size}.")
-            
-            if not np.isclose(factors[0], 1.0):
-                raise ValueError("inflation factor at index 0 must be 1.0.")
-            
-            return factors
-
-        raise TypeError("inflation_rate must be None, float annual rate or 1D numpy array of nominal factors.")
+        raise TypeError("inflation_rate must be None or float annual rate.")
+    
+    def _get_discount_rate(self):
+        """Return nominal IRR when inflation is active, otherwise real IRR"""
+        if self.inflation_rate is None:
+            return self.IRR
+        return (1.0 + self.IRR) * (1.0 + self.inflation_rate) - 1.0
 
     def _get_duration_array(self):
         key = start, years = (self._start, self._years)
@@ -844,7 +844,7 @@ class TEA:
         FCI = self._FCI(TDC0)
         start = self._start
         years = self._years
-        f_inflation = self.f_inflation
+        f_inflation = self.inflation_factors
         FOC = self._FOC(FCI)
         VOC = self.VOC
         sales = self.sales
@@ -916,7 +916,7 @@ class TEA:
         )
         NE[:] = taxable_cashflow + I - T
         CF[:] = NE + nontaxable_cashflow
-        DF[:] = 1/(1.+self.IRR)**self._get_duration_array()
+        DF[:] = 1/(1.+self._get_discount_rate())**self._get_duration_array()
         NPV[:] = CF * DF
         CNPV[:] = NPV.cumsum()
         DF *= 1e6
@@ -936,7 +936,7 @@ class TEA:
             nontaxable_cashflow, tax, depreciation
         )
         cashflow = nontaxable_cashflow + taxable_cashflow + incentives - tax
-        return NPV_at_IRR(self.IRR, cashflow, self._get_duration_array())
+        return NPV_at_IRR(self._get_discount_rate(), cashflow, self._get_duration_array())
     
     def _AOC(self, FCI):
         """Return AOC at given FCI"""
@@ -958,7 +958,7 @@ class TEA:
         FCI = self._FCI(TDC0)
         start = self._start
         years = self._years
-        inflation_factors = self.f_inflation
+        inflation_factors = self.inflation_factors
         TDC_nom = (TDC0 * self.construction_schedule * inflation_factors[:start]).sum()
         FOC = self._FOC(FCI)
         VOC = self.VOC
@@ -1144,7 +1144,7 @@ class TEA:
         point (NPV = 0) through cash flow analysis. 
         
         """
-        discount_factors = (1 + self.IRR)**self._get_duration_array()
+        discount_factors = (1 + self._get_discount_rate())**self._get_duration_array()
         sales_coefficients = np.ones_like(discount_factors, dtype=float)
         start = self._start
         sales_coefficients[:start] = 0
@@ -1152,7 +1152,7 @@ class TEA:
         end_start = start + int(self._startup_time)
         sales_coefficients[end_start] = w0 * self.startup_salesfrac + (1. - w0) 
         sales_coefficients[start:end_start] = self.startup_salesfrac
-        sales_coefficients *= self.f_inflation
+        sales_coefficients *= self.inflation_factors
         taxable_cashflow, nontaxable_cashflow, depreciation = self._taxable_nontaxable_depreciation_cashflows()
         if np.isnan(taxable_cashflow).any():
             warn('nan encountered in cashflow array; resimulating system', category=RuntimeWarning)
