@@ -11,6 +11,7 @@
 import pytest, numpy as np, biosteam as bst
 from numpy.testing import assert_allclose
 from biosteam import TEA, System, Stream, Unit, Chemical, settings
+from biosteam._tea import add_replacement_cost_to_cashflow_array
 from biorefineries.tea import create_cellulosic_ethanol_tea
 
 def test_depreciation_schedule():    
@@ -336,9 +337,26 @@ def test_tea():
             table['Loan principal [MM$]'].iloc[0])
     assert_allclose(total_interest_payment1, total_interest_payment2, atol=1e-4)
 
+def test_add_replacement_cost():
+    cashflow_array = np.zeros(12)
+
+    add_replacement_cost_to_cashflow_array(
+        equipment_installed_cost = 100.0,
+        equipment_lifetime = 4,
+        cashflow_array = cashflow_array,
+        venture_years = 10,
+        start = 2
+    )
+
+    expected = np.zeros(12)
+    expected[6] = 100.0
+    expected[10] = 100.0
+
+    assert_allclose(cashflow_array, expected)
 
 if __name__ == '__main__':
     test_depreciation_schedule()
     test_cashflow_consistency()
     test_tea()
     test_tea_startup_months()
+    test_add_replacement_cost()

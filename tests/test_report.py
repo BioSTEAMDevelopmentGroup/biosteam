@@ -87,9 +87,33 @@ def test_stream_table(system):
     assert list(df) == IDs
     assert list(df.index) == index
 
-# TODO: Figure out problem Workbook bug with xlsx writter that appears in CI
-# def test_save_report(system, tea):
-#     assert system.TEA is tea
-#     system.save_report("report.xlsx") # Make sure it runs
-#     os.remove("report.xlsx")
-#     # TODO: More robust test for this method
+def test_save_report(system, tea, tmp_path):
+    # Scoped sheets (no 'Flowsheet', so no graphviz needed) exercise the
+    # `to_excel(..., sheet_name=...)` path that newer pandas requires, and the
+    # `diagram_completed` initialization for when 'Flowsheet' is omitted.
+    import openpyxl
+    assert system.TEA is tea
+    path = tmp_path / 'report.xlsx'
+    system.save_report(str(path), sheets={'Itemized costs', 'Stream table',
+                                          'Design requirements', 'Utilities'})
+    wb = openpyxl.load_workbook(path, read_only=True)
+    try:
+        sheets = set(wb.sheetnames)
+    finally:
+        wb.close()
+    assert {'Itemized costs', 'Cash flow', 'Stream table',
+            'Design requirements'} <= sheets
+
+def test_save_report_skips_water_mass_balance_without_PWC(system, tea, tmp_path):
+    # The water mass balance is defined relative to a ProcessWaterCenter; without
+    # one, the sheet is skipped (with a warning) instead of raising.
+    import openpyxl
+    path = tmp_path / 'report.xlsx'
+    system.save_report(str(path), sheets={'Water mass balance', 'Stream table'})
+    wb = openpyxl.load_workbook(path, read_only=True)
+    try:
+        sheets = set(wb.sheetnames)
+    finally:
+        wb.close()
+    assert 'Stream table' in sheets
+    assert 'Water mass balance' not in sheets

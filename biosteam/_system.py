@@ -4378,6 +4378,7 @@ class System:
         writer = pd.ExcelWriter(file)
         units = sorted(self.units, key=lambda x: x.line)
         cost_units = [i for i in units if i._design or i._cost]
+        diagram_completed = False
         if 'Flowsheet' in sheets:
             try:
                 with bst.preferences.temporary() as p:
@@ -4414,8 +4415,8 @@ class System:
             if tea:
                 tea = self.TEA
                 cost = report.cost_table(tea)
-                cost.to_excel(writer, 'Itemized costs')
-                tea.get_cashflow_table().to_excel(writer, 'Cash flow')
+                cost.to_excel(writer, sheet_name='Itemized costs')
+                tea.get_cashflow_table().to_excel(writer, sheet_name='Cash flow')
             else:
                 warn(f'Cannot find TEA object in {repr(self)}. Ignoring TEA sheets.',
                      RuntimeWarning, stacklevel=2)
@@ -4469,11 +4470,18 @@ class System:
             )
         
         if 'Water mass balance' in sheets:
-            water_mass_balance = report.water_mass_balance_table(self)
-            report.tables_to_excel(
-                [water_mass_balance], writer, 
-                'Water mass balance'
-            )
+            try:
+                water_mass_balance = report.water_mass_balance_table(self)
+            except LookupError:
+                # The water mass balance is defined relative to a ProcessWaterCenter;
+                # skip the sheet when the system does not have one.
+                warn('Cannot find a ProcessWaterCenter; skipping the water mass '
+                     'balance sheet.', RuntimeWarning, stacklevel=2)
+            else:
+                report.tables_to_excel(
+                    [water_mass_balance], writer,
+                    'Water mass balance'
+                )
         
         if 'CAPEX' in sheets:
             CAPEX = tea.CAPEX_table()
