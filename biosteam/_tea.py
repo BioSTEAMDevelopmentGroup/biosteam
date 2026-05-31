@@ -762,7 +762,7 @@ class TEA:
 
     @property
     def discount_rate(self):
-        """Return the discount rate based on the real IRR and the inflation rate."""
+        """Return the nominal discount rate based on the real IRR and the inflation rate."""
         return IRR_nominal(self.IRR, self.inflation_rate)
 
     def _get_duration_array(self):
