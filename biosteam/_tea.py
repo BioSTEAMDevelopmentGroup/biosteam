@@ -45,6 +45,16 @@ cashflow_columns = ('Depreciable capital [MM$]',
                     'Net present value (NPV) [MM$]',
                     'Cumulative NPV [MM$]')
 
+# %% Inflation accounting
+
+@njit(cache=True)
+def IRR_nominal(IRR_real, inflation_rate): # By Fisher equation
+    return (1 + IRR_real) * (1 + inflation_rate) - 1
+
+@njit(cache=True)
+def IRR_real(IRR_nominal, inflation_rate): # By Fisher equation
+    return (1 + IRR_nominal) / (1 + inflation_rate) - 1
+
 # %% Depreciation utilities
 
 @njit(cache=True)
@@ -182,7 +192,7 @@ def taxable_and_nontaxable_cashflows(
         start, years,
         lang_factor,
         accumulate_interest_during_construction,
-        f_inflation,
+        inflation_factors,
     ):
     # Cash flow data and parameters
     # C_FC: Fixed capital
@@ -205,10 +215,10 @@ def taxable_and_nontaxable_cashflows(
         add_all_replacement_costs_to_cashflow_array(i, C_FC, years, start, lang_factor)
     
     # Multiply for inflation factors, if inflation None the factors are 1.
-    C *= f_inflation
-    S *= f_inflation
-    C_FC *= f_inflation
-    C_WC *= f_inflation
+    C *= inflation_factors
+    S *= inflation_factors
+    C_FC *= inflation_factors
+    C_WC[start - 1] *= inflation_factors[start - 1]
 
     if finance_interest:
         interest = finance_interest
@@ -227,11 +237,6 @@ def taxable_and_nontaxable_cashflows(
         taxable_cashflow = S - C - D
         nontaxable_cashflow = D - C_FC - C_WC
     return taxable_cashflow, nontaxable_cashflow
-
-def build_nominal_factors(factors, rate):
-    operating_index = np.arange(factors.size)
-    factors[:] = (1.0 + rate)**operating_index
-    return factors
 
 def NPV_with_sales(
         sales, 
@@ -255,8 +260,6 @@ def NPV_with_sales(
     return (cashflow/discount_factors).sum()
 
 # %% Techno-Economic Analysis
-
-_duration_array_cache = {}
 
 class TEA:
     """
@@ -287,10 +290,7 @@ class TEA:
     system : 
         Should contain feed and product streams.
     IRR : 
-        Real internal rate of return (fraction). If `inflation_rate` is given,
-        cashflows are escalated to nominal values and this real IRR is internally
-        converted to a nominal discount rate for NPV calculations. This is done by
-        using Fisher equation: nom_IRR = (1 + IRR)*(1 + inflation_rate) - 1. 
+        Real internal rate of return (fraction).
     duration : 
         Start and end year of venture (e.g. (2018, 2038)).
     depreciation : 
@@ -322,21 +322,21 @@ class TEA:
     WC_over_FCI : 
         Working capital as a fraction of fixed capital investment.
     finance_interest : 
-        Yearly interest of capital cost financing as a fraction. If `inflation_rate`
-        is provided, nominal yearly interest of capiltal cost financing must be 
-        given.
+        Nominal yearly interest of capital cost financing as a fraction.
     finance_years : 
         Number of years the loan is paid for.
     finance_fraction :
         Fraction of capital cost that needs to be financed.
     inflation_rate :
-        Annual constant inflation rate as a fraction. If provided,
-        operating costs, sales, capital expenses, replacement costs
-        and working capital flows are escalated to nominal dollars
-        using this rate. NPV calculations then use a nominal
-        discount rate computed from `IRR` and `inflation_rate`.
-        If `None`, no inflation is applied and cashflows are treated
-        as base-year dollars.
+        Annual constant inflation rate as a fraction. 
+    
+    Notes
+    -----
+    If `inflation_rate` is given, operating costs, sales, capital expenses, 
+    replacement costs and working capital flows are escalated to nominal dollars
+    using this rate. NPV calculations use the nominal discount rate, which is 
+    computed from the real `IRR` and `inflation_rate` by the Fisher equation .
+    If no inflation is applied, cashflows are treated as base-year dollars.
     
     Warning
     -------
@@ -358,9 +358,9 @@ class TEA:
                  'startup_FOCfrac', 'startup_VOCfrac', 'startup_salesfrac',
                  '_startup_schedule', '_operating_days',
                  '_duration', '_depreciation_key', '_depreciation',
-                 '_years', '_duration', '_start',  'IRR', '_IRR', '_sales',
+                 '_years', '_duration', '_start', 'IRR', '_IRR', '_sales',
                  '_duration_array_cache', 'accumulate_interest_during_construction', 
-                 '_inflation_rate', '_inflation_factors')
+                 'inflation_rate')
     
     #: Available depreciation schedules. Defaults include modified 
     #: accelerated cost recovery system from U.S. IRS publication 946 (MACRS),
@@ -473,14 +473,10 @@ class TEA:
                 startup_months: float, startup_FOCfrac: float, startup_VOCfrac: float,
                 startup_salesfrac: float, WC_over_FCI: float,  finance_interest: float,
                 finance_years: int, finance_fraction: float,
-                accumulate_interest_during_construction: bool=False,
-                inflation_rate: float|None = None):
+                accumulate_interest_during_construction: Optional[bool]=None,
+                inflation_rate: Optional[float] = None):
         #: System being evaluated.
         self.system: System = system
-        
-        # Inflation
-        self._inflation_rate = inflation_rate
-        self._inflation_factors = None
 
         # Time periods 
         self.duration = duration
@@ -489,9 +485,10 @@ class TEA:
         self.startup_months = startup_months
         self.operating_days = operating_days
         
-        self.update_inflation_factors()
-
-        #: Internal rate of return (fraction).
+        # Annual constant inflation rate used to escalate cashflows to nominal dollars. Value must be a fraction.
+        self.inflation_rate: float = 0 if inflation_rate is None else float(inflation_rate)
+        
+        #: Real internal rate of return (fraction).
         self.IRR: float = IRR
         
         #: Combined federal and state income tax rate (fraction).
@@ -523,13 +520,13 @@ class TEA:
         #: Guess IRR for solve_IRR method
         self._IRR: float = IRR
         
-        #: Guess cost for solve_price method
+        #: Guess cost for solve_price method.
         self._sales: float = 0
         
-        #: Whether to immediately pay interest before operation or to accumulate interest during construction
-        self.accumulate_interest_during_construction = accumulate_interest_during_construction
+        #: Whether to immediately pay interest before operation or to accumulate interest during construction.
+        self.accumulate_interest_during_construction = False if accumulate_interest_during_construction is None else accumulate_interest_during_construction
 
-        #: For convenience, set a TEA attribute for the system
+        #: For convenience, set a TEA attribute for the system.
         system._TEA = self
 
     def _get_duration(self):
@@ -602,7 +599,6 @@ class TEA:
         start, end = [int(i) for i in duration]
         self._duration = (start, end)
         self._years = end - start
-        self.update_inflation_factors()
 
     @property
     def depreciation(self) -> str|NDArray[float]:
@@ -680,7 +676,6 @@ class TEA:
     def construction_schedule(self, schedule):
         self._construction_schedule = np.array(schedule, dtype=float)
         self._start = len(schedule)
-        self.update_inflation_factors()
     
     @property
     def startup_months(self) -> float:
@@ -766,58 +761,17 @@ class TEA:
         return FCI/net_earnings
 
     @property
-    def inflation_rate(self):
-        """Annual constant inflation rate used to escalate cashflows to nominal dollars"""
-        return self._inflation_rate
-    
-    @inflation_rate.setter
-    def inflation_rate(self, value):
-        self._inflation_rate = value
-        self.update_inflation_factors()
-
-    @property
-    def inflation_factors(self):
-        """Multiplicative nominal escalation factors aligned with the cashflow array"""
-        return self._inflation_factors
-
-    def update_inflation_factors(self):
-        """Update inflation factors"""
-        if hasattr(self,"_start") and hasattr(self, "_years"):
-            self._inflation_factors = self._build_inflation_factors()
-        
-    def _build_inflation_factors(self):
-        """
-        Build nominal escalation factors for all construction and operating years.
-
-        Returns an array of length `self._start + self._years`. If `inflation_rate`
-        is None, all factors are 1. Otherwise, factors are compounded as: 
-        factor[t] = (1 + inflation_rate)**t
-        """
-        length = self._start + self._years
-        inflation = self.inflation_rate
-
-        if inflation is None:
-            return np.ones(length, dtype=float)
-        
-        if isinstance(inflation, (int, float)):
-            return build_nominal_factors(np.ones(length, dtype=float), inflation)
-
-        raise TypeError("inflation_rate must be None or float annual rate.")
-    
-    def _get_discount_rate(self):
-        """Return the discount rate consistent with the cashflow basis."""
-        if self.inflation_rate is None:
-            return self.IRR
-        return (1.0 + self.IRR) * (1.0 + self.inflation_rate) - 1.0
+    def discount_rate(self):
+        """Return the discount rate based on the real IRR and the inflation rate."""
+        return IRR_nominal(self.IRR, self.inflation_rate)
 
     def _get_duration_array(self):
-        key = start, years = (self._start, self._years)
-        if key in _duration_array_cache:
-            duration_array = _duration_array_cache[key]
-        else:
-            if len(_duration_array_cache) > 100: _duration_array_cache.clear()
-            _duration_array_cache[key] = duration_array = np.arange(-start+1, years+1, dtype=float)
-        return duration_array
+        return np.arange(-self._start+1, self._years+1, dtype=float)
+
+    def _get_inflation_factors(self):
+        """Multiplicative nominal escalation factors aligned with the cashflow array"""
+        n_year = np.arange(self._start + self._years)
+        return (1.0 + self.inflation_rate)**n_year
 
     def _get_depreciation_array(self):
         key = self._depreciation_key
@@ -839,15 +793,15 @@ class TEA:
 
     def get_cashflow_table(self):
         """
-        Return DataFrame of the cash flow analysis.
-
+        Return DataFrame of the cash flow analysis. 
+        
+        Notes
+        -----
         If `inflation_rate` is provided annual, annual costs, sales, capital expenses,
         replacement costs and working capital are reported in nominal dollars.
         Discount factors are computed using the nominal discount rate derived from
         the real `IRR` and `inflation_rate`.
-
-        If `inflation_rate` is None, values are reported in real or base-year dollars and
-        discounted directly with `IRR`.
+        
         """
         # Cash flow data and parameters
         # index: Year since construction until end of venture
@@ -874,7 +828,7 @@ class TEA:
         FCI = self._FCI(TDC0)
         start = self._start
         years = self._years
-        f_inflation = self.inflation_factors
+        inflation_factors = self._get_inflation_factors()
         FOC = self._FOC(FCI)
         VOC = self.VOC
         sales = self.sales
@@ -892,26 +846,25 @@ class TEA:
         start1 = end_start + 1
         C[start1:] = VOC + FOC
         S[start1:] = sales
-        C *= f_inflation
-        S *= f_inflation
+        C *= inflation_factors
+        S *= inflation_factors
         WC = self.WC_over_FCI * FCI
         C_D[:start] = TDC0*self._construction_schedule
-        C_D *= f_inflation
+        C_D *= inflation_factors
         self._fill_depreciation_array(D, start, years, C_D[:start].sum())
-        C_FC[:start] = FCI*self._construction_schedule
-        C_WC[start-1] = WC
+        C_FC[:start] = FCI * self._construction_schedule
+        C_WC[start - 1] = WC * inflation_factors[start - 1]
         C_WC[-1] = -WC
-        C_WC *= f_inflation
         system = self.system
         lang_factor = system.lang_factor
         unit_capital_costs = system.unit_capital_costs.values() if isinstance(system, bst.AgileSystem) else system.cost_units
         for i in unit_capital_costs: add_all_replacement_costs_to_cashflow_array(i, C_FC, years, start, lang_factor)
-        C_FC *= f_inflation
+        C_FC *= inflation_factors
         if self.finance_interest:
             interest = self.finance_interest
             years = self.finance_years
             end = start + years
-            L[:start] = loan = self.finance_fraction*(C_FC[:start])
+            L[:start] = loan = self.finance_fraction * C_FC[:start]
             accumulate_interest_during_construction = self.accumulate_interest_during_construction
             if accumulate_interest_during_construction:
                 initial_loan_principal = loan_principal_with_interest(loan, interest)
@@ -946,7 +899,7 @@ class TEA:
         )
         NE[:] = taxable_cashflow + I - T
         CF[:] = NE + nontaxable_cashflow
-        DF[:] = 1/(1.+self._get_discount_rate())**self._get_duration_array()
+        DF[:] = 1 / (1. + self.discount_rate)**self._get_duration_array()
         NPV[:] = CF * DF
         CNPV[:] = NPV.cumsum()
         DF *= 1e6
@@ -957,11 +910,14 @@ class TEA:
     @property
     def NPV(self) -> float:
         """
-        Net present value.
+        Net present value. 
         
-        Uses cashflows consistent with the inflation setting. With inflation, cashflows are
-        nominal and discounted with the internally computed nominal discount rate. without
-        inflation, cashflows are treated as base-year values and discounted with `IRR`.
+        Notes
+        -----
+        With inflation, cashflows are nominal and discounted 
+        with the nominal discount rate. Without inflation, cashflows are
+        treated as base-year values and discounted only with the `IRR`.
+        
         """
         taxable_cashflow, nontaxable_cashflow, depreciation = self._taxable_nontaxable_depreciation_cashflows()
         tax = np.zeros_like(taxable_cashflow)
@@ -972,7 +928,7 @@ class TEA:
             nontaxable_cashflow, tax, depreciation
         )
         cashflow = nontaxable_cashflow + taxable_cashflow + incentives - tax
-        return NPV_at_IRR(self._get_discount_rate(), cashflow, self._get_duration_array())
+        return NPV_at_IRR(self.discount_rate, cashflow, self._get_duration_array())
     
     def _AOC(self, FCI):
         """Return AOC at given FCI"""
@@ -994,7 +950,7 @@ class TEA:
         FCI = self._FCI(TDC0)
         start = self._start
         years = self._years
-        inflation_factors = self.inflation_factors
+        inflation_factors = self._get_inflation_factors()
         TDC_nom = (TDC0 * self.construction_schedule * inflation_factors[:start]).sum()
         FOC = self._FOC(FCI)
         VOC = self.VOC
@@ -1097,24 +1053,25 @@ class TEA:
             return self.AOC - coproduct_sales
     
     def solve_IRR(self, financing=True, bounds=None):
-        """
+        r"""
         Return the real internal rate of return at the break-even point.
-
-        If `inflation_rate` is provided, this method solves IRR for inflated
-        cashflows and the resulting nominal IRR is converted to real IRR applying
-        Fisher equation: real_IRR = (1 + nominal_IRR)/(1 + inflation_rate) - 1.
-
-        If bounds are provided and `inflation_rate` is not None, bounds must be given
-        as nominal IRR values because the solver operates on nominal cashflows.
+        
+        Notes
+        -----
+        If an `inflation_rate` is specified, this method first solves for the nominal 
+        IRR using the inflated cashflows. Then, the nominal IRR is converted 
+        to the real IRR by applying Fisher equation: 
+            
+        $IRR_{real} = (1 + IRR_{nominal}) / (1 + f_{inflation\ rate}) - 1$
 
         """
-        IRR = self._IRR
-
         # Use nominal IRR as initial guess to solve nominal cashflows
-        if self.inflation_rate is not None:
-            IRR = (1 + IRR)*(1 + self.inflation_rate) - 1
-
+        IRR = self._IRR
         if not IRR or np.isnan(IRR) or IRR < 0.: IRR = 0.01
+        inflation_rate = self.inflation_rate
+        if inflation_rate:
+            IRR = IRR_nominal(IRR, inflation_rate)
+            if bounds is not None: bounds = [IRR_nominal(i, inflation_rate) for i in bounds]
         if financing:
             args = (self.cashflow_array, self._get_duration_array())
             if bounds:
@@ -1145,10 +1102,8 @@ class TEA:
             finally:
                 self.finance_fraction, self.finance_interest = financing_values
         
-        # convert nominal IRR to real IRR 
-        if self.inflation_rate is not None:
-            IRR = (1 + IRR)/(1 + self.inflation_rate) - 1
-
+        # Convert nominal IRR back to real IRR.
+        if inflation_rate: IRR = IRR_real(IRR, inflation_rate)
         self._IRR = IRR
         return IRR
         
@@ -1199,12 +1154,14 @@ class TEA:
         Return the required additional sales [USD] to reach the breakeven 
         point (NPV = 0) through cash flow analysis.
 
+        Notes
+        -----
         The returned value is expressed in base-year dollars. If `inflation_rate`
         is provided, this additional sales value is escalated through time using
         `inflation_factors` before calculating NPV.
         
         """
-        discount_factors = (1 + self._get_discount_rate())**self._get_duration_array()
+        discount_factors = (1 + self.discount_rate)**self._get_duration_array()
         sales_coefficients = np.ones_like(discount_factors, dtype=float)
         start = self._start
         sales_coefficients[:start] = 0
@@ -1212,7 +1169,7 @@ class TEA:
         end_start = start + int(self._startup_time)
         sales_coefficients[end_start] = w0 * self.startup_salesfrac + (1. - w0) 
         sales_coefficients[start:end_start] = self.startup_salesfrac
-        sales_coefficients *= self.inflation_factors
+        sales_coefficients *= self._get_inflation_factors()
         taxable_cashflow, nontaxable_cashflow, depreciation = self._taxable_nontaxable_depreciation_cashflows()
         if np.isnan(taxable_cashflow).any():
             warn('nan encountered in cashflow array; resimulating system', category=RuntimeWarning)
