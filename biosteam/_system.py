@@ -1493,7 +1493,7 @@ class System:
         """
         if mol is not None: self.molar_tolerance = float(mol)
         if rmol is not None: self.relative_molar_tolerance = float(rmol)
-        if T is not None: self.temperature_tolerance = float(T)
+        if T is not None: self.relative_temperature_tolerance = float(T)
         if rT is not None: self.temperature_tolerance = float(rT)
         if maxiter is not None: self.maxiter = int(maxiter)
         if method is not None: self.method = method
