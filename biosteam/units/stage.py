@@ -32,7 +32,7 @@ from scipy.spatial.distance import cdist
 from collections import deque
 from .. import Unit
 from .design_tools import MESH
-from numba import float64, int8, types, njit
+from numba import float64, int16, types, njit
 from typing import NamedTuple, Iterable
 import matplotlib.cm as cm
 import matplotlib.colors as clr
@@ -78,8 +78,8 @@ compiled_surrogate_column_function = JitSignature(
     logSb1=float64[:],
     
     # Column variables
-    N_stages=int8,
-    N_chemicals=int8,
+    N_stages=int16,
+    N_chemicals=int16,
     specified_variables=types.unicode_type,
     specified_values=float64[:],
     neg_asplit=float64[:],
@@ -106,6 +106,14 @@ compiled_surrogate_column_function = JitSignature(
     CL=float64[:],
     Kbmax=float64[:],
     Kbmin=float64[:],   
+    
+    # For invariable components
+    iV=float64[:],
+    iL=float64[:],
+    ihV_ref=float64[:],
+    ihL_ref=float64[:],
+    iCV=float64[:],
+    iCL=float64[:],
 )
 
 @njit(float64(float64[:], float64[:], float64, float64), cache=True)
@@ -119,7 +127,7 @@ def Kb_bubble_point(x, alpha, Kbmin, Kbmax):
     if Kb > Kbmax: Kb = Kbmax
     return Kb
 
-@compiled_surrogate_column_function(output='Kb, alpha, A, B, hV_ref, hL_ref, CV, CL, Kbmin, Kbmax')
+@compiled_surrogate_column_function(output='Kb, alpha, A, B, hV_ref, hL_ref, Kbmin, Kbmax')
 def fit_surrogate_parameters(
         N_stages, T, y, K, dlogK_dTinv, hV, hL, CV, CL
     ):
@@ -142,15 +150,27 @@ def fit_surrogate_parameters(
         if i == 0:
             i0 = i
             i1 = i + 1
+            T0 = T[i0]
+            T1 = T[i1]
+            if abs(T1 - T0) < 1e-9:
+                i1 = i + 2
+                T1 = T[i1]
         elif i == last:
             i0 = i - 1
             i1 = i
+            T0 = T[i0]
+            T1 = T[i1]
+            if abs(T1 - T0) < 1e-9:
+                i0 = i - 2
+                T0 = T[i0]
         else:
             i0 = i - 1
             i1 = i + 1
+            T0 = T[i0]
+            T1 = T[i1]
         Kb0 = np.exp((logK[i0] * w[i]).sum())
         Kb1 = np.exp((logK[i1] * w[i]).sum())
-        B[i] = np.log(Kb1 / Kb0) / (1/T[i1] - 1/T[i0])
+        B[i] = np.log(Kb1 / Kb0) / (1/T1 - 1/T0)
         A[i] = np.log(Kb[i]) - B[i] / T[i]
         if Kb0 < Kb1: 
             Kbmin[i] = Kb0
@@ -158,7 +178,7 @@ def fit_surrogate_parameters(
         else:
             Kbmin[i] = Kb1
             Kbmax[i] = Kb0
-    return Kb, alpha, A, B, hV_ref, hL_ref, CV, CL, Kbmin, Kbmax
+    return Kb, alpha, A, B, hV_ref, hL_ref, Kbmin, Kbmax
 
 @compiled_surrogate_column_function(output='point')
 def Sb_to_point(Sb, N_stages, alpha, feed_flows, neg_asplit, neg_bsplit,
@@ -190,7 +210,8 @@ def surrogate_residuals(
         logSb1, N_stages, alpha, feed_flows, neg_asplit, neg_bsplit,
         Kbmin, Kbmax, A, B, hV_ref, CV, hL_ref, CL,
         specified_variables, specified_values, feed_and_invariable_enthalpies, top_split, bottom_split,
-        bulk_feed, full_condenser, H_magnitude, MWs, specifications_by_weight
+        bulk_feed, full_condenser, H_magnitude, MWs, specifications_by_weight,
+        ihV_ref, iCV, ihL_ref, iCL, iV, iL
     ):
     if full_condenser:
         Sb = np.zeros(N_stages)
@@ -198,6 +219,7 @@ def surrogate_residuals(
     else:
         Sb = np.exp(logSb1) - 1
     Sb[Sb < 0] *= -1 
+    Sb[Sb > 1e6] = 1e6
     S = alpha * np.expand_dims(Sb, -1)
     xL = MESH.bottom_flow_rates(
         S, 
@@ -216,8 +238,10 @@ def surrogate_residuals(
     T = B / (np.log(Kb) - A)
     hV = hV_ref + CV * T
     hL = hL_ref + CL * T
-    HV = hV * V
-    HL = hL * L
+    ihV = ihV_ref + iCV * T
+    ihL = ihL_ref + iCL * T
+    HV = hV * V + ihV * iV
+    HL = hL * L + ihL * iL
     residuals = np.zeros(N_stages - full_condenser)
     for i in range(full_condenser, N_stages):
         var = specified_variables[i]
@@ -388,7 +412,7 @@ class JacobianConstructor:
             np.fill_diagonal(C[eq.M, var.Ftop], -1)
 
 
-@njit(types.UniTuple(float64[:, :, :], 3)(types.List(JacobianData.class_type.instance_type, reflected=True), int8, int8, int8))
+@njit(types.UniTuple(float64[:, :, :], 3)(types.List(JacobianData.class_type.instance_type, reflected=True), int16, int16, int16))
 def jacobian_blocks(jacobian_data, N_stages, N_chemicals, N_variables):
     JC = JacobianConstructor(N_chemicals)
     A_blocks = np.zeros((N_stages-1, N_variables, N_variables))
@@ -429,6 +453,8 @@ class SinglePhaseStage(Unit):
     def specify_variables(self, T=None, P=None, Q=None):
         if T is not None:
             self.specified_variable = 'T'
+            for i in self.outs: i.T = T
+            for i in self.partition.outs: i.T = T
         elif Q is not None:
             self.specified_variable = 'Q'
         else:
@@ -567,6 +593,8 @@ class ReactivePhaseStage(bst.Unit): # Does not include VLE
     def specify_variables(self, T=None, P=None, Q=None):
         if T is not None:
             self.specified_variable = 'T'
+            for i in self.outs: i.T = T
+            for i in self.partition.outs: i.T = T
         elif Q is not None:
             self.specified_variable = 'Q'
         else:
@@ -911,6 +939,8 @@ class StageEquilibrium(Unit):
                     specified_variable = 'B'
             elif name in ('T', 'Temperature'):
                 partition.T = value
+                for i in partition.outs: i.T = value
+                for i in self.outs: i.T = value
                 specified_variable = 'T'
             elif name in ('F', 'Flow'):
                 partition.F = value
@@ -986,7 +1016,7 @@ class StageEquilibrium(Unit):
             feed=FeedData(H_feed / H_magnitude, mol_feed),
         )
     
-    def _jacobian_data(self, x, H_magnitude, mixture):
+    def _jacobian_data(self, x, H_magnitude, mixture, tC_model, bC_model, tmol, bmol):
         IDs = self.partition.IDs
         chemicals = self.chemicals[IDs]
         P = self.P
@@ -1023,8 +1053,8 @@ class StageEquilibrium(Unit):
             dEdx=dEdx,
             dHdFtop=htop,
             dHdFbot=hbot,
-            dHdTtop=Ctop,
-            dHdTbot=Cbot,
+            dHdTtop=Ctop + tC_model(phase_top, tmol, T, P),
+            dHdTbot=Cbot + bC_model(phase_bot, bmol, T, P),
             split_top=self.top_split,
             split_bot=self.bottom_split,
             variable=self.specified_variable,
@@ -2491,6 +2521,7 @@ class MultiStageEquilibrium(Unit):
         residuals = np.zeros(N_variables * N_stages) # H, Mi, Ei
         H_magnitude = self._H_magnitude
         H_model = self._eq_thermo.mixture.H
+        self.update_invariable_enthalpies()
         if self.stage_reactions:
             x_old = self._get_point()
             conversion = self.conversion.copy()
@@ -2503,14 +2534,13 @@ class MultiStageEquilibrium(Unit):
                 for n in self.stage_reactions:
                     partitions[n]._run_decoupled_reaction()
                 feed_flows = self.feed_flows + self._conversion
-                feed_and_invariable_enthalpies = self._feed_and_invariable_enthalpies - (self._conversion * self._Hf_eq).sum(axis=1)
             finally:
                 bst.PhasePartition.conversion_relaxation_factor = rf
                 self._set_point(x_old)
                 self._conversion[:] = conversion
         else:
             feed_flows = self.feed_flows
-            feed_and_invariable_enthalpies = self._feed_and_invariable_enthalpies
+        feed_and_invariable_enthalpies = self._feed_and_invariable_enthalpies
         stage_data = [
             stage._stage_data(xi, H_feed, mol_feed, H_magnitude, H_model)
             for xi, stage, H_feed, mol_feed
@@ -2556,7 +2586,13 @@ class MultiStageEquilibrium(Unit):
         stages = self.stages
         H_magnitude = self._H_magnitude
         mixture = self._eq_thermo.mixture
-        jacobian_data = [stage._jacobian_data(xi, H_magnitude, mixture) for xi, stage in zip(x, stages)]
+        tC_model = self._top_thermo.mixture.Cn
+        bC_model = self._bottom_thermo.mixture.Cn
+        jacobian_data = [
+            stage._jacobian_data(xi, H_magnitude, mixture, tC_model, bC_model, iVy, iLx)
+            for xi, stage, iVy, iLx
+            in zip(x, stages, self._iVy, self._iLx)
+        ]
         return jacobian_blocks(jacobian_data, N_stages, N_chemicals, N_variables)
     
     # %% Decoupled phenomena equation oriented simulation
@@ -2650,7 +2686,7 @@ class MultiStageEquilibrium(Unit):
                 if algorithm == 'simultaneous correction':
                     if 'K' in self.partition_data or self._vlle: continue
                     x = self._simultaneous_correction(x, method)
-                    if self._best_result.r < 1e-3:
+                    if self._best_result.r < 1e-2:
                         optimize_result = False
                         break
                     continue
@@ -2666,50 +2702,52 @@ class MultiStageEquilibrium(Unit):
                     self._tracked_algorithms.append(
                         (self.iter + 1, algorithm)
                     )
-                try: 
-                    if self.homotopy_continuation:
-                        if self.conversion_homotopy == 1:
-                            try:
-                                x = solver(f, x, maxiter=maxiter, xtol=xtol, rtol=rtol, args=(algorithm,))
-                            except:
-                                x = self._best_result.x
-                                self._mean_residual = inf
-                                self._iteration_record[0] = IterationResult(None, inf)
-                                self._best_result = IterationResult(x, inf)
-                            else:
-                                break
-                        steps = self.homotopy_continuation_steps
-                        step_size = 1 / (steps - 1)
-                        self.internal_conversion_homotopy_step_size = step_size / (self.internal_homotopy_continuation_steps - 1)
-                        self.max_conversion_homotopy = 0
-                        for i in range(steps):
-                            self.conversion_homotopy = self.max_conversion_homotopy
-                            self.max_conversion_homotopy = min(self.conversion_homotopy + step_size, 1)
-                            if analysis_mode:
-                                self._tracked_homotopy.append(
-                                    (self.iter + 1, self.conversion_homotopy)
-                                )
-                            try:
-                                x = solver(f, x, maxiter=maxiter, xtol=xtol, rtol=rtol, args=(algorithm,))
-                            except:
-                                x = self._best_result.x
+                if self.homotopy_continuation:
+                    if self.conversion_homotopy == 1:
+                        try:
+                            x = solver(f, x, maxiter=maxiter, xtol=xtol, rtol=rtol, args=(algorithm,))
+                        except:
+                            x = self._best_result.x
                             self._mean_residual = inf
                             self._iteration_record[0] = IterationResult(None, inf)
                             self._best_result = IterationResult(x, inf)
-                    else:
+                        else:
+                            break
+                    steps = self.homotopy_continuation_steps
+                    step_size = 1 / (steps - 1)
+                    self.internal_conversion_homotopy_step_size = step_size / (self.internal_homotopy_continuation_steps - 1)
+                    self.max_conversion_homotopy = 0
+                    for i in range(steps):
+                        self.conversion_homotopy = self.max_conversion_homotopy
+                        self.max_conversion_homotopy = min(self.conversion_homotopy + step_size, 1)
+                        if analysis_mode:
+                            self._tracked_homotopy.append(
+                                (self.iter + 1, self.conversion_homotopy)
+                            )
+                        try:
+                            x = solver(f, x, maxiter=maxiter, xtol=xtol, rtol=rtol, args=(algorithm,))
+                        except:
+                            x = self._best_result.x
+                        self._mean_residual = inf
+                        self._iteration_record[0] = IterationResult(None, inf)
+                        self._best_result = IterationResult(x, inf)
+                    break # TODO: Do not allow multiple algorithms if homotopy is used
+                else:
+                    try:
                         x = solver(f, x, maxiter=maxiter, xtol=xtol, rtol=rtol, args=(algorithm,))
-                except:
-                    self._mean_residual = inf
-                    self._iteration_record[0] = IterationResult(None, inf)
-                    if self._best_result.x is not None: x = self._best_result.x
-                    maxiter = self.maxiter - self.iter
-                    if maxiter <= 0: break
-                else: 
-                    x = self._best_result.x 
-                    break
+                    except:
+                        self._mean_residual = inf
+                        self._iteration_record[0] = IterationResult(None, inf)
+                        if self._best_result.x is not None: x = self._best_result.x
+                        maxiter = self.maxiter - self.iter
+                        if maxiter <= 0: break
+                    else: 
+                        x = self._best_result.x 
+                        break
             else: continue # No need to stop, give it another attempt
             break
         if optimize_result: x = self._simultaneous_correction(x, 'hybr')
+        if getattr(self, 'flag', False): breakpoint()
         self._set_point(x)
         # Last simulation to force mass balance
         self.update_mass_balance()
@@ -2793,10 +2831,27 @@ class MultiStageEquilibrium(Unit):
         mixture = self._eq_thermo.mixture
         H = mixture.H
         C = mixture.Cn
+        
+        # For invariable (not in equilibrium) components
+        tmixture = self._top_thermo.mixture
+        tH = tmixture.H
+        tC = tmixture.Cn
+        bmixture = self._bottom_thermo.mixture
+        bH = bmixture.H
+        bC = bmixture.Cn
+        ihV_ref = T.copy()
+        iCV = T.copy()
+        ihL_ref = T.copy()
+        iCL = T.copy()
+        iV = self._iV
+        iL = self._iL
+        iy = self._iy
+        ix = self._ix
         decomp = self.vle_decomposition
         bp = decomp == 'bubble point'
-        if bp: sr = decomp == 'sum rates'
-        for i, stage in enumerate(self.stages):
+        if not bp: sr = decomp == 'sum rates'
+        stages = self.stages
+        for i, stage in enumerate(stages):
             Pi = P[i]
             f = lambda Tinv: np.log(stage.K_model(stage.y, stage.x, 1 / Tinv[0], Pi))
             if bp: 
@@ -2814,52 +2869,69 @@ class MultiStageEquilibrium(Unit):
             hL[i] = H('l', xi, Ti, Pi)
             CV[i] = C('g', yi, Ti, Pi)
             CL[i] = C('l', xi, Ti, Pi)
-        
+            iyi = iy[i]
+            ixi = ix[i]
+            if iV[i] != 0:
+                iCV[i] = iCVi = tC('g', iyi, Ti, Pi)
+                ihV_ref[i] = tH('g', iyi, Ti, Pi) - iCVi * Ti
+            if iL[i] != 0:
+                iCL[i] = iCLi = bC('l', ixi, Ti, Pi)
+                ihL_ref[i] = bH('l', ixi, Ti, Pi) - iCLi * Ti
         if reactive:
             self.update_reaction_flows()
             feed_flows = self.feed_flows + self.conversion
             total_feed_flows = feed_flows.sum(axis=1)
             bulk_feed = total_feed_flows.sum()
-            feed_and_invariable_enthalpies = self._feed_and_invariable_enthalpies - (self.conversion * self._Hf_eq).sum(axis=1)
         else:
             feed_flows = self.feed_flows
             total_feed_flows = self._total_feed_flows
             bulk_feed = self._bulk_feed
-            feed_and_invariable_enthalpies = self._feed_and_invariable_enthalpies
-        if self.specifications_by_weight:
-            total_feed_flows_wt = (feed_flows * MW).sum(axis=1)
-            bulk_feed_wt = self._bulk_feed_wt
-            L_MWs = (x * MW).sum(axis=1)
-            V_MWs = (y * MW).sum(axis=1)
-            V, L = MESH.bulk_vapor_and_liquid_flow_rates(
-                hL / L_MWs, 
-                hV / V_MWs, 
-                self._neg_asplit, self._neg_bsplit, 
-                self._top_split, self._bottom_split, 
-                N_stages, feed_and_invariable_enthalpies, 
-                total_feed_flows_wt,
-                self._specified_variables,
-                self._specified_values,
-                bulk_feed_wt,
-            )
-            V /= V_MWs
-            L /= L_MWs
-        else:
-            V, L = MESH.bulk_vapor_and_liquid_flow_rates(
-                hL, hV,
-                self._neg_asplit, self._neg_bsplit, 
-                self._top_split, self._bottom_split, 
-                N_stages, feed_and_invariable_enthalpies, 
-                total_feed_flows,
-                self._specified_variables,
-                self._specified_values,
-                bulk_feed,
-            )
-        
-        Kb, alpha, A, B, hV_ref, hL_ref, CV, CL, Kbmin, Kbmax = fit_surrogate_parameters(
+        self.update_invariable_enthalpies()
+        if bp:
+            variables = ''
+            values = self._specified_values.copy()
+            for i, var in enumerate(self._specified_variables):
+                if var == 'T':
+                    values[i] = stages[i].B
+                    variables += 'B'
+                else:
+                    variables += var
+            if self.specifications_by_weight:
+                total_feed_flows_wt = (feed_flows * MW).sum(axis=1)
+                bulk_feed_wt = self._bulk_feed_wt
+                L_MWs = (x * MW).sum(axis=1)
+                V_MWs = (y * MW).sum(axis=1)
+                V, L = MESH.bulk_vapor_and_liquid_flow_rates(
+                    hL / L_MWs, 
+                    hV / V_MWs, 
+                    self._neg_asplit, self._neg_bsplit, 
+                    self._top_split, self._bottom_split, 
+                    N_stages, self._feed_and_invariable_enthalpies, 
+                    total_feed_flows_wt,
+                    variables,
+                    values,
+                    bulk_feed_wt,
+                )
+                V /= V_MWs
+                L /= L_MWs
+            else:
+                V, L = MESH.bulk_vapor_and_liquid_flow_rates(
+                    hL, hV,
+                    self._neg_asplit, self._neg_bsplit, 
+                    self._top_split, self._bottom_split, 
+                    N_stages, self._feed_and_invariable_enthalpies, 
+                    total_feed_flows,
+                    variables,
+                    values,
+                    bulk_feed,
+                )
+            V_over_L = V / L
+        elif sr:
+            V_over_L = np.array([i.B for i in stages])
+        Kb, alpha, A, B, hV_ref, hL_ref, Kbmin, Kbmax = fit_surrogate_parameters(
             N_stages, T, y, K, dlogK_dTinv, hV, hL, CV, CL
         )
-        Sb = Kb * V / L
+        Sb = Kb * V_over_L
         full_condenser = (
             self._specified_variables[0] in 'BW'
             and self._specified_values[0] == 0
@@ -2870,10 +2942,11 @@ class MultiStageEquilibrium(Unit):
             self._neg_asplit, self._neg_bsplit,
             Kbmin, Kbmax, A, B, hV_ref, CV, hL_ref, CL,
             self._specified_variables, self._specified_values, 
-            feed_and_invariable_enthalpies, 
+            self._feed_and_invariable_enthalpies, 
             self._top_split, self._bottom_split,
             bulk_feed, full_condenser, self._H_magnitude,
-            MW, self.specifications_by_weight
+            MW, self.specifications_by_weight,
+            ihV_ref, iCV, ihL_ref, iCL, iV, iL,
         )
         f = surrogate_residuals
         jac = lambda logSb1, *args: approx_derivative(f, logSb1, args=args)
@@ -2887,9 +2960,11 @@ class MultiStageEquilibrium(Unit):
         else:
             Sb = np.exp(logSb1) - 1
         Sb[Sb < 0] *= -1
-        point = Sb_to_point(Sb, N_stages, alpha, feed_flows, 
-                           self._neg_asplit, self._neg_bsplit,
-                           Kbmin, Kbmax, A, B, self._N_chemicals)
+        point = Sb_to_point(
+            Sb, N_stages, alpha, feed_flows, 
+            self._neg_asplit, self._neg_bsplit,
+            Kbmin, Kbmax, A, B, self._N_chemicals
+        )
         return point
     
     # %% Normal simulation
@@ -2969,44 +3044,36 @@ class MultiStageEquilibrium(Unit):
                 return self._residuals(x).flatten()
         else:
             f = lambda x: self._residuals(x.reshape(shape)).flatten()
-        
         jac = lambda x: MESH.create_block_tridiagonal_matrix(*self._jacobian(x.reshape(shape)))
-        x, *self._simultaneous_correction_info = fsolve(
-            f, x.flatten(), fprime=jac, full_output=True, 
-            maxfev=self.maxiter, xtol=self.tolerance
-        )
-        try: 
-            if method == 'trf':
-                self._result = result = least_squares(f,
-                    x0=x.flatten(),
-                    jac=lambda x: MESH.create_block_tridiagonal_matrix(*self._jacobian(x.reshape(shape))),
-                    bounds=(0, inf),
-                    method='trf',
-                    max_nfev=self.maxiter,
-                    xtol=self.tolerance,
-                    loss='cauchy',
-                    x_scale='jac',
-                    tr_solver='lsmr',
-                    jac_sparsity=MESH.create_block_tridiagonal_matrix(*self._jacobian(x)),
-                )
-                x = result.x
-            elif method == 'hybr':
-                x, *self._simultaneous_correction_info = fsolve(
-                    f, x.flatten(), fprime=jac, full_output=True, 
-                    maxfev=self.maxiter, xtol=self.tolerance
-                )
-            else:
-                raise ValueError(f'invalid simultaneous correction method {method!r}')
-        except: pass
+        if method == 'trf':
+            self._result = result = least_squares(f,
+                x0=x.flatten(),
+                jac=lambda x: MESH.create_block_tridiagonal_matrix(*self._jacobian(x.reshape(shape))),
+                bounds=(0, inf),
+                method='trf',
+                max_nfev=self.maxiter,
+                xtol=self.tolerance,
+                loss='cauchy',
+                x_scale='jac',
+                tr_solver='lsmr',
+                jac_sparsity=MESH.create_block_tridiagonal_matrix(*self._jacobian(x)),
+            )
+            x = result.x
+        elif method == 'hybr':
+            x, *self._simultaneous_correction_info = fsolve(
+                f, x.flatten(), fprime=jac, full_output=True, 
+                maxfev=self.maxiter, xtol=self.tolerance
+            )
         else:
-            x[x < 0] = 0
-            x = x.reshape(shape)
-            try: result = self._best_result
-            except: self._best_result = result
-            else:
-                r = self._objective(x)
-                if result.r < r: x = result.x
-                else: self._best_result = IterationResult(x, r)
+            raise ValueError(f'invalid simultaneous correction method {method!r}')
+        x[x < 0] = 0
+        x = x.reshape(shape)
+        try: result = self._best_result
+        except: self._best_result = result
+        else:
+            r = self._objective(x)
+            if result.r < r: x = result.x
+            else: self._best_result = IterationResult(x, r)
         return x
     
     
@@ -3085,11 +3152,13 @@ class MultiStageEquilibrium(Unit):
         # bottom_side_draws = {(i if i >= 0 else N_stages + i): j for i, j in self.bottom_side_draws.items()}
         # self.key_stages = set([*feed_stages, *stage_specifications, *top_side_draws, *bottom_side_draws])
         self._eq_thermo = self.thermo.subset(IDs)
-        self._bulk_feed = feed_flows.sum()
+        self._bulk_feed = bulk_feed = feed_flows.sum()
+        for i in self.stages: i._bulk_feed = bulk_feed
         if self.specifications_by_weight:
             MW = self._eq_thermo.chemicals.MW
-            self._bulk_feed_wt = (feed_flows * MW).sum()
-            
+            self._bulk_feed_wt = bulk_feed_wt = (feed_flows * MW).sum()
+            for i in self.stages: i._bulk_feed_wt = bulk_feed_wt
+        
         # Reformulate flow rate specifications
         if (eq == 'vle'
             and stages[-1].specified_variable == 'F'
@@ -3114,6 +3183,14 @@ class MultiStageEquilibrium(Unit):
             top_flow_rates = MESH.solve_right_bidiagonal_matrix(b, c, d)
             for partition, flows in zip(partitions, top_flow_rates):
                 partition.outs[0].imol[top_chemicals] = flows
+            self._iVy = top_flow_rates
+            self._iV = iV = top_flow_rates.sum(axis=1)
+            self._iy = iy = top_flow_rates.copy()
+            nonzero = iV != 0
+            iy[nonzero] /= iV[nonzero, np.newaxis]
+        else:
+            self._iy = self._iVy = np.zeros([N_stages, 0])
+            self._iV = np.zeros(N_stages)
         if bottom_chemicals:
             a = self._neg_bsplit[:-1]
             n = len(bottom_chemicals)
@@ -3124,41 +3201,31 @@ class MultiStageEquilibrium(Unit):
             bottom_flow_rates = MESH.solve_left_bidiagonal_matrix(a, b, d)
             for partition, b in zip(partitions, bottom_flow_rates):
                 partition.outs[1].imol[bottom_chemicals] = b
+            self._iLx = bottom_flow_rates
+            self._iL = iL = bottom_flow_rates.sum(axis=1)
+            self._ix = ix = bottom_flow_rates.copy()
+            nonzero = iL != 0
+            ix[nonzero] /= iL[nonzero, np.newaxis]
+        else:
+            self._ix = self._iLx = np.zeros([N_stages, 0])
+            self._iL = np.zeros(N_stages)
         if top_chemicals or bottom_chemicals:
             for i in stages:
                 for s in i.splitters: s._run()
         other_chemicals = top_chemicals + bottom_chemicals
         self._noneq_index = self.thermo.chemicals.indices(other_chemicals)
         self._noneq_thermo = self.thermo.subset(other_chemicals)
-        Hother = self._noneq_thermo.mixture.H
+        self._top_thermo = self._noneq_thermo.subset(top_chemicals)
+        self._bottom_thermo = self._noneq_thermo.subset(bottom_chemicals)
         P = self.P
         N_stages = self.N_stages
         variables = ''
         self._specified_values = values = np.zeros(N_stages)
         invariable_enthalpies = np.zeros(N_stages)
-        other_index = self._noneq_index
         for n, stage in enumerate(self.stages):
-            Pi = P[n]
             variable = stage.specified_variable
-            if variable == 'T':
-                variables += 'B'
-                values[n] = stage.B
-            else:
-                variables += variable
-                values[n] = getattr(stage, variable)
-            partition = stage.partition
-            vap, liq = partition.outs
-            H_in = sum([
-                Hother(i.phase, i.mol[other_index], i.T, Pi)
-                + Hother(i.phase, i.mol[other_index], i.T, Pi)
-                for i in stage.flat_ins
-            ])
-            H_out = sum([
-                Hother(i.phase, i.mol[other_index], i.T, Pi)
-                + Hother(i.phase, i.mol[other_index], i.T, Pi)
-                for i in partition.outs
-            ])
-            invariable_enthalpies[n] += H_out - H_in
+            variables += variable
+            values[n] = getattr(stage, variable)
         self._feed_and_invariable_enthalpies = invariable_enthalpies + feed_enthalpies
         self._specified_variables = variables
         use_cache = self.use_cache
@@ -3186,7 +3253,7 @@ class MultiStageEquilibrium(Unit):
                     T = ms.T
                     for i, Ki in zip(partitions, K): 
                         if i.specified_variable != 'B': i.B = B
-                        i.T = T
+                        if i.specified_variable != 'T': i.T = T
                         i.K = Ki
                 else:
                     data['phi'] = phi = sep.partition(ms, top, bottom, IDs, K, phi,
@@ -3195,7 +3262,7 @@ class MultiStageEquilibrium(Unit):
                     T = ms.T
                     for i in partitions: 
                         if i.specified_variable != 'B': i.B = B
-                        i.T = T
+                        if i.specified_variable != 'T': i.T = T
                         i.K = K
                 for i in self.stages: i._update_separation_factors()
                 self.update_flow_rates(np.array([i.S for i in self._S_stages]), update_B=False)
@@ -3223,9 +3290,26 @@ class MultiStageEquilibrium(Unit):
             elif self.stage_specifications:
                 P = self.P[N_stages // 2]
                 dp = ms.dew_point_at_P(P=P, IDs=IDs)
-                T_bot = dp.T
+                specified_variables = self._specified_variables
+                specified_values = self._specified_values
+                T_constraint = 'T' in specified_variables
+                if T_constraint:
+                    if 'T' == specified_variables[-1]:
+                        T_bot = specified_values[-1]
+                    else:
+                        T_candidate = specified_values[specified_variables.rindex('T')]
+                        T_bot = max(dp.T, T_candidate)
+                else:
+                    T_bot = dp.T
                 bp = ms.bubble_point_at_P(P=P, IDs=IDs, lle=self._vlle)
-                T_top = bp.T
+                if T_constraint:
+                    if 'T' == specified_variables[0]:
+                        T_top = specified_values[0]
+                    else:
+                        T_candidate = specified_values[specified_variables.index('T')]
+                        T_top = min(bp.T, T_candidate)
+                else:
+                    T_top = bp.T
                 dT_stage = (T_bot - T_top) / N_stages
                 Ts = np.array([T_top + i * dT_stage for i in range(N_stages)])
                 z = bp.z.copy()
@@ -3235,7 +3319,9 @@ class MultiStageEquilibrium(Unit):
                 top_flows = np.ones((N_stages, N_chemicals))
                 bottom_flows = np.ones((N_stages, N_chemicals))
                 for i, partition in enumerate(partitions):
-                    partition.T = T = T_top + i * dT_stage
+                    if partition.specified_variable != 'T': 
+                        partition.T = T = T_top + i * dT_stage
+                        for s in partition.outs: s.T = T
                     a = i / N_stages
                     b = 1 - a
                     x = a * dp.x + b * bp.x
@@ -3249,10 +3335,23 @@ class MultiStageEquilibrium(Unit):
                     K[mask] = 1.
                     bottom_flows[i] = partition.x = x
                     top_flows[i] = partition.y = y
-                    for s in partition.outs: s.T = T
                 xs = np.array([i.x for i in partitions])
                 ys = np.array([i.y for i in partitions])
                 self.conversion_homotopy = 0
+                if T_constraint:
+                    for i, var in enumerate(specified_variables):
+                        if var != 'T': continue
+                        ms.vle(T=specified_values[i], P=partitions[i].P)
+                        L = ms['l'].F_mol
+                        V = ms['g'].F_mol
+                        if L > 0.05 * V:
+                            if V > 0.05 * L:
+                                B = V / L
+                            else:
+                                B = 0.05
+                        else:
+                            B = 20
+                        stages[i].B = B
                 Vs, Ls = self.estimate_bulk_vapor_and_liquid_flow_rates(xs, ys, Ts)
                 phase_ratios = Vs / Ls
                 for partition, B in zip(partitions, phase_ratios):
@@ -3369,51 +3468,67 @@ class MultiStageEquilibrium(Unit):
         T_specified = [i.specified_variable == 'T' for i in partitions]
         N_stages = self.N_stages
         if any(T_specified):
-            start = 0
             Cl = np.zeros(N_stages)
             Cv = Cl.copy()
             Hv = Cl.copy()
             Hl = Cl.copy()
             dT = Cl.copy()
+            if bool(self.stage_reactions):
+                feed_enthalpies = self.feed_enthalpies - (self.conversion * self._Hf_eq).sum(axis=1)
+            else:
+                feed_enthalpies = self.feed_enthalpies.copy()
+            for i, j in enumerate(partitions):
+                top, bottom = j.outs
+                Hl[i] = bottom.H
+                Hv[i] = top.H
+                Cl[i] = bottom.C
+                Cv[i] = top.C 
+                if not T_specified[i]: continue
+                if i != N_stages - 1:
+                    feed_enthalpies[i+1] += bottom.H * (1 - self._bottom_split[i])
+                if i != 0:
+                    feed_enthalpies[i-1] += top.H * (1 - self._top_split[i])
+            start = 0
             for i, p in enumerate(partitions):
                 if T_specified[i]:
-                    top, bottom = p.outs
-                    Hl[i] = bottom.H
-                    Hv[i] = top.H
-                    Cl[i] = bottom.C
-                    Cv[i] = top.C
-                else:
-                    end = i + 1
+                    end = i
+                    if start == end: 
+                        start = i + 1
+                        continue
                     index = slice(start, end)
                     dT[index] = MESH.temperature_departures(
                         Cv[index], Cl[index], Hv[index], Hl[index], 
                         self._asplit[index], 
                         self._bsplit[index],
-                        end - start, self.feed_enthalpies[index],
+                        end - start, feed_enthalpies[index],
                     )
-                    start = end
+                    start = end + 1
+                    end = i + 1
         else:
             Cl = np.zeros(N_stages)
             Cv = Cl.copy()
             Hv = Cl.copy()
             Hl = Cl.copy()
+            if bool(self.stage_reactions):
+                feed_enthalpies = self.feed_enthalpies
+            else:
+                feed_enthalpies = self.feed_enthalpies - (self.conversion * self._Hf_eq).sum(axis=1)
             for i, j in enumerate(partitions):
                 top, bottom = j.outs
                 Hl[i] = bottom.H
                 Hv[i] = top.H
                 Cl[i] = bottom.C
                 Cv[i] = top.C
-            dTs = MESH.temperature_departures(
+            dT = MESH.temperature_departures(
                 Cv, Cl, Hv, Hl, self._asplit, self._bsplit,
-                N_stages, self.feed_enthalpies
+                N_stages, feed_enthalpies
             )
-            if not np.isfinite(dTs).all():
-                breakpoint()
-                dTs = MESH.temperature_departures(
+            if not np.isfinite(dT).all():
+                dT = MESH.temperature_departures(
                     Cv, Cl, Hv, Hl, self._asplit, self._bsplit,
-                    N_stages, self.feed_enthalpies
+                    N_stages, feed_enthalpies
                 )
-        return dTs
+        return dT
     
     def update_energy_balance_temperatures(self):
         dTs = self.get_energy_balance_temperature_departures()
@@ -3446,10 +3561,36 @@ class MultiStageEquilibrium(Unit):
         if getattr(self, 'tracking', False):
             self._collect_variables('energy')
     
+    def update_invariable_enthalpies(self):
+        Hother = self._noneq_thermo.mixture.H
+        invariable_enthalpies = np.zeros(self.N_stages)
+        other_index = self._noneq_index
+        P = self.P
+        for n, stage in enumerate(self.stages):
+            Pi = P[n]
+            partition = stage.partition
+            vap, liq = partition.outs
+            H_in = sum([
+                Hother(i.phase, i.mol[other_index], i.T, Pi)
+                + Hother(i.phase, i.mol[other_index], i.T, Pi)
+                for i in stage.flat_ins
+            ])
+            H_out = sum([
+                Hother(i.phase, i.mol[other_index], i.T, Pi)
+                + Hother(i.phase, i.mol[other_index], i.T, Pi)
+                for i in partition.outs
+            ])
+            invariable_enthalpies[n] += H_out - H_in
+        if bool(self.stage_reactions):
+            self._feed_and_invariable_enthalpies = invariable_enthalpies + self.feed_enthalpies - (self.conversion * self._Hf_eq).sum(axis=1)
+        else:
+            self._feed_and_invariable_enthalpies = invariable_enthalpies + self.feed_enthalpies
+    
     def estimate_bulk_vapor_and_liquid_flow_rates(self, xs, ys, Ts):
         Hvle = self._eq_thermo.mixture.H
         N_stages = self.N_stages
         stages = self.stages
+        self.update_invariable_enthalpies()
         if self.specifications_by_weight:
             MW = self._eq_thermo.chemicals.MW
             feed_flows = self.feed_flows
@@ -3462,6 +3603,14 @@ class MultiStageEquilibrium(Unit):
             bulk_feed = self._bulk_feed_wt
             L_MWs = (np.array([i.x for i in stages]) * MW).sum(axis=1)
             V_MWs = (np.array([i.y for i in stages]) * MW).sum(axis=1)
+            variables = ''
+            values = self._specified_values.copy()
+            for i, var in enumerate(self._specified_variables):
+                if var == 'T':
+                    values[i] = stages[i].B
+                    variables += 'B'
+                else:
+                    variables += var
             V, L = MESH.bulk_vapor_and_liquid_flow_rates(
                 np.array([Hvle('l', i.x, i.T, i.P) for i in stages]) / L_MWs, 
                 np.array([Hvle('g', i.y, i.T, i.P) for i in stages]) / V_MWs, 
@@ -3469,8 +3618,8 @@ class MultiStageEquilibrium(Unit):
                 self._top_split, self._bottom_split, 
                 N_stages, feed_and_invariable_enthalpies, 
                 total_feed_flows,
-                self._specified_variables,
-                self._specified_values,
+                variables,
+                values,
                 bulk_feed,
             )
             return V / V_MWs, L / L_MWs
@@ -3484,6 +3633,14 @@ class MultiStageEquilibrium(Unit):
                 total_feed_flows = self._total_feed_flows
                 bulk_feed = self._bulk_feed
                 feed_and_invariable_enthalpies = self._feed_and_invariable_enthalpies
+            variables = ''
+            values = self._specified_values.copy()
+            for i, var in enumerate(self._specified_variables):
+                if var == 'T':
+                    values[i] = stages[i].B
+                    variables += 'B'
+                else:
+                    variables += var
             return MESH.bulk_vapor_and_liquid_flow_rates(
                 np.array([Hvle('l', i.x, i.T, i.P) for i in stages]), 
                 np.array([Hvle('g', i.y, i.T, i.P) for i in stages]), 
@@ -3491,8 +3648,8 @@ class MultiStageEquilibrium(Unit):
                 self._top_split, self._bottom_split, 
                 N_stages, feed_and_invariable_enthalpies, 
                 total_feed_flows,
-                self._specified_variables,
-                self._specified_values,
+                variables,
+                values,
                 bulk_feed,
             )
     
@@ -3684,7 +3841,7 @@ class MultiStageEquilibrium(Unit):
         if getattr(self, 'tracking', False):
             self._collect_variables('lle_phenomena')
     
-    def update_pseudo_vle(self, separation_factors):
+    def update_pseudo_vle(self):
         P = self.P
         if 'K' not in self.partition_data:
             for n, i in enumerate(self.stages): 
