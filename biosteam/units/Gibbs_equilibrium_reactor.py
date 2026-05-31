@@ -2,7 +2,7 @@
 """
 .. contents:: :local:
 
-.. autoclass:: biosteam.units.equilibrium_reactor.EquilibriumReactor
+.. autoclass:: biosteam.units.equilibrium_reactor.GibbsEquilibriumReactor
 
 """
 import biosteam as bst
@@ -11,12 +11,12 @@ from .design_tools.Gibbs_equilibrium_reaction import minimize_Gibbs_free_energy
 from typing import Optional, Iterable, Callable
 
 __all__ = (
-    'EquilibriumReactor',
+    'GibbsEquilibriumReactor', 'EquilibriumReactor',
 )
 
-class EquilibriumReactor(AbstractStirredTankReactor):
+class GibbsEquilibriumReactor(AbstractStirredTankReactor):
     """
-    Create an equilibrium reactor designed as a pressure vessel with a 
+    Create an Gibbs equilibrium reactor designed as a pressure vessel with a 
     given aspect ratio and residence time. A heat exchanger 
     (e.g., jacket, recirculation loop) can be used to satisfy the duty, if any. 
     By default, a turbine agitator is also included if the 
@@ -191,3 +191,4 @@ class EquilibriumReactor(AbstractStirredTankReactor):
         outs[0].mix_flows(ins)
         minimize_Gibbs_free_energy(product, self.products, method=self.method, phase_hook=self.phase_hook)
         
+EquilibriumReactor = GibbsEquilibriumReactor

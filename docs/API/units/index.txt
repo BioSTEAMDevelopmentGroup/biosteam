@@ -13,7 +13,7 @@ units
    compressor
    distillation
    drying
-   equilibrium_reactor
+   Gibbs_equilibrium_reactor
    heat_exchange
    liquid_liquid_extraction
    mixing
