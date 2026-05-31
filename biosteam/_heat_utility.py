@@ -679,7 +679,7 @@ class HeatUtility:
             'natural_gas',
             Methane=1, T=298.15, P=200 * 101325, phase='g', 
             thermo=cls.thermo_natural_gas,
-            heat_transfer_efficiency = 0.90, # Heat loss to environment
+            heat_transfer_efficiency = 0.95, # Heat loss to environment
             regeneration_price=3.49672,
             T_limit=405, # Must be reasonably higher than the emission's dew point at 500 psig (401 K)
             isfuel=True,
@@ -1023,7 +1023,7 @@ class HeatUtility:
         if agent.utility_stream_dump:
             if agent.isfuel:
                 self.inlet_utility_stream, self.outlet_utility_stream, self.oxygen_rich_inlet = agent.utility_stream_dump.pop()
-                self.oxygen_rich_inlet.reset_flow(O2=21, N2=79, phase='g', units='kg/hr')
+                self.oxygen_rich_inlet.reset_flow(O2=21, N2=79, phase='g', units='kmol/hr')
             else:
                 self.inlet_utility_stream, self.outlet_utility_stream = agent.utility_stream_dump.pop()
             # Prevent errors where utility streams are altered
