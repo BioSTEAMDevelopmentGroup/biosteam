@@ -1,4 +1,0 @@
-equilibrium_reactor
-===================
-
-.. automodule:: biosteam.units.equilibrium_reactor

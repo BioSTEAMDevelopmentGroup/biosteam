@@ -65,6 +65,7 @@ def minimize_Gibbs_free_energy(
     index, = np.where(formula_array.any(axis=0))
     IDs = [IDs[i] for i in index]
     formula_array = formula_array[:, index]
+    mol_norm = mol_norm[index]
     MWs = MWs[index]
     
     # Specify atomic and mass constraints

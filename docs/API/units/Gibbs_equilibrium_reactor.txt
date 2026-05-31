@@ -1,0 +1,4 @@
+Gibbs equilibrium_reactor
+=========================
+
+.. automodule:: biosteam.units.Gibbs_equilibrium_reactor
