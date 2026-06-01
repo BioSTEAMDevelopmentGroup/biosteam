@@ -454,7 +454,6 @@ class SinglePhaseStage(Unit):
         if T is not None:
             self.specified_variable = 'T'
             for i in self.outs: i.T = T
-            for i in self.partition.outs: i.T = T
         elif Q is not None:
             self.specified_variable = 'Q'
         else:
