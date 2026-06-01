@@ -329,6 +329,9 @@ class TEA:
         Fraction of capital cost that needs to be financed.
     inflation_rate :
         Annual constant inflation rate as a fraction. 
+    start_year :
+        Year 0 for inflation and discount factor calculations. Defaults to
+        last year of construction.
     
     Notes
     -----
@@ -474,7 +477,8 @@ class TEA:
                 startup_salesfrac: float, WC_over_FCI: float,  finance_interest: float,
                 finance_years: int, finance_fraction: float,
                 accumulate_interest_during_construction: Optional[bool]=None,
-                inflation_rate: Optional[float] = None):
+                inflation_rate: Optional[float] = None,
+                start_year: Optional[int]=None):
         #: System being evaluated.
         self.system: System = system
 
@@ -482,6 +486,7 @@ class TEA:
         self.duration = duration
         self.depreciation = depreciation
         self.construction_schedule = construction_schedule
+        self.start_year = start_year
         self.startup_months = startup_months
         self.operating_days = operating_days
         
@@ -675,7 +680,14 @@ class TEA:
     @construction_schedule.setter
     def construction_schedule(self, schedule):
         self._construction_schedule = np.array(schedule, dtype=float)
-        self._start = len(schedule)
+    
+    @property
+    def start_year(self) -> int:
+        return self._start
+    @start_year.setter
+    def start_year(self, year):
+        if year is None: year = len(self._construction_schedule)
+        self._start = year
     
     @property
     def startup_months(self) -> float:
@@ -770,8 +782,7 @@ class TEA:
 
     def _get_inflation_factors(self):
         """Multiplicative nominal escalation factors aligned with the cashflow array"""
-        n_year = np.arange(self._start + self._years)
-        return (1.0 + self.inflation_rate)**n_year
+        return (1.0 + self.inflation_rate)**self._get_duration_array()
 
     def _get_depreciation_array(self):
         key = self._depreciation_key
@@ -899,13 +910,14 @@ class TEA:
         )
         NE[:] = taxable_cashflow + I - T
         CF[:] = NE + nontaxable_cashflow
-        DF[:] = 1 / (1. + self.discount_rate)**self._get_duration_array()
+        duration_array = self._get_duration_array()
+        DF[:] = 1 / (1. + self.discount_rate)**duration_array
         NPV[:] = CF * DF
         CNPV[:] = NPV.cumsum()
         DF *= 1e6
         data /= 1e6
         return pd.DataFrame(data.transpose(),
-                            index=np.arange(self._duration[0]-start, self._duration[1]),
+                            index=duration_array,
                             columns=cashflow_columns)
     @property
     def NPV(self) -> float:
