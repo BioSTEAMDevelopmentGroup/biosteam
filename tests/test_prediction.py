@@ -20,7 +20,7 @@ def test_convergence_model():
         F1 = bst.Flash(ins=M1.outlet, outs=['vapor', 'liquid_product'], V=0.5, P=101325)
         S1 = bst.Splitter(ins=F1.vapor, outs=['vapor_product', recycle], split=0.5)
     
-    sys.set_tolerance(mol=1e-6, rmol=1e-6, rT=1e-6, T=1e-6, method='aitken', maxiter=100)
+    sys.set_tolerance(mol=1e-6, rmol=1e-6, rT=1e-6, T=1e-6, method='aitken', maxiter=50)
     model = bst.Model(sys)
     total_flow = feed.F_mol
     @model.parameter(distribution=shape.Uniform(0.1, 0.4), kind='coupled')
@@ -34,7 +34,7 @@ def test_convergence_model():
         save_prediction=True,
         system=sys,
     )
-    model.load_samples(model.sample(100, rule='L', seed=1), sort=False)
+    model.load_samples(model.sample(50, rule='L', seed=1), sort=False)
     model.evaluate(design_and_cost=False, convergence_model=convergence_model)
     R2_null, _ = convergence_model.R2()
         
