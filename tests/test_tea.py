@@ -413,8 +413,8 @@ def test_tea_with_inflation():
     table = tea.get_cashflow_table()
     factors = (1 + inflation_rate) ** np.arange(tea._start + tea._years)
 
-    assert_allclose(tea.inflation_factors, factors)
-    assert_allclose(tea._get_discount_rate(), nominal_IRR)
+    assert_allclose(tea._get_inflation_factors(), factors)
+    assert_allclose(tea.discount_rate, nominal_IRR)
 
     # Check nominal escalation of representative cashflows.
     assert_allclose(table['Sales [MM$]'].values[0], 0.0)
@@ -429,7 +429,7 @@ def test_tea_with_inflation():
     # Check construction-year capital and final working capital recovery.
     assert_allclose(table['Fixed capital investment [MM$]'].iloc[0], 3.36)
     assert_allclose(table['Working capital [MM$]'].iloc[0], 0.168)
-    assert_allclose(table['Working capital [MM$]'].iloc[-1], -0.168 * factors[-1])
+    assert_allclose(table['Working capital [MM$]'].iloc[-1], -0.168) # Working capital is returned without inflation
 
     # Check nominal discounting.
     assert_allclose(

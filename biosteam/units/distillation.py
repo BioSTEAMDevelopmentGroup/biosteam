@@ -323,8 +323,9 @@ class Distillation(Unit, isabstract=True):
             partial_condenser=True,
             weir_height=0.1,
             vlle=False,
+            check_LHK=True,
         ):
-        self.check_LHK = True
+        self.check_LHK = check_LHK
         self._vlle = vlle
         
         # Operation specifications
@@ -2769,7 +2770,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     vessel_material = Distillation.vessel_material
     
     def _init(self, 
-            LHK, N_stages, feed_stages, 
+            N_stages, feed_stages, 
             reflux=None, boilup=None, bottoms_product_to_feed=None,
             P=101325, 
             vapor_side_draws=None, liquid_side_draws=None,
@@ -2795,6 +2796,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
             stage_specifications=None,
             vlle=False,
             specifications_by_weight=False,
+            LHK=None, # For estimating stage efficiency
         ):
         if full_condenser: 
             if liquid_side_draws is None:
@@ -2805,6 +2807,8 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                 else:
                     liquid_side_draws[0] = reflux / (1 + reflux)
             reflux = inf # Boil-up is 0
+        if LHK is None and stage_efficiency is None:
+            stage_efficiency = 0.6
         self.LHK = LHK
         if stage_specifications is None: stage_specifications = {}
         if reflux is not None:
@@ -2873,7 +2877,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         args = (self.N_stages, self.feed_stages, self.vapor_side_draws, 
                 self.liquid_side_draws, self.use_cache, *self._ins, 
                 self.partition_data, self.P, self.stage_specifications)
-        if args != self._last_args:
+        if args is not self._last_args:
             MultiStageEquilibrium._init(
                 self, N_stages=self.N_stages,
                 feed_stages=self.feed_stages,
@@ -2884,6 +2888,11 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                 stage_specifications=self.stage_specifications,
                 stage_reactions=self.stage_reactions,
                 use_cache=self.use_cache, 
+                algorithms=self.algorithms,
+                methods=self.methods,
+                vle_decomposition=self.vle_decomposition,
+                vlle=self._vlle,
+                specifications_by_weight=self.specifications_by_weight,
             )
             self._last_args = args
     
