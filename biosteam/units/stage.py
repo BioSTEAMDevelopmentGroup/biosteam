@@ -2207,6 +2207,7 @@ class MultiStageEquilibrium(Unit):
     )
     _side_draw_names = ('top_side_draws', 'bottom_side_draws')
     
+    sequential_runs_init = 1
     
     def __init_subclass__(cls, *args, **kwargs):
         super().__init_subclass__(cls, *args, **kwargs)
@@ -3248,6 +3249,13 @@ class MultiStageEquilibrium(Unit):
                 use_cache = False
             else:
                 use_cache = True
+        self._gamma = self._eq_thermo.Gamma(self._eq_thermo.chemicals)
+        self._phi = self._eq_thermo.Phi(self._eq_thermo.chemicals)
+        self._H_magnitude = 100 * sum([i.mixture.Cn('l', i.mol, i.T, i.P) for i in self.ins])
+        self.attempt = 0
+        self._mean_residual = inf
+        self._best_result = empty = IterationResult(None, inf)
+        self._point_shape = (N_stages, 2 * N_chemicals + 1)
         if not (use_cache
             and all([i.IDs == IDs for i in partitions])
             and np.isfinite(point).all()):
@@ -3377,9 +3385,8 @@ class MultiStageEquilibrium(Unit):
                 top_flows *= Vs[:, None]
                 bottom_flows *= Ls[:, None]
                 self.set_all_flow_rates(top_flows, bottom_flows)
-                self._run_sequential()
+                for i in range(self.sequential_runs_init): self._run_sequential()
                 if self.vle_decomposition is None: self.default_vle_decomposition()
-                self._run_phenomena()
             else:
                 vle = ms.vle
                 P = self.P[N_stages // 2]
@@ -3407,13 +3414,6 @@ class MultiStageEquilibrium(Unit):
                 bottom_flows = np.ones((N_stages, N_chemicals)) * L_mol
                 self.set_all_flow_rates(top_flows, bottom_flows)
                 if self.vle_decomposition is None: self.default_vle_decomposition()
-        self._gamma = self._eq_thermo.Gamma(self._eq_thermo.chemicals)
-        self._phi = self._eq_thermo.Phi(self._eq_thermo.chemicals)
-        self._H_magnitude = 100 * sum([i.mixture.Cn('l', i.mol, i.T, i.P) for i in self.ins])
-        self.attempt = 0
-        self._mean_residual = inf
-        self._best_result = empty = IterationResult(None, inf)
-        self._point_shape = (N_stages, 2 * N_chemicals + 1)
         record = self.iteration_memory * [empty]
         x = self._get_point()
         if self.early_termination:
