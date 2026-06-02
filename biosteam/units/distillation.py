@@ -2716,7 +2716,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     >>> distillate.imol['Ethanol'] / feed.imol['Ethanol']
     0.81
     >>> distillate.imol['Ethanol'] / distillate.F_mol
-    0.711695248386583
+    0.709
     
     Notes
     -----
