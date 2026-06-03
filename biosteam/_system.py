@@ -3956,11 +3956,15 @@ class System:
         impact += self.get_process_impact(key)
         if key == 'WU':
             # Displace recycled water
-            PWC = self.flowsheet(bst.ProcessWaterCenter)
-            recycles = (
-                PWC.recycled_reverse_osmosis_grade_water,
-                PWC.recycled_process_water
-            )
+            try:
+                PWC = self.flowsheet(bst.ProcessWaterCenter)
+            except:
+                recycles = ()
+            else:
+                recycles = (
+                    PWC.recycled_reverse_osmosis_grade_water,
+                    PWC.recycled_process_water
+                )
             displaced = sum([i.imass['Water'] for i in recycles]) * self.operating_hours
             impact -= displaced
         return impact / total_property
@@ -4470,18 +4474,11 @@ class System:
             )
         
         if 'Water mass balance' in sheets:
-            try:
-                water_mass_balance = report.water_mass_balance_table(self)
-            except LookupError:
-                # The water mass balance is defined relative to a ProcessWaterCenter;
-                # skip the sheet when the system does not have one.
-                warn('Cannot find a ProcessWaterCenter; skipping the water mass '
-                     'balance sheet.', RuntimeWarning, stacklevel=2)
-            else:
-                report.tables_to_excel(
-                    [water_mass_balance], writer,
-                    'Water mass balance'
-                )
+            water_mass_balance = report.water_mass_balance_table(self)
+            report.tables_to_excel(
+                [water_mass_balance], writer,
+                'Water mass balance'
+            )
         
         if 'CAPEX' in sheets:
             CAPEX = tea.CAPEX_table()

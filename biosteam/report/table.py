@@ -960,7 +960,10 @@ def mass_balance_table(system, ID):
         'fire_water',
     }
     def feed_(stream):
-        value = stream.imass[ID]
+        try:
+            value = stream.imass[ID]
+        except:
+            value = 0
         if not value or stream.ID in ignored: return 0
         values.append(
             value
@@ -971,7 +974,10 @@ def mass_balance_table(system, ID):
         return value
     
     def recycle_(stream):
-        value = stream.imass[ID]
+        try:
+            value = stream.imass[ID]
+        except:
+            value = 0
         if not value: return 0
         values.append(
             value
@@ -982,7 +988,10 @@ def mass_balance_table(system, ID):
         return value
         
     def lost_(stream):
-        value = stream.imass[ID]
+        try:
+            value = stream.imass[ID]
+        except:
+            value = 0
         if abs(value) < 0.01 or stream.ID in ignored: return 0
         values.append(
             value
@@ -993,10 +1002,13 @@ def mass_balance_table(system, ID):
         return value
     
     def reacted_(unit):
-        reacted = (
-            sum([i.imass[ID] for i in unit.ins])
-            - sum([i.imass[ID] for i in unit.outs])
-        )
+        try:
+            reacted = (
+                sum([i.imass[ID] for i in unit.ins])
+                - sum([i.imass[ID] for i in unit.outs])
+            )
+        except:
+            reacted = 0
         if abs(reacted) < 0.1: return 0
         index.append(
             ('Reacted', name('_'.join([unit.line, unit.ID])))
@@ -1006,49 +1018,30 @@ def mass_balance_table(system, ID):
         )
         return reacted
     
-    PWC = system.flowsheet(bst.ProcessWaterCenter)
+    try:
+        PWC = system.flowsheet(bst.ProcessWaterCenter)
+    except:
+        recycled = 0
+        PWC = None
+    else:
+        recycled = 0
+        for s in (PWC.recycled_reverse_osmosis_grade_water, 
+                  PWC.recycled_process_water):
+            if isinstance(s.source, bst.Mixer):
+                for i in s.source.ins: recycled += recycle_(i)
+            else:
+                recycled += recycle_(s)
     feed = 0
     for s in system.feeds:
         if s.sink is PWC: continue
         feed += feed_(s)
-    # index.append(
-    #     ('Net feeds', '')
-    # )
-    # values.append(
-    #     feed
-    # )
-    recycled = 0
-    for s in (PWC.recycled_reverse_osmosis_grade_water, 
-              PWC.recycled_process_water):
-        if isinstance(s.source, bst.Mixer):
-            for i in s.source.ins: recycled += recycle_(i)
-        else:
-            recycled += recycle_(s)
-    # index.append(
-    #     ('Net treated/recycled', '')
-    # )
-    # values.append(
-    #     recycled
-    # )
     lost = 0
     for i in system.products:
         if i.source is PWC: continue
         lost += lost_(i)
-    # index.append(
-    #     ('Net lost', '')
-    # )
-    # values.append(
-    #     lost
-    # )
     reacted = 0
     for i in system.units:
         reacted += reacted_(i)
-    # index.append(
-    #     ('Net reacted', '')
-    # )
-    # values.append(
-    #     reacted
-    # )
     index.append(
         ('Mass balance error (Feeds - Recycled - Losses - Reacted)', '')
     )
