@@ -1914,6 +1914,7 @@ class PhasePartition(Unit):
                 feed = ms.F_mol
             var = 'B'
             value = feed / bottom - 1
+            if value < 1e-6: value = 1e-6
         elif var == 'W':
             var = 'B'
             value = self.W
@@ -1936,7 +1937,8 @@ class PhasePartition(Unit):
             x_mol = L_mol / L_total
             x_mol[x_mol == 0] = 1e-9
         else:
-            x_mol = 1
+            N = len(IDs)
+            x_mol = np.ones(N) / N
         V_mol = ms.imol['g', IDs]
         V_total = V_mol.sum()
         if V_total: 
@@ -2207,7 +2209,7 @@ class MultiStageEquilibrium(Unit):
     )
     _side_draw_names = ('top_side_draws', 'bottom_side_draws')
     
-    sequential_runs_init = 1
+    sequential_runs_init = 0
     
     def __init_subclass__(cls, *args, **kwargs):
         super().__init_subclass__(cls, *args, **kwargs)
@@ -2853,8 +2855,12 @@ class MultiStageEquilibrium(Unit):
         ix = self._ix
         decomp = self.vle_decomposition
         bp = decomp == 'bubble point'
-        if not bp: sr = decomp == 'sum rates'
+        if not bp: 
+            sr = decomp == 'sum rates'
+            if not sr:
+                md = decomp == 'modular'
         stages = self.stages
+        specified_variables = self._specified_variables
         for i, stage in enumerate(stages):
             partition = stage.partition
             Pi = P[i]
@@ -2871,6 +2877,11 @@ class MultiStageEquilibrium(Unit):
                 partition.y = mol_t / F_t if F_t else mol_t
                 partition.x = mol_b / F_b if F_b else mol_b
                 partition.K = partition.K_model(partition.y, partition.x, partition.T, Pi)
+            elif md:
+                if specified_variables[i] == 'F':
+                    partition._run_decoupled_KTvle(P=Pi)
+                else:
+                    partition._run_vle(update=False)
             else:
                 raise RuntimeError('unknown decomposition')
             dlogK_dTinv[i] = approx_derivative(f, 1 / stage.T)[:, 0]
@@ -2900,53 +2911,13 @@ class MultiStageEquilibrium(Unit):
             total_feed_flows = self._total_feed_flows
             bulk_feed = self._bulk_feed
         self.update_invariable_enthalpies()
-        if bp:
-            variables = ''
-            values = self._specified_values.copy()
-            for i, var in enumerate(self._specified_variables):
-                if var == 'T':
-                    values[i] = stages[i].B
-                    variables += 'B'
-                else:
-                    variables += var
-            if self.specifications_by_weight:
-                total_feed_flows_wt = (feed_flows * MW).sum(axis=1)
-                bulk_feed_wt = self._bulk_feed_wt
-                L_MWs = (x * MW).sum(axis=1)
-                V_MWs = (y * MW).sum(axis=1)
-                V, L = MESH.bulk_vapor_and_liquid_flow_rates(
-                    hL / L_MWs, 
-                    hV / V_MWs, 
-                    self._neg_asplit, self._neg_bsplit, 
-                    self._top_split, self._bottom_split, 
-                    N_stages, self._feed_and_invariable_enthalpies, 
-                    total_feed_flows_wt,
-                    variables,
-                    values,
-                    bulk_feed_wt,
-                )
-                V /= V_MWs
-                L /= L_MWs
-            else:
-                V, L = MESH.bulk_vapor_and_liquid_flow_rates(
-                    hL, hV,
-                    self._neg_asplit, self._neg_bsplit, 
-                    self._top_split, self._bottom_split, 
-                    N_stages, self._feed_and_invariable_enthalpies, 
-                    total_feed_flows,
-                    variables,
-                    values,
-                    bulk_feed,
-                )
-            V_over_L = V / L
-        elif sr:
-            V_over_L = np.array([i.B for i in stages])
+        V_over_L = np.array([i.B for i in stages])
         Kb, alpha, A, B, hV_ref, hL_ref, Kbmin, Kbmax = fit_surrogate_parameters(
             N_stages, T, y, K, dlogK_dTinv, hV, hL, CV, CL
         )
         Sb = Kb * V_over_L
         full_condenser = (
-            self._specified_variables[0] in 'BW'
+            specified_variables[0] in 'BW'
             and self._specified_values[0] == 0
         )
         if full_condenser: Sb = Sb[1:]
