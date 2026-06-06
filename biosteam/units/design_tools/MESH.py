@@ -456,6 +456,23 @@ def temperature_departures(Cv, Cl, Hv, Hl, asplit, bsplit,
     d[:-1] += (Hv * asplit)[1:]
     return solve_tridiagonal_matrix(a, b, c, d)
 
+# %% Interpolation
+
+def interpolate_missing_variables(index, size, *values):
+    index = [
+        (i if i >= 0 else size + i)
+        for i in index
+    ]
+    neighbors = get_neighbors(index, size=size)
+    outputs = []
+    for values_i in values:
+        _, *ns = np.shape(values_i)
+        new_values = np.zeros([size, *ns])
+        new_values[index] = values_i
+        fillmissing(neighbors, new_values)
+        outputs.append(new_values)
+    return outputs
+
 def get_neighbors(index=None, all_index=None, missing=None, size=None):
     if size is not None:
         all_index = set(range(size))
