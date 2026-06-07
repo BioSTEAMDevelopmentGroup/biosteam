@@ -938,6 +938,13 @@ class System:
     #: Whether to raise a RuntimeError when system doesn't converge
     strict_convergence: bool = True
 
+    #: [float|None] Wall-clock limit (seconds) for a single dynamic integration.
+    #: A stiff solve on a corrupted/singular state can otherwise reduce its step
+    #: indefinitely and effectively hang; exceeding this raises a RuntimeError so
+    #: the failure is fast and actionable. Override per call with the ``timeout``
+    #: dynamic-simulation kwarg, or set to None to disable.
+    dynamic_run_timeout: float|None = 600.
+
     #: Method definitions for convergence
     available_methods: Methods[str, tuple[Callable, bool, dict]] = Methods()
 
@@ -3496,6 +3503,7 @@ class System:
         sample_id = dk_cp.pop('sample_id', '')
         print_msg = dk_cp.pop('print_msg', False)
         print_t = dk_cp.pop('print_t', False)
+        timeout = dk_cp.pop('timeout', self.dynamic_run_timeout)
         dk_cp.pop('y0', None) # will be updated later
         # Reset state, if needed
         if state_reset_hook:
@@ -3512,8 +3520,36 @@ class System:
         y0, idx, nr = self._load_state()
         self.dynsim_kwargs['y0'] = y0.copy()
         self.dynsim_kwargs['print_t'] = print_t # self.dynsim_kwargs might be reset by `state_reset_hook`
-        # Integrate
-        self.scope.sol = sol = solve_ivp(fun=self.DAE, y0=y0, **dk_cp)
+        # Integrate. The stiff ODE solver legitimately encounters transient
+        # invalid/divide operations (e.g. Monod or mass-action terms at near-zero
+        # concentrations) and handles them by rejecting and retrying the step.
+        # Some dependencies (flexsolve) call ``np.seterr(divide='raise',
+        # invalid='raise')`` at import, which is process-global and would turn
+        # those harmless transients into fatal FloatingPointErrors -- and because
+        # whether one fires at a sub-ULP near-zero value depends on operation
+        # order, the crash is non-deterministic (PYTHONHASHSEED-sensitive).
+        # Isolate the integration from that global error state.
+        #
+        # The errstate guard lets the solver recover from transient invalids, but
+        # a corrupted/singular state can make it reduce its step without end (an
+        # effective hang). Bound the integration by wall-clock time: a lightweight
+        # check in the RHS aborts a runaway solve fast with an actionable error.
+        DAE = self.DAE
+        if timeout:
+            from time import perf_counter
+            deadline = perf_counter() + timeout
+            def DAE(t, y, _f=self.DAE, _deadline=deadline, _timeout=timeout):
+                if perf_counter() > _deadline:
+                    raise RuntimeError(
+                        f'dynamic simulation exceeded the {_timeout:g}s timeout '
+                        f'(`System.dynamic_run_timeout`); the solver is likely '
+                        f'stuck reducing its step near a singular state. Raise '
+                        f'the limit, pass `timeout=None` to disable, or check the '
+                        f'initial state.'
+                    )
+                return _f(t, y)
+        with np.errstate(invalid='ignore', divide='ignore'):
+            self.scope.sol = sol = solve_ivp(fun=DAE, y0=y0, **dk_cp)
         if print_msg:
             if sol.status == 0:
                 print('Simulation completed.')
