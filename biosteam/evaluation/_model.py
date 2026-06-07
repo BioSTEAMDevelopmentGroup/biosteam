@@ -568,6 +568,8 @@ class Model:
         copy._system = self._system
         copy._specification = self._specification
         copy._indicators = self._indicators
+        copy.retry_evaluation = self.retry_evaluation
+        copy._exception_hook = self._exception_hook
         if self.table is None:
             copy._samples = copy.table = None
         else:
