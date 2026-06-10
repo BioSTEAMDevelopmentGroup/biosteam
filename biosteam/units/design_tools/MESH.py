@@ -353,6 +353,44 @@ def top_flows_mass_balance(
 # %% Energy balance solution
 
 @njit(cache=True)
+def bulk_vapor_and_liquid_flow_rates_by_phase_ratios(
+        phase_ratios, neg_asplit, neg_bsplit, 
+        top_split, bottom_split, 
+        N_stages, F_feeds, bulk_feed,
+    ):
+    # Equations:
+    # - L0 + V1 + L1 - V2 = 0
+    N_bulk = 2 * N_stages
+    Q = np.zeros(N_bulk)
+    L0 = -1 # L0
+    V1 = 0 # V1
+    L1 = 1 # L1
+    V2 = 2 # V2
+    A = np.zeros((N_bulk, N_bulk))
+    last = N_stages - 1
+    for i in range(N_stages):
+        n = 2 * i
+        m = n + 1
+        ilast = i - 1
+        inext = i + 1
+        
+        # Bulk material balance
+        Q[m] = F_feeds[i]
+        if L0 != -1: A[m, L0] = neg_bsplit[ilast]
+        A[m, V1] = 1
+        A[m, L1] = 1
+        if i != last: A[m, V2] = neg_asplit[inext]
+        A[n, V1] = -1
+        A[n, L1] = phase_ratios[i]
+        L0 += 2
+        V1 += 2
+        L1 += 2
+        V2 += 2
+    VLs = np.linalg.solve(A, Q)
+    VLs[VLs < 1e-32] = 1e-32
+    return VLs[::2], VLs[1::2] # V, L
+
+@njit(cache=True)
 def bulk_vapor_and_liquid_flow_rates(
         hl, hv, 
         neg_asplit, neg_bsplit, 

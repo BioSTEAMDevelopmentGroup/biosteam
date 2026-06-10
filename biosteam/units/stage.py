@@ -218,8 +218,8 @@ def surrogate_residuals(
         Sb[1:] = np.exp(logSb1) - 1
     else:
         Sb = np.exp(logSb1) - 1
-    Sb[Sb < 0] *= -1 
-    Sb[Sb > 1e6] = 1e6
+    Sb[Sb < 0] *= -1
+    Sb[Sb < 1e-9] = 1e-9
     S = alpha * np.expand_dims(Sb, -1)
     xL = MESH.bottom_flow_rates(
         S, 
@@ -3333,6 +3333,7 @@ class MultiStageEquilibrium(Unit):
                         Fxs.append(ms['l'].imol[IDs])
                         Fys.append(ms['g'].imol[IDs])
                         Ts.append(T)
+                        if i == 0: ms = ms['l'].copy()
                     Ts, Fys, Fxs = MESH.interpolate_missing_variables(
                         spec_index, N_stages, Ts, Fys, Fxs
                     )
@@ -3365,10 +3366,11 @@ class MultiStageEquilibrium(Unit):
                         partition.K = Ks[i]
                         partition.fgas = fgas[i]
                     self.conversion_homotopy = 0
-                    Vs, Ls = self.estimate_bulk_vapor_and_liquid_flow_rates(xs, ys, Ts)
-                    phase_ratios = Vs / Ls
-                    for partition, B in zip(partitions, phase_ratios):
-                        if partition.specified_variable != 'B': partition.B = B
+                    Vs, Ls = MESH.bulk_vapor_and_liquid_flow_rates_by_phase_ratios(
+                        Bs, self._neg_asplit, self._neg_bsplit, 
+                        self._top_split, self._bottom_split, 
+                        N_stages, self._total_feed_flows, self._bulk_feed,
+                    )
                     top_flows = xs * Vs[:, None]
                     bottom_flows = ys * Ls[:, None]
                     self.set_all_flow_rates(top_flows, bottom_flows)
