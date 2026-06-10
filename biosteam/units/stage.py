@@ -3316,10 +3316,9 @@ class MultiStageEquilibrium(Unit):
                     self.set_all_flow_rates(top_flows, bottom_flows)
                     if self.vle_decomposition is None: self.default_vle_decomposition()
                 else:
-                    Bs = []
                     Ts = []
-                    xs = []
-                    ys = []
+                    Fxs = []
+                    Fys = []
                     for i in spec_index:
                         partition = partitions[i]
                         var = variables[i]
@@ -3328,28 +3327,28 @@ class MultiStageEquilibrium(Unit):
                             var = 'B'
                             val = (1 - val) / val
                         elif var == 'B' and val == 0:
-                            val = 1e-3
+                            val = 1e-3 # Full condenser
                         ms.vle(P=Ps[i], **{var: val})
                         T = ms.T
-                        Fx = ms['l'].imol[IDs]
-                        Fy = ms['g'].imol[IDs]
-                        Fl = Fx.sum()
-                        Fg = Fy.sum()
-                        x = Fx / Fl if Fl else Fx
-                        y = Fy / Fg if Fg else Fy
-                        B = Fg / Fl if Fl else 1e3
-                        xs.append(x)
-                        ys.append(y)
-                        Bs.append(B)
+                        Fxs.append(ms['l'].imol[IDs])
+                        Fys.append(ms['g'].imol[IDs])
                         Ts.append(T)
-                    Bs, Ts, ys, xs = MESH.interpolate_missing_variables(
-                        spec_index, N_stages, Bs, Ts, ys, xs
+                    Ts, Fys, Fxs = MESH.interpolate_missing_variables(
+                        spec_index, N_stages, Ts, Fys, Fxs
                     )
+                    Fg = Fys.sum(axis=1)
+                    Fl = Fxs.sum(axis=1)
+                    Fl[Fl == 0] = 1e-3
+                    Fg[Fg == 0] = 1e-3
+                    xs = Fxs / Fl[:, np.newaxis]
+                    ys = Fys / Fg[:, np.newaxis]
+                    Bs = Fg / Fl
                     mask = xs == 0
                     xs_div = xs.copy()
                     xs_div[mask] = 1e-32
                     Ks = ys / xs_div
                     Ks[mask] = 1e9
+                    fgas = Ps[:, np.newaxis] * ys
                     for i, stage in enumerate(stages): 
                         partition = stage.partition
                         partition.T = T = Ts[i]
@@ -3364,7 +3363,7 @@ class MultiStageEquilibrium(Unit):
                         partition.x = xs[i]
                         partition.y = ys[i]
                         partition.K = Ks[i]
-                        partition.fgas = P * ys[i]
+                        partition.fgas = fgas[i]
                     self.conversion_homotopy = 0
                     Vs, Ls = self.estimate_bulk_vapor_and_liquid_flow_rates(xs, ys, Ts)
                     phase_ratios = Vs / Ls
@@ -3962,6 +3961,10 @@ class MultiStageEquilibrium(Unit):
             pass
         finally:
             self._convergence_analysis_mode = False
+            self._best_result = empty = IterationResult(None, inf)
+            self._iteration_record = deque(self.iteration_memory * [empty])
+            self._mean_residual = inf
+            
         iterations = min(self.iter, iterations)
         corrections = np.diff(points, axis=0)
         stepsize = 1 / fillsteps
