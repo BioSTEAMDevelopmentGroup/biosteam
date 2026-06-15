@@ -26,7 +26,7 @@ def Gibbs_equilibrium_objective(
     if phase_hook is None:
         if phase_equilibrium is not None:
             eq = getattr(product, phase_equilibrium)
-            eq(T=eq.T, P=eq.P)
+            eq(T=product.T, P=product.P)
     else:
         phase_hook(product)
     return product.G
@@ -148,6 +148,7 @@ def minimize_Gibbs_free_energy(
         )
     
     # Set solution
+    solution.x[solution.x < 1e-16] = 0
     product.empty()
     product[main_phase].imol[IDs] = solution.x / MWs
     product.F_mass = F_mass
@@ -156,7 +157,7 @@ def minimize_Gibbs_free_energy(
         phase_hook(product)
     elif phase_equilibrium is not None:
         eq = getattr(product, phase_equilibrium)
-        eq(T=eq.T, P=eq.P)
+        eq(T=product.T, P=product.P)
     return solution
     
 def plot_Gibbs_equilibrium_reaction_surface():

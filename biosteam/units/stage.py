@@ -3329,6 +3329,10 @@ class MultiStageEquilibrium(Unit):
                         elif var == 'B' and val == 0:
                             val = 1e-3 # Full condenser
                         ms.vle(P=Ps[i], **{var: val})
+                        if ms['g'].isempty():
+                            ms.vle(P=Ps[i], V=0.1)
+                        elif ms['l'].isempty():
+                            ms.vle(P=Ps[i], V=0.9)
                         T = ms.T
                         Fxs.append(ms['l'].imol[IDs])
                         Fys.append(ms['g'].imol[IDs])
