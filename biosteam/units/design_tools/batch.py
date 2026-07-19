@@ -174,15 +174,15 @@ def size_batch(F_vol, tau_reaction, tau_cleaning, V_wf,
             N_reactors = max(N_reactors, 2)
             V_T = F_vol * (tau_reaction + tau_cleaning + tau_loading)
             V_i = V_T / N_reactors
-            
-            # Total volume of all reactors, assuming no downtime
-            V_T = F_vol * (tau_reaction + tau_cleaning) / (1 - 1 / N_reactors)
-            
-            # Volume of an individual reactor
-            V_i = V_T / N_reactors
-            
-            # Time required to load a reactor
-            tau_loading = V_i / F_vol
+
+        # Total volume of all reactors, assuming no downtime
+        V_T = F_vol * (tau_reaction + tau_cleaning) / (1 - 1 / N_reactors)
+
+        # Volume of an individual reactor
+        V_i = V_T / N_reactors
+
+        # Time required to load a reactor
+        tau_loading = V_i / F_vol
     else:
         tau_loading = loading_time
         
