@@ -171,6 +171,7 @@ def size_batch(F_vol, tau_reaction, tau_cleaning, V_wf,
             
             tau_loading = wegstein(f, 0.5, checkconvergence=False, checkiter=False)
             N_reactors = ceil(F_vol * (tau_reaction + tau_cleaning + tau_loading) / (V_max * V_wf))
+            N_reactors = max(N_reactors, 2)
             V_T = F_vol * (tau_reaction + tau_cleaning + tau_loading)
             V_i = V_T / N_reactors
             
