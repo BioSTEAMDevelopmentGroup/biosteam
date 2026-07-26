@@ -216,7 +216,7 @@ class ProcessModel:
     def scenario_hook(cls, scenario, kwargs):
         if scenario is None:
             if cls.default_scenario:
-                scenario = cls.default_scenario()
+                scenario = cls.default_scenario(**kwargs)
             else:
                 try:
                     return cls.Scenario(**kwargs)
