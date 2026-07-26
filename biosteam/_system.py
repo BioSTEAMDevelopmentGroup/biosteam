@@ -182,7 +182,6 @@ class Configuration:
                 checkconvergence=False,
             )
             for i in self.composition_sensitive_path: i._update_net_flow_parameters()
-            # self.solve_material_flows(composition_sensitive=True)
             for obj, value in zip(objs, flows): # reset material flows
                 indexer, phase = obj
                 index = indexer._phase_indexer(phase)
