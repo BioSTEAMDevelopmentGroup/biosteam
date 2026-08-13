@@ -5,4 +5,11 @@ SALib
 pyglet
 ipykernel
 CoolProp
+pydata_sphinx_theme
+sphinxcontrib-jquery
+sphinx_design
+sphinx_multitoc_numbering
 sphinx_autodoc_typehints
+myst_parser
+nbsphinx
+nbsphinx_link

@@ -43,12 +43,10 @@ for BioSTEAM include thermochemical upcycling of waste plastics through
 pyrolysis and solvent-based dissolution and precipitation. 
 
 The long-term growth and maintenance of BioSTEAM is supported through both community-led 
-development and the research institutions invested in BioSTEAM, including the 
-`Center for Advanced Bioenergy and Bioproducts Innovations (CABBI) <https://cabbi.bio/>`_. 
+development and the research institutions invested in BioSTEAM. 
 Through its open-source and community-lead platform, BioSTEAM aims to foster 
-communication and transparency within the biorefinery research community for an 
-integrated effort to expedite the evaluation of candidate biofuels and 
-bioproducts.
+communication and transparency within the process systems research community for an 
+integrated effort to expedite the development of sustainable processes.
 
 Data on chemicals and algorithms to estimate thermodynamic properties are 
 imported from `chemicals <https://github.com/CalebBell/chemicals>`_
@@ -105,7 +103,27 @@ any changes you make back, and benefit the community.
 About the authors
 -----------------
 
-BioSTEAM was created and developed by `Yoel Cortés-Peña <https://yoelcortes.github.io/me/>`__ as part of the `Guest Group <http://engineeringforsustainability.com/yoelcortespena>`__ and the `Center for Advanced Bioenergy and Bioproducts Innovation (CABBI) <https://cabbi.bio/>`__ at the `University of Illinois at Urbana-Champaign (UIUC) <https://illinois.edu/>`__. 
+BioSTEAM was originally created and developed by `Yoel Cortés-Peña <https://yoelcortes.github.io/me/>`__ 
+as part of the `Guest Group <http://engineeringforsustainability.com/yoelcortespena>`__ 
+and the `Center for Advanced Bioenergy and Bioproducts Innovation (CABBI) <https://cabbi.bio/>`__ 
+at the `University of Illinois at Urbana-Champaign (UIUC) <https://illinois.edu/>`__. 
+Yoel is now an Assistant Professor at the National University of Singapore,
+where he and his `lab group <https://blog.nus.edu.sg/corteslab/>`__ 
+continue to develop BioSTEAM's core simulation capabilities. 
+
+BioSTEAM also features contributons from numerous other lab groups and 
+individuals. Here is the list of other core contributers who have committed significant
+resources, expertise, and other impactful efforts:
+
+* `Jeremy Guest <http://engineeringforsustainability.com/people/>`__ led efforts to found, develop, coordinate, and expand the software.
+
+* `Sarang Sunil Bhagwat <https://github.com/sarangbhagwat>`__ led the development of the heat exchanger network and contributed enhancements to unit operations.
+
+* `Yalin Li <https://yalinli.group/>`__ contributed wastewater treatment models and general enhancements.
+
+BioSTEAM has also received numerous contributions from the community. You can view
+direct contributions and developers through this 
+`GitHub link <https://github.com/BioSTEAMDevelopmentGroup/biosteam/graphs/contributors>`__.
 
 References
 ----------

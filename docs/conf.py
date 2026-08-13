@@ -89,95 +89,6 @@ extensions = [
     'nbsphinx_link',
 ]
 
-# try:
-#     import sphinx_autodoc_typehints as sat
-#     def format_annotation(annotation, config) -> str:  # noqa: C901 # too complex
-#         # Special cases
-#         if isinstance(annotation, sat.ForwardRef):
-#             return annotation.__forward_arg__
-#         if annotation is None or annotation is type(None):  # noqa: E721
-#             return ":py:obj:`None`"
-#         if annotation is Ellipsis:
-#             return ":py:data:`...<Ellipsis>`"
-    
-#         if isinstance(annotation, tuple):
-#             return sat.format_internal_tuple(annotation, config)
-    
-#         try:
-#             module = sat.get_annotation_module(annotation)
-#             class_name = sat.get_annotation_class_name(annotation, module)
-#             args = sat.get_annotation_args(annotation, module, class_name)
-#         except ValueError:
-#             return str(annotation).strip("'")
-    
-#         # Redirect all typing_extensions types to the stdlib typing module
-#         if module == "typing_extensions":
-#             module = "typing"
-    
-#         full_name = f"{module}.{class_name}" if module != "builtins" else class_name
-#         fully_qualified: bool = getattr(config, "typehints_fully_qualified", False)
-#         prefix = "" if fully_qualified or full_name == class_name else "~"
-#         if module == "typing" and class_name in sat._PYDATA_ANNOTATIONS:
-#             role = "data"
-#         else:
-#             role = "class"
-#         args_format = r"\[{}]"
-#         formatted_args: str | None = ""
-    
-#         # Some types require special handling
-#         if full_name == "typing.NewType":
-#             args_format = f"\\(``{annotation.__name__}``, {{}})"
-#             role = "class" if sys.version_info >= (3, 10) else "func"
-#         elif full_name == "typing.TypeVar":
-#             params = {k: getattr(annotation, f"__{k}__") for k in ("bound", "covariant", "contravariant")}
-#             params = {k: v for k, v in params.items() if v}
-#             if "bound" in params:
-#                 params["bound"] = f" {format_annotation(params['bound'], config)}"
-#             args_format = f"\\(``{annotation.__name__}``{', {}' if args else ''}"
-#             if params:
-#                 args_format += "".join(f", {k}={v}" for k, v in params.items())
-#             args_format += ")"
-#             formatted_args = None if args else args_format
-#         elif full_name == "typing.Optional":
-#             args = tuple(x for x in args if x is not type(None))  # noqa: E721
-#         elif full_name in ("typing.Union", "types.UnionType") and type(None) in args:
-#             if len(args) == 2:
-#                 full_name = "typing.Optional"
-#                 args = tuple(x for x in args if x is not type(None))  # noqa: E721
-#             else:
-#                 simplify_optional_unions: bool = getattr(config, "simplify_optional_unions", True)
-#                 if not simplify_optional_unions:
-#                     full_name = "typing.Optional"
-#                     args_format = f"\\[:py:data:`{prefix}typing.Union`\\[{{}}]]"
-#                     args = tuple(x for x in args if x is not type(None))  # noqa: E721
-#         elif full_name == "typing.Callable" and args and args[0] is not ...:
-#             fmt = [format_annotation(arg, config) for arg in args]
-#             formatted_args = f"\\[\\[{', '.join(fmt[:-1])}], {fmt[-1]}]"
-#         elif full_name == "typing.Literal":
-#             formatted_args = f"\\[{', '.join(repr(arg) for arg in args)}]"
-#         elif full_name == "types.UnionType":
-#             return " | ".join([format_annotation(arg, config) for arg in args])
-    
-#         if args and not formatted_args:
-#             try:
-#                 iter(args)
-#             except TypeError:
-#                 fmt = [format_annotation(args, config)]
-#             else:
-#                 fmt = [format_annotation(arg, config) for arg in args]
-#             formatted_args = args_format.format(", ".join(fmt))
-    
-#         result = f":py:{role}:`{prefix}{full_name}`{formatted_args}"
-#         return result
-    
-# import sphinx_autodoc_typehints as sat
-# format_annotation_old = sat.format_annotation
-# def format_annotation(annotation, config):
-#     annotation_rst = format_annotation_old(annotation, config)
-#     if annotation_rst.endswith('| :py:obj:`None`'): annotation_rst = annotation_rst[:-16] + ', optional'
-    
-#     return annotation_rst
-# sat.format_annotation = format_annotation
 import sphinx_autodoc_typehints as sat
 from functools import reduce
 import biosteam as bst
@@ -277,6 +188,16 @@ language = 'en'
 # This pattern also affects html_static_path and html_extra_path .
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '**.ipynb_checkpoints']
 
+if os.environ.get("SPHINX_FAST_BUILD"):
+    html_search_index = False
+    # Skips all slow autodoc generation
+    exclude_patterns.extend([
+        "API/**",
+        "tutorial/**",
+        "**.ipynb",
+        "**.py",
+    ])
+
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 
@@ -308,6 +229,7 @@ html_theme_options = {
       {"name": "Bioindustrial-Park", "url": "https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park"},
       {"name": "How2STEAM", "url": "https://mybinder.org/v2/gh/BioSTEAMDevelopmentGroup/How2STEAM/HEAD"},
       {"name": "QSDsan", "url": "https://qsdsan.readthedocs.io/en/latest/"},
+      {"name": "YouTube", "url": "https://www.youtube.com/@yoelcortes-pena2100/videos"},
   ]
 }
 

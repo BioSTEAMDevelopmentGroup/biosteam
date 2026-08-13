@@ -2,7 +2,7 @@
 """
 .. contents:: :local:
 
-.. autoclass:: biosteam.units.equilibrium_reactor.GibbsEquilibriumReactor
+.. autoclass:: biosteam.units.Gibbs_equilibrium_reactor.GibbsEquilibriumReactor
 
 """
 import biosteam as bst
