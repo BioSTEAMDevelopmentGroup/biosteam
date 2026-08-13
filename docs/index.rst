@@ -7,8 +7,9 @@ Fast and Flexible Process Simulation
    
    tutorial/index
    API/index
-   Impact <impact>
    contributing/index
+   publications
+   ecosystem
 
 .. grid:: 1 1 2 2
 
@@ -60,20 +61,6 @@ Fast and Flexible Process Simulation
        :link-type: url
        :padding: 1
 
-       .. image:: images/membrane_bioreactor.png
-          :height: 100
-          :class: dark-light
-          :align: center
-          
-       Notebook tutorials
-
-       
-    .. grid-item-card:: Bioindustrial-Park
-       :text-align: center
-       :link: https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park
-       :link-type: url
-       :padding: 1
-       
        .. image:: images/extraction.png
           :height: 100
           :class: only-light
@@ -84,10 +71,29 @@ Fast and Flexible Process Simulation
           :class: only-dark
           :align: center
           
-       Biorefinery models
+       Comprehensive tutorials
+
+       
+    .. grid-item-card:: Bioindustrial-Park
+       :text-align: center
+       :link: https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park
+       :link-type: url
+       :padding: 1
+          
+       .. image:: images/membrane_bioreactor.png
+          :height: 100
+          :class: only-light
+          :align: center
+          
+       .. image:: images/aerobic_chamber.png
+          :height: 100
+          :class: only-dark
+          :align: center
+          
+       Process models
        
        
-    .. grid-item-card:: YouTube
+    .. grid-item-card:: YouTube Channel
        :text-align: center
        :link: https://www.youtube.com/@yoelcortes-pena2100/videos
        :link-type: url
@@ -148,6 +154,7 @@ Installation
     
         $ brew install graphviz
 
+
 Common Issues
 -------------
 
@@ -171,11 +178,3 @@ Common Issues
   .. code-block:: bash
 
      $ pip install biosteam==<version>
-
-
-Indices and tables
-------------------
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

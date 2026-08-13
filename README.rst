@@ -103,7 +103,7 @@ any changes you make back, and benefit the community.
 About the authors
 -----------------
 
-BioSTEAM was originally created and developed by `Yoel Cortés-Peña <https://yoelcortes.github.io/me/>`__ 
+BioSTEAM was originally created and developed by `Yoel Cortés-Peña <https://blog.nus.edu.sg/corteslab/>`__ 
 as part of the `Guest Group <http://engineeringforsustainability.com/yoelcortespena>`__ 
 and the `Center for Advanced Bioenergy and Bioproducts Innovation (CABBI) <https://cabbi.bio/>`__ 
 at the `University of Illinois at Urbana-Champaign (UIUC) <https://illinois.edu/>`__. 
@@ -111,7 +111,7 @@ Yoel is now an Assistant Professor at the National University of Singapore,
 where he and his `lab group <https://blog.nus.edu.sg/corteslab/>`__ 
 continue to develop BioSTEAM's core simulation capabilities. 
 
-BioSTEAM also features contributons from numerous other lab groups and 
+BioSTEAM features contributons from numerous other lab groups and 
 individuals. Here is the list of other core contributers who have committed significant
 resources, expertise, and other impactful efforts:
 
@@ -120,6 +120,8 @@ resources, expertise, and other impactful efforts:
 * `Sarang Sunil Bhagwat <https://github.com/sarangbhagwat>`__ led the development of the heat exchanger network and contributed enhancements to unit operations.
 
 * `Yalin Li <https://yalinli.group/>`__ contributed wastewater treatment models and general enhancements.
+
+* `Rui Shi <https://www.linkedin.com/in/chuyingshi/>`__ contributed kinetic fermentation model.
 
 BioSTEAM has also received numerous contributions from the community. You can view
 direct contributions and developers through this 

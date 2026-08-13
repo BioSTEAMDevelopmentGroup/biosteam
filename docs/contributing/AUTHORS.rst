@@ -4,31 +4,29 @@ Authors & Acknowledgements
 Authors
 -------
 
-Authors of the BioSTEAM software include:
+BioSTEAM was originally created and developed by `Yoel Cortés-Peña <https://blog.nus.edu.sg/corteslab/>`__ 
+as part of the `Guest Group <http://engineeringforsustainability.com/yoelcortespena>`__ 
+and the `Center for Advanced Bioenergy and Bioproducts Innovation (CABBI) <https://cabbi.bio/>`__ 
+at the `University of Illinois at Urbana-Champaign (UIUC) <https://illinois.edu/>`__. 
+Yoel is now an Assistant Professor at the National University of Singapore,
+where he and his `lab group <https://blog.nus.edu.sg/corteslab/>`__ 
+continue to develop BioSTEAM's core simulation capabilities. 
 
-* Contributers who committed significant resources, expertise, and other 
-  impactful efforts:
+BioSTEAM features contributons from numerous other lab groups and 
+individuals. Here is the list of other core contributers who have committed significant
+resources, expertise, and other impactful efforts:
 
-  * `Yoel Cortes-Pena <https://yoelcortes.github.io/me/>`__ lead BioSTEAM author, developer, and maintainer
+* `Jeremy Guest <http://engineeringforsustainability.com/people/>`__ led efforts to found, develop, coordinate, and expand the software.
 
-  * `Jeremy Guest <http://engineeringforsustainability.com/people/>`__ led efforts to found, develop, coordinate, and expand the software.
+* `Sarang Sunil Bhagwat <https://github.com/sarangbhagwat>`__ led the development of the heat exchanger network and contributed enhancements to unit operations.
 
-  * `Sarang Sunil Bhagwat <https://github.com/sarangbhagwat>`__ led the development of the heat exchanger network and contributed enhancements to unit operations.
+* `Yalin Li <https://yalinli.group/>`__ contributed wastewater treatment models and general enhancements.
 
-  * `Yalin Li <https://yalinli.group/>`__ contributed wastewater treatment models and general enhancements.
+* `Rui Shi <https://www.linkedin.com/in/chuyingshi/>`__ contributed kinetic fermentation model.
 
-* Direct contributers to code base:
-
-  * `All other developers <https://github.com/BioSTEAMDevelopmentGroup/biosteam/graphs/contributors>`__ 
-    that have contributed to the biosteam repository
-
-* Developers who have contributed in person and through email:
-
-  * `Lisa Pardini <https://www.linkedin.com/in/lisa-pardini-073769186/>`__ contributed heat exchanger design and costing.
-
-  * `Bugrah Mirsat Sahin <https://www.linkedin.com/in/bu%C4%9Fra-mirsat-%C5%9F-5a956b108/>`__ contributed pump design and costing.
-
-  * `Rui Shi <https://www.linkedin.com/in/chuyingshi/>`__ contributed kinetic fermentation model.
+BioSTEAM has also received numerous contributions from the community. You can view
+direct contributions and developers through this 
+`GitHub link <https://github.com/BioSTEAMDevelopmentGroup/biosteam/graphs/contributors>`__.
 
 
 Acknowledgements
