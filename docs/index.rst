@@ -86,7 +86,7 @@ Fast and Flexible Process Simulation
           :class: only-light
           :align: center
           
-       .. image:: images/aerobic_chamber.png
+       .. image:: images/membrane_bioreactor.png
           :height: 100
           :class: only-dark
           :align: center
