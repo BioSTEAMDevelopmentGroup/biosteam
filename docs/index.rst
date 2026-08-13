@@ -31,8 +31,9 @@ Fast and Flexible Process Simulation
         of scenarios. It features over 20,000 chemicals in the databank, 
         rigorous thermodynamic property packages, and advanced unit operations. 
         Users can also define custom chemicals, unit operations, and process specifications.
-        Through its flexible and community-led platform, BioSTEAM aims to enable 
-        the evaluation of emerging processing technologies.
+        Given the open nature of BioSTEAM, it serves as a platform to develop accessible
+        process models (which can feed AI pipelines), develop specialized simulation tools, 
+        and advance process simulation algorithms.
         
 
 .. grid:: 1 2 3 4
