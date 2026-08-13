@@ -187,14 +187,7 @@ language = 'en'
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path .
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '**.ipynb_checkpoints']
-html_search_index = False
-# Skips all slow autodoc generation
-exclude_patterns.extend([
-    "API/**",
-    "tutorial/**",
-    "**.ipynb",
-    "**.py",
-])
+
 if os.environ.get("SPHINX_FAST_BUILD"):
     html_search_index = False
     # Skips all slow autodoc generation
