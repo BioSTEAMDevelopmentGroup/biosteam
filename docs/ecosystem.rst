@@ -23,7 +23,7 @@ have been openly shared.
       
    QSDsan is a platform for quantitative sustainable design of sanitation and 
    resource recovery systems led by Prof. Yalin Li at Rutgers University.
-   It leverages BioSTEAM core simulation capabilities.
+   It leverages BioSTEAM's core simulation capabilities.
 
 
 .. card::
@@ -61,4 +61,4 @@ have been openly shared.
       
    Puran Water designs industrial wastewater treatment systems and supplies the 
    critical equipment that anchors them. It is led by Hersh Kshetry as part of Puran Water LLC.
-   It leverage models built in QSDsan.
+   It leverages models built in QSDsan.
