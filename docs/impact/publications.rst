@@ -10,7 +10,8 @@ the way to diols, organic acids, oleochemicals, and biofuels. Newer applications
 for BioSTEAM include thermochemical upcycling of waste plastics through
 pyrolysis and solvent-based dissolution and precipitation.
 
-* **Software tools**:
+Software tools
+--------------
 
   #. `BioSTEAM: A Fast and Flexible Platform for the Design, Simulation, and Techno-Economic Analysis of Biorefineries under Uncertainty. ACS Sustainable Chem Eng 2020 <https://doi.org/10.1021/acssuschemeng.9b07040>`__
 
@@ -18,11 +19,13 @@ pyrolysis and solvent-based dissolution and precipitation.
 
   #. `QSDsan: an integrated platform for quantitative sustainable design of sanitation and resource recovery systems. Environ Sci: Water Res Technol 2022 <https://doi.org/10.1039/D2EW00455K>`__
 
-* **Advances in process simulation**:
+Advances in process simulation
+------------------------------
 
   4. `Phenomena-based graph representations and applications to chemical process simulation. Comput. & Chem. Eng. 2026 <https://doi.org/10.1016/j.compchemeng.2026.109756>`__
 
-* **Social, economic, and policy studies**:
+Social, economic, and policy studies
+------------------------------------
 
   5. `Filling the Cellulosic Bio-Economy Gap by Utilizing a Wedge Approach Combined with Stakeholder Collaboration. Renewable Energy 2026 <https://doi.org/10.1016/j.renene.2026.125419>`__
 
@@ -30,7 +33,8 @@ pyrolysis and solvent-based dissolution and precipitation.
 
   #. `Implications of Biorefinery Policy Incentives and Location-Specific Economic Parameters for the Financial Viability of Biofuels. Environ Sci Technol 2023 <https://doi.org/10.1021/acs.est.2c07936>`__
 
-* **Waste valorization**:  
+Waste valorization
+------------------
 
   8. `From wastewater to value: Techno-Economic and life-cycle assessment of a continuous microalgae biorefinery for high-value metabolites and bioenergy. Biomass and Energy 2026 <https://doi.org/10.1016/j.biombioe.2026.109818>`__
 
@@ -58,7 +62,8 @@ pyrolysis and solvent-based dissolution and precipitation.
 
   #. `High-purity polypropylene from disposable face masks via solvent-targeted recovery and precipitation. Green Chemistry 2023 <https://doi.org/10.1039/D3GC00205E>`__
 
-* **Biomanufacturing and biorefining**:
+Biomanufacturing and biorefining
+--------------------------------
 
   21. `Integrated techno-economic and life cycle assessment of 3-hydroxypropionic acid bioproduction from a glycerol-molasses blend. Bioresource Technology 2026 <https://doi.org/10.1016/j.biortech.2026.135400>`__
 

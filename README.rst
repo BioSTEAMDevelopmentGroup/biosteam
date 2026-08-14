@@ -49,10 +49,10 @@ communication and transparency within the process systems research community for
 integrated effort to expedite the development of sustainable processes.
 
 Data on chemicals and algorithms to estimate thermodynamic properties are 
-imported from `chemicals <https://github.com/CalebBell/chemicals>`_
-and `thermo <https://github.com/CalebBell/chemicals>`_,
+imported from `chemicals <https://github.com/CalebBell/chemicals>`__
+and `thermo <https://github.com/CalebBell/chemicals>`__,
 community-driven open-source libraries developed by Caleb Bell. BioSTEAM's 
-premire thermodynamic engine, `ThermoSTEAM <https://github.com/BioSTEAMDevelopmentGroup/thermosteam>`_, 
+premire thermodynamic engine, `ThermoSTEAM <https://github.com/BioSTEAMDevelopmentGroup/thermosteam>`__, 
 builds upon these libraries to facilitate the creation of thermodynamic property packages.
 
 Installation

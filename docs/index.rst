@@ -7,9 +7,8 @@ Fast and Flexible Process Simulation
    
    tutorial/index
    API/index
+   impact/index
    contributing/index
-   publications
-   ecosystem
 
 .. grid:: 1 1 2 2
 

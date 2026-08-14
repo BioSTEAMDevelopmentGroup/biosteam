@@ -1,4 +1,4 @@
-Authors & Acknowledgements
+Authors & acknowledgements
 ==========================
 
 Authors

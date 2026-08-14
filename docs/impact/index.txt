@@ -1,0 +1,11 @@
+Impact
+======
+
+BioSTEAM is an extensive open-source platform that has enabled numerous studies 
+and supported tool/model development in academic and industry settings. 
+
+.. toctree::
+   :maxdepth: 1
+   
+   ecosystem
+   publications
