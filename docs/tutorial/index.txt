@@ -1,5 +1,5 @@
-User guide
-----------
+Tutorial
+--------
 
 .. grid:: 1 2 2 3
    

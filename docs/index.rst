@@ -36,24 +36,6 @@ Fast and Flexible Process Simulation
         
 
 .. grid:: 1 2 3 4
-   
-    .. grid-item-card:: User Manual
-       :text-align: center
-       :link: https://biosteam.readthedocs.io/en/latest/API/index.html
-       :link-type: url
-       :padding: 1
-       
-       .. image:: images/API_logo.png
-          :height: 100
-          :class: only-light
-          :align: center
-          
-       .. image:: images/API_logo_dark.png
-          :height: 100
-          :class: only-dark
-          :align: center
-       
-       Detailed documentation
   
     .. grid-item-card:: Getting Started
        :text-align: center
@@ -72,6 +54,25 @@ Fast and Flexible Process Simulation
           :align: center
           
        Comprehensive tutorials
+
+
+    .. grid-item-card:: User Manual
+       :text-align: center
+       :link: https://biosteam.readthedocs.io/en/latest/API/index.html
+       :link-type: url
+       :padding: 1
+       
+       .. image:: images/API_logo.png
+          :height: 100
+          :class: only-light
+          :align: center
+          
+       .. image:: images/API_logo_dark.png
+          :height: 100
+          :class: only-dark
+          :align: center
+       
+       Detailed documentation
 
        
     .. grid-item-card:: Bioindustrial-Park

@@ -12,7 +12,7 @@ premire thermodynamic engine, `ThermoSTEAM <https://github.com/BioSTEAMDevelopme
 builds upon these libraries to facilitate the creation of thermodynamic property packages.
 
 The `BioSTEAM repository <https://github.com/BioSTEAMDevelopmentGroup/biosteam>`__ houses the unit operations, system convergence algorithms,
-the techno-economic/lifecycle assessment frameworks, and the uncertainty/sensitivity analysis features.
+the technoeconomic/lifecycle assessment frameworks, and the uncertainty/sensitivity analysis features.
 The unit operation models use standard modeling algorithms, design procedures, and cost correlations adapted 
 from textbooks and literature.
 
