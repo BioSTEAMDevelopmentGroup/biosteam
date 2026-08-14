@@ -37,7 +37,7 @@ Fast and Flexible Process Simulation
 
 .. grid:: 1 2 3 4
    
-    .. grid-item-card:: API Reference
+    .. grid-item-card:: Manual
        :text-align: center
        :link: https://biosteam.readthedocs.io/en/latest/API/index.html
        :link-type: url
