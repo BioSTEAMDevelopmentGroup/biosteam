@@ -31,7 +31,7 @@ Fast and Flexible Process Simulation
         rigorous thermodynamic property packages, and advanced unit operations. 
         Users can also define custom chemicals, unit operations, and process specifications.
         Given the open nature of BioSTEAM, it serves as a platform to develop accessible
-        process models (which can feed AI pipelines), develop specialized simulation tools, 
+        process models, build specialized simulation tools, 
         and advance process simulation algorithms.
         
 
