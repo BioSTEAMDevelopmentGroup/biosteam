@@ -229,7 +229,7 @@ html_theme_options = {
       {"name": "Bioindustrial-Park", "url": "https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park"},
       {"name": "How2STEAM", "url": "https://mybinder.org/v2/gh/BioSTEAMDevelopmentGroup/How2STEAM/HEAD"},
       {"name": "QSDsan", "url": "https://qsdsan.readthedocs.io/en/latest/"},
-      {"name": "Channel", "url": "https://www.youtube.com/@yoelcortes-pena2100/videos"},
+      {"name": "YouTube Channel", "url": "https://www.youtube.com/@yoelcortes-pena2100/videos"},
   ]
 }
 
