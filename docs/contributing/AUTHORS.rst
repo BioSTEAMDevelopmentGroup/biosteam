@@ -22,8 +22,6 @@ resources, expertise, and other impactful efforts:
 
 * `Yalin Li <https://yalinli.group/>`__ contributed wastewater treatment models and general enhancements.
 
-* `Rui Shi <https://www.linkedin.com/in/chuyingshi/>`__ contributed kinetic fermentation model.
-
 BioSTEAM has also received numerous contributions from the community. You can view
 direct contributions and developers through this 
 `GitHub link <https://github.com/BioSTEAMDevelopmentGroup/biosteam/graphs/contributors>`__.
