@@ -10,7 +10,6 @@ General functional algorithms for batch design.
 
 """
 from math import ceil
-from flexsolve import wegstein
 
 __all__ = ('size_batch',)
 
@@ -97,8 +96,12 @@ def size_batch(F_vol, tau_reaction, tau_cleaning, V_wf,
     If the number of reactors is specified but not the loading time, :math:`V_T` is first calculated, 
     then :math:`V_{i, working}`, :math:`\tau_{loading}`, and :math:`V_i`. 
     
-    If neither the number of reactors nor the loading time are specified, we solve the equations iteratively
-    until :math:`\tau_{loading}` converges.
+    If neither the number of reactors nor the loading time are specified, the
+    loading time of a reactor filled to maximum working volume,
+    :math:`\tau_{loading} = V_{max} V_{wf} / F_{vol}` (the closed-form solution
+    of the equations above at a continuous number of reactors), gives the minimum
+    number of reactors; then :math:`V_T`, :math:`V_i`, and :math:`\tau_{loading}`
+    are recomputed to be consistent with the integer :math:`N_{reactors}`.
     
     If the loading time is given but not the number of reactors, 
     then the equation for :math:`tau_{loading}` does not apply and 
@@ -139,8 +142,11 @@ def size_batch(F_vol, tau_reaction, tau_cleaning, V_wf,
     >>> size_batch(
     ...     F_vol, tau_reaction, tau_cleaning, V_wf, 
     ...     V_max=1000,
-    ... )    
-    {'Reactor volume': 992.6900584795799, 'Batch time': 33.95000000000163, 'Loading time': 0.950000000001627, 'Number of reactors': 36}
+    ... )
+    {'Reactor volume': 992.4812030075188,
+     'Batch time': 33.94285714285714,
+     'Loading time': 0.9428571428571428,
+     'Number of reactors': 36}
     
     Size batch given 36 reactors and assume
     the constant loading:
@@ -160,20 +166,12 @@ def size_batch(F_vol, tau_reaction, tau_cleaning, V_wf,
         raise ValueError('must pass either `N_reactors` or `V_max`')
     if loading_time is None:
         if N_reactors is None:
-            # Solve iteratively
-            def f(tau_loading):
-                N_reactors = F_vol * (tau_reaction + tau_cleaning + tau_loading) / (V_max * V_wf)
-                N_reactors = max(N_reactors, 2)
-                V_T = F_vol * (tau_reaction + tau_cleaning) / (1 - 1 / N_reactors)
-                V_i = V_T/N_reactors
-                tau_loading = V_i/F_vol
-                return tau_loading
-            
-            tau_loading = wegstein(f, 0.5, checkconvergence=False, checkiter=False)
+            # Time required to load a reactor filled to maximum working volume
+            # (closed-form solution at a continuous number of reactors)
+            tau_loading = V_max * V_wf / F_vol
+
+            # Minimum number of reactors; ceil ensures N_reactors >= 2
             N_reactors = ceil(F_vol * (tau_reaction + tau_cleaning + tau_loading) / (V_max * V_wf))
-            N_reactors = max(N_reactors, 2)
-            V_T = F_vol * (tau_reaction + tau_cleaning + tau_loading)
-            V_i = V_T / N_reactors
 
         # Total volume of all reactors, assuming no downtime
         V_T = F_vol * (tau_reaction + tau_cleaning) / (1 - 1 / N_reactors)
