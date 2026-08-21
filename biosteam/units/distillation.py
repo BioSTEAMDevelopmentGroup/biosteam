@@ -1095,11 +1095,11 @@ class Distillation(Unit, isabstract=True):
             W_R = Design['Rectifier weight'] # in lb
             H_R = Design['Rectifier height'] # in ft
             Cost['Rectifier tower'] = design.compute_empty_tower_cost(W_R)
-            Cost['Stripper platform and ladders'] = design.compute_plaform_ladder_cost(Di_R, H_R)
+            Cost['Rectifier platform and ladders'] = design.compute_plaform_ladder_cost(Di_R, H_R)
             W_S = Design['Stripper weight'] # in lb
             H_S = Design['Stripper height'] # in ft
             Cost['Stripper tower'] = design.compute_empty_tower_cost(W_S)
-            Cost['Rectifier platform and ladders'] = design.compute_plaform_ladder_cost(Di_S, H_S)
+            Cost['Stripper platform and ladders'] = design.compute_plaform_ladder_cost(Di_S, H_S)
             
             dimensions = [(H_R, Di_R), (H_S, Di_S)]
         else:
