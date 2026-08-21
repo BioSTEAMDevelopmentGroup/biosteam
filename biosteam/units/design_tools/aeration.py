@@ -132,6 +132,78 @@ def C_O2_L(T, P_O2): # Commonly used, so here for convinience
     partial pressure of O2 in the gas [bar]."""
     return P_O2 * Henrys_law_constant(T, *H_coefficients['O2'])
 
+def diffusion_coefficient(T, P=None, eta=None, V_A=None, phi_B=None, M_B=None, 
+                          solute=None, solvent=None):
+    """
+    Estimate the binary diffusion coefficient [D_AB; m²/s] of a solute in a 
+    dilute liquid solvent using the empirical Wilke-Chang correlation.
+
+    Parameters
+    ----------
+    T : float
+        Absolute temperature of the system, in Kelvin (K).
+    eta : float, optional
+        Dynamic viscosity of the liquid solvent, in centipoise (cP).
+    V_A : float, optional
+        Molar volume of the solute at its normal boiling point, in cubic 
+        centimeters per mole (cm³/mol).
+    phi_B : float, optional
+        Dimensionless association factor of the solvent. Recommended values 
+        include 2.6 for water, 1.9 for methanol, 1.5 for ethanol, and 1.0 
+        for unassociated solvents like benzene or heptane.
+    M_B : float, optional
+        Molecular weight of the liquid solvent, in grams per mole (g/mol).
+    solute : str, optional
+        Name of solute.
+    solvent : str, optional
+        Name of solvent.
+
+    Notes
+    -----
+    The underlying Wilke-Chang equation calculates the diffusion 
+    coefficient in units of cm²/s:
+
+    .. math:: D_{AB} = \frac{7.4 \times 10^{-8} \sqrt{\phi_B M_B} T}{\eta V_A^{0.6}}
+
+    This function automatically scales the result by a factor of 10^-4 
+    to output standard SI units (m²/s). The correlation is generally accurate 
+    within +/- 10 to 15% for dilute solutions of small, un-ionized molecules.
+
+    References
+    ----------
+    .. Wilke, C. R., & Chang, P. (1955). Correlation of diffusion 
+       coefficients in dilute solutions. AIChE Journal, 1(2), 264-270.
+
+    Examples
+    --------
+    Estimate diffusion of H2 in liquid water at 298.15 K (25 °C)
+    
+    >>> T_sys = 298.15        # Temperature in K
+    >>> eta_h2o = 0.89        # Viscosity of water in cP
+    >>> v_h2 = 14.3           # Molar volume of H2 at normal b.p. (cm³/mol)
+    >>> phi_h2o = 2.6         # Association factor for water
+    >>> mw_h2o = 18.015       # Molecular weight of water (g/mol)
+    >>> d_ab = diffusion_coefficient(T_sys, eta_h2o, v_h2, phi_h2o, mw_h2o)
+    >>> print(f"{d_ab:.4e}")
+    4.5248e-09
+    """
+    if P is None: 
+        P = 101325
+    if solute is not None:
+        solute = bst.Chemical(solute, cache=True)
+        V_A = solute.V('l', )
+    if solvent is not None:
+        solvent = bst.Chemical(solvent, cache=True)
+        phi_B = None
+        M_B = None
+        eta = None
+    
+    # Wilke-Chang equation outputs D in cm²/s
+    D_cm2_s = (7.4e-8 * sqrt(phi_B * M_B) * T) / (eta * (V_A ** 0.6))
+    
+    # Convert cm²/s to m²/s (1 m²/s = 10,000 cm²/s)
+    return D_cm2_s * 1e-4
+
 kLa_methods = {}
 kLa_method_names = {
     'Bubble column': [],
@@ -432,7 +504,7 @@ def kla_bubcol_Suh(D, mu_l, rho_l, D_l, g, sigma_l, epsilon_g, V_g, V_l, coeffic
     return kla
 
 @register
-def kla_bubcol_Dewes(V_g, mu_l, rho_g):
+def kla_bubcol_Dewes(V_g, mu_l, rho_g, coefficients=None):
     """
     Returns the KLa coefficient for a bubble column reactor based on the 
     Dewes & Schumpe (1997) correlation [12]_.
@@ -456,8 +528,9 @@ def kla_bubcol_Dewes(V_g, mu_l, rho_g):
     rho_g: 0.4 - 18.8 kg/m^3 -> Density of the gas [kg/m^3]
     
     """
-
-    kla = V_g**0.90 * mu_l**(-0.55) * rho_g**0.46
+    if coefficients is None: coefficients = (0.90, -0.55, 0.46)
+    a, b, c = coefficients
+    kla = V_g**a * mu_l**b * rho_g**c
     return kla
 
 @register

@@ -225,18 +225,26 @@ class AeratedBioreactor(AbstractStirredTankReactor):
             optimize_power
         )
         self.design = design
-        if method is None:
-            method = self.default_methods[design]
-        if (key:=(design, method)) in aeration.kLa_methods:
-            self.kLa = aeration.kLa_methods[key]
-        elif hasattr(method, '__call__'):
-            self.kLa = method
-        else:
-            raise ValueError(
-                f"{method!r} is not a valid kLa method; only "
-                f"{aeration.kLa_method_names[design]} are valid"
-            )
+        self.method = method
         self.kLa_kwargs = {} if kLa_kwargs is None else kLa_kwargs
+        
+    @property
+    def method(self):
+        return self._method
+    @method.setter
+    def method(self, method):
+        if method is None: method = self.default_methods[design]
+        self._method = method
+        if isinstance(method, str) or callable(method): 
+            if (key:=(design, method)) in aeration.kLa_methods:
+                self.kLa = aeration.kLa_methods[key]
+            elif callable(method):
+                self.kLa = method
+            else:
+                raise ValueError(
+                    f"{method!r} is not a valid kLa method; only "
+                    f"{aeration.kLa_method_names[design]} are valid"
+                )
     
     def get_kLa(self):
         if self.kLa is aeration.kLa_stirred_Riet:
@@ -262,10 +270,9 @@ class AeratedBioreactor(AbstractStirredTankReactor):
             A = pi * R * R
             self.superficial_gas_flow = U = F / A # m / s 
             feed = self.ins[0]
-            try:
-                return aeration.kla_bubcol_Dewes(U, feed.get_property('mu', 'mPa*s'), air_in.get_property('rho', 'kg/m3'))
-            except:
-                breakpoint()
+            return aeration.kla_bubcol_Dewes(U, feed.get_property('mu', 'mPa*s'), air_in.get_property('rho', 'kg/m3'), **self.kLa_kwargs)
+        elif callable(self.kLa):
+            self.kLa(**self.kLa_kwargs)
         else:
             raise NotImplementedError('kLa method has not been implemented in BioSTEAM yet')
     
@@ -669,7 +676,6 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     kW_per_m3_default = 0.2955 # Reaction in homogeneous liquid
     batch_default = True
     default_methods = AeratedBioreactor.default_methods
-    get_kLa = AeratedBioreactor.get_kLa
     get_agitation_power = AeratedBioreactor.get_agitation_power
     
     def _init(self, 
@@ -688,6 +694,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             optimize_power=None, 
             **kwargs,
         ):
+        N = len(gas_substrates)
         if compressor_isentropic_efficiency is None: compressor_isentropic_efficiency = 0.85
         #: Isentropic efficiency of the compressor. Defaults to 0.85.
         self.compressor_isentropic_efficiency = compressor_isentropic_efficiency
@@ -695,7 +702,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         self.backward_reactions = backward_reactions
         self.theta = theta # Average concentration of gas substrate in the liquid as a fraction of saturation.
         self.Q_consumption = Q_consumption # Forced duty per gas substrate consummed [kJ/kmol].
-        self.kLa_kwargs = {} if kLa_kwargs is None else kLa_kwargs
+        self.kLa_kwargs = ({},) * N if kLa_kwargs is None else kLa_kwargs
         self.optimize_power = True if optimize_power is None else optimize_power
         self.variable_gas_feeds = variable_gas_feeds # list[int|Stream] Feed index or stream.
         self.gas_substrates = gas_substrates
@@ -712,17 +719,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                 f"{list(aeration.kLa_method_names)} are valid"
             )
         self.design = design
-        if method is None:
-            method = self.default_methods[design]
-        if (key:=(design, method)) in aeration.kLa_methods:
-            self.kLa = aeration.kLa_methods[key]
-        elif hasattr(method, '__call__'):
-            self.kLa = method
-        else:
-            raise ValueError(
-                f"{method!r} is not a valid kLa method; only "
-                f"{aeration.kLa_method_names[design]} are valid"
-            )
+        self.method = method
     
     def _get_duty(self):
         if self.Q_consumption is None:
@@ -987,18 +984,29 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         self.kW_per_m3 = agitation_power_kW / V 
         return total_power_kW
     
+    def get_kLas(self):
+        kLa = self.get_kLa()
+        if np.ndim(kLa) == 0:
+            # Scale mass transfer coefficient by eddy exposure relationship.
+            T = self.T
+            P = self.P
+            D_baseline = aeration.diffusion_coefficient(self.kLa_component, T, P)
+            Ds = np.array([aeration.diffusion_coefficient(i, T, P) for i in self.gas_substrates])
+            kLa = np.sqrt(Ds / D_baseline)
+        return kLa
+                
     def get_STRs(self):
         """Return the gas substrate transfer rate in mol/s."""
         V = self.get_design_result('Reactor volume', 'm3') * self.V_wf
         operating_time = self.tau / self.design_results.get('Batch time', 1.)
         N_reactors = self.parallel['self']
         gas_in = self.sparged_gas
-        kLa = self.get_kLa() # 1 / s 
+        kLas = self.get_kLas() # 1 / s 
         vent = self.vent
         P_gas = gas_in.get_property('P', 'bar')
         P_vent = vent.get_property('P', 'bar')
         STRs = []
-        for ID in self.gas_substrates:
+        for ID, kLa in zip(self.gas_substrates, kLas):
             Py_gas = P_gas * gas_in.imol[ID] / gas_in.F_mol
             Py_vent = P_vent * vent.imol[ID] / (vent.F_mol or 1)
             C_sat_gas = aeration.C_L(self.T, Py_gas, ID) # mol / kg
