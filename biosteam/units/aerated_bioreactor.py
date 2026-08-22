@@ -613,7 +613,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     >>> import biosteam as bst
     >>> bst.settings.set_thermo(['H2', 'CO2', 'N2', 'O2', 'H2O', 'AceticAcid'])
     >>> media = bst.Stream(ID='media', H2O=10000, units='kg/hr')
-    >>> H2 = bst.Stream(ID='H2', H2=100, units='kg/hr', phase='g')
+    >>> H2 = bst.Stream(ID='H2', H2=0.5, units='kg/hr', phase='g')
     >>> fluegas = bst.Stream(ID='fluegas', N2=70, CO2=25, H2O=3, O2=2, units='kg/hr', phase='g')
     >>> # Model acetic acid production from H2 and CO2
     >>> rxn = bst.Rxn('H2 + CO2 -> AceticAcid + H2O', reactant='H2', correct_atomic_balance=True) 
@@ -634,10 +634,10 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     ins...
     [0] media  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow: 81.6 kmol/hr H2O
+        flow: 16.4 kmol/hr H2O
     [1] H2  
         phase: 'g', T: 298.15 K, P: 101325 Pa
-        flow: 49.6 kmol/hr H2
+        flow: 0.248 kmol/hr H2
     [2] fluegas  
         phase: 'g', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): CO2  0.568
@@ -647,20 +647,20 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     outs...
     [0] vent  
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): H2          49.1
-                        CO2         0.312
+        flow (kmol/hr): H2          0.147
+                        CO2         0.516
                         N2          2.5
                         O2          0.0625
-                        H2O         2.56
-                        AceticAcid  0.00821
+                        H2O         0.157
+                        AceticAcid  0.000503
     [1] product  
         phase: 'l', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): H2          0.000986
-                        CO2         0.000238
-                        N2          3.78e-05
-                        O2          1.94e-06
-                        H2O         79.5
-                        AceticAcid  0.12
+        flow (kmol/hr): H2          9.98e-06
+                        CO2         0.00128
+                        N2          0.000128
+                        O2          6.56e-06
+                        H2O         16.5
+                        AceticAcid  0.0248
     
     """
     _N_ins = 2
