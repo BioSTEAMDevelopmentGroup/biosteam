@@ -634,7 +634,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     ins...
     [0] media  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow: 88.8 kmol/hr H2O
+        flow: 81.6 kmol/hr H2O
     [1] H2  
         phase: 'g', T: 298.15 K, P: 101325 Pa
         flow: 49.6 kmol/hr H2
@@ -647,20 +647,20 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     outs...
     [0] vent  
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): H2          49
-                        CO2         0.29
+        flow (kmol/hr): H2          49.1
+                        CO2         0.312
                         N2          2.5
                         O2          0.0625
-                        H2O         2.55
-                        AceticAcid  0.0082
+                        H2O         2.56
+                        AceticAcid  0.00821
     [1] product  
         phase: 'l', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): H2          0.00107
-                        CO2         0.000242
-                        N2          4.13e-05
-                        O2          2.11e-06
-                        H2O         86.7
-                        AceticAcid  0.131
+        flow (kmol/hr): H2          0.000986
+                        CO2         0.000238
+                        N2          3.78e-05
+                        O2          1.94e-06
+                        H2O         79.5
+                        AceticAcid  0.12
     
     """
     _N_ins = 2
@@ -676,6 +676,8 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     P_default = 101325
     kW_per_m3_default = 0.2955 # Reaction in homogeneous liquid
     batch_default = True
+    method = AeratedBioreactor.method
+    get_kLa = AeratedBioreactor.get_kLa
     default_methods = AeratedBioreactor.default_methods
     get_agitation_power = AeratedBioreactor.get_agitation_power
     
@@ -695,7 +697,6 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             optimize_power=None, 
             **kwargs,
         ):
-        N = len(gas_substrates)
         if compressor_isentropic_efficiency is None: compressor_isentropic_efficiency = 0.85
         #: Isentropic efficiency of the compressor. Defaults to 0.85.
         self.compressor_isentropic_efficiency = compressor_isentropic_efficiency
@@ -703,7 +704,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         self.backward_reactions = backward_reactions
         self.theta = theta # Average concentration of gas substrate in the liquid as a fraction of saturation.
         self.Q_consumption = Q_consumption # Forced duty per gas substrate consummed [kJ/kmol].
-        self.kLa_kwargs = ({},) * N if kLa_kwargs is None else kLa_kwargs
+        self.kLa_kwargs = {} if kLa_kwargs is None else kLa_kwargs
         self.optimize_power = True if optimize_power is None else optimize_power
         self.variable_gas_feeds = variable_gas_feeds # list[int|Stream] Feed index or stream.
         self.gas_substrates = gas_substrates
@@ -988,9 +989,8 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     def get_kLas(self):
         kLa = self.get_kLa()
         if np.ndim(kLa) == 0:
-            reference = 'O2'
             kLa *= np.array([
-                aeration.kLa_proportionality_factor(substrate, reference)
+                aeration.kLa_proportionality_factor(target=substrate, reference='O2')
                 for substrate in self.gas_substrates
             ])
         return kLa
