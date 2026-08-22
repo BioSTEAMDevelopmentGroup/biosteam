@@ -233,6 +233,7 @@ class AeratedBioreactor(AbstractStirredTankReactor):
         return self._method
     @method.setter
     def method(self, method):
+        design = self.design
         if method is None: method = self.default_methods[design]
         self._method = method
         if isinstance(method, str) or callable(method): 
@@ -987,12 +988,11 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     def get_kLas(self):
         kLa = self.get_kLa()
         if np.ndim(kLa) == 0:
-            # Scale mass transfer coefficient by eddy exposure relationship.
-            T = self.T
-            P = self.P
-            D_baseline = aeration.diffusion_coefficient(self.kLa_component, T, P)
-            Ds = np.array([aeration.diffusion_coefficient(i, T, P) for i in self.gas_substrates])
-            kLa = np.sqrt(Ds / D_baseline)
+            reference = 'O2'
+            kLa *= np.array([
+                aeration.kLa_proportionality_factor(substrate, reference)
+                for substrate in self.gas_substrates
+            ])
         return kLa
                 
     def get_STRs(self):
