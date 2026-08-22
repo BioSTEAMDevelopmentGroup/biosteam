@@ -10,6 +10,7 @@ Created on Sat May  2 16:44:24 2020
 
 @author: sarangbhagwat
 """
+from collections import namedtuple
 import numpy as np
 import biosteam as bst
 from warnings import warn
@@ -124,8 +125,124 @@ class Working_Life_Cycle:
         return self.life_cycle
     
 
-def temperature_interval_pinch_analysis(hus, 
-                                        T_min_app=10, 
+ProblemTable = namedtuple(
+    'ProblemTable',
+    ['Ts', 'interval_H', 'point_H', 'residual',
+     'hot_util_load', 'cold_util_load', 'pinch_T']
+)
+
+def _stream_H_at_boundaries(stream_in, H_in, H_out, T_lo, T_hi, Ts, shift):
+    """
+    Enthalpies [kJ/hr] of one monotone stream at the grid boundaries
+    `Ts` (shifted scale, descending, all within [T_lo, T_hi]).
+
+    Exact at the stream's own end points (H_in/H_out as given); in between,
+    the inlet copy is flashed at the *real* temperature `T + shift` and the
+    result is clipped to [min(H_in, H_out), max(H_in, H_out)] so that a
+    non-equilibrium outlet (e.g. a column reboiler/condenser product) can
+    never inflate an interval. A single copy is walked down the grid so
+    each VLE is warm-started from the previous boundary.
+    """
+    H_lo, H_hi = sorted((H_in, H_out))
+    H_top, H_bottom = (H_in, H_out) if H_in > H_out else (H_out, H_in)
+    Hs = np.empty(Ts.size)
+    stream = stream_in.copy()
+    for k, T in enumerate(Ts):
+        if T == T_hi:
+            Hs[k] = H_top
+        elif T == T_lo:
+            Hs[k] = H_bottom
+        else:
+            T_real = T + shift
+            try:
+                stream.vle(T=T_real, P=stream.P)
+                H = stream.H
+            except Exception as error:
+                warn(f"could not solve VLE for {stream!r} at {T_real:.2f} K "
+                     f"({error!r}); interpolating enthalpy linearly in "
+                     "temperature for the problem table", RuntimeWarning)
+                H = H_lo + (H_hi - H_lo) * (T - T_lo) / (T_hi - T_lo)
+            Hs[k] = min(max(H, H_lo), H_hi)
+    return Hs
+
+def problem_table(streams_inlet, streams_quenched, is_hot, T_min_app):
+    """
+    Energy-consistent problem table (temperature-interval heat cascade).
+
+    Parameters
+    ----------
+    streams_inlet : list[Stream]
+        Inlet stream of each utility heat exchanger.
+    streams_quenched : list[Stream]
+        Corresponding outlet streams, re-flashed at their enthalpy.
+    is_hot : Sequence[bool]
+        True where the stream is cooled.
+    T_min_app : float
+        Minimum approach temperature [K].
+
+    Returns
+    -------
+    ProblemTable
+        Grid temperatures `Ts` (shifted scale, descending), per-stream
+        `interval_H` (N x n-1) and `point_H` (N x n) contributions (+ for
+        hot, - for cold), the cascade `residual` (n), `hot_util_load`,
+        `cold_util_load` and the shifted-scale `pinch_T`.
+
+    Notes
+    -----
+    Hot streams are shifted down by `T_min_app`; cold streams are not. For
+    monotone streams the contribution to interval (Ts[k], Ts[k+1]) is
+    sign * (H(Ts[k]) - H(Ts[k+1])) with H evaluated at the real temperature
+    and clipped to [H_in, H_out], so every stream's contributions telescope
+    exactly to sign * |H_out - H_in|. Isothermal streams, and streams whose
+    outlet temperature moves against their duty (a heated stream that exits
+    colder than it entered, e.g. a reboiler outlet at VLE), are point loads
+    at their outlet temperature. The cascade starting from zero hot utility
+    is residual[k] = sum(point_H[:, :k+1]) + sum(interval_H[:, :k]); the
+    minimum fixes the hot utility target, `residual[-1] + hot_util_load`
+    the cold one, and its location the pinch. With the per-stream identity
+    above, hot_util_load - cold_util_load equals the net heating demand.
+    """
+    N = len(streams_inlet)
+    is_hot = np.asarray(is_hot, dtype=bool)
+    sign = np.where(is_hot, 1., -1.)
+    shift = np.where(is_hot, T_min_app, 0.)
+    T_in = np.array([s.T for s in streams_inlet])
+    T_out = np.array([s.T for s in streams_quenched])
+    H_in = np.array([s.H for s in streams_inlet])
+    H_out = np.array([s.H for s in streams_quenched])
+    monotone = (sign * (T_in - T_out)) > 0.
+    T_hi = np.where(monotone, np.maximum(T_in, T_out), T_out) - shift
+    T_lo = np.where(monotone, np.minimum(T_in, T_out), T_out) - shift
+    Ts = np.unique(np.concatenate([T_hi, T_lo]))[::-1]
+    n = Ts.size
+    interval_H = np.zeros((N, n - 1))
+    point_H = np.zeros((N, n))
+    for j in range(N):
+        if monotone[j]:
+            idx = np.flatnonzero((Ts <= T_hi[j]) & (Ts >= T_lo[j]))
+            Hs = _stream_H_at_boundaries(streams_inlet[j], H_in[j], H_out[j],
+                                         T_lo[j], T_hi[j], Ts[idx], shift[j])
+            interval_H[j, idx[:-1]] = sign[j] * (Hs[:-1] - Hs[1:])
+        else:
+            k = np.searchsorted(-Ts, -T_hi[j])
+            point_H[j, k] = sign[j] * abs(H_out[j] - H_in[j])
+    residual = np.cumsum(
+        point_H.sum(axis=0) + np.concatenate([[0.], interval_H.sum(axis=0)])
+    )
+    k_pinch = int(np.argmin(residual))
+    scale = np.abs(H_out - H_in).sum()
+    if -residual[k_pinch] <= 1e-9 * scale:  # threshold problem: no hot utility
+        hot_util_load = 0.
+        k_pinch = 0
+    else:
+        hot_util_load = -residual[k_pinch]
+    cold_util_load = residual[-1] + hot_util_load
+    return ProblemTable(Ts, interval_H, point_H, residual,
+                        hot_util_load, cold_util_load, Ts[k_pinch])
+
+def temperature_interval_pinch_analysis(hus,
+                                        T_min_app=10,
                                         force_ideal_thermo=False,
                                         sort_hus_by_T=False):
     hx_utils = hus
@@ -150,77 +267,38 @@ def temperature_interval_pinch_analysis(hus,
         ID = 'Util_%s'%i
         stream.ID = 's_%s__%s'%(i,ID)
     N_heating = len(hus_heating)
-    is_cold_stream_index = lambda x: x < N_heating
-    T_in_arr = np.array([stream.T for stream in streams_inlet])
-    T_out_arr = np.array([i.T for i in streams_quenched])
-    adj_T_in_arr = T_in_arr.copy()
-    # adj_T_in_arr[:N_heating] -= T_min_app
-    adj_T_in_arr[N_heating:] -= T_min_app
-    adj_T_out_arr = T_out_arr.copy()
-    # adj_T_out_arr[:N_heating] -= T_min_app
-    adj_T_out_arr[N_heating:] -= T_min_app
-    T_changes_tuples = list(zip(adj_T_in_arr, adj_T_out_arr))
-    all_Ts_descending = [*adj_T_in_arr, *adj_T_out_arr]
-    all_Ts_descending.sort(reverse=True)
-    stream_indices_for_T_intervals =\
-        {(all_Ts_descending[i], all_Ts_descending[i+1]):[]\
-            for i in range(len(all_Ts_descending)-1)}
-    H_for_T_intervals = dict.fromkeys(stream_indices_for_T_intervals, 0)
     cold_indices = list(range(N_heating))
     hot_indices = list(range(N_heating, len(hxs)))
     indices = cold_indices + hot_indices
-    for i in range(len(all_Ts_descending)-1):
-        T_start = all_Ts_descending[i]
-        T_end = all_Ts_descending[i+1]
-        for stream_index in indices:
-            T1, T2 = T_changes_tuples[stream_index]
-            if (T1 >= T_start and T2 <= T_end) or (T2 >= T_start and T1 <= T_end):
-                multiplier = -1 if is_cold_stream_index(stream_index) else 1
-                stream = streams_inlet[stream_index].copy()
-                if stream.T != T_start: stream.vle(T = T_start, P = stream.P)
-                H1 = stream.H
-                try:
-                    stream.vle(T = T_end, P = stream.P)
-                except:
-                    warn(f"could not solve VLE for {repr(stream)} at {repr(hxs[stream_index].owner)}", RuntimeWarning)
-                H2 = stream.H
-                H = multiplier*(H1 - H2)
-                H_for_T_intervals[(T_start, T_end)] += H
-        
-    res_H_vector = []
-    prev_res_H = 0
-    for interval, H in H_for_T_intervals.items():
-        res_H_vector.append(prev_res_H + H)
-        prev_res_H = res_H_vector[len(res_H_vector)-1]
-    hot_util_load = - min(res_H_vector)
-    # assert hot_util_load>= 0, 'Hot utility load is negative'
-    if not hot_util_load>=0:
-        warn(f"Hot utility load is negative: {hot_util_load}", RuntimeWarning)
-    # print(hot_util_load)
-    # the lower temperature of the temperature interval for which the res_H is minimum
-    pinch_cold_stream_T = all_Ts_descending[res_H_vector.index(-hot_util_load)+1]
+    T_in_arr = np.array([stream.T for stream in streams_inlet])
+    T_out_arr = np.array([i.T for i in streams_quenched])
+    is_hot = np.zeros(len(hxs), dtype=bool)
+    is_hot[hot_indices] = True
+    table = problem_table(streams_inlet, streams_quenched, is_hot, T_min_app)
+    hot_util_load = table.hot_util_load
+    cold_util_load = table.cold_util_load
+    pinch_cold_stream_T = table.pinch_T
     pinch_hot_stream_T = pinch_cold_stream_T + T_min_app
-    cold_util_load = res_H_vector[len(res_H_vector)-1] + hot_util_load
-    # assert cold_util_load>=0, 'Cold utility load is negative'
-    if not cold_util_load>=0:
-        warn(f"Cold utility load is positive: {cold_util_load}", RuntimeWarning)
+    # Per-stream pinch temperature: where the stream is split between the
+    # hot-side and cold-side designs. Non-monotone streams (T_out against
+    # the duty) are not split: their pinch is the inlet T, so load_duties
+    # puts the whole duty on the hot side, as before this fix.
     pinch_T_arr = []
     for i in cold_indices:
-        if T_in_arr[i] > pinch_cold_stream_T:
+        if T_in_arr[i] > pinch_cold_stream_T or T_in_arr[i] > T_out_arr[i]:
             pinch_T_arr.append(T_in_arr[i])
         elif T_out_arr[i] < pinch_cold_stream_T:
             pinch_T_arr.append(T_out_arr[i])
         else:
             pinch_T_arr.append(pinch_cold_stream_T)
     for i in hot_indices:
-        if T_in_arr[i] < pinch_hot_stream_T:
+        if T_in_arr[i] < pinch_hot_stream_T or T_in_arr[i] < T_out_arr[i]:
             pinch_T_arr.append(T_in_arr[i])
         elif T_out_arr[i] > pinch_hot_stream_T:
             pinch_T_arr.append(T_out_arr[i])
         else:
             pinch_T_arr.append(pinch_hot_stream_T)
     pinch_T_arr = np.array(pinch_T_arr)
-    # print(pinch_T_arr, hot_util_load, cold_util_load,)
     return pinch_T_arr, hot_util_load, cold_util_load, T_in_arr, T_out_arr,\
            hxs, hot_indices, cold_indices, indices, streams_inlet, hx_utils_rearranged, \
            streams_quenched
