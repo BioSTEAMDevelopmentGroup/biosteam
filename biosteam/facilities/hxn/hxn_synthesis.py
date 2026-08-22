@@ -131,38 +131,50 @@ ProblemTable = namedtuple(
      'hot_util_load', 'cold_util_load', 'pinch_T']
 )
 
-def _stream_H_at_boundaries(stream_in, H_in, H_out, T_lo, T_hi, Ts, shift):
+def _stream_H_at_boundaries(stream_in, H_in, H_out, T_lo, T_hi, Ts, shift,
+                            stream_label):
     """
     Enthalpies [kJ/hr] of one monotone stream at the grid boundaries
     `Ts` (shifted scale, descending, all within [T_lo, T_hi]).
 
-    Exact at the stream's own end points (H_in/H_out as given); in between,
-    the inlet copy is flashed at the *real* temperature `T + shift` and the
-    result is clipped to [min(H_in, H_out), max(H_in, H_out)] so that a
-    non-equilibrium outlet (e.g. a column reboiler/condenser product) can
-    never inflate an interval. A single copy is walked down the grid so
-    each VLE is warm-started from the previous boundary.
+    Exact at the stream's own end points (H_in/H_out as given) by
+    *position*: `Ts[0]` and `Ts[-1]` are the stream's own T_hi/T_lo (every
+    monotone stream has `T_hi > T_lo` strictly, so `Ts` always has at least
+    these two entries) and are assigned H_in/H_out directly, without a float
+    comparison. In between, the inlet copy is flashed at the *real*
+    temperature `T + shift` and the result is clipped to
+    [min(H_in, H_out), max(H_in, H_out)] so that a non-equilibrium outlet
+    (e.g. a column reboiler/condenser product) can never inflate an
+    interval. A single copy is walked down the grid so each VLE is
+    warm-started from the previous boundary; `stream_label` (the inlet
+    stream's own ID) identifies the stream in the VLE-failure warning.
     """
+    assert Ts.size >= 2, (
+        "boundary grid for a monotone stream must include both its own "
+        "end points"
+    )
     H_lo, H_hi = sorted((H_in, H_out))
     H_top, H_bottom = (H_in, H_out) if H_in > H_out else (H_out, H_in)
     Hs = np.empty(Ts.size)
+    Hs[0] = H_top
+    Hs[-1] = H_bottom
     stream = stream_in.copy()
-    for k, T in enumerate(Ts):
-        if T == T_hi:
-            Hs[k] = H_top
-        elif T == T_lo:
-            Hs[k] = H_bottom
-        else:
-            T_real = T + shift
-            try:
-                stream.vle(T=T_real, P=stream.P)
-                H = stream.H
-            except Exception as error:
-                warn(f"could not solve VLE for {stream!r} at {T_real:.2f} K "
-                     f"({error!r}); interpolating enthalpy linearly in "
-                     "temperature for the problem table", RuntimeWarning)
-                H = H_lo + (H_hi - H_lo) * (T - T_lo) / (T_hi - T_lo)
-            Hs[k] = min(max(H, H_lo), H_hi)
+    for k in range(1, Ts.size - 1):
+        T = Ts[k]
+        T_real = T + shift
+        try:
+            stream.vle(T=T_real, P=stream.P)
+            H = stream.H
+        except Exception as error:
+            warn(f"could not solve VLE for stream {stream_label!r} at "
+                 f"{T_real:.2f} K ({error!r}); interpolating enthalpy "
+                 "linearly in temperature for the problem table",
+                 RuntimeWarning)
+            # restart the warm start from a clean copy so the failed flash
+            # does not leave `stream` in a bad state for the next boundary
+            stream = stream_in.copy()
+            H = H_lo + (H_hi - H_lo) * (T - T_lo) / (T_hi - T_lo)
+        Hs[k] = min(max(H, H_lo), H_hi)
     return Hs
 
 def problem_table(streams_inlet, streams_quenched, is_hot, T_min_app):
@@ -222,7 +234,8 @@ def problem_table(streams_inlet, streams_quenched, is_hot, T_min_app):
         if monotone[j]:
             idx = np.flatnonzero((Ts <= T_hi[j]) & (Ts >= T_lo[j]))
             Hs = _stream_H_at_boundaries(streams_inlet[j], H_in[j], H_out[j],
-                                         T_lo[j], T_hi[j], Ts[idx], shift[j])
+                                         T_lo[j], T_hi[j], Ts[idx], shift[j],
+                                         streams_inlet[j].ID)
             interval_H[j, idx[:-1]] = sign[j] * (Hs[:-1] - Hs[1:])
         else:
             k = np.searchsorted(-Ts, -T_hi[j])
@@ -279,10 +292,17 @@ def temperature_interval_pinch_analysis(hus,
     cold_util_load = table.cold_util_load
     pinch_cold_stream_T = table.pinch_T
     pinch_hot_stream_T = pinch_cold_stream_T + T_min_app
-    # Per-stream pinch temperature: where the stream is split between the
-    # hot-side and cold-side designs. Non-monotone streams (T_out against
-    # the duty) are not split: their pinch is the inlet T, so load_duties
-    # puts the whole duty on the hot side, as before this fix.
+    # Per-stream pinch temperature: where each stream is split between the
+    # hot-side and cold-side network designs. A stream already entirely on
+    # one side of the process pinch (T_in past pinch_cold_stream_T for a
+    # cold stream, or past pinch_hot_stream_T for a hot stream) is not
+    # split; its pinch_T is its own T_in. This clause also catches
+    # non-monotone streams (T_out on the wrong side of T_in for their duty,
+    # e.g. a cold stream whose VLE outlet ends up cooler than it entered):
+    # rather than split their problem_table point-load duty across the
+    # cascade, they get pinch_T = T_in too, so load_duties assigns their
+    # whole duty to a single side (Q_hot_side for a cold stream,
+    # Q_cold_side for a hot one).
     pinch_T_arr = []
     for i in cold_indices:
         if T_in_arr[i] > pinch_cold_stream_T or T_in_arr[i] > T_out_arr[i]:
