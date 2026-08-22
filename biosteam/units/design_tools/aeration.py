@@ -142,20 +142,43 @@ solvent_association_factors = {
     '71-43-2': 1.0, # Benzene
     '142-82-5': 1.0, # Heptane
 }
+
 _Vm_at_Tb = {
-    'H2': 28.4518244058207,
-    'O2': 28.039990920447195,
-    'CO2': 34.979773348903436,
-    'CO': 35.31187602493274,
+    'H2': 7.4,
+    'O2': 25.6,
+    'CO': 30.7,
+    'CO2': 34.0,
+    'N2': 31.2
 }
+
+# Base atomic increments (cm3/mol)
+_atomic_volumes = {
+    'C': 14.8, 'H': 3.7, 'O': 7.4, 'N': 10.5, 
+    'S': 25.6, 'Cl': 24.6, 'Br': 27.0, 'I': 37.0, 'F': 8.7
+}
+
+def LeBas_volume(atoms: dict) -> float:
+    """
+    Estimate the Le Bas molar volume [cm3/mol] from a dictionary of atom counts.
+    """
+    total_volume = 0.0
+    for atom, count in atoms.items():
+        if atom in _atomic_volumes:
+            total_volume += _atomic_volumes[atom] * count
+        else:
+            raise KeyError(f"Atom '{atom}' not found in Le Bas table.")
+    return total_volume
 
 def Vm_at_Tb(chemical):
     if chemical in _Vm_at_Tb:
         return _Vm_at_Tb[chemical]
     else:
         chemical = bst.Chemical(chemical, cache=True)
-        _Vm_at_Tb[chemical] = V = chemical.V('l', chemical.Tb, 101325)
-        return V
+        if chemical.formula in _Vm_at_Tb: 
+            _Vm_at_Tb[chemical.ID] = Vm = _Vm_at_Tb[chemical.formula]
+        else:
+            _Vm_at_Tb[chemical] = Vm = LeBas_volume(chemical.atoms)
+        return Vm
 
 def kLa_proportionality_factor(
         V_target=None, V_reference=None, 
@@ -168,9 +191,9 @@ def kLa_proportionality_factor(
     Parameters
     ----------
     V_target : float, optional
-        Molar volume of the target solute at its normal boiling point [cm³/mol].
+        Le Bas molar volume of the target solute at its normal boiling point [cm³/mol].
     V_reference: float, optional
-        Molar volume of the reference solute at its normal boiling point [cm³/mol].
+        Le Bas molar volume of the reference solute at its normal boiling point [cm³/mol].
     target : str, optional
         Name of target solute. 
     reference : str, optional
@@ -204,7 +227,7 @@ def HaydukLaudie_diffusion_coefficient(
         Dynamic viscosity of water at the temperature of interest, in 
         centipoise (cP) or millipascal-seconds (mPa·s).
     V_A : float, optional
-        Molar volume of the solute at its normal boiling point [cm³/mol].
+        Le Bas molar volume of the solute at its normal boiling point [cm³/mol].
     A : str, optional
         Name of solute. Defaults to oxygen.
         
@@ -212,10 +235,10 @@ def HaydukLaudie_diffusion_coefficient(
     --------
     >>> from biosteam.units.design_tools import aeration
     >>> mu_water = 0.89
-    >>> V_h2 = 28.45
+    >>> V_h2 = 7.4
     >>> D_h2_water = aeration.HaydukLaudie_diffusion_coefficient(mu_B=mu_water, V_A=V_h2)
     >>> print(f"{D_h2_water:.3e}")
-    2.108e-05
+    4.659e-05
     
     """
     if V_A is None:
@@ -245,7 +268,7 @@ def WilkeChang_diffusion_coefficient(
     mu_B : float, optional
         Dynamic viscosity of the liquid solvent, in centipoise (cP).
     V_A : float, optional
-        Molar volume of the solute at its normal boiling point [cm³/mol].
+        Le Bas molar volume of the solute at its normal boiling point [cm³/mol].
     phi_B : float, optional
         Dimensionless association factor of the solvent. Defaults to 
         2.6 for water, 1.9 for methanol, 1.5 for ethanol, and 1.0 
