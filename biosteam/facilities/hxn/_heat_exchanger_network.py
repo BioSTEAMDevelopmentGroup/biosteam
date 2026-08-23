@@ -11,7 +11,7 @@ Created on Sat Aug 22 21:58:19 2020
 """
 import biosteam as bst
 import numpy as np
-from .hxn_synthesis import synthesize_network, StreamLifeCycle
+from .hxn_synthesis import synthesize_network, StreamLifeCycle, plot_pinch_diagram
 from warnings import warn
 
 __all__ = ('HeatExchangerNetwork',)
@@ -199,6 +199,8 @@ class HeatExchangerNetwork(bst.Facility):
                                    self.force_ideal_thermo, self.avoid_recycle,
                                    self.sort_hus_by_T)
                 new_HXs = HXs_hot_side + HXs_cold_side
+                self.new_HXs_hot_side = HXs_hot_side
+                self.new_HXs_cold_side = HXs_cold_side
                 self.cold_indices = cold_indices
                 self.original_heat_exchangers = hxs
                 self.new_HXs = new_HXs
@@ -370,6 +372,19 @@ class HeatExchangerNetwork(bst.Facility):
         self.stream_life_cycles = stream_life_cycles
         return stream_life_cycles
         
+    def plot_pinch_diagram(self, file=None, **kwargs):
+        """
+        Draw the pinch diagram of the synthesized network; see
+        :func:`~biosteam.facilities.hxn.hxn_synthesis.plot_pinch_diagram`
+        for the keyword arguments. Returns the matplotlib figure and axes.
+        """
+        if not hasattr(self, 'stream_life_cycles'): self._get_stream_life_cycles()
+        return plot_pinch_diagram(
+            self.stream_life_cycles, self.inlet_Ts, self.outlet_Ts,
+            self.new_HXs_hot_side, self.new_HXs_cold_side,
+            Qmin=self.Qmin, file=file, **kwargs,
+        )
+
     def get_original_hxs_associated_with_streams(self): # pragma: no cover
         original_units = self.system.units
         original_heat_utils = self.original_heat_utils

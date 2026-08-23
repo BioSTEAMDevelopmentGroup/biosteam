@@ -253,6 +253,60 @@ def test_synthetic_network_reaches_MER():
     # respects T_min_app; with non-equilibrium inlets the table is conservative
     assert actual_heat >= table.hot_util_load * (1 - 1e-3)
 
+# --- pinch diagram -----------------------------------------------------------
+
+class _FakeStage:
+    def __init__(self, unit): self.unit = unit
+
+class _FakeLifeCycle:
+    def __init__(self, units, cold=True):
+        self.cold = cold
+        self.life_cycle = [_FakeStage(u) for u in units]
+
+def test_pinch_diagram_column_order_follows_stream_direction():
+    from biosteam.facilities.hxn.hxn_synthesis import _order_exchanger_columns
+    h1, h2, h3 = 'h1', 'h2', 'h3'
+    # stream A visits h2 then h1; stream B visits h1 then h3 -> h2, h1, h3
+    cycles = [_FakeLifeCycle([h2, h1]), _FakeLifeCycle([h1, h3])]
+    assert _order_exchanger_columns([h1, h2, h3], cycles) == [h2, h1, h3]
+    # exchangers not in the requested subset are ignored, order is stable
+    assert _order_exchanger_columns([h3, h1], cycles) == [h1, h3]
+    # a hot stream flows right to left, so its stage order is reversed:
+    # hot stream visits h1 then h3 -> h3 left of h1
+    cycles = [_FakeLifeCycle([h2, h1]), _FakeLifeCycle([h1, h3], cold=False)]
+    assert _order_exchanger_columns([h1, h2, h3], cycles) == [h2, h3, h1]
+    # contradictory constraints (a cycle) fall back to the given order
+    cycles = [_FakeLifeCycle([h1, h2]), _FakeLifeCycle([h2, h1])]
+    assert _order_exchanger_columns([h2, h1], cycles) == [h2, h1]
+
+def _gid_artists(ax, prefix):
+    return [a for a in ax.findobj() if (a.get_gid() or '').startswith(prefix)]
+
+def test_pinch_diagram_doctest_system():
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    sys, HXN, feed = build_system()
+    sys.simulate()
+    assert HXN.new_HXs_hot_side + HXN.new_HXs_cold_side == HXN.new_HXs
+    fig, ax = HXN.plot_pinch_diagram()
+    try:
+        # one connector per process exchanger
+        connectors = _gid_artists(ax, 'HX:')
+        assert {a.get_gid() for a in connectors} == {'HX:' + hx.ID for hx in HXN.new_HXs}
+        # one utility marker per utility exchanger with a duty above Qmin
+        utils = _gid_artists(ax, 'Util:')
+        expected = {'Util:' + hx.ID for hx in HXN.new_HX_utils
+                    if abs(hx.outs[0].H - hx.ins[0].H) > HXN.Qmin}
+        assert {a.get_gid() for a in utils} == expected
+        # one row per stream, with inlet temperatures in degC
+        texts = {t.get_text() for t in ax.texts}
+        for T in HXN.inlet_Ts: assert f'{T - 273.15:.1f}' in texts
+        for T in HXN.outlet_Ts: assert f'{T - 273.15:.1f}' in texts
+        for i in range(len(HXN.inlet_Ts)): assert str(i) in texts
+    finally:
+        plt.close(fig)
+
 if __name__ == '__main__':
     test_cache_network_matches_fresh_synthesis()
     test_cache_network_perturbed_feed()
@@ -265,3 +319,5 @@ if __name__ == '__main__':
     test_problem_table_non_monotone_stream_is_point_load()
     test_problem_table_point_load_cannot_heat_above_itself()
     test_synthetic_network_reaches_MER()
+    test_pinch_diagram_column_order_follows_stream_direction()
+    test_pinch_diagram_doctest_system()

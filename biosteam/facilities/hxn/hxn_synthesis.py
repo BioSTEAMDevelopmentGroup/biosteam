@@ -11,12 +11,13 @@ Created on Sat May  2 16:44:24 2020
 @author: sarangbhagwat
 """
 from collections import namedtuple
+import heapq
 import numpy as np
 import biosteam as bst
 from warnings import warn
 
 __all__ = ('StreamLifeCycle', 'ProblemTable', 'problem_table',
-           'synthesize_network')
+           'synthesize_network', 'plot_pinch_diagram')
 
 class LifeStage:
         
@@ -671,3 +672,214 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False,
            T_out_arr, pinch_T_arr, C_flow_vector, hx_utils_rearranged, streams_inlet, stream_HXs_dict,\
            hot_indices, cold_indices
 
+
+
+# Pinch diagram
+
+def _order_exchanger_columns(hxs, stream_life_cycles):
+    """
+    Order heat exchangers left to right so that every stream meets its
+    exchangers in flow direction (cold streams flow left to right, hot streams
+    right to left). The per-stream stage orders define a precedence graph;
+    a topological sort (Kahn's algorithm, ties broken by the given order)
+    yields a consistent layout. Contradictory constraints, which would need a
+    stream to flow backwards, fall back to the given order.
+    """
+    hxs = list(hxs)
+    position = {hx: i for i, hx in enumerate(hxs)}
+    successors = {hx: [] for hx in hxs}
+    N_predecessors = {hx: 0 for hx in hxs}
+    for life_cycle in stream_life_cycles:
+        stages = [i.unit for i in life_cycle.life_cycle if i.unit in position]
+        if not life_cycle.cold: stages.reverse()
+        for a, b in zip(stages, stages[1:]):
+            if b not in successors[a]:
+                successors[a].append(b)
+                N_predecessors[b] += 1
+    ready = [position[hx] for hx in hxs if not N_predecessors[hx]]
+    heapq.heapify(ready)
+    ordered = []
+    while ready:
+        hx = hxs[heapq.heappop(ready)]
+        ordered.append(hx)
+        for other in successors[hx]:
+            N_predecessors[other] -= 1
+            if not N_predecessors[other]: heapq.heappush(ready, position[other])
+    return ordered if len(ordered) == len(hxs) else hxs
+
+def _format_H(H):
+    mantissa, exponent = f'{H:.2e}'.split('e')
+    return f'{mantissa}E{int(exponent)}'
+
+def plot_pinch_diagram(stream_life_cycles, inlet_Ts, outlet_Ts,
+                       hot_side_HXs, cold_side_HXs, Qmin=1e-3,
+                       ax=None, file=None, dpi=300):
+    """
+    Draw a pinch diagram of a synthesized heat exchanger network: cold
+    streams (blue, flowing left to right) above hot streams (red, flowing
+    right to left), one vertical connector per process heat exchanger with
+    its duty, a dashed pinch line separating the cold-side from the
+    hot-side exchangers, and circles marking the utility exchangers that
+    bring each stream to its outlet temperature.
+
+    Parameters
+    ----------
+    stream_life_cycles : list[StreamLifeCycle]
+        One per stream, as built by HeatExchangerNetwork.
+    inlet_Ts, outlet_Ts : array-like
+        Stream inlet and outlet temperatures [K], indexed like the life cycles.
+    hot_side_HXs, cold_side_HXs : list[HXprocess]
+        Process exchangers above and below the pinch.
+    Qmin : float, optional
+        Utility exchangers with a duty at or below this [kJ/hr] are not marked.
+    ax : matplotlib.axes.Axes, optional
+        Axes to draw on; a new figure is created if not given.
+    file : str, optional
+        If given, the figure is saved to this path.
+    dpi : int, optional
+        Resolution used when saving.
+
+    Returns
+    -------
+    fig, ax : The matplotlib figure and axes.
+
+    Notes
+    -----
+    Temperatures are shown in degC and heat flows in kJ/hr at the inlet and
+    outlet of each stream. Exchanger columns on each side of the pinch are
+    ordered so that each stream meets them in flow direction whenever the
+    network allows it.
+
+    Examples
+    --------
+    >>> import biosteam as bst
+    >>> bst.settings.set_thermo(['Water', 'Methanol', 'Glycerol'])
+    >>> feed1 = bst.Stream('feed1', flow=(8000, 100, 25))
+    >>> feed2 = bst.Stream('feed2', flow=(10000, 1000, 10))
+    >>> D1 = bst.ShortcutColumn('D1', ins=feed1,
+    ...                     outs=('distillate', 'bottoms_product'),
+    ...                     LHK=('Methanol', 'Water'),
+    ...                     y_top=0.99, x_bot=0.01, k=2,
+    ...                     is_divided=True)
+    >>> D1_H1 = bst.HXutility('D1_H1', ins = D1.outs[1], T = 300)
+    >>> D1_H2 = bst.HXutility('D1_H2', ins = D1.outs[0], T = 300)
+    >>> F1 = bst.Flash('F1', ins=feed2,
+    ...                outs=('vapor', 'liquid'), V = 0.9, P = 101325)
+    >>> HXN = bst.HeatExchangerNetwork('HXN', T_min_app = 5.)
+    >>> sys = bst.System.from_units('sys', units=[D1, D1_H1, D1_H2, F1, HXN])
+    >>> sys.simulate()
+    >>> fig, ax = HXN.plot_pinch_diagram()
+    >>> connectors = [i for i in ax.findobj() if (i.get_gid() or '').startswith('HX:')]
+    >>> len(connectors) == len(HXN.new_HXs)
+    True
+
+    """
+    import matplotlib.pyplot as plt
+    cold_color, hot_color = '#2e6db4', '#d62728'
+    cold_bg, hot_bg = '#e6f0fa', '#fbe9e7'
+    process_hxs = set(hot_side_HXs) | set(cold_side_HXs)
+    # Stream index and stage of each side of every process exchanger, by identity
+    hx_streams = {hx: {} for hx in process_hxs}
+    for index, life_cycle in enumerate(stream_life_cycles):
+        for stage in life_cycle.life_cycle:
+            if stage.unit in hx_streams:
+                hx_streams[stage.unit][life_cycle.cold] = (index, stage)
+    cold_side_HXs = _order_exchanger_columns(cold_side_HXs, stream_life_cycles)
+    hot_side_HXs = _order_exchanger_columns(hot_side_HXs, stream_life_cycles)
+    columns = cold_side_HXs + hot_side_HXs
+    N_cs = len(cold_side_HXs)
+    N_columns = len(columns)
+    # x layout: 0 stream ends | 1 cold utilities | 2..N_cs+1 cold side |
+    # pinch | N_cs+2..N+1 hot side | N+2 hot utilities | N+3 stream ends
+    x_start, x_cold_util = 0., 1.
+    x_columns = {hx: 2. + i for i, hx in enumerate(columns)}
+    x_pinch = N_cs + 1.5
+    x_hot_util = N_columns + 2.
+    x_end = N_columns + 3.
+    # y layout: cold streams on top, hot streams below, duty labels in between
+    cold_streams = [i for i, lc in enumerate(stream_life_cycles) if lc.cold]
+    hot_streams = [i for i, lc in enumerate(stream_life_cycles) if not lc.cold]
+    N_hot = len(hot_streams)
+    N_cold = len(cold_streams)
+    gap = 2.5
+    y = {}
+    for k, i in enumerate(hot_streams): y[i] = N_hot - k
+    for k, i in enumerate(cold_streams): y[i] = N_hot + gap + N_cold - k
+    y_label = N_hot + (gap + 1.) / 2.
+    y_top = N_hot + gap + N_cold + 1.
+    y_bottom = 0.
+    if ax is None:
+        fig, ax = plt.subplots(
+            figsize=(max(6., 0.75 * (N_columns + 4) + 3.), 0.4 * y_top + 1.)
+        )
+    else:
+        fig = ax.figure
+    # Background and pinch line
+    x_min, x_max = x_start - 1.8, x_end + 1.8
+    ax.axvspan(x_min, x_pinch, color=cold_bg, lw=0, zorder=0)
+    ax.axvspan(x_pinch, x_max, color=hot_bg, lw=0, zorder=0)
+    ax.axvline(x_pinch, color='k', ls='--', lw=1, zorder=1)
+    ax.text(x_min + 0.2, y_bottom + 0.1, 'Cold side', color=cold_color,
+            weight='bold', ha='left', va='bottom')
+    ax.text(x_max - 0.2, y_bottom + 0.1, 'Hot side', color=hot_color,
+            weight='bold', ha='right', va='bottom')
+    # Column headers
+    header_kwargs = dict(ha='center', va='bottom', weight='bold', fontsize=8)
+    for x_T, x_H in ((x_start - 1.3, x_start - 0.6), (x_end + 0.6, x_end + 1.3)):
+        ax.text(x_T, y_top, 'T\n[°C]', **header_kwargs)
+        ax.text(x_H, y_top, 'H\n[kJ·h$^{-1}$]', **header_kwargs)
+    ax.text(x_start - 0.3, y_label, 'ΔH\n[kJ·h$^{-1}$]',
+            ha='right', va='center', weight='bold', fontsize=8)
+    # Streams
+    value_kwargs = dict(ha='center', va='center', fontsize=8)
+    for index, life_cycle in enumerate(stream_life_cycles):
+        cold = life_cycle.cold
+        color = cold_color if cold else hot_color
+        yi = y[index]
+        stages = life_cycle.life_cycle
+        H_in = stages[0].H_in if stages else float('nan')
+        H_out = stages[-1].H_out if stages else float('nan')
+        T_in = inlet_Ts[index] - 273.15
+        T_out = outlet_Ts[index] - 273.15
+        # T is the outer column on the left and the inner column on the right
+        T_left, H_left, T_right, H_right = (
+            (T_in, H_in, T_out, H_out) if cold else (T_out, H_out, T_in, H_in)
+        )
+        x_in, x_out, sign = (x_start, x_end, 1) if cold else (x_end, x_start, -1)
+        ax.annotate('', xy=(x_out, yi), xytext=(x_in, yi),
+                    arrowprops=dict(arrowstyle='-|>', color=color, lw=1.2,
+                                    shrinkA=0, shrinkB=0), zorder=2)
+        ax.text(x_start - 1.3, yi, f'{T_left:.1f}', color=color, **value_kwargs)
+        ax.text(x_start - 0.6, yi, _format_H(H_left), color=color, **value_kwargs)
+        ax.text(x_end + 0.6, yi, f'{T_right:.1f}', color=color, **value_kwargs)
+        ax.text(x_end + 1.3, yi, _format_H(H_right), color=color, **value_kwargs)
+        ax.text(x_in + sign * 0.3, yi + 0.12, str(index), color=color,
+                ha='center', va='bottom', weight='bold', fontsize=9)
+        # Utility exchangers
+        x_util = x_hot_util if cold else x_cold_util
+        for stage in stages:
+            unit = stage.unit
+            if unit in process_hxs: continue
+            if abs(stage.H_out - stage.H_in) <= Qmin: continue
+            ax.plot([x_util], [yi], 'o', mfc='w', mec=color, mew=1.2, ms=6,
+                    zorder=4, gid='Util:' + unit.ID)
+    # Process exchangers
+    for hx in columns:
+        streams = hx_streams[hx]
+        if len(streams) != 2:
+            warn(f'{hx.ID} is not in exactly one hot and one cold stream '
+                 'life cycle; it is not drawn', RuntimeWarning)
+            continue
+        (i_cold, stage_cold), (i_hot, stage_hot) = streams[True], streams[False]
+        x = x_columns[hx]
+        Q = abs(stage_hot.H_in - stage_hot.H_out)
+        ax.plot([x, x], [y[i_hot], y[i_cold]], '-o', color='k', mfc='w',
+                mew=1.2, ms=6, lw=1.2, zorder=3, gid='HX:' + hx.ID)
+        ax.text(x, y_label, _format_H(Q), rotation=90, ha='center',
+                va='center', fontsize=8, zorder=5,
+                bbox=dict(boxstyle='square,pad=0.25', fc='w', ec='k', lw=0.8))
+    ax.set_xlim(x_min, x_max)
+    ax.set_ylim(y_bottom, y_top + 1.2)
+    ax.set_axis_off()
+    if file: fig.savefig(file, dpi=dpi, bbox_inches='tight')
+    return fig, ax
