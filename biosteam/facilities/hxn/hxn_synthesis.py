@@ -368,16 +368,39 @@ def temperature_interval_pinch_analysis(hus,
            streams_quenched
             
         
+def pinch_state(stream_in, H_in, H_out, T_pinch):
+    """
+    Return a copy of `stream_in` in the state it has when it crosses the
+    pinch, with enthalpy guaranteed to lie within [min(H_in, H_out),
+    max(H_in, H_out)].
+
+    The copy is first flashed at `T_pinch`. If the resulting equilibrium
+    enthalpy lies outside the stream's own enthalpy range the stream never
+    actually passes through that state: a non-equilibrium inlet (e.g. a
+    superheated liquid from a non-rigorous HXutility) or outlet has less
+    (or more) enthalpy than the equilibrium fluid at the pinch. The copy is
+    then flashed at the nearer end of the range instead, so the hot-side
+    and cold-side loads split `|H_in - H_out|` exactly and the transient
+    stream used for matching never carries heat the real stream does not
+    have. This is the synthesizer's counterpart of the clipping done by
+    `_stream_H_at_boundaries` for the problem table.
+    """
+    stream = stream_in.copy()
+    stream.vle(T=T_pinch, P=stream.P)
+    H_lo, H_hi = sorted((H_in, H_out))
+    H = stream.H
+    if H < H_lo or H > H_hi:
+        stream.vle(H=min(max(H, H_lo), H_hi), P=stream.P)
+    return stream
+
 def load_duties(streams, streams_quenched, pinch_T_arr, T_out_arr, indices, is_cold, Q_hot_side, Q_cold_side):
     for index in indices:
-        stream = streams[index].copy()
-        H_in = stream.H
-        stream.vle(T = pinch_T_arr[index], P = stream.P)
-        H_pinch = stream.H
+        H_in = streams[index].H
         H_out = streams_quenched[index].H
+        H_pinch = pinch_state(streams[index], H_in, H_out, pinch_T_arr[index]).H
         if not is_cold(index):
-            dH1 = abs(H_pinch - H_in)
-            dH2 = abs(H_out - H_pinch)
+            dH1 = H_in - H_pinch
+            dH2 = H_pinch - H_out
             if abs(dH1)<0.01: dH1 = 0
             if abs(dH2)<0.01: dH2 = 0
             Q_hot_side[index] = ['cool', dH1]
@@ -418,14 +441,17 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False,
     HXs_cold_side = []
     streams_transient_cold_side = streams_inlet
     streams_transient_hot_side = [i.copy() for i in streams_inlet]
+    # Hot streams enter the cold-side design at their pinch state and cold
+    # streams enter the hot-side design at theirs; the enthalpy of that
+    # state is clipped to the stream's real range (see `pinch_state`).
     for i in hot_indices:
         s = streams_transient_cold_side[i]
         if s.T != pinch_T_arr[i]:
-            s.vle(T=pinch_T_arr[i], P=s.P)
+            streams_transient_cold_side[i] = pinch_state(s, s.H, H_out_arr[i], pinch_T_arr[i])
     for i in cold_indices:
         s = streams_transient_hot_side[i]
         if s.T != pinch_T_arr[i]:
-            s.vle(T=pinch_T_arr[i], P=s.P)
+            streams_transient_hot_side[i] = pinch_state(s, s.H, H_out_arr[i], pinch_T_arr[i])
     
     def get_stream_at_H_max(cold):
         s_cs = streams_transient_cold_side[cold]

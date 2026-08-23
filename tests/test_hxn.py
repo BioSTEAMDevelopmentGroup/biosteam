@@ -96,7 +96,7 @@ def test_energy_balance_error_contributions_ignored_none():
 # ---------------------------------------------------------------------------
 
 from biosteam.facilities.hxn.hxn_synthesis import (
-    temperature_interval_pinch_analysis, problem_table,
+    temperature_interval_pinch_analysis, problem_table, load_duties, pinch_state,
 )
 
 def utility_hx(ID, T, P, phase, T_out, **flow):
@@ -235,6 +235,34 @@ def test_problem_table_point_load_cannot_heat_above_itself():
     assert_allclose(table.hot_util_load, H_398 - H_395, rtol=1e-9)
     assert table.pinch_T == 395.
     assert_allclose(table.cold_util_load, P_hot - (H_395 - H_392), rtol=1e-9)
+
+def test_load_duties_non_equilibrium_inlet_conserves_energy():
+    # A non-rigorous HXutility can carry a superheated liquid (ethanol at
+    # 370 K, 1 atm; bp 351.4 K). Flashing it at the 355 K pinch gives vapor
+    # with far more enthalpy than the inlet has; the pinch split must clip
+    # to the stream's real enthalpy range so that the hot-side and cold-side
+    # loads sum to the stream's duty (and are not phantom latent heat).
+    bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
+    s_in = bst.Stream('ne_in', Ethanol=700., T=370., P=101325., phase='l',
+                      units='kmol/hr')
+    s_out = bst.Stream('ne_out', Ethanol=700., T=310., P=101325., phase='l',
+                       units='kmol/hr')
+    duty = s_in.H - s_out.H
+    flashed = s_in.copy(); flashed.vle(T=355., P=101325.)
+    assert flashed.H > s_in.H   # the trap: equilibrium enthalpy above H_in
+    Q_hot_side, Q_cold_side = {}, {}
+    load_duties([s_in], [s_out], np.array([355.]), np.array([310.]), [0],
+                lambda i: False, Q_hot_side, Q_cold_side)
+    assert Q_hot_side[0][0] == Q_cold_side[0][0] == 'cool'
+    assert_allclose(Q_hot_side[0][1] + Q_cold_side[0][1], duty, rtol=1e-9)
+    # the stream cannot give any heat above the pinch: its whole enthalpy
+    # range lies below the equilibrium state at 355 K
+    assert_allclose(Q_hot_side[0][1], 0., atol=1e-6)
+    assert_allclose(Q_cold_side[0][1], duty, rtol=1e-9)
+    # and the transient state used for matching carries the clipped enthalpy
+    s = pinch_state(s_in, s_in.H, s_out.H, 355.)
+    assert_allclose(s.H, s_in.H, rtol=1e-9)
+    assert s.T < 355.
 
 def test_synthetic_network_reaches_MER():
     units = synthetic_units()

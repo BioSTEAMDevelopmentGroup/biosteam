@@ -77,7 +77,16 @@ def heat_exchange_to_condition(s_in, s_out, T=None, phase=None,
                 else:
                     if s_out.H < H_lim: s_out.H = H_lim
         else:
+            # At the bubble point: the most the stream can absorb (release)
+            # without leaving T is full vaporization (condensation). The
+            # enthalpy limit still applies; a limit short of the full phase
+            # change lands in the two-phase region, so solve it by VLE.
             s_out.phase = 'g' if heating else 'l'
+            if H_lim_given:
+                if heating:
+                    if s_out.H > H_lim: s_out.vle(H=H_lim, P=s_out.P)
+                else:
+                    if s_out.H < H_lim: s_out.vle(H=H_lim, P=s_out.P)
     else:
         s_out.vle(T=T, P=s_out.P)
         if H_lim_given:
@@ -168,14 +177,14 @@ def counter_current_heat_exchange(s0_in, s1_in, s0_out, s1_out,
     
     if Q_hot_stream == Q_cold_stream == 0.:
         s0_out.copy_like(s0_in)
-        s1_in.copy_like(s1_out)
+        s1_out.copy_like(s1_in)
         return 0.
     
     if Q_hot_stream > 0 or Q_cold_stream < 0:
         # Sanity check
         if Q_hot_stream / s_hot_in.C < 0.1 or Q_cold_stream / s_cold_in.C > -0.1:
             s0_out.copy_like(s0_in)
-            s1_in.copy_like(s1_out)
+            s1_out.copy_like(s1_in)
             return 0.
         raise RuntimeError('inlet stream not in vapor-liquid equilibrium')
     

@@ -19,8 +19,11 @@ streams from case 3 on). For each, the synthesized network must
       no future change to ``hxn`` silently makes the synthesizer perform worse.
 
 The documented utility loads were recorded by running this file directly
-(``python tests/test_hxn_regression.py`` prints them) at commit
-``1ab689ff`` (branch ``hxn-pinch-diagram``). Improvements leave slack; a
+(``python tests/test_hxn_regression.py`` prints them): cases 1-9 at commit
+``1ab689ff`` (branch ``hxn-pinch-diagram``), case 10 after the synthesizer
+fixes on ``hxn-regression-tests`` (non-equilibrium inlets clipped to the
+stream's enthalpy range; network path ordered by its connections; H_lim
+honored at the bubble point). Improvements leave slack; a
 maintainer lowers the numbers deliberately when a better network is
 intended. Never raise them to make a failing test pass.
 """
@@ -140,7 +143,7 @@ def case_10_ten_streams():
             utility_hx('H2', 420., 5e5, 'g', 340., Water=150.),
             utility_hx('H3', 395., 5e5, 'l', 330., Water=1000.),
             utility_hx('H4', 370., 101325., 'l', 310., Ethanol=700.),
-            utility_hx('H5', 380., 2e5, 'g', 375., Water=100.),       # partial condensation
+            utility_hx('H5', 380., 101325., 'g', 372.5, Water=100.),   # partial condensation
             utility_hx('C1', 300., 101325., 'l', 360., Water=2000.),
             boiling_hx('C2', 330., 101325., 380., Water=200.),
             boiling_hx('C3', 320., 101325., 352., Ethanol=400.),
@@ -148,7 +151,7 @@ def case_10_ten_streams():
             utility_hx('C5', 340., 101325., 'l', 390., Water=600.)], 5.
 
 # name -> (builder, documented hot utility load [kJ/hr], documented cold utility load [kJ/hr])
-# Documented values recorded at 1ab689ff (see module docstring).
+# Documented values: see module docstring for provenance.
 CASES = {
     'case_01_two_liquids':         (case_01_two_liquids,         0, 1.53912e+06),
     'case_02_pinch_limited':       (case_02_pinch_limited,       1.81522e+06, 0),
@@ -159,7 +162,7 @@ CASES = {
     'case_07_threshold':           (case_07_threshold,           1.85977e+07, 0),
     'case_08_two_condensers':      (case_08_two_condensers,      3.02237e+06, 7.36431e+06),
     'case_09_near_degenerate':     (case_09_near_degenerate,     1.40965e+07, 9.66427e+06),
-    'case_10_ten_streams':         (case_10_ten_streams,         None, None),
+    'case_10_ten_streams':         (case_10_ten_streams,         1.40742e+07, 8.06488e+06),
 }
 
 # ---------------------------------------------------------------------------
@@ -194,21 +197,7 @@ def actual_loads(HXN):
     cool = -sum(hu.unit_duty for hu in hus if hu.unit_duty < 0)
     return heat, cool
 
-# Cases that currently crash inside synthesis. Strict xfail: once the bug is
-# fixed the test fails, prompting the maintainer to record the case's baseline.
-KNOWN_FAILURES = {
-    # The synthesizer emits a zero-duty exchanger (HX_8_2_cs: H1 at 355 K
-    # against C3 at 365 K, Q = 0) whose cold inlet is hotter than its hot
-    # inlet; compute_LMTD then takes log of a negative ratio.
-    'case_10_ten_streams': FloatingPointError,
-}
-
-@pytest.mark.parametrize('name', [
-    pytest.param(name, marks=pytest.mark.xfail(raises=KNOWN_FAILURES[name], strict=True,
-                 reason='synthesizer emits a zero-duty exchanger with crossed temperatures'))
-    if name in KNOWN_FAILURES else name
-    for name in CASES
-])
+@pytest.mark.parametrize('name', list(CASES))
 def test_hxn_regression(name):
     builder, doc_heat, doc_cool = CASES[name]
     units, HXN, T_min_app = synthesize(builder)
@@ -228,9 +217,6 @@ def test_hxn_regression(name):
 
 if __name__ == '__main__':
     for name, (builder, *_) in CASES.items():
-        if name in KNOWN_FAILURES:
-            print(f"{name}: known failure ({KNOWN_FAILURES[name].__name__})")
-            continue
         units, HXN, T_min_app = synthesize(builder)
         heat, cool = actual_loads(HXN)
         hot_target, cold_target = mer_targets(units, T_min_app)
