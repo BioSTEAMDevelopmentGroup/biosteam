@@ -789,7 +789,8 @@ def plot_pinch_diagram(stream_life_cycles, inlet_Ts, outlet_Ts,
 
     Returns
     -------
-    fig, ax : The matplotlib figure and axes.
+    fig : matplotlib.figure.Figure
+    ax : matplotlib.axes.Axes
 
     Notes
     -----
@@ -821,9 +822,13 @@ def plot_pinch_diagram(stream_life_cycles, inlet_Ts, outlet_Ts,
     >>> connectors = [i for i in ax.findobj() if (i.get_gid() or '').startswith('HX:')]
     >>> len(connectors) == len(HXN.new_HXs)
     True
+    >>> import matplotlib.pyplot as plt
+    >>> plt.close(fig)
 
     """
     import matplotlib.pyplot as plt
+    # Artists carry stable gids ('HX:<ID>', 'Util:<ID>', 'Label:<index>')
+    # so the drawing can be checked structurally in tests.
     show_labels = show_units or show_auxiliary_units or show_stream_IDs
     if show_labels and original_hxs is None:
         raise ValueError('original_hxs is required to label streams with '
@@ -889,9 +894,9 @@ def plot_pinch_diagram(stream_life_cycles, inlet_Ts, outlet_Ts,
         cold = life_cycle.cold
         color = cold_color if cold else hot_color
         yi = y[index]
-        stages = life_cycle.life_cycle
-        H_in = stages[0].H_in if stages else float('nan')
-        H_out = stages[-1].H_out if stages else float('nan')
+        stages = life_cycle.life_cycle # never empty: each stream has a utility stage
+        H_in = stages[0].H_in
+        H_out = stages[-1].H_out
         T_in = inlet_Ts[index] - 273.15
         T_out = outlet_Ts[index] - 273.15
         # T is the outer column on the left and the inner column on the right
@@ -913,15 +918,17 @@ def plot_pinch_diagram(stream_life_cycles, inlet_Ts, outlet_Ts,
                                   show_auxiliary_units, show_stream_IDs)
             ax.text(x_in + sign * 0.6, yi + 0.12, label, color=color,
                     ha='left' if cold else 'right', va='bottom', fontsize=7,
-                    gid=f'Label:{index}')
-        # Utility exchangers
-        x_util = x_hot_util if cold else x_cold_util
+                    zorder=6, gid=f'Label:{index}',
+                    bbox=dict(boxstyle='square,pad=0.15', fc='w', ec='none'))
+        # Utility exchangers: a cold stream ends in a hot utility (red), a
+        # hot stream in a cold utility (blue)
+        x_util, util_color = (x_hot_util, hot_color) if cold else (x_cold_util, cold_color)
         for stage in stages:
             unit = stage.unit
             if unit in process_hxs: continue
             if abs(stage.H_out - stage.H_in) <= Qmin: continue
-            ax.plot([x_util], [yi], 'o', mfc='w', mec=color, mew=1.2, ms=6,
-                    zorder=4, gid='Util:' + unit.ID)
+            ax.plot([x_util], [yi], 'o', mfc='w', mec=util_color, mew=1.2,
+                    ms=6, zorder=4, gid='Util:' + unit.ID)
     # Process exchangers
     for hx in columns:
         streams = hx_streams[hx]

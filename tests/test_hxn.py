@@ -347,6 +347,11 @@ def test_pinch_diagram_stream_labels():
     finally:
         plt.close(fig)
 
+def test_pinch_diagram_requires_simulation():
+    sys, HXN, feed = build_system()
+    with pytest.raises(RuntimeError, match='simulate'):
+        HXN.plot_pinch_diagram()
+
 def test_pinch_diagram_legend():
     import matplotlib
     matplotlib.use('Agg')
@@ -360,6 +365,16 @@ def test_pinch_diagram_legend():
         labels = [t.get_text() for t in legend.get_texts()]
         assert labels == ['Cold stream', 'Hot stream', 'Process heat exchange',
                           'Hot utility', 'Cold utility', 'Pinch']
+        # utility markers are colored by utility type, consistent with the legend
+        handles = dict(zip(labels, legend.legend_handles))
+        hot_util_color = handles['Hot utility'].get_markeredgecolor()
+        cold_util_color = handles['Cold utility'].get_markeredgecolor()
+        assert hot_util_color != cold_util_color
+        heaters = {hx.ID for hx in HXN.new_HX_utils if hx.outs[0].H > hx.ins[0].H}
+        for artist in _gid_artists(ax, 'Util:'):
+            heater = artist.get_gid()[len('Util:'):] in heaters
+            expected = hot_util_color if heater else cold_util_color
+            assert artist.get_markeredgecolor() == expected, artist.get_gid()
     finally:
         plt.close(fig)
     fig, ax = HXN.plot_pinch_diagram(show_legend=False)
@@ -384,3 +399,4 @@ if __name__ == '__main__':
     test_pinch_diagram_doctest_system()
     test_pinch_diagram_stream_labels()
     test_pinch_diagram_legend()
+    test_pinch_diagram_requires_simulation()

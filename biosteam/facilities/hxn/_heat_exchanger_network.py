@@ -378,7 +378,9 @@ class HeatExchangerNetwork(bst.Facility):
         :func:`~biosteam.facilities.hxn.hxn_synthesis.plot_pinch_diagram`
         for the keyword arguments. Returns the matplotlib figure and axes.
         """
-        if not hasattr(self, 'stream_life_cycles'): self._get_stream_life_cycles()
+        if not hasattr(self, 'new_HXs_hot_side'):
+            raise RuntimeError('simulate the heat exchanger network before '
+                               'plotting its pinch diagram')
         return plot_pinch_diagram(
             self.stream_life_cycles, self.inlet_Ts, self.outlet_Ts,
             self.new_HXs_hot_side, self.new_HXs_cold_side,
