@@ -12,18 +12,21 @@ Regression tests for heat exchanger network synthesis on synthetic systems.
 Ten synthetic systems of increasing complexity (all with phase-changing
 streams from case 3 on). For each, the synthesized network must
 
-(i)   close its energy balance (|error| < 0.1 %) without RuntimeWarnings,
+(i)   close its energy balance (|error| < 1e-6 %) without RuntimeWarnings,
 (ii)  never beat the minimum-energy-requirement (MER) targets of the problem
       table computed on the same streams, and
 (iii) recover at least as much heat as documented in ``CASES`` below, so that
       no future change to ``hxn`` silently makes the synthesizer perform worse.
 
 The documented utility loads were recorded by running this file directly
-(``python tests/test_hxn_regression.py`` prints them): cases 1-9 at commit
-``1ab689ff`` (branch ``hxn-pinch-diagram``), case 10 after the synthesizer
-fixes on ``hxn-regression-tests`` (non-equilibrium inlets clipped to the
-stream's enthalpy range; network path ordered by its connections; H_lim
-honored at the bubble point). Improvements leave slack; a
+(``python tests/test_hxn_regression.py`` prints them): cases 1-4 and 6-9
+at commit ``1ab689ff`` (branch ``hxn-pinch-diagram``); case 10 after the
+synthesizer fixes on ``hxn-regression-tests`` (non-equilibrium inlets
+clipped to the stream's enthalpy range; network path ordered by its
+connections; H_lim honored at the bubble point); case 5 lowered after the
+pinch state at an end temperature became the equilibrium state at that
+end enthalpy (its 420 K, 5 bar vapor feed is below water's boiling point
+there, a non-equilibrium inlet). Improvements leave slack; a
 maintainer lowers the numbers deliberately when a better network is
 intended. Never raise them to make a failing test pass.
 """
@@ -33,7 +36,7 @@ import biosteam as bst
 from numpy.testing import assert_allclose
 from biosteam.facilities.hxn.hxn_synthesis import problem_table
 
-EB_TOLERANCE = 0.1   # percent
+EB_TOLERANCE = 1e-6  # percent; converged networks close to ~1e-10 %
 MER_RTOL = 1e-3      # network may not beat the MER target by more than this
 DOC_RTOL = 1e-3      # network may not be worse than documented by more than this
 
@@ -157,7 +160,7 @@ CASES = {
     'case_02_pinch_limited':       (case_02_pinch_limited,       1.81522e+06, 0),
     'case_03_condenser_two_colds': (case_03_condenser_two_colds, 0, 9.49905e+06),
     'case_04_report_case':         (case_04_report_case,         2.37319e+06, 3.56871e+06),
-    'case_05_boiling_cold':        (case_05_boiling_cold,        5.8433e+06, 1.04356e+07),
+    'case_05_boiling_cold':        (case_05_boiling_cold,        3.2224e+06, 7.81466e+06),
     'case_06_mixed_pressures':     (case_06_mixed_pressures,     7.05541e+06, 4.93079e+06),
     'case_07_threshold':           (case_07_threshold,           1.85977e+07, 0),
     'case_08_two_condensers':      (case_08_two_condensers,      3.02237e+06, 7.36431e+06),
@@ -209,7 +212,7 @@ def test_hxn_regression(name):
     net_duty = sum(hx.heat_utilities[0].unit_duty for hx in units)
     assert heat >= hot_target * (1 - MER_RTOL), (name, heat, hot_target)
     assert cool >= cold_target * (1 - MER_RTOL), (name, cool, cold_target)
-    assert_allclose(heat - cool, net_duty, rtol=1e-3, err_msg=name)
+    assert_allclose(heat - cool, net_duty, rtol=1e-8, err_msg=name)
     # (iii) never worse than documented
     assert doc_heat is not None and doc_cool is not None, f'{name}: baseline not recorded'
     assert heat <= doc_heat * (1 + DOC_RTOL) + 1e-9, (name, heat, doc_heat)

@@ -14,6 +14,7 @@ import thermosteam as tmo
 import numpy as np
 from .hxn_synthesis import synthesize_network, StreamLifeCycle, plot_pinch_diagram
 from warnings import warn
+import warnings
 
 __all__ = ('HeatExchangerNetwork',)
 
@@ -233,7 +234,17 @@ class HeatExchangerNetwork(bst.Facility):
                 # order would leave it with stale inlets. HXprocess units are
                 # interaction units, which Network.from_units strips out (and
                 # disconnects) by default; keep them with interaction=False.
-                network = tmo.Network.from_units(all_units, interaction=False)
+                with warnings.catch_warnings(record=True) as caught:
+                    warnings.simplefilter('always', RuntimeWarning)
+                    network = tmo.Network.from_units(all_units, interaction=False)
+                for w in caught:
+                    if 'network path could not be determined' in str(w.message):
+                        warn('heat exchanger network path could not be fully '
+                             'ordered from its stream connections; exchangers '
+                             'fed by later ones in the path may be simulated '
+                             'with stale inlets until convergence', RuntimeWarning)
+                    else:
+                        warn(w.message, w.category)
                 self.HXN_sys = sys = bst.System._from_network(None, network)
                 sys.set_tolerance(method='fixedpoint', subsystems=True)
             

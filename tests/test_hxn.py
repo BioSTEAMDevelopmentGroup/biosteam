@@ -259,10 +259,63 @@ def test_load_duties_non_equilibrium_inlet_conserves_energy():
     # range lies below the equilibrium state at 355 K
     assert_allclose(Q_hot_side[0][1], 0., atol=1e-6)
     assert_allclose(Q_cold_side[0][1], duty, rtol=1e-9)
-    # and the transient state used for matching carries the clipped enthalpy
-    s = pinch_state(s_in, s_in.H, s_out.H, 355.)
+    # and the transient state used for matching carries exactly H_in, at
+    # equilibrium (two-phase at the bubble point), not at the fictitious
+    # 370 K of the superheated liquid, so matching is consistent with the
+    # problem table
+    s = pinch_state(s_in, s_out, 355.)
     assert_allclose(s.H, s_in.H, rtol=1e-9)
-    assert s.T < 355.
+    assert s.T < 355. and 'g' in s.phase and 'l' in s.phase
+
+def test_pinch_state_at_endpoints_uses_real_states():
+    # pinch_T == T_in must put the whole duty on one side even when the
+    # inlet is not at equilibrium: flashing a superheated liquid at its own
+    # T does not reproduce H_in, and the resulting enthalpy can lie inside
+    # the stream's range so that clipping alone would not catch it.
+    bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
+    s_in = bst.Stream('sh_in', Water=100., T=380., P=101325., phase='l',
+                      units='kmol/hr')
+    s_out = bst.Stream('sh_out', Water=100., T=400., P=101325., phase='g',
+                       units='kmol/hr')
+    duty = s_out.H - s_in.H
+    flashed = s_in.copy(); flashed.vle(T=380., P=101325.)
+    assert s_in.H < flashed.H < s_out.H   # the trap: in range, but not H_in
+    Q_hot_side, Q_cold_side = {}, {}
+    load_duties([s_in], [s_out], np.array([380.]), np.array([400.]), [0],
+                lambda i: True, Q_hot_side, Q_cold_side)
+    assert_allclose(Q_hot_side[0][1], duty, rtol=1e-9)
+    assert_allclose(Q_cold_side[0][1], 0., atol=1e-6)
+    assert_allclose(pinch_state(s_in, s_out, 380.).H, s_in.H, rtol=1e-9)
+    assert_allclose(pinch_state(s_in, s_out, 400.).H, s_out.H, rtol=1e-9)
+    # a phase-mislabelled non-condensable: clipping must return the real
+    # end state, never an equilibrium re-flash (N2 "liquid" at 400 K would
+    # otherwise come back as gas at thousands of K)
+    bst.settings.set_thermo(['Water', 'N2'], cache=True)
+    h_in = bst.Stream('n2_in', N2=100., T=400., P=101325., phase='l',
+                      units='kmol/hr')
+    h_out = bst.Stream('n2_out', N2=100., T=320., P=101325., phase='l',
+                       units='kmol/hr')
+    s = pinch_state(h_in, h_out, 355.)
+    assert h_out.H <= s.H <= h_in.H
+    assert 320. <= s.T <= 400.
+
+def test_unordered_network_path_warns_with_context(monkeypatch):
+    # thermosteam's Network.sort warns 'network path could not be determined'
+    # when its ordering heuristic does not settle; HXN re-raises that as its
+    # own warning so the user knows which facility it concerns.
+    import thermosteam as tmo
+    original = tmo.Network.from_units
+    def from_units_with_warning(*args, **kwargs):
+        network = original(*args, **kwargs)
+        warnings.warn('network path could not be determined', RuntimeWarning)
+        return network
+    monkeypatch.setattr(tmo.Network, 'from_units', from_units_with_warning)
+    units = synthetic_units()
+    HXN = bst.HeatExchangerNetwork('HXN', T_min_app=5.)
+    sys = bst.System.from_units('sys_unordered', units=[*units, HXN])
+    with pytest.warns(RuntimeWarning, match='heat exchanger network path could not be fully ordered'):
+        sys.simulate()
+    assert abs(HXN.energy_balance_percent_error) < 1e-6
 
 def test_synthetic_network_reaches_MER():
     units = synthetic_units()
