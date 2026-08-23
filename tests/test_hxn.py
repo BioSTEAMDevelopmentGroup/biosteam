@@ -210,6 +210,32 @@ def test_problem_table_non_monotone_stream_is_point_load():
     assert_allclose([table.hot_util_load, table.cold_util_load, table.pinch_T],
                     [0., dH, 372. - 5.])  # outlet T 372 K, shifted by T_min_app
 
+def test_problem_table_point_load_cannot_heat_above_itself():
+    # A source at shifted temperature T cannot serve sinks above T: an
+    # isothermal condensing hot stream at 400 K (shifted to 395 K) must not
+    # cover the 395-398 K segment of a cold stream that runs 392 -> 398 K.
+    bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
+    hot_in = bst.Stream('hv', Water=100., T=400., P=101325., phase='g',
+                        units='kmol/hr')
+    hot_out = bst.Stream('hl', Water=100., T=400., P=101325., phase='l',
+                         units='kmol/hr')
+    P_hot = hot_in.H - hot_out.H
+    assert P_hot > 0
+    cold_in = bst.Stream('cl', Water=1000., T=392., P=5e5, phase='l',
+                         units='kmol/hr')
+    cold_out = cold_in.copy('cl_out'); cold_out.vle(T=398., P=5e5)
+    s = cold_in.copy(); s.vle(T=395., P=5e5)
+    H_392, H_395, H_398 = cold_in.H, s.H, cold_out.H
+    assert P_hot > H_398 - H_392   # more than enough heat overall
+    table = problem_table([hot_in, cold_in], [hot_out, cold_out],
+                          [True, False], 5.)
+    assert_allclose(table.Ts, [398., 395., 392.])
+    # heat arriving at 395 K, before the point load there, is short by the
+    # 395-398 K segment of the cold stream
+    assert_allclose(table.hot_util_load, H_398 - H_395, rtol=1e-9)
+    assert table.pinch_T == 395.
+    assert_allclose(table.cold_util_load, P_hot - (H_395 - H_392), rtol=1e-9)
+
 def test_synthetic_network_reaches_MER():
     units = synthetic_units()
     HXN = bst.HeatExchangerNetwork('HXN', T_min_app=5.)
@@ -222,6 +248,9 @@ def test_synthetic_network_reaches_MER():
     # the greedy heuristic reaches the (corrected) MER on this case; it can
     # never legitimately beat it
     assert_allclose(actual_heat, table.hot_util_load, rtol=1e-2)
+    # the lower bound is exact here only because every synthetic inlet is an
+    # equilibrium state (so the clipped table is exact) and the synthesizer
+    # respects T_min_app; with non-equilibrium inlets the table is conservative
     assert actual_heat >= table.hot_util_load * (1 - 1e-3)
 
 if __name__ == '__main__':
@@ -234,4 +263,5 @@ if __name__ == '__main__':
         test_problem_table_energy_consistency_synthetic(T_min_app)
     test_problem_table_two_streams_closed_form()
     test_problem_table_non_monotone_stream_is_point_load()
+    test_problem_table_point_load_cannot_heat_above_itself()
     test_synthetic_network_reaches_MER()

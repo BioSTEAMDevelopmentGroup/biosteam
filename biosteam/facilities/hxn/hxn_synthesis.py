@@ -15,7 +15,8 @@ import numpy as np
 import biosteam as bst
 from warnings import warn
 
-__all__ = ('StreamLifeCycle', 'synthesize_network')
+__all__ = ('StreamLifeCycle', 'ProblemTable', 'problem_table',
+           'synthesize_network')
 
 class LifeStage:
         
@@ -197,7 +198,8 @@ def problem_table(streams_inlet, streams_quenched, is_hot, T_min_app):
     ProblemTable
         Grid temperatures `Ts` (shifted scale, descending), per-stream
         `interval_H` (N x n-1) and `point_H` (N x n) contributions (+ for
-        hot, - for cold), the cascade `residual` (n), `hot_util_load`,
+        hot, - for cold), the cascade `residual` (n) *leaving* each
+        boundary (i.e. after its point loads), `hot_util_load`,
         `cold_util_load` and the shifted-scale `pinch_T`.
 
     Notes
@@ -210,10 +212,39 @@ def problem_table(streams_inlet, streams_quenched, is_hot, T_min_app):
     outlet temperature moves against their duty (a heated stream that exits
     colder than it entered, e.g. a reboiler outlet at VLE), are point loads
     at their outlet temperature. The cascade starting from zero hot utility
-    is residual[k] = sum(point_H[:, :k+1]) + sum(interval_H[:, :k]); the
-    minimum fixes the hot utility target, `residual[-1] + hot_util_load`
-    the cold one, and its location the pinch. With the per-stream identity
-    above, hot_util_load - cold_util_load equals the net heating demand.
+    is residual[k] = sum(point_H[:, :k+1]) + sum(interval_H[:, :k]), the
+    heat *leaving* boundary Ts[k]. Feasibility must also hold for the heat
+    *arriving* at Ts[k] before its point loads are applied,
+    arriving[k] = residual[k] - sum(point_H[:, k]), because a source at
+    Ts[k] cannot serve a sink above Ts[k]. The minimum over both flows,
+    min(residual, arriving), fixes the hot utility target,
+    `residual[-1] + hot_util_load` the cold one, and its location the
+    pinch. With the per-stream identity above, hot_util_load -
+    cold_util_load equals the net heating demand.
+
+    Examples
+    --------
+    A threshold problem: 1000 kmol/hr of water cooled 400 -> 300 K supplies
+    every interval of 900 kmol/hr of water heated 300 -> 390 K, so no hot
+    utility is needed and the surplus leaves as cold utility.
+
+    >>> import biosteam as bst
+    >>> from biosteam.facilities.hxn.hxn_synthesis import problem_table
+    >>> bst.settings.set_thermo(['Water'])
+    >>> hot_in = bst.Stream(Water=1000., T=400., P=5e5, phase='l', units='kmol/hr')
+    >>> hot_out = hot_in.copy(); hot_out.vle(T=300., P=5e5)
+    >>> cold_in = bst.Stream(Water=900., T=300., P=5e5, phase='l', units='kmol/hr')
+    >>> cold_out = cold_in.copy(); cold_out.vle(T=390., P=5e5)
+    >>> table = problem_table([hot_in, cold_in], [hot_out, cold_out],
+    ...                       [True, False], 5.)
+    >>> table.Ts
+    array([395., 390., 300., 295.])
+    >>> round(table.hot_util_load, 3)
+    0.0
+    >>> round(table.cold_util_load, 3)
+    1445547.086
+    >>> table.pinch_T
+    395.0
     """
     N = len(streams_inlet)
     is_hot = np.asarray(is_hot, dtype=bool)
@@ -240,17 +271,25 @@ def problem_table(streams_inlet, streams_quenched, is_hot, T_min_app):
         else:
             k = np.searchsorted(-Ts, -T_hi[j])
             point_H[j, k] = sign[j] * abs(H_out[j] - H_in[j])
+    point_total = point_H.sum(axis=0)
     residual = np.cumsum(
-        point_H.sum(axis=0) + np.concatenate([[0.], interval_H.sum(axis=0)])
+        point_total + np.concatenate([[0.], interval_H.sum(axis=0)])
     )
-    k_pinch = int(np.argmin(residual))
+    # heat arriving at each boundary, before that boundary's point loads:
+    # a point source at Ts[k] cannot serve sinks above Ts[k], so the cascade
+    # must be non-negative both before and after the point loads
+    arriving = residual - point_total
+    flow = np.minimum(residual, arriving)
+    k_pinch = int(np.argmin(flow))
     scale = np.abs(H_out - H_in).sum()
-    if -residual[k_pinch] <= 1e-9 * scale:  # threshold problem: no hot utility
+    if -flow[k_pinch] <= 1e-9 * scale:  # threshold problem: no hot utility
         hot_util_load = 0.
         k_pinch = 0
     else:
-        hot_util_load = -residual[k_pinch]
-    cold_util_load = residual[-1] + hot_util_load
+        hot_util_load = -flow[k_pinch]
+    # clamp: in the threshold branch residual[-1] may be negative by a
+    # rounding-level amount, and a negative cold utility is meaningless
+    cold_util_load = max(0., residual[-1] + hot_util_load)
     return ProblemTable(Ts, interval_H, point_H, residual,
                         hot_util_load, cold_util_load, Ts[k_pinch])
 
