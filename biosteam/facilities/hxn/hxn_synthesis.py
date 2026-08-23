@@ -919,7 +919,9 @@ def plot_pinch_diagram(stream_life_cycles, inlet_Ts, outlet_Ts,
         if show_labels:
             label = _stream_label(original_hxs[index], show_units,
                                   show_auxiliary_units, show_stream_IDs)
-            ax.text(x_in + sign * 0.6, y_text, label, color=color,
+            # the smaller label reads as centered with the index when its
+            # baseline is slightly higher
+            ax.text(x_in + sign * 0.6, y_text + 0.08, label, color=color,
                     ha='left' if cold else 'right', va='baseline', fontsize=7,
                     zorder=6, gid=f'Label:{index}',
                     bbox=dict(boxstyle='square,pad=0.15', fc='w', ec='none'))
