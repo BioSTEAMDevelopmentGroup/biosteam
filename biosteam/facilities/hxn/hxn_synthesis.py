@@ -911,13 +911,16 @@ def plot_pinch_diagram(stream_life_cycles, inlet_Ts, outlet_Ts,
         ax.text(x_start - 0.6, yi, _format_H(H_left), color=color, **value_kwargs)
         ax.text(x_end + 0.6, yi, f'{T_right:.1f}', color=color, **value_kwargs)
         ax.text(x_end + 1.3, yi, _format_H(H_right), color=color, **value_kwargs)
-        ax.text(x_in + sign * 0.3, yi + 0.12, str(index), color=color,
-                ha='center', va='bottom', weight='bold', fontsize=9)
+        # Index and label share a baseline above the stream, clear of the
+        # exchanger circles
+        y_text = yi + 0.25
+        ax.text(x_in + sign * 0.3, y_text, str(index), color=color,
+                ha='center', va='baseline', weight='bold', fontsize=9)
         if show_labels:
             label = _stream_label(original_hxs[index], show_units,
                                   show_auxiliary_units, show_stream_IDs)
-            ax.text(x_in + sign * 0.6, yi + 0.12, label, color=color,
-                    ha='left' if cold else 'right', va='bottom', fontsize=7,
+            ax.text(x_in + sign * 0.6, y_text, label, color=color,
+                    ha='left' if cold else 'right', va='baseline', fontsize=7,
                     zorder=6, gid=f'Label:{index}',
                     bbox=dict(boxstyle='square,pad=0.15', fc='w', ec='none'))
         # Utility exchangers: a cold stream ends in a hot utility (red), a
