@@ -748,7 +748,7 @@ def plot_pinch_diagram(stream_life_cycles, inlet_Ts, outlet_Ts,
                        hot_side_HXs, cold_side_HXs, Qmin=1e-3,
                        original_hxs=None, show_units=True,
                        show_auxiliary_units=True, show_stream_IDs=True,
-                       ax=None, file=None, dpi=300):
+                       show_legend=True, ax=None, file=None, dpi=300):
     """
     Draw a pinch diagram of a synthesized heat exchanger network: cold
     streams (blue, flowing left to right) above hot streams (red, flowing
@@ -778,6 +778,8 @@ def plot_pinch_diagram(stream_life_cycles, inlet_Ts, outlet_Ts,
         the main unit (e.g. 'condenser'), if it is an auxiliary unit.
     show_stream_IDs : bool, optional
         Label each stream with the ID of the original heat exchanger's inlet.
+    show_legend : bool, optional
+        Add a legend of the symbols below the diagram.
     ax : matplotlib.axes.Axes, optional
         Axes to draw on; a new figure is created if not given.
     file : str, optional
@@ -935,6 +937,24 @@ def plot_pinch_diagram(stream_life_cycles, inlet_Ts, outlet_Ts,
         ax.text(x, y_label, _format_H(Q), rotation=90, ha='center',
                 va='center', fontsize=8, zorder=5,
                 bbox=dict(boxstyle='square,pad=0.25', fc='w', ec='k', lw=0.8))
+    if show_legend:
+        from matplotlib.lines import Line2D
+        handles = [
+            Line2D([], [], color=cold_color, lw=1.2, marker='>', markevery=[-1],
+                   ms=5, label='Cold stream'),
+            Line2D([], [], color=hot_color, lw=1.2, marker='<', markevery=[0],
+                   ms=5, label='Hot stream'),
+            Line2D([], [], color='k', lw=1.2, marker='o', mfc='w', mew=1.2,
+                   ms=6, label='Process heat exchange'),
+            Line2D([], [], ls='', marker='o', mfc='w', mec=hot_color, mew=1.2,
+                   ms=6, label='Hot utility'),
+            Line2D([], [], ls='', marker='o', mfc='w', mec=cold_color, mew=1.2,
+                   ms=6, label='Cold utility'),
+            Line2D([], [], color='k', ls='--', lw=1, label='Pinch'),
+        ]
+        ax.legend(handles=handles, loc='upper center', bbox_to_anchor=(0.5, 0.),
+                  ncol=3, fontsize=7, frameon=False, handlelength=2.5,
+                  columnspacing=1.5)
     ax.set_xlim(x_min, x_max)
     ax.set_ylim(y_bottom, y_top + 1.2)
     ax.set_axis_off()

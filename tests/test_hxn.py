@@ -347,6 +347,27 @@ def test_pinch_diagram_stream_labels():
     finally:
         plt.close(fig)
 
+def test_pinch_diagram_legend():
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    sys, HXN, feed = build_system()
+    sys.simulate()
+    fig, ax = HXN.plot_pinch_diagram()
+    try:
+        legend = ax.get_legend()
+        assert legend is not None
+        labels = [t.get_text() for t in legend.get_texts()]
+        assert labels == ['Cold stream', 'Hot stream', 'Process heat exchange',
+                          'Hot utility', 'Cold utility', 'Pinch']
+    finally:
+        plt.close(fig)
+    fig, ax = HXN.plot_pinch_diagram(show_legend=False)
+    try:
+        assert ax.get_legend() is None
+    finally:
+        plt.close(fig)
+
 if __name__ == '__main__':
     test_cache_network_matches_fresh_synthesis()
     test_cache_network_perturbed_feed()
@@ -362,3 +383,4 @@ if __name__ == '__main__':
     test_pinch_diagram_column_order_follows_stream_direction()
     test_pinch_diagram_doctest_system()
     test_pinch_diagram_stream_labels()
+    test_pinch_diagram_legend()
