@@ -307,6 +307,46 @@ def test_pinch_diagram_doctest_system():
     finally:
         plt.close(fig)
 
+def test_pinch_diagram_stream_labels():
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    from biosteam.facilities.hxn.hxn_synthesis import _auxiliary_name, _stream_label
+    sys, HXN, feed = build_system()
+    sys.simulate()
+    D1 = bst.main_flowsheet.unit.D0
+    D1_H1 = bst.main_flowsheet.unit.D0_H1
+    assert _auxiliary_name(D1.condenser) == 'condenser'
+    assert _auxiliary_name(D1_H1) is None
+    # label composition
+    assert _stream_label(D1.condenser, True, True, False) == 'D0 - condenser'
+    assert _stream_label(D1.condenser, True, False, False) == 'D0'
+    assert _stream_label(D1.condenser, False, True, False) == 'condenser'
+    assert _stream_label(D1_H1, True, True, True) == 'D0_H1 (' + D1_H1.ins[0].ID + ')'
+    assert _stream_label(D1_H1, False, False, True) == D1_H1.ins[0].ID
+    assert _stream_label(D1_H1, False, False, False) == ''
+    # an unnamed inlet adds nothing
+    assert _stream_label(D1.reboiler, True, True, True) == 'D0 - reboiler'
+    # every stream gets a label on the figure; toggles remove them
+    fig, ax = HXN.plot_pinch_diagram()
+    try:
+        labels = {a.get_gid(): a.get_text() for a in _gid_artists(ax, 'Label:')}
+        hxs = HXN.original_heat_exchangers
+        assert labels == {
+            f'Label:{i}': _stream_label(hx, True, True, True)
+            for i, hx in enumerate(hxs)
+        }
+        assert any(text.startswith('D0 - condenser') for text in labels.values())
+        assert any(text == 'F1 - heat_exchanger (feed_flash)' for text in labels.values())
+    finally:
+        plt.close(fig)
+    fig, ax = HXN.plot_pinch_diagram(show_units=False, show_auxiliary_units=False,
+                                     show_stream_IDs=False)
+    try:
+        assert not _gid_artists(ax, 'Label:')
+    finally:
+        plt.close(fig)
+
 if __name__ == '__main__':
     test_cache_network_matches_fresh_synthesis()
     test_cache_network_perturbed_feed()
@@ -321,3 +361,4 @@ if __name__ == '__main__':
     test_synthetic_network_reaches_MER()
     test_pinch_diagram_column_order_follows_stream_direction()
     test_pinch_diagram_doctest_system()
+    test_pinch_diagram_stream_labels()

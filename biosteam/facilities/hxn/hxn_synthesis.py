@@ -711,8 +711,43 @@ def _format_H(H):
     mantissa, exponent = f'{H:.2e}'.split('e')
     return f'{mantissa}E{int(exponent)}'
 
+def _auxiliary_name(unit):
+    """
+    Return the (dotted) name of an auxiliary unit within its owner, e.g.
+    'condenser' or 'evaporators[0].heat_exchanger', or None if the unit is
+    not auxiliary.
+    """
+    owner = unit.owner
+    if owner is unit: return None
+    def search(parent, prefix):
+        for name, aux in parent.get_auxiliary_units_with_names():
+            if aux is unit: return prefix + name
+            if hasattr(aux, 'get_auxiliary_units_with_names'):
+                found = search(aux, prefix + name + '.')
+                if found: return found
+    return search(owner, '') or unit.ID.lstrip('.')
+
+def _stream_label(hx, show_units, show_auxiliary_units, show_stream_IDs):
+    """
+    Label of a stream from its original heat exchanger `hx`:
+    '<owner> - <auxiliary name> (<inlet stream ID>)', with each part
+    optional.
+    """
+    parts = []
+    if show_units: parts.append(hx.owner.ID)
+    if show_auxiliary_units:
+        auxname = _auxiliary_name(hx)
+        if auxname: parts.append(auxname)
+    label = ' - '.join(parts)
+    if show_stream_IDs:
+        ID = hx.ins[0].ID
+        if ID: label = f'{label} ({ID})' if label else ID
+    return label
+
 def plot_pinch_diagram(stream_life_cycles, inlet_Ts, outlet_Ts,
                        hot_side_HXs, cold_side_HXs, Qmin=1e-3,
+                       original_hxs=None, show_units=True,
+                       show_auxiliary_units=True, show_stream_IDs=True,
                        ax=None, file=None, dpi=300):
     """
     Draw a pinch diagram of a synthesized heat exchanger network: cold
@@ -732,6 +767,17 @@ def plot_pinch_diagram(stream_life_cycles, inlet_Ts, outlet_Ts,
         Process exchangers above and below the pinch.
     Qmin : float, optional
         Utility exchangers with a duty at or below this [kJ/hr] are not marked.
+    original_hxs : list[Unit], optional
+        The original heat exchanger of each stream (indexed like the life
+        cycles). Required for the stream labels below.
+    show_units : bool, optional
+        Label each stream with the unit operation that owns its original heat
+        exchanger (the main unit for auxiliary exchangers).
+    show_auxiliary_units : bool, optional
+        Label each stream with the name of its original heat exchanger within
+        the main unit (e.g. 'condenser'), if it is an auxiliary unit.
+    show_stream_IDs : bool, optional
+        Label each stream with the ID of the original heat exchanger's inlet.
     ax : matplotlib.axes.Axes, optional
         Axes to draw on; a new figure is created if not given.
     file : str, optional
@@ -748,7 +794,8 @@ def plot_pinch_diagram(stream_life_cycles, inlet_Ts, outlet_Ts,
     Temperatures are shown in degC and heat flows in kJ/hr at the inlet and
     outlet of each stream. Exchanger columns on each side of the pinch are
     ordered so that each stream meets them in flow direction whenever the
-    network allows it.
+    network allows it. Stream labels read '<unit> - <auxiliary> (<stream>)'
+    next to the stream index at the inlet.
 
     Examples
     --------
@@ -775,6 +822,10 @@ def plot_pinch_diagram(stream_life_cycles, inlet_Ts, outlet_Ts,
 
     """
     import matplotlib.pyplot as plt
+    show_labels = show_units or show_auxiliary_units or show_stream_IDs
+    if show_labels and original_hxs is None:
+        raise ValueError('original_hxs is required to label streams with '
+                         'units, auxiliary units, or stream IDs')
     cold_color, hot_color = '#2e6db4', '#d62728'
     cold_bg, hot_bg = '#e6f0fa', '#fbe9e7'
     process_hxs = set(hot_side_HXs) | set(cold_side_HXs)
@@ -855,6 +906,12 @@ def plot_pinch_diagram(stream_life_cycles, inlet_Ts, outlet_Ts,
         ax.text(x_end + 1.3, yi, _format_H(H_right), color=color, **value_kwargs)
         ax.text(x_in + sign * 0.3, yi + 0.12, str(index), color=color,
                 ha='center', va='bottom', weight='bold', fontsize=9)
+        if show_labels:
+            label = _stream_label(original_hxs[index], show_units,
+                                  show_auxiliary_units, show_stream_IDs)
+            ax.text(x_in + sign * 0.6, yi + 0.12, label, color=color,
+                    ha='left' if cold else 'right', va='bottom', fontsize=7,
+                    gid=f'Label:{index}')
         # Utility exchangers
         x_util = x_hot_util if cold else x_cold_util
         for stage in stages:

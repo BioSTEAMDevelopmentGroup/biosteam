@@ -382,7 +382,8 @@ class HeatExchangerNetwork(bst.Facility):
         return plot_pinch_diagram(
             self.stream_life_cycles, self.inlet_Ts, self.outlet_Ts,
             self.new_HXs_hot_side, self.new_HXs_cold_side,
-            Qmin=self.Qmin, file=file, **kwargs,
+            Qmin=self.Qmin, original_hxs=self.original_heat_exchangers,
+            file=file, **kwargs,
         )
 
     def get_original_hxs_associated_with_streams(self): # pragma: no cover
