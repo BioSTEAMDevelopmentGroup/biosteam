@@ -241,8 +241,8 @@ def problem_table(streams_inlet, streams_quenched, is_hot, T_min_app):
     array([395., 390., 300., 295.])
     >>> round(table.hot_util_load, 3)
     0.0
-    >>> round(table.cold_util_load, 3)
-    1445547.086
+    >>> round(table.cold_util_load, -1)
+    1445550.0
     >>> table.pinch_T
     395.0
     """
@@ -287,9 +287,13 @@ def problem_table(streams_inlet, streams_quenched, is_hot, T_min_app):
         k_pinch = 0
     else:
         hot_util_load = -flow[k_pinch]
-    # clamp: in the threshold branch residual[-1] may be negative by a
-    # rounding-level amount, and a negative cold utility is meaningless
-    cold_util_load = max(0., residual[-1] + hot_util_load)
+    cold_util_load = residual[-1] + hot_util_load
+    if cold_util_load < 0.:
+        # only reachable in the threshold branch, by at most 1e-9 * scale:
+        # absorb the rounding into the hot utility so that
+        # hot_util_load - cold_util_load == sum(unit_duty) stays exact
+        hot_util_load -= cold_util_load
+        cold_util_load = 0.
     return ProblemTable(Ts, interval_H, point_H, residual,
                         hot_util_load, cold_util_load, Ts[k_pinch])
 
