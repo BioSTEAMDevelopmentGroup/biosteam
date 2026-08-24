@@ -17,7 +17,6 @@ from ._blowdown_mixer import *
 from ._cleaning_in_place import *
 from ._refrigeration_package import *
 from ._fire_water_tank import *
-from .hxn import *
 from .systems import *
 
 from . import _chemical_capital_investment
@@ -30,7 +29,6 @@ from . import _air_distribution_package
 from . import _cleaning_in_place
 from . import _refrigeration_package
 from . import _fire_water_tank
-from . import hxn
 from . import systems
 
 __all__ = (
@@ -44,6 +42,19 @@ __all__ = (
     *_cleaning_in_place.__all__,
     *_refrigeration_package.__all__,
     *_fire_water_tank.__all__,
-    *hxn.__all__,
     *systems.__all__,
 )
+
+def __getattr__(name):
+    # HeatExchangerNetwork now lives in the hensmith package
+    # (github.com/BioSTEAMDevelopmentGroup/hensmith). It is re-exported
+    # lazily (PEP 562) so that the biosteam <-> hensmith circular dependency
+    # is import-safe: importing biosteam never initializes hensmith, and
+    # hensmith can import biosteam eagerly while defining its classes. The
+    # name must stay out of __all__ because biosteam/__init__ star-imports
+    # this module during initialization, which would resolve it eagerly and
+    # re-create the import cycle.
+    if name == 'HeatExchangerNetwork':
+        from hensmith import HeatExchangerNetwork
+        return HeatExchangerNetwork
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

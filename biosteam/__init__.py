@@ -81,12 +81,22 @@ from . import _settings
 
 __all__ = (
     'Unit', 'PowerUtility', 'UtilityAgent', 'HeatUtility', 'Facility',
+    'HeatExchangerNetwork',
     'utils', 'units', 'facilities', 'wastewater', 'evaluation', 'Chemical', 'Chemicals', 'Stream',
     'MultiStream', 'settings', 'exceptions', 'report', 'units_of_measure',
     'process_tools', 'preferences', *_system.__all__, *_flowsheet.__all__, 
     *_tea.__all__, *units.__all__, *facilities.__all__, *wastewater.__all__,
     *evaluation.__all__, *process_tools.__all__, *_module.__all__,
 )
+
+def __getattr__(name):
+    # HeatExchangerNetwork now lives in the hensmith package
+    # (github.com/BioSTEAMDevelopmentGroup/hensmith); see
+    # biosteam/facilities/__init__.py for why the re-export is lazy.
+    if name == 'HeatExchangerNetwork':
+        from hensmith import HeatExchangerNetwork
+        return HeatExchangerNetwork
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 def nbtutorial(dark=False):
     global print_error

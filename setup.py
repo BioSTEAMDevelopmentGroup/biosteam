@@ -16,7 +16,8 @@ setup(
     long_description=open('README.rst', encoding='utf-8').read(),
     author='Yoel Cortes-Pena',
     install_requires=['IPython>=7.9.0',
-                      'thermosteam>=0.53.5', 
+                      'thermosteam>=0.53.5',
+                      'hensmith>=0.1.0',
                       'graphviz>=0.17',
                       'chaospy>=4.3.21',
                       'pyyaml'],
@@ -46,7 +47,6 @@ setup(
                      'units/*',
                      'units/design_tools/*',
                      'facilities/*',
-                     'facilities/hxn/*',
                      'wastewater/*',
                      'wastewater/high_rate/*',
                      'units/decorators/*']
