@@ -7,10 +7,15 @@ HeatExchangerNetwork
    (Heat Exchanger Network Synthesis, Modeling, Integration, Thermodynamics,
    and Heuristics), which is a dependency of BioSTEAM. It remains available
    as ``biosteam.HeatExchangerNetwork`` and
-   ``biosteam.facilities.HeatExchangerNetwork``. The network synthesis
-   helpers (``synthesize_network``, ``problem_table``,
-   ``plot_pinch_diagram``, ``StreamLifeCycle``) are now importable only from
-   ``hensmith``.
+   ``biosteam.facilities.HeatExchangerNetwork`` through lazy (PEP 562)
+   re-exports. Because the re-export is lazy, ``from biosteam.facilities
+   import *`` no longer provides the name — import it explicitly
+   (``from biosteam import *`` still provides it). The network synthesis
+   helpers (``StreamLifeCycle``, ``ProblemTable``, ``problem_table``,
+   ``synthesize_network``, ``plot_pinch_diagram``) now live in ``hensmith``;
+   accessing them through ``biosteam`` or ``biosteam.facilities`` still
+   works but emits a ``DeprecationWarning`` and will stop working in a
+   future release.
 
 .. autoclass:: hensmith.HeatExchangerNetwork
    :members:

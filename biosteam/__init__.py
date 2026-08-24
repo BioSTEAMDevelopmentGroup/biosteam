@@ -13,7 +13,7 @@
 
 """
 from __future__ import annotations
-__version__ = '2.53.11'
+__version__ = '2.54.0'
 
 #: Chemical engineering plant cost index (defaults to 567.5 at 2017).
 CE: float = 567.5 
@@ -81,6 +81,11 @@ from . import _settings
 
 __all__ = (
     'Unit', 'PowerUtility', 'UtilityAgent', 'HeatUtility', 'Facility',
+    # Lazily re-exported from hensmith (PEP 562, see facilities/__init__.py).
+    # Listing it here makes `from biosteam import *` import hensmith eagerly,
+    # which is safe only while no module executed during hensmith's own
+    # initialization star-imports biosteam at module scope
+    # (guarded by tests/test_hensmith_integration.py).
     'HeatExchangerNetwork',
     'utils', 'units', 'facilities', 'wastewater', 'evaluation', 'Chemical', 'Chemicals', 'Stream',
     'MultiStream', 'settings', 'exceptions', 'report', 'units_of_measure',
@@ -90,13 +95,17 @@ __all__ = (
 )
 
 def __getattr__(name):
-    # HeatExchangerNetwork now lives in the hensmith package
-    # (github.com/BioSTEAMDevelopmentGroup/hensmith); see
-    # biosteam/facilities/__init__.py for why the re-export is lazy.
-    if name == 'HeatExchangerNetwork':
-        from hensmith import HeatExchangerNetwork
-        return HeatExchangerNetwork
+    # HeatExchangerNetwork and the network synthesis helpers now live in the
+    # hensmith package (github.com/BioSTEAMDevelopmentGroup/hensmith); the
+    # shared lazy re-export machinery — and why it must be lazy — lives in
+    # biosteam/facilities/__init__.py.
+    if (name in facilities._HENSMITH_LAZY_NAMES
+        or name in facilities._HENSMITH_DEPRECATED_NAMES):
+        return facilities._import_from_hensmith(name, globals())
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+def __dir__():
+    return sorted({*globals(), *facilities._HENSMITH_LAZY_NAMES})
 
 def nbtutorial(dark=False):
     global print_error

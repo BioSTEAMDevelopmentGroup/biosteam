@@ -45,16 +45,65 @@ __all__ = (
     *systems.__all__,
 )
 
+# %% Lazy re-exports from the hensmith package (PEP 562)
+#
+# HeatExchangerNetwork and the network synthesis helpers now live in the
+# hensmith package (github.com/BioSTEAMDevelopmentGroup/hensmith). They are
+# re-exported lazily so that the biosteam <-> hensmith circular dependency
+# is import-safe: importing biosteam never initializes hensmith, and
+# hensmith can import biosteam eagerly while defining its classes. The
+# names must stay out of __all__ because biosteam/__init__ star-imports
+# this module during initialization, which would resolve them eagerly and
+# re-create the import cycle (guarded by tests/test_hensmith_integration.py).
+# biosteam/__init__ delegates its own __getattr__/__dir__ here so the two
+# shims cannot drift apart.
+
+#: Names re-exported lazily from hensmith and still fully supported
+#: under the biosteam namespace.
+_HENSMITH_LAZY_NAMES = ('HeatExchangerNetwork',)
+
+#: Names re-exported lazily from hensmith as deprecated aliases, kept for
+#: one release cycle after the 2026-08 migration.
+_HENSMITH_DEPRECATED_NAMES = (
+    'StreamLifeCycle', 'ProblemTable', 'problem_table',
+    'synthesize_network', 'plot_pinch_diagram',
+)
+
+def _import_from_hensmith(name, module_globals):
+    """
+    Resolve `name` from hensmith on behalf of the module owning
+    `module_globals`, raising AttributeError (not ImportError, which would
+    leak through `hasattr` and default-valued `getattr`) when hensmith is
+    unavailable. Supported names are cached into the requesting module so
+    later accesses bypass __getattr__; deprecated names are not cached so
+    each access warns.
+    """
+    try:
+        import hensmith
+    except ImportError as e:
+        raise AttributeError(
+            f"module {module_globals['__name__']!r} has no attribute {name!r}: "
+            f"{name!r} moved to the hensmith package "
+            "(https://github.com/BioSTEAMDevelopmentGroup/hensmith); "
+            "install it with `pip install hensmith`"
+        ) from e
+    value = getattr(hensmith, name)
+    if name in _HENSMITH_DEPRECATED_NAMES:
+        import warnings
+        warnings.warn(
+            f"{module_globals['__name__']}.{name} is deprecated and will be "
+            f"removed in a future release; import it from hensmith instead "
+            f"(`from hensmith import {name}`)",
+            DeprecationWarning, stacklevel=3,
+        )
+    else:
+        module_globals[name] = value
+    return value
+
 def __getattr__(name):
-    # HeatExchangerNetwork now lives in the hensmith package
-    # (github.com/BioSTEAMDevelopmentGroup/hensmith). It is re-exported
-    # lazily (PEP 562) so that the biosteam <-> hensmith circular dependency
-    # is import-safe: importing biosteam never initializes hensmith, and
-    # hensmith can import biosteam eagerly while defining its classes. The
-    # name must stay out of __all__ because biosteam/__init__ star-imports
-    # this module during initialization, which would resolve it eagerly and
-    # re-create the import cycle.
-    if name == 'HeatExchangerNetwork':
-        from hensmith import HeatExchangerNetwork
-        return HeatExchangerNetwork
+    if name in _HENSMITH_LAZY_NAMES or name in _HENSMITH_DEPRECATED_NAMES:
+        return _import_from_hensmith(name, globals())
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+def __dir__():
+    return sorted({*globals(), *_HENSMITH_LAZY_NAMES})
