@@ -2208,6 +2208,7 @@ class MultiStageEquilibrium(Unit):
     _side_draw_names = ('top_side_draws', 'bottom_side_draws')
     
     sequential_runs_init = 0
+    phenomena_runs_init = 0
     
     def __init_subclass__(cls, *args, **kwargs):
         super().__init_subclass__(cls, *args, **kwargs)
@@ -2753,8 +2754,6 @@ class MultiStageEquilibrium(Unit):
         if optimize_result: x = self._simultaneous_correction(x, 'hybr')
         if getattr(self, 'flag', False): breakpoint()
         self._set_point(x)
-        # Last simulation to force mass balance
-        self.update_mass_balance()
     
     def _new_point(self, x1=None, verbose=False):
         record = self._iteration_record
@@ -3330,9 +3329,9 @@ class MultiStageEquilibrium(Unit):
                             val = 1e-3 # Full condenser
                         ms.vle(P=Ps[i], **{var: val})
                         if ms['g'].isempty():
-                            ms.vle(P=Ps[i], V=0.1)
+                            ms.vle(P=Ps[i], V=0.05)
                         elif ms['l'].isempty():
-                            ms.vle(P=Ps[i], V=0.9)
+                            ms.vle(P=Ps[i], V=0.95)
                         T = ms.T
                         Fxs.append(ms['l'].imol[IDs])
                         Fys.append(ms['g'].imol[IDs])
@@ -3380,6 +3379,7 @@ class MultiStageEquilibrium(Unit):
                     self.set_all_flow_rates(top_flows, bottom_flows)
                     for i in range(self.sequential_runs_init): self._run_sequential()
                     if self.vle_decomposition is None: self.default_vle_decomposition()
+                    for i in range(self.phenomena_runs_init): self._run_phenomena()
         record = self.iteration_memory * [empty]
         x = self._get_point()
         if self.early_termination:
