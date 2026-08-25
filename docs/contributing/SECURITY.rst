@@ -4,7 +4,8 @@ BioSTEAM is generally safe to use for process simulation and engineering
 analysis. As with any Python software, however, users should exercise 
 appropriate care when working with untrusted inputs.
 
-Security issues can be reported privately to the BioSTEAM maintainers. 
+Security issues can be reported privately to the BioSTEAM maintainers through 
+`GitHub <https://github.com/BioSTEAMDevelopmentGroup/biosteam/security/advisories?state=Triage>`_. 
 Please do not disclose a suspected vulnerability through a public issue 
 until the maintainers have had an opportunity to assess and address it.
 
@@ -28,8 +29,9 @@ by untrusted users, appropriate isolation or sandboxing is recommended.
 
 Reporting
 ---------
-Please report security issues privately by email to any of the 
-project's maintainers rather than through the public issue tracker.
+Please report security issues privately using 
+`GitHub's Security Advisories feature <https://github.com/BioSTEAMDevelopmentGroup/biosteam/security/advisories?state=Triage>`_ 
+rather than through the public issue tracker.
 Security reports are reviewed by the BioSTEAM maintainers and, when 
 appropriate, a fix will be developed and released through a supported 
 BioSTEAM version.
