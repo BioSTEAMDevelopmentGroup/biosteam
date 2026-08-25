@@ -1,5 +1,5 @@
-BioSTEAM security
-=================
+Security
+========
 BioSTEAM is generally safe to use for process simulation and engineering 
 analysis. As with any Python software, however, users should exercise 
 appropriate care when working with untrusted inputs.

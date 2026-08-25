@@ -3,7 +3,7 @@ Contributing
 
 BioSTEAM welcomes users from all backgrounds to make open-source 
 contributions. Developers should familize themselves with
-the procedures for contributing, authorship, licensing, an security.
+the procedures for contributing, authorship, licensing, and security.
 
 .. toctree::
    :maxdepth: 1
