@@ -1,7 +1,9 @@
 Contributing
 ------------
 
-BioSTEAM welcomes users from all backgrounds to make open-source contributions. 
+BioSTEAM welcomes users from all backgrounds to make open-source 
+contributions. Developers should familize themselves with
+the procedures for contributing, authorship, licensing, an security.
 
 .. toctree::
    :maxdepth: 1
@@ -11,3 +13,4 @@ BioSTEAM welcomes users from all backgrounds to make open-source contributions.
    CODE_OF_CONDUCT
    AUTHORS
    LICENSE
+   SECURITY
