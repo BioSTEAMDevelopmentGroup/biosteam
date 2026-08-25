@@ -322,33 +322,27 @@ class UtilityAgent(Stream):
         if N_max == 0:
             return basic_info[:-1]
         N_IDs = len(all_IDs)
-        if N_IDs == 1:
-            beginning = ''
-            flow_rates = f'composition: 100% {all_IDs[0]}'
-        else:
-            # Remaining lines (all flow rates)
-            flow_array = factor * indexer[all_IDs]
-            total_flow = flow_array.sum()
-            beginning = "composition (%): "
-            new_line = '\n' + len(beginning) * ' '
-            flow_array = 100 * flow_array/total_flow
-            flow_rates = ''
-            too_many_chemicals = N_IDs > N_max
-            if not too_many_chemicals: N_max = N_IDs
-            lengths = [len(i) for i in all_IDs[:N_max]]
-            maxlen = max(lengths) + 2
-            for i in range(N_max):
-                spaces = ' ' * (maxlen - lengths[i])
-                if i:
-                    flow_rates += new_line
-                flow_rates += all_IDs[i] + spaces + \
-                    f'{flow_array[i]:{flow_notation}}'
-            if too_many_chemicals:
-                spaces = ' ' * (maxlen - 3)
-                flow_rates += new_line + '...' + spaces + \
-                    f'{flow_array[N_max:].sum():{flow_notation}}'
-            dashes = '-' * (maxlen - 2)
-            flow_rates += f"{new_line}{dashes}  {total_flow:{flow_notation}} {flow_units}"
+        # Remaining lines (all flow rates)
+        flow_array = factor * indexer[all_IDs]
+        total_flow = flow_array.sum()
+        beginning = "composition (%): "
+        new_line = '\n' + len(beginning) * ' '
+        flow_array = 100 * flow_array/total_flow
+        flow_rates = ''
+        too_many_chemicals = N_IDs > N_max
+        if not too_many_chemicals: N_max = N_IDs
+        lengths = [len(i) for i in all_IDs[:N_max]]
+        maxlen = max(lengths) + 2
+        for i in range(N_max):
+            spaces = ' ' * (maxlen - lengths[i])
+            if i:
+                flow_rates += new_line
+            flow_rates += all_IDs[i] + spaces + \
+                f'{flow_array[i]:{flow_notation}}'
+        if too_many_chemicals:
+            spaces = ' ' * (maxlen - 3)
+            flow_rates += new_line + '...' + spaces + \
+                f'{flow_array[N_max:].sum():{flow_notation}}'
         return (basic_info
                 + price
                 + TP_info
