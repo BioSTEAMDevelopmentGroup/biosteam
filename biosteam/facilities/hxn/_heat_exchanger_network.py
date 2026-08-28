@@ -149,17 +149,16 @@ class HeatExchangerNetwork(bst.Facility):
         flowsheet = bst.Flowsheet(sys.ID + '_HXN')
         use_cached_network = False
         if self.cache_network and hasattr(self, 'original_heat_utils'):
-            # Units are the stable key: HeatUtility objects are recreated each
-            # simulation, and IDs may be duplicated (e.g., several
-            # 'condenser'/'reboiler' auxiliaries). Compare as identity sets.
+            # Units are a stable key to compare whether system has changed configuration.
             hu_by_unit = {hu.unit: hu for hu in hx_utils}
             use_cached_network = (
                 hu_by_unit.keys() == set(self.original_heat_exchangers)
             )
         with flowsheet.temporary(), bst.IgnoreDockingWarnings():
-            if use_cached_network:
-                # Keep the stored synthesis (duty-sorted) order, which is
-                # aligned index-by-index with stream_life_cycles.
+            if use_cached_network: 
+                # Keep the same configuration, but update stream life cycles and heat exchanger specifications.
+                # Note that stream_life_cycles are aligned with original_heat_exchangers (from synthesize_network).
+                # Heat utils are rearranged so that they align with stream_life_cycles too.
                 hxs = self.original_heat_exchangers
                 hx_heat_utils_rearranged = [hu_by_unit[hx] for hx in hxs]
                 stream_life_cycles = self.stream_life_cycles
