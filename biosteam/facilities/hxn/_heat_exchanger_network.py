@@ -10,9 +10,11 @@ Created on Sat Aug 22 21:58:19 2020
 @author: sarangbhagwat and yoelcp
 """
 import biosteam as bst
+import thermosteam as tmo
 import numpy as np
 from .hxn_synthesis import synthesize_network, StreamLifeCycle, plot_pinch_diagram
 from warnings import warn
+import warnings
 
 __all__ = ('HeatExchangerNetwork',)
 
@@ -225,7 +227,25 @@ class HeatExchangerNetwork(bst.Facility):
                         unit = i.unit
                         if s_out: unit.ins[i.index] = s_out
                         s_out = unit.outs[i.index]
-                self.HXN_sys = sys = bst.System(ID=None, path=all_units)
+                # Order the path by the rewired stream connections (and
+                # detect recycle loops) rather than using synthesis order: a
+                # hot-side exchanger is synthesized before the cold-side
+                # exchangers that feed it, and a single pass in synthesis
+                # order would leave it with stale inlets. HXprocess units are
+                # interaction units, which Network.from_units strips out (and
+                # disconnects) by default; keep them with interaction=False.
+                with warnings.catch_warnings(record=True) as caught:
+                    warnings.simplefilter('always', RuntimeWarning)
+                    network = tmo.Network.from_units(all_units, interaction=False)
+                for w in caught:
+                    if 'network path could not be determined' in str(w.message):
+                        warn('heat exchanger network path could not be fully '
+                             'ordered from its stream connections; exchangers '
+                             'fed by later ones in the path may be simulated '
+                             'with stale inlets until convergence', RuntimeWarning)
+                    else:
+                        warn(w.message, w.category)
+                self.HXN_sys = sys = bst.System._from_network(None, network)
                 sys.set_tolerance(method='fixedpoint', subsystems=True)
             
             original_purchase_costs = [hx.purchase_cost for hx in hxs]
