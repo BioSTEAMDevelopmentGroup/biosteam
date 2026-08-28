@@ -149,14 +149,18 @@ class HeatExchangerNetwork(bst.Facility):
         flowsheet = bst.Flowsheet(sys.ID + '_HXN')
         use_cached_network = False
         if self.cache_network and hasattr(self, 'original_heat_utils'):
-            hxs = [hu.unit for hu in hx_utils]
+            # Units are a stable key to compare whether system has changed configuration.
+            hu_by_unit = {hu.unit: hu for hu in hx_utils}
             use_cached_network = (
-                sorted(hxs, key=lambda x: x.ID) 
-                == sorted(self.original_heat_exchangers, key=lambda x: x.ID)
+                hu_by_unit.keys() == set(self.original_heat_exchangers)
             )
         with flowsheet.temporary(), bst.IgnoreDockingWarnings():
-            if use_cached_network:
-                hx_heat_utils_rearranged = [i.heat_utilities[0] for i in hxs]
+            if use_cached_network: 
+                # Keep the same configuration, but update stream life cycles and heat exchanger specifications.
+                # Note that stream_life_cycles are aligned with original_heat_exchangers (from synthesize_network).
+                # Heat utils are rearranged so that they align with stream_life_cycles too.
+                hxs = self.original_heat_exchangers
+                hx_heat_utils_rearranged = [hu_by_unit[hx] for hx in hxs]
                 stream_life_cycles = self.stream_life_cycles
                 new_HXs = self.new_HXs
                 new_HX_utils = self.new_HX_utils
@@ -248,8 +252,9 @@ class HeatExchangerNetwork(bst.Facility):
                         np.testing.assert_allclose(s_util.imol[IDs], s_lc.imol[IDs])
                         np.testing.assert_allclose(P, s_lc.P, rtol=1e-3, atol=0.1)
                         np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3, atol=1.)
-                    except:
-                        msg = ("heat exchanger network cache algorithm failed, cached network ignored")
+                    except AssertionError as e:
+                        msg = ("heat exchanger network cache algorithm failed, "
+                               f"cached network ignored: {e}")
                         warn(msg, RuntimeWarning, stacklevel=2)
                         del self.original_heat_utils
                         self._cost()
@@ -337,7 +342,7 @@ class HeatExchangerNetwork(bst.Facility):
         if ignored and callable(ignored): ignored = ignored()
         energy_balance_errors = {}
         for hu in self._get_original_heat_utilties():
-            self.ignored = ignored + [hu.unit]
+            self.ignored = list(ignored or ()) + [hu.unit]
             if hasattr(hu.unit, 'owner'):
                 ID = hu.unit.owner.ID, hu.unit.ID
             else:
