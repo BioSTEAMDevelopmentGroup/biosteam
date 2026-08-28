@@ -253,6 +253,136 @@ def test_synthetic_network_reaches_MER():
     # respects T_min_app; with non-equilibrium inlets the table is conservative
     assert actual_heat >= table.hot_util_load * (1 - 1e-3)
 
+# --- pinch diagram -----------------------------------------------------------
+
+class _FakeStage:
+    def __init__(self, unit): self.unit = unit
+
+class _FakeLifeCycle:
+    def __init__(self, units, cold=True):
+        self.cold = cold
+        self.life_cycle = [_FakeStage(u) for u in units]
+
+def test_pinch_diagram_column_order_follows_stream_direction():
+    from biosteam.facilities.hxn.hxn_synthesis import _order_exchanger_columns
+    h1, h2, h3 = 'h1', 'h2', 'h3'
+    # stream A visits h2 then h1; stream B visits h1 then h3 -> h2, h1, h3
+    cycles = [_FakeLifeCycle([h2, h1]), _FakeLifeCycle([h1, h3])]
+    assert _order_exchanger_columns([h1, h2, h3], cycles) == [h2, h1, h3]
+    # exchangers not in the requested subset are ignored, order is stable
+    assert _order_exchanger_columns([h3, h1], cycles) == [h1, h3]
+    # a hot stream flows right to left, so its stage order is reversed:
+    # hot stream visits h1 then h3 -> h3 left of h1
+    cycles = [_FakeLifeCycle([h2, h1]), _FakeLifeCycle([h1, h3], cold=False)]
+    assert _order_exchanger_columns([h1, h2, h3], cycles) == [h2, h3, h1]
+    # contradictory constraints (a cycle) fall back to the given order
+    cycles = [_FakeLifeCycle([h1, h2]), _FakeLifeCycle([h2, h1])]
+    assert _order_exchanger_columns([h2, h1], cycles) == [h2, h1]
+
+def _gid_artists(ax, prefix):
+    return [a for a in ax.findobj() if (a.get_gid() or '').startswith(prefix)]
+
+def test_pinch_diagram_doctest_system():
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    sys, HXN, feed = build_system()
+    sys.simulate()
+    assert HXN.new_HXs_hot_side + HXN.new_HXs_cold_side == HXN.new_HXs
+    fig, ax = HXN.plot_pinch_diagram()
+    try:
+        # one connector per process exchanger
+        connectors = _gid_artists(ax, 'HX:')
+        assert {a.get_gid() for a in connectors} == {'HX:' + hx.ID for hx in HXN.new_HXs}
+        # one utility marker per utility exchanger with a duty above Qmin
+        utils = _gid_artists(ax, 'Util:')
+        expected = {'Util:' + hx.ID for hx in HXN.new_HX_utils
+                    if abs(hx.outs[0].H - hx.ins[0].H) > HXN.Qmin}
+        assert {a.get_gid() for a in utils} == expected
+        # one row per stream, with inlet temperatures in degC
+        texts = {t.get_text() for t in ax.texts}
+        for T in HXN.inlet_Ts: assert f'{T - 273.15:.1f}' in texts
+        for T in HXN.outlet_Ts: assert f'{T - 273.15:.1f}' in texts
+        for i in range(len(HXN.inlet_Ts)): assert str(i) in texts
+    finally:
+        plt.close(fig)
+
+def test_pinch_diagram_stream_labels():
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    from biosteam.facilities.hxn.hxn_synthesis import _auxiliary_name, _stream_label
+    sys, HXN, feed = build_system()
+    sys.simulate()
+    D1 = bst.main_flowsheet.unit.D0
+    D1_H1 = bst.main_flowsheet.unit.D0_H1
+    assert _auxiliary_name(D1.condenser) == 'condenser'
+    assert _auxiliary_name(D1_H1) is None
+    # label composition
+    assert _stream_label(D1.condenser, True, True, False) == 'D0 - condenser'
+    assert _stream_label(D1.condenser, True, False, False) == 'D0'
+    assert _stream_label(D1.condenser, False, True, False) == 'condenser'
+    assert _stream_label(D1_H1, True, True, True) == 'D0_H1 (' + D1_H1.ins[0].ID + ')'
+    assert _stream_label(D1_H1, False, False, True) == D1_H1.ins[0].ID
+    assert _stream_label(D1_H1, False, False, False) == ''
+    # an unnamed inlet adds nothing
+    assert _stream_label(D1.reboiler, True, True, True) == 'D0 - reboiler'
+    # every stream gets a label on the figure; toggles remove them
+    fig, ax = HXN.plot_pinch_diagram()
+    try:
+        labels = {a.get_gid(): a.get_text() for a in _gid_artists(ax, 'Label:')}
+        hxs = HXN.original_heat_exchangers
+        assert labels == {
+            f'Label:{i}': _stream_label(hx, True, True, True)
+            for i, hx in enumerate(hxs)
+        }
+        assert any(text.startswith('D0 - condenser') for text in labels.values())
+        assert any(text == 'F1 - heat_exchanger (feed_flash)' for text in labels.values())
+    finally:
+        plt.close(fig)
+    fig, ax = HXN.plot_pinch_diagram(show_units=False, show_auxiliary_units=False,
+                                     show_stream_IDs=False)
+    try:
+        assert not _gid_artists(ax, 'Label:')
+    finally:
+        plt.close(fig)
+
+def test_pinch_diagram_requires_simulation():
+    sys, HXN, feed = build_system()
+    with pytest.raises(RuntimeError, match='simulate'):
+        HXN.plot_pinch_diagram()
+
+def test_pinch_diagram_legend():
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    sys, HXN, feed = build_system()
+    sys.simulate()
+    fig, ax = HXN.plot_pinch_diagram()
+    try:
+        legend = ax.get_legend()
+        assert legend is not None
+        labels = [t.get_text() for t in legend.get_texts()]
+        assert labels == ['Cold stream', 'Hot stream', 'Process heat exchange',
+                          'Hot utility', 'Cold utility', 'Pinch']
+        # utility markers are colored by utility type, consistent with the legend
+        handles = dict(zip(labels, legend.legend_handles))
+        hot_util_color = handles['Hot utility'].get_markeredgecolor()
+        cold_util_color = handles['Cold utility'].get_markeredgecolor()
+        assert hot_util_color != cold_util_color
+        heaters = {hx.ID for hx in HXN.new_HX_utils if hx.outs[0].H > hx.ins[0].H}
+        for artist in _gid_artists(ax, 'Util:'):
+            heater = artist.get_gid()[len('Util:'):] in heaters
+            expected = hot_util_color if heater else cold_util_color
+            assert artist.get_markeredgecolor() == expected, artist.get_gid()
+    finally:
+        plt.close(fig)
+    fig, ax = HXN.plot_pinch_diagram(show_legend=False)
+    try:
+        assert ax.get_legend() is None
+    finally:
+        plt.close(fig)
+
 if __name__ == '__main__':
     test_cache_network_matches_fresh_synthesis()
     test_cache_network_perturbed_feed()
@@ -265,3 +395,8 @@ if __name__ == '__main__':
     test_problem_table_non_monotone_stream_is_point_load()
     test_problem_table_point_load_cannot_heat_above_itself()
     test_synthetic_network_reaches_MER()
+    test_pinch_diagram_column_order_follows_stream_direction()
+    test_pinch_diagram_doctest_system()
+    test_pinch_diagram_stream_labels()
+    test_pinch_diagram_legend()
+    test_pinch_diagram_requires_simulation()
