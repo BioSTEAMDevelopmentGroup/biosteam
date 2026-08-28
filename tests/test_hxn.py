@@ -9,6 +9,7 @@
 Tests for the heat exchanger network facility.
 """
 import warnings
+import pytest
 import biosteam as bst
 import numpy as np
 from numpy.testing import assert_allclose
@@ -89,8 +90,177 @@ def test_energy_balance_error_contributions_ignored_none():
     assert len(errors) == N
     assert HXN.ignored is None
 
+# ---------------------------------------------------------------------------
+# Problem-table (pinch) analysis
+# ---------------------------------------------------------------------------
+
+from biosteam.facilities.hxn.hxn_synthesis import (
+    temperature_interval_pinch_analysis, problem_table,
+)
+
+def utility_hx(ID, T, P, phase, T_out, **flow):
+    """A simulated HXutility acting as one process stream (kmol/hr flows)."""
+    s = bst.Stream(ID + '_in', T=T, P=P, phase=phase, units='kmol/hr', **flow)
+    hx = bst.HXutility(ID, ins=s, T=T_out,
+                       rigorous=(phase == 'g'))  # liquid streams stay liquid (report's case)
+    hx.simulate()
+    return hx
+
+def synthetic_units():
+    """Report's 4-stream case: two cold, one condensing hot, one hot liquid."""
+    bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
+    bst.main_flowsheet.set_flowsheet('test_hxn_synthetic')
+    return [utility_hx('C1', 300., 101325., 'l', 390., Water=2000.),
+            utility_hx('C2', 310., 101325., 'l', 345., Water=500., Ethanol=500.),
+            utility_hx('H1', 352., 101325., 'g', 340., Ethanol=300.),
+            utility_hx('H2', 420., 5e5, 'l', 320., Water=800.)]
+
+def heat_utilities(units):
+    hus = [hx.heat_utilities[0] for hx in units]
+    hus.sort(key=lambda hu: hu.duty)
+    return hus
+
+def pinch_streams(hus):
+    """Inlet/quenched-outlet stream copies exactly as the synthesizer prepares them."""
+    streams_inlet = [hu.unit.ins[0].copy() for hu in hus]
+    streams_quenched = [hu.unit.outs[0].copy() for hu in hus]
+    for s in streams_quenched: s.vle(H=s.H, P=s.P)
+    is_hot = [hu.duty < 0 for hu in hus]
+    return streams_inlet, streams_quenched, is_hot
+
+def assert_energy_consistent(hus, T_min_app):
+    """Invariants of a correct problem table, independent of the synthesizer."""
+    unit_duties = np.array([hu.unit_duty for hu in hus])
+    table = problem_table(*pinch_streams(hus), T_min_app)
+    # (a) each stream's grid contributions telescope to its real duty
+    #     (hot: +|dH|, cold: -dH)
+    per_stream = table.interval_H.sum(axis=1) + table.point_H.sum(axis=1)
+    assert_allclose(per_stream, -unit_duties, rtol=1e-9)
+    # (b) targets are non-negative and hot - cold is the net demand
+    assert table.hot_util_load >= 0. and table.cold_util_load >= 0.
+    assert_allclose(table.hot_util_load - table.cold_util_load,
+                    unit_duties.sum(), rtol=1e-9)
+    # (c) a target can never exceed the un-integrated load
+    assert table.hot_util_load <= unit_duties[unit_duties > 0].sum() * (1 + 1e-9)
+    assert table.cold_util_load <= -unit_duties[unit_duties < 0].sum() * (1 + 1e-9)
+    # (d) the public wrapper reports the same targets
+    pinch_T_arr, hot, cold, *_ = temperature_interval_pinch_analysis(hus, T_min_app)
+    assert_allclose([hot, cold], [table.hot_util_load, table.cold_util_load], rtol=1e-12)
+    return table
+
+def test_problem_table_energy_consistency_doctest_system():
+    sys, HXN, feed = build_system()
+    sys.simulate()
+    hus = HXN._get_original_heat_utilties()
+    hus.sort(key=lambda hu: hu.duty)
+    assert_energy_consistent(hus, 5.)
+
+@pytest.mark.parametrize('T_min_app', [5., 10., 20.])
+def test_problem_table_energy_consistency_synthetic(T_min_app):
+    hus = heat_utilities(synthetic_units())
+    table = assert_energy_consistent(hus, T_min_app)
+    # the condensing ethanol stream (352 K in, ~351.4 K dew point) must keep
+    # its latent heat: hot target well below the un-integrated heating load
+    heating = sum(hu.unit_duty for hu in hus if hu.unit_duty > 0)
+    assert table.hot_util_load < 0.5 * heating
+
+def test_problem_table_two_streams_closed_form():
+    bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
+    bst.main_flowsheet.set_flowsheet('test_hxn_two_streams')
+    hot = utility_hx('Hw', 400., 5e5, 'l', 300., Water=1000.)
+    # Case 1 (threshold problem): the hot stream covers every interval of the
+    # smaller cold stream -> no hot utility, cold utility = net surplus.
+    cold = utility_hx('Cs', 300., 5e5, 'l', 390., Water=900.)
+    hus = heat_utilities([hot, cold])
+    table = problem_table(*pinch_streams(hus), 5.)
+    Q_hot = -hot.heat_utilities[0].unit_duty
+    Q_cold = cold.heat_utilities[0].unit_duty
+    assert table.hot_util_load == 0.
+    assert_allclose(table.cold_util_load, Q_hot - Q_cold, rtol=1e-9)
+    assert table.pinch_T == table.Ts[0]   # no pinch: everything sits below it
+    # Case 2: the larger cold stream is short of heat everywhere; the cascade
+    # minimum is at the cold inlet (300 K on the shifted scale) and the hot
+    # utility is the cold duty minus what the hot stream gives down to 305 K.
+    cold = utility_hx('Cb', 300., 5e5, 'l', 390., Water=1200.)
+    hus = heat_utilities([hot, cold])
+    table = problem_table(*pinch_streams(hus), 5.)
+    s = hot.ins[0].copy(); s.vle(T=305., P=s.P)
+    Q_hot_above_pinch = hot.ins[0].H - s.H
+    Q_cold = cold.heat_utilities[0].unit_duty
+    assert_allclose(table.hot_util_load, Q_cold - Q_hot_above_pinch, rtol=1e-9)
+    assert table.pinch_T == 300.
+    # remaining hot-stream heat below the pinch leaves as cold utility
+    assert_allclose(table.cold_util_load, s.H - hot.outs[0].H, rtol=1e-9)
+
+def test_problem_table_non_monotone_stream_is_point_load():
+    # A heated stream whose outlet is colder than its inlet (e.g. a column
+    # reboiler outlet at VLE): treated as an isothermal load at T_out.
+    bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
+    a = bst.Stream('a', Water=100., T=372., P=101325., phase='l', units='kmol/hr')
+    b = bst.Stream('b', Water=100., T=371., P=101325., phase='g', units='kmol/hr')
+    dH = b.H - a.H
+    assert dH > 0
+    table = problem_table([a], [b], [False], 5.)
+    assert_allclose(table.point_H, [[-dH]])
+    assert table.interval_H.shape == (1, 0)
+    assert_allclose([table.hot_util_load, table.cold_util_load, table.pinch_T],
+                    [dH, 0., 371.])
+    table = problem_table([b], [a], [True], 5.)
+    assert_allclose([table.hot_util_load, table.cold_util_load, table.pinch_T],
+                    [0., dH, 372. - 5.])  # outlet T 372 K, shifted by T_min_app
+
+def test_problem_table_point_load_cannot_heat_above_itself():
+    # A source at shifted temperature T cannot serve sinks above T: an
+    # isothermal condensing hot stream at 400 K (shifted to 395 K) must not
+    # cover the 395-398 K segment of a cold stream that runs 392 -> 398 K.
+    bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
+    hot_in = bst.Stream('hv', Water=100., T=400., P=101325., phase='g',
+                        units='kmol/hr')
+    hot_out = bst.Stream('hl', Water=100., T=400., P=101325., phase='l',
+                         units='kmol/hr')
+    P_hot = hot_in.H - hot_out.H
+    assert P_hot > 0
+    cold_in = bst.Stream('cl', Water=1000., T=392., P=5e5, phase='l',
+                         units='kmol/hr')
+    cold_out = cold_in.copy('cl_out'); cold_out.vle(T=398., P=5e5)
+    s = cold_in.copy(); s.vle(T=395., P=5e5)
+    H_392, H_395, H_398 = cold_in.H, s.H, cold_out.H
+    assert P_hot > H_398 - H_392   # more than enough heat overall
+    table = problem_table([hot_in, cold_in], [hot_out, cold_out],
+                          [True, False], 5.)
+    assert_allclose(table.Ts, [398., 395., 392.])
+    # heat arriving at 395 K, before the point load there, is short by the
+    # 395-398 K segment of the cold stream
+    assert_allclose(table.hot_util_load, H_398 - H_395, rtol=1e-9)
+    assert table.pinch_T == 395.
+    assert_allclose(table.cold_util_load, P_hot - (H_395 - H_392), rtol=1e-9)
+
+def test_synthetic_network_reaches_MER():
+    units = synthetic_units()
+    HXN = bst.HeatExchangerNetwork('HXN', T_min_app=5.)
+    sys = bst.System.from_units('sys_synthetic', units=[*units, HXN])
+    sys.simulate()
+    hus = heat_utilities(units)
+    table = problem_table(*pinch_streams(hus), 5.)
+    actual_heat = sum(hu.unit_duty for hx in HXN.new_HX_utils
+                      for hu in hx.heat_utilities if hu.unit_duty > 0)
+    # the greedy heuristic reaches the (corrected) MER on this case; it can
+    # never legitimately beat it
+    assert_allclose(actual_heat, table.hot_util_load, rtol=1e-2)
+    # the lower bound is exact here only because every synthetic inlet is an
+    # equilibrium state (so the clipped table is exact) and the synthesizer
+    # respects T_min_app; with non-equilibrium inlets the table is conservative
+    assert actual_heat >= table.hot_util_load * (1 - 1e-3)
+
 if __name__ == '__main__':
     test_cache_network_matches_fresh_synthesis()
     test_cache_network_perturbed_feed()
     test_cache_network_duplicate_IDs()
     test_energy_balance_error_contributions_ignored_none()
+    test_problem_table_energy_consistency_doctest_system()
+    for T_min_app in (5., 10., 20.):
+        test_problem_table_energy_consistency_synthetic(T_min_app)
+    test_problem_table_two_streams_closed_form()
+    test_problem_table_non_monotone_stream_is_point_load()
+    test_problem_table_point_load_cannot_heat_above_itself()
+    test_synthetic_network_reaches_MER()
