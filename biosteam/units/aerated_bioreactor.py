@@ -799,6 +799,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         aeration.vent_broth(vent, effluent)
     
     def _run(self):
+        variable_liquid_feeds = self.variable_liquid_feeds
         variable_gas_feeds = self.variable_gas_feeds
         vent, effluent = self.outs
         vent.P = effluent.P = self.P
@@ -823,6 +824,8 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             vent.empty()
             self.vent.set_flow(remaining, units='mol/s', key=self.gas_substrates)
             self._run_vent(vent, effluent)
+        elif variable_liquid_feeds and variable_gas_feeds:
+            pass
         elif variable_gas_feeds:
             # Solve gas flow rates to meet titer.
             effluent.mix_from(liquid_feeds, energy_balance=False)
@@ -896,12 +899,12 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                         'bioreactor conversion/titer could not be satisfied'
                     )
                 load_flow_rates(results.x / x_substrates)
-        else: 
+        elif variable_liquid_feeds: 
             # Titer given, must adjust liquid flows to meet mass transfer.
             try:
                 feed, = [i for i in self.ins if i.phase != 'g']
             except:
-                raise RuntimeError('gas-fed bioreactor must have exactly on liquid feed')
+                raise RuntimeError('gas-fed bioreactor must have exactly one liquid feed')
             T = self.T
             P = self._inlet_gas_pressure()
             for i in self.compressors: i.P = P
