@@ -225,18 +225,27 @@ class AeratedBioreactor(AbstractStirredTankReactor):
             optimize_power
         )
         self.design = design
-        if method is None:
-            method = self.default_methods[design]
-        if (key:=(design, method)) in aeration.kLa_methods:
-            self.kLa = aeration.kLa_methods[key]
-        elif hasattr(method, '__call__'):
-            self.kLa = method
-        else:
-            raise ValueError(
-                f"{method!r} is not a valid kLa method; only "
-                f"{aeration.kLa_method_names[design]} are valid"
-            )
+        self.method = method
         self.kLa_kwargs = {} if kLa_kwargs is None else kLa_kwargs
+        
+    @property
+    def method(self):
+        return self._method
+    @method.setter
+    def method(self, method):
+        design = self.design
+        if method is None: method = self.default_methods[design]
+        self._method = method
+        if isinstance(method, str) or callable(method): 
+            if (key:=(design, method)) in aeration.kLa_methods:
+                self.kLa = aeration.kLa_methods[key]
+            elif callable(method):
+                self.kLa = method
+            else:
+                raise ValueError(
+                    f"{method!r} is not a valid kLa method; only "
+                    f"{aeration.kLa_method_names[design]} are valid"
+                )
     
     def get_kLa(self):
         if self.kLa is aeration.kLa_stirred_Riet:
@@ -262,10 +271,9 @@ class AeratedBioreactor(AbstractStirredTankReactor):
             A = pi * R * R
             self.superficial_gas_flow = U = F / A # m / s 
             feed = self.ins[0]
-            try:
-                return aeration.kla_bubcol_Dewes(U, feed.get_property('mu', 'mPa*s'), air_in.get_property('rho', 'kg/m3'))
-            except:
-                breakpoint()
+            return aeration.kla_bubcol_Dewes(U, feed.get_property('mu', 'mPa*s'), air_in.get_property('rho', 'kg/m3'), **self.kLa_kwargs)
+        elif callable(self.kLa):
+            self.kLa(**self.kLa_kwargs)
         else:
             raise NotImplementedError('kLa method has not been implemented in BioSTEAM yet')
     
@@ -605,7 +613,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     >>> import biosteam as bst
     >>> bst.settings.set_thermo(['H2', 'CO2', 'N2', 'O2', 'H2O', 'AceticAcid'])
     >>> media = bst.Stream(ID='media', H2O=10000, units='kg/hr')
-    >>> H2 = bst.Stream(ID='H2', H2=100, units='kg/hr', phase='g')
+    >>> H2 = bst.Stream(ID='H2', H2=0.5, units='kg/hr', phase='g')
     >>> fluegas = bst.Stream(ID='fluegas', N2=70, CO2=25, H2O=3, O2=2, units='kg/hr', phase='g')
     >>> # Model acetic acid production from H2 and CO2
     >>> rxn = bst.Rxn('H2 + CO2 -> AceticAcid + H2O', reactant='H2', correct_atomic_balance=True) 
@@ -626,10 +634,10 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     ins...
     [0] media  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow: 88.8 kmol/hr H2O
+        flow: 16.4 kmol/hr H2O
     [1] H2  
         phase: 'g', T: 298.15 K, P: 101325 Pa
-        flow: 49.6 kmol/hr H2
+        flow: 0.248 kmol/hr H2
     [2] fluegas  
         phase: 'g', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): CO2  0.568
@@ -639,20 +647,20 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     outs...
     [0] vent  
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): H2          49
-                        CO2         0.29
+        flow (kmol/hr): H2          0.147
+                        CO2         0.516
                         N2          2.5
                         O2          0.0625
-                        H2O         2.55
-                        AceticAcid  0.0082
+                        H2O         0.157
+                        AceticAcid  0.000503
     [1] product  
         phase: 'l', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): H2          0.00107
-                        CO2         0.000242
-                        N2          4.13e-05
-                        O2          2.11e-06
-                        H2O         86.7
-                        AceticAcid  0.131
+        flow (kmol/hr): H2          9.98e-06
+                        CO2         0.00128
+                        N2          0.000128
+                        O2          6.56e-06
+                        H2O         16.5
+                        AceticAcid  0.0248
     
     """
     _N_ins = 2
@@ -668,8 +676,9 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     P_default = 101325
     kW_per_m3_default = 0.2955 # Reaction in homogeneous liquid
     batch_default = True
-    default_methods = AeratedBioreactor.default_methods
+    method = AeratedBioreactor.method
     get_kLa = AeratedBioreactor.get_kLa
+    default_methods = AeratedBioreactor.default_methods
     get_agitation_power = AeratedBioreactor.get_agitation_power
     
     def _init(self, 
@@ -712,17 +721,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                 f"{list(aeration.kLa_method_names)} are valid"
             )
         self.design = design
-        if method is None:
-            method = self.default_methods[design]
-        if (key:=(design, method)) in aeration.kLa_methods:
-            self.kLa = aeration.kLa_methods[key]
-        elif hasattr(method, '__call__'):
-            self.kLa = method
-        else:
-            raise ValueError(
-                f"{method!r} is not a valid kLa method; only "
-                f"{aeration.kLa_method_names[design]} are valid"
-            )
+        self.method = method
     
     def _get_duty(self):
         if self.Q_consumption is None:
@@ -800,6 +799,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         aeration.vent_broth(vent, effluent)
     
     def _run(self):
+        variable_liquid_feeds = self.variable_liquid_feeds
         variable_gas_feeds = self.variable_gas_feeds
         vent, effluent = self.outs
         vent.P = effluent.P = self.P
@@ -824,6 +824,8 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             vent.empty()
             self.vent.set_flow(remaining, units='mol/s', key=self.gas_substrates)
             self._run_vent(vent, effluent)
+        elif variable_liquid_feeds and variable_gas_feeds:
+            pass
         elif variable_gas_feeds:
             # Solve gas flow rates to meet titer.
             effluent.mix_from(liquid_feeds, energy_balance=False)
@@ -897,12 +899,12 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                         'bioreactor conversion/titer could not be satisfied'
                     )
                 load_flow_rates(results.x / x_substrates)
-        else: 
+        elif variable_liquid_feeds: 
             # Titer given, must adjust liquid flows to meet mass transfer.
             try:
                 feed, = [i for i in self.ins if i.phase != 'g']
             except:
-                raise RuntimeError('gas-fed bioreactor must have exactly on liquid feed')
+                raise RuntimeError('gas-fed bioreactor must have exactly one liquid feed')
             T = self.T
             P = self._inlet_gas_pressure()
             for i in self.compressors: i.P = P
@@ -987,18 +989,27 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         self.kW_per_m3 = agitation_power_kW / V 
         return total_power_kW
     
+    def get_kLas(self):
+        kLa = self.get_kLa()
+        if np.ndim(kLa) == 0:
+            kLa *= np.array([
+                aeration.kLa_proportionality_factor(target=substrate, reference='O2')
+                for substrate in self.gas_substrates
+            ])
+        return kLa
+                
     def get_STRs(self):
         """Return the gas substrate transfer rate in mol/s."""
         V = self.get_design_result('Reactor volume', 'm3') * self.V_wf
         operating_time = self.tau / self.design_results.get('Batch time', 1.)
         N_reactors = self.parallel['self']
         gas_in = self.sparged_gas
-        kLa = self.get_kLa() # 1 / s 
+        kLas = self.get_kLas() # 1 / s 
         vent = self.vent
         P_gas = gas_in.get_property('P', 'bar')
         P_vent = vent.get_property('P', 'bar')
         STRs = []
-        for ID in self.gas_substrates:
+        for ID, kLa in zip(self.gas_substrates, kLas):
             Py_gas = P_gas * gas_in.imol[ID] / gas_in.F_mol
             Py_vent = P_vent * vent.imol[ID] / (vent.F_mol or 1)
             C_sat_gas = aeration.C_L(self.T, Py_gas, ID) # mol / kg

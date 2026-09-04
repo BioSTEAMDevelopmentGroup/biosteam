@@ -540,66 +540,6 @@ def fix_valve_symbol_in_svg_output(
         parent_map[i].remove(i)
     return ElementTree.tostring(tree)
 
-def inject_javascript(img:bytes):
-    html = ElementTree.Element('html')
-    head = ElementTree.SubElement(html, 'head')
-    # insert css
-    links = [
-        "https://unpkg.com/tippy.js@6.3.7/themes/translucent.css",
-        "https://rawcdn.githack.com/BioSTEAMDevelopmentGroup/biosteam/e065aca079c216d72b75949bbcbb74a3bbddb75d/biosteam/digraph/digraph.css",
-    ]
-    for href in links:
-        link = ElementTree.SubElement(head, 'link')
-        link.set("rel", "stylesheet")
-        link.set("href", href)
-    # insert javascript
-    srcs = [
-        "https://unpkg.com/@popperjs/core@2",
-        "https://unpkg.com/tippy.js@6",
-        "https://rawcdn.githack.com/BioSTEAMDevelopmentGroup/biosteam/e065aca079c216d72b75949bbcbb74a3bbddb75d/biosteam/digraph/digraph.js",
-    ]
-    for src in srcs:
-        script = ElementTree.SubElement(head, 'script')
-        script.set("src", src)
-    # body
-    body = ElementTree.SubElement(html, 'body')
-    svg = ElementTree.fromstring(img)
-    
-    # getiterator is deprecated in Python 3.9
-    getiter = lambda etree: (getattr(etree, 'getiterator', None) or getattr(etree, 'iter'))()
-    
-    # remove namespaces from tags and attributes
-    for e in getiter(svg):
-        e.tag = re.sub("{.*?}","",e.tag)
-        for key, value in e.attrib.copy().items():
-            if "{" in key:
-                clean = re.sub("{.*?}","",key)
-                e.attrib[clean] = value
-                del e.attrib[key]
-    # make tippy tooltips
-    for e in getiter(svg):
-        for key, value in e.attrib.copy().items():
-            if key == "class" and value in ["node", "edge"]:
-                title = e.find("./title")
-                if title is not None:
-                    default_tooltip = title.text
-                else:
-                    default_tooltip = e.text
-                custom_tooltip = (e.find("./g/a") or e).attrib.get("title", None)
-                tooltip = custom_tooltip or default_tooltip
-                if tooltip is not None:
-                    e.attrib["data-tippy-content"] = tooltip.strip()
-    # remove default tooltips
-    for e in getiter(svg):
-        t = e.find("./title")
-        if t is not None:
-            e.remove(t)
-    body.append(svg)
-    # add docstring declaration
-    s = ElementTree.tostring(html, encoding='utf8', method='html')
-    s = b"<!DOCTYPE html>"+s
-    return s
-
 def display_digraph(digraph, format, height=None): # pragma: no coverage
     if format is None: format = preferences.graphviz_format
     if height is None: height = '400px'
@@ -667,3 +607,227 @@ def finalize_digraph(digraph, file, format, height=None): # pragma: no coverage
                 "make sure Graphviz executables are on your systems' PATH",
                 RuntimeWarning
             )
+
+def inject_javascript(img: bytes):
+    html = ElementTree.Element('html')
+    head = ElementTree.SubElement(html, 'head')
+
+    # Inline CSS
+    style = ElementTree.SubElement(head, 'style')
+    style.text = """
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: transparent;
+        }
+
+        .biosteam-tooltip {
+            position: fixed;
+            z-index: 10000;
+            max-width: 400px;
+            padding: 6px 10px;
+            border-radius: 4px;
+            background: rgba(50, 50, 50, 0.95);
+            color: #ffffff;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 12px;
+            line-height: 1.4;
+            box-sizing: border-box;
+            pointer-events: none;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.1s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+        }
+
+        .biosteam-tooltip.visible {
+            visibility: visible;
+            opacity: 1;
+        }
+    """
+
+    # Inline JavaScript
+    script = ElementTree.SubElement(head, 'script')
+    script.text = r"""
+        document.addEventListener("DOMContentLoaded", function () {
+            const svg = document.querySelector("svg");
+            if (!svg) return;
+
+            const tooltip = document.createElement("div");
+            tooltip.className = "biosteam-tooltip";
+            document.body.appendChild(tooltip);
+
+            let activeElement = null;
+
+            function getTooltipElement(target) {
+                if (!target || !target.closest) return null;
+
+                const element = target.closest(
+                    ".node[data-tippy-content], " +
+                    ".edge[data-tippy-content]"
+                );
+
+                return element && svg.contains(element) ? element : null;
+            }
+
+            function positionTooltip(element) {
+                const objectRect = element.getBoundingClientRect();
+                const tooltipRect = tooltip.getBoundingClientRect();
+                const gap = 8;
+
+                // Center tooltip horizontally underneath the object.
+                let x = (
+                    objectRect.left
+                    + objectRect.width / 2
+                    - tooltipRect.width / 2
+                );
+
+                let y = objectRect.bottom + gap;
+
+                // If there is not enough room below the object,
+                // place the tooltip above it.
+                if (y + tooltipRect.height > window.innerHeight) {
+                    y = objectRect.top - tooltipRect.height - gap;
+                }
+
+                // Keep tooltip within the viewport horizontally.
+                if (x + tooltipRect.width > window.innerWidth - gap) {
+                    x = window.innerWidth - tooltipRect.width - gap;
+                }
+
+                if (x < gap) {
+                    x = gap;
+                }
+
+                // Also protect against very small viewports.
+                if (y < gap) {
+                    y = gap;
+                }
+
+                tooltip.style.left = x + "px";
+                tooltip.style.top = y + "px";
+            }
+
+            function showTooltip(element) {
+                const content =
+                    element.getAttribute("data-tippy-content");
+
+                if (!content) return;
+
+                activeElement = element;
+
+                // Graphviz tooltip strings may contain HTML.
+                tooltip.innerHTML = content;
+                tooltip.classList.add("visible");
+
+                // The tooltip must be visible before its dimensions
+                // can be measured.
+                positionTooltip(element);
+            }
+
+            function hideTooltip() {
+                activeElement = null;
+                tooltip.classList.remove("visible");
+            }
+
+            svg.addEventListener("mouseover", function (event) {
+                const element = getTooltipElement(event.target);
+
+                if (element && element !== activeElement) {
+                    showTooltip(element);
+                }
+            });
+
+            svg.addEventListener("mousemove", function () {
+                if (activeElement) {
+                    positionTooltip(activeElement);
+                }
+            });
+
+            svg.addEventListener("mouseout", function (event) {
+                const element = getTooltipElement(event.target);
+
+                if (!element || element !== activeElement) return;
+
+                const related = event.relatedTarget;
+
+                if (!related || !element.contains(related)) {
+                    hideTooltip();
+                }
+            });
+
+            svg.addEventListener("mouseleave", hideTooltip);
+
+            window.addEventListener("blur", hideTooltip);
+
+            window.addEventListener("resize", function () {
+                if (activeElement) {
+                    positionTooltip(activeElement);
+                }
+            });
+
+            window.addEventListener("scroll", function () {
+                if (activeElement) {
+                    positionTooltip(activeElement);
+                }
+            });
+        });
+    """
+
+    body = ElementTree.SubElement(html, 'body')
+    svg = ElementTree.fromstring(img)
+
+    # getiterator is deprecated in Python 3.9
+    getiter = lambda etree: (
+        getattr(etree, 'getiterator', None)
+        or getattr(etree, 'iter')
+    )()
+
+    # Remove namespaces from tags and attributes
+    for e in getiter(svg):
+        e.tag = re.sub("{.*?}", "", e.tag)
+        for key, value in e.attrib.copy().items():
+            if "{" in key:
+                clean = re.sub("{.*?}", "", key)
+                e.attrib[clean] = value
+                del e.attrib[key]
+
+    # Add tooltip content
+    for e in getiter(svg):
+        if e.attrib.get("class") not in ("node", "edge"):
+            continue
+
+        title = e.find("./title")
+        default_tooltip = title.text if title is not None else e.text
+
+        anchor = e.find("./g/a")
+        custom_tooltip = (
+            anchor.attrib.get("title")
+            if anchor is not None
+            else e.attrib.get("title")
+        )
+
+        tooltip = custom_tooltip or default_tooltip
+
+        if tooltip is not None:
+            e.attrib["data-tippy-content"] = tooltip.strip()
+
+    # Remove native SVG title elements to avoid duplicate browser tooltips
+    for e in getiter(svg):
+        title = e.find("./title")
+        if title is not None:
+            e.remove(title)
+
+    body.append(svg)
+
+    s = ElementTree.tostring(
+        html,
+        encoding='utf8',
+        method='html',
+    )
+
+    return b"<!DOCTYPE html>" + s

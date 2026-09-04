@@ -98,8 +98,7 @@ def size_batch(F_vol, tau_reaction, tau_cleaning, V_wf,
     
     If neither the number of reactors nor the loading time are specified, the
     loading time of a reactor filled to maximum working volume,
-    :math:`\tau_{loading} = V_{max} V_{wf} / F_{vol}` (the closed-form solution
-    of the equations above at a continuous number of reactors), gives the minimum
+    :math:`\tau_{loading} = V_{max} V_{wf} / F_{vol}`, gives the minimum
     number of reactors; then :math:`V_T`, :math:`V_i`, and :math:`\tau_{loading}`
     are recomputed to be consistent with the integer :math:`N_{reactors}`.
     

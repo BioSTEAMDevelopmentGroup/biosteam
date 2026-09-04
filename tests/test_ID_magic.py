@@ -24,6 +24,11 @@ def test_variable_assignment():
     sys = f()
     assert sys.ID == 'sys'
     
+    s_sum = bst.Stream.sum([bst.Stream() for i in range(4)])
+    assert s_sum.ID == 's_sum'
+    s_sum_copy = s_sum.copy()
+    assert s_sum_copy.ID == 's_sum_copy'
+    
 def test_commas():
     bst.settings.set_thermo(['Water'], cache=True)
     bst.main_flowsheet.clear()

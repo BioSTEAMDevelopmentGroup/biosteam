@@ -72,6 +72,9 @@ __all__ = (
     'P_at_kLa_Riet',
     'log_mean_driving_force',
     'vent_broth',
+    'kLa_proportionality_factor',
+    'HaydukLaudie_diffusion_coefficient',
+    'WilkeChang_diffusion_coefficient',
 )
 
 def vent_broth(vent, broth):
@@ -131,6 +134,189 @@ def C_O2_L(T, P_O2): # Commonly used, so here for convinience
     """O2 concentration [mol / kg] in the liquid given the temperature [K] and oxygen
     partial pressure of O2 in the gas [bar]."""
     return P_O2 * Henrys_law_constant(T, *H_coefficients['O2'])
+
+solvent_association_factors = {
+    '7732-18-5': 2.6, # Water
+    '67-56-1': 1.9, # Methanol
+    '64-17-5': 1.5, # Ethanol
+    '71-43-2': 1.0, # Benzene
+    '142-82-5': 1.0, # Heptane
+}
+
+_Vm_at_Tb = {
+    'H2': 7.4,
+    'O2': 25.6,
+    'CO': 30.7,
+    'CO2': 34.0,
+    'N2': 31.2
+}
+
+# Base atomic increments (cm3/mol)
+_atomic_volumes = {
+    'C': 14.8, 'H': 3.7, 'O': 7.4, 'N': 10.5, 
+    'S': 25.6, 'Cl': 24.6, 'Br': 27.0, 'I': 37.0, 'F': 8.7
+}
+
+def LeBas_volume(atoms: dict) -> float:
+    """
+    Estimate the Le Bas molar volume [cm3/mol] from a dictionary of atom counts.
+    """
+    total_volume = 0.0
+    for atom, count in atoms.items():
+        if atom in _atomic_volumes:
+            total_volume += _atomic_volumes[atom] * count
+        else:
+            raise KeyError(f"Atom '{atom}' not found in Le Bas table.")
+    return total_volume
+
+def Vm_at_Tb(chemical):
+    if chemical in _Vm_at_Tb:
+        return _Vm_at_Tb[chemical]
+    else:
+        chemical = bst.Chemical(chemical, cache=True)
+        if chemical.formula in _Vm_at_Tb: 
+            _Vm_at_Tb[chemical.ID] = Vm = _Vm_at_Tb[chemical.formula]
+        else:
+            _Vm_at_Tb[chemical] = Vm = LeBas_volume(chemical.atoms)
+        return Vm
+
+def kLa_proportionality_factor(
+        V_target=None, V_reference=None, 
+        target=None, reference=None,
+    ):
+    """
+    Estimate the kLa proportionality ratio between a target solute and a reference solute (kLa_target / kLa_reference)
+    based on the Hayduk-Laudie scaling in turbulent flow (using eddie exposure or surface renewal model).
+    
+    Parameters
+    ----------
+    V_target : float, optional
+        Le Bas molar volume of the target solute at its normal boiling point [cm³/mol].
+    V_reference: float, optional
+        Le Bas molar volume of the reference solute at its normal boiling point [cm³/mol].
+    target : str, optional
+        Name of target solute. 
+    reference : str, optional
+        Name of reference solute. Defaults to oxygen.
+    
+    """
+    if V_reference is None:
+        if reference is None: reference = 'O2'
+        V_reference = Vm_at_Tb(reference)
+    if V_target is None:
+        if target is None: raise ValueError('must pass either V_target or target')
+        V_target = Vm_at_Tb(target)
+    return (V_target / V_reference) ** -0.2945
+
+def HaydukLaudie_diffusion_coefficient(
+        T: float=None, P: float=None,
+        mu_B: float=None, V_A: float=None,
+        A: str=None,
+    ) -> float:
+    """
+    Estimate the liquid diffusion coefficient [D_AB; cm²/s] of a solute in water 
+    using the Hayduk-Laudie correlation.
+    
+    Parameters
+    ----------
+    T : float, optional
+        Absolute temperature of the system [K].
+    P : float, optional
+        Absolute pressure of the system [Pa].
+    mu_B : float, optional
+        Dynamic viscosity of water at the temperature of interest, in 
+        centipoise (cP) or millipascal-seconds (mPa·s).
+    V_A : float, optional
+        Le Bas molar volume of the solute at its normal boiling point [cm³/mol].
+    A : str, optional
+        Name of solute. Defaults to oxygen.
+        
+    Examples
+    --------
+    >>> from biosteam.units.design_tools import aeration
+    >>> mu_water = 0.89
+    >>> V_h2 = 7.4
+    >>> D_h2_water = aeration.HaydukLaudie_diffusion_coefficient(mu_B=mu_water, V_A=V_h2)
+    >>> print(f"{D_h2_water:.3e}")
+    4.659e-05
+    
+    """
+    if V_A is None:
+        if A is None: A = 'O2'
+        V_A = Vm_at_Tb(A)
+    if mu_B is None: 
+        if P is None: P = 101325
+        solvent = bst.Chemical('Water', cache=True)
+        mu_B = solvent.get_property('mu', 'cP', 'l', T, P)
+    return 13.26e-5 * mu_B ** -1.14 * V_A ** -0.589
+
+def WilkeChang_diffusion_coefficient(
+        T, P=None, 
+        mu_B=None, V_A=None, phi_B=None, M_B=None, 
+        A=None, B=None
+    ):
+    """
+    Estimate the binary diffusion coefficient [D_AB; cm²/s] of a solute in a 
+    dilute liquid solvent using the empirical Wilke-Chang correlation.
+
+    Parameters
+    ----------
+    T : float, optional
+        Absolute temperature of the system [K].
+    P : float, optional
+        Absolute pressure of the system [Pa].
+    mu_B : float, optional
+        Dynamic viscosity of the liquid solvent, in centipoise (cP).
+    V_A : float, optional
+        Le Bas molar volume of the solute at its normal boiling point [cm³/mol].
+    phi_B : float, optional
+        Dimensionless association factor of the solvent. Defaults to 
+        2.6 for water, 1.9 for methanol, 1.5 for ethanol, and 1.0 
+        for unassociated solvents like benzene or heptane.
+    M_B : float, optional
+        Molecular weight of the liquid solvent, in grams per mole (g/mol).
+    A : str, optional
+        Name of solute. Defaults to oxygen.
+    B : str, optional
+        Name of solvent. Defaults to water.
+
+    Notes
+    -----
+    The underlying Wilke-Chang equation calculates the diffusion 
+    coefficient in units of cm²/s:
+
+    .. math:: D_{AB} = \frac{7.4 \times 10^{-8} \sqrt{\phi_B M_B} T}{\eta V_A^{0.6}}
+
+    This function automatically scales the result by a factor of 10^-4 
+    to output standard SI units (m²/s). The correlation is generally accurate 
+    within +/- 10 to 15% for dilute solutions of small, un-ionized molecules.
+
+    References
+    ----------
+    .. Wilke, C. R., & Chang, P. (1955). Correlation of diffusion 
+       coefficients in dilute solutions. AIChE Journal, 1(2), 264-270.
+    
+    """
+    if V_A is None:
+        if A is None: solute = 'O2'
+        if A in _Vm_at_Tb:
+            V_A = _Vm_at_Tb[A]
+        else:
+            solute = bst.Chemical(A, cache=True)
+            V_A = solute.V('l', solute.Tb, 101325)
+    if any([i is None for i in (phi_B, M_B, mu_B)]):
+        if B is None: B = 'Water'
+        solvent = bst.Chemical(B, cache=True)
+        if phi_B is None: 
+            phi_B = solvent_association_factors[solvent.CAS]
+        if M_B is None: 
+            M_B = solvent.MW
+        if mu_B is None: 
+            if P is None: P = 101325
+            mu_B = solvent.get_property('mu', 'cP', 'l', T, P)
+    
+    # Wilke-Chang equation outputs D in cm²/s
+    return 7.4e-8 * sqrt(phi_B * M_B) * T / (mu_B * (V_A ** 0.6))
 
 kLa_methods = {}
 kLa_method_names = {
@@ -432,7 +618,7 @@ def kla_bubcol_Suh(D, mu_l, rho_l, D_l, g, sigma_l, epsilon_g, V_g, V_l, coeffic
     return kla
 
 @register
-def kla_bubcol_Dewes(V_g, mu_l, rho_g):
+def kla_bubcol_Dewes(V_g, mu_l, rho_g, coefficients=None):
     """
     Returns the KLa coefficient for a bubble column reactor based on the 
     Dewes & Schumpe (1997) correlation [12]_.
@@ -456,8 +642,9 @@ def kla_bubcol_Dewes(V_g, mu_l, rho_g):
     rho_g: 0.4 - 18.8 kg/m^3 -> Density of the gas [kg/m^3]
     
     """
-
-    kla = V_g**0.90 * mu_l**(-0.55) * rho_g**0.46
+    if coefficients is None: coefficients = (0.90, -0.55, 0.46)
+    a, b, c = coefficients
+    kla = V_g**a * mu_l**b * rho_g**c
     return kla
 
 @register
