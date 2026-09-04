@@ -17,7 +17,7 @@ setup(
     author='Yoel Cortes-Pena',
     install_requires=['IPython>=7.9.0',
                       'thermosteam>=0.53.5',
-                      'hensmith>=0.1.0',
+                      'hensmith>=0.1.2',
                       'graphviz>=0.17',
                       'chaospy>=4.3.21',
                       'pyyaml'],

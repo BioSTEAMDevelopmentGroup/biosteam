@@ -8,14 +8,13 @@
 # for license details.
 """
 Tests that the biosteam <-> hensmith circular dependency is import-safe in
-both directions and that biosteam lazily re-exports HeatExchangerNetwork
-(and, with a DeprecationWarning, the network synthesis helpers) from
-hensmith via PEP 562, so that `import biosteam` never requires hensmith to
-be initialized first and vice versa.
+both directions: biosteam imports hensmith at the very end of its own
+initialization, and hensmith binds HeatExchangerNetwork into biosteam and
+biosteam.facilities when it finishes initializing, so the name is available
+eagerly whichever package is imported first.
 """
 import subprocess
 import sys
-import pytest
 
 def _run(code):
     # Import-ordering semantics can only be tested in a cold interpreter;
@@ -33,17 +32,17 @@ def _run(code):
 
 def test_biosteam_first_import_order():
     _run(
+        "import sys\n"
         "import biosteam as bst\n"
+        # Eager: importing biosteam initializes hensmith and binds the name
+        # without any further import on the user's part.
+        "assert 'hensmith' in sys.modules\n"
+        "assert 'HeatExchangerNetwork' in vars(bst)\n"
+        "assert 'HeatExchangerNetwork' in vars(bst.facilities)\n"
         "import hensmith\n"
         "assert bst.HeatExchangerNetwork is hensmith.HeatExchangerNetwork\n"
         "assert bst.facilities.HeatExchangerNetwork is hensmith.HeatExchangerNetwork\n"
-        # Supported lazy names are cached on first access (PEP 562 shim
-        # memoization) and reported by the companion __dir__.
-        "assert 'HeatExchangerNetwork' in vars(bst)\n"
-        "assert 'HeatExchangerNetwork' in dir(bst)\n"
-        "assert 'HeatExchangerNetwork' in dir(bst.facilities)\n"
-        # The from-import and star-import forms (folded from a separate
-        # subprocess; they add no ordering coverage of their own).
+        # The from-import and star-import forms.
         "from biosteam import HeatExchangerNetwork\n"
         "from biosteam.facilities import HeatExchangerNetwork as HXN2\n"
         "assert HeatExchangerNetwork is hensmith.HeatExchangerNetwork\n"
@@ -52,24 +51,22 @@ def test_biosteam_first_import_order():
         "exec('from biosteam import *', ns)\n"
         "assert ns['HeatExchangerNetwork'] is hensmith.HeatExchangerNetwork\n"
         # Star-importing the facilities subpackage must NOT provide the name:
-        # keeping it out of facilities.__all__ is the guard that stops
-        # biosteam/__init__'s star-import of facilities from re-creating the
-        # biosteam <-> hensmith import cycle.
+        # biosteam/__init__ star-imports facilities before hensmith can bind
+        # it, so listing it in facilities.__all__ would break `import biosteam`.
         "ns = {}\n"
         "exec('from biosteam.facilities import *', ns)\n"
         "assert 'HeatExchangerNetwork' not in ns\n"
     )
 
 def test_hensmith_first_import_order():
+    # biosteam's `import hensmith` runs while hensmith is still initializing
+    # (HeatExchangerNetwork not yet defined); hensmith must bind the name
+    # itself once it finishes.
     _run(
         "import hensmith\n"
         "import biosteam as bst\n"
         "assert bst.HeatExchangerNetwork is hensmith.HeatExchangerNetwork\n"
         "assert bst.facilities.HeatExchangerNetwork is hensmith.HeatExchangerNetwork\n"
-        # `from biosteam import *` resolves HeatExchangerNetwork eagerly
-        # (it is in biosteam.__all__), which is safe only while no module
-        # executed during hensmith's initialization star-imports biosteam
-        # at module scope — exercise it under hensmith-first ordering too.
         "ns = {}\n"
         "exec('from biosteam import *', ns)\n"
         "assert ns['HeatExchangerNetwork'] is hensmith.HeatExchangerNetwork\n"
@@ -77,9 +74,7 @@ def test_hensmith_first_import_order():
 
 def test_star_import_initializes_hensmith_from_scratch():
     # `from biosteam import *` in a fresh interpreter, hensmith never
-    # imported: the star-import itself must initialize hensmith through the
-    # lazy re-export — hensmith's own `import biosteam` then finds the
-    # already-completed module. This is the common real-world consumer path.
+    # imported by the user: the common real-world consumer path.
     _run(
         "ns = {}\n"
         "exec('from biosteam import *', ns)\n"
@@ -87,52 +82,58 @@ def test_star_import_initializes_hensmith_from_scratch():
         "assert ns['HeatExchangerNetwork'] is hensmith.HeatExchangerNetwork\n"
     )
 
-def test_missing_hensmith_degrades_to_AttributeError():
-    # With hensmith unavailable, biosteam must still import, and attribute
-    # access must fail with AttributeError — not leak ModuleNotFoundError
-    # through hasattr/getattr — with a message pointing at hensmith.
+def test_missing_hensmith_degrades_gracefully():
+    # With hensmith unavailable, biosteam must still import (with the name
+    # absent from the namespace and from __all__, so star-imports keep
+    # working) rather than fail at import time.
     _run(
         "import sys\n"
-        "sys.modules['hensmith'] = None\n"  # makes `import hensmith` raise ImportError
+        "sys.modules['hensmith'] = None\n"  # makes `import hensmith` raise ModuleNotFoundError
         "import biosteam as bst\n"
         "assert not hasattr(bst, 'HeatExchangerNetwork')\n"
         "assert not hasattr(bst.facilities, 'HeatExchangerNetwork')\n"
-        "assert getattr(bst, 'HeatExchangerNetwork', None) is None\n"
-        "for module in (bst, bst.facilities):\n"
-        "    try:\n"
-        "        module.HeatExchangerNetwork\n"
-        "    except AttributeError as e:\n"
-        "        assert 'hensmith' in str(e)\n"
-        "    else:\n"
-        "        raise AssertionError('AttributeError not raised')\n"
+        "assert 'HeatExchangerNetwork' not in bst.__all__\n"
+        "ns = {}\n"
+        "exec('from biosteam import *', ns)\n"
+        "assert 'HeatExchangerNetwork' not in ns\n"
+    )
+
+def test_broken_hensmith_is_not_swallowed():
+    # Only a missing hensmith is tolerated; an error raised while hensmith
+    # itself initializes must propagate out of `import biosteam`.
+    _run(
+        "import sys, types\n"
+        "class BrokenFinder:\n"
+        "    @staticmethod\n"
+        "    def find_spec(name, path=None, target=None):\n"
+        "        if name == 'hensmith':\n"
+        "            import importlib.util\n"
+        "            loader = types.SimpleNamespace(\n"
+        "                create_module=lambda spec: None,\n"
+        "                exec_module=lambda module: exec('raise RuntimeError(\"hensmith is broken\")'),\n"
+        "            )\n"
+        "            return importlib.util.spec_from_loader(name, loader)\n"
+        "sys.meta_path.insert(0, BrokenFinder)\n"
+        "try:\n"
+        "    import biosteam\n"
+        "except RuntimeError as e:\n"
+        "    assert 'hensmith is broken' in str(e)\n"
+        "else:\n"
+        "    raise AssertionError('error inside hensmith was swallowed')\n"
     )
 
 def test_HeatExchangerNetwork_not_in_facilities_all():
-    # Negative guard: re-adding the name to facilities.__all__ would make
-    # biosteam/__init__'s star-import of facilities resolve it eagerly and
-    # re-create the biosteam <-> hensmith import cycle. Fail loudly if a
-    # future "fix" tries.
+    # Negative guard: biosteam/__init__ star-imports facilities before
+    # hensmith binds the name, so re-adding it to facilities.__all__ would
+    # break `import biosteam`. Fail loudly if a future "fix" tries.
     import biosteam as bst
     assert 'HeatExchangerNetwork' not in bst.facilities.__all__
-    for name in bst.facilities._HENSMITH_DEPRECATED_NAMES:
-        assert name not in bst.facilities.__all__
-        assert name not in bst.__all__
-
-def test_deprecated_helpers_forward_with_warning():
-    import biosteam as bst
-    import hensmith
-    for module in (bst, bst.facilities):
-        for name in bst.facilities._HENSMITH_DEPRECATED_NAMES:
-            with pytest.warns(DeprecationWarning, match='hensmith'):
-                value = getattr(module, name)
-            assert value is getattr(hensmith, name)
-            # Deprecated aliases are not cached, so every access warns.
-            assert name not in vars(module)
+    assert 'HeatExchangerNetwork' in bst.__all__
 
 def test_create_all_facilities_constructs_hensmith_network():
     # The real downstream seam: create_facilities instantiates
-    # bst.HeatExchangerNetwork (HXN=True by default) through the lazy
-    # re-export inside a MockSystem context.
+    # bst.HeatExchangerNetwork (HXN=True by default) inside a MockSystem
+    # context.
     import biosteam as bst
     import hensmith
     bst.settings.set_thermo(['Water'], cache=True)
@@ -151,7 +152,7 @@ if __name__ == '__main__':
     test_biosteam_first_import_order()
     test_hensmith_first_import_order()
     test_star_import_initializes_hensmith_from_scratch()
-    test_missing_hensmith_degrades_to_AttributeError()
+    test_missing_hensmith_degrades_gracefully()
+    test_broken_hensmith_is_not_swallowed()
     test_HeatExchangerNetwork_not_in_facilities_all()
-    test_deprecated_helpers_forward_with_warning()
     test_create_all_facilities_constructs_hensmith_network()
