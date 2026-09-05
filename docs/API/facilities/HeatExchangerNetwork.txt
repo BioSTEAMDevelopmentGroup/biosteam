@@ -1,5 +1,12 @@
 HeatExchangerNetwork
 ====================
 
-.. autoclass:: biosteam.facilities.HeatExchangerNetwork
+.. note::
+   :class:`~hensmith.HeatExchangerNetwork` originates from the
+   `HENSMITH <https://github.com/BioSTEAMDevelopmentGroup/hensmith>`_ 
+   (Heat Exchanger Network Synthesis, Modeling, Integration, Thermodynamics,
+   and Heuristics) library, which provides comprehensive features for 
+   heat exchanger network synthesis.
+
+.. autoclass:: hensmith.HeatExchangerNetwork
    :members:

@@ -13,7 +13,7 @@
 
 """
 from __future__ import annotations
-__version__ = '2.53.11'
+__version__ = '2.54.0'
 
 #: Chemical engineering plant cost index (defaults to 567.5 at 2017).
 CE: float = 567.5 
@@ -79,14 +79,29 @@ from . import exceptions
 from . import report
 from . import _settings
 
-__all__ = (
+__all__ = [
     'Unit', 'PowerUtility', 'UtilityAgent', 'HeatUtility', 'Facility',
     'utils', 'units', 'facilities', 'wastewater', 'evaluation', 'Chemical', 'Chemicals', 'Stream',
     'MultiStream', 'settings', 'exceptions', 'report', 'units_of_measure',
-    'process_tools', 'preferences', *_system.__all__, *_flowsheet.__all__, 
+    'process_tools', 'preferences', *_system.__all__, *_flowsheet.__all__,
     *_tea.__all__, *units.__all__, *facilities.__all__, *wastewater.__all__,
     *evaluation.__all__, *process_tools.__all__, *_module.__all__,
-)
+]
+
+# %% Load premire biosteam extensions which offer comprehensive simulation capabilities.
+
+# Add heat exchanger network synthesis capabilities from hensmith library.
+try:
+    import hensmith
+except ModuleNotFoundError as error:
+    if error.name != 'hensmith': raise
+else:
+    del hensmith
+    __all__.append('HeatExchangerNetwork')
+
+# Future extensions can be added here.
+
+# %% Non-essential representation features.
 
 def nbtutorial(dark=False):
     global print_error

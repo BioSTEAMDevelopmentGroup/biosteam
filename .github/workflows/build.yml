@@ -58,6 +58,7 @@ jobs:
         pip install --no-cache-dir git+https://github.com/CalebBell/thermo.git
         pip install --no-cache-dir git+https://github.com/BioSTEAMDevelopmentGroup/thermosteam.git
         pip install --no-cache-dir git+https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park.git
+        pip install --no-cache-dir --no-deps git+https://github.com/BioSTEAMDevelopmentGroup/hensmith.git
         pip install -r requirements_test.txt
         pip install --no-cache-dir git+https://github.com/QSD-Group/QSDsan.git
         pip install --no-cache-dir git+https://github.com/QSD-Group/EXPOsan.git
