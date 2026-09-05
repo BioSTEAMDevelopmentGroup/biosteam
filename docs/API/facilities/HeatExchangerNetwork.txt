@@ -1,5 +1,18 @@
 HeatExchangerNetwork
 ====================
 
-.. autoclass:: biosteam.facilities.HeatExchangerNetwork
+.. note::
+   :class:`~hensmith.HeatExchangerNetwork` has moved to the
+   `hensmith <https://github.com/BioSTEAMDevelopmentGroup/hensmith>`_ package
+   (Heat Exchanger Network Synthesis, Modeling, Integration, Thermodynamics,
+   and Heuristics), which is a dependency of BioSTEAM. It remains available
+   as ``biosteam.HeatExchangerNetwork`` and
+   ``biosteam.facilities.HeatExchangerNetwork`` (bound when BioSTEAM is
+   imported), but ``from biosteam.facilities import *`` no longer provides
+   the name — import it explicitly (``from biosteam import *`` still
+   provides it). The network synthesis helpers (``StreamLifeCycle``,
+   ``ProblemTable``, ``problem_table``, ``synthesize_network``,
+   ``plot_pinch_diagram``) now live in ``hensmith`` only.
+
+.. autoclass:: hensmith.HeatExchangerNetwork
    :members:

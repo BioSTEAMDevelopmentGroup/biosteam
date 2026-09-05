@@ -20,7 +20,7 @@ try:
 except:
     pass # docutils may not be installed for test suit
 
-new_path = ['..\\', '..\\thermosteam\\', '..\\Bioindustrial-Park\\', '..\\How2STEAM\\']
+new_path = ['..\\', '..\\thermosteam\\', '..\\Bioindustrial-Park\\', '..\\How2STEAM\\', '..\\hensmith\\']
 for p in new_path:
      sys.path.insert(0, os.path.abspath(p))
 
