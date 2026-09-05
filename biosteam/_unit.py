@@ -247,7 +247,10 @@ class Unit(AbstractUnit):
         name = cls.__name__
         if hasattr(bst, 'units') and hasattr(bst, 'wastewater') and hasattr(bst, 'facilities'):
             # Add 3rd party unit to biosteam module for convenience
-            if name not in bst.units.__dict__:
+            if isinstance(cls, bst.Facility):
+                if name not in bst.facilities.__dict__:
+                    bst.facilities.__dict__[name] = cls
+            elif name not in bst.units.__dict__:
                 bst.units.__dict__[name] = cls
             if name not in bst.__dict__:
                 bst.__dict__[name] = cls
