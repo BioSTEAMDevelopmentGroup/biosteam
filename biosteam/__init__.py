@@ -79,38 +79,29 @@ from . import exceptions
 from . import report
 from . import _settings
 
-# %% Heat exchanger network synthesis (hensmith)
-#
-# HeatExchangerNetwork lives in the hensmith package
-# (github.com/BioSTEAMDevelopmentGroup/hensmith). hensmith subclasses Facility,
-# so it imports biosteam eagerly and can only be imported once biosteam is
-# fully initialized -- here, last. hensmith binds HeatExchangerNetwork into
-# biosteam and biosteam.facilities at the end of its own __init__, which makes
-# either import order work: importing biosteam first initializes hensmith right
-# here; importing hensmith first makes this `import hensmith` return the
-# still-initializing module, and hensmith binds the name when it finishes. The
-# name must stay out of facilities.__all__, which is star-imported above before
-# hensmith can bind it. Without hensmith installed, biosteam imports and simply
-# lacks the name (guarded by tests/test_hensmith_integration.py).
-try:
-    import hensmith
-except ModuleNotFoundError as error:
-    if error.name != 'hensmith': raise
-    _hensmith_all = ()
-else:
-    del hensmith
-    _hensmith_all = ('HeatExchangerNetwork',)
-
-__all__ = (
+__all__ = [
     'Unit', 'PowerUtility', 'UtilityAgent', 'HeatUtility', 'Facility',
-    *_hensmith_all,
     'utils', 'units', 'facilities', 'wastewater', 'evaluation', 'Chemical', 'Chemicals', 'Stream',
     'MultiStream', 'settings', 'exceptions', 'report', 'units_of_measure',
     'process_tools', 'preferences', *_system.__all__, *_flowsheet.__all__,
     *_tea.__all__, *units.__all__, *facilities.__all__, *wastewater.__all__,
     *evaluation.__all__, *process_tools.__all__, *_module.__all__,
-)
-del _hensmith_all
+]
+
+# %% Load premire biosteam extensions which offer comprehensive simulation capabilities.
+
+# Add heat exchanger network synthesis capabilities from hensmith library.
+try:
+    import hensmith
+except ModuleNotFoundError as error:
+    if error.name != 'hensmith': raise
+else:
+    del hensmith
+    __all__.append('HeatExchangerNetwork')
+
+# Future extensions can be added here.
+
+# %% Non-essential representation features.
 
 def nbtutorial(dark=False):
     global print_error
