@@ -3212,8 +3212,6 @@ class MultiStageEquilibrium(Unit):
                 use_cache = False
             else:
                 use_cache = True
-        self._gamma = self._eq_thermo.Gamma(self._eq_thermo.chemicals)
-        self._phi = self._eq_thermo.Phi(self._eq_thermo.chemicals, 'g')
         self._H_magnitude = 100 * sum([i.mixture.Cn('l', i.mol, i.T, i.P) for i in self.ins])
         self.attempt = 0
         self._mean_residual = inf
