@@ -219,7 +219,7 @@ def surrogate_residuals(
     else:
         Sb = np.exp(logSb1) - 1
     Sb[Sb < 0] *= -1
-    Sb[Sb < 1e-9] = 1e-9
+    Sb[Sb < 1e-12] = 1e-12
     S = alpha * np.expand_dims(Sb, -1)
     xL = MESH.bottom_flow_rates(
         S, 
