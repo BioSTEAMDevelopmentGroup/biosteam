@@ -24,8 +24,9 @@ import numpy as np
 from scipy.constants import g
 import flexsolve as flx
 from warnings import filterwarnings, catch_warnings
-from scipy.optimize import minimize, least_squares
+from scipy.optimize import fsolve
 from biosteam.units.design_tools import aeration
+from matplotlib import pyplot as plt, rcParams, colormaps
 
 __all__ = (
     'GasFedBioreactor', 'GFB',
@@ -361,7 +362,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         )
         
     def get_SURs(self, feed):
-        F_vol = feed.imass['Water'] / 1000 # Approximately m3 / hr
+        F_vol = feed.F_mass / 1000 # Approximately m3 / hr
         produced = bst.Stream(None, thermo=self.thermo)
         for ID, concentration in self.titer.items(): # Titer is in terms of g / 1000 kg Water
             produced.imass[ID] = F_vol * concentration
@@ -412,6 +413,32 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             
         flx.aitken(f, vent.mol.to_array(), checkiter=False, xtol=1e-6, checkconvergence=False)
     
+    # def plot_surface_response(self):
+    #     self._setup()
+    #     # insert code here 
+    #     f = lambda x, y: gas_flow_rate_objective(np.array([x, y]))
+        
+    #     width = 6.6142
+    #     aspect_ratio = 0.4
+    #     rcParams['figure.figsize'] = (width, width * aspect_ratio)
+        
+    #     xlim, ylim = bounds
+    #     X, Y, Z = bst.plots.generate_contour_data(
+    #         f, xlim=xlim, ylim=ylim, n=20,
+    #     )
+    #     breakpoint()
+    #     # Plot contours
+    #     xlabel = "X"
+    #     ylabel = 'Y'
+    #     metric_bar = bst.plots.MetricBar(
+    #         'Error', '', colormaps['viridis_r'],
+    #         None, 15, 1
+    #     )
+    #     fig, axes, CSs, CB, other_axes = bst.plots.plot_contour_single_metric(
+    #         X, Y, Z, xlabel, ylabel, None, None, metric_bar,
+    #         fillcolor=None, styleaxiskw=dict(xtick0=False), label=True,
+    #     )
+            
     def _run(self):
         controlled_gas_feeds = self.controlled_gas_feeds
         controlled_liquid_feeds = self.controlled_liquid_feeds
@@ -426,32 +453,46 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         except: raise RuntimeError('gas-fed bioreactor must have exactly one liquid feed')
         for i in self.compressors: i.P = P
         for i in self.gas_coolers: i.T = T
+        
         if not self.titer: 
-            # Titer is given by the mass transfer.
+            # Titer is given by the mass transfer; only one substrate is limiting,
+            # so we have 1 mass transfer/update rate equation and 1 unknown.
             self._load_gas_feeds()
             self._run_without_titer_specification(effluent, vent, feed)
-        elif controlled_liquid_feeds and not controlled_gas_feeds:
-            # Titer given, must adjust liquid flows to meet mass transfer.
+            return
+        
+        if controlled_liquid_feeds and not controlled_gas_feeds:
+            # Titer given, must adjust liquid flow so that STR meets SUR.
+            # Only one substrate is limiting which gives 1 equation and 1 unknown.
             try: feed, = controlled_liquid_feeds
             except: raise RuntimeError('gas-fed bioreactor must have exactly one liquid feed')
             self._load_gas_feeds()
             F_substrates = sum([i.get_flow(units='mol/s', key=self.gas_substrates) for i in self.ins])
             F_liquid_max = self._initialize_controlled_liquid_guess(effluent)
-            product, titer = next(iter(self.titer.items()))
             def liquid_flow_rate_objective(F_feed):
                 feed.F_mass = F_feed
                 self._run_without_titer_specification(effluent, vent, feed, F_substrates)
-                return 1000 * effluent.imass[product] / effluent.imass['Water'] - titer
+                F_product = vent.imass[product] + effluent.imass[product]
+                return F_product / F_feed - titer
             
-            flx.IQ_interpolation(liquid_flow_rate_objective, 0.05 * F_liquid_max, F_liquid_max, ytol=1e-3)
-        elif controlled_gas_feeds and not controlled_liquid_feeds:
+            flx.aitken_secant(liquid_flow_rate_objective, max(feed.F_mass, 0.8 * F_liquid_max), F_liquid_max, ytol=1e-6)
+            return
+        
+        if controlled_gas_feeds and not controlled_liquid_feeds:
+            # Controlled gas substrates are the limiting substrates 
+            # (this is the # of equations).
+            controlled_gas_substrates = self.controlled_gas_substrates
+            if len(controlled_gas_feeds) != len(controlled_gas_substrates):
+                raise RuntimeError(
+                    'number of controlled gas substrates must match controlled '
+                    'feeds to close degrees of freedom'
+                )
             # Solve gas flow rates to meet titer.
             effluent.mix_from(self.liquid_feeds, energy_balance=False)
             SURs = self._group_substrate_flows(self.get_SURs(feed)) # Gas substrate uptake rate [mol / s]
             if (SURs <= 1e-2).all():
                 self._run_vent(vent, effluent)
                 return
-            controlled_gas_substrates = self.controlled_gas_substrates
             index = range(len(controlled_gas_substrates))
             baseline_flows = self._get_grouped_substrate_flows(self.normal_feeds)
             substrate_reactions = self.substrate_reactions
@@ -461,13 +502,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                 for gas, ID in zip(self.controlled_gas_feeds, controlled_gas_substrates):
                     x_substrates.append(gas.get_molar_fraction(ID))
                 
-                # Bounds must meet substrate uptake rate (minimally).
-                # At most, 5x the substrate uptake rate as an abritrarily high number.
-                bounds = np.array([
-                    [max(1.001 * SURs[i] - baseline_flows[i], 1e-6), 5 * SURs[i]] 
-                    for i in index
-                ]) / x_substrates
-                guess = 1.2 * SURs / x_substrates
+                guess = 1.01 * SURs / x_substrates - baseline_flows
             else:
                 # A feed may contribute multiple gas substrates
                 controlled_gas_feeds = self.controlled_gas_feeds
@@ -477,14 +512,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                         reacted = stream.copy()
                         self.substrate_reactions.force_reaction(reacted)
                         coefficients[i, j] = reacted.imol[gas] / stream.F_mol
-                F_min = np.linalg.solve(coefficients, SURs)
-                
-                # Bounds must meet substrate uptake rate (minimally).
-                # At most, 5x the substrate uptake rate as an abritrarily high number.
-                bounds = np.array([
-                    [max((1 + 1e-6) * F_min[i] - baseline_flows[i], 1e-9), 5 * F_min[i]] 
-                    for i in index
-                ])
+                F_min = np.linalg.solve(coefficients, SURs - baseline_flows)
                 guess = 1.01 * F_min
             
             def gas_flow_rate_objective(F_controlled_substrates):
@@ -495,80 +523,92 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                 self._load_gas_feeds()
                 self._run_without_titer_specification(effluent, vent, feed)
                 STRs = self._group_substrate_flows(self._STRs_last) # Must meet all substrate demands
-                diff = SURs - STRs
-                SE = (diff * diff).sum()
-                return SE
+                return SURs - STRs
             
             f = gas_flow_rate_objective
             with catch_warnings():
                 filterwarnings('ignore')
-                bounds = bounds.T
-                results = least_squares(f, guess, bounds=bounds, ftol=SURs.min() * 1e-5, max_nfev=500)
-            
-            self._results = results
-            if not results.success:
-                raise RuntimeError(
-                    'bioreactor conversion/titer could not be satisfied'
+                results = fsolve(
+                    f, guess, full_output=True, maxfev=500, xtol=guess.min() * 1e-6
                 )
+            self._results = results
         elif controlled_liquid_feeds and controlled_gas_feeds: 
             try: feed, = controlled_liquid_feeds
             except: raise RuntimeError('gas-fed bioreactor must have exactly one liquid feed')
-            x_substrates = []
-            controlled_gas_substrates = self.controlled_gas_substrates
-            for gas, ID in zip(self.controlled_gas_feeds, controlled_gas_substrates):
-                x_substrates.append(gas.get_molar_fraction(ID))
-            index = range(len(controlled_gas_substrates))
-            effluent.copy_flow(feed)
-            baseline_flows = self._get_grouped_substrate_flows(self.normal_feeds)
-            F_liquid_max = self._initialize_controlled_liquid_guess(effluent, constant_limiting_reactant=True)
-            effluent.F_mass = F_liquid_max
-            SURs = self._group_substrate_flows(self.get_SURs(feed)) # Gas substrate uptake rate [mol / s]
-            N_flows = len(index) + 1
-            bounds = np.zeros((N_flows, 2))
-            for i in index:
-                # Bounds must meet substrate uptake rate (minimally).
-                # At most, 10x the substrate uptake rate as an abritrarily high number.
-                bounds[i, 0] = max(1.01 * SURs[i] - baseline_flows[i], 1e-6) / x_substrates
-                bounds[i, 1] = 10 * SURs[i]
-            bounds[-1, 0] = 0.05 * F_liquid_max
-            bounds[-1, 1] = F_liquid_max    
             
-            def flow_rate_objective(F_controlled_substrates):
-                # Simulate mass balance ignoring STRs
-                feed.F_mass = F_controlled_substrates[-1]
-                SURs = self._group_substrate_flows(self.get_SURs(feed)) # Gas substrate uptake rate [mol / s]
-                effluent.copy_flow(feed)
+            # SURs are given by liquid feed and titer (1 equation / 2 unknown)
+            # STRs are given by gas feeds (must be N STR/SUR equations and N - 1 unknown feed variables)
+            controlled_gas_substrates = self.controlled_gas_substrates
+            N_controlled = len(controlled_gas_substrates)
+            controlled_feeds = self.controlled_feeds
+            if N_controlled != len(controlled_feeds):
+                raise RuntimeError(
+                    'number of controlled gas substrates must be equal to the number of controlled '
+                    'feeds'
+                ) # Given there is only one controlled liquid feed, this statement holds true
+            
+            effluent.copy_flow(feed)
+            F_liquid_max = self._initialize_controlled_liquid_guess(effluent, constant_limiting_reactant=True)
+            feed.F_mass = F_liquid_max
+            SURs = self._group_substrate_flows(self.get_SURs(feed)) # Gas substrate uptake rate [mol / s]
+            substrate_reactions = self.substrate_reactions
+            baseline_flows = self._get_grouped_substrate_flows(self.normal_feeds)
+            if substrate_reactions is None:
+                # Each feed directly controls a gas substrate
+                x_substrates = []
+                subset = []
+                for i, (stream, gas) in enumerate(zip(controlled_feeds, controlled_gas_substrates)):
+                    if stream.phase != 'g': continue
+                    subset.append(i)
+                    x_substrates.append(gas.get_molar_fraction(ID))
+                F_min = SURs[subset] / x_substrates - baseline_flows[subset]
+            else:
+                # A feed may contribute multiple gas substrates
+                coefficients = []
+                subset = []
+                for gas in controlled_gas_substrates:
+                    row = []
+                    coefficients.append(row)
+                    for stream in controlled_feeds:
+                        if stream.phase != 'g': continue
+                        reacted = stream.copy()
+                        self.substrate_reactions.force_reaction(reacted)
+                        row.append(reacted.imol[gas] / stream.F_mol)
+                for i, (stream, gas) in enumerate(zip(controlled_feeds, controlled_gas_substrates)):
+                    if stream.phase != 'g': continue
+                    subset.append(i)
+                coefficients = np.array(coefficients)
+                F_min = np.linalg.solve(coefficients[subset], SURs[subset] - baseline_flows[subset]) 
+                
+            index = range(N_controlled - 1)
+            product, titer = next(iter(self.titer.items()))
+            titer /= 1000
+            def liquid_flow_rate_objective(F_feed, F_substrates):
+                feed.F_mass = F_feed
+                self._run_without_titer_specification(effluent, vent, feed, F_substrates)
+                F_product = vent.imass[product] + effluent.imass[product]
+                return F_product / F_feed - titer
+            
+            def gas_flow_rate_objective(F_controlled):
                 for i in index:
                     gas = controlled_gas_feeds[i]
-                    gas.set_total_flow(F_controlled_substrates[i], 'mol/s')
+                    gas.set_total_flow(F_controlled[i], 'mol/s')
                 self._load_gas_feeds()
-                effluent.mix_from([effluent, self.sparged_gas], energy_balance=False) # run reactions
-                self._run_reactions(effluent)
-                vent.empty()
-                self._run_vent(vent, effluent)
-                STRs = self._group_substrate_flows(self.get_STRs()) # Must meet all substrate demands
-                F_ins = self._get_grouped_substrate_flows(self.gas_feeds) + baseline_flows
-                mask = STRs - F_ins > 0
-                STRs[mask] = F_ins[mask]
-                diff = SURs - STRs
-                diff[diff > 0] *= 1e3 # Force transfer rate to meet uptake rate
-                SE = (diff * diff).sum()
-                return SE + abs(1000 * effluent.imass[product] / effluent.imass['Water'] - titer)
+                feed.F_mass = F_controlled[-1]
+                F_substrates = sum([i.get_flow(units='mol/s', key=self.gas_substrates) for i in self.ins])
+                self._run_without_titer_specification(effluent, vent, feed, F_substrates)
+                SURs = self._group_substrate_flows(self.get_SURs(feed)) # Gas substrate uptake rate [mol / s]
+                STRs = self._group_substrate_flows(self._STRs_last) # Must meet all substrate demands
+                return SURs - STRs 
             
             f = gas_flow_rate_objective
-            bounds = bounds.T
-            x = np.zeros(N_flows)
-            x[:-1] = 1.2 * SURs
-            x[-1] = 0.8 * F_liquid_max
+            guess = np.array([*F_min, F_liquid_max])
             with catch_warnings():
                 filterwarnings('ignore')
-                results = least_squares(f, 1.2 * SURs, bounds=bounds, ftol=SURs.min() * 1e-6)
-            self._results = results
-            if not results.success:
-                raise RuntimeError(
-                    'bioreactor conversion/titer could not be satisfied'
+                results = fsolve(
+                    f, guess, full_output=True, maxfev=500, xtol=guess.min() * 1e-6
                 )
-            self._run_without_titer_specification(effluent, vent, feed)
+            self._results = results
         else:
             raise RuntimeError('cannot satisfy titer specification without controlled feeds')
         
