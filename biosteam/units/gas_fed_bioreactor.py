@@ -28,6 +28,19 @@ from scipy.optimize import fsolve
 from biosteam.units.design_tools import aeration
 # from matplotlib import pyplot as plt, rcParams, colormaps
 
+import numpy as np
+from scipy.sparse import csr_matrix
+from scipy.sparse.csgraph import maximum_bipartite_matching
+
+def solve_bipartite_matching(arr):
+    # Image you have a set of keys.
+    # Each key can turn 1 or more knobs.
+    # You want to pair each key to a knob such that you can turn all the knobs.
+    # In this case, the keys are the columns and knobs the rows.
+    graph = csr_matrix(arr)
+    return maximum_bipartite_matching(graph, perm_type='row') # Outputs rows for each column
+
+
 __all__ = (
     'GasFedBioreactor', 'GFB',
 )
@@ -221,7 +234,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     get_agitation_power = AeratedBioreactor.get_agitation_power
     
     def _init(self, 
-            gas_substrates, 
+            gas_substrates=None, 
             reactions=None,
             # Can vary either liquid or gas flows
             titer=None, 
@@ -238,6 +251,15 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             **kwargs,
         ):
         if compressor_isentropic_efficiency is None: compressor_isentropic_efficiency = 0.85
+            
+        if gas_substrates is None:
+            gas_substrates = reactions.all_reactants
+            if substrate_reactions:
+                for i in substrate_reactions.all_reactants:
+                    if i not in gas_substrates: gas_substrates.append(i)
+            gas_substrates = [i for i in gas_substrates if i in aeration.H_coefficients]
+        self.gas_substrates = gas_substrates
+        
         #: Isentropic efficiency of the compressor. Defaults to 0.85.
         self.compressor_isentropic_efficiency = compressor_isentropic_efficiency
         self.cooler_pressure_drop = 20684.28 if cooler_pressure_drop is None else cooler_pressure_drop
@@ -245,10 +267,9 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         self.Q_consumption = Q_consumption # Forced duty per gas substrate consummed [kJ/kmol].
         self.kLa_kwargs = {} if kLa_kwargs is None else kLa_kwargs
         self.controlled_feeds = controlled_feeds # list[int|Stream] Feed index or stream.
-        self.gas_substrates = gas_substrates
+        
         self.titer = titer # dict[str, float] g / L
         self.substrate_reactions = substrate_reactions
-        
         controlled_gas_feeds = self.controlled_gas_feeds
         
         if backward_reactions is None and controlled_gas_feeds and titer:
@@ -260,12 +281,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         
         if controlled_gas_substrates is None:
             N_gas_feeds = len(controlled_gas_feeds)
-            if N_gas_feeds == 0:
-                controlled_gas_substrates = ()
-            elif N_gas_feeds == len(gas_substrates):
-                controlled_gas_substrates = gas_substrates
-            else:
-                raise ValueError('must specify controlled gas substrates')
+            if N_gas_feeds == 0: controlled_gas_substrates = ()
         self.controlled_gas_substrates = controlled_gas_substrates
             
         AbstractStirredTankReactor._init(self, reactions=reactions, **kwargs)
@@ -433,16 +449,56 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     #     )
             
     def _run(self):
-        controlled_gas_feeds = self.controlled_gas_feeds
-        controlled_liquid_feeds = self.controlled_liquid_feeds
+        controlled_feeds = self.controlled_feeds
+        controlled_gas_feeds = [i for i in controlled_feeds if i.phase == 'g']
+        controlled_liquid_feeds = [i for i in controlled_feeds if i.phase == 'l']
         vent, effluent = self.outs
         vent.P = effluent.P = self.P
-        self.sparged_gas.T = vent.T = effluent.T = self.T
+        sparged_gas = self.sparged_gas
+        substrate_reactions = self.substrate_reactions
+        sparged_gas.T = vent.T = effluent.T = self.T
         vent.phase = 'g'
         try: feed, = self.liquid_feeds
         except: raise RuntimeError('gas-fed bioreactor must have exactly one liquid feed')
         
-        if not self.titer: 
+        if self.titer: 
+            controlled_gas_substrates = self.controlled_gas_substrates
+            if controlled_feeds and controlled_gas_substrates is None:
+                self._update_gas_feeds()
+                substrate_reactions.force_reaction(sparged_gas)
+                controlled_gas_substrates = [i for i in self.reactions.all_reactants if sparged_gas.imol[i]]
+                N_gas_substrates = len(controlled_gas_substrates)
+                N_controlled = len(controlled_feeds)
+                
+                if N_controlled != N_gas_substrates:
+                    raise RuntimeError(
+                        'number of controlled gas substrates must be equal to the number of controlled '
+                        'feeds'
+                    ) # Given there is only one controlled liquid feed, this statement holds true
+                
+                keys_and_knobs = np.zeros([N_gas_substrates, N_controlled], dtype=bool)
+                
+                for j, stream in enumerate(controlled_feeds):
+                    if stream.phase == 'l':
+                        keys_and_knobs[:, j] = True
+                        continue
+                    for i, gas in enumerate(controlled_gas_substrates):
+                        if stream.phase == 'g' and stream.imol[gas]:
+                            keys_and_knobs[i, j] = True
+                gas_index = solve_bipartite_matching(keys_and_knobs)
+                controlled_gas_substrates = [controlled_gas_substrates[i] for i in gas_index]
+                self.controlled_gas_substrates = controlled_gas_substrates
+            else:
+                # SURs are given by liquid feed and titer (1 equation / 2 unknown)
+                # STRs are given by gas feeds (must be N STR/SUR equations and N - 1 unknown feed variables)
+                N_controlled = len(controlled_gas_substrates)
+                controlled_feeds = self.controlled_feeds
+                if N_controlled != len(controlled_feeds):
+                    raise RuntimeError(
+                        'number of controlled gas substrates must be equal to the number of controlled '
+                        'feeds'
+                    ) # Given there is only one controlled liquid feed, this statement holds true
+        else:
             # Titer is given by the mass transfer; only one substrate is limiting,
             # so we have 1 mass transfer/update rate equation and 1 unknown.
             self._update_liquid_feed()
@@ -453,8 +509,6 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         if controlled_liquid_feeds and not controlled_gas_feeds:
             # Titer given, must adjust liquid flow so that STR meets SUR.
             # Only one substrate is limiting which gives 1 equation and 1 unknown.
-            try: feed, = controlled_liquid_feeds
-            except: raise RuntimeError('gas-fed bioreactor must have exactly one liquid feed')
             F_substrates = sum([i.get_flow(units='mol/s', key=self.gas_substrates) for i in self.ins])
             F_liquid_max = self._initialize_controlled_liquid_guess(effluent)
             product, titer = next(iter(self.titer.items()))
@@ -477,7 +531,6 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         if controlled_gas_feeds and not controlled_liquid_feeds:
             # Controlled gas substrates are the limiting substrates 
             # (this is the # of equations).
-            controlled_gas_substrates = self.controlled_gas_substrates
             if len(controlled_gas_feeds) != len(controlled_gas_substrates):
                 raise RuntimeError(
                     'number of controlled gas substrates must match controlled '
@@ -493,7 +546,6 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                 return
             index = range(len(controlled_gas_substrates))
             baseline_flows = self._get_grouped_substrate_flows(self.normal_feeds)
-            substrate_reactions = self.substrate_reactions
             if substrate_reactions is None:
                 # Each feed directly controls a gas substrate
                 x_substrates = []
@@ -508,7 +560,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                 for i, gas in enumerate(controlled_gas_substrates):
                     for j, stream in enumerate(controlled_gas_feeds):
                         reacted = stream.copy()
-                        self.substrate_reactions.force_reaction(reacted)
+                        substrate_reactions.force_reaction(reacted)
                         coefficients[i, j] = reacted.imol[gas] / stream.F_mol
                 F_min = np.linalg.solve(coefficients, SURs - baseline_flows)
                 guess = 1.01 * F_min
@@ -531,25 +583,10 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                 )
             self._convergence = results
         elif controlled_liquid_feeds and controlled_gas_feeds: 
-            try: feed, = controlled_liquid_feeds
-            except: raise RuntimeError('gas-fed bioreactor must have exactly one liquid feed')
-            
-            # SURs are given by liquid feed and titer (1 equation / 2 unknown)
-            # STRs are given by gas feeds (must be N STR/SUR equations and N - 1 unknown feed variables)
-            controlled_gas_substrates = self.controlled_gas_substrates
-            N_controlled = len(controlled_gas_substrates)
-            controlled_feeds = self.controlled_feeds
-            if N_controlled != len(controlled_feeds):
-                raise RuntimeError(
-                    'number of controlled gas substrates must be equal to the number of controlled '
-                    'feeds'
-                ) # Given there is only one controlled liquid feed, this statement holds true
-            
             effluent.copy_flow(feed)
             F_liquid_max = self._initialize_controlled_liquid_guess(effluent, maxflow=True)
             feed.F_mass = F_liquid_max
             SURs = self._group_substrate_flows(self.get_SURs(F_liquid_max / 1000)) # Gas substrate uptake rate [mol / s]
-            substrate_reactions = self.substrate_reactions
             baseline_flows = self._get_grouped_substrate_flows(self.normal_feeds)
             if substrate_reactions is None:
                 # Each feed directly controls a gas substrate
@@ -570,7 +607,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                     for stream in controlled_feeds:
                         if stream.phase != 'g': continue
                         reacted = stream.copy()
-                        self.substrate_reactions.force_reaction(reacted)
+                        substrate_reactions.force_reaction(reacted)
                         row.append(reacted.imol[gas] / stream.F_mol)
                 for i, (stream, gas) in enumerate(zip(controlled_feeds, controlled_gas_substrates)):
                     if stream.phase != 'g': continue
