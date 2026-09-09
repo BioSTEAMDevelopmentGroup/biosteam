@@ -20,7 +20,7 @@ def test_gas_fed_bioreactor():
     # Feeds
     media = bst.Stream(H2O=20e3, units='kg/hr')
     H2 = bst.Stream(H2=1e3, units='kg/hr', phase='g')
-    fluegas = bst.Stream(CO=4e3, CO2=23, H2=4.5, N2=49.5, units='m3/hr', phase='g') 
+    fluegas = bst.Stream(CO=23, CO2=23, H2=4.5, N2=49.5, units='kg/hr', phase='g') 
     vent = bst.Stream(phase='g')
     effluent = bst.Stream(phase='l')
 
@@ -36,10 +36,10 @@ def test_gas_fed_bioreactor():
     
     def assert_titer():
         titer = sum([i.imass['AceticAcid'] for i in bioreactor.outs]) / media.F_mass * 1000
-        assert_allclose(titer, bioreactor.titer['AceticAcid'], rtol=5e-2)
+        assert_allclose(titer, bioreactor.titer['AceticAcid'], rtol=1e-3)
     
     def assert_flow_rates_the_same():
-        assert_allclose(flow_rates_baseline, get_flow_rates(), rtol=5e-2)
+        assert_allclose(flow_rates_baseline, get_flow_rates(), rtol=1e-3)
     
     def get_flow_rates():
         return np.array([media.F_mass, H2.F_mass, fluegas.F_mass])

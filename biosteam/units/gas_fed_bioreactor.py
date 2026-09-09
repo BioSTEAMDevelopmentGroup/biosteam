@@ -164,43 +164,43 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     ...     reactions=rxn, backward_reactions=brxn,
     ...     gas_substrates=('H2', 'CO2'),
     ...     titer=dict(AceticAcid=5),
-    ...     optimize_power=False,
     ...     kW_per_m3=0.,
     ...     T=305.15
     ... )
     >>> R1.simulate()
-    >>> R1.show()
+    >>> R1.show('cwt')
     GasFedBioreactor: R1
     ins...
     [0] media  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): H2O  555
+        flow (%): H2O  100
+                  ---  1e+04 kg/hr
     [1] H2  
         phase: 'g', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): H2  17.7
+        flow (%): H2  100
+                  --  35.6 kg/hr
     [2] fluegas  
         phase: 'g', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): CO2  1.73
-                        N2   7.63
-                        O2   0.191
-                        H2O  0.509
+        flow (%): CO2  25
+                  N2   70
+                  O2   2
+                  H2O  3
+                  ---  293 kg/hr
     outs...
     [0] vent  
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): H2          14.3
-                        CO2         0.069
-                        N2          7.63
-                        O2          0.191
-                        H2O         1.09
-                        AceticAcid  0.00347
+        flow (%): H2  12
+                  N2  85.5
+                  O2  2.44
+                  --  240 kg/hr
     [1] product  
         phase: 'l', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): H2          0.00471
-                        CO2         0.000672
-                        N2          0.00189
-                        O2          9.65e-05
-                        H2O         556
-                        AceticAcid  0.829
+        flow (%): H2          0.000101
+                  N2          0.000539
+                  O2          3.15e-05
+                  H2O         99.5
+                  AceticAcid  0.496
+                  ----------  1.01e+04 kg/hr
     
     """
     _N_ins = 2
@@ -391,7 +391,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             ]) / 3.6 # mol / s
         
         def f(STR_guess):
-            STRs = np.minimum(STR_guess, F_substrates)
+            self._STRs_last = STRs = np.minimum(STR_guess, F_substrates)
             effluent.copy_flow(feed)
             effluent.set_flow(STRs, units='mol/s', key=gas_substrates)
             remaining = F_substrates - STRs
@@ -399,12 +399,10 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             vent.copy_flow(self.sparged_gas)
             vent.imol[gas_substrates] = remaining * 3.6 # mol / s -> kmol / hr
             self._run_vent(vent, effluent) 
-            return self.get_STRs()
+            return np.minimum(self.get_STRs(), F_substrates)
         
-        if np.iscomplex(self.get_STRs()).any():
-            breakpoint()
-            self.get_STRs()
-        self._STRs_last = flx.aitken(f, self.get_STRs(), xtol=1e-6, maxiter=1000)
+        flx.aitken(f, self.get_STRs(), xtol=1e-6, maxiter=1000, 
+                   checkiter=False, checkconvergence=False)
         
     # def plot_surface_response(self):
     #     self._setup()
@@ -470,7 +468,10 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                 F_product = vent.imass[product] + effluent.imass[product]
                 return F_product / F_feed - titer
             
-            flx.aitken_secant(liquid_flow_rate_objective, 0.8 * F_liquid_max, F_liquid_max, ytol=1e-9)
+            flx.IQ_interpolation(
+                liquid_flow_rate_objective, 0.01 * F_liquid_max, F_liquid_max, 
+                xtol=1e-9 * F_liquid_max, ytol=1e-9
+            )
             return
         
         if controlled_gas_feeds and not controlled_liquid_feeds:
@@ -519,7 +520,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                 self._run_without_titer_specification(effluent, vent, feed)
                 STRs = self._group_substrate_flows(self._STRs_last) # Must meet all substrate demands
                 diff = SURs - STRs
-                diff[diff < 0] *= 2
+                self._run_without_titer_specification(effluent, vent, feed)
                 return diff
             
             f = gas_flow_rate_objective
