@@ -82,18 +82,16 @@ def _vent_broth_iter(flows, stream, vent, broth, IDs):
     stream.imol['lg', IDs] = flows
     P_div_mol_g = vent.P / vent.F_mol / 1e5 # P in bar
     MT_L = broth.F_mass / 1000
-    limit = 0.9
     for ID in IDs: 
         total_kmol = broth.imol[ID] + vent.imol[ID]
         Py = P_div_mol_g * vent.imol[ID] 
         mol_per_kg = C_L(vent.T, Py, ID)
         kmol = mol_per_kg * MT_L
-        if kmol > total_kmol * limit: kmol = 0.9 * total_kmol
         broth.imol[ID] = kmol
         vent.imol[ID] = total_kmol - kmol
     return stream.imol['lg', IDs]
 
-def vent_broth(vent, broth):
+def vent_broth(vent, broth, approx=False):
     """
     Perform vapor-liquid equilibrium of an aqueous-based fermentation 
     broth, accounting for Henry's coefficients assuming that only a small
@@ -114,7 +112,12 @@ def vent_broth(vent, broth):
     if mol_g < 1e-9: return
     IDs = [i.ID for i in stream.vle_chemicals if i.ID in H_coefficients]
     args = (stream, vent, broth, IDs)
-    stream.imol['lg', IDs] = flx.wegstein(_vent_broth_iter, stream.imol['lg', IDs], args=args)
+    if approx: 
+        stream.imol['lg', IDs] = _vent_broth_iter(stream.imol['lg', IDs], *args)
+    else:
+        stream.imol['lg', IDs] = flx.aitken(
+            _vent_broth_iter, stream.imol['lg', IDs], args=args, xtol=1e-9
+        )
             
 #: Henry's law coefficients. Data from NIST Standard Reference Database 69: NIST Chemistry WebBook:
 #: https://webbook.nist.gov/cgi/cbook.cgi?ID=C7782447&Mask=10#Notes

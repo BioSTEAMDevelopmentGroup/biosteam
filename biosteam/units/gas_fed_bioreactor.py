@@ -358,8 +358,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             'sparger', bst.Mixer, [i-0 for i in self.gas_coolers]
         )
         
-    def get_SURs(self, feed):
-        F_vol = feed.F_mass / 1000 # Approximately m3 / hr
+    def get_SURs(self, F_vol):
         produced = bst.Stream(None, thermo=self.thermo)
         for ID, concentration in self.titer.items(): # Titer is in terms of g / 1000 kg Water
             produced.imass[ID] = F_vol * concentration
@@ -390,9 +389,9 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                 i.imol[gas_substrates]
                 for i in self.ins
             ]) / 3.6 # mol / s
-        def f(vent_flow_rates):
-            self.vent.mol = vent_flow_rates
-            self._STRs_last = STRs = np.minimum(self.get_STRs(), F_substrates)
+        
+        def f(STR_guess):
+            STRs = np.minimum(STR_guess, F_substrates)
             effluent.copy_flow(feed)
             effluent.set_flow(STRs, units='mol/s', key=gas_substrates)
             remaining = F_substrates - STRs
@@ -400,10 +399,13 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             vent.copy_flow(self.sparged_gas)
             vent.imol[gas_substrates] = remaining * 3.6 # mol / s -> kmol / hr
             self._run_vent(vent, effluent) 
-            return self.vent.mol.to_array()
+            return self.get_STRs()
         
-        flx.aitken(f, vent.mol.to_array(), checkiter=False, xtol=1e-6, checkconvergence=False)
-    
+        if np.iscomplex(self.get_STRs()).any():
+            breakpoint()
+            self.get_STRs()
+        self._STRs_last = flx.aitken(f, self.get_STRs(), xtol=1e-6, maxiter=1000)
+        
     # def plot_surface_response(self):
     #     self._setup()
         
@@ -458,8 +460,10 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             F_substrates = sum([i.get_flow(units='mol/s', key=self.gas_substrates) for i in self.ins])
             F_liquid_max = self._initialize_controlled_liquid_guess(effluent)
             product, titer = next(iter(self.titer.items()))
+            titer /= 1000
             self._update_gas_feeds()
             def liquid_flow_rate_objective(F_feed):
+                if F_feed < 0: F_feed = 1e-6
                 feed.F_mass = F_feed
                 self._update_liquid_feed()
                 self._run_without_titer_specification(effluent, vent, feed, F_substrates)
@@ -481,7 +485,8 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             # Solve gas flow rates to meet titer.
             self._update_liquid_feed()
             effluent.mix_flows(self.liquid_feeds)
-            SURs = self._group_substrate_flows(self.get_SURs(feed)) # Gas substrate uptake rate [mol / s]
+            F_vol = feed.F_mass / 1000 # Approximately m3 / hr
+            SURs = self._group_substrate_flows(self.get_SURs(F_vol)) # Gas substrate uptake rate [mol / s]
             if (SURs <= 1e-2).all():
                 self._run_vent(vent, effluent)
                 return
@@ -513,7 +518,9 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                 self._update_gas_feeds()
                 self._run_without_titer_specification(effluent, vent, feed)
                 STRs = self._group_substrate_flows(self._STRs_last) # Must meet all substrate demands
-                return SURs - STRs
+                diff = SURs - STRs
+                diff[diff < 0] *= 2
+                return diff
             
             f = gas_flow_rate_objective
             with catch_warnings():
@@ -522,7 +529,6 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                     f, guess, full_output=True, maxfev=500, xtol=1e-9
                 )
             self._convergence = results
-            self._error = gas_flow_rate_objective(results[0])
         elif controlled_liquid_feeds and controlled_gas_feeds: 
             try: feed, = controlled_liquid_feeds
             except: raise RuntimeError('gas-fed bioreactor must have exactly one liquid feed')
@@ -541,7 +547,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             effluent.copy_flow(feed)
             F_liquid_max = self._initialize_controlled_liquid_guess(effluent, maxflow=True)
             feed.F_mass = F_liquid_max
-            SURs = self._group_substrate_flows(self.get_SURs(feed)) # Gas substrate uptake rate [mol / s]
+            SURs = self._group_substrate_flows(self.get_SURs(F_liquid_max / 1000)) # Gas substrate uptake rate [mol / s]
             substrate_reactions = self.substrate_reactions
             baseline_flows = self._get_grouped_substrate_flows(self.normal_feeds)
             if substrate_reactions is None:
@@ -577,7 +583,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                 for i in index:
                     gas = controlled_gas_feeds[i]
                     gas.set_total_flow(F_controlled[i], 'mol/s')
-                feed.F_mass = F_controlled[-1]
+                feed.F_mass = F_liq = F_controlled[-1]
                 F_substrates = sum([
                     i.imol[self.gas_substrates]
                     for i in self.ins
@@ -585,7 +591,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                 self._update_liquid_feed()
                 self._update_gas_feeds()
                 self._run_without_titer_specification(effluent, vent, feed, F_substrates)
-                SURs = self._group_substrate_flows(self.get_SURs(feed)) # Gas substrate uptake rate [mol / s]
+                SURs = self._group_substrate_flows(self.get_SURs(F_liq / 1000)) # Gas substrate uptake rate [mol / s]
                 STRs = self._group_substrate_flows(self._STRs_last) # Must meet all substrate demands
                 return SURs - STRs
             
@@ -597,12 +603,11 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                     f, guess, full_output=True, maxfev=500, xtol=1e-9
                 )
             self._convergence = results
-            self._error = gas_flow_rate_objective(results[0])
         else:
             raise RuntimeError('cannot satisfy titer specification without controlled feeds')
         
     def _run_reactions(self, effluent, maxflow=None):
-        if self.substrate_reactions: self.substrate_reactions(effluent)
+        if self.substrate_reactions: self.substrate_reactions.force_reaction(effluent)
         if maxflow: 
             data = effluent.get_data()
             rxns = self.reactions
