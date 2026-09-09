@@ -63,6 +63,7 @@ References
 """
 from math import exp, log, sqrt
 from chemicals.identifiers import ChemicalDataDictionary
+import flexsolve as flx
 import biosteam as bst
 
 __all__ = (
@@ -76,6 +77,21 @@ __all__ = (
     'HaydukLaudie_diffusion_coefficient',
     'WilkeChang_diffusion_coefficient',
 )
+
+def _vent_broth_iter(flows, stream, vent, broth, IDs):
+    stream.imol['lg', IDs] = flows
+    P_div_mol_g = vent.P / vent.F_mol / 1e5 # P in bar
+    MT_L = broth.F_mass / 1000
+    limit = 0.9
+    for ID in IDs: 
+        total_kmol = broth.imol[ID] + vent.imol[ID]
+        Py = P_div_mol_g * vent.imol[ID] 
+        mol_per_kg = C_L(vent.T, Py, ID)
+        kmol = mol_per_kg * MT_L
+        if kmol > total_kmol * limit: kmol = 0.9 * total_kmol
+        broth.imol[ID] = kmol
+        vent.imol[ID] = total_kmol - kmol
+    return stream.imol['lg', IDs]
 
 def vent_broth(vent, broth):
     """
@@ -96,15 +112,9 @@ def vent_broth(vent, broth):
     stream.vle(T=stream.T, P=stream.P)
     mol_g = vent.F_mol
     if mol_g < 1e-9: return
-    P_div_mol_g = vent.P / mol_g / 1e5 # P in bar
-    kg_L = broth.F_mass
-    for i in stream.vle_chemicals:
-        if i.ID in H_coefficients:
-            total_kmol = stream.imol[i.ID] 
-            Py = P_div_mol_g * vent.imol[i.ID] 
-            mol_per_kg = C_L(vent.T, Py, i.ID)
-            broth.imol[i.ID] = kmol = mol_per_kg * kg_L / 1e3
-            vent.imol[i.ID] = total_kmol - kmol
+    IDs = [i.ID for i in stream.vle_chemicals if i.ID in H_coefficients]
+    args = (stream, vent, broth, IDs)
+    stream.imol['lg', IDs] = flx.wegstein(_vent_broth_iter, stream.imol['lg', IDs], args=args)
             
 #: Henry's law coefficients. Data from NIST Standard Reference Database 69: NIST Chemistry WebBook:
 #: https://webbook.nist.gov/cgi/cbook.cgi?ID=C7782447&Mask=10#Notes
