@@ -96,8 +96,9 @@ try:
 except ModuleNotFoundError as error:
     if error.name != 'hensmith': raise
 else:
+    HXN = HeatExchangerNetwork = hensmith.HeatExchangerNetwork
     del hensmith
-    __all__.append('HeatExchangerNetwork')
+    __all__.append('HeatExchangerNetwork', 'HXN')
 
 # Future extensions can be added here.
 
