@@ -81,11 +81,12 @@ from . import _settings
 
 __all__ = [
     'Unit', 'PowerUtility', 'UtilityAgent', 'HeatUtility', 'Facility',
-    'utils', 'units', 'facilities', 'wastewater', 'evaluation', 'Chemical', 'Chemicals', 'Stream',
-    'MultiStream', 'settings', 'exceptions', 'report', 'units_of_measure',
+    'utils', 'units', 'facilities', 'wastewater', 'evaluation', 'settings', 
+    'exceptions', 'report', 'units_of_measure',
     'process_tools', 'preferences', *_system.__all__, *_flowsheet.__all__,
     *_tea.__all__, *units.__all__, *facilities.__all__, *wastewater.__all__,
     *evaluation.__all__, *process_tools.__all__, *_module.__all__,
+    *thermosteam.__all__
 ]
 
 # %% Load premire biosteam extensions which offer comprehensive simulation capabilities.
