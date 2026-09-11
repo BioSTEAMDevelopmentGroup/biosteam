@@ -1,4 +1,4 @@
 sparse
 ======
 
-.. autoclass:: thermosteam.sparse
+.. autoclass:: thermosteam.base.sparse
