@@ -163,57 +163,76 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     
     Examples
     --------
-    >>> import biosteam as bst
-    >>> bst.settings.set_thermo(['H2', 'CO2', 'N2', 'O2', 'H2O', 'AceticAcid'])
-    >>> media = bst.Stream(ID='media', H2O=10000, units='kg/hr')
-    >>> H2 = bst.Stream(ID='H2', H2=100, units='kg/hr', phase='g')
-    >>> fluegas = bst.Stream(ID='fluegas', N2=70, CO2=25, H2O=3, O2=2, units='kg/hr', phase='g')
-    >>> # Model acetic acid production from H2 and CO2
-    >>> rxn = bst.Rxn('H2 + CO2 -> AceticAcid + H2O', reactant='H2', correct_atomic_balance=True) 
-    >>> brxn = rxn.backwards(reactant='AceticAcid')
-    >>> R1 = bst.GasFedBioreactor(
-    ...     'R1', ins=[media, H2, fluegas], outs=('vent', 'product'), 
-    ...     tau=68, V_max=500, controlled_feeds=[1, 2],
-    ...     reactions=rxn, backward_reactions=brxn,
-    ...     gas_substrates=('H2', 'CO2'),
-    ...     titer=dict(AceticAcid=5),
-    ...     kW_per_m3=0.,
-    ...     T=305.15
+    When designing a gas-fed bioreactor, we want to make sure that the amount 
+    of H2 fed is just right to meet a given titer (which has been achieved experimetally). 
+    If there is too much H2, the limiting substrate becomes the CO2 and 
+    the extra H2 becomes "dead volume" that decreases the mass transfer driving 
+    force and ultimately lowers the conversion of CO2. Conversely, with too 
+    little H2, the flue gas becomes dead volume and decreases the mass transfer 
+    driving force.
+
+    The GasFedBioreactor can efficiently solve this numerical problem; 
+    just specify the titer and the feed streams it can tweak. 
+    In the next example, we are able to achieve a specified titer (~30 g/L) 
+    under optimal hydrogen consumption (~2.58 ratio).
+    
+    >>> from biosteam import *
+    >>> settings.set_thermo(['H2', 'CO2', 'CO', 'N2', 'O2', 'H2O', 'AceticAcid'])
+    >>> media = Stream(H2O=1)
+    >>> H2 = Stream(H2=1, phase='g')
+    >>> CO2 = Stream(CO2=3.8e3, units='m3/hr', phase='g')
+    >>> vent = Stream()
+    >>> product = Stream()
+    >>> bioreactor = GasFedBioreactor(
+    ...     # Inlet/outlet streams and reactions
+    ...     ins=[media, H2, CO2], outs=[vent, product], 
+    ...     reactions=Reaction(
+    ...         'H2 + CO2 -> AceticAcid + H2O',
+    ...         reactant='CO2', correct_atomic_balance=True, X=1
+    ...     ), 
+    ...     # Bioreactor design and operation
+    ...     design='Bubble column', tau=40,
+    ...     V_max=500, length_to_diameter=12,  
+    ...     T=305.15, P=101325, batch=False, 
+    ...     # Specifications and varibles to optimize
+    ...     controlled_feeds=[media, H2], titer={'AceticAcid': 30}, 
     ... )
-    >>> R1.simulate()
-    >>> R1.show('cwt')
-    GasFedBioreactor: R1
+    >>> bioreactor.simulate()
+    >>> F_acetic_acid = vent.imass['AceticAcid'] + product.imass['AceticAcid']
+    >>> round(1000 * F_acetic_acid / media.F_mass) # Titer [g / L]
+    30
+    
+    >>> round(H2.F_mol / CO2.F_mol, 2) # Optimal H2/CO2 ratio [mol-H2 / mol-CO2]
+    2.58
+    
+    >>> bioreactor.show('cwt')
+    GasFedBioreactor: bioreactor
     ins...
     [0] media  
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow (%): H2O  100
-                  ---  1e+04 kg/hr
+                  ---  1.56e+05 kg/hr
     [1] H2  
         phase: 'g', T: 298.15 K, P: 101325 Pa
         flow (%): H2  100
-                  --  35.6 kg/hr
-    [2] fluegas  
+                  --  812 kg/hr
+    [2] CO2  
         phase: 'g', T: 298.15 K, P: 101325 Pa
-        flow (%): CO2  25
-                  N2   70
-                  O2   2
-                  H2O  3
-                  ---  293 kg/hr
+        flow (%): CO2  100
+                  ---  6.87e+03 kg/hr
     outs...
     [0] vent  
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (%): H2  12
-                  N2  85.5
-                  O2  2.44
-                  --  240 kg/hr
+        flow (%): H2          68.3
+                  H2O         29.9
+                  AceticAcid  1.81
+                  ----------  267 kg/hr
     [1] product  
         phase: 'l', T: 305.15 K, P: 101325 Pa
-        flow (%): H2          0.000101
-                  N2          0.000539
-                  O2          3.15e-05
-                  H2O         99.5
-                  AceticAcid  0.496
-                  ----------  1.01e+04 kg/hr
+        flow (%): H2          0.000146
+                  H2O         97.1
+                  AceticAcid  2.86
+                  ----------  1.64e+05 kg/hr
     
     """
     _N_ins = 2
@@ -239,10 +258,9 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             # Can vary either liquid or gas flows
             titer=None, 
             # Only for controlled gas flows
-            backward_reactions=None, 
             controlled_gas_substrates=None,
             controlled_feeds=(), 
-            substrate_reactions=None,
+            funneling_reactions=None,
             # General design/performance arguments
             design=None, method=None, kLa_kwargs=None,
             theta=0.5, Q_consumption=None,
@@ -254,8 +272,8 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             
         if gas_substrates is None:
             gas_substrates = reactions.all_reactants
-            if substrate_reactions:
-                for i in substrate_reactions.all_reactants:
+            if funneling_reactions:
+                for i in funneling_reactions.all_reactants:
                     if i not in gas_substrates: gas_substrates.append(i)
             gas_substrates = [i for i in gas_substrates if i in aeration.H_coefficients]
         self.gas_substrates = gas_substrates
@@ -267,10 +285,8 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         self.Q_consumption = Q_consumption # Forced duty per gas substrate consummed [kJ/kmol].
         self.kLa_kwargs = {} if kLa_kwargs is None else kLa_kwargs
         self.controlled_feeds = controlled_feeds # list[int|Stream] Feed index or stream.
-        
         self.titer = titer # dict[str, float] g / L
-        self.substrate_reactions = substrate_reactions
-        self.backward_reactions = backward_reactions
+        self.funneling_reactions = funneling_reactions
         
         if controlled_gas_substrates is None:
             N_gas_feeds = len(controlled_feeds)
@@ -373,12 +389,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         for ID, concentration in self.titer.items(): # Titer is in terms of g / 1000 kg Water
             produced.imass[ID] = F_vol * concentration
         consumed = produced.copy()
-        backward_reactions = self.backward_reactions
-        if backward_reactions is None:
-            product = next(iter(self.titer))
-            self.backward_reactions = backward_reactions = (
-                self.reactions.backwards(reactant=product) 
-            )
+        backward_reactions = self.reactions.backwards(reactant=ID)
         backward_reactions.force_reaction(consumed)
         SURs = consumed.get_flow('mol/s', self.gas_substrates)
         return SURs
@@ -389,10 +400,10 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         ) / 3.6
     
     def _group_substrate_flows(self, F_substrates):
-        if self.substrate_reactions is None: return F_substrates
+        if self.funneling_reactions is None: return F_substrates
         chemicals = self.chemicals
         flows = chemicals.array(self.gas_substrates, F_substrates)
-        self.substrate_reactions.force_reaction(flows)
+        self.funneling_reactions.force_reaction(flows)
         return flows[chemicals.get_index(self.controlled_gas_substrates)]
     
     def _run_vent(self, vent, effluent):
@@ -455,7 +466,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         vent, effluent = self.outs
         vent.P = effluent.P = self.P
         sparged_gas = self.sparged_gas
-        substrate_reactions = self.substrate_reactions
+        funneling_reactions = self.funneling_reactions
         sparged_gas.T = vent.T = effluent.T = self.T
         vent.phase = 'g'
         try: liquid_feed, = [i for i in self.ins if i.phase == 'l']
@@ -465,7 +476,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             controlled_gas_substrates = self.controlled_gas_substrates
             if controlled_feeds and controlled_gas_substrates is None:
                 self._update_gas_feeds()
-                if substrate_reactions: substrate_reactions.force_reaction(sparged_gas)
+                if funneling_reactions: funneling_reactions.force_reaction(sparged_gas)
                 controlled_gas_substrates = [i for i in self.reactions.all_reactants if sparged_gas.imol[i]]
                 N_gas_substrates = len(controlled_gas_substrates)
                 N_controlled = len(controlled_feeds)
@@ -547,7 +558,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                 return
             index = range(len(controlled_gas_substrates))
             baseline_flows = self._get_grouped_substrate_flows(self.normal_feeds)
-            if substrate_reactions is None:
+            if funneling_reactions is None:
                 # Each feed directly controls a gas substrate
                 x_substrates = []
                 for gas, ID in zip(self.controlled_gas_feeds, controlled_gas_substrates):
@@ -561,7 +572,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                 for i, gas in enumerate(controlled_gas_substrates):
                     for j, stream in enumerate(controlled_gas_feeds):
                         reacted = stream.copy()
-                        substrate_reactions.force_reaction(reacted)
+                        funneling_reactions.force_reaction(reacted)
                         coefficients[i, j] = reacted.imol[gas] / stream.F_mol
                 F_min = np.linalg.solve(coefficients, SURs - baseline_flows)
                 guess = 1.01 * F_min
@@ -589,7 +600,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             liquid_feed.F_mass = F_liquid_max
             SURs = self._group_substrate_flows(self.get_SURs(F_liquid_max / 1000)) # Gas substrate uptake rate [mol / s]
             baseline_flows = self._get_grouped_substrate_flows(self.normal_feeds)
-            if substrate_reactions is None:
+            if funneling_reactions is None:
                 # Each feed directly controls a gas substrate
                 x_substrates = []
                 subset = []
@@ -608,7 +619,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                     for stream in controlled_feeds:
                         if stream.phase != 'g': continue
                         reacted = stream.copy()
-                        substrate_reactions.force_reaction(reacted)
+                        funneling_reactions.force_reaction(reacted)
                         row.append(reacted.imol[gas] / stream.F_mol)
                 for i, (stream, gas) in enumerate(zip(controlled_feeds, controlled_gas_substrates)):
                     if stream.phase != 'g': continue
@@ -646,7 +657,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             raise RuntimeError('cannot satisfy titer specification without controlled feeds')
         
     def _run_reactions(self, effluent, maxflow=None):
-        if self.substrate_reactions: self.substrate_reactions.force_reaction(effluent)
+        if self.funneling_reactions: self.funneling_reactions.force_reaction(effluent)
         if maxflow: 
             data = effluent.get_data()
             rxns = self.reactions
