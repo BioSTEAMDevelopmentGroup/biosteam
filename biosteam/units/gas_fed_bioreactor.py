@@ -472,52 +472,14 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         try: liquid_feed, = [i for i in self.ins if i.phase == 'l']
         except: raise RuntimeError('gas-fed bioreactor must have exactly one liquid feed')
         
-        if self.titer: 
-            controlled_gas_substrates = self.controlled_gas_substrates
-            if controlled_feeds and controlled_gas_substrates is None:
-                self._update_gas_feeds()
-                if funneling_reactions: funneling_reactions.force_reaction(sparged_gas)
-                controlled_gas_substrates = [i for i in self.reactions.all_reactants if sparged_gas.imol[i]]
-                N_gas_substrates = len(controlled_gas_substrates)
-                N_controlled = len(controlled_feeds)
-                
-                if N_controlled != N_gas_substrates:
-                    raise RuntimeError(
-                        'number of controlled gas substrates must be equal to the number of controlled '
-                        'feeds'
-                    ) # Given there is only one controlled liquid feed, this statement holds true
-                
-                keys_and_knobs = np.zeros([N_gas_substrates, N_controlled], dtype=bool)
-                
-                for j, stream in enumerate(controlled_feeds):
-                    if stream.phase == 'l':
-                        keys_and_knobs[:, j] = True
-                        continue
-                    for i, gas in enumerate(controlled_gas_substrates):
-                        if stream.phase == 'g' and stream.imol[gas]:
-                            keys_and_knobs[i, j] = True
-                gas_index = solve_bipartite_matching(keys_and_knobs)
-                controlled_gas_substrates = [controlled_gas_substrates[i] for i in gas_index]
-                self.controlled_gas_substrates = controlled_gas_substrates
-            else:
-                # SURs are given by liquid feed and titer (1 equation / 2 unknown)
-                # STRs are given by gas feeds (must be N STR/SUR equations and N - 1 unknown feed variables)
-                N_controlled = len(controlled_gas_substrates)
-                controlled_feeds = self.controlled_feeds
-                breakpoint()
-                if N_controlled != len(controlled_feeds):
-                    raise RuntimeError(
-                        'number of controlled gas substrates must be equal to the number of controlled '
-                        'feeds'
-                    ) # Given there is only one controlled liquid feed, this statement holds true
-        else:
+        if not self.titer:
             # Titer is given by the mass transfer; only one substrate is limiting,
             # so we have 1 mass transfer/update rate equation and 1 unknown.
             self._update_liquid_feed()
             self._update_gas_feeds()
             self._run_without_titer_specification(effluent, vent, liquid_feed)
             return
-        
+            
         if controlled_liquid_feeds and not controlled_gas_feeds:
             # Titer given, must adjust liquid flow so that STR meets SUR.
             # Only one substrate is limiting which gives 1 equation and 1 unknown.
@@ -539,6 +501,43 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                 xtol=1e-9 * F_liquid_max, ytol=1e-9
             )
             return
+        
+        controlled_gas_substrates = self.controlled_gas_substrates
+        if controlled_feeds and controlled_gas_substrates is None:
+            self._update_gas_feeds()
+            if funneling_reactions: funneling_reactions.force_reaction(sparged_gas)
+            controlled_gas_substrates = [i for i in self.reactions.all_reactants if sparged_gas.imol[i]]
+            N_gas_substrates = len(controlled_gas_substrates)
+            N_controlled = len(controlled_feeds)
+            
+            if N_controlled != N_gas_substrates:
+                raise RuntimeError(
+                    'number of controlled gas substrates must be equal to the number of controlled '
+                    'feeds'
+                ) # Given there is only one controlled liquid feed, this statement holds true
+            
+            keys_and_knobs = np.zeros([N_gas_substrates, N_controlled], dtype=bool)
+            
+            for j, stream in enumerate(controlled_feeds):
+                if stream.phase == 'l':
+                    keys_and_knobs[:, j] = True
+                    continue
+                for i, gas in enumerate(controlled_gas_substrates):
+                    if stream.phase == 'g' and stream.imol[gas]:
+                        keys_and_knobs[i, j] = True
+            gas_index = solve_bipartite_matching(keys_and_knobs)
+            controlled_gas_substrates = [controlled_gas_substrates[i] for i in gas_index]
+            self.controlled_gas_substrates = controlled_gas_substrates
+        else:
+            # SURs are given by liquid feed and titer (1 equation / 2 unknown)
+            # STRs are given by gas feeds (must be N STR/SUR equations and N - 1 unknown feed variables)
+            N_controlled = len(controlled_gas_substrates)
+            controlled_feeds = self.controlled_feeds
+            if N_controlled != len(controlled_feeds):
+                raise RuntimeError(
+                    'number of controlled gas substrates must be equal to the number of controlled '
+                    'feeds'
+                ) # Given there is only one controlled liquid feed, this statement holds true
         
         if controlled_gas_feeds and not controlled_liquid_feeds:
             # Controlled gas substrates are the limiting substrates 

@@ -25,7 +25,7 @@ def test_gas_fed_bioreactor():
     effluent = bst.Stream(phase='l')
 
     # Model acetic acid production from H2 and CO2
-    substrate_reaction = bst.Reaction(
+    watergas_shift = bst.Reaction(
         'CO + H2O -> CO2 + H2',
         reactant='CO', correct_atomic_balance=True, X=1
     )
@@ -54,7 +54,7 @@ def test_gas_fed_bioreactor():
         tau=68, V_max=500,
         length_to_diameter=12,
         reactions=rxn, 
-        substrate_reactions=substrate_reaction,
+        funneling_reactions=watergas_shift,
         gas_substrates=('H2', 'CO', 'CO2'),
         controlled_gas_substrates=('CO2', 'H2'),
         design='Bubble column',
@@ -77,9 +77,8 @@ def test_gas_fed_bioreactor():
         tau=68, V_max=500,
         length_to_diameter=12,
         reactions=rxn, 
-        substrate_reactions=substrate_reaction,
+        funneling_reactions=watergas_shift,
         gas_substrates=('H2', 'CO', 'CO2'),
-        controlled_gas_substrates=('CO2', 'H2'),
         design='Bubble column',
         kW_per_m3=0,
         batch=False,
@@ -99,7 +98,7 @@ def test_gas_fed_bioreactor():
         tau=68, V_max=500,
         length_to_diameter=12,
         reactions=rxn, 
-        substrate_reactions=substrate_reaction,
+        funneling_reactions=watergas_shift,
         gas_substrates=('H2', 'CO', 'CO2'),
         design='Bubble column',
         kW_per_m3=0,
