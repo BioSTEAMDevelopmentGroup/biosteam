@@ -37,10 +37,9 @@ ThermoSTEAM: BioSTEAM's Premier Thermodynamic Engine
    Thermo
    Stream
    MultiStream
-   ThermalCondition
    ThermoData
    functor
-   functional
+   sparse
    equilibrium/index
    reaction/index
    indexer/index

@@ -1,0 +1,4 @@
+sparse
+======
+
+.. autoclass:: thermosteam.sparse
