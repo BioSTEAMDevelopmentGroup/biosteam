@@ -299,11 +299,13 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                 design = 'Bubble column'
             else:
                 design = 'Stirred tank'
-        elif design not in aeration.kLa_method_names:
-            raise ValueError(
-                f"{design!r} is not a valid design; only "
-                f"{list(aeration.kLa_method_names)} are valid"
-            )
+        else:
+            design = design.capitalize()
+            if design not in aeration.kLa_method_names:
+                raise ValueError(
+                    f"{design!r} is not a valid design; only "
+                    f"{list(aeration.kLa_method_names)} are valid"
+                )
         self.design = design
         if method is None:
             method = self.default_methods[design]

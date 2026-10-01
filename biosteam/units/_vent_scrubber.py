@@ -17,7 +17,10 @@ __all__ = ('VentScrubber',)
 class VentScrubber(Unit): 
     _N_ins = _N_outs = 2
     _units = {'Flow rate': 'kg/hr'}
-    def _init(self, gas):
+    def _init(self, gas=None):
+        if gas is None:
+            chemicals = self.chemicals
+            gas = [i for i in ('CO2', 'CO', 'N2', 'O2', 'H2', 'NH3') if i in chemicals]
         self.gas = gas
     
     def _run(self):

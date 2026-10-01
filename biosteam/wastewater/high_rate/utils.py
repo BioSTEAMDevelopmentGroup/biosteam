@@ -269,6 +269,7 @@ def create_missing_wwt_chemicals(chemicals):
             new_chemicals.append(chemical)
         return missing
 
+    add_chemical('CH4', phase='g', Hf=-10963*_cal2joule)
     add_chemical('NH3', phase='g', Hf=-10963*_cal2joule)
     add_chemical('H2S', phase='g', Hf=-4927*_cal2joule)
     add_chemical('SO2', phase='g')
@@ -296,7 +297,8 @@ def append_wwt_chemicals(chemicals, set_thermo=True):
     chemicals = chemicals.chemicals if isinstance(chemicals, Thermo) else chemicals
     required_chemicals = (
         'NH3', 'H2S', 'SO2', 'NH4OH', 'H2SO4', 'HCl', 'HNO3', 'NaOH', 'NaNO3',
-        'Na2SO4', 'CaSO4', 'NaOCl', 'CitricAcid', 'Bisulfite', 'WWTsludge', 'Polymer'
+        'Na2SO4', 'CaSO4', 'NaOCl', 'CitricAcid', 'Bisulfite', 'WWTsludge', 'Polymer',
+        'CH4',
     )
     if all([(i in chemicals) for i in required_chemicals]): return chemicals
     chems = Chemicals([*chemicals, *create_missing_wwt_chemicals(chemicals)])

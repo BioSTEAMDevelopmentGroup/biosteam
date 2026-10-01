@@ -127,6 +127,7 @@ H_coefficients = ChemicalDataDictionary( # k_H, A
     CO=(0.00099, 1300),
     H2=(0.00078, 500),
     N2=(0.000625, 1300),
+    CH4=(0.0013, 1900),
 )
 
 def Henrys_law_constant(T, k_H, A):

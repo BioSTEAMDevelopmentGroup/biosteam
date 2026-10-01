@@ -153,7 +153,7 @@ def create_facilities(
                 CHP_kwargs['autopopulate'] = True
             create_coheat_and_power_system(mockup=True, **CHP_kwargs)
         if blowdown_recycle:
-            units = bst.main_flowsheet.unit.get_context_level(0)
+            units = set(bst.main_flowsheet.unit.get_context_level(0))
             blowdown_to_wastewater = bst.Stream('blowdown_to_wastewater')
             bst.BlowdownMixer(
                 area or '',
@@ -173,7 +173,7 @@ def create_facilities(
                     process_water_mixer.ins.extend([i for i in streams if i.isproduct() and 'process_water' in i.ID and i.source is not PWC])
             process_water = process_water_mixer.outs[0]
             if treated_water_streams is None:
-                units = bst.main_flowsheet.unit.get_context_level(0)
+                units = set(bst.main_flowsheet.unit.get_context_level(0))
                 treated_water_streams = [i.RO_treated_water for i in units if hasattr(i, 'RO_treated_water')]
             treated_water_mixer = bst.Mixer(area or '', ins=treated_water_streams)
             treated_water = treated_water_mixer.outs[0]
@@ -222,6 +222,7 @@ def create_coheat_and_power_system(
         outs=outs,
         **kwargs,
     )
+    BT.register_alias(cls.line.lower().replace(' ', '_'))
     BT.autopopulate = False if autopopulate is None else autopopulate
     
     @BT.add_specification(run=True)
