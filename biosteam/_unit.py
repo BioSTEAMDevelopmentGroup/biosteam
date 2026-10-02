@@ -687,6 +687,9 @@ class Unit(AbstractUnit):
         #: Indices of additional credits/fees given by outlet streams.
         self._outlet_revenue_indices: dict[str, int] = {}
         
+        #: Fractions of stream flow rates that receive fees or credits.
+        self._flow_fractions: dict[str, int] = {}
+        
         try:
             #: Lifetime of equipment. Defaults to values in the class attribute 
             #: :attr:`~Unit._default_equipment_lifetime`. Use an integer to specify the lifetime 
@@ -878,7 +881,7 @@ class Unit(AbstractUnit):
         else:
             raise ValueError(f"stream '{stream.ID}' must be connected to {repr(self)}")
     
-    def define_credit(self, name: str, stream: Stream):
+    def define_credit(self, name: str, stream: Stream, fraction: float|Callable=None):
         """
         Define an inlet or outlet stream as a fee/credit by name.
         
@@ -888,6 +891,9 @@ class Unit(AbstractUnit):
             Name of fee/credit, as defined in :meth:`settings.stream_prices <thermosteam._settings.ProcessSettings.stream_prices>`.
         stream :
             Inlet or outlet fee/credit stream.
+        fraction :
+            Fraction of the stream that receives the fee/credit. If given a function,
+            it must return the fraction.
         
         """
         if name not in bst.stream_prices:
@@ -898,16 +904,21 @@ class Unit(AbstractUnit):
             self._outlet_revenue_indices[name] = self._outs._streams.index(stream)
         else:
             raise ValueError(f"stream '{stream.ID}' must be connected to {repr(self)}")
+        if fraction: self._flow_fractions[name] = fraction
     
     define_fee = define_credit
     
     def get_inlet_cost_flows(self):
         ins = self._ins._streams
-        return {name: ins[index].F_mass for name, index in (self._inlet_utility_indices | self._inlet_cost_indices).items()}
+        flows = {name: ins[index].F_mass for name, index in (self._inlet_utility_indices | self._inlet_cost_indices).items()}
+        for name, fraction in self._flow_fractions.items(): flows[name] *= fraction
+        return flows
     
     def get_outlet_revenue_flows(self):
         outs = self._outs._streams
-        return {name: outs[index].F_mass for name, index in (self._outlet_utility_indices | self._outlet_revenue_indices).items()}
+        flows = {name: outs[index].F_mass for name, index in (self._outlet_utility_indices | self._outlet_revenue_indices).items()}
+        for name, fraction in self._flow_fractions.items(): flows[name] *= fraction
+        return flows
     
     def get_design_and_capital(self):
         return UnitDesignAndCapital(
@@ -1359,11 +1370,18 @@ class Unit(AbstractUnit):
             + sum([s.F_mass * prices[name] for name, index in self._inlet_utility_indices.items() if (s:=ins[index]).price == 0.])
             - sum([s.F_mass * prices[name] for name, index in self._outlet_utility_indices.items() if (s:=outs[index]).price == 0.])
         )
+        fractions = self._flow_fractions
         self._inlet_cost = sum(
-            [ins[index].F_mass * prices[name] for name, index in self._inlet_cost_indices.items()]
+            [(fractions[name] * ins[index].F_mass * prices[name]
+              if name in fractions 
+              else ins[index].F_mass * prices[name])
+             for name, index in self._inlet_cost_indices.items()]
         )
         self._outlet_revenue = sum(
-            [outs[index].F_mass * prices[name] for name, index in self._outlet_revenue_indices.items()]
+            [(fractions[name] * outs[index].F_mass * prices[name]
+              if name in fractions 
+              else outs[index].F_mass * prices[name])
+             for name, index in self._outlet_revenue_indices.items()]
         )
     
     @property

@@ -17,16 +17,20 @@ __all__ = ('VentScrubber',)
 class VentScrubber(Unit): 
     _N_ins = _N_outs = 2
     _units = {'Flow rate': 'kg/hr'}
-    def _init(self, gas=None):
+    def _init(self, gas=None, titer=None):
         if gas is None:
             chemicals = self.chemicals
             gas = [i for i in ('CO2', 'CO', 'N2', 'O2', 'H2', 'NH3') if i in chemicals]
         self.gas = gas
+        self.titer = titer
     
     def _run(self):
         water, vent_entry = self.ins
         vent_exit, bottoms = self.outs
         vent_exit.copy_like(vent_entry)
+        if self.titer:
+            product, titer = self.titer
+            water.imass['Water'] = vent_entry.imass[product] / titer * 1000
         bottoms.empty()
         bottoms.copy_flow(vent_exit, self.gas,
                           remove=True, exclude=True)

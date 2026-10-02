@@ -101,7 +101,7 @@ def register_by_area_convention(unit, area, unit_registry):
     ID = letter + str(number)
     ID_old = unit.ID
     unit_registry.register(ID, unit)
-    unit_registry.register_alias(ID_old, unit)
+    unit_registry.register_alias(ID_old, unit, override=False)
 
 def rename_unit(unit, area):
     """
