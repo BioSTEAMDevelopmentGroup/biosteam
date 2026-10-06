@@ -297,6 +297,7 @@ class Distillation(Unit, isabstract=True):
                'Weight': (9000., 2.5e6)}
     
     composition_sensitive = False
+    use_overall_energy_balance = True
     
     def _init(self, 
             LHK, k,
@@ -927,22 +928,26 @@ class Distillation(Unit, isabstract=True):
         condenser = self.condenser
         Q_condenser = condenser.outs[0].H - condenser.ins[0].H
         condenser_kwargs = dict(duty=Q_condenser)
-        H_out = self.H_out
-        H_in = self.H_in
-        Q_overall_boiler =  H_out - H_in - Q_condenser
-        H_out_boiler = reboiler.outs[0].H
-        liquid_in = reboiler.ins[0]
-        vapor = reboiler.outs[0]
-        try:
-            liquid_in.H = H_out_boiler - Q_overall_boiler
-        except:
-            liq_T = liquid_in.bubble_point_at_P(lle=self._vlle).T
-            if liq_T > vapor.T: liq_T = vapor.T - 0.1
-            vapor.T = liq_T
-            Q_boiler = reboiler.outs[0].H - reboiler.ins[0].H
-            boiler_kwargs = dict(duty=Q_boiler)     
+        if self.use_overall_energy_balance:
+            H_out = self.H_out
+            H_in = self.H_in
+            Q_overall_boiler =  H_out - H_in - Q_condenser
+            H_out_boiler = reboiler.outs[0].H
+            liquid_in = reboiler.ins[0]
+            vapor = reboiler.outs[0]
+            try:
+                liquid_in.H = H_out_boiler - Q_overall_boiler
+            except:
+                liq_T = liquid_in.bubble_point_at_P(lle=self._vlle).T
+                if liq_T > vapor.T: liq_T = vapor.T - 0.1
+                vapor.T = liq_T
+                Q_boiler = reboiler.outs[0].H - reboiler.ins[0].H
+                boiler_kwargs = dict(duty=Q_boiler)     
+            else:
+                boiler_kwargs = dict(duty=Q_overall_boiler)
         else:
-            boiler_kwargs = dict(duty=Q_overall_boiler)
+            Q_boiler = reboiler.outs[0].H - reboiler.ins[0].H
+            boiler_kwargs = dict(duty=Q_boiler)
         self.pump.ins[0].copy_like(liquid_in)
         self.pump.simulate()
         reboiler.simulate(
