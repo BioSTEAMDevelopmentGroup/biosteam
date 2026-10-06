@@ -471,6 +471,8 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         sparged_gas.T = vent.T = effluent.T = self.T
         vent.phase = 'g'
         liquid_feeds = [i for i in self.ins if i.phase == 'l']
+        normal_feeds = self.normal_feeds
+        normal_liquid_feeds = [i for i in normal_feeds if i.phase == 'l']
         
         if not self.titer:
             # Titer is given by the mass transfer; only one substrate is limiting,
@@ -484,7 +486,8 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             # Titer given, must adjust liquid flow so that STR meets SUR.
             # Only one substrate is limiting which gives 1 equation and 1 unknown.
             F_substrates = sum([i.get_flow(units='mol/s', key=self.gas_substrates) for i in self.ins])
-            F_liquid_max = self._initialize_controlled_liquid_guess(effluent)
+            F_liquid_baseline = sum([i.F_mass for i in normal_liquid_feeds])
+            F_liquid_max = self._initialize_controlled_liquid_guess(effluent) - F_liquid_baseline
             product, titer = next(iter(self.titer.items()))
             try:
                 controlled_liquid_feed, = controlled_liquid_feeds
@@ -603,7 +606,8 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             except:
                 raise RuntimeError('cannot have more than one controlled liquid feed')
             effluent.mix_flows(liquid_feeds)
-            F_liquid_max = self._initialize_controlled_liquid_guess(effluent, maxflow=True)
+            F_liquid_baseline = sum([i.F_mass for i in normal_liquid_feeds])
+            F_liquid_max = self._initialize_controlled_liquid_guess(effluent, maxflow=True) - F_liquid_baseline
             controlled_liquid_feed.F_mass = F_liquid_max
             SURs = self._group_substrate_flows(self.get_SURs(F_liquid_max / 1000)) # Gas substrate uptake rate [mol / s]
             baseline_flows = self._get_grouped_substrate_flows(self.normal_feeds)
