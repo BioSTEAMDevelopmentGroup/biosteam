@@ -731,7 +731,7 @@ class TEA:
     @property
     def TCI(self) -> float:
         """Total capital investment [USD]."""
-        return (1. + self.WC_over_FCI)*self.FCI
+        return (1. + self.WC_over_FCI) * self.FCI
     @property
     def FOC(self) -> float:
         """Fixed operating costs [USD/yr]."""
