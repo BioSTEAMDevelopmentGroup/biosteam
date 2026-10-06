@@ -246,7 +246,7 @@ class AeratedBioreactor(AbstractStirredTankReactor):
             R = 0.5 * D
             A = pi * R * R
             self.superficial_gas_flow = U = F / A # m / s 
-            return aeration.kLa_stirred_Riet(P, V, U, **self.kLa_kwargs) # 1 / s 
+            kLa = aeration.kLa_stirred_Riet(P, V, U, **self.kLa_kwargs) # 1 / s 
         elif self.kLa is aeration.kla_bubcol_Dewes:
             V = self.get_design_result('Reactor volume', 'm3') * self.V_wf
             operating_time = self.tau / self.design_results.get('Batch time', 1.)
@@ -258,13 +258,11 @@ class AeratedBioreactor(AbstractStirredTankReactor):
             A = pi * R * R
             self.superficial_gas_flow = U = F / A # m / s 
             feed = self.ins[0]
-            try:
-                return aeration.kla_bubcol_Dewes(U, feed.get_property('mu', 'mPa*s'), air_in.get_property('rho', 'kg/m3'))
-            except:
-                breakpoint()
+            kLa = aeration.kla_bubcol_Dewes(U, feed.get_property('mu', 'mPa*s'), air_in.get_property('rho', 'kg/m3'))
         else:
             raise NotImplementedError('kLa method has not been implemented in BioSTEAM yet')
-    
+        return kLa * self.kLa_correction_factor if hasattr(self, 'kLa_correction_factor') else kLa
+            
     def get_agitation_power(self, kLa):
         if self.kLa is aeration.kLa_stirred_Riet:
             air_in = self.sparged_gas
