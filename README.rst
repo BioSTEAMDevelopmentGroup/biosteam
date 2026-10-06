@@ -8,6 +8,9 @@ BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
 .. image:: http://img.shields.io/badge/docs-latest-brightgreen.svg?style=flat
    :target: https://biosteam.readthedocs.io/en/latest/
    :alt: Documentation
+.. image:: https://github.com/BioSTEAMDevelopmentGroup/biosteam/actions/workflows/build.yml/badge.svg
+   :target: https://github.com/BioSTEAMDevelopmentGroup/biosteam/actions/workflows/build.yml
+   :alt: Build
 .. image:: http://img.shields.io/badge/license-UIUC-blue.svg?style=flat
    :target: https://github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
    :alt: license
