@@ -148,10 +148,12 @@ class InternalCirculationRx(bst.MixTank):
 
     @staticmethod
     def _degassing(original_stream, receiving_stream):
-        gases = tuple(i.ID for i in original_stream.chemicals if i.locked_state=='g')
-        receiving_stream.imass[gases] += original_stream.imass[gases]
-        original_stream.imass[gases] = 0
-
+        chemicals = original_stream.chemicals
+        process_gases = [i.ID for i in chemicals if i.locked_state=='g']
+        other_gases = [i for i in ('CO2', 'O2', 'N2', 'CO', 'H2') if i in chemicals]
+        for gases in (process_gases, other_gases):
+            receiving_stream.imass[gases] += original_stream.imass[gases]
+            original_stream.imass[gases] = 0
 
     @staticmethod
     def compute_COD(stream):
