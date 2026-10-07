@@ -928,13 +928,13 @@ class Distillation(Unit, isabstract=True):
         condenser = self.condenser
         Q_condenser = condenser.outs[0].H - condenser.ins[0].H
         condenser_kwargs = dict(duty=Q_condenser)
+        liquid_in = reboiler.ins[0]
+        vapor = reboiler.outs[0]
         if self.use_overall_energy_balance:
             H_out = self.H_out
             H_in = self.H_in
             Q_overall_boiler =  H_out - H_in - Q_condenser
             H_out_boiler = reboiler.outs[0].H
-            liquid_in = reboiler.ins[0]
-            vapor = reboiler.outs[0]
             try:
                 liquid_in.H = H_out_boiler - Q_overall_boiler
             except:
@@ -946,8 +946,9 @@ class Distillation(Unit, isabstract=True):
             else:
                 boiler_kwargs = dict(duty=Q_overall_boiler)
         else:
-            Q_boiler = reboiler.outs[0].H - reboiler.ins[0].H
+            Q_boiler = vapor.H - liquid_in.H
             boiler_kwargs = dict(duty=Q_boiler)
+            liquid_in = reboiler.ins[0]
         self.pump.ins[0].copy_like(liquid_in)
         self.pump.simulate()
         reboiler.simulate(
