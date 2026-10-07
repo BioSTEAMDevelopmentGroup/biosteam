@@ -426,7 +426,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             self._run_reactions(effluent)
             vent.copy_flow(self.sparged_gas)
             vent.imol[gas_substrates] = remaining * 3.6 # mol / s -> kmol / hr
-            self._run_vent(vent, effluent) 
+            self._run_vent(vent, effluent)
             return np.minimum(self.get_STRs(), F_substrates)
         
         flx.aitken(f, self.get_STRs(), xtol=1e-6, maxiter=1000, 
