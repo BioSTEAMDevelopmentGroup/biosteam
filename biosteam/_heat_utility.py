@@ -34,6 +34,31 @@ energy_basis_units = UnitsOfMeasure('kJ')
 
 # %% Utility agents
 
+def stream_to_agent(
+        stream,
+        T_limit: Optional[float]=None,
+        heat_transfer_price: float=0.,
+        regeneration_price: float=0.,
+        heat_transfer_efficiency: float=1.,
+        isfuel: bool=False,
+        dT: Optional[float]=0,
+    ):
+    return UtilityAgent(
+        ID=stream.ID,
+        flow=stream.mol,
+        phase=stream.phase,
+        T=stream.T,
+        P=stream.T,
+        thermo=stream.thermo, 
+        T_limit=T_limit,
+        heat_transfer_price=heat_transfer_price,
+        regeneration_price=regeneration_price,
+        heat_transfer_efficiency=heat_transfer_efficiency,
+        isfuel=isfuel,
+        dT=dT,
+    )
+Stream.to_agent = stream_to_agent
+
 @unregistered
 class UtilityAgent(Stream):
     """
@@ -82,22 +107,24 @@ class UtilityAgent(Stream):
                  '_regeneration_price', 'heat_transfer_efficiency', 'isfuel',
                  'dT')
     def __init__(self, 
-                 ID: Optional[str]='',
-                 phase: Optional[str]='l',
-                 T: Optional[float]=298.15,
-                 P: Optional[float]=101325.,
-                 units: Optional[str]=None,
-                 thermo: Optional[Thermo]=None, 
-                 T_limit: Optional[float]=None,
-                 heat_transfer_price: float=0.,
-                 regeneration_price: float=0.,
-                 heat_transfer_efficiency: float=1.,
-                 isfuel: bool=False,
-                 dT: Optional[float]=0,
-                 **chemical_flows: float,):
+            ID: Optional[str]='',
+            flow: Optional[Sequence[float] | Sequence[tuple[str, float]]]=None,
+            phase: Optional[str]='l',
+            T: Optional[float]=298.15,
+            P: Optional[float]=101325.,
+            units: Optional[str]=None,
+            thermo: Optional[Thermo]=None, 
+            T_limit: Optional[float]=None,
+            heat_transfer_price: float=0.,
+            regeneration_price: float=0.,
+            heat_transfer_efficiency: float=1.,
+            isfuel: bool=False,
+            dT: Optional[float]=0,
+            **chemical_flows: float,
+        ):
         self._thermal_condition = ThermalCondition(T, P)
         thermo = self._load_thermo(thermo)
-        self._init_indexer(None, phase, thermo.chemicals, chemical_flows)
+        self._init_indexer(flow, phase, thermo.chemicals, chemical_flows)
         if units is not None:
             name, factor = self._get_flow_name_and_factor(units)
             flow = getattr(self, name)
