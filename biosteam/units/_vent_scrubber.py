@@ -35,6 +35,12 @@ class VentScrubber(Unit):
         bottoms.copy_flow(vent_exit, self.gas,
                           remove=True, exclude=True)
         bottoms.mix_from([bottoms, water], energy_balance=False)
+        F_other = vent_exit.F_mol
+        Psat = self.chemicals.Water.Psat(vent_exit.T)
+        P = vent_exit.P
+        y_moisture = Psat / P
+        vent_exit.imass['Water'] = water = F_other * y_moisture / (1 - y_moisture)
+        bottoms.imass['Water'] -= water
         
     def _design(self):
         self.design_results['Flow rate'] = self._ins[1].F_mass
