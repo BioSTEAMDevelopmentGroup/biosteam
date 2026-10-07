@@ -65,6 +65,7 @@ from math import exp, log, sqrt
 from chemicals.identifiers import ChemicalDataDictionary
 import flexsolve as flx
 import biosteam as bst
+import numpy as np
 
 __all__ = (
     'C_L',
@@ -78,18 +79,25 @@ __all__ = (
     'WilkeChang_diffusion_coefficient',
 )
 
-def _vent_broth_iter(flows, stream, vent, broth, IDs):
-    stream.imol['lg', IDs] = flows
+def _vent_broth_iter(liq_flows, component_flows, vent, broth, IDs):
+    mask = liq_flows > component_flows
+    if mask.any(): liq_flows[mask] = component_flows[mask]
+    mask = liq_flows < 1e-24
+    if mask.any(): liq_flows[mask] = 1e-24
+    vent.imol[IDs] = component_flows - liq_flows
+    broth.imol[IDs] = liq_flows
     P_div_mol_g = vent.P / vent.F_mol / 1e5 # P in bar
     MT_L = broth.F_mass / 1000
-    for ID in IDs: 
-        total_kmol = broth.imol[ID] + vent.imol[ID]
+    for i, ID in enumerate(IDs): 
+        total_kmol = component_flows[i]
         Py = P_div_mol_g * vent.imol[ID] 
         mol_per_kg = C_L(vent.T, Py, ID)
         kmol = mol_per_kg * MT_L
+        if total_kmol < kmol: kmol = total_kmol
+        if kmol < 1e-24: kmol = 1e-24
         broth.imol[ID] = kmol
         vent.imol[ID] = total_kmol - kmol
-    return stream.imol['lg', IDs]
+    return broth.imol[IDs]
 
 def vent_broth(vent, broth, approx=False):
     """
@@ -111,12 +119,13 @@ def vent_broth(vent, broth, approx=False):
     mol_g = vent.F_mol
     if mol_g < 1e-9: return
     IDs = [i.ID for i in stream.vle_chemicals if i.ID in H_coefficients]
-    args = (stream, vent, broth, IDs)
+    component_flows = stream.imol[IDs]
+    args = (component_flows, vent, broth, IDs)
     if approx: 
-        stream.imol['lg', IDs] = _vent_broth_iter(stream.imol['lg', IDs], *args)
+        broth.imol[IDs] = _vent_broth_iter(broth.imol[IDs], *args)
     else:
-        stream.imol['lg', IDs] = flx.aitken(
-            _vent_broth_iter, stream.imol['lg', IDs], args=args, xtol=1e-9
+        flx.aitken(
+            _vent_broth_iter, broth.imol[IDs], args=args, xtol=1e-9, checkiter=False,
         )
             
 #: Henry's law coefficients. Data from NIST Standard Reference Database 69: NIST Chemistry WebBook:
