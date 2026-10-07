@@ -746,6 +746,7 @@ class Unit(AbstractUnit):
         self._outlet_utility_indices = {}
         self._inlet_cost_indices = {}
         self._outlet_revenue_indices = {}
+        self._flow_fractions = {}
         try: self.equipment_lifetime = copy(self._default_equipment_lifetime)
         except AttributeError: self.equipment_lifetime = {}
 
@@ -908,16 +909,21 @@ class Unit(AbstractUnit):
     
     define_fee = define_credit
     
+    def _get_flow_fractions(self):
+        """Return fee/credit fractions with any callables evaluated."""
+        return {name: fraction() if callable(fraction) else fraction
+                for name, fraction in self._flow_fractions.items()}
+
     def get_inlet_cost_flows(self):
         ins = self._ins._streams
         flows = {name: ins[index].F_mass for name, index in (self._inlet_utility_indices | self._inlet_cost_indices).items()}
-        for name, fraction in self._flow_fractions.items(): flows[name] *= fraction
+        for name, fraction in self._get_flow_fractions().items(): flows[name] *= fraction
         return flows
-    
+
     def get_outlet_revenue_flows(self):
         outs = self._outs._streams
         flows = {name: outs[index].F_mass for name, index in (self._outlet_utility_indices | self._outlet_revenue_indices).items()}
-        for name, fraction in self._flow_fractions.items(): flows[name] *= fraction
+        for name, fraction in self._get_flow_fractions().items(): flows[name] *= fraction
         return flows
     
     def get_design_and_capital(self):
@@ -1370,7 +1376,7 @@ class Unit(AbstractUnit):
             + sum([s.F_mass * prices[name] for name, index in self._inlet_utility_indices.items() if (s:=ins[index]).price == 0.])
             - sum([s.F_mass * prices[name] for name, index in self._outlet_utility_indices.items() if (s:=outs[index]).price == 0.])
         )
-        fractions = self._flow_fractions
+        fractions = self._get_flow_fractions()
         self._inlet_cost = sum(
             [(fractions[name] * ins[index].F_mass * prices[name]
               if name in fractions 
