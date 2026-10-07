@@ -1870,6 +1870,7 @@ class System:
             for facility in facilities
             for outlet in facility.outs
             if outlet.sink in units
+            and any([i.source in units for i in facility.ins])
         ]
         if recycles:
             self._integrated_facilities = True
