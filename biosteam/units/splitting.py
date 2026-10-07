@@ -291,10 +291,22 @@ class ReversedSplitter(Unit):
     heat_utilities = ()
     results = None
     
+    def _setup(self):
+        super()._setup()
+        inlet, = self.ins
+        outlets = self.outs
+        T = inlet.T
+        P = inlet.P
+        phase = inlet.phase
+        for out in outlets:
+            out.T = T
+            out.P = P
+            out.phase = phase 
+    
     def _run(self):
         inlet, = self.ins
         outlets = self.outs
-        reversed_split(inlet, outlets)
+        inlet.mol[:] = sum([i.mol for i in outlets])
 
 
 def reversed_split(inlet, outlets):
