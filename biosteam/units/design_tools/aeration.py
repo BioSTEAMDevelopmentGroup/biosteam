@@ -94,7 +94,7 @@ def _vent_broth_iter(liq_flows, component_flows, vent, broth, IDs):
         mol_per_kg = C_L(vent.T, Py, ID)
         kmol = mol_per_kg * MT_L
         if total_kmol < kmol: kmol = total_kmol
-        if kmol < 1e-24: kmol = 1e-24
+        if kmol < 1e-24: kmol = 0
         broth.imol[ID] = kmol
         vent.imol[ID] = total_kmol - kmol
     return broth.imol[IDs]
