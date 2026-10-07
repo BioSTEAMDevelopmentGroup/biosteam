@@ -446,7 +446,8 @@ class HXutility(HX):
             heat_transfer_efficiency=None,
             dP=None,
             estimate_pressure_drop=False,
-            furnace_pressure=None,  # [Pa] equivalent to 500 psig
+            furnace_pressure=None, # [Pa] equivalent to 500 psig
+            utility_agent=None,
         ):
         self.T = T  # : [float] Temperature of outlet stream (K).
         self.V = V  # : [float] Vapor fraction of outlet stream.
@@ -488,6 +489,9 @@ class HXutility(HX):
         #: Optional[float] Internal pressure of combustion gas. Defaults
         #: 500 psig (equivalent to 3548325.0 Pa)
         self.furnace_pressure = 500 if furnace_pressure is None else furnace_pressure
+        
+        #: Optional[UtilityAgent] Utility agent proving heating/cooling duty.
+        self.utility_agent = utility_agent
 
     @property
     def total_heat_transfer(self):
@@ -700,7 +704,8 @@ class HXutility(HX):
                 T_out = T_in
         self.add_heat_utility(duty, T_in, T_out,
                               heat_transfer_efficiency=self.heat_transfer_efficiency,
-                              hxn_ok=True)
+                              hxn_ok=True,
+                              agent=self.utility_agent)
         super()._design()
 
 class HXutilities(Unit):
