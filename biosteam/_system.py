@@ -3362,7 +3362,7 @@ class System:
                 )
             
     def simulate(self, update_configuration: Optional[bool]=None, units=None, 
-                 design_and_cost=None, **kwargs):
+                 design_and_cost=None, save_configuration: Optional[bool]=True, **kwargs):
         """
         If system is dynamic, run the system dynamically. Otherwise, converge 
         the path of unit operations to steady state. After running/converging 
@@ -3454,6 +3454,7 @@ class System:
                                 **kwargs
                             ) 
                 self._simulation_outputs = outputs
+        if save_configuration: self._save_configuration()
         return outputs
 
     def dynamic_run(self, **dynsim_kwargs):
