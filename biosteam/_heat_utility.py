@@ -20,6 +20,7 @@ from math import copysign
 from collections import deque
 from typing import Optional, TYPE_CHECKING, Iterable, Literal, Sequence
 import pandas as pd
+import biosteam as bst
 if TYPE_CHECKING: from biosteam import Unit
 
 __all__ = ('HeatUtility', 'UtilityAgent')
@@ -48,7 +49,7 @@ def stream_to_agent(
         flow=stream.mol,
         phase=stream.phase,
         T=stream.T,
-        P=stream.T,
+        P=stream.P,
         thermo=stream.thermo, 
         T_limit=T_limit,
         heat_transfer_price=heat_transfer_price,
@@ -885,15 +886,20 @@ class HeatUtility:
         heat_transfer_efficiency = self.heat_transfer_efficiency or agent.heat_transfer_efficiency
         duty = unit_duty / heat_transfer_efficiency
         if agent.isfuel:
+            # Combustion
             T_emissions = self.get_outlet_temperature(
                 T_pinch_out, agent.T_limit, iscooling
             )
             feed = self.inlet_utility_stream
             emissions = self.outlet_utility_stream
-            emissions.copy_like(feed)
-            emissions.P = 101325
+            emissions.copy_flow(feed)
+            emissions.phase = 'g'
+            emissions.T = T_emissions
+            emissions.P = 3548325.0 # 500 psig
             reactions = agent.chemicals.get_combustion_reactions()
             reactions.force_reaction(emissions)
+            
+            # Add oxygen
             O2_consumption = -emissions.imol['O2']
             oxygen_rich_gas = self.oxygen_rich_inlet
             z_O2 = oxygen_rich_gas.imol['O2'] / oxygen_rich_gas.F_mol
@@ -906,9 +912,24 @@ class HeatUtility:
             dF_emissions = F_emissions_new - F_emissions
             oxygen_rich_gas.F_mass = F_mass_O2_new = oxygen_rich_gas.F_mass + dF_emissions
             emissions.mol += oxygen_rich_gas.mol * (dF_emissions / F_mass_O2_new)
-            emissions.T = T_emissions
-            emissions.P = 3548325.0 # 500 psig
-            dh = feed.Hnet - emissions.Hnet
+            
+            # Preheat the air
+            emissions_out0 = emissions.copy()
+            oxygen_rich_gas_out = oxygen_rich_gas.copy()
+            bst.units.design_tools.heat_transfer.counter_current_heat_exchange(
+                emissions, oxygen_rich_gas, emissions_out0, oxygen_rich_gas_out,
+                dT=5,
+            )
+            # Preheat the feed
+            feed_out = feed.copy()
+            emissions_out1 = emissions_out0.copy()
+            emissions_out1.P = 101325
+            bst.units.design_tools.heat_transfer.counter_current_heat_exchange(
+                feed, emissions_out0, feed_out, emissions_out1,
+                dT=5,
+            )
+            dh = feed_out.Hnet + oxygen_rich_gas_out.Hnet - emissions.Hnet
+            emissions.copy_like(emissions_out1)
         elif agent.T_limit:
             # Temperature change
             self.outlet_utility_stream.T = T_outlet = self.get_outlet_temperature(
@@ -928,7 +949,7 @@ class HeatUtility:
         F_mol = duty / dh
         self.inlet_utility_stream.mol[:] *= F_mol
         if agent.isfuel: 
-            emissions.mol[:] *= F_mol
+            emissions.F_mol *= F_mol
             oxygen_rich_gas.mol[:] *= F_mol
         
         # Update results
@@ -1054,7 +1075,7 @@ class HeatUtility:
             self.inlet_utility_stream = agent.to_stream()
             if agent.isfuel:
                 self.outlet_utility_stream = agent.to_stream()
-                self.oxygen_rich_inlet = Stream(O2=21, N2=79, phase='g', units='kg/hr', thermo=agent.thermo)
+                self.oxygen_rich_inlet = Stream(O2=21, N2=79, phase='g', units='kmol/hr', thermo=agent.thermo)
             else:
                 self.outlet_utility_stream = self.inlet_utility_stream.flow_proxy()
         self.agent = agent
