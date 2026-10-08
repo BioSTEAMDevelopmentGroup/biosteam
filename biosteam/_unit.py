@@ -917,13 +917,13 @@ class Unit(AbstractUnit):
     def get_inlet_cost_flows(self):
         ins = self._ins._streams
         flows = {name: ins[index].F_mass for name, index in (self._inlet_utility_indices | self._inlet_cost_indices).items()}
-        for name, fraction in self._get_flow_fractions().items(): flows[name] *= fraction
+        for name, fraction in self._flow_fractions.items(): flows[name] *= fraction() if callable(fraction) else fraction
         return flows
 
     def get_outlet_revenue_flows(self):
         outs = self._outs._streams
         flows = {name: outs[index].F_mass for name, index in (self._outlet_utility_indices | self._outlet_revenue_indices).items()}
-        for name, fraction in self._get_flow_fractions().items(): flows[name] *= fraction
+        for name, fraction in self._flow_fractions.items(): flows[name] *= fraction() if callable(fraction) else fraction
         return flows
     
     def get_design_and_capital(self):
