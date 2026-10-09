@@ -68,15 +68,22 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     backward_reactions :
         Backwards reactions to get the substrate mass transfer requirement.
     controlled_gas_feeds :
-        Feeds that can be varied to meet mass transfer requirement.
+        Feeds that can be varied to meet mass transfer requirement. In the case
+        that `stoichiometric_feeds` is True, controlled gas feeds are adjusted
+        to meet the theoretical stoichiometric consumption.
     theta : 
         Fraction of gas substrate saturation in the broth. Defaults to 0.5.
     Q_consumption :
         Forced duty per gas substrate consummed [kJ/kmol].
-    optimize_power :
-        If true, the agitator power is solved to minimize the total power 
-        requirement of both the compressor and agitator such that the 
-        required oxygen transfer rate is met.
+    conversion :
+        Fraction of gas substrates converted. If given, the length to diameter
+        solved such that the conversion is met or reaches as close as possible. 
+    length_to_diameter_bounds :
+        Bounds for length of diameter. Defaults to (1, 12) if conversion is given.
+    stoichiometric_feeding :
+        Whether to adjust controlled gas feeds to their theoretical stoichiometric
+        consumption. Defaults to False, in which case controlled gas feeds are 
+        varied to meet the mass transfer requirement.
     design : 
         Bioreactor design configuration. Valid options include 'Stirred tank'
         and 'Bubble column'. Defaults to the former.
@@ -266,6 +273,9 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             theta=0.5, Q_consumption=None,
             cooler_pressure_drop=None,
             compressor_isentropic_efficiency=None,
+            conversion=None,
+            length_to_diameter_bounds=None,
+            stoichiometric_feeding=None,
             **kwargs,
         ):
         if compressor_isentropic_efficiency is None: compressor_isentropic_efficiency = 0.85
@@ -318,6 +328,13 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                 f"{method!r} is not a valid kLa method; only "
                 f"{aeration.kLa_method_names[design]} are valid"
             )
+            
+        self.conversion = conversion
+        self.stoichiometric_feeding = bool(stoichiometric_feeding)
+        if length_to_diameter_bounds is None and conversion is not None: 
+            length_to_diameter_bounds = (1, 12)
+        self.length_to_diameter_bounds = length_to_diameter_bounds
+        
     
     def _get_duty(self):
         if self.Q_consumption is None:
@@ -397,8 +414,8 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     
     def _get_grouped_substrate_flows(self, streams):
         return self._group_substrate_flows(
-            sum([i.get_flow('mol/s', self.gas_substrates) for i in streams])
-        ) / 3.6
+            sum([i.imol[self.gas_substrates] for i in streams])
+        ) / 3.6 # mol / s
     
     def _group_substrate_flows(self, F_substrates):
         if self.funneling_reactions is None: return F_substrates
@@ -432,35 +449,32 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         flx.aitken(f, self.get_STRs(), xtol=1e-6, maxiter=1000, 
                    checkiter=False, checkconvergence=False)
         
-    # def plot_surface_response(self):
-    #     self._setup()
-        
-    #     # Insert code here 
-    #     f = lambda x, y: gas_flow_rate_objective(np.array([x, y]))
-        
-    #     width = 6.6142
-    #     aspect_ratio = 0.4
-    #     rcParams['figure.figsize'] = (width, width * aspect_ratio)
-        
-    #     xlim = [guess[0] * 0.2, guess[0] * 5]
-    #     ylim = [guess[1] * 0.2, guess[1] * 5]
-    #     X, Y, Z = bst.plots.generate_contour_data(
-    #         f, xlim=xlim, ylim=ylim, n=20,
-    #     )
-    #     breakpoint()
-    #     # Plot contours
-    #     xlabel = "X"
-    #     ylabel = 'Y'
-    #     metric_bar = bst.plots.MetricBar(
-    #         'Error', '', colormaps['viridis_r'],
-    #         None, 15, 1
-    #     )
-    #     fig, axes, CSs, CB, other_axes = bst.plots.plot_contour_single_metric(
-    #         X, Y, Z, xlabel, ylabel, None, None, metric_bar,
-    #         fillcolor=None, styleaxiskw=dict(xtick0=False), label=True,
-    #     )
-            
     def _run(self):
+        if self.conversion is None:
+            self._run_without_conversion_specification()
+        else:
+            conversion = self.conversion
+            if not (0 < conversion < 1):
+                raise RuntimeError('conversion must be between 0 and 1')
+            
+            def f(L2D): # objective
+                self.length_to_diameter = L2D
+                self._run_without_conversion_specification()
+                gas_substrates = self.gas_substrates
+                return self.conversion - (1 - 
+                    sum([i.imass[gas_substrates].sum() for i in self.outs])
+                    / sum([i.imass[gas_substrates].sum() for i in self.ins])
+                )
+            
+            x0, x1 = self.length_to_diameter_bounds
+            x = self.length_to_diameter
+            y1 = f(x1)
+            if y1 < 0: # Maximum is high enough
+                y0 = f(x0)
+                if y0 > 0: # Minimum is low enough 
+                    flx.IQ_interpolation(f, x0, x1, x, ytol=1e-6, xtol=1e-2)
+        
+    def _run_without_conversion_specification(self):
         controlled_feeds = self.controlled_feeds
         controlled_gas_feeds = [i for i in controlled_feeds if i.phase == 'g']
         controlled_liquid_feeds = [i for i in controlled_feeds if i.phase == 'l']
@@ -496,7 +510,6 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             titer /= 1000
             self._update_gas_feeds()
             def liquid_flow_rate_objective(F_feed):
-                if F_feed < 0: F_feed = 1e-6
                 controlled_liquid_feed.F_mass = F_feed
                 self._update_liquid_feed()
                 self._run_without_titer_specification(effluent, vent, liquid_feeds, F_substrates)
@@ -563,107 +576,148 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                 self._run_vent(vent, effluent)
                 return
             index = range(len(controlled_gas_substrates))
-            baseline_flows = self._get_grouped_substrate_flows(self.normal_feeds)
             if funneling_reactions is None:
+                baseline_flows = self._get_grouped_substrate_flows(self.normal_feeds)
+                
                 # Each feed directly controls a gas substrate
                 x_substrates = []
                 for gas, ID in zip(self.controlled_gas_feeds, controlled_gas_substrates):
                     x_substrates.append(gas.get_molar_fraction(ID))
                 
-                guess = 1.01 * SURs / x_substrates - baseline_flows
+                F_min = SURs / x_substrates - baseline_flows
             else:
+                normal_feed = bst.Stream(None)
+                normal_feed.mix_flows(self.normal_feeds)
+                self.funneling_reactions.force_reaction(normal_feed)
+                baseline_flows = self._group_substrate_flows(
+                    normal_feed.imol[self.gas_substrates]
+                ) / 3.6
+                
                 # A feed may contribute multiple gas substrates
                 controlled_gas_feeds = self.controlled_gas_feeds
                 coefficients = np.zeros([len(controlled_gas_substrates), len(controlled_gas_feeds)])
-                for i, gas in enumerate(controlled_gas_substrates):
-                    for j, stream in enumerate(controlled_gas_feeds):
-                        reacted = stream.copy()
-                        funneling_reactions.force_reaction(reacted)
-                        coefficients[i, j] = reacted.imol[gas] / stream.F_mol
-                F_min = np.linalg.solve(coefficients, SURs - baseline_flows)
-                guess = 1.01 * F_min
-            
-            def gas_flow_rate_objective(F_feeds):
-                F_feeds[F_feeds < 0] *= -1
-                for i in index: controlled_gas_feeds[i].set_total_flow(F_feeds[i], 'mol/s')
+                for j, stream in enumerate(controlled_gas_feeds):
+                    reacted = stream.copy()
+                    funneling_reactions.force_reaction(reacted)
+                    coefficients[:, j] = reacted.imol[controlled_gas_substrates] / stream.F_mol
+                F_min = np.linalg.solve(coefficients, SURs - baseline_flows) # Requirement at 100% conversion
+            F_min[F_min < 0] = 0
+            if self.stoichiometric_feeding:
+                for i in index: controlled_gas_feeds[i].set_total_flow(F_min[i], 'mol/s')
                 self._update_gas_feeds()
                 self._run_without_titer_specification(effluent, vent, liquid_feeds)
-                STRs = self._group_substrate_flows(self._STRs_last) # Must meet all substrate demands
-                diff = SURs - STRs
-                self._run_without_titer_specification(effluent, vent, liquid_feeds)
-                return diff
-            
-            f = gas_flow_rate_objective
-            with catch_warnings():
-                filterwarnings('ignore')
-                results = fsolve(
-                    f, guess, full_output=True, maxfev=500, xtol=1e-9
-                )
-            self._convergence = results
+            else:
+                def gas_flow_rate_objective(F_feeds):
+                    F_feeds[F_feeds < 0] *= -1
+                    for i in index: controlled_gas_feeds[i].set_total_flow(F_feeds[i], 'mol/s')
+                    self._update_gas_feeds()
+                    self._run_without_titer_specification(effluent, vent, liquid_feeds)
+                    STRs = self._group_substrate_flows(self._STRs_last) # Must meet all substrate demands
+                    diff = SURs - STRs
+                    self._run_without_titer_specification(effluent, vent, liquid_feeds)
+                    return diff
+                
+                f = gas_flow_rate_objective
+                with catch_warnings():
+                    filterwarnings('ignore')
+                    results = fsolve(
+                        f, guess = 1.01 * F_min, full_output=True, maxfev=500, xtol=1e-9
+                    )
+                self._convergence = results
         elif controlled_liquid_feeds and controlled_gas_feeds: 
             try:
                 controlled_liquid_feed, = controlled_liquid_feeds
             except:
                 raise RuntimeError('cannot have more than one controlled liquid feed')
-            effluent.mix_flows(liquid_feeds)
             F_liquid_baseline = sum([i.F_mass for i in normal_liquid_feeds])
-            F_liquid_max = self._initialize_controlled_liquid_guess(effluent, maxflow=True) - F_liquid_baseline
+            F_liquid_max = self._initialize_controlled_liquid_guess(effluent) - F_liquid_baseline
             controlled_liquid_feed.F_mass = F_liquid_max
             SURs = self._group_substrate_flows(self.get_SURs(F_liquid_max / 1000)) # Gas substrate uptake rate [mol / s]
-            baseline_flows = self._get_grouped_substrate_flows(self.normal_feeds)
             if funneling_reactions is None:
+                baseline_flows = self._get_grouped_substrate_flows()
+                
                 # Each feed directly controls a gas substrate
                 x_substrates = []
                 subset = []
                 for i, (stream, gas) in enumerate(zip(controlled_feeds, controlled_gas_substrates)):
-                    if stream.phase != 'g': continue
-                    subset.append(i)
-                    x_substrates.append(stream.get_molar_fraction(gas))
+                    if stream.phase == 'g': 
+                        subset.append(i)
+                        x_substrates.append(stream.get_molar_fraction(gas))
                 F_min = SURs[subset] / x_substrates - baseline_flows[subset]
             else:
-                # A feed may contribute multiple gas substrates
-                coefficients = []
-                subset = []
-                for gas in controlled_gas_substrates:
-                    row = []
-                    coefficients.append(row)
-                    for stream in controlled_feeds:
-                        if stream.phase != 'g': continue
-                        reacted = stream.copy()
-                        funneling_reactions.force_reaction(reacted)
-                        row.append(reacted.imol[gas] / stream.F_mol)
-                for i, (stream, gas) in enumerate(zip(controlled_feeds, controlled_gas_substrates)):
-                    if stream.phase != 'g': continue
-                    subset.append(i)
-                coefficients = np.array(coefficients)
-                F_min = np.linalg.solve(coefficients[subset], SURs[subset] - baseline_flows[subset]) 
+                normal_feed = bst.Stream(None)
+                normal_feed.mix_flows(self.normal_feeds)
+                self.funneling_reactions.force_reaction(normal_feed)
+                baseline_flows = self._group_substrate_flows(
+                    normal_feed.imol[self.gas_substrates]
+                ) / 3.6
                 
+                # A feed may contribute multiple gas substrates
+                coefficients = np.zeros([len(controlled_gas_substrates) - 1, len(controlled_gas_feeds)])
+                index = [i for i, j in enumerate(controlled_feeds) if j.phase == 'g']
+                gas_subset = [controlled_gas_substrates[i] for i in index]
+                for j, stream in enumerate(controlled_gas_feeds):
+                    reacted = stream.copy()
+                    funneling_reactions.force_reaction(reacted)
+                    coefficients[:, j] = reacted.imol[gas_subset] / stream.F_mol
+                F_min = np.linalg.solve(coefficients, SURs[index] - baseline_flows[index]) # Requirement at 100% conversion
+            F_min[F_min < 0] = 0
             index = range(N_controlled - 1)
-            def gas_flow_rate_objective(F_controlled):
-                F_controlled[F_controlled < 0] *= -1 
-                for i in index:
-                    gas = controlled_gas_feeds[i]
-                    gas.set_total_flow(F_controlled[i], 'mol/s')
-                controlled_liquid_feed.F_mass = F_liq = F_controlled[-1]
+            if self.stoichiometric_feeding:
+                # Titer given, must adjust liquid flow so that titer is met at stoichiometric feeding.
+                product, titer = next(iter(self.titer.items()))
+                titer /= 1000
+                for i in index: controlled_gas_feeds[i].set_total_flow(F_min[i], 'mol/s')
                 F_substrates = sum([
                     i.imol[self.gas_substrates]
                     for i in self.ins
                 ]) / 3.6 # mol / s
-                self._update_liquid_feed()
                 self._update_gas_feeds()
-                self._run_without_titer_specification(effluent, vent, liquid_feeds, F_substrates)
-                SURs = self._group_substrate_flows(self.get_SURs(F_liq / 1000)) # Gas substrate uptake rate [mol / s]
-                STRs = self._group_substrate_flows(self._STRs_last) # Must meet all substrate demands
-                return SURs - STRs
-            
-            f = gas_flow_rate_objective
-            guess = np.array([*F_min, F_liquid_max])
-            with catch_warnings():
-                filterwarnings('ignore')
-                results = fsolve(
-                    f, guess, full_output=True, maxfev=500, xtol=1e-9
-                )
-            self._convergence = results
+                
+                def f(F_feed): # liquid_flow_rate_objective
+                    controlled_liquid_feed.F_mass = F_feed
+                    self._update_liquid_feed()
+                    self._run_without_titer_specification(effluent, vent, liquid_feeds, F_substrates)
+                    F_product = vent.imass[product] + effluent.imass[product]
+                    return F_product / F_feed - titer
+                
+                x0 = 0.01 * F_liquid_max
+                x1 = F_liquid_max
+                y0 = f(x0)
+                if y0 > 0: # Minimim titer is low enough
+                    y1 = f(x1)
+                    if y1 < 0: # Maximum titer is high enough
+                        flx.IQ_interpolation(
+                            f, x0, x1, y0, y1,
+                            xtol=1e-9 * F_liquid_max, ytol=1e-9,
+                            checkbounds=False,
+                        )
+            else:
+                def gas_flow_rate_objective(F_controlled):
+                    F_controlled[F_controlled < 0] *= -1 
+                    for i in index:
+                        gas = controlled_gas_feeds[i]
+                        gas.set_total_flow(F_controlled[i], 'mol/s')
+                    controlled_liquid_feed.F_mass = F_liq = F_controlled[-1]
+                    F_substrates = sum([
+                        i.imol[self.gas_substrates]
+                        for i in self.ins
+                    ]) / 3.6 # mol / s
+                    self._update_liquid_feed()
+                    self._update_gas_feeds()
+                    self._run_without_titer_specification(effluent, vent, liquid_feeds, F_substrates)
+                    SURs = self._group_substrate_flows(self.get_SURs(F_liq / 1000)) # Gas substrate uptake rate [mol / s]
+                    STRs = self._group_substrate_flows(self._STRs_last) # Must meet all substrate demands
+                    return SURs - STRs
+                
+                f = gas_flow_rate_objective
+                guess = np.array([*F_min, F_liquid_max])
+                with catch_warnings():
+                    filterwarnings('ignore')
+                    results = fsolve(
+                        f, guess, full_output=True, maxfev=500, xtol=1e-9
+                    )
+                self._convergence = results
         else:
             raise RuntimeError('cannot satisfy titer specification without controlled feeds')
         
@@ -673,18 +727,6 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             data = effluent.get_data()
             rxns = self.reactions
             rxns.force_reaction(effluent)
-            for reactant in self.gas_substrates:
-                if effluent.imol[reactant] > 0:
-                    if isinstance(rxns, bst.Rxn):
-                        rxns.reactant = reactant
-                    else:
-                        for rxn in rxns:
-                            if rxn.istoichiometry[reactant] < 0:
-                                rxn.reactant = reactant
-                
-                    effluent.set_data(data)
-                    rxns.force_reaction(effluent)
-                    break
         else:
             data = effluent.get_data()
             rxns = self.reactions
@@ -692,19 +734,24 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             for reactant in self.gas_substrates:
                 if effluent.imol[reactant] < 0:
                     if isinstance(rxns, bst.Rxn):
+                        original = rxns.reactant
                         rxns.reactant = reactant
+                        effluent.set_data(data)
+                        rxns.force_reaction(effluent)
+                        rxns.reactant = original
                     else:
+                        original = rxns.reactants
                         for rxn in rxns:
                             if rxn.istoichiometry[reactant] < 0:
                                 rxn.reactant = reactant
-                
-                    effluent.set_data(data)
-                    rxns.force_reaction(effluent)
+                        effluent.set_data(data)
+                        rxns.force_reaction(effluent)
+                        rxns.reactants = original
                     break
         
-    def _initialize_controlled_liquid_guess(self, effluent, maxflow=None):
-        effluent.mix_flows(self.ins)
-        self._run_reactions(effluent, maxflow)
+    def _initialize_controlled_liquid_guess(self, effluent):
+        effluent.mix_flows(self.normal_feeds)
+        self._run_reactions(effluent, True)
         product, titer = next(iter(self.titer.items()))
         F_liquid_max = 1000 * effluent.imass[product] / titer # kg / hr
         return F_liquid_max
