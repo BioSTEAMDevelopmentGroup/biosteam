@@ -469,9 +469,9 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
         hx_config = self.heat_exchanger_configuration
         if hx_config == 'jacketed':
             annular_diameter = self.jacket_annular_diameter * 3.28084 # Annular diameter [ft]
-            dct = self._vessel_design(P_psi, D, L, annular_diameter)
+            dct = self._vessel_design(P_psi, D, L, annular_diameter, check=not size_only)
         else:
-            dct = self._vessel_design(P_psi, D, L)
+            dct = self._vessel_design(P_psi, D, L, check=not size_only)
         Design.update(dct)
         self.vacuum_system = bst.VacuumSystem(self) if P_pascal < 1e5 else None
         self.parallel['self'] = N
