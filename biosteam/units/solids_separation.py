@@ -127,13 +127,28 @@ class SolidsCentrifuge(SolidsSeparator):
     centrifuge_type : str
         Type of the centrifuge, either 'reciprocating_pusher' (1-20 ton/hr solids)
         or 'scroll_solid_bowl' (2-40 ton/hr solids).
-    
+
+    Notes
+    -----
+    The purchase cost of each centrifuge is :math:`C_P = 68,040 S^{0.50}` for a
+    continuous scroll solid bowl and :math:`C_P = 170,100 S^{0.30}` for a
+    continuous reciprocating pusher (USD at CE = 567), where :math:`S` is the
+    solids loading of the centrifuge in ton/hr [1]_. When the total solids
+    loading exceeds the upper limit of the correlation, it is split evenly
+    across ``ceil(S_total/S_max)`` centrifuges in parallel.
+
     """
     _units = {'Solids loading': 'ton/hr',
               'Flow rate': 'm3/hr'}
     solids_loading_range = {
     'reciprocating_pusher': (1, 20),
     'scroll_solid_bowl': (2, 40)
+    }
+    #: Purchase cost coefficients (USD at CE = 567, exponent) of a single
+    #: centrifuge as a function of its solids loading in ton/hr.
+    purchase_cost_coefficients = {
+    'reciprocating_pusher': (170100, 0.30),
+    'scroll_solid_bowl': (68040, 0.50)
     }
     kWhr_per_m3 = 1.40
 
@@ -176,10 +191,13 @@ class SolidsCentrifuge(SolidsSeparator):
         lb, ub = self.solids_loading_range[centrifuge_type]
         if ts < lb:
             lb_warning(self, 'Solids loading', ts, 'ton/hr', lb)
-        self.design_results['Number of centrifuges'] = ceil(ts/ub)
-        cost = 68040*(ts**0.5) if centrifuge_type else 170100*(ts**0.3)
-        cost *= bst.CE / 567
-        self.baseline_purchase_costs['Centrifuges'] = cost
+        self.design_results['Number of centrifuges'] = N = ceil(ts/ub)
+        if N:
+            cost, n = self.purchase_cost_coefficients[centrifuge_type]
+            self.baseline_purchase_costs['Centrifuges'] = cost * (ts/N)**n * bst.CE / 567
+            self.parallel['Centrifuges'] = N
+        else:
+            self.baseline_purchase_costs['Centrifuges'] = 0.
         self.F_BM['Centrifuges'] = 2.03
         self.design_results['Flow rate'] = F_vol_in = self.F_vol_in
         self.power_utility(F_vol_in * self.kWhr_per_m3)
