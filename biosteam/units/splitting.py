@@ -137,6 +137,14 @@ class Splitter(Unit):
      Water    0.9
      Ethanol  0.8
 
+    A dictionary can be used as well. As when creating the splitter,
+    chemicals that are not given are set to 0:
+
+    >>> S1.split = {'Ethanol': 0.99}
+    >>> S1.isplit.show()
+    SplitIndexer:
+     Ethanol  0.99
+
     """
     _N_outs = 2
     _graphics = splitter_graphics
@@ -152,7 +160,12 @@ class Splitter(Unit):
     @split.setter
     def split(self, values):
         split = self.split
-        if split is not values:
+        if isinstance(values, dict):
+            # Reset split (default for missing components is zero; same rule used in _init)
+            split[:] = 0
+            IDs, values = zip(*values.items())
+            self._isplit[IDs] = values
+        else:
             split[:] = values
     
     def _init(self, split, order=None):
@@ -388,6 +401,9 @@ class Separator(Unit):
     def split(self, values):
         split = self.split
         if split is not values:
+            if isinstance(values, dict):
+                # Same rule as at creation: chemicals not given are set to 0
+                values = self.thermo.chemicals.isplit(values).data
             split[:] = values
     
     def _init(self, split, order=None, T=None, P=None, phases=None):
