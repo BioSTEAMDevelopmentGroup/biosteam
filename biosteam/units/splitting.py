@@ -160,10 +160,12 @@ class Splitter(Unit):
     @split.setter
     def split(self, values):
         split = self.split
-        if split is not values:
-            if isinstance(values, dict):
-                # Same rule as at creation: chemicals not given are set to 0
-                values = self.thermo.chemicals.isplit(values).data
+        if isinstance(values, dict):
+            # Reset split (default for missing components is zero; same rule used in _init)
+            split[:] = 0
+            IDs, values = zip(*values.items())
+            self._isplit[IDs] = values
+        else:
             split[:] = values
     
     def _init(self, split, order=None):
