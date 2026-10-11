@@ -47,7 +47,7 @@ import biosteam as bst
 import numpy as np
 import pandas as pd
 from numpy.linalg import solve
-from scipy.integrate import solve_ivp
+from scipy.integrate import solve_ivp, RK23, RK45, DOP853, Radau, BDF, LSODA
 from . import report
 from thermosteam.network import temporary_units_dump, TemporaryUnit
 import os
@@ -3457,6 +3457,93 @@ class System:
         if save_configuration: self._save_configuration()
         return outputs
 
+    _dynsim_special_keys = frozenset((
+        't_eval', 'state_reset_hook', 'export_state_to', 'sample_id',
+        'print_msg', 'print_t', 'timeout', 'y0',
+    ))
+    _ivp_solvers = {
+        'RK23': RK23, 'RK45': RK45, 'DOP853': DOP853,
+        'Radau': Radau, 'BDF': BDF, 'LSODA': LSODA,
+    }
+
+    @staticmethod
+    def _solver_options(solver):
+        """Return the names of the options accepted by a solver class, or None if any are."""
+        parameters = signature(solver.__init__).parameters
+        # scipy's own solvers swallow unknown options in `extraneous` and warn once
+        if any(i.kind is i.VAR_KEYWORD and i.name != 'extraneous' for i in parameters.values()): return None
+        return set(parameters) - {'self', 'fun', 't0', 'y0', 't_bound', 'vectorized', 'extraneous'}
+
+    def _check_dynsim_kwargs(self, kwargs):
+        """
+        Validate dynamic simulation keyword arguments. Raise an error if a
+        value is invalid or an option does not exist for any solver.
+        Return the set of keys that only apply to other solvers, which should
+        be dropped (a warning is raised).
+        """
+        if 't_span' in kwargs:
+            t_span = kwargs['t_span']
+            try: t_span = tuple(t_span)
+            except TypeError:
+                raise TypeError(
+                    f't_span must be a (t0, tf) pair of numbers; not {t_span!r}'
+                ) from None
+            if len(t_span) != 2:
+                raise ValueError(f't_span must be a (t0, tf) pair of numbers; got {t_span!r}')
+            try: t0, tf = map(float, t_span)
+            except (TypeError, ValueError):
+                raise TypeError(f't_span must be a (t0, tf) pair of numbers; got {t_span!r}') from None
+            if tf < t0:
+                raise ValueError(
+                    f't_span must be increasing; got t0={t0:g} > tf={tf:g}. '
+                    'Backwards integration is not supported for dynamic systems'
+                )
+        hook = kwargs.get('state_reset_hook')
+        if hook:
+            if isinstance(hook, str):
+                if not callable(getattr(self, hook, None)):
+                    raise AttributeError(
+                        f"state_reset_hook {hook!r} is not a method of {self!r}; "
+                        "use 'reset_cache', 'clear_state', or a callable"
+                    )
+            elif not callable(hook):
+                raise TypeError(
+                    "state_reset_hook must be 'reset_cache', 'clear_state', "
+                    f"a callable, or None; not {hook!r}"
+                )
+        rtol = kwargs.get('rtol')
+        if rtol is not None and np.ndim(rtol) == 0:
+            try: valid = float(rtol) > 0
+            except (TypeError, ValueError): valid = False
+            if not valid: raise ValueError(f'rtol must be a positive number; got {rtol!r}')
+        # Options that the chosen solver would silently ignore
+        method = kwargs.get('method', 'RK45')
+        solver = self._ivp_solvers.get(method) if isinstance(method, str) else method
+        if solver is None: return set() # solve_ivp reports the invalid method
+        try: options = self._solver_options(solver)
+        except (TypeError, ValueError, AttributeError): return set() # not a solver class
+        if options is None: return set()
+        known = options | self._dynsim_special_keys | {'t_span', 'method', 'dense_output', 'events', 'args', 'vectorized'}
+        others = set().union(*[self._solver_options(i) for i in self._ivp_solvers.values()])
+        ignored = set(); unknown = []
+        for key in kwargs:
+            if key in known: continue
+            if key in others: ignored.add(key)
+            else: unknown.append(key)
+        if unknown:
+            from difflib import get_close_matches
+            msgs = []
+            for key in unknown:
+                close = get_close_matches(key, known, n=1)
+                msgs.append(repr(key) + (f' (did you mean {close[0]!r}?)' if close else ''))
+            raise TypeError(
+                f'unexpected dynamic simulation keyword argument(s): {", ".join(msgs)}'
+            )
+        if ignored:
+            warn(f'option(s) {sorted(ignored)} have no effect for solver method '
+                 f'{method!r} and are ignored', RuntimeWarning, stacklevel=3)
+        return ignored
+
     def dynamic_run(self, **dynsim_kwargs):
         """
         Run system dynamically without accounting for
@@ -3471,12 +3558,16 @@ class System:
                     Interval of integration (t0, tf).
                     The solver starts with t=t0 and integrates until it reaches t=tf.
                 t_eval : iterable(float)
-                    The time points where status will be saved.
+                    The time points at which the tracked states are interpolated
+                    when exporting with ``export_state_to``. It does not change
+                    which points are recorded in ``System.scope`` (every solver
+                    step is recorded) and is not passed to ``solve_ivp``.
                 state_reset_hook: str|Callable
                     Hook function to reset the cache state between simulations
                     for dynamic systems).
                     Can be "reset_cache" or "clear_state" to call `System.reset_cache`
-                    or `System.clear_state`, or None to avoiding resetting.
+                    or `System.clear_state`, any other callable to call it,
+                    or None to avoiding resetting.
                 export_state_to: str
                     If provided with a path, will save the simulated states over time to the given path,
                     supported extensions are ".xlsx", ".xls", "csv", and "tsv".
@@ -3488,8 +3579,20 @@ class System:
                     Whether to print integration time in the console,
                     usually used for debugging.
                 solve_ivp_kwargs
-                    All remaining keyword arguments will be passed to ``solve_ivp``.
-        
+                    All remaining keyword arguments will be passed to ``solve_ivp``,
+                    which includes the options of the chosen ``method`` (e.g.,
+                    ``rtol``, ``atol``, ``max_step``). Options that do not exist
+                    for any solver raise a ``TypeError``; options that exist only
+                    for other solvers are dropped with a warning.
+                    ``y0`` is not accepted: the initial state is always taken from
+                    the system's current state (a warning is raised if it is passed).
+
+        Notes
+        -----
+        Keyword arguments are validated before they are stored in
+        ``System.dynsim_kwargs``, so an invalid value does not persist
+        to later runs.
+
         See Also
         --------
         `scipy.integrate.solve_ivp <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html>`_
@@ -3502,8 +3605,15 @@ class System:
                 'for example `system.simulate(t_span=(0, 10))`. For a '
                 'steady-state simulation, set `system.isdynamic = False`.'
             )
+        if 'y0' in dynsim_kwargs:
+            warn("`y0` is ignored; the initial state is taken from the system's "
+                 "current state", RuntimeWarning, stacklevel=2)
+            dynsim_kwargs = {k: v for k, v in dynsim_kwargs.items() if k != 'y0'}
+        # Validate before storing, so that an invalid value does not persist
+        ignored = self._check_dynsim_kwargs({**self.dynsim_kwargs, **dynsim_kwargs})
         dk = self.dynsim_kwargs
         dk.update(dynsim_kwargs)
+        for key in ignored: dk.pop(key) # do not keep options that this solver does not use
         dk_cp = dk.copy()
         t_eval = dk_cp.pop('t_eval', None)
         state_reset_hook = dk_cp.pop('state_reset_hook', None)
