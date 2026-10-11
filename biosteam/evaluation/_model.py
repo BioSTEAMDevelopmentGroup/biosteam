@@ -725,6 +725,7 @@ class Model:
         samples_min = samples.min(axis=0)
         samples_max = samples.max(axis=0)
         samples_diff = samples_max - samples_min
+        samples_diff[samples_diff == 0] = 1 # Constant columns
         normalized_samples = (samples - samples_min) / samples_diff
         nearest_arr = cdist(normalized_samples, normalized_samples, metric=distance)
         if algorithm is None: algorithm = 'nearest neighbor'
@@ -732,16 +733,14 @@ class Model:
             nearest_arr = np.argsort(nearest_arr, axis=1)
             remaining = set(range(length))
             self._index = index = [0]
-            nearest = nearest_arr[0, 1]
-            index.append(nearest)
+            nearest = 0
             remaining.remove(0)
-            remaining.remove(nearest)
-            N_remaining = length - 2
+            N_remaining = length - 1
             N_remaining_last = N_remaining + 1
             while N_remaining:
                 assert N_remaining_last != N_remaining, "issue in sorting algorithm"
                 N_remaining_last = N_remaining
-                for i in range(1, length):
+                for i in range(length):
                     next_nearest = nearest_arr[nearest, i]
                     if next_nearest in remaining:
                         nearest = next_nearest
