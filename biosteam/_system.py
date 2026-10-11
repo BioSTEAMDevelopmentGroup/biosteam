@@ -3504,11 +3504,11 @@ class System:
                 if not callable(getattr(self, hook, None)):
                     raise AttributeError(
                         f"state_reset_hook {hook!r} is not a method of {self!r}; "
-                        "use 'reset_cache', 'clear_state', or a callable"
+                        "use 'reset_cache' or a callable"
                     )
             elif not callable(hook):
                 raise TypeError(
-                    "state_reset_hook must be 'reset_cache', 'clear_state', "
+                    "state_reset_hook must be 'reset_cache', "
                     f"a callable, or None; not {hook!r}"
                 )
         rtol = kwargs.get('rtol')
@@ -3516,6 +3516,11 @@ class System:
             try: valid = float(rtol) > 0
             except (TypeError, ValueError): valid = False
             if not valid: raise ValueError(f'rtol must be a positive number; got {rtol!r}')
+        atol = kwargs.get('atol')
+        if atol is not None:
+            try: valid = bool(np.all(np.asarray(atol, dtype=float) > 0))
+            except (TypeError, ValueError): valid = False
+            if not valid: raise ValueError(f'atol must be positive; got {atol!r}')
         # Options that the chosen solver would silently ignore
         method = kwargs.get('method', 'RK45')
         solver = self._ivp_solvers.get(method) if isinstance(method, str) else method
@@ -3563,14 +3568,20 @@ class System:
                     which points are recorded in ``System.scope`` (every solver
                     step is recorded) and is not passed to ``solve_ivp``.
                 state_reset_hook: str|Callable
-                    Hook function to reset the cache state between simulations
-                    for dynamic systems).
-                    Can be "reset_cache" or "clear_state" to call `System.reset_cache`
-                    or `System.clear_state`, any other callable to call it,
-                    or None to avoiding resetting.
+                    What to do with the cached state of a dynamic system
+                    before the run starts. One of:
+
+                    - ``"reset_cache"``: call `System.reset_cache`, so the run
+                      starts again from the initial conditions.
+                    - A function that takes no arguments: it is called before
+                      the run, so you can reset the state yourself.
+                    - ``None`` (default): do not reset, so the run continues
+                      from the current state (e.g., to continue after a spin-up).
                 export_state_to: str
                     If provided with a path, will save the simulated states over time to the given path,
-                    supported extensions are ".xlsx", ".xls", "csv", and "tsv".
+                    supported extensions are ".npy", ".xlsx", ".xls", ".csv", and ".tsv".
+                    A path without an extension is saved as ".npy", and so is
+                    any path when ``sample_id`` is given.
                 sample_id : str
                     ID of the samples to run (for results exporting).
                 print_msg : bool
@@ -3634,7 +3645,10 @@ class System:
             for u in self.units:
                 if not hasattr(u, '_state'): u._init_dynamic()
         # Load initial states
-        self.converge()
+        # Streams only matter for the initial state; once a state is loaded
+        # (continuing a previous run), the static solve is not needed and can
+        # fail from the stream compositions left by the previous run
+        if self._state is None: self.converge()
         y0, idx, nr = self._load_state()
         self.dynsim_kwargs['y0'] = y0.copy()
         self.dynsim_kwargs['print_t'] = print_t # self.dynsim_kwargs might be reset by `state_reset_hook`
