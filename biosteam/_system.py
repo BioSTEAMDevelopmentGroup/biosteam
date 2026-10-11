@@ -3495,6 +3495,13 @@ class System:
         `scipy.integrate.solve_ivp <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html>`_
         
         """
+        if 't_span' not in dynsim_kwargs and 't_span' not in self.dynsim_kwargs:
+            # `dynsim_kwargs` persists between runs, so a previous `t_span` is reused
+            raise TypeError(
+                f'{self!r} is dynamic and needs a time span; pass `t_span`, '
+                'for example `system.simulate(t_span=(0, 10))`. For a '
+                'steady-state simulation, set `system.isdynamic = False`.'
+            )
         dk = self.dynsim_kwargs
         dk.update(dynsim_kwargs)
         dk_cp = dk.copy()
