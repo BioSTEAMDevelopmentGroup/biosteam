@@ -3485,6 +3485,16 @@ class System:
                     f't_span must be increasing; got t0={t0:g} > tf={tf:g}. '
                     'Backwards integration is not supported for dynamic systems'
                 )
+            t_eval = kwargs.get('t_eval')
+            if t_eval is not None and kwargs.get('export_state_to'):
+                try: t_eval = np.asarray(t_eval, dtype=float)
+                except (TypeError, ValueError):
+                    raise TypeError(f't_eval must be an iterable of numbers; got {t_eval!r}') from None
+                if t_eval.size and not (t0 <= t_eval.min() and t_eval.max() <= tf):
+                    raise ValueError(
+                        f't_eval must be within t_span={t_span!r} to export the states; '
+                        f'got values in [{t_eval.min():g}, {t_eval.max():g}]'
+                    )
         hook = kwargs.get('state_reset_hook')
         if hook:
             if isinstance(hook, str):
@@ -3508,6 +3518,16 @@ class System:
             try: valid = bool(np.all(np.asarray(atol, dtype=float) > 0))
             except (TypeError, ValueError): valid = False
             if not valid: raise ValueError(f'atol must be positive; got {atol!r}')
+        for key, finite in (('first_step', True), ('max_step', False)):
+            value = kwargs.get(key)
+            if value is None: continue
+            try: valid = 0 < float(value) and (not finite or np.isfinite(float(value)))
+            except (TypeError, ValueError): valid = False
+            if not valid:
+                raise ValueError(
+                    f'{key} must be a positive{" finite" if finite else ""} number; '
+                    f'got {value!r}'
+                )
         # Options that the chosen solver would silently ignore
         method = kwargs.get('method', 'RK45')
         solver = self._ivp_solvers.get(method) if isinstance(method, str) else method
