@@ -3668,7 +3668,8 @@ class System:
                     )
                 return _f(t, y)
         with np.errstate(invalid='ignore', divide='ignore'):
-            self.scope.sol = sol = solve_ivp(fun=DAE, y0=y0, **dk_cp)
+            # Pass a copy: `y0` is `self._state`, which `DAE` overwrites in place.
+            self.scope.sol = sol = solve_ivp(fun=DAE, y0=y0.copy(), **dk_cp)
         if print_msg:
             if sol.status == 0:
                 print('Simulation completed.')
