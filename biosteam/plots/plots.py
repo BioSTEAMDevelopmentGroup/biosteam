@@ -557,7 +557,7 @@ def plot_single_point_sensitivity(baseline, lb, ub,
         Baseline metric value.
     lb : pandas.Series
         Metric values at parameter lower bounds.
-    bb : pandas.Series
+    ub : pandas.Series
         Metric values at parameter upper bounds.
     top=None : float, optional
         Number of parameters to plot (from highest values).
@@ -576,8 +576,9 @@ def plot_single_point_sensitivity(baseline, lb, ub,
         if name is None: name = ub.name
         ub = ub.values
     mask = np.isnan(lb) | np.isnan(ub)
-    lb[mask] = baseline
-    ub[mask] = baseline
+    if mask.any():
+        lb[mask] = baseline
+        ub[mask] = baseline
     if index is None:
         raise ValueError('must pass index if lb or ub is not a pandas Series object')
     # Sort parameters for plot

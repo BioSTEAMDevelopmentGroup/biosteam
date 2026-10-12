@@ -100,7 +100,7 @@ class Parameter(Variable):
             if distribution: bounds = (distribution.lower[0], distribution.upper[0])
         elif not distribution:
             distribution = shape.Uniform(*bounds)
-        if bounds and baseline is None:
+        if bounds is not None and baseline is None:
             baseline = 0.5 * (bounds[0] + bounds[1])
         self.distribution = distribution
         self.baseline = baseline
