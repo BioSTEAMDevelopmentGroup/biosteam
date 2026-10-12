@@ -3611,6 +3611,11 @@ class System:
         ``System.dynsim_kwargs``, so an invalid value does not persist
         to later runs.
 
+        A ``RuntimeError`` is raised if the solver fails (for example, the step
+        size becomes too small), instead of going on to write the states,
+        export, and run design and cost. The partial results remain in
+        ``System.scope``. A run stopped by an event is not a failure.
+
         See Also
         --------
         `scipy.integrate.solve_ivp <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html>`_
@@ -3694,7 +3699,13 @@ class System:
             if sol.status == 0:
                 print('Simulation completed.')
             else: print(sol.message)
-        self._write_state()          
+        if sol.status < 0:
+            # Do not write the state or go on to design and cost with a failed solve
+            raise RuntimeError(
+                f'dynamic simulation of {self!r} failed at t={sol.t[-1]:g} '
+                f'(solver status {sol.status}): {sol.message}'
+            )
+        self._write_state()
         # Write states to file
         if export_state_to:
             try: file, ext = export_state_to.rsplit('.', 1)
