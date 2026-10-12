@@ -3281,19 +3281,6 @@ class System:
         for ws in [i for i in self.streams if i not in self.feeds]:
             ws._state2flows()
 
-    def clear_state(self):
-        """Clear all states and dstates (system, units, and streams)."""
-        self._state = None
-        for u in self.units:
-            u._state = None
-            u._dstate = None
-        for ws in self.streams:
-            y = ws.state.copy()
-            ws._state = None
-            ws._dstate = None
-            ws.state = y*0.0
-            ws.dstate = y*0.0
-
     def mock_convergence(
             self, 
             convergence_rate=10, 
