@@ -222,6 +222,8 @@ def create_coheat_and_power_system(
         outs=outs,
         **kwargs,
     )
+    BT.register_alias('BT')
+    BT.register_alias('CHP')
     BT.register_alias(cls.line.lower().replace(' ', '_'))
     BT.autopopulate = False if autopopulate is None else autopopulate
     
