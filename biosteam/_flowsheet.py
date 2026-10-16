@@ -285,6 +285,12 @@ class Flowsheet:
                         raise LookupError(f"no registered item '{ID}'")
                     elif N == 1:
                         obj = obj[0]
+                    else:
+                        obj_set = set(obj)
+                        if len(obj_set) == 1:
+                            obj = obj[0]
+                        else:
+                            obj = sorted(obj_set, key=lambda i: i.ID)
             return obj
         elif issubclass(ID, bst.Unit):
             cls = ID
@@ -295,7 +301,11 @@ class Flowsheet:
             elif N == 1:
                 obj = obj[0]
             else:
-                obj = sorted(obj, key=lambda x: x.ID)
+                obj_set = set(obj)
+                if len(obj_set) == 1:
+                    obj = obj[0]
+                else:
+                    obj = sorted(obj_set, key=lambda i: i.ID)
             return obj
         else:
             raise TypeError('ID must be either a string or a Unit subclass')
