@@ -103,8 +103,7 @@ def heat_exchange_to_condition(s_in, s_out, T=None, phase=None,
         assert s_out.T <= s_in.T + 0.01, "failed to solve temperature"
         if s_out.T > s_in.T: s_out.T = s_in.T
     
-    return s_out.H - H_in
-    
+    return s_out.H - H_in    
 
 def counter_current_heat_exchange(s0_in, s1_in, s0_out, s1_out,
                                   dT, T_lim0=None, T_lim1=None,

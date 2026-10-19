@@ -566,6 +566,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             
             def gas_flow_rate_objective(F_feeds):
                 F_feeds[F_feeds < 0] *= -1
+                F_feeds[F_feeds < 1e-6] = 1e-6
                 for i in index: controlled_gas_feeds[i].set_total_flow(F_feeds[i], 'mol/s')
                 self._update_gas_feeds()
                 self._run_without_titer_specification(effluent, vent, liquid_feeds)
@@ -623,6 +624,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                 
             def gas_flow_rate_objective(F_controlled):
                 F_controlled[F_controlled < 0] *= -1 
+                F_controlled[F_controlled < 1e-6] = 1e-6
                 for i in index:
                     gas = controlled_gas_feeds[i]
                     gas.set_total_flow(F_controlled[i], 'mol/s')
