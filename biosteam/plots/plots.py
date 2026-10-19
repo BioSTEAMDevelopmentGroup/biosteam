@@ -18,7 +18,7 @@ from thermosteam.units_of_measure import format_units, reformat_units
 import matplotlib.patches as mpatches
 from math import floor, ceil
 from matplotlib.ticker import MultipleLocator
-from scipy.stats.kde import gaussian_kde
+from scipy.stats import gaussian_kde
 from collections import deque
 from itertools import product
 from matplotlib import colormaps
@@ -957,7 +957,7 @@ def plot_scatter(
         ybox_width=None, zorders=None, xlabel=None, ylabel=None,
         ax=None, kde=False, transparency=None, color_wheel=None,
         z=None, zticks=None, zticklabels=None, zbar=True, zlabel=None,
-        norm=None,
+        norm=None, 
         **kwargs
     ):
     if color_wheel is None: color_wheel = default_color_wheel
@@ -1022,7 +1022,7 @@ def plot_scatter(
                     clr.LinearSegmentedColormap.from_list(
                         (c:=color_wheel[i]).ID,
                         [*[c.shade(60 - 20 * j).RGBn for j in range(3)],
-                         *[c.tint(20 * j).RGBn for j in range(3)]],
+                         *[c.tint(10 * j).RGBn for j in range(3)]],
                         N=256
                     )
                     for i in range(N_xs)
@@ -1044,10 +1044,23 @@ def plot_scatter(
         plt.sca(ax)
         scatter_kwargs = kwargs.copy()
         if kde:
-            # Evaluate a gaussian kde on a regular grid of nbins x nbins over data extents
-            k = gaussian_kde([x, y])
-            z = k(np.vstack([x, y]))
+            x_sigma = np.std(x)
+            y_sigma = np.std(y)
             
+            # Evaluate a gaussian kde on a regular grid of nbins x nbins over data extents
+            if x_sigma:
+                if y_sigma:
+                    k = gaussian_kde([x, y])
+                    z = k(np.vstack([x, y]))
+                else:
+                    # Vertical line marker
+                    k = gaussian_kde(x)
+                    z = k(x)
+            else:
+                # Horizontal line marker
+                k = gaussian_kde(y)
+                z = k(y)
+                
             # Sort the points by density, so that the densest points are plotted last
             idx = z.argsort()
             x, y, z = x[idx], y[idx], z[idx]
@@ -1123,15 +1136,15 @@ def plot_scatter(
         fig.colorbar(sm, ax=ax, zlabel=zlabel)
     return fig, ax, axes
   
-def plot_kde_1d(*args, **kwargs):
-    return plot_scatter_1d(*args, **kwargs, kde=True)
+def plot_kde_1d(*args, kde=True, **kwargs):
+    return plot_scatter_1d(*args, **kwargs, kde=kde)
   
 def plot_scatter_1d(
         xs, ys, axes=None, xboxes=None, yboxes=None,
         xticks=None, yticks=None, xticklabels=None, yticklabels=None,
         autobox=True, xbox_kwargs=None, ybox_kwargs=None, aspect_ratio=1.,
         xlabel=None, ylabel=None, fs=None, colors=None, kde=False, color_wheel=None, 
-        zs=None, zbar=True, zlabel=None, zticks=None, norm=None, **kwargs
+        zs=None, zbar=None, zlabel=None, zticks=None, norm=None, **kwargs
     ):
     if kde is None: kde = True
     N_cols = len(xs)
@@ -1141,6 +1154,9 @@ def plot_scatter_1d(
     if xticks is not None and len(xticks) != N_cols:
         xticks = N_cols * [xticks]
     if color_wheel is None: color_wheel = default_color_wheel
+    if zs is not None:
+        if zbar is None: zbar = True
+        if zlabel is None: zlabel = True
     if axes is None:
         if autobox:
             N_internal_x = sum([(1 if hasattr(x, 'ndim') and x.ndim == 1 else len(x))
@@ -1151,9 +1167,13 @@ def plot_scatter_1d(
                 height_ratios=[0.3 * N_internal_x, *N_rows*[4]], 
                 width_ratios=[*N_cols*[4], 0.3 * N_internal_y]
             )
-            if zbar: grid_kw['width_ratios'].append(0.30)
+            if zbar: 
+                grid_kw['width_ratios'].append(0.30)
+                ncols = N_cols + 1
+            else:
+                ncols = ncols
             fig, all_axes = plt.subplots(
-                ncols=N_cols + 1, nrows=N_rows + 1, 
+                ncols=ncols + 1, nrows=N_rows + 1, 
                 gridspec_kw=grid_kw,
             )
             ax_empty = all_axes[0, -1]
@@ -1202,13 +1222,16 @@ def plot_scatter_1d(
                 cax = all_axes[-1]
             else:
                 fig, axes = plt.subplots(ncols=N_cols, nrows=N_rows)
-                axes = axes.reshape([N_rows, N_cols])
-    if zs is not None and zbar:
+                if N_rows == 1 and N_cols == 1:
+                    axes = np.array([[axes]])
+                else:
+                    axes = axes.reshape([N_rows, N_cols])
+    if zbar:
         norm = clr.Normalize(vmin=zs.min(), vmax=zs.max()) 
     for i in range(N_cols):
         x = xs[i]
         y = ys[i]
-        if zs is not None: z = zs[i]
+        z = None if zs is None else zs[i]
         ax = axes[0, i]
         xticksi = None if xticks is None else xticks[i]
         xticklabelsi = None if xticklabels is None else xticklabels[i]
@@ -1295,7 +1318,7 @@ def plot_scatter_1d(
     plt.subplots_adjust(hspace=0, wspace=0)
     plt.sca(axes[0, 0])
     if ylabel is not None: plt.ylabel(ylabel, fontsize=fs)
-    if zs is not None and zbar:
+    if zbar:
         norm = clr.Normalize(vmin=zs.min(), vmax=zs.max()) 
         sm = cm.ScalarMappable(norm=norm, cmap=colors[0] if colors else 'managua')
         # sm.set_array(zs)
