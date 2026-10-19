@@ -244,8 +244,8 @@ def lca_characterization_factor_table(systems):
         if name.islower(): name= name.capitalize()
         return name
     
-    feeds = sorted({i.ID for i in feed_streams if any([k in i.characterization_factors for k in keys]) and not i.isempty()})
-    coproducts = sorted({i.ID for i in product_streams if any([k in i.characterization_factors for k in keys]) and not i.isempty()})
+    feeds = sorted({i.ID for i in feed_streams if any([i.has_impact(k) for k in keys])})
+    coproducts = sorted({i.ID for i in product_streams if any([i.has_impact(k) for k in keys])})
     hus = bst.HeatUtility.sum_by_agent(sum([sys.heat_utilities for sys in systems], []))
     input_heating_agents = sorted(set([
         i.agent.ID for i in hus
@@ -278,7 +278,7 @@ def lca_characterization_factor_table(systems):
         for stream in feed_streams + product_streams:
             try: ind = index[stream.ID]
             except: continue
-            data[ind, col] = stream.characterization_factors.get(key, 0)
+            data[ind, col] = stream.get_CF(key)
         for hu in hus:
             try: ind = index[hu.agent.ID]
             except: continue
@@ -341,13 +341,13 @@ def lca_inventory_table(systems, keys=None, items=None, system_names=None):
         if name.islower(): name= name.capitalize()
         return name
     
-    feeds = sorted({i.ID for i in sum([i.feeds for i in systems], []) if any([k in i.characterization_factors for k in keys]) and not i.isempty()})
-    coproducts = sorted({i.ID for i in sum([i.products for i in systems], []) if (any([k in i.characterization_factors for k in keys]) or i in items) and not i.isempty()})
+    feeds = sorted({i.ID for i in sum([i.feeds for i in systems], []) if any([i.has_impact(k) for k in keys]) and not i.isempty()})
+    coproducts = sorted({i.ID for i in sum([i.products for i in systems], []) if (any([i.has_impact(k) for k in keys]) or i in items) and not i.isempty()})
     system_heat_utilities = [bst.HeatUtility.sum_by_agent(sys.heat_utilities) for sys in systems]
-    input_heating_agents = sorted(set(sum([[i.agent.ID for i in hus if any([(i.agent.ID, k) in i.characterization_factors for k in keys]) and i.flow * i.duty > 0. and i.flow > 1e-6] for hus in system_heat_utilities], [])))
-    input_cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if any([(i.agent.ID, k) in i.characterization_factors for k in keys]) and i.flow * i.duty < 0. and i.flow > 1e-6] for hus in system_heat_utilities], [])))
-    output_heating_agents = sorted(set(sum([[i.agent.ID for i in hus if any([(i.agent.ID, k) in i.characterization_factors for k in keys]) and i.flow * i.duty > 0. and i.flow < -1e-6] for hus in system_heat_utilities], [])))
-    output_cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if any([(i.agent.ID, k) in i.characterization_factors for k in keys]) and i.flow * i.duty < 0. and i.flow < -1e-6] for hus in system_heat_utilities], [])))
+    input_heating_agents = sorted(set(sum([[i.agent.ID for i in hus if any([i.has_impact(k) for k in keys]) and i.flow * i.duty > 0. and i.flow > 1e-6] for hus in system_heat_utilities], [])))
+    input_cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if any([i.has_impact(k) for k in keys]) and i.flow * i.duty < 0. and i.flow > 1e-6] for hus in system_heat_utilities], [])))
+    output_heating_agents = sorted(set(sum([[i.agent.ID for i in hus if any([i.has_impact(k) for k in keys]) and i.flow * i.duty > 0. and i.flow < -1e-6] for hus in system_heat_utilities], [])))
+    output_cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if any([i.has_impact(k) for k in keys]) and i.flow * i.duty < 0. and i.flow < -1e-6] for hus in system_heat_utilities], [])))
     index = {j: i for (i, j) in enumerate(feeds + input_heating_agents + input_cooling_agents + other_utilities + coproducts + other_byproducts + output_heating_agents + output_cooling_agents + process_items)}
     table_index = [*[('Inputs', reformat(i)) for i in feeds + input_heating_agents + input_cooling_agents + other_utilities],
                    *[('Outputs', reformat(i)) for i in coproducts + other_byproducts + output_heating_agents + output_cooling_agents],
@@ -437,13 +437,13 @@ def lca_displacement_allocation_table(systems, key, items,
             item_name = item.ID.replace('_', ' ')
         else:
             item_name = item[0].ID.replace('_', ' ')
-    feeds = sorted({i.ID for i in sum([i.feeds for i in systems], []) if key in i.characterization_factors and not i.isempty()})
-    coproducts = sorted({i.ID for i in sum([i.products for i in systems], []) if key in i.characterization_factors and not i.isempty()})
+    feeds = sorted({i.ID for i in sum([i.feeds for i in systems], []) if i.has_impact(key)})
+    coproducts = sorted({i.ID for i in sum([i.products for i in systems], []) if i.has_impact(key)})
     system_heat_utilities = [bst.HeatUtility.sum_by_agent(sys.heat_utilities) for sys in systems]
-    input_heating_agents = sorted(set(sum([[i.agent.ID for i in hus if (i.agent.ID, key) in i.characterization_factors and i.flow * i.duty > 0. and i.flow > 1e-6] for hus in system_heat_utilities], [])))
-    input_cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if (i.agent.ID, key) in i.characterization_factors and i.flow * i.duty < 0. and i.flow > 1e-6] for hus in system_heat_utilities], [])))
-    output_heating_agents = sorted(set(sum([[i.agent.ID for i in hus if (i.agent.ID, key) in i.characterization_factors and i.flow * i.duty > 0. and i.flow < -1e-6] for hus in system_heat_utilities], [])))
-    output_cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if (i.agent.ID, key) in i.characterization_factors and i.flow * i.duty < 0. and i.flow < -1e-6] for hus in system_heat_utilities], [])))
+    input_heating_agents = sorted(set(sum([[i.agent.ID for i in hus if i.has_impact(key) and i.flow * i.duty > 0. and i.flow > 1e-6] for hus in system_heat_utilities], [])))
+    input_cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if i.has_impact(key) and i.flow * i.duty < 0. and i.flow > 1e-6] for hus in system_heat_utilities], [])))
+    output_heating_agents = sorted(set(sum([[i.agent.ID for i in hus if i.has_impact(key) and i.flow * i.duty > 0. and i.flow < -1e-6] for hus in system_heat_utilities], [])))
+    output_cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if i.has_impact(key) and i.flow * i.duty < 0. and i.flow < -1e-6] for hus in system_heat_utilities], [])))
     inputs = [*feeds, *input_heating_agents, *input_cooling_agents, *other_utilities]
     outputs = [*coproducts, *other_byproducts, *output_heating_agents, *output_cooling_agents]
     keys = [*inputs, 'Total inputs', *outputs, 'Total outputs displaced', *process_inventory, 'Total']
@@ -465,7 +465,7 @@ def lca_displacement_allocation_table(systems, key, items,
         for stream in sys.feeds + sys.products:
             try: 
                 ind = index[stream.ID]
-                data[ind, 0] = stream.characterization_factors[key]
+                data[ind, 0] = stream.get_CF(key)
             except: continue
             impact = sys.get_material_impact(stream, key)
             data[ind, col + 1] = impact / item_flow
@@ -473,7 +473,7 @@ def lca_displacement_allocation_table(systems, key, items,
             try: ind = index[hu.agent.ID]
             except: continue
             impact = sys.operating_hours * hu.get_impact(key)
-            cf, basis = hu.characterization_factors[hu.agent.ID, key]
+            cf, basis = hu.get_CF(key)
             data[ind, 0] = f"{cf} [{impact_units}{basis}]"
             data[ind, col + 1] = impact / item_flow
         for i, subdct in other_values.items():
@@ -834,7 +834,7 @@ def other_utilities_table(units):
 #     keys = set(sum([list(i.characterization_factors) for i in (all_feeds + all_products)], keys))
 #     tables = []
 #     for key in keys:
-#         feeds = [i for i in all_feeds if key in i.characterization_factors]
+#         feeds = [i for i in all_feeds if i.has_impact(key)]
 #         mass_flows = [i.F_mass for i in feeds]
         
 #         df = DataFrame(data, index=[])
