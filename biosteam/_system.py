@@ -3870,7 +3870,7 @@ class System:
 
     def has_market_value(self, stream: Stream):
         """Return whether stream has a market value."""
-        return bool(stream.price) and not stream.isempty()
+        return bool(stream.price) and stream.has_flow()
         
     def get_property(self, stream: Stream, name: str, units=None):
         """Return the annualized property of a stream."""
@@ -4263,7 +4263,7 @@ class System:
         isa = isinstance
         if isa(main_products, bst.Stream): main_products = [main_products]
         CFs_original = []
-        main_products = [i for i in main_products if not i.isempty()]
+        main_products = [i for i in main_products if i.has_flow()]
         for main_product in main_products:
             if isa(main_product, bst.Stream):
                 CFs_original.append(main_product.get_CF(key))

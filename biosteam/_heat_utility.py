@@ -605,6 +605,12 @@ class HeatUtility:
         else:
             raise RuntimeError("unknown error")
 
+    def has_impact(self, key: str):
+        """Return whether there is a contribution to an impact indicator given the key."""
+        agent = self.agent
+        CF, basis_units = self.get_CF(agent.ID, key)
+        return CF and self.flow
+
     def get_inventory(self, key: str):
         agent = self.agent
         CF, basis_units = self.get_CF(agent.ID, key)

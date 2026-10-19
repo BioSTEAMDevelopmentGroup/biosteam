@@ -230,6 +230,15 @@ class PowerUtility:
             return 0.
         return (cf[0] if power > 0. else cf[1]) * power
     
+    def has_impact(self, key: str):
+        """Return whether there is a contribution to an impact indicator given the key."""
+        power = self.consumption - self.production
+        if power and key in self.characterization_factors:
+            cf_in, cf_out = self.characterization_factors[key]
+            return power > 0 and cf_in or cf_out
+        else:
+            return False
+    
     def __bool__(self):
         return bool(self.consumption or self.production)
     
