@@ -147,12 +147,12 @@ def plot_vertical_line(x, color='grey', **kwargs): # pragma: no coverage
     """Plot vertical line."""
     plt.axvline(x=x, color=color, **kwargs) 
 
-def plot_scatter_points(xs, ys, color=None, s=50, zorder=1e6, edgecolor='black', marker='o', **kwargs): # pragma: no coverage
+def plot_scatter_points(xs, ys, color=None, s=50, zorder=1e6, edgecolor='black', marker='o', clip_on=False, **kwargs): # pragma: no coverage
     """Plot scatter points and return patch artist."""
     if xs is None: xs = tuple(range(len(ys)))
     if color is None: color = default_dark_color
     return plt.scatter(xs, ys, marker=marker, s=s, color=color,
-                       zorder=zorder, edgecolor=edgecolor, **kwargs) 
+                       zorder=zorder, edgecolor=edgecolor, clip_on=clip_on, **kwargs) 
 
 def rounded_tickmarks_from_data(data, N_ticks, step_min=None, 
                                 lb_max=None, ub_min=None, expand=None, f=None,
@@ -957,7 +957,7 @@ def plot_scatter(
         ybox_width=None, zorders=None, xlabel=None, ylabel=None,
         ax=None, kde=False, transparency=None, color_wheel=None,
         z=None, zticks=None, zticklabels=None, zbar=True, zlabel=None,
-        norm=None, 
+        norm=None, clip_on=False,
         **kwargs
     ):
     if color_wheel is None: color_wheel = default_color_wheel
@@ -1021,7 +1021,7 @@ def plot_scatter(
                 colors = [
                     clr.LinearSegmentedColormap.from_list(
                         (c:=color_wheel[i]).ID,
-                        [*[c.shade(60 - 20 * j).RGBn for j in range(3)],
+                        [*[c.shade(54 - 18 * j).RGBn for j in range(3)],
                          *[c.tint(10 * j).RGBn for j in range(3)]],
                         N=256
                     )
@@ -1075,7 +1075,7 @@ def plot_scatter(
             scatter_kwargs['c'] = z
         if 's' not in scatter_kwargs and 'size' not in scatter_kwargs:
             scatter_kwargs['s'] = 1.
-        plt.scatter(x, y, zorder=zorder, norm=norm, **scatter_kwargs)
+        plt.scatter(x, y, zorder=zorder, norm=norm, clip_on=clip_on, **scatter_kwargs)
         if xbox:
             plt.sca(xbox.axis)
             if xbox.fill is None and xbox.edge is None:
@@ -1144,7 +1144,9 @@ def plot_scatter_1d(
         xticks=None, yticks=None, xticklabels=None, yticklabels=None,
         autobox=True, xbox_kwargs=None, ybox_kwargs=None, aspect_ratio=1.,
         xlabel=None, ylabel=None, fs=None, colors=None, kde=False, color_wheel=None, 
-        zs=None, zbar=None, zlabel=None, zticks=None, norm=None, **kwargs
+        zs=None, zbar=None, zlabel=None, zticks=None, norm=None, clip_on=False, 
+        xtick0=True, ytick0=True, xtickf=True, ytickf=True,
+        **kwargs
     ):
     if kde is None: kde = True
     N_cols = len(xs)
@@ -1227,7 +1229,7 @@ def plot_scatter_1d(
                 else:
                     axes = axes.reshape([N_rows, N_cols])
     if zbar:
-        norm = clr.Normalize(vmin=zs.min(), vmax=zs.max()) 
+        norm = clr.Normalize(vmin=zs.min(), vmax=zs.max())
     for i in range(N_cols):
         x = xs[i]
         y = ys[i]
@@ -1243,10 +1245,10 @@ def plot_scatter_1d(
             yticks=yticks,
             xticklabels=xticklabelsi,
             yticklabels=yticklabels if i == 0 else False,
-            xtick0=True,
-            ytick0=True,
-            xtickf=i==N_cols-1,
-            ytickf=True,
+            xtick0=xtick0,
+            ytick0=ytick0,
+            xtickf=i==N_cols-1 and xtickf,
+            ytickf=ytickf,
             colors=colors,
             kde=kde,
             z=z,
@@ -1254,6 +1256,7 @@ def plot_scatter_1d(
             zbar=False,
             zlabel=None,
             norm=norm,
+            clip_on=clip_on,
             **kwargs
         )
     if xboxes is not None:
@@ -1314,7 +1317,11 @@ def plot_scatter_1d(
         ylim = plt.ylim()
         plt.sca(ybox.axis)
         plt.ylim(ylim)
-    if xlabel is not None: fig.supxlabel(xlabel, fontsize=fs)
+    if xlabel is not None: 
+        if N_cols == 1: 
+            plt.xlabel(xlabel, fontsize=fs)
+        else:
+            fig.supxlabel(xlabel, fontsize=fs)
     plt.subplots_adjust(hspace=0, wspace=0)
     plt.sca(axes[0, 0])
     if ylabel is not None: plt.ylabel(ylabel, fontsize=fs)
@@ -1704,7 +1711,12 @@ def plot_contour_single_metric(
     return fig, axes, cps, cb, other_axes
             
 def color_quadrants(color=None, x=None, y=None, xlim=None, ylim=None, 
-                    line_color=None, fill_color=None, linewidth=None):
+                    line_color=None, fill_color=None, linewidth=None,
+                    hline=None, vline=None):
+    if hline is None:
+        hline = True
+    if vline is None:
+        vline = True
     if linewidth is None:
         linewidth = 1.0
     if x is None: 
@@ -1752,20 +1764,22 @@ def color_quadrants(color=None, x=None, y=None, xlim=None, ylim=None,
                          color=bottom_right,
                          linewidth=linewidth,
                          zorder=0)
-    if yub == ylb: 
-        plot_horizontal_line(ylb, line_color, zorder=0, ls='--')
-    else:
-        plt.fill_between([x0, x1], ylb, yub,
-                         color=fill_color,
-                         linewidth=linewidth,
-                         zorder=0)
-    if xub == xlb: 
-        plot_vertical_line(xlb, line_color, zorder=0, ls='--')
-    else:
-        plt.fill_between([xlb, xub], y0, y1,
-                         color=fill_color,
-                         linewidth=linewidth,
-                         zorder=0)
+    if hline:
+        if yub == ylb: 
+            plot_horizontal_line(ylb, line_color, zorder=0, ls='--')
+        else:
+            plt.fill_between([x0, x1], ylb, yub,
+                             color=fill_color,
+                             linewidth=linewidth,
+                             zorder=0)
+    if vline:
+        if xub == xlb: 
+            plot_vertical_line(xlb, line_color, zorder=0, ls='--')
+        else:
+            plt.fill_between([xlb, xub], y0, y1,
+                             color=fill_color,
+                             linewidth=linewidth,
+                             zorder=0)
     
 def label_quadrants(
         x=None, y=None, xr=None, yr=None, text=None, color=None,
@@ -1838,7 +1852,8 @@ def label_quadrants(
 
 def plot_quadrants(
         text=None, data=None, x=None, y=None, rotate=0, fs=None,
-        quadrant_color=None, line_color=None, fill_color=None, linewidth=None,
+        quadrant_color=None, text_color=None, line_color=None, fill_color=None, linewidth=None,
+        vline=None, hline=None,
     ):
     if quadrant_color is None:
         quadrant_color = deque([
@@ -1847,15 +1862,17 @@ def plot_quadrants(
         ])
     else:
         quadrant_color = deque(quadrant_color)
-    text_color = deque([
-        CABBI_colors.teal.shade(50).RGBn, CABBI_colors.grey.shade(75).RGBn, 
-        CABBI_colors.grey.shade(75).RGBn, c.red.shade(50).RGBn
-    ])
+    tc = CABBI_colors.grey.shade(75).RGBn    
+    if text_color is None:        
+        text_color = deque([tc for i in quadrant_color])
+    else:
+        text_color = deque([tc if i is None else i for i in text_color])
     quadrant_color.rotate(rotate)
     text_color.rotate(rotate)
     labeled_quadrants = format_quadrants(
         data, x, y, text, text_color, quadrant_color, fs=fs,
-        line_color=line_color, fill_color=fill_color, linewidth=linewidth
+        line_color=line_color, fill_color=fill_color, linewidth=linewidth,
+        vline=vline, hline=hline,
     )
     for i, labeled in enumerate(labeled_quadrants):
         if labeled: text[i] = '()' if text[i].endswith('()') else None
@@ -1871,10 +1888,12 @@ def format_quadrants(
         xlim=None, ylim=None,
         fs=None, line_color=None, 
         fill_color=None, linewidth=None,
+        hline=None, vline=None
     ):
     if data is None: data = (None, None) 
     color_quadrants(quadrant_color, x, y, xlim, ylim,
-                    line_color, fill_color, linewidth)
+                    line_color, fill_color, linewidth,
+                    hline, vline)
     if text is None:
         return 4 * [False] # none labeled
     else:

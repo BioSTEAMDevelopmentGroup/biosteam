@@ -56,6 +56,14 @@ cycle_colors = ('aliceblue', 'chocolate', 'peachpuff',
 
 # %% Helpful functions
 
+def asugroup(unit):
+    if isinstance(unit, bst.UnitGroup):
+        return unit
+    elif isinstance(unit, bst.Unit):
+        return bst.UnitGroup(unit.ID, [unit])
+    else:
+        raise ValueError(f'invalid type {type(unit).__name__}')
+
 def stream_cost(stream):
     try:
         return abs(stream.cost)
@@ -134,7 +142,7 @@ class Handle: # pragma: no coverage
     )
     
     def __init__(self, main_feeds=None, main_products=None, 
-                 max_feeds=3, max_products=3, ignore=None, 
+                 max_feeds=10, max_products=10, ignore=None, 
                  **kwargs):
         self.nodes_index = {} #: Dict[Object, ProcessNode] Object - node pairs.
         self.size = 0 #: [int] Number of process nodes created.
@@ -171,6 +179,7 @@ class Handle: # pragma: no coverage
         return product_node
     
     def process_node(self, unit_group):
+        unit_group = asugroup(unit_group)
         units = unit_group.units
         process_node = ProcessNode(self, unit_group.name, self.next_index(), units)
         for i in units: self.nodes_index[i] = process_node 
@@ -178,7 +187,9 @@ class Handle: # pragma: no coverage
     
     def nodes(self, unit_groups):
         if isinstance(unit_groups, dict):
-            unit_groups = [bst.UnitGroup(i, j) for i,j in unit_groups.items()]
+            unit_groups = [bst.UnitGroup(i, j) for i, j in unit_groups.items()]
+        else:
+            unit_groups = [asugroup(i) for i in unit_groups]
         nodes = []
         streams = set()
         streams_from_units = bst.utils.streams_from_units
