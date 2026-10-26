@@ -151,14 +151,13 @@ class Unit(AbstractUnit):
             default_phenomena=None,
         ):
         super().__init_subclass__()
-        if getattr(cls, 'decoupled', None): print(cls)
         if does_nothing: return 
         dct = cls.__dict__
         if 'run' in dct:
             raise UnitInheritanceError(
                  "the 'run' method cannot be overridden; implement `_run` instead"
             )
-        if default_phenomena is None:
+        if default_phenomena is None or default_phenomena:
             methods = (
                 '_update_nonlinearities',
                 '_update_energy_coefficient',
@@ -175,9 +174,6 @@ class Unit(AbstractUnit):
                     if getattr(cls, i) is not getattr(Unit, i): continue
                     setattr(cls, i, AbstractMethod)
                 cls.run = Unit.run
-        elif default_phenomena:
-            cls.run = phenomena_based_run
-            for i in methods: setattr(cls, i, getattr(Unit, i))
         if '_N_heat_utilities' in dct:
             warn("'_N_heat_utilities' class attribute is scheduled for deprecation; "
                  "use the `add_heat_utility` method instead",
