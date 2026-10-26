@@ -14,10 +14,11 @@ __all__ = ('DiagramOnlyUnit',
            'DiagramOnlySystemUnit',
            'DiagramOnlyStreamUnit')
 
-class DiagramOnlyUnit(Unit, isabstract=True):
+class DiagramOnlyUnit(Unit, does_nothing=True):
     _ID = ID = None
     _N_ins = _N_outs = 1
     _ins_size_is_fixed = _outs_size_is_fixed = False
+    line = ''
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None):
         self._load_thermo(thermo)
