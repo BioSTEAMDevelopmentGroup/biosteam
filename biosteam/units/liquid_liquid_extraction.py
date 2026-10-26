@@ -547,7 +547,7 @@ class SolidLiquidsSplitCentrifuge(Unit):
 # Cost base on table 16.32 of Seider's Product and Process Design Principles, 3rd edition
 @cost('Power', 'Turbine agitator', N='Number of agitators',
       ub=60, CE=567, cost=3730, n=0.54, BM=2.25)
-class LiquidsMixingTank(bst.Unit, PressureVessel):
+class LiquidsMixingTank(PressureVessel, bst.Unit):
     """
     Create a LiquidsMixingTank for mixing two liquid phases.
     
@@ -603,14 +603,14 @@ class LiquidsMixingTank(bst.Unit, PressureVessel):
     def _cost(self):
         self._decorated_cost()
         D = self.design_results
-        self.purchase_costs.update(
+        self.baseline_purchase_costs.update(
             self._vessel_purchase_cost(D['Weight'], D['Diameter'], D['Length'])
         )         
    
 
 # %% Settling
 
-class LiquidsSettler(bst.Unit, PressureVessel, isabstract=True):
+class LiquidsSettler(PressureVessel, bst.Unit, isabstract=True):
     """
     Abstract Settler class for liquid-liquid extraction.
     
@@ -1272,7 +1272,6 @@ class MultiStageMixerSettlers(MultiStageEquilibrium):
         settler = self.settler
         for u in (mixer, settler):
             u._setup()
-            u._cost()
             u._summary()
         self.power_utility.copy_like(mixer.power_utility)
         self.power_utility.scale(N_stages)
