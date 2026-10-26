@@ -160,14 +160,14 @@ class AeratedBioreactor(AbstractStirredTankReactor):
     [1] air  
         phase: 'g', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): O2  1.02e+03
-                        N2  3.84e+03
+                        N2  3.83e+03
     outs...
     [0] vent  
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water  240
+        flow (kmol/hr): Water  239
                         CO2    416
-                        O2     605
-                        N2     3.84e+03
+                        O2     603
+                        N2     3.83e+03
     [1] product  
         phase: 'l', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water    6.84e+03
@@ -338,10 +338,12 @@ class AeratedBioreactor(AbstractStirredTankReactor):
         air.empty()
         compressor = self.compressor
         effluent.mix_from(feeds, energy_balance=False)
+        F_mass = effluent.F_mass
         self._run_reactions(effluent)
         effluent_no_air_data = effluent.get_data()
         OUR = -effluent.get_flow('mol/s', 'O2') # Oxygen uptake rate
-        if OUR <= 1e-2:
+        OUR_tolerance = 1e-12 * F_mass
+        if OUR <= OUR_tolerance:
             if OUR > 0: effluent.imol['O2'] = 0.
             self._run_vent(vent, effluent)
             return
@@ -403,7 +405,7 @@ class AeratedBioreactor(AbstractStirredTankReactor):
             flx.IQ_interpolation(
                 f, x0=x0, x1=x1, 
                 y0=y0, y1=y1, 
-                ytol=1e-3, xtol=1e-3
+                ytol=OUR_tolerance, xtol=OUR_tolerance
             )
         
     def _run_reactions(self, effluent):
