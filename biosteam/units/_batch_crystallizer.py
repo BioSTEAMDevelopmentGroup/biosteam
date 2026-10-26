@@ -60,6 +60,72 @@ class BatchCrystallizer(Unit):
     correlation tools for a variety of equipment [1]_. The default
     value of kW was retrieved from  [2]_.
     
+    Examples
+    --------
+    Batch cooling crystallization of sucrose massecuite after
+    vacuum-pan crystallization:
+
+    >>> import biosteam as bst
+    >>> bst.settings.set_thermo(['Water', 'Sucrose'])
+    >>> massecuite = bst.Stream(
+    ...     'massecuite', Water=5000, Sucrose=18000,
+    ...     T=338.15, units='kg/hr', # 23 t/hr at 65 degC
+    ... )
+    >>> # Saturated mother liquor at 65 degC (kg sucrose/kg water).
+    >>> dissolved = 3.029 * massecuite.imass['Water']
+    >>> massecuite.phases = ('l', 's')
+    >>> massecuite.imass['l', 'Sucrose'] = dissolved
+    >>> massecuite.imass['s', 'Sucrose'] = 18000 - dissolved
+    >>> C1 = bst.BatchCrystallizer(
+    ...     'C1', ins=massecuite, outs='cooled_massecuite',
+    ...     tau=20, V=175, T=313.15, # hr, m3, 40 degC
+    ... )
+    >>> @C1.add_specification
+    ... def crystallize_sucrose():
+    ...     C1.run()
+    ...     feed = C1.ins[0]
+    ...     effluent = C1.outs[0]
+    ...     # Saturated mother liquor at 40 degC (kg sucrose/kg water).
+    ...     dissolved = 2.381 * feed.imass['Water']
+    ...     effluent.imass['l', 'Sucrose'] = dissolved
+    ...     effluent.imass['s', 'Sucrose'] = (
+    ...         feed.imass['Sucrose'] - dissolved
+    ...     )
+    >>> C1.simulate()
+    >>> C1.show()
+    >>> C1.results()
+    BatchCrystallizer: C1
+    ins...
+    [0] massecuite  
+        phases: ('l', 's'), T: 338.15 K, P: 101325 Pa
+        flow (kmol/hr): (l) Water    278
+                            Sucrose  44.2
+                        (s) Sucrose  8.34
+    outs...
+    [0] cooled_massecuite  
+        phases: ('l', 's'), T: 313.15 K, P: 101325 Pa
+        flow (kmol/hr): (l) Water    278
+                            Sucrose  34.8
+                        (s) Sucrose  17.8
+    
+    >>> C1.results()
+    Batch crystallizer                                      Units        C1
+    Electricity              Power                             kW      2.65
+                             Cost                          USD/hr     0.207
+    Cooling water            Duty                           kJ/hr -1.69e+06
+                             Flow                         kmol/hr  8.06e+03
+                             Cost                          USD/hr      3.93
+    Design                   Crystallizer volume               m3       132
+                             Number of crystallizers                      3
+                             Batch time                        hr        21
+                             Loading time                      hr         0
+                             Cleaning and unloading time       hr         1
+                             Working volume fraction                    0.9
+    Purchase cost            Crystallizer (x3)                USD  1.56e+06
+    Total purchase cost                                       USD  1.56e+06
+    Installed equipment cost                                  USD  3.13e+06
+    Utility cost                                           USD/hr      4.14
+    
     References
     ----------
     .. [1] Matches; certified engineering company at Edmond, Oklahoma.
@@ -68,6 +134,24 @@ class BatchCrystallizer(Unit):
     .. [2] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani,
         R., & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
         Cost Accounting and Capital Cost Estimation (Chapter 16)
+    
+    .. [3] Sugar Process Tech. "Vertical Crystalliser Design
+        Calculation for Sugar Massecuite Cooling."
+        https://www.sugarprocesstech.com/vertical-crystalliser-design/
+
+    .. [4] Sugar Process Tech. "Low Grade B and C Massecuite
+        Treatment Process in Sugar Crystallization."
+        https://www.sugarprocesstech.com/low-grade-massecuite/
+
+    .. [5] Sugar Process Tech. "Crystallizers Application in
+        Sugar Industry: Crystallizer Capacity Calculation."
+        https://www.sugarprocesstech.com/crystallizer/
+
+    .. [6] Fraga, G., and Broadfoot, R. (2024).
+        "Guidelines for Cost-Effectively Improving Sugar
+        Recovery from C Massecuite Cooling Crystallisers."
+        Australian Society of Sugar Cane Technologists.
+        https://assct.com.au/document/guidelines-for-cost-effectively-improving-sugar-recovery-from-c-massecuite-cooling-crystallisers/
     
     """
     _units = {'Crystallizer volume': 'm3',
@@ -79,6 +163,9 @@ class BatchCrystallizer(Unit):
     #: [float] Cleaning and unloading time (hr).
     tau_0 = 1
     
+    #: Optional[float] Loading time (hr).
+    tau_loading = None
+    
     #: [float] Fraction of filled tank to total tank volume.
     V_wf = 0.9
     
@@ -89,7 +176,7 @@ class BatchCrystallizer(Unit):
     def _init(self, 
              tau=None, N=None, V=None, T=305.15,
              Nmin=2, Nmax=36, vessel_material='Carbon steel',
-             kW=0.00746
+             kW=0.00746, tau_0=None, tau_loading=None,
         ):
         self._N = N; self._V = V
         
@@ -114,6 +201,26 @@ class BatchCrystallizer(Unit):
         #: [float] Electricity usage per volume in kW/gal
         self.kW = kW
         
+        # [str] Vessel material
+        self.vessel_material = vessel_material
+        
+        if tau_0 is not None: self.tau_0 = tau_0
+        if tau_loading is not None: self.tau_loading = tau_loading
+        
+    @property
+    def vessel_material(self):
+        return self._vessel_material
+    @vessel_material.setter
+    def vessel_material(self, vessel_material):
+        if vessel_material in crystallizer_material_factors:
+            self.F_M['Crystallizer'] = crystallizer_material_factors[vessel_material]
+        else:
+            raise AttributeError(
+                f'invalid vessel material {vessel_material!r}; '
+                f'valid materials include {set(crystallizer_material_factors)!r}'
+            )
+        self._vessel_material = vessel_material
+    
     def _setup(self):
         super()._setup()
         effluent, = self.outs
@@ -166,17 +273,10 @@ class BatchCrystallizer(Unit):
         tau_0 = self.tau_0
         V_wf = self.V_wf
         Design = self.design_results
-        if self.V:
-            f = lambda N: v_0 / N / V_wf * (tau + tau_0) / (1 - 1 / N) - self.V
-            N = flx.IQ_interpolation(f, self.Nmin, self.Nmax,
-                                     xtol=0.01, ytol=0.5, checkbounds=False)
-            N = ceil(N)
-        else:
-            N = self._N
-        dct = size_batch(v_0, tau, tau_0, N, V_wf)
+        dct = size_batch(v_0, tau, tau_0, V_wf, N_reactors=self.N, V_max=self.V, loading_time=self.tau_loading)
         Design['Crystallizer volume'] = volume = dct.pop('Reactor volume')
+        Design['Number of crystallizers'] = N = dct.pop('Number of reactors')
         Design.update(dct)
-        Design['Number of crystallizers'] = N
         self.add_heat_utility(self.Hnet, self.T)
         self.add_power_utility(self.kW * V_wf * volume * N)
         
