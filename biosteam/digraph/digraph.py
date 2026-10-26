@@ -425,7 +425,7 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
         else:
             ID = ' '
         ref = str(hash(stream))
-        penwidth = pen_width(stream) if pen_width else '1.0'
+        penwidth = pen_width(stream) if pen_width else '1.5'
         # Make stream nodes / unit-stream edges / unit-unit edges
         if has_sink and not has_source:
             # Feed stream case
@@ -436,9 +436,10 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
                    shape='diamond',
                    fillcolor='#f98f60',
                    color=preferences.stream_color,
-                   label='')
+                   label='',
+                   xlabel=ID)
             inlet_options = sink._graphics.get_inlet_options(sink, sink_index)
-            f.attr('edge', arrowtail='none', arrowhead='none', label=ID,
+            f.attr('edge', arrowtail='none', arrowhead='none', label='',
                    tailport='e', style=style, penwidth=penwidth, **inlet_options)
             f.edge(ref, unit_names[sink], labeltooltip=tooltip)
         elif has_source and not has_sink:
@@ -451,9 +452,10 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
                    orientation='270',
                    fillcolor='#f98f60',
                    color=preferences.stream_color,
-                   label='')
+                   label='',
+                   xlabel=ID)
             outlet_options = source._graphics.get_outlet_options(source, source_index)
-            f.attr('edge', arrowtail='none', arrowhead='none', label=ID,
+            f.attr('edge', arrowtail='none', arrowhead='none', label='',
                    headport='w', style=style, penwidth=penwidth, **outlet_options)
             f.edge(unit_names[source], ref, labeltooltip=tooltip)
         elif has_sink and has_source:
