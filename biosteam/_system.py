@@ -27,7 +27,7 @@ from thermosteam.base import SparseArray
 from . import HeatUtility, PowerUtility
 from thermosteam.utils import registered
 from scipy.optimize import root
-from .exceptions import try_method_with_object_stamp, Converged, UnitInheritanceError
+from .exceptions import try_method_with_object_stamp, Converged
 from thermosteam import Network, mark_disjunction, unmark_disjunction
 from ._facility import Facility
 from ._unit import Unit
