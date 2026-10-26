@@ -9,6 +9,7 @@
 import pandas as pd
 import biosteam as bst
 import numpy as np
+from thermosteam.network import ignore_docking_warnings
 from thermosteam.utils import repr_items
 from . import utils
 from .._unit import Unit
@@ -174,8 +175,8 @@ class UnitGroup:
     def __iter__(self):
         return iter(self.units)
     
-    def to_unit(self, ID=None, thermo=None):
-        return GroupedUnit(ID, units=self.units)
+    def to_unit(self, copy_streams=True):
+        return GroupedUnit('.' + self.name, units=self.units, copy_streams=copy_streams)
     
     def to_system(self, ID=None):
         """Return a System object of all units."""
@@ -544,37 +545,34 @@ class UnitGroup:
 
 # %% UnitGroup as an actual unit operation
 
-def create_connected_grouped_units(unit_groups):
-    grouped_units = [GroupedUnit('.' + i.name, units=i) for i in unit_groups]
-    utils.connect_by_ID(grouped_units)
+def create_connected_grouped_units(unit_groups, copy_streams=True):
+    grouped_units = [i.to_unit(copy_streams=copy_streams) for i in unit_groups]
+    if copy_streams: utils.connect_by_ID(grouped_units)
     return grouped_units
 
-class GroupedUnit(Unit):
+class GroupedUnit(Unit, does_nothing=True):
     line = ''
     _ins_size_is_fixed = _outs_size_is_fixed = False
     _N_ins = _N_outs = 0
     
-    def __init__(self, ID=None, thermo=None, *, units):
+    @ignore_docking_warnings
+    def __init__(self, name=None, copy_streams=True, *, units):
         ins = []
         outs = []
-        self.units = set(units)
-        for s in streams_from_units(units):
+        self.units = units = frozenset(units)
+        self.auxiliary_unit_names = names = []
+        for u in units: 
+            setattr(self, u.ID, u)
+            names.append(u.ID)
+        streams = sorted(streams_from_units(units), key=lambda s: s.ID)
+        for s in streams:
             source = s._source
             sink = s._sink
             if source in units and sink not in units:
-                outs.append(s.copy('.' + s.ID))
+                outs.append(s.copy('.' + s.ID) if copy_streams else s)
             elif sink in units and source not in units:
-                ins.append(s.copy('.' + s.ID))
-        super().__init__(ID, ins, outs, thermo)
+                ins.append(s.copy('.' + s.ID) if copy_streams else s)
+        super().__init__('.' + name, ins, outs, None)
     
     def _assert_compatible_property_package(self): pass
     
-    @property
-    def auxiliary_unit_names(self):
-        return [i.ID for i in self.units]
-    
-    @property
-    def auxiliary_units(self):
-        return self.units
-    
-    def _run(self): pass
