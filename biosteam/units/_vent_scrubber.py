@@ -29,8 +29,13 @@ class VentScrubber(Unit):
         vent_exit, bottoms = self.outs
         vent_exit.copy_like(vent_entry)
         if self.titer:
-            product, titer = self.titer
-            water.imass['Water'] = vent_entry.imass[product] / titer * 1000
+            try:
+                product, titer = self.titer
+                water.imass['Water'] = vent_entry.imass[product] / titer * 1000
+            except:
+                titer = self.titer
+                product = vent_entry.F_mass - vent_entry.imass[self.gas].sum() - vent_entry.imass['Water']
+                water.imass['Water'] = product / titer * 1000
         bottoms.empty()
         bottoms.copy_flow(vent_exit, self.gas,
                           remove=True, exclude=True)
