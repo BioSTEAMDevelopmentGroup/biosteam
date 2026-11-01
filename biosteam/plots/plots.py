@@ -957,7 +957,7 @@ def plot_scatter(
         ybox_width=None, zorders=None, xlabel=None, ylabel=None,
         ax=None, kde=False, transparency=None, color_wheel=None,
         z=None, zticks=None, zticklabels=None, zbar=True, zlabel=None,
-        norm=None, clip_on=False,
+        norm=None, clip_on=False, 
         **kwargs
     ):
     if color_wheel is None: color_wheel = default_color_wheel
@@ -975,15 +975,41 @@ def plot_scatter(
         if not (N_xs == N_ys): raise ValueError('x and y shapes must be the same')
     if axis_not_given:
         # grid_kw = dict(height_ratios=[0.4 * N_internal_x, 4], width_ratios=[4, 0.4 * N_internal_y])
-        grid_kw = dict(height_ratios=[1, 8], width_ratios=[8, aspect_ratio])
+        grid_kw = dict()
+        if xbox:
+            grid_kw['width_ratios'] = [8, aspect_ratio]
+            ncols = 2
+        else:
+            ncols = 1
+        if ybox:
+            grid_kw['height_ratios'] = [8, aspect_ratio]
+            nrows = 2
+        else:
+            nrows = 1
         fig, axes = plt.subplots(
-            ncols=2, nrows=2, 
+            ncols=ncols, nrows=nrows, 
             gridspec_kw=grid_kw,
         )
-        ax_empty = axes[0, 1]
-        ax = axes[1, 0]
-        xbox_ax = axes[0, 0]
-        ybox_ax = axes[1, 1]
+        if nrows == ncols == 1:
+            ax_empty = None
+            ax = axes
+            xbox_ax = None
+            ybox_ax = None
+        elif nrows == ncols == 2:
+            ax_empty = axes[0, 1]
+            ax = axes[1, 0]
+            xbox_ax = axes[0, 0]
+            ybox_ax = axes[1, 1]
+        elif nrows == 2 and ncols == 1:
+            ax_empty = None
+            ax = axes[1, 0]
+            xbox_ax = axes[0, 0]
+            ybox_ax = None
+        elif nrows == 2 and ncols == 1:
+            ax_empty = None
+            ax = axes[0, 0]
+            xbox_ax = None
+            ybox_ax = axes[0, 1]
     elif ax:
         ax_empty = xbox_ax = ybox_ax = None
     else:
@@ -1000,6 +1026,8 @@ def plot_scatter(
             xboxes = [Box(xbox_ax, position, **i) for i in xbox_kwargs]
     elif isinstance(xbox, Box):
         xboxes = [xbox] * N_xs
+    elif not xbox:
+        xboxes = [False] * N_xs
     else:
         xboxes = xbox
     if ybox is None:
@@ -1011,6 +1039,8 @@ def plot_scatter(
             yboxes = [Box(ybox_ax, position, **i) for i in ybox_kwargs]
     elif isinstance(ybox, Box):
         yboxes = [ybox] * N_ys
+    elif not ybox:
+        yboxes = [False] * N_ys
     else:
         yboxes = ybox
     if colors is None: 
@@ -1022,7 +1052,7 @@ def plot_scatter(
                     clr.LinearSegmentedColormap.from_list(
                         (c:=color_wheel[i]).ID,
                         [*[c.shade(54 - 18 * j).RGBn for j in range(3)],
-                         *[c.tint(10 * j).RGBn for j in range(3)]],
+                         *[c.tint(15 * j).RGBn for j in range(3)]],
                         N=256
                     )
                     for i in range(N_xs)
@@ -1118,7 +1148,8 @@ def plot_scatter(
         else:
             y0 = yticks[0]
             yf = yticks[-1]
-        plt.sca(ax_empty); plt.axis('off')
+        if ax_empty:
+            plt.sca(ax_empty); plt.axis('off')
         if xbox:
             plt.sca(xbox.axis); plt.axis('off')
             plt.xlim([x0, xf])
@@ -1230,13 +1261,17 @@ def plot_scatter_1d(
                     axes = axes.reshape([N_rows, N_cols])
     if zbar:
         norm = clr.Normalize(vmin=zs.min(), vmax=zs.max())
+    if xticklabels is None:
+        xticklabels = [True] * N_cols
+    if not xticklabels:
+        xticklabels = [False] * N_cols
     for i in range(N_cols):
         x = xs[i]
         y = ys[i]
         z = None if zs is None else zs[i]
         ax = axes[0, i]
         xticksi = None if xticks is None else xticks[i]
-        xticklabelsi = None if xticklabels is None else xticklabels[i]
+        xticklabelsi = xticklabels[i]
         plot_scatter(
             x, y, ax=ax, fig=fig,
             xbox=[False] if hasattr(x, 'ndim') and x.ndim == 1 else len(x) * [False],
