@@ -3441,7 +3441,11 @@ class System:
                                 **kwargs
                             ) 
                 self._simulation_outputs = outputs
-        if save_configuration: self._save_configuration()
+        if save_configuration: 
+            new_connections = self._get_connections()
+            if self._connections != new_connections:
+                self._delete_path_cache()
+                self._connections = new_connections
         return outputs
 
     _dynsim_special_keys = frozenset((
