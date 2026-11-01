@@ -53,6 +53,7 @@ from .auxiliary_pressure_vessel import *
 from .fluidized_catalytic_cracking import *
 from .single_phase_reactor import *
 from .Gibbs_equilibrium_reactor import *
+from ._terminal import *
 
 from . import (
     _flash, 
@@ -102,6 +103,7 @@ from . import (
     fluidized_catalytic_cracking,
     single_phase_reactor,
     Gibbs_equilibrium_reactor,
+    _terminal,
 )
 
 
@@ -135,6 +137,7 @@ __all__ = ('Unit',
            *_duplicator.__all__,
            *_batch_crystallizer.__all__,
            *_carbon_capture.__all__,
+           *_terminal.__all__,
            *drying.__all__,
            *anaerobic_bioreactor.__all__,
            *aerated_bioreactor.__all__,
