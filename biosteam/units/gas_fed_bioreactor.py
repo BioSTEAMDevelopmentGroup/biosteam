@@ -375,7 +375,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                 eta=self.compressor_isentropic_efficiency, P=2 * 101325
             )
             self.auxiliary(
-                'gas_coolers', bst.HXutility, compressor-0, T=self.T
+                'gas_coolers', bst.HXutility, compressor-0, T=self.T, cool_only=True
             )
         self.auxiliary(
             'sparger', bst.Mixer, [i-0 for i in self.gas_coolers]
