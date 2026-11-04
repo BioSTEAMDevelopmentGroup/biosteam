@@ -8,7 +8,7 @@
 """
 """
 from .._unit import Unit
-from thermosteam._graphics import system_unit, stream_unit
+from .._graphics import system_unit, stream_unit
 
 __all__ = ('DiagramOnlyUnit',
            'DiagramOnlySystemUnit',

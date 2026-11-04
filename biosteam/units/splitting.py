@@ -17,7 +17,7 @@ This module contains unit operations for splitting flows.
 
 """
 from .. import Unit
-from thermosteam._graphics import splitter_graphics
+from .._graphics import splitter_graphics
 from thermosteam import separations
 import biosteam as bst
 import numpy as np

@@ -10,7 +10,7 @@
 from __future__ import annotations
 import pandas as pd
 from warnings import warn
-from thermosteam._graphics import UnitGraphics
+from ._graphics import UnitGraphics, box_graphics
 from ._heat_utility import HeatUtility
 from .utils import AbstractMethod, format_title, static, piping
 from ._power_utility import PowerUtility
@@ -23,7 +23,6 @@ from .utils.piping import InletPort, OutletPort, MissingStream, ignore_docking_w
 from ._network import repr_ins_and_outs
 from thermosteam.utils.decorators import registered, thermo_user
 from thermosteam.utils import extended_signature
-from thermosteam._graphics import box_graphics
 from thermosteam.base import display_asfunctor
 from flexsolve import IQ_interpolation
 from numpy.typing import NDArray

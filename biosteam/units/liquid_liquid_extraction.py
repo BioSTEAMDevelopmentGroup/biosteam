@@ -46,7 +46,7 @@ from .splitting import Splitter
 from .design_tools import CEPCI_by_year, geometry, PressureVessel
 from .decorators import cost, copy_algorithm
 from .stage import MultiStageEquilibrium
-from thermosteam._graphics import mixer_settler_graphics
+from .._graphics import mixer_settler_graphics
 from .. import Unit
 from thermosteam import separations as sep
 import numpy as np

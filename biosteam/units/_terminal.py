@@ -9,7 +9,7 @@
 """
 import biosteam as bst
 from .._unit import Unit
-from thermosteam._graphics import junction_graphics
+from .._graphics import junction_graphics
 from .._power_utility import PowerUtility
 from ..utils.piping import Inlets, Outlets
 
