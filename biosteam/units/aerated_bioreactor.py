@@ -151,7 +151,7 @@ class AeratedBioreactor(AbstractStirredTankReactor):
     ... )
     >>> R1.simulate()
     >>> R1.show()
-    AeratedBioreactor: R2
+    AeratedBioreactor: R1
     ins...
     [0] feed  
         phase: 'l', T: 305.15 K, P: 101325 Pa

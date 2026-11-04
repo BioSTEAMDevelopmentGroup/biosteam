@@ -145,7 +145,7 @@ class Response:
 
     def predict(self, x):
         return self.filter_value(
-            float(self.model.predict(x[None, self.parameters]))
+            np.asarray(self.model.predict(x[None, self.parameters]), dtype=float).item() # Prediction of a single sample
         )
     
     def predict_locally(

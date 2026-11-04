@@ -125,9 +125,9 @@ class AnaerobicBioreactor(AbstractStirredTankReactor):
     ... )
     >>> F1.simulate()
     >>> F1.show()
-    AnaerobicBioreactor: R3
+    AnaerobicBioreactor: F1
     ins...
-    [0] s10  
+    [0] feed  
         phase: 'l', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water    6.66e+03
                         Glucose  10.5
@@ -147,7 +147,7 @@ class AnaerobicBioreactor(AbstractStirredTankReactor):
                         Yeast    532
     
     >>> F1.results()
-    Anaerobic bioreactor                                            Units                   R3
+    Anaerobic bioreactor                                            Units                   F1
     Electricity              Power                                     kW                 10.2
                              Cost                                  USD/hr                0.798
     Chilled water            Duty                                   kJ/hr             -1.4e+07

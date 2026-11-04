@@ -294,17 +294,17 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
         flow: 0
     [2] -  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow: 0.154 kg/hr ActivatedCarbon
+        flow (kg/hr): ActivatedCarbon  0.154
     outs...
     [0] effluent  
         phase: 'l', T: 298 K, P: 101325 Pa
-        flow: 1e+03 kg/hr Water
+        flow (kg/hr): Water  1e+03
     [1] -  
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow: 0
     [2] -  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow: 0.154 kg/hr ActivatedCarbon
+        flow (kg/hr): ActivatedCarbon  0.154
     
     """
     auxiliary_unit_names = (

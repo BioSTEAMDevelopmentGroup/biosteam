@@ -20,7 +20,7 @@ def test_gas_fed_bioreactor():
     # Feeds
     media = bst.Stream(H2O=20e3, units='kg/hr')
     H2 = bst.Stream(H2=1e3, units='kg/hr', phase='g')
-    fluegas = bst.Stream(CO=23, CO2=23, H2=4.5, N2=49.5, units='kg/hr', phase='g') 
+    fluegas = bst.Stream(CO=23, CO2=23, H2=2, N2=49.5, units='kg/hr', phase='g') 
     vent = bst.Stream(phase='g')
     effluent = bst.Stream(phase='l')
 

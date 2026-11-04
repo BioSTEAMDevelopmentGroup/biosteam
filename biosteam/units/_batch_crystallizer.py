@@ -93,7 +93,6 @@ class BatchCrystallizer(Unit):
     ...     )
     >>> C1.simulate()
     >>> C1.show()
-    >>> C1.results()
     BatchCrystallizer: C1
     ins...
     [0] massecuite  

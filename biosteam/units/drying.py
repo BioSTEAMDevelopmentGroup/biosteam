@@ -141,7 +141,8 @@ class DrumDryer(Unit):
                   --  1.33e+06 kg/hr
     [2] natural_gas  
         phase: 'g', T: 298.15 K, P: 101325 Pa
-        flow: 2.45e+03 kg/hr CH4
+        flow (%): CH4  100
+                  ---  2.45e+03 kg/hr
     outs...
     [0] dryed_solids  
         phase: 'l', T: 343.15 K, P: 101325 Pa

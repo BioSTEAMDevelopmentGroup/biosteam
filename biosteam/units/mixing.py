@@ -58,10 +58,10 @@ class Mixer(Unit):
     ins...
     [0] s1  
         phase: 'l', T: 350 K, P: 101325 Pa
-        flow: 20 kmol/hr Water
+        flow (kmol/hr): Water  20
     [1] s2  
         phase: 'l', T: 300 K, P: 101325 Pa
-        flow: 30 kmol/hr Ethanol
+        flow (kmol/hr): Ethanol  30
     outs...
     [0] s3  
         phase: 'l', T: 315.14 K, P: 101325 Pa
@@ -286,10 +286,12 @@ class SteamMixer(Unit):
                   -------  1.98e+03 kg/hr
     [1] steam  
         phase: 'g', T: 454.77 K, P: 1.041e+06 Pa
-        flow: 1.29e+03 kg/hr Water
+        flow (%): Water  100
+                  -----  1.29e+03 kg/hr
     [2] process_water  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow: 4.02e+03 kg/hr Water
+        flow (%): Water  100
+                  -----  4.02e+03 kg/hr
     outs...
     [0] outlet  
         phase: 'l', T: 431.15 K, P: 557288 Pa
@@ -309,10 +311,12 @@ class SteamMixer(Unit):
                   -------  1.98e+03 kg/hr
     [1] steam  
         phase: 'g', T: 454.77 K, P: 1.041e+06 Pa
-        flow: 1.02e+03 kg/hr Water
+        flow (%): Water  100
+                  -----  1.02e+03 kg/hr
     [2] process_water  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow: 3e+03 kg/hr Water
+        flow (%): Water  100
+                  -----  3e+03 kg/hr
     outs...
     [0] outlet  
         phase: 'l', T: 431.15 K, P: 557288 Pa

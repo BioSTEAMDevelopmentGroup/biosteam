@@ -9,7 +9,7 @@
 import pandas as pd
 import biosteam as bst
 import numpy as np
-from thermosteam.network import ignore_docking_warnings
+from biosteam.utils.piping import ignore_docking_warnings
 from thermosteam.utils import repr_items
 from . import utils
 from .._unit import Unit
@@ -56,9 +56,9 @@ class UnitGroup:
     --------
     Create a UnitGroup from BioSTEAM's example ethanol subsystem:
     
-    >>> from biorefineries.sugarcane import chemicals
+    >>> from biorefineries.sugarcane import create_chemicals
     >>> from biosteam import *
-    >>> settings.set_thermo(chemicals)
+    >>> settings.set_thermo(create_chemicals())
     >>> water = Stream('water', Water=100., T=350.)
     >>> sucrose = Stream('sucrose', Sucrose=3.)
     >>> with System('example_sys') as example_sys:
@@ -497,12 +497,13 @@ class UnitGroup:
         data = [i.to_series(with_units) for i in unit_groups]
         df = pd.DataFrame(data)
         if fraction:
-            values = df.values
+            values = df.to_numpy(dtype=float, copy=True) # Arrays from pandas may be read-only
             if scale_fractions_to_positive_values:
                 postive_values = np.where(values > 0., values, 0.)
                 values *= 100 / postive_values.sum(axis=0, keepdims=True)
             else:
                 values *= 100 / values.sum(axis=0, keepdims=True)
+            df = pd.DataFrame(values, index=df.index, columns=df.columns)
         return df
 
     @classmethod

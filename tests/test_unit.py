@@ -10,7 +10,7 @@
 import pytest
 import biosteam as bst
 import numpy as np
-from thermosteam.network import Network
+from biosteam import Network
 from numpy.testing import assert_allclose
 
 def test_auxiliary_unit_owners():
@@ -407,7 +407,41 @@ def test_skipping_unit_simulation_with_empty_inlet_streams():
     with pytest.raises(RuntimeError):
         M1.simulate()
         
+def test_disconnect():
+    class Mix(bst.Unit):
+        _N_ins = 2
+        _N_outs = 1
+        _ins_size_is_fixed = False
+        def _run(self): pass
+    
+    class Split(bst.Unit):
+        _N_ins = 1
+        _N_outs = 2
+        _outs_size_is_fixed = False
+        def _run(self): pass
+    
+    bst.settings.set_thermo(['Water'], cache=True)
+    M = Mix(ins=())
+    S = Split(ins=())
+    
+    # Test outs size fixed
+    M.outs[0].disconnect_source()
+    assert len(M.outs) == 1 and isinstance(M.outs[0], bst.MissingStream)
+    
+    # Test ins size not fixed
+    M.ins[0].disconnect_sink()
+    assert len(M.ins) == 2 and isinstance(M.ins[0], bst.MissingStream) and isinstance(M.ins[1], bst.Stream)
+    
+    # Test ins size fixed
+    S.ins[0].disconnect_sink()
+    assert len(S.ins) == 1 and isinstance(S.ins[0], bst.MissingStream)
+    
+    # Test outs size not fixed
+    S.outs[0].disconnect_source()
+    assert len(S.outs) == 2 and isinstance(S.outs[0], bst.MissingStream) and isinstance(S.outs[1], bst.Stream)
+        
 if __name__ == '__main__':
+    test_disconnect()
     test_auxiliary_unit_owners()
     test_unit_convinience_properties()
     test_unit_inheritance_setup_method()

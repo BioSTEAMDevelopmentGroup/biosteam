@@ -1429,9 +1429,9 @@ class BinaryDistillation(Distillation, new_graphics=False):
     Purchase cost            Rectifier trays                          USD   1.5e+04
                              Stripper trays                           USD  1.25e+04
                              Rectifier tower                          USD  4.56e+04
-                             Stripper platform and ladders            USD  1.39e+04
+                             Rectifier platform and ladders           USD  1.39e+04
                              Stripper tower                           USD  3.83e+04
-                             Rectifier platform and ladders           USD  1.14e+04
+                             Stripper platform and ladders            USD  1.14e+04
                              Condenser - Floating head                USD  3.33e+04
                              Reflux drum - Horizontal pressur...      USD  1.02e+04
                              Reflux drum - Platform and ladders       USD  3.02e+03
@@ -1993,9 +1993,9 @@ class ShortcutColumn(Distillation, new_graphics=False):
     Purchase cost            Rectifier trays                          USD  1.52e+04
                              Stripper trays                           USD  2.01e+04
                              Rectifier tower                          USD  4.76e+04
-                             Stripper platform and ladders            USD  1.42e+04
+                             Rectifier platform and ladders           USD  1.42e+04
                              Stripper tower                           USD  5.38e+04
-                             Rectifier platform and ladders           USD  1.81e+04
+                             Stripper platform and ladders            USD  1.81e+04
                              Condenser - Floating head                USD  4.07e+04
                              Reflux drum - Horizontal pressur...      USD  1.03e+04
                              Reflux drum - Platform and ladders       USD  3.02e+03
@@ -2357,7 +2357,7 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
                         MTBE        20
     [1] steam  
         phase: 'g', T: 390 K, P: 101325 Pa
-        flow: 100 kmol/hr Water
+        flow (kmol/hr): Water  100
     outs...
     [0] vapor  
         phase: 'g', T: 366.33 K, P: 101325 Pa

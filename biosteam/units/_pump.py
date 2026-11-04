@@ -82,11 +82,11 @@ class Pump(Unit):
     ins...
     [0] feed  
         phase: 'l', T: 350 K, P: 101325 Pa
-        flow: 200 kmol/hr Water
+        flow (kmol/hr): Water  200
     outs...
     [0] out  
         phase: 'l', T: 350 K, P: 200000 Pa
-        flow: 200 kmol/hr Water
+        flow (kmol/hr): Water  200
     >>> P1.results()
     Pump                                   Units           P1
     Electricity              Power            kW        0.288

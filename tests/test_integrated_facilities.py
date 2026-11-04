@@ -14,6 +14,10 @@ from numpy.testing import assert_allclose
 def test_integrated_facilities():
     
     class Biorefinery(bst.Unit):
+        _N_ins = 0
+        _N_outs = 1 # Waste burned at the boiler
+        
+        def _run(self): pass
         
         def _cost(self):
             self.add_power_utility(20)
@@ -21,6 +25,7 @@ def test_integrated_facilities():
     
     class CoHeatAndPower(bst.Facility):
         network_priority = 1
+        _N_ins = 1 # Waste from the biorefinery
         _N_outs = 1
         @property
         def flue_gas(self):
@@ -48,7 +53,7 @@ def test_integrated_facilities():
     bst.settings.set_thermo(['CO2'], cache=True)
     with bst.System('biorefinery') as biorefinery_sys: 
         B = Biorefinery()
-        CHP = CoHeatAndPower()
+        CHP = CoHeatAndPower(ins=B-0)
         
     with bst.System('carbon_capture') as carbon_capture_sys: 
         CC = CarbonCapture()

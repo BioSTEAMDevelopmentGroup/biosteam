@@ -325,11 +325,11 @@ class IsothermalCompressor(Compressor, new_graphics=False):
     ins...
     [0] feed  
         phase: 'g', T: 298.15 K, P: 2e+06 Pa
-        flow: 1 kmol/hr H2
+        flow (kmol/hr): H2  1
     outs...
     [0] outlet  
         phase: 'g', T: 298.15 K, P: 3.5e+07 Pa
-        flow: 1 kmol/hr H2
+        flow (kmol/hr): H2  1
     
     >>> K.results()
     Isothermal compressor                               Units               K
@@ -412,11 +412,11 @@ class IsentropicCompressor(Compressor, new_graphics=False):
     ins...
     [0] feed  
         phase: 'g', T: 298.15 K, P: 101325 Pa
-        flow: 1 kmol/hr H2
+        flow (kmol/hr): H2  1
     outs...
     [0] outlet  
         phase: 'g', T: 1152 K, P: 5e+06 Pa
-        flow: 1 kmol/hr H2
+        flow (kmol/hr): H2  1
 
     >>> K.results()
     Isentropic compressor                               Units             K1
@@ -722,11 +722,11 @@ class PolytropicCompressor(Compressor, new_graphics=False):
     ins...
     [0] feed  
         phase: 'g', T: 25 degC, P: 2e+06 Pa
-        flow: 1 kmol/hr H2
+        flow (kmol/hr): H2  1
     outs...
     [0] outlet  
         phase: 'g', T: 713 degC, P: 3.5e+07 Pa
-        flow: 1 kmol/hr H2
+        flow (kmol/hr): H2  1
     >>> K.results()
     Polytropic compressor                              Units              K1
     Electricity              Power                        kW            6.76
@@ -751,11 +751,11 @@ class PolytropicCompressor(Compressor, new_graphics=False):
     ins...
     [0] feed  
         phase: 'g', T: 298.15 K, P: 2e+06 Pa
-        flow: 1 kmol/hr H2
+        flow (kmol/hr): H2  1
     outs...
     [0] outlet  
         phase: 'g', T: 958.08 K, P: 3.5e+07 Pa
-        flow: 1 kmol/hr H2
+        flow (kmol/hr): H2  1
     >>> K.results()
     Polytropic compressor                              Units              K1
     Electricity              Power                        kW            6.48
@@ -793,11 +793,11 @@ class PolytropicCompressor(Compressor, new_graphics=False):
     ins...
     [0] feed  
         phase: 'g', T: 298.15 K, P: 2e+06 Pa
-        flow: 1 kmol/hr H2
+        flow (kmol/hr): H2  1
     outs...
     [0] outlet  
         phase: 'g', T: 958.08 K, P: 3.5e+07 Pa
-        flow: 1 kmol/hr H2
+        flow (kmol/hr): H2  1
     
     >>> K.results()
     Polytropic compressor                              Units              K1
@@ -956,11 +956,11 @@ class MultistageCompressor(Unit):
     ins...
     [0] feed  
         phase: 'g', T: 298.15 K, P: 2e+06 Pa
-        flow: 1 kmol/hr H2
+        flow (kmol/hr): H2  1
     outs...
     [0] outlet  
         phase: 'g', T: 298.15 K, P: 3.2e+07 Pa
-        flow: 1 kmol/hr H2
+        flow (kmol/hr): H2  1
     
     >>> K.results()
     Multistage compressor                            Units                      K
@@ -992,16 +992,16 @@ class MultistageCompressor(Unit):
     ...  hx.outs[0].show()
     Stream: K_H1__K_K2 from <HXutility: K_H1> to <IsentropicCompressor: K_K2>
     phase: 'g', T: 298.15 K, P: 4e+06 Pa
-    flow: 1 kmol/hr H2
+    flow (kmol/hr): H2  1
     Stream: K_H2__K_K3 from <HXutility: K_H2> to <IsentropicCompressor: K_K3>
     phase: 'g', T: 298.15 K, P: 8e+06 Pa
-    flow: 1 kmol/hr H2
+    flow (kmol/hr): H2  1
     Stream: K_H3__K_K4 from <HXutility: K_H3> to <IsentropicCompressor: K_K4>
     phase: 'g', T: 298.15 K, P: 1.6e+07 Pa
-    flow: 1 kmol/hr H2
+    flow (kmol/hr): H2  1
     Stream: outlet from <MultistageCompressor: K>
     phase: 'g', T: 298.15 K, P: 3.2e+07 Pa
-    flow: 1 kmol/hr H2
+    flow (kmol/hr): H2  1
 
     If we want to setup more complex multistage compression schemes, we can pre-define the compressors and
     heat exchangers and pass them as a list to `MultistageCompressor`:
@@ -1021,11 +1021,11 @@ class MultistageCompressor(Unit):
     ins...
     [0] feed  
         phase: 'g', T: 298.15 K, P: 2e+06 Pa
-        flow: 1 kmol/hr H2
+        flow (kmol/hr): H2  1
     outs...
     [0] outlet  
         phase: 'g', T: 298 K, P: 3.2e+07 Pa
-        flow: 1 kmol/hr H2
+        flow (kmol/hr): H2  1
     
     >>> K.results()
     Multistage compressor                             Units                     K2
@@ -1062,19 +1062,19 @@ class MultistageCompressor(Unit):
     ...  hx.outs[0].show()
     Stream: K2_H1__K2_K2 from <HXutility: K2_H1> to <PolytropicCompressor: K2_K2>
     phase: 'g', T: 310 K, P: 3e+06 Pa
-    flow: 1 kmol/hr H2
+    flow (kmol/hr): H2  1
     Stream: K2_H2__K2_K3 from <HXutility: K2_H2> to <IsentropicCompressor: K2_K3>
     phase: 'g', T: 350 K, P: 5e+06 Pa
-    flow: 1 kmol/hr H2
+    flow (kmol/hr): H2  1
     Stream: K2_H3__K2_K4 from <HXutility: K2_H3> to <PolytropicCompressor: K2_K4>
     phase: 'g', T: 400 K, P: 9e+06 Pa
-    flow: 1 kmol/hr H2
+    flow (kmol/hr): H2  1
     Stream: K2_H4__K2_K5 from <HXutility: K2_H4> to <IsentropicCompressor: K2_K5>
     phase: 'g', T: 350 K, P: 1.7e+07 Pa
-    flow: 1 kmol/hr H2
+    flow (kmol/hr): H2  1
     Stream: outlet from <MultistageCompressor: K2>
     phase: 'g', T: 298 K, P: 3.2e+07 Pa
-    flow: 1 kmol/hr H2
+    flow (kmol/hr): H2  1
 
     Show the fluid state at the outlet of each heat exchanger:
     
@@ -1082,19 +1082,19 @@ class MultistageCompressor(Unit):
     ...  hx.outs[0].show()
     Stream: K2_H1__K2_K2 from <HXutility: K2_H1> to <PolytropicCompressor: K2_K2>
     phase: 'g', T: 310 K, P: 3e+06 Pa
-    flow: 1 kmol/hr H2
+    flow (kmol/hr): H2  1
     Stream: K2_H2__K2_K3 from <HXutility: K2_H2> to <IsentropicCompressor: K2_K3>
     phase: 'g', T: 350 K, P: 5e+06 Pa
-    flow: 1 kmol/hr H2
+    flow (kmol/hr): H2  1
     Stream: K2_H3__K2_K4 from <HXutility: K2_H3> to <PolytropicCompressor: K2_K4>
     phase: 'g', T: 400 K, P: 9e+06 Pa
-    flow: 1 kmol/hr H2
+    flow (kmol/hr): H2  1
     Stream: K2_H4__K2_K5 from <HXutility: K2_H4> to <IsentropicCompressor: K2_K5>
     phase: 'g', T: 350 K, P: 1.7e+07 Pa
-    flow: 1 kmol/hr H2
+    flow (kmol/hr): H2  1
     Stream: outlet from <MultistageCompressor: K2>
     phase: 'g', T: 298 K, P: 3.2e+07 Pa
-    flow: 1 kmol/hr H2
+    flow (kmol/hr): H2  1
 
     If we want to setup more complex multistage compression schemes, we can pre-define the compressors and
     heat exchangers and pass them as a list to `MultistageCompressor`:
@@ -1114,11 +1114,11 @@ class MultistageCompressor(Unit):
     ins...
     [0] feed  
         phase: 'g', T: 298.15 K, P: 2e+06 Pa
-        flow: 1 kmol/hr H2
+        flow (kmol/hr): H2  1
     outs...
     [0] outlet  
         phase: 'g', T: 298 K, P: 3.2e+07 Pa
-        flow: 1 kmol/hr H2
+        flow (kmol/hr): H2  1
     
     >>> K.results()
     Multistage compressor                             Units                     K2

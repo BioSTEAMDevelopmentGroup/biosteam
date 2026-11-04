@@ -803,10 +803,10 @@ class HXprocess(HX):
     ins...
     [0] in_a  
         phase: 'g', T: 78 degC, P: 101325 Pa
-        flow: 50 kmol/hr Ethanol
+        flow (kmol/hr): Ethanol  50
     [1] in_b  
         phase: 'l', T: 25 degC, P: 101325 Pa
-        flow: 200 kmol/hr Water
+        flow (kmol/hr): Water  200
     outs...
     [0] out_a  
         phases: ('g', 'l'), T: 78 degC, P: 101325 Pa
@@ -814,7 +814,7 @@ class HXprocess(HX):
                         (l) Ethanol  18.6
     [1] out_b  
         phase: 'l', T: 73 degC, P: 101325 Pa
-        flow: 200 kmol/hr Water
+        flow (kmol/hr): Water  200
 
     >>> hx.results()
     Heat exchanger                                                 Units       hx
@@ -845,17 +845,17 @@ class HXprocess(HX):
     ins...
     [0] in_a  
         phase: 'l', T: 350 K, P: 101325 Pa
-        flow: 200 kmol/hr Water
+        flow (kmol/hr): Water  200
     [1] in_b  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow: 200 kmol/hr Ethanol
+        flow (kmol/hr): Ethanol  200
     outs...
     [0] out_a  
         phase: 'l', T: 303.15 K, P: 101325 Pa
-        flow: 200 kmol/hr Water
+        flow (kmol/hr): Water  200
     [1] out_b  
         phase: 'l', T: 328.09 K, P: 101325 Pa
-        flow: 200 kmol/hr Ethanol
+        flow (kmol/hr): Ethanol  200
     >>> hx.results()
     Heat exchanger                                                 Units       hx
     Design                   Area                                   ft^2      369

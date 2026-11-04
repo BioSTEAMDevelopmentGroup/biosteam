@@ -104,9 +104,9 @@ def test_save_report(system, tea, tmp_path):
     assert {'Itemized costs', 'Cash flow', 'Stream table',
             'Design requirements'} <= sheets
 
-def test_save_report_skips_water_mass_balance_without_PWC(system, tea, tmp_path):
-    # The water mass balance is defined relative to a ProcessWaterCenter; without
-    # one, the sheet is skipped (with a warning) instead of raising.
+def test_save_report_water_mass_balance_without_PWC(system, tea, tmp_path):
+    # The water mass balance does not require a ProcessWaterCenter; the sheet
+    # is reported without raising.
     import openpyxl
     path = tmp_path / 'report.xlsx'
     system.save_report(str(path), sheets={'Water mass balance', 'Stream table'})
@@ -116,4 +116,4 @@ def test_save_report_skips_water_mass_balance_without_PWC(system, tea, tmp_path)
     finally:
         wb.close()
     assert 'Stream table' in sheets
-    assert 'Water mass balance' not in sheets
+    assert 'Water mass balance' in sheets

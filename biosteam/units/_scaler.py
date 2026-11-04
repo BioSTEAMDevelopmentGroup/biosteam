@@ -48,11 +48,11 @@ class Scaler(Unit):
     ins...
     [0] s1  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow: 20 kmol/hr Water
+        flow (kmol/hr): Water  20
     outs...
     [0] s2  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow: 40 kmol/hr Water
+        flow (kmol/hr): Water  40
         
     """
     _stacklevel = Unit._stacklevel

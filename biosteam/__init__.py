@@ -54,7 +54,9 @@ from ._heat_utility import UtilityAgent, HeatUtility
 from ._power_utility import PowerUtility
 from . import plots
 from .utils import *
-from ._unit import Unit
+from . import _unit
+from ._unit import *
+from ._network import Network
 from . import _system
 from ._system import *
 from . import _flowsheet
@@ -80,10 +82,10 @@ from . import report
 from . import _settings
 
 __all__ = [
-    'Unit', 'PowerUtility', 'UtilityAgent', 'HeatUtility', 'Facility',
+    'PowerUtility', 'UtilityAgent', 'HeatUtility', 'Facility',
     'utils', 'units', 'facilities', 'wastewater', 'evaluation', 'settings', 
     'exceptions', 'report', 'units_of_measure',
-    'process_tools', 'preferences', *_system.__all__, *_flowsheet.__all__,
+    'process_tools', 'preferences', 'Network', *_unit.__all__, *_system.__all__, *_flowsheet.__all__,
     *_tea.__all__, *units.__all__, *facilities.__all__, *wastewater.__all__,
     *evaluation.__all__, *process_tools.__all__, *_module.__all__,
     *thermosteam.__all__

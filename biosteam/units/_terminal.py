@@ -7,6 +7,7 @@
 # for license details.
 """
 """
+import biosteam as bst
 from .._unit import Unit
 from thermosteam._graphics import junction_graphics
 from .._power_utility import PowerUtility
@@ -38,12 +39,12 @@ class Terminal(Unit):
     >>> s1 = Stream('s1', Water=20)
     >>> S1 = Terminal(upstream=s1)
     >>> S1.simulate()
-    >>> s1.show()
+    >>> S1.show()
     Terminal: S1
     ins...
     [0] s1  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow: 20 kmol/hr Water
+        flow (kmol/hr): Water  20
         
     """
     _stacklevel = Unit._stacklevel
@@ -60,6 +61,7 @@ class Terminal(Unit):
     prioritize = False
     
     def __init__(self, ID="", upstream=None, downstream=None, thermo=None):
+        if bst.settings.ID_magic and ID == '': ID = bst.utils.infer_variable_assignment(self.__class__)
         self._register(ID)
         thermo = self._load_thermo(thermo)
         self._init_specifications()

@@ -19,7 +19,7 @@ from .digraph import (digraph_from_units,
                       surface_digraph,
                       finalize_digraph)
 from thermosteam import (
-    AbstractStream, Stream, MultiStream, Chemical, 
+    Stream, MultiStream, Chemical, 
     BipartitePhenomeGraph, PhenomeGraph, PhenomeNode, DotFile,
     all_subgraphs, 
 )
@@ -28,10 +28,11 @@ from . import HeatUtility, PowerUtility
 from thermosteam.utils import registered
 from scipy.optimize import root
 from .exceptions import try_method_with_object_stamp, Converged
-from thermosteam import Network, mark_disjunction, unmark_disjunction
+from ._network import Network
+from .utils.piping import mark_disjunction, unmark_disjunction
 from ._facility import Facility
-from ._unit import Unit
-from thermosteam.network import repr_ins_and_outs
+from ._unit import Unit, temporary_units_dump, TemporaryUnit, TemporaryStream
+from ._network import repr_ins_and_outs
 from . import utils
 from .utils import (
     repr_items, ignore_docking_warnings,
@@ -49,7 +50,6 @@ import pandas as pd
 from numpy.linalg import solve
 from scipy.integrate import solve_ivp, RK23, RK45, DOP853, Radau, BDF, LSODA
 from . import report
-from thermosteam.network import temporary_units_dump, TemporaryUnit
 import os
 import openpyxl
 import thermosteam as tmo
@@ -2020,7 +2020,7 @@ class System:
                 for s in u.ins + u.outs:
                     if not s: s = s.materialize_connection()
                     elif s in stream_set: continue
-                    elif s.__class__ is AbstractStream: continue
+                    elif s.__class__ is TemporaryStream: continue
                     streams.append(s)
                     stream_set.add(s)
             return streams 
@@ -2037,7 +2037,7 @@ class System:
                 for s in u._ins + u._outs:
                     if not s: s = s.materialize_connection()
                     elif s in stream_set: continue
-                    elif s.__class__ is AbstractStream: continue
+                    elif s.__class__ is TemporaryStream: continue
                     streams.append(s)
                     stream_set.add(s)
             return streams 
@@ -2099,7 +2099,7 @@ class System:
                     raise AttributeError("recycle streams must be Stream objects; "
                                         f"not {type(i).__name__}")
             self._recycle = recycle
-        elif recycle.__class__ is AbstractStream:
+        elif recycle.__class__ is TemporaryStream:
             self.method = 'fixed-point'
             permanent = self.unit_set
             unit_path = self.unit_path
@@ -2864,16 +2864,19 @@ class System:
         M = len(next(iter(variable_profiles.values())))
         N = len(columns)
         values = np.zeros([M, N])
+        widths = [len(i) for i in subnames]
         for i in range(M):
             j = 0
-            for lst in variable_profiles.values():
-                values_i = lst[i]
-                if np.ndim(values_i):
-                    end = j + len(values_i)
-                else:
-                    end = j + 1
-                values[i, j:end] = values_i
+            for lst, width in zip(variable_profiles.values(), widths):
+                end = j + width
+                # Unrecorded values (scalar nan) fill all columns of the variable
+                values[i, j:end] = lst[i] 
                 j = end
+        # Ignore variables that were never recorded (e.g., variables not updated by
+        # the simulation algorithm) and then any iteration with missing values.
+        recorded = ~np.isnan(values).all(axis=0)
+        values = values[:, recorded]
+        columns = [i for i, j in zip(columns, recorded) if j]
         rows, = np.where((~np.isnan(values)).all(axis=1))
         df = pd.DataFrame(values[rows], columns=pd.MultiIndex.from_tuples(columns))
         record = np.array(self.timer.record)
@@ -3056,11 +3059,11 @@ class System:
             except AttributeError: raise ValueError('no recycle data to update')
 
     def _summary(self):
+        isa = isinstance
+        Unit = bst.Unit
+        f = try_method_with_object_stamp
         if not self._integrated_facilities: 
             simulated_units = set()
-            isa = isinstance
-            Unit = bst.Unit
-            f = try_method_with_object_stamp
             for i in self._path:
                 if isa(i, Unit):
                     if i in simulated_units: continue
@@ -4048,7 +4051,7 @@ class System:
         .. code-block:: python
             
            >>> bst.settings.define_impact_indicator('GWP', 'kg*CO2e')
-           >>> system.get_property_allocated_impact(
+           >>> system.get_product_impact( # doctest: +SKIP
            ...     product, key='GWP', allocation_method='mass', basis='kg'
            ... ) # -> GWP [kgCO2e / kg-product]
 
@@ -4105,7 +4108,7 @@ class System:
         .. code-block:: python
             
            >>> bst.settings.define_impact_indicator('GWP', 'kg*CO2e')
-           >>> system.get_property_allocated_impact(
+           >>> system.get_property_allocated_impact( # doctest: +SKIP
            ...     key='GWP', name='mass', basis='kg'
            ... ) # -> GWP [kgCO2e / kg-products]
 

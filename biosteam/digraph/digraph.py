@@ -16,7 +16,6 @@ from warnings import warn
 import biosteam as bst
 from graphviz import Digraph
 from IPython import display
-from thermosteam import AbstractStream, AbstractUnit
 from xml.etree import ElementTree
 from typing import Optional
 import urllib
@@ -133,7 +132,7 @@ def surface_digraph(path, auxiliaries=None, **graph_attrs):
     surface_units = []
     old_unit_connections = set()
     isa = isinstance
-    Unit = AbstractUnit
+    Unit = bst.Unit
     done = set()
     for i in path:
         if i in done: continue
@@ -223,7 +222,7 @@ def digraph_from_units(units, streams=None, auxiliaries=None, **graph_attrs):
                 stream_set.add(s)
             for name, auxunit in unit._diagram_nested_auxiliary_units_with_names(depth=auxiliaries):
                 auxunit.owner = unit # In case units not created correctly through Unit.auxiliary method
-                if isinstance(auxunit, AbstractUnit): 
+                if isinstance(auxunit, bst.Unit): 
                     auxunit._ID = name
                     all_units.append(auxunit)
                     for s in auxunit.ins + auxunit.outs:
@@ -274,14 +273,14 @@ def update_digraph_from_path(f, path, recycle, depth, unit_names,
     subsystems = []
     isa = isinstance
     System = bst.System
-    Unit = AbstractUnit
+    Unit = bst.Unit
     for i in path:
         if isa(i, Unit):
             units.add(i)
             all_streams.update(i._ins + i._outs)
         elif isa(i, System): 
             subsystems.append(i)
-    if isa(recycle, AbstractStream): 
+    if isa(recycle, bst.Stream): 
         recycles = [recycle] 
     elif recycle:
         recycles = recycle

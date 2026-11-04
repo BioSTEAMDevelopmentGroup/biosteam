@@ -83,10 +83,10 @@ class AmineAbsorption(Unit):
                         N2   1.76e+04
     [1] makeup_MEA  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow: 2.82 kmol/hr MEA
+        flow (kmol/hr): MEA  2.82
     [2] makeup_water  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow: 22.3 kmol/hr Water
+        flow (kmol/hr): Water  22.3
     outs...
     [0] vent  
         phase: 'l', T: 313.15 K, P: 101325 Pa
@@ -95,7 +95,7 @@ class AmineAbsorption(Unit):
                         N2   1.76e+04
     [1] CO2  
         phase: 'l', T: 313.15 K, P: 101325 Pa
-        flow: 2.61e+03 kmol/hr CO2
+        flow (kmol/hr): CO2  2.61e+03
     >>> U1.results()
     Amine absorption                                 Units       U1
     Electricity              Power                      kW 1.23e+03
@@ -193,11 +193,11 @@ class CO2Compression(Unit):
     ins...
     [0] gaseous_CO2  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow: 2.61e+03 kmol/hr CO2
+        flow (kmol/hr): CO2  2.61e+03
     outs...
     [0] compressed_CO2  
         phase: 'l', T: 303.15 K, P: 1.1e+07 Pa
-        flow: 2.61e+03 kmol/hr CO2
+        flow (kmol/hr): CO2  2.61e+03
     >>> U1.results()
     CO2Compression                         Units       U1
     Electricity              Power            kW      360

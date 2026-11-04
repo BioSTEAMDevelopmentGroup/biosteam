@@ -14,11 +14,11 @@ from __future__ import annotations
 from typing import Optional, Iterable
 import biosteam as bst
 from thermosteam.utils import Registry
-from thermosteam import AbstractStream
-from ._unit import AbstractUnit
+from thermosteam import Stream
+from ._unit import Unit
 from ._system import System
 
-__all__ = ('main_flowsheet', 'Flowsheet', 'F')
+__all__ = ('main_flowsheet', 'Flowsheet', 'F', 'get_streams_from_context_level')
 
 # %% Flowsheet search      
 
@@ -159,7 +159,7 @@ class Flowsheet:
     def clear(self, reset_ticket_numbers=True):
         for registry in self.registries: registry.clear()
         if reset_ticket_numbers:
-            for i in (AbstractStream, AbstractUnit, System): i.ticket_numbers.clear()
+            for i in (Stream, Unit, System): i.ticket_numbers.clear()
     
     def discard(self, ID):
         for registry in self.registries: registry.discard(ID)
@@ -232,7 +232,7 @@ class Flowsheet:
                                                 title, **graph_attrs)
     
     def create_system(self, ID: Optional[str]="", 
-                      ends: Optional[Iterable[AbstractStream]]=None,
+                      ends: Optional[Iterable[Stream]]=None,
                       operating_hours: Optional[float]=None,
                       **kwargs):
         """
@@ -257,7 +257,7 @@ class Flowsheet:
         return System.from_units(ID, self.unit, ends, 
                                  operating_hours, **kwargs)
     
-    def __call__(self, ID: str|type[AbstractUnit], strict: Optional[bool]=False):
+    def __call__(self, ID: str|type[Unit], strict: Optional[bool]=False):
         """
 		Return requested biosteam item or a list of all matching items.
     
@@ -340,8 +340,8 @@ class MainFlowsheet(Flowsheet):
         if F.system.data is F.unit.data is F.stream.data:
             data = F.system.data
             F.system.data = {i: j for i, j in data.items() if isinstance(j, System)}
-            F.stream.data = {i: j for i, j in data.items() if isinstance(j, AbstractStream)}
-            F.unit.data = {i: j for i, j in data.items() if isinstance(j, AbstractUnit)}
+            F.stream.data = {i: j for i, j in data.items() if isinstance(j, Stream)}
+            F.unit.data = {i: j for i, j in data.items() if isinstance(j, Unit)}
     
     def set_flowsheet(self, flowsheet, new=False):
         """Set main flowsheet that is updated with new biosteam objects."""
@@ -356,9 +356,9 @@ class MainFlowsheet(Flowsheet):
                 dct = new_flowsheet.__dict__
         else:
             raise TypeError('flowsheet must be a Flowsheet object')
-        AbstractStream.registry = dct['stream']
+        Stream.registry = dct['stream']
         System.registry = dct['system']
-        AbstractUnit.registry = dct['unit']
+        Unit.registry = dct['unit']
         object.__setattr__(self, '__dict__', dct)
         
     def get_flowsheet(self):
@@ -377,6 +377,57 @@ class MainFlowsheet(Flowsheet):
 F = main_flowsheet = object.__new__(MainFlowsheet)
 main_flowsheet.set_flowsheet(
     Flowsheet.from_registries(
-        'default', AbstractStream.registry, AbstractUnit.registry, System.registry
+        'default', Stream.registry, Unit.registry, System.registry
     )
 )
+
+
+# %% Stream filters
+
+def get_streams_from_context_level(level=None):
+    """
+    Return streams created in given context level.
+    
+    Parameters
+    ----------
+    level : int, optional
+        If given, only filter through streams created in the given context 
+        level. For example, use:
+        * 0: to filter within the outer-most context level.
+        * -1: to filter within the current context level.
+        * -2: to filter within the outer context level.
+        
+    
+    Examples
+    --------
+    Get all waste streams created (as registerd in the flowsheet):
+        
+    >>> import biosteam as bst
+    >>> bst.main_flowsheet.clear()
+    >>> bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
+    >>> waste = bst.Stream('waste')
+    >>> mixer = bst.Mixer('mixer', outs=waste)
+    >>> streams = bst.get_streams_from_context_level()
+    >>> assert len(streams) == 1 and streams[0] == waste
+    
+    Get waste streams created within a context:
+        
+    >>> with bst.System('sys') as sys:
+    ...     new_waste = bst.Stream('new_waste')
+    ...     tank = bst.MixTank('tank', outs=new_waste)
+    ...     streams = bst.get_streams_from_context_level(level=0)
+    ...     assert len(streams) == 1 and streams[0] == new_waste
+    
+    """
+    if level is None:
+        streams = list(Stream.registry)
+    else:
+        units = Unit.registry
+        context_levels = units.context_levels
+        N_levels = len(context_levels)
+        if (level >= 0 and level >= N_levels or level < 0 and -level > N_levels):
+            streams = list(Stream.registry)
+        else:
+            units = context_levels[level]
+            streams = [i for i in bst.utils.streams_from_units(units) if i]
+    return streams

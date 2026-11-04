@@ -136,11 +136,11 @@ class SystemFactory:
     ins...
     [0] cold_stream  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow: 100 kmol/hr Water
+        flow (kmol/hr): Water  100
     outs...
     [0] hot_stream  
         phase: 'l', T: 350 K, P: 101325 Pa
-        flow: 100 kmol/hr Water
+        flow (kmol/hr): Water  100
     
     Create a mockup version, add a tank, then create the system:
     
@@ -160,11 +160,11 @@ class SystemFactory:
     ins...
     [0] cold_stream  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow: 100 kmol/hr Water
+        flow (kmol/hr): Water  100
     outs...
     [0] hot_stream_from_storage  
         phase: 'l', T: 350 K, P: 101325 Pa
-        flow: 100 kmol/hr Water
+        flow (kmol/hr): Water  100
     
     Create the system and assign unit operation IDs by area convention:
     

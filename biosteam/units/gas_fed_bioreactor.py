@@ -533,7 +533,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             effluent.mix_flows(liquid_feeds)
             F_vol = sum([i.F_mass for i in liquid_feeds]) / 1000 # Approximately m3 / hr
             SURs = self._group_substrate_flows(self.get_SURs(F_vol)) # Gas substrate uptake rate [mol / s]
-            if (SURs <= 1e-2).all():
+            if (SURs <= 1e-6).all():
                 self._run_vent(vent, effluent)
                 return
             index = range(len(controlled_gas_substrates))
@@ -566,7 +566,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             
             def gas_flow_rate_objective(F_feeds):
                 F_feeds[F_feeds < 0] *= -1
-                F_feeds[F_feeds < 1e-6] = 1e-6
+                F_feeds[F_feeds < 1e-12] = 1e-12
                 for i in index: controlled_gas_feeds[i].set_total_flow(F_feeds[i], 'mol/s')
                 self._update_gas_feeds()
                 self._run_without_titer_specification(effluent, vent, liquid_feeds)
@@ -579,7 +579,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             with catch_warnings():
                 filterwarnings('ignore')
                 results = fsolve(
-                    f, guess = 1.01 * F_min, full_output=True, maxfev=500, xtol=1e-9
+                    f, 1.01 * F_min, full_output=True, maxfev=500, xtol=1e-9
                 )
             self._convergence = results
         elif controlled_liquid_feeds and controlled_gas_feeds: 
@@ -592,7 +592,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             controlled_liquid_feed.F_mass = F_liquid_max
             SURs = self._group_substrate_flows(self.get_SURs((F_liquid_max + F_liquid_baseline) / 1000)) # Gas substrate uptake rate [mol / s]
             if funneling_reactions is None:
-                baseline_flows = self._get_grouped_substrate_flows()
+                baseline_flows = self._get_grouped_substrate_flows(self.normal_feeds)
                 
                 # Each feed directly controls a gas substrate
                 x_substrates = []
@@ -624,7 +624,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
                 
             def gas_flow_rate_objective(F_controlled):
                 F_controlled[F_controlled < 0] *= -1 
-                F_controlled[F_controlled < 1e-6] = 1e-6
+                F_controlled[F_controlled < 1e-12] = 1e-12
                 for i in index:
                     gas = controlled_gas_feeds[i]
                     gas.set_total_flow(F_controlled[i], 'mol/s')

@@ -114,7 +114,7 @@ class BoilerTurbogenerator(bst.Facility):
         flow: 0
     [2] -  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow: 488 kmol/hr Water
+        flow (kmol/hr): Water  488
     [3] -  
         phase: 'g', T: 288.71 K, P: 101560 Pa
         flow: 0
@@ -123,7 +123,7 @@ class BoilerTurbogenerator(bst.Facility):
         flow: 0
     [5] -  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow: 0.567 kmol/hr Ash
+        flow (kmol/hr): Ash  0.567
     [6] -  
         phase: 'g', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): O2  9.85e+03
@@ -137,7 +137,7 @@ class BoilerTurbogenerator(bst.Facility):
                         N2     4.23e+04
     [1] rejected_water_and_blowdown  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow: 488 kmol/hr Water
+        flow (kmol/hr): Water  488
     [2] ash_disposal  
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): Water  0.00944
@@ -592,7 +592,7 @@ class Boiler(bst.Facility):
         flow: 0
     [2] -  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow: 488 kmol/hr Water
+        flow (kmol/hr): Water  488
     [3] -  
         phase: 'g', T: 288.71 K, P: 101560 Pa
         flow: 0
@@ -601,7 +601,7 @@ class Boiler(bst.Facility):
         flow: 0
     [5] -  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow: 0.567 kmol/hr Ash
+        flow (kmol/hr): Ash  0.567
     [6] -  
         phase: 'g', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): O2  9.85e+03
@@ -615,7 +615,7 @@ class Boiler(bst.Facility):
                         N2     4.23e+04
     [1] rejected_water_and_blowdown  
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow: 488 kmol/hr Water
+        flow (kmol/hr): Water  488
     [2] ash_disposal  
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): Water  0.00944
