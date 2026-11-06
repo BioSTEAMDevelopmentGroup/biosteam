@@ -5,8 +5,8 @@ Configuration for pytest to run with and without numba JIT compiled functions.
 import pytest
 import os
 
-def pytest_ignore_collect(path):
-    path = str(path)
+def pytest_ignore_collect(collection_path):
+    path = str(collection_path)
     if 'setup' in path:
         return True
 
