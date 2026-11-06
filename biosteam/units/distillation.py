@@ -2920,7 +2920,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
             )
             self.auxiliary(
                 'top_split', MockSplitter,
-                ins = self.condenser-0,
+                ins=self.condenser-0,
                 outs=(self-0, 'condensate'),
                 thermo=thermo,
             )
