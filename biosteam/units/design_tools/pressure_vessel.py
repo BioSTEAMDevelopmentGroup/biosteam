@@ -116,13 +116,17 @@ class PressureVessel:
         )
         if check:
             if pressure < 14.68:
-                warn('vacuum pressure vessel ASME codes not implemented yet; '
-                     'wall thickness may be inaccurate and stiffening rings may be '
-                     'required', category=DesignWarning)
+                warning = DesignWarning.from_source(
+                    self, 
+                    'vacuum pressure vessel ASME codes not implemented yet; '
+                    'wall thickness may be inaccurate and stiffening rings may be '
+                    'required'
+                )
+                warn(warning)
             bounds_warning(self, 'Horizontal vessel weight', VW, 'lb',
-                           self._bounds['Horizontal vessel weight'], 'cost')
+                           self._bounds['Horizontal vessel weight'])
             bounds_warning(self, 'Horizontal vessel diameter', diameter, 'ft',
-                           self._bounds['Horizontal vessel diameter'], 'cost')
+                           self._bounds['Horizontal vessel diameter'])
         Design = {}
         Design['Vessel type'] = 'Horizontal'
         Design['Length'] = length  # ft
@@ -140,15 +144,17 @@ class PressureVessel:
         Design = {}
         if check:
             if pressure < 14.68:
-                warn('vacuum pressure vessel ASME codes not implemented yet; '
-                     'wall thickness may be inaccurate and stiffening rings may be '
-                     'required', category=DesignWarning)
+                warning = DesignWarning.from_source(
+                    self, 
+                    'vacuum pressure vessel ASME codes not implemented yet; '
+                    'wall thickness may be inaccurate and stiffening rings may be '
+                    'required'
+                )
+                warn(warning)
             bounds_warning(self, 'Vertical vessel weight', VW, 'lb',
-                           self._bounds['Vertical vessel weight'],
-                           'cost')
+                           self._bounds['Vertical vessel weight'])
             bounds_warning(self, 'Vertical vessel length', length, 'ft',
-                           self._bounds['Vertical vessel length'],
-                           'cost')
+                           self._bounds['Vertical vessel length'])
         Design['Vessel type'] = 'Vertical'
         Design['Length'] = length # ft
         Design['Diameter'] = diameter # ft

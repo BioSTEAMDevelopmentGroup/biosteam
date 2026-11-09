@@ -436,32 +436,9 @@ def test_disconnect():
     S.ins[0].disconnect_sink()
     assert len(S.ins) == 1 and isinstance(S.ins[0], bst.MissingStream)
     
-    # Test outs size not fixed
+    # Test outs size not fixed  
     S.outs[0].disconnect_source()
     assert len(S.outs) == 2 and isinstance(S.outs[0], bst.MissingStream) and isinstance(S.outs[1], bst.Stream)
-        
-# def test_design_costing_decorators():
-#     @design_decision(
-#         name='k', 
-#         hard_bounds=(1, None),
-#     )
-#     @design_result(
-#         name='T', 
-#         hard_bounds=(0, None),
-#         units='K',
-#     )
-#     @design_result(
-#         name='Weight', 
-#         soft_bounds=(1, 10), 
-#         hard_bounds=(0, None),
-#         units='lb',
-#     )
-#     @cost_factors(
-#         'Pressure vessel',
-#         F_P=('Pressure', F_P),
-#         F_D=('vessel_orientation', F_D),
-#         F_M=('material', F_M),
-#     )
     
 if __name__ == '__main__':
     test_disconnect()

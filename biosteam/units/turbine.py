@@ -31,7 +31,6 @@ __all__ = (
 
 #: TODO:
 #: * Implement estimate of isentropic efficiency when not given (is this possible?).
-
 class TurbineCostAlgorithm(NamedTuple):
     #: Defines preliminary correlation algorithm for a turbine type
     psig_max: float #: Maximum achievable pressure in psig (to autodermine turbine type and/or issue warning)
@@ -51,15 +50,7 @@ class Turbine(Unit, isabstract=True):
     _graphics = turbine_graphics
     _N_ins = 1
     _N_outs = 1
-    _units = {
-        'Ideal power': 'kW',
-        'Ideal duty': 'kJ/hr',
-    }
-    material_factors = {
-        'Carbon steel': 1.0,
-        'Stainless steel': 2.5,
-        'Nickel alloy': 5.0,
-    }
+    
     _F_BM_default = {
         'Turbine(s)': 2.15,
     }
@@ -72,6 +63,11 @@ class Turbine(Unit, isabstract=True):
                 cost=lambda Pc: 0,
                 CE=567,
             ),
+    }
+    material_factors = {
+        'Carbon steel': 1.0,
+        'Stainless steel': 2.5,
+        'Nickel alloy': 5.0
     }
 
     def _init(self, P, eta=0.3, vle=False, turbine_type=None,
