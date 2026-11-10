@@ -262,14 +262,21 @@ class DesignInput(property):
         self.key = key
         attr = '_' + key
         if self.name is None: self.name = key.replace('_', ' ').capitalize()
-        if self.__doc__ is None:
+        default = self.default
+        if default is not None: self.default = default = self.validate(default)
+        doc = self.__doc__
+        if doc is None:
             units = self.units
-            self.__doc__ = f"{self.name} [{units}]." if units else f"{self.name}."
+            if default is None:
+                default_note = ''
+            elif units:
+                default_note = f' Defaults to {default!r} [{units}].'
+            else:
+                default_note = f' Defaults to {default!r}.'
+            self.__doc__ = doc = f"{self.name} [{units}].{default_note}" if units else f"{self.name}.{default_note}"
         fset = self.fset
         fget = self.fget
         N_none = (fget is None) + (fset is None)
-        default = self.default
-        if default is not None: self.default = self.validate(default)
         if N_none == 2: 
             # Document like a property with a getter named after the attribute
             fget = lambda unit: getattr(unit, attr, None)
@@ -277,12 +284,12 @@ class DesignInput(property):
             fget.__name__ = self.__name__ = key
             fget.__qualname__ = f"{owner.__qualname__}.{key}"
             fget.__module__ = owner.__module__
-            fget.__doc__ = self.__doc__
+            fget.__doc__ = doc
             annotation = _get_class_annotation(owner, key)
             if annotation is None: annotation = self._default_annotation
             fget.__annotations__ = {'return': annotation}
             fset = lambda unit, value: setattr(unit, attr, value)
-            super().__init__(fget, fset, self.fdel, self.__doc__)
+            super().__init__(fget, fset, self.fdel, doc)
         elif N_none:
             raise RuntimeError('design inputs must implement both getter and setter methods')
         else:
