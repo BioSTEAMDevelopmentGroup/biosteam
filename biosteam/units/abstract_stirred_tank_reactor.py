@@ -184,16 +184,16 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
     Chilled water            Duty                                   kJ/hr            -1.41e+07
                              Flow                                 kmol/hr             9.42e+03
                              Cost                                  USD/hr                 70.3
-    Design                   Reactor volume                            m3                  319
+    Design decisions         Vessel material                               Stainless steel 316
+                             Vessel type                                              Vertical
+    Design results           Reactor volume                            m3                  319
                              Number of reactors                                              4
                              Residence time                            hr                    8
-                             Vessel type                                              Vertical
                              Length                                    ft                 50.5
                              Diameter                                  ft                 16.8
                              Weight                                    lb             5.39e+04
                              Wall thickness                            in                0.363
-                             Vessel material                               Stainless steel 316
-    Purchase cost            Vertical pressure vessel (x4)            USD             1.18e+06
+    Purchase cost            Pressure vessel (x4)                     USD             1.18e+06
                              Platform and ladders (x4)                USD             2.12e+05
                              Heat exchanger - Floating head (x4)      USD             1.61e+05
                              Recirculation pump - Pump (x4)           USD              3.9e+04

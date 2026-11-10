@@ -117,13 +117,13 @@ class Flash(design.PressureVessel, Unit):
     Medium pressure steam    Duty                              kJ/hr      4.81e+07
                              Flow                            kmol/hr      1.33e+03
                              Cost                             USD/hr           366
-    Design                   Vessel type                                Horizontal
-                             Length                               ft          8.46
+    Design decisions         Vessel material                          Carbon steel
+                             Vessel type                                Horizontal
+    Design results           Length                               ft          8.46
                              Diameter                             ft           5.5
                              Weight                               lb      2.51e+03
                              Wall thickness                       in         0.312
-                             Vessel material                          Carbon steel
-    Purchase cost            Horizontal pressure vessel          USD      1.47e+04
+    Purchase cost            Pressure vessel                     USD      1.47e+04
                              Platform and ladders                USD      3.22e+03
                              Heat exchanger - Floating head      USD      4.48e+04
     Total purchase cost                                          USD      6.26e+04
@@ -292,8 +292,9 @@ class Flash(design.PressureVessel, Unit):
         if self.no_vessel_needed:
             self.design_results.clear()
         else:
+            if self.vessel_type is None: self.vessel_type = self._default_vessel_type()
             vessel_type = self.vessel_type
-            if vessel_type == 'Vertical': 
+            if vessel_type == 'Vertical':
                 args = self._vertical_vessel_pressure_diameter_and_length()
             elif vessel_type == 'Horizontal': 
                 args = self._horizontal_vessel_pressure_diameter_and_length()

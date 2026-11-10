@@ -289,7 +289,6 @@ class DesignDecision(property):
                 if 'return' not in annotations:
                     annotations['return'] = self._default_annotation
         
-
     def __call__(self, fget):
         # Used as a decorator right after creation (e.g., @design_decision(...)),
         # so the getter is set in place instead of creating a copy
@@ -367,6 +366,12 @@ class CategoricalDesignDecision(DesignDecision):
 
     def __set__(self, unit, value):
         catalog = self.catalog
+        if value is None:
+            if self.reference is not None:
+                item, name = self.reference
+                getattr(unit, name).pop(item, None)
+            self.fset(unit, value)
+            return
         if value not in catalog and (value:=value.capitalize()) not in catalog:
             N = len(catalog)
             if N > 2:

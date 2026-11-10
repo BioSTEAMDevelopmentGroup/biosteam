@@ -264,23 +264,23 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
        :alt: Adsorption column fluid concentration profile over time.
     
     >>> A1.results()
-    Single component adsorption column                       Units                   A1
-    Electricity              Power                              kW                0.241
-                             Cost                           USD/hr               0.0188
-    Design                   Diameter                           ft                 1.22
-                             Length                             ft                 12.2
-                             Vessel type                                       Vertical
-                             Weight                             lb                  521
-                             Wall thickness                     in                 0.25
-                             Pressure drop                      Pa                  103
-                             Vessel material                        Stainless steel 316
-    Purchase cost            Vertical pressure vessel (x3)     USD             6.12e+04
-                             Platform and ladders (x3)         USD             8.37e+03
-                             Pump - Pump (x3)                  USD             1.31e+04
-                             Pump - Motor (x3)                 USD                  174
-    Total purchase cost                                        USD             8.28e+04
-    Installed equipment cost                                   USD             2.05e+05
-    Utility cost                                            USD/hr               0.0188
+    Single component adsorption column                   Units                   A1
+    Electricity              Power                          kW                0.241
+                             Cost                       USD/hr               0.0188
+    Design decisions         Vessel material                    Stainless steel 316
+                             Vessel type                                   Vertical
+    Design results           Diameter                       ft                 1.22
+                             Length                         ft                 12.2
+                             Weight                         lb                  521
+                             Wall thickness                 in                 0.25
+                             Pressure drop                  Pa                  103
+    Purchase cost            Pressure vessel (x3)          USD             6.12e+04
+                             Platform and ladders (x3)     USD             8.37e+03
+                             Pump - Pump (x3)              USD             1.31e+04
+                             Pump - Motor (x3)             USD                  174
+    Total purchase cost                                    USD             8.28e+04
+    Installed equipment cost                               USD             2.05e+05
+    Utility cost                                        USD/hr               0.0188
     
     >>> A1.show('wt')
     SingleComponentAdsorptionColumn: A1

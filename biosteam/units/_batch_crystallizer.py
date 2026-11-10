@@ -108,22 +108,20 @@ class BatchCrystallizer(Unit):
                         (s) Sucrose  17.8
     
     >>> C1.results()
-    Batch crystallizer                                      Units        C1
-    Electricity              Power                             kW      2.65
-                             Cost                          USD/hr     0.207
-    Cooling water            Duty                           kJ/hr -1.69e+06
-                             Flow                         kmol/hr  8.06e+03
-                             Cost                          USD/hr      3.93
-    Design                   Crystallizer volume               m3       132
-                             Number of crystallizers                      3
-                             Batch time                        hr        21
-                             Loading time                      hr         0
-                             Cleaning and unloading time       hr         1
-                             Working volume fraction                    0.9
-    Purchase cost            Crystallizer (x3)                USD  1.56e+06
-    Total purchase cost                                       USD  1.56e+06
-    Installed equipment cost                                  USD  3.13e+06
-    Utility cost                                           USD/hr      4.14
+    Batch crystallizer                                  Units        C1
+    Electricity              Power                         kW      3.54
+                             Cost                      USD/hr     0.277
+    Cooling water            Duty                       kJ/hr -1.69e+06
+                             Flow                     kmol/hr  8.06e+03
+                             Cost                      USD/hr      3.93
+    Design results           Crystallizer volume           m3       132
+                             Number of crystallizers                  4
+                             Batch time                    hr        28
+                             Loading time                  hr         7
+    Purchase cost            Crystallizer (x4)            USD  2.09e+06
+    Total purchase cost                                   USD  2.09e+06
+    Installed equipment cost                              USD  4.17e+06
+    Utility cost                                       USD/hr      4.21
     
     References
     ----------
