@@ -9,6 +9,7 @@
 """
 from .tank import MixTank
 from .heat_exchange import HXutility
+from .._unit import design_input
 
 __all__ = ('EnzymeTreatment',)
 
@@ -16,12 +17,13 @@ class EnzymeTreatment(MixTank):
     """Create an EnzymeTreatment unit that is cost as a MixTank with a heat exchanger."""
     _N_outs = 1
     auxiliary_unit_names = ('heat_exchanger',)
+    T: float = design_input('Operating temperature', 'K', lb=0)
     
     def _init(self, vessel_type='Conventional', tau=1.0, V_wf=0.9,
                  vessel_material='Stainless steel', T=None):
         MixTank._init(self, vessel_type=vessel_type,
                       tau=tau, V_wf=V_wf, vessel_material=vessel_material)
-        self.T = T #: Operating temperature (if any)
+        self.T = T
         self.heat_exchanger = HXutility(None, None, None, T=T, thermo=self.thermo)
     
     def _run(self):

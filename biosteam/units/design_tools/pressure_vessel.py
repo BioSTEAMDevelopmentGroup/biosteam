@@ -7,7 +7,7 @@
 # for license details.
 """
 """
-from ..._unit import design_decision
+from ..._unit import design_input
 from .specification_factors import (pressure_vessel_material_factors,
                                     material_densities_lb_per_ft3)
 from . import flash_vessel_design as design
@@ -39,14 +39,14 @@ class PressureVessel:
         'Platform and ladders': 1.
     }
     
-    vessel_type = design_decision(
+    vessel_type = design_input(
         purchase_item='Pressure vessel',
         catalog_type='Module',
         catalog={'Horizontal': 3.05,
                  'Vertical': 4.16},
     )
 
-    vessel_material = design_decision(
+    vessel_material = design_input(
         purchase_item='Pressure vessel',
         catalog_type='Material',
         catalog=pressure_vessel_material_factors,

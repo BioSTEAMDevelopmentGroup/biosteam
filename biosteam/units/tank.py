@@ -35,7 +35,7 @@ from .design_tools.tank_design import (
     storage_tank_purchase_cost_algorithms,
     mix_tank_purchase_cost_algorithms)
 from ..utils import ExponentialFunctor
-from .._unit import Unit, design_decision
+from .._unit import Unit, design_input
 from .mixing import Mixer
 
 __all__ = ('Tank', 'MixTank', 'StorageTank', 'tank_factory')
@@ -106,13 +106,15 @@ def tank_factory(name, *, CE, cost, S, tau, n=0.6, kW_per_m3=0., V_wf=0.9,
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): Corn  4.64e+04
     >>> T101.results()
-    Corn storage                              Units     T101
-    Design decisions         Residence time      hr      259
-    Design results           Total volume       m^3 1.33e+04
-    Purchase cost            Tank               USD 7.62e+04
-    Total purchase cost                         USD 7.62e+04
-    Installed equipment cost                    USD 1.75e+05
-    Utility cost                             USD/hr        0
+    Corn storage                                       Units     T101
+    Design inputs            Working volume fraction              0.9
+                             Electricity requirement  kW/m^3        0
+                             Residence time               hr      259
+    Design results           Total volume                m^3 1.33e+04
+    Purchase cost            Tank                        USD 7.62e+04
+    Total purchase cost                                  USD 7.62e+04
+    Installed equipment cost                             USD 1.75e+05
+    Utility cost                                      USD/hr        0
 
     """
     dct = {
@@ -191,8 +193,9 @@ class Tank(Unit, isabstract=True):
     _F_BM_default = {'Tank': 2.3}
     _N_outs = 1
     
-    #: [float] Residence time [hr].
-    tau = design_decision('Residence time', 'hr', lb=0)
+    tau: float = design_input('Residence time', 'hr', lb=0)
+    V_wf: float = design_input('Working volume fraction', lb=0, ub=1)
+    kW_per_m3: float = design_input('Electricity requirement', 'kW/m^3', lb=0)
     
     def _init(self, 
             vessel_type=None, tau=None, V_wf=None, 
@@ -203,13 +206,11 @@ class Tank(Unit, isabstract=True):
 
         self.tau = tau or self._default_tau
 
-        #: [float] Fraction of working volume to total volume.
         self.V_wf = V_wf or self._default_V_wf
 
         #: [str] Vessel construction material.
         self.vessel_material = vessel_material or self._default_vessel_material
         
-        # [float] Electricity requirement per unit volume [kW/m^3].
         self.kW_per_m3 = kW_per_m3 or self._default_kW_per_m3
 
     def __init_subclass__(cls, isabstract=False):
@@ -335,13 +336,15 @@ class StorageTank(Tank):
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow (kg/hr): Ethanol  2.3e+04
     >>> T1.results()
-    Storage tank                              Units       T1
-    Design decisions         Residence time      hr      168
-    Design results           Total volume       m^3 4.92e+03
-    Purchase cost            Tank (x2)          USD 8.42e+05
-    Total purchase cost                         USD 8.42e+05
-    Installed equipment cost                    USD 1.94e+06
-    Utility cost                             USD/hr        0
+    Storage tank                                       Units       T1
+    Design inputs            Working volume fraction                1
+                             Electricity requirement  kW/m^3        0
+                             Residence time               hr      168
+    Design results           Total volume                m^3 4.92e+03
+    Purchase cost            Tank (x2)                   USD 8.42e+05
+    Total purchase cost                                  USD 8.42e+05
+    Installed equipment cost                             USD 1.94e+06
+    Utility cost                                      USD/hr        0
     
     """
     _outs_size_is_fixed = _ins_size_is_fixed = True

@@ -440,36 +440,36 @@ def test_disconnect():
     S.outs[0].disconnect_source()
     assert len(S.outs) == 2 and isinstance(S.outs[0], bst.MissingStream) and isinstance(S.outs[1], bst.Stream)
     
-def test_design_decisions():
+def test_design_inputs():
     bst.settings.set_thermo(['Water'], cache=True)
     
     class Vessel(bst.Unit):
         _F_BM_default = {'Vessel': 2.0}
         
         #: Residence time [hr].
-        tau = bst.design_decision('Residence time', 'hr', lb=0)
+        tau = bst.design_input('Residence time', 'hr', lb=0)
         
         #: Fractional efficiency.
-        efficiency = bst.design_decision(lb=0, ub=1)
+        efficiency = bst.design_input(lb=0, ub=1)
         
         #: Construction material.
-        material = bst.design_decision(
+        material = bst.design_input(
             purchase_item='Vessel',
             catalog_type='Material',
             catalog={'Carbon steel': 1.0, 'Stainless steel': 2.5},
         )
         
         #: Orientation (with design factor).
-        orientation = bst.design_decision(
+        orientation = bst.design_input(
             purchase_item='Vessel',
             catalog_type='Design',
             catalog={'Vertical': 1.0, 'Horizontal': 1.2},
         )
         
         #: Type with no cost factor.
-        vessel_type = bst.design_decision(catalog=('Open', 'Closed'))
+        vessel_type = bst.design_input(catalog=('Open', 'Closed'))
         
-        @bst.design_decision('Volume', 'm3', lb=0)
+        @bst.design_input('Volume', 'm3', lb=0)
         def volume(self):
             return self.tau * self.feed.F_vol
 
@@ -491,8 +491,8 @@ def test_design_decisions():
         def _cost(self):
             self.baseline_purchase_costs['Vessel'] = 1000.
     
-    # Design decisions are registered (sorted) and named
-    assert Vessel._design_decisions == [
+    # Design inputs are registered (sorted) and named
+    assert Vessel._design_inputs == [
         'efficiency', 'material', 'orientation', 'tau', 'vessel_type', 'volume'
     ]
     assert Vessel.tau.key == 'tau'
@@ -502,9 +502,9 @@ def test_design_decisions():
     assert Vessel.volume.units == 'm3'
     assert Vessel.efficiency.units == ''
 
-    # Design decisions are documented like property objects
+    # Design inputs are documented like property objects
     import inspect
-    assert all([isinstance(getattr(Vessel, i), property) for i in Vessel._design_decisions])
+    assert all([isinstance(getattr(Vessel, i), property) for i in Vessel._design_inputs])
     assert Vessel.tau.__name__ == 'tau'
     assert Vessel.tau.__doc__ == 'Residence time [hr].'
     assert Vessel.efficiency.__doc__ == 'Efficiency.'
@@ -513,9 +513,9 @@ def test_design_decisions():
     assert Vessel.volume.__doc__ == 'Volume [m3].' # No docstring in getter
 
     class DocumentedVessel(bst.Unit):
-        T: float = bst.design_decision('Temperature', 'K', lb=0)
+        T: float = bst.design_input('Temperature', 'K', lb=0)
 
-        @bst.design_decision('Volume', 'm3', lb=0)
+        @bst.design_input('Volume', 'm3', lb=0)
         def volume(self) -> float:
             """Total volume."""
             return self._volume
@@ -524,7 +524,7 @@ def test_design_decisions():
         def volume(self, volume):
             self._volume = volume
 
-        tau = bst.design_decision('Residence time', 'hr', doc='Time in vessel.')
+        tau = bst.design_input('Residence time', 'hr', doc='Time in vessel.')
 
     assert DocumentedVessel.T.__name__ == 'T'
     assert inspect.signature(DocumentedVessel.T.fget).return_annotation is float
@@ -532,20 +532,20 @@ def test_design_decisions():
     assert inspect.signature(DocumentedVessel.volume.fget).return_annotation is float
     assert DocumentedVessel.volume.lb == 0 # Setter keeps configuration
     assert DocumentedVessel.tau.__doc__ == 'Time in vessel.'
-    assert DocumentedVessel._design_decisions == ['T', 'tau', 'volume']
+    assert DocumentedVessel._design_inputs == ['T', 'tau', 'volume']
     
     feed = bst.Stream(None, Water=100)
     V = Vessel(None, feed)
     
-    # Numerical design decisions
+    # Numerical design inputs
     assert V.tau == 1
     V.tau = 2
     assert V.tau == 2
-    assert V.get_design_decision('tau', 'min') == 120
-    assert V.set_design_decision('tau', 'day', 1) == 24
+    assert V.get_design_input('tau', 'min') == 120
+    assert V.set_design_input('tau', 'day', 1) == 24
     assert V.tau == 24
-    assert V.convert_design_decision('tau', 'min', 60) == 1
-    assert V.get_design_decision_units('tau') == 'hr'
+    assert V.convert_design_input('tau', 'min', 60) == 1
+    assert V.get_design_input_units('tau') == 'hr'
     V.tau = 2
     
     # Bounds are inclusive and enforced
@@ -559,7 +559,7 @@ def test_design_decisions():
         V.tau = -1
     assert V.tau == 2 # Value unchanged after failed set
     
-    # Design decision with user-defined getter and setter
+    # Design input with user-defined getter and setter
     assert V.volume == V.tau * feed.F_vol
     V.volume = 4 * feed.F_vol
     assert V.tau == 4
@@ -568,7 +568,7 @@ def test_design_decisions():
     assert V.tau == 4
     V.tau = 2
 
-    # Categorical design decisions update cost factors
+    # Categorical design inputs update cost factors
     assert V.F_M['Vessel'] == 1.0
     assert V.F_D['Vessel'] == 1.0
     V.material = 'Stainless steel'
@@ -584,66 +584,66 @@ def test_design_decisions():
     with pytest.raises(AttributeError):
         V.vessel_type = 'Ajar'
     
-    # Design decisions cannot be deleted unless a deleter is defined
+    # Design inputs cannot be deleted unless a deleter is defined
     with pytest.raises(AttributeError):
         del V.tau
     with pytest.raises(AttributeError):
         del V.material
     
-    # Cost factors from design decisions are used in costing
+    # Cost factors from design inputs are used in costing
     V.simulate()
     assert V.purchase_costs['Vessel'] == 1000. * 2.5 * 1.2
     
-    # Design decisions show up in results
+    # Design inputs show up in results
     df = V.results()
-    for key in Vessel._design_decisions:
+    for key in Vessel._design_inputs:
         name = getattr(Vessel, key).name
-        assert ('Design decisions', name) in df.index
+        assert ('Design inputs', name) in df.index
     series = V.results(with_units=False)
-    assert series[('Design decisions', 'Residence time')] == 2
-    assert series[('Design decisions', 'Material')] == 'Stainless steel'
+    assert series[('Design inputs', 'Residence time')] == 2
+    assert series[('Design inputs', 'Material')] == 'Stainless steel'
     
-    # Design decisions are inherited and can be extended in subclasses
+    # Design inputs are inherited and can be extended in subclasses
     class AgitatedVessel(Vessel):
-        agitator_power = bst.design_decision('Agitator power', 'kW', lb=0)
+        agitator_power = bst.design_input('Agitator power', 'kW', lb=0)
         
-    assert AgitatedVessel._design_decisions == [
+    assert AgitatedVessel._design_inputs == [
         'agitator_power', 'efficiency', 'material', 'orientation', 'tau', 
         'vessel_type', 'volume'
     ]
-    assert Vessel._design_decisions == [
+    assert Vessel._design_inputs == [
         'efficiency', 'material', 'orientation', 'tau', 'vessel_type', 'volume'
     ]
     
     # Invalid definitions
     with pytest.raises(ValueError):
-        bst.design_decision(catalog_type='Material')
+        bst.design_input(catalog_type='Material')
     with pytest.raises(ValueError):
-        bst.design_decision(purchase_item='Vessel')
+        bst.design_input(purchase_item='Vessel')
     with pytest.raises(ValueError):
-        bst.design_decision(catalog={'A': 1}, purchase_item='Vessel')
+        bst.design_input(catalog={'A': 1}, purchase_item='Vessel')
     with pytest.raises(ValueError):
-        bst.design_decision(catalog={'A': 1}, purchase_item='Vessel', catalog_type='Other')
+        bst.design_input(catalog={'A': 1}, purchase_item='Vessel', catalog_type='Other')
     with pytest.raises(ValueError):
-        bst.design_decision(catalog=('A', 'B'), units='kg')
+        bst.design_input(catalog=('A', 'B'), units='kg')
     with pytest.raises(ValueError):
-        bst.design_decision(catalog=('A', 'B'), lb=0)
+        bst.design_input(catalog=('A', 'B'), lb=0)
     with pytest.raises(ValueError):
-        bst.design_decision(catalog=('A', 'B'), ub=1)
+        bst.design_input(catalog=('A', 'B'), ub=1)
 
     # Both getter and setter must be defined (or none of them)
     with pytest.raises(RuntimeError):
         class GetterOnly(bst.Unit):
-            @bst.design_decision('Volume', 'm3')
+            @bst.design_input('Volume', 'm3')
             def volume(self): return 1.
     with pytest.raises(RuntimeError):
         class SetterOnly(bst.Unit):
-            volume = bst.design_decision('Volume', 'm3')
+            volume = bst.design_input('Volume', 'm3')
             @volume.setter
             def volume(self, volume): pass
 
 if __name__ == '__main__':
-    test_design_decisions()
+    test_design_inputs()
     test_disconnect()
     test_auxiliary_unit_owners()
     test_unit_convinience_properties()

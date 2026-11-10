@@ -115,24 +115,24 @@ class Compressor(Unit, isabstract=True):
                 CE=567,
             ),
     }
-    P: float = bst.design_decision(
+    P: float = bst.design_input(
         'Outlet pressure', 'Pa', lb=0,
     )
-    eta: float = bst.design_decision(
+    eta: float = bst.design_input(
         'Isentropic efficiency', lb=0, ub=1,
     )
-    driver_efficiency: float = bst.design_decision(
+    driver_efficiency: float = bst.design_input(
         lb=0, ub=1,
         doc="Efficiency of driver (e.g., steam turbine or electric motor). "
             "If not defined, a heuristic efficiency will be selected based "
             "on the compressor type and the driver.",
     )
-    compressor_type: str = bst.design_decision(
+    compressor_type: str = bst.design_input(
         catalog=baseline_cost_algorithms,
         doc="Type of compressor. If not defined, the type will be determined "
             "based on the outlet pressure.",
     )
-    driver: str = bst.design_decision(
+    driver: str = bst.design_input(
         purchase_item='Compressor(s)',
         catalog_type='Design',
         catalog={
@@ -145,7 +145,7 @@ class Compressor(Unit, isabstract=True):
             "steam turbines while reciprocating and screw compressors default to "
             "electric motors.",
     )
-    material: str = bst.design_decision(
+    material: str = bst.design_input(
         purchase_item='Compressor(s)',
         catalog_type='Material',
         catalog={
@@ -319,7 +319,7 @@ class IsothermalCompressor(Compressor, new_graphics=False):
     Chilled water            Duty                       kJ/hr       -7.26e+03
                              Flow                     kmol/hr            7.53
                              Cost                      USD/hr          0.0363
-    Design decisions         Outlet pressure               Pa         3.5e+07
+    Design inputs            Outlet pressure               Pa         3.5e+07
                              Compressor type                    Reciprocating
                              Driver                            Electric motor
                              Driver efficiency                           0.85
@@ -409,7 +409,7 @@ class IsentropicCompressor(Compressor, new_graphics=False):
     High pressure steam      Duty                       kJ/hr           12.7
                              Flow                     kmol/hr       0.000396
                              Cost                      USD/hr       0.000125
-    Design decisions         Outlet pressure               Pa          5e+06
+    Design inputs            Outlet pressure               Pa          5e+06
                              Compressor type                     Centrifugal
                              Driver                            Steam turbine
                              Driver efficiency                          0.65
@@ -451,7 +451,7 @@ class IsentropicCompressor(Compressor, new_graphics=False):
     High pressure steam      Duty                       kJ/hr            9.8
                              Flow                     kmol/hr       0.000305
                              Cost                      USD/hr       9.66e-05
-    Design decisions         Outlet pressure               Pa          1e+07
+    Design inputs            Outlet pressure               Pa          1e+07
                              Compressor type                     Centrifugal
                              Driver                            Steam turbine
                              Driver efficiency                          0.65
@@ -616,21 +616,22 @@ class PolytropicCompressor(Compressor, new_graphics=False):
         phase: 'g', T: 713 degC, P: 3.5e+07 Pa
         flow (kmol/hr): H2  1
     >>> K.results()
-    Polytropic compressor                              Units              K1
-    Electricity              Power                        kW            6.76
-                             Cost                     USD/hr           0.529
-    Design decisions         Outlet pressure              Pa         3.5e+07
-                             Compressor type                   Reciprocating
-                             Driver                           Electric motor
-                             Driver efficiency                          0.85
-                             Isentropic efficiency                       0.7
-                             Material                           Carbon steel
-    Design results           Polytropic work                        2.07e+04
-                             Compressors in parallel                       1
-    Purchase cost            Compressor(s)               USD        1.62e+03
-    Total purchase cost                                  USD        1.62e+03
-    Installed equipment cost                             USD        3.48e+03
-    Utility cost                                      USD/hr           0.529
+    Polytropic compressor                                  Units              K1
+    Electricity              Power                            kW            6.76
+                             Cost                         USD/hr           0.529
+    Design inputs            Outlet pressure                  Pa         3.5e+07
+                             Compressor type                       Reciprocating
+                             Driver                               Electric motor
+                             Driver efficiency                              0.85
+                             Isentropic efficiency                           0.7
+                             Material                               Carbon steel
+                             Number of integration steps                     100
+    Design results           Polytropic work                            2.07e+04
+                             Compressors in parallel                           1
+    Purchase cost            Compressor(s)                   USD        1.62e+03
+    Total purchase cost                                      USD        1.62e+03
+    Installed equipment cost                                 USD        3.48e+03
+    Utility cost                                          USD/hr           0.529
 
 
     Repeat using Hundseid method [4]_:
@@ -648,37 +649,39 @@ class PolytropicCompressor(Compressor, new_graphics=False):
         phase: 'g', T: 958.08 K, P: 3.5e+07 Pa
         flow (kmol/hr): H2  1
     >>> K.results()
-    Polytropic compressor                              Units              K1
-    Electricity              Power                        kW            6.48
-                             Cost                     USD/hr           0.507
-    Design decisions         Outlet pressure              Pa         3.5e+07
-                             Compressor type                   Reciprocating
-                             Driver                           Electric motor
-                             Driver efficiency                          0.85
-                             Isentropic efficiency                       0.7
-                             Material                           Carbon steel
-    Design results           Polytropic work                        1.98e+04
-                             Compressors in parallel                       1
-    Purchase cost            Compressor(s)               USD        1.54e+03
-    Total purchase cost                                  USD        1.54e+03
-    Installed equipment cost                             USD         3.3e+03
-    Utility cost                                      USD/hr           0.507
+    Polytropic compressor                                  Units              K1
+    Electricity              Power                            kW            6.48
+                             Cost                         USD/hr           0.507
+    Design inputs            Outlet pressure                  Pa         3.5e+07
+                             Compressor type                       Reciprocating
+                             Driver                               Electric motor
+                             Driver efficiency                              0.85
+                             Isentropic efficiency                           0.7
+                             Material                               Carbon steel
+                             Number of integration steps                     200
+    Design results           Polytropic work                            1.98e+04
+                             Compressors in parallel                           1
+    Purchase cost            Compressor(s)                   USD        1.54e+03
+    Total purchase cost                                      USD        1.54e+03
+    Installed equipment cost                                 USD         3.3e+03
+    Utility cost                                          USD/hr           0.507
     >>> K.results()
-    Polytropic compressor                              Units              K1
-    Electricity              Power                        kW            6.48
-                             Cost                     USD/hr           0.507
-    Design decisions         Outlet pressure              Pa         3.5e+07
-                             Compressor type                   Reciprocating
-                             Driver                           Electric motor
-                             Driver efficiency                          0.85
-                             Isentropic efficiency                       0.7
-                             Material                           Carbon steel
-    Design results           Polytropic work                        1.98e+04
-                             Compressors in parallel                       1
-    Purchase cost            Compressor(s)               USD        1.54e+03
-    Total purchase cost                                  USD        1.54e+03
-    Installed equipment cost                             USD         3.3e+03
-    Utility cost                                      USD/hr           0.507
+    Polytropic compressor                                  Units              K1
+    Electricity              Power                            kW            6.48
+                             Cost                         USD/hr           0.507
+    Design inputs            Outlet pressure                  Pa         3.5e+07
+                             Compressor type                       Reciprocating
+                             Driver                               Electric motor
+                             Driver efficiency                              0.85
+                             Isentropic efficiency                           0.7
+                             Material                               Carbon steel
+                             Number of integration steps                     200
+    Design results           Polytropic work                            1.98e+04
+                             Compressors in parallel                           1
+    Purchase cost            Compressor(s)                   USD        1.54e+03
+    Total purchase cost                                      USD        1.54e+03
+    Installed equipment cost                                 USD         3.3e+03
+    Utility cost                                          USD/hr           0.507
 
 
     Repeat using Hundseid method [4]_:
@@ -697,25 +700,31 @@ class PolytropicCompressor(Compressor, new_graphics=False):
         flow (kmol/hr): H2  1
     
     >>> K.results()
-    Polytropic compressor                              Units              K1
-    Electricity              Power                        kW            6.48
-                             Cost                     USD/hr           0.507
-    Design decisions         Outlet pressure              Pa         3.5e+07
-                             Compressor type                   Reciprocating
-                             Driver                           Electric motor
-                             Driver efficiency                          0.85
-                             Isentropic efficiency                       0.7
-                             Material                           Carbon steel
-    Design results           Polytropic work                        1.98e+04
-                             Compressors in parallel                       1
-    Purchase cost            Compressor(s)               USD        1.54e+03
-    Total purchase cost                                  USD        1.54e+03
-    Installed equipment cost                             USD         3.3e+03
-    Utility cost                                      USD/hr           0.507
+    Polytropic compressor                                  Units              K1
+    Electricity              Power                            kW            6.48
+                             Cost                         USD/hr           0.507
+    Design inputs            Outlet pressure                  Pa         3.5e+07
+                             Compressor type                       Reciprocating
+                             Driver                               Electric motor
+                             Driver efficiency                              0.85
+                             Isentropic efficiency                           0.7
+                             Material                               Carbon steel
+                             Number of integration steps                     200
+    Design results           Polytropic work                            1.98e+04
+                             Compressors in parallel                           1
+    Purchase cost            Compressor(s)                   USD        1.54e+03
+    Total purchase cost                                      USD        1.54e+03
+    Installed equipment cost                                 USD         3.3e+03
+    Utility cost                                          USD/hr           0.507
 
 
     """
     available_methods = {'schultz', 'hundseid'}
+    n_steps: int = bst.design_input(
+        'Number of integration steps', lb=1,
+        doc="Number of virtual steps used in numerical integration for hundseid method.",
+    )
+    
     def _init(self, P, eta=0.7, 
                  vle=False, compressor_type=None, method=None, n_steps=None):
         Compressor._init(self, P=P, eta=eta, vle=vle, compressor_type=compressor_type)
@@ -863,28 +872,31 @@ class MultistageCompressor(Unit):
         flow (kmol/hr): H2  1
     
     >>> K.results()
-    Multistage compressor                            Units                      K
-    Electricity              Power                      kW                      0
-                             Cost                   USD/hr                      0
-    High pressure steam      Duty                    kJ/hr                   5.68
-                             Flow                  kmol/hr               0.000177
-                             Cost                   USD/hr                5.6e-05
-    Chilled water            Duty                    kJ/hr              -1.12e+04
-                             Flow                  kmol/hr                   7.42
-                             Cost                   USD/hr                 0.0559
-    Design results           Type                           Multistage compressor
-                             Area                     ft^2                   1.54
-    Purchase cost            K k1 - Compressor(s)      USD               1.45e+04
-                             K h1 - Double pipe        USD                    568
-                             K k2 - Compressor(s)      USD               1.46e+04
-                             K h2 - Double pipe        USD                    675
-                             K k3 - Compressor(s)      USD               1.48e+04
-                             K h3 - Double pipe        USD                    956
-                             K k4 - Compressor(s)      USD               1.52e+04
-                             K h4 - Double pipe        USD               1.78e+03
-    Total purchase cost                                USD                6.3e+04
-    Installed equipment cost                           USD               1.27e+05
-    Utility cost                                    USD/hr                  0.056
+    Multistage compressor                             Units                      K
+    Electricity              Power                       kW                      0
+                             Cost                    USD/hr                      0
+    High pressure steam      Duty                     kJ/hr                   5.68
+                             Flow                   kmol/hr               0.000177
+                             Cost                    USD/hr                5.6e-05
+    Chilled water            Duty                     kJ/hr              -1.12e+04
+                             Flow                   kmol/hr                   7.42
+                             Cost                    USD/hr                 0.0559
+    Design inputs            Isentropic efficiency                             0.7
+                             Number of stages                                    4
+                             Pressure ratio                                      2
+    Design results           Type                            Multistage compressor
+                             Area                      ft^2                   1.54
+    Purchase cost            K k1 - Compressor(s)       USD               1.45e+04
+                             K h1 - Double pipe         USD                    568
+                             K k2 - Compressor(s)       USD               1.46e+04
+                             K h2 - Double pipe         USD                    675
+                             K k3 - Compressor(s)       USD               1.48e+04
+                             K h3 - Double pipe         USD                    956
+                             K k4 - Compressor(s)       USD               1.52e+04
+                             K h4 - Double pipe         USD               1.78e+03
+    Total purchase cost                                 USD                6.3e+04
+    Installed equipment cost                            USD               1.27e+05
+    Utility cost                                     USD/hr                  0.056
 
     Show the fluid state at the outlet of each heat exchanger:
     
@@ -1057,6 +1069,23 @@ class MultistageCompressor(Unit):
         **Compressor._units,
         **HX._units,
     }
+
+    pr: float = bst.design_input(
+        'Pressure ratio', lb=0,
+        doc="Pressure ratio between isentropic stages (setup option 1).",
+    )
+    n_stages: int = bst.design_input(
+        'Number of stages', lb=1,
+        doc="Number of isentropic stages (setup option 1).",
+    )
+    eta: float = bst.design_input(
+        'Isentropic efficiency', lb=0, ub=1,
+        doc="Isentropic efficiency of each stage (setup option 1).",
+    )
+    compressor_type: str = bst.design_input(
+        doc="Type of compressor (setup option 1): blower/centrifugal/reciprocating. "
+            "If None, the type will be determined automatically.",
+    )
 
     def _init(
             self, pr=None, n_stages=None, eta=0.7, vle=False, compressor_type=None,

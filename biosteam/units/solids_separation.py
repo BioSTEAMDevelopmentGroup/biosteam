@@ -64,6 +64,9 @@ class SolidsSeparator(Splitter):
     """
     _N_ins = 1
     _ins_size_is_fixed = False
+    moisture_content: float = bst.design_input(
+        'Retentate moisture content', lb=0, ub=1,
+    )
     
     def _init(self, split, 
             order=None, moisture_content=None, 
@@ -71,7 +74,6 @@ class SolidsSeparator(Splitter):
             strict_moisture_content=None
         ):
         Splitter._init(self, order=order, split=split)
-        #: Moisture content of retentate
         self.moisture_content = moisture_content
         self.strict_moisture_content = strict_moisture_content
         if moisture_content is not None:

@@ -17,6 +17,7 @@ References
 
 """
 from .. import Unit
+from .._unit import design_input
 from typing import Optional
 from math import ceil
 from biosteam.units.design_tools.geometry import cylinder_diameter_from_volume
@@ -184,7 +185,18 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
     Chilled water            Duty                                   kJ/hr            -1.41e+07
                              Flow                                 kmol/hr             9.42e+03
                              Cost                                  USD/hr                 70.3
-    Design decisions         Vessel material                               Stainless steel 316
+    Design inputs            Operating pressure                        Pa             1.01e+05
+                             Operating temperature                      K                  305
+                             Maximum reactor volume                    m3                  355
+                             Working volume fraction                                       0.8
+                             Loop temperature change                    K                    5
+                             Jacket annular diameter                    m                 0.05
+                             Agitator power                         kW/m3                0.985
+                             Length to diameter ratio                                        3
+                             Residence time                            hr                    8
+                             Cleaning and unloading time               hr                    3
+                             Residence time phases                                           l
+                             Vessel material                               Stainless steel 316
                              Vessel type                                              Vertical
     Design results           Reactor volume                            m3                  319
                              Number of reactors                                              4
@@ -271,6 +283,32 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
     
     #: Basis of residence time. Defaults to inlet flow rates
     tau_basis: str = 'ins' # Alternatively, 'outs'
+    
+    T: float = design_input('Operating temperature', 'K', lb=0)
+    P: float = design_input('Operating pressure', 'Pa', lb=0)
+    tau: float = design_input('Residence time', 'hr', lb=0)
+    V_wf: float = design_input('Working volume fraction', lb=0, ub=1)
+    V_max: float = design_input('Maximum reactor volume', 'm3', lb=0)
+    length_to_diameter: float = design_input('Length to diameter ratio', lb=0)
+    kW_per_m3: float = design_input('Agitator power', 'kW/m3', lb=0)
+    tau_0: float = design_input('Cleaning and unloading time', 'hr', lb=0)
+    N: int = design_input('Number of reactors')
+    dT_hx_loop: float = design_input(
+        'Loop temperature change', 'K', lb=0,
+        doc="Maximum change in temperature for the heat exchanger loop [K].",
+    )
+    jacket_annular_diameter: float = design_input(
+        'Jacket annular diameter', 'm', lb=0,
+    )
+    tau_phases: str = design_input(
+        'Residence time phases',
+        doc="Phases accounted for in residence time.",
+    )
+    loading_time: float = design_input(
+        'Loading time', 'hr', lb=0,
+        doc="Loading time of batch reactor [hr]. If not given, it will assume "
+            "each vessel is constantly being filled.",
+    )
     
     @property
     def effluent(self):

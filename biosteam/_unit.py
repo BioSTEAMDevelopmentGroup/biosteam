@@ -38,7 +38,7 @@ if TYPE_CHECKING:
 
 streams = Optional[Sequence[Stream|str]]
 
-__all__ = ('Unit', 'design_decision', 'ProcessSpecification', 'BoundedNumericalSpecification')
+__all__ = ('Unit', 'design_input', 'ProcessSpecification', 'BoundedNumericalSpecification')
 
 int_types = (int, np.int32)
 
@@ -125,9 +125,9 @@ class SuperpositionOutlet(Stream):
         self.port = port
         self._source = source
 
-# %% Defining design decisions
+# %% Defining design inputs
 
-def design_decision(
+def design_input(
         name: Optional[str]=None,
         units: Optional[str]=None,
         *,
@@ -142,22 +142,22 @@ def design_decision(
         doc: Optional[str]=None,
     ):
     """
-    Return a design decision descriptor. Design decisions behave like
+    Return a design input descriptor. Design inputs behave like
     property objects (and are documented as such by Sphinx), but also
     validate values and are reported in :meth:`Unit.results`.
 
     Parameters
     ----------
     name :
-        Name of design decision. Defaults to the attribute name.
+        Name of design input. Defaults to the attribute name.
     units :
-        Units of measure for numerical design decision.
+        Units of measure for numerical design input.
     lb :
-        Lower bound for numerical design decision.
+        Lower bound for numerical design input.
     ub :
-        Upper bound for numerical design decision.
+        Upper bound for numerical design input.
     catalog :
-        Valid options for categorical design decision. If a dictionary,
+        Valid options for categorical design input. If a dictionary,
         values are the cost factors of each option.
     purchase_item :
         Name of purchase cost item to apply cost factors.
@@ -176,10 +176,10 @@ def design_decision(
     --------
     >>> import biosteam as bst
     >>> class Vessel(bst.Unit):
-    ...     tau = bst.design_decision('Residence time', 'hr', lb=0)
-    ...     orientation = bst.design_decision(catalog={'Vertical', 'Horizontal'})
+    ...     tau = bst.design_input('Residence time', 'hr', lb=0)
+    ...     orientation = bst.design_input(catalog={'Vertical', 'Horizontal'})
     ...     
-    ...     @bst.design_decision(units='m3', lb=0)
+    ...     @bst.design_input(units='m3', lb=0)
     ...     def volume(self):
     ...         return 2 * self.tau
     ...
@@ -189,11 +189,11 @@ def design_decision(
     ...
 
     >>> Vessel.tau
-    NumericalDesignDecision('tau', 'Residence time', 'hr', lb=0)
+    NumericalDesignInput('tau', 'Residence time', 'hr', lb=0)
     >>> Vessel.orientation
-    CategoricalDesignDecision('orientation', catalog={'Horizontal', 'Vertical'})
+    CategoricalDesignInput('orientation', catalog={'Horizontal', 'Vertical'})
     >>> Vessel.volume
-    NumericalDesignDecision('volume', 'm3', lb=0)
+    NumericalDesignInput('volume', 'm3', lb=0)
 
     """
     if catalog is None:
@@ -203,7 +203,7 @@ def design_decision(
             raise ValueError('cannot define purchase_item without catalog')
         if units is None:
             units = ''
-        return NumericalDesignDecision(name, units, lb, ub, fget, fset, fdel, doc)
+        return NumericalDesignInput(name, units, lb, ub, fget, fset, fdel, doc)
     else:
         N_none = (catalog_type is None) + (purchase_item is None)
         if N_none == 0:
@@ -227,7 +227,7 @@ def design_decision(
             raise ValueError('lower bound (lb) cannot be defined together with catalog')
         if ub is not None:
             raise ValueError('upper bound (ub) cannot be defined together with catalog')
-        return CategoricalDesignDecision(name, catalog, reference, fget, fset, fdel, doc)
+        return CategoricalDesignInput(name, catalog, reference, fget, fset, fdel, doc)
 
 
 def _get_class_annotation(owner, key):
@@ -245,9 +245,9 @@ def _get_class_annotation(owner, key):
     return annotations.get(key)
 
 
-class DesignDecision(property):
+class DesignInput(property):
     """
-    Abstract class that represent design decisions as property objects
+    Abstract class that represent design inputs as property objects
     which store values at "_<key>" by default.
 
     Subclasses must implement a `_copy(self, fget, fset, fdel)` and a `__init__(self, ...)` method
@@ -278,7 +278,7 @@ class DesignDecision(property):
             fset = lambda unit, value: setattr(unit, attr, value)
             super().__init__(fget, fset, self.fdel, self.__doc__)
         elif N_none:
-            raise RuntimeError('design decisions must implement both getter and setter methods')
+            raise RuntimeError('design inputs must implement both getter and setter methods')
         else:
             fget = self.fget
             try:
@@ -290,7 +290,7 @@ class DesignDecision(property):
                     annotations['return'] = self._default_annotation
         
     def __call__(self, fget):
-        # Used as a decorator right after creation (e.g., @design_decision(...)),
+        # Used as a decorator right after creation (e.g., @design_input(...)),
         # so the getter is set in place instead of creating a copy
         property.__init__(self, fget, self.fset, self.fdel, self.__doc__)
         return self
@@ -305,11 +305,11 @@ class DesignDecision(property):
         return self._copy(None if hasattr(self.fget, '_') else self.fget, self.fset, fdel)
 
     def __delete__(self, unit):
-        if self.fdel is None: raise AttributeError(f'cannot delete design decision {self.key!r}')
+        if self.fdel is None: raise AttributeError(f'cannot delete design input {self.key!r}')
         self.fdel(unit)
 
 
-class NumericalDesignDecision(DesignDecision):
+class NumericalDesignInput(DesignInput):
     _default_annotation = float
 
     def __init__(self, name, units, lb, ub, fget, fset, fdel, doc):
@@ -320,7 +320,7 @@ class NumericalDesignDecision(DesignDecision):
         super().__init__(fget, fset, fdel, doc)
 
     def _copy(self, fget, fset, fdel):
-        return NumericalDesignDecision(self.name, self.units, self.lb, self.ub, fget, fset, fdel, self.__doc__)
+        return NumericalDesignInput(self.name, self.units, self.lb, self.ub, fget, fset, fdel, self.__doc__)
 
     def __set__(self, unit, value):
         if value is None: # Not specified (e.g., to be determined during simulation)
@@ -351,7 +351,7 @@ class NumericalDesignDecision(DesignDecision):
         return f"{type(self).__name__}({self.key!r}{name}{units}{lb}{ub})"
 
 
-class CategoricalDesignDecision(DesignDecision):
+class CategoricalDesignInput(DesignInput):
     units = ''
     _default_annotation = str
 
@@ -362,7 +362,7 @@ class CategoricalDesignDecision(DesignDecision):
         super().__init__(fget, fset, fdel, doc)
 
     def _copy(self, fget, fset, fdel):
-        return CategoricalDesignDecision(self.name, self.catalog, self.reference, fget, fset, fdel, self.__doc__)
+        return CategoricalDesignInput(self.name, self.catalog, self.reference, fget, fset, fdel, self.__doc__)
 
     def __set__(self, unit, value):
         catalog = self.catalog
@@ -489,7 +489,7 @@ class Unit:
     
     """ 
     max_parallel_units = int(10e3)
-    _design_decisions = []
+    _design_inputs = []
     
     ### Abstract Attributes ###
     
@@ -602,18 +602,18 @@ class Unit:
             for i in ('ins', 'outs'):
                 if i not in annotations: annotations[i] = streams
             if '_stacklevel' not in dct: cls._stacklevel += 1
-        # Collect design decisions through the class history (including mixins);
-        # attributes that override an inherited design decision remove it.
-        design_decisions = set()
+        # Collect design inputs through the class history (including mixins);
+        # attributes that override an inherited design input remove it.
+        design_inputs = set()
         for base in reversed(cls.__mro__):
             for key, obj in base.__dict__.items():
-                if isinstance(obj, DesignDecision):
-                    design_decisions.add(key)
+                if isinstance(obj, DesignInput):
+                    design_inputs.add(key)
                     # In case it was set after class creation
                     if obj.key is None: obj.__set_name__(base, key)
-                elif key in design_decisions:
-                    design_decisions.remove(key)
-        cls._design_decisions = sorted(design_decisions)
+                elif key in design_inputs:
+                    design_inputs.remove(key)
+        cls._design_inputs = sorted(design_inputs)
         if does_nothing: return 
         dct = cls.__dict__
         if 'run' in dct:
@@ -2550,18 +2550,18 @@ class Unit:
             if format == 'html': tooltip = ' ' + tooltip
         return tooltip
     
-    def get_design_decision_units(self, key):
-        design_decision = getattr(self.__class__, key)
-        return design_decision.units
+    def get_design_input_units(self, key):
+        design_input = getattr(self.__class__, key)
+        return design_input.units
     
-    def get_design_decision(self, key: str, units: str):
+    def get_design_input(self, key: str, units: str):
         """
-        Return design decision in a new set of units of measure.
+        Return design input in a new set of units of measure.
             
         Parameters
         ----------
         key :
-            Name of design decision.
+            Name of design input.
         units :
             Units of measure.
         
@@ -2571,24 +2571,24 @@ class Unit:
         >>> bst.settings.set_thermo(['Water'], cache=True)
         >>> feed = bst.Stream(None, Water=100)
         >>> tank = bst.StorageTank(None, feed, tau=672)
-        >>> tank.get_design_decision('tau', 'day')
+        >>> tank.get_design_input('tau', 'day')
         28.0
         
         """
-        return convert(getattr(self, key), self.get_design_decision_units(key), units)
+        return convert(getattr(self, key), self.get_design_input_units(key), units)
     
-    def set_design_decision(self, key: str, units: str, value: float):
+    def set_design_input(self, key: str, units: str, value: float):
         """
         Set design result in given the units of measure.
             
         Parameters
         ----------
         key :
-            Name of design decision.
+            Name of design input.
         units :
             Units of measure.
         value:
-            Value of the design decision.
+            Value of the design input.
         
         Examples
         --------
@@ -2596,28 +2596,28 @@ class Unit:
         >>> bst.settings.set_thermo(['Water'], cache=True)
         >>> feed = bst.Stream(None, Water=100)
         >>> tank = bst.StorageTank(None, feed)
-        >>> tank.set_design_decision('tau', 'day', 7)
+        >>> tank.set_design_input('tau', 'day', 7)
         168
-        >>> tank.get_design_decision('tau', 'hr')
+        >>> tank.get_design_input('tau', 'hr')
         168
         
         """
-        value = convert(value, units, self.get_design_decision_units(key))
+        value = convert(value, units, self.get_design_input_units(key))
         setattr(self, key, value)
         return value
     
-    def convert_design_decision(self, key, units, value):
+    def convert_design_input(self, key, units, value):
         """
-        Convert design decision in given units to the stored units of measure.
+        Convert design input in given units to the stored units of measure.
             
         Parameters
         ----------
         key :
-            Name of design decision.
+            Name of design input.
         units :
             Units of measure.
         value:
-            Value of the design decision.
+            Value of the design input.
         
         Examples
         --------
@@ -2626,11 +2626,11 @@ class Unit:
         >>> feed = bst.Stream(None, Water=100)
         >>> tank = bst.StorageTank(None, feed)
         >>> tank.simulate()
-        >>> tank.convert_design_decision('tau', 'day', 7)
+        >>> tank.convert_design_input('tau', 'day', 7)
         168
         
         """
-        return convert(value, units, self.get_design_decision_units(key))
+        return convert(value, units, self.get_design_input_units(key))
     
     def get_design_result(self, key: str, units: str):
         """
@@ -2716,15 +2716,17 @@ class Unit:
     def reset_cache(self, isdynamic=None):
         pass
     
-    def _get_design_decision_info(self): 
+    def _get_design_input_info(self): 
         cls = self.__class__
-        design_decisions = []
-        for key in self._design_decisions:
+        design_inputs = []
+        for key in self._design_inputs:
+            value = getattr(self, key)
+            if value is None: continue # Decision not made
             dd = getattr(cls, key)
-            design_decisions.append(
-                (dd.name, getattr(self, key), dd.units)
+            design_inputs.append(
+                (dd.name, value, dd.units)
             )
-        return design_decisions
+        return design_inputs
     
     def _load_stream_links(self):
         if self._link_streams: self._outs[0].link_with(self._ins[0])
@@ -2966,21 +2968,22 @@ class Unit:
                 ureg = tmo.units_of_measure.ureg
                 ureg.default_system = basis
                 Quantity = ureg.Quantity
+                def to_basis(vi, ui):
+                    if not ui or ui == 'hr' or isinstance(vi, str): return ui, vi
+                    try:
+                        q = Quantity(vi, ui).to_base_units()
+                    except Exception: # Units not defined in registry (e.g., psig)
+                        return ui, vi
+                    return q.units, q.magnitude
+                for ki, vi, ui in self._get_design_input_info():
+                    addkey(('Design inputs', ki))
+                    addval(to_basis(vi, ui))
                 for ki, vi in self.design_results.items():
                     addkey(('Design results', ki))
-                    if ki in units:
-                        ui = units[ki]
-                        if ui != 'hr':
-                            q = Quantity(vi, ui)
-                            q = q.to_base_units()
-                            vi = q.magnitude
-                            ui = q.units
-                    else:
-                        ui = ''
-                    addval((ui, vi))
+                    addval(to_basis(vi, units.get(ki, '')))
             else:
-                for ki, vi, ui in self._get_design_decision_info():
-                    addkey(('Design decisions', ki))
+                for ki, vi, ui in self._get_design_input_info():
+                    addkey(('Design inputs', ki))
                     addval((ui, vi))
                 for ki, vi in self.design_results.items():
                     addkey(('Design results', ki))
@@ -3037,8 +3040,8 @@ class Unit:
                         addval(flow)
                         addkey((ID, 'Cost'))
                         addval(-flow * stream_prices[name])
-            for ki, vi, ui in self._get_design_decision_info():
-                addkey(('Design decisions', ki))
+            for ki, vi, ui in self._get_design_input_info():
+                addkey(('Design inputs', ki))
                 addval(vi)
             for ki, vi in self.design_results.items():
                 addkey(('Design results', ki))

@@ -18,6 +18,7 @@ References
 """
 import biosteam as bst
 from .abstract_stirred_tank_reactor import AbstractStirredTankReactor
+from .._unit import design_input
 from math import pi
 from scipy.constants import g
 import flexsolve as flx
@@ -190,6 +191,22 @@ class AeratedBioreactor(AbstractStirredTankReactor):
         'Stirred tank': 'Riet',
         'Bubble column': 'Dewes',
     }
+    compressor_isentropic_efficiency: float = design_input(
+        'Compressor isentropic efficiency', lb=0, ub=1,
+    )
+    cooler_pressure_drop: float = design_input(
+        'Cooler pressure drop', 'Pa', lb=0,
+    )
+    theta_O2: float = design_input(
+        'O2 saturation fraction', lb=0, ub=1,
+        doc="Average concentration of O2 in the liquid as a fraction of saturation.",
+    )
+    Q_O2_consumption: float = design_input(
+        'Duty per O2 consumed', 'kJ/kmol',
+        doc="Forced duty per O2 consumed [kJ/kmol]. If not given, the duty "
+            "is computed from the energy balance.",
+    )
+    
     def _init(
             self, theta_O2=0.5, Q_O2_consumption=None,
             optimize_power=None, design=None, method=None, kLa_kwargs=None,
@@ -197,13 +214,11 @@ class AeratedBioreactor(AbstractStirredTankReactor):
             **kwargs,
         ):
         if compressor_isentropic_efficiency is None: compressor_isentropic_efficiency = 0.85
-        #: Isentropic efficiency of the compressor. Defaults to 0.85.
         self.compressor_isentropic_efficiency = compressor_isentropic_efficiency 
-        #: Pressure drop at the cooler [Pa]. Defaults to 20684.28 Pa, a heuristic value for a gas.
         self.cooler_pressure_drop = 20684.28 if cooler_pressure_drop is None else cooler_pressure_drop
         AbstractStirredTankReactor._init(self, **kwargs)
-        self.theta_O2 = theta_O2 # Average concentration of O2 in the liquid as a fraction of saturation.
-        self.Q_O2_consumption = Q_O2_consumption # Forced duty per O2 consummed [kJ/kmol].
+        self.theta_O2 = theta_O2
+        self.Q_O2_consumption = Q_O2_consumption
         if design is None: 
             if self.kW_per_m3 == 0:
                 design = 'Bubble column'

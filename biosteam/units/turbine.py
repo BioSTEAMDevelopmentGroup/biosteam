@@ -70,10 +70,13 @@ class Turbine(Unit, isabstract=True):
         'Nickel alloy': 5.0
     }
 
+    P: float = bst.design_input('Outlet pressure', 'Pa', lb=0)
+    eta: float = bst.design_input('Isentropic efficiency', lb=0, ub=1)
+
     def _init(self, P, eta=0.3, vle=False, turbine_type=None,
                  material=None, efficiency=None):
-        self.P = P  #: Outlet pressure [Pa].
-        self.eta = eta  #: Isentropic efficiency.
+        self.P = P
+        self.eta = eta
 
         #: Whether to perform phase equilibrium calculations on the outflow.
         #: If False, the outlet will be assumed to be the same phase as the inlet.

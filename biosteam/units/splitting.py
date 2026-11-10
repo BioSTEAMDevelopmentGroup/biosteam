@@ -337,6 +337,8 @@ class Separator(Unit):
     _N_ins = 1
     _N_outs = 2
     _ins_size_is_fixed = False
+    T: float = bst.design_input('Operating temperature', 'K', lb=0)
+    P: float = bst.design_input('Operating pressure', 'Pa', lb=0)
     
     @property
     def equation_node_names(self): 

@@ -2,6 +2,7 @@
 """
 """
 import biosteam as bst
+from .._unit import design_input
 from math import sqrt, pi
 import numpy as np
 
@@ -41,6 +42,59 @@ class FluidizedCatalyticCracking(bst.Unit):
     auxiliary_unit_names = (
         'pump', 'feed_preheater', 'air_compressor', 'condenser', 
         'riser', 'stripper', 'regenerator', 'reactor',
+    )
+    vessel_material: str = design_input()
+    feed_pressure: float = design_input('Feed pressure', 'Pa', lb=0)
+    feed_vapor_fraction: float = design_input(
+        'Feed vapor fraction', lb=0, ub=1,
+    )
+    catalyst_to_feed_ratio: float = design_input(
+        'Catalyst to feed ratio', lb=0, 
+        doc="Catalyst to feed ratio by weight.",
+    )
+    spent_catalyst_to_feed_ratio: float = design_input(
+        'Spent catalyst to feed ratio', lb=0,
+        doc="Spent catalyst to feed ratio by weight.",
+    )
+    product_loss: float = design_input(
+        'Product loss', lb=0, ub=1,
+        doc="Fraction of product lost (combusted in the regenerator).",
+    )
+    riser_product_residence_time: float = design_input(
+        'Riser product residence time', 'hr', lb=0,
+    )
+    riser_length_to_diameter: float = design_input(
+        'Riser length to diameter ratio', lb=0,
+    )
+    reactor_vessel_dissengagement_height: float = design_input(
+        'Reactor vessel disengagement height', 'm', lb=0,
+    )
+    reactor_vessel_exit_velocity: float = design_input(
+        'Reactor vessel exit velocity', 'm/hr', lb=0,
+    )
+    stripper_steam_rate: float = design_input(
+        'Stripper steam rate', lb=0,
+        doc="Steam to catalyst ratio in the stripper by weight.",
+    )
+    stripper_catalyst_residence_time: float = design_input(
+        'Stripper catalyst residence time', 'hr', lb=0,
+    )
+    stripper_length_to_diameter: float = design_input(
+        'Stripper length to diameter ratio', lb=0,
+    )
+    CO2_concentration: float = design_input(
+        'CO2 concentration', lb=0, ub=1,
+        doc="Maximum CO2 mass fraction in the flue gas; air flow is increased "
+            "to meet this concentration.",
+    )
+    regenerator_catalyst_residence_time: float = design_input(
+        'Regenerator catalyst residence time', 'hr', lb=0,
+    )
+    regenerator_length_to_diameter: float = design_input(
+        'Regenerator length to diameter ratio', lb=0,
+    )
+    regenerator_pressure: float = design_input(
+        'Regenerator pressure', 'Pa', lb=0,
     )
 
     def _init(

@@ -48,6 +48,7 @@ from .decorators import cost, copy_algorithm
 from .stage import MultiStageEquilibrium
 from .._graphics import mixer_settler_graphics
 from .. import Unit
+from .._unit import design_input
 from thermosteam import separations as sep
 import numpy as np
 
@@ -111,12 +112,15 @@ class LLEUnit(bst.Unit, isabstract=True):
     
     """
     _N_outs = 2
+    efficiency: float = design_input(
+        lb=0, ub=1,
+        doc="Fraction of feed in liquid-liquid equilibrium. "
+            "The rest of the feed is divided equally between phases.",
+    )
     
     def _init(self, top_chemical=None, efficiency=1.0, forced_split_IDs=None, forced_split=None):
         #: [str] Identifier of chemical that will be favored in the low density phase.
         self.top_chemical = top_chemical
-        #: [float] Fraction of feed in liquid-liquid equilibrium.
-        #: The rest of the feed is divided equally between phases.
         self.efficiency = efficiency
         #: array[float] Forced splits to 0th stream for given IDs. 
         self.forced_split = forced_split
@@ -308,6 +312,7 @@ class LLECentrifuge(LLEUnit, LiquidsCentrifuge):
     Liquids centrifuge                            Units       C1
     Electricity              Power                   kW     17.5
                              Cost                USD/hr     1.37
+    Design inputs            Efficiency                        1
     Design results           Flow rate           m^3/hr     12.5
     Purchase cost            Liquids centrifuge     USD 1.29e+05
     Total purchase cost                             USD 1.29e+05
@@ -385,6 +390,8 @@ class SLLECentrifuge(Unit):
     3-Phase decanter centrifuge                            Units       C1
     Electricity              Power                            kW   0.0101
                              Cost                         USD/hr 0.000792
+    Design inputs            Efficiency                                 1
+                             Retentate moisture content               0.5
     Design results           Flow rate                     L/min      250
     Purchase cost            3-Phase decanter centrifuge     USD 2.88e+05
     Total purchase cost                                      USD 2.88e+05
@@ -397,6 +404,14 @@ class SLLECentrifuge(Unit):
     _N_outs = 3
     
     solvent = LLEUnit.solvent
+    efficiency: float = design_input(
+        lb=0, ub=1,
+        doc="Fraction of feed in liquid-liquid equilibrium. "
+            "The rest of the feed is divided equally between phases.",
+    )
+    moisture_content: float = design_input(
+        'Retentate moisture content', lb=0, ub=1,
+    )
     
     @property
     def solids_split(self):
@@ -413,11 +428,7 @@ class SLLECentrifuge(Unit):
         #: [str] Identifier of chemical that will be favored in the low density phase.
         self.top_chemical = top_chemical
         
-        #: Fraction of feed in liquid-liquid equilibrium.
-        #: The rest of the feed is divided equally between phases.
         self.efficiency = efficiency 
-        
-        #: Moisture content of retentate
         self.moisture_content = moisture_content
         assert self._solids_isplit['7732-18-5'] == 0, 'cannot define water split, only moisture content'
 
@@ -498,6 +509,7 @@ class SolidLiquidsSplitCentrifuge(Unit):
     3-Phase decanter centrifuge                            Units       C1
     Electricity              Power                            kW   0.0101
                              Cost                         USD/hr 0.000792
+    Design inputs            Retentate moisture content               0.5
     Design results           Flow rate                     L/min      250
     Purchase cost            3-Phase decanter centrifuge     USD 2.88e+05
     Total purchase cost                                      USD 2.88e+05
@@ -508,6 +520,9 @@ class SolidLiquidsSplitCentrifuge(Unit):
     line = SLLECentrifuge.line
     _N_ins = 1
     _N_outs = 3
+    moisture_content: float = design_input(
+        'Retentate moisture content', lb=0, ub=1,
+    )
     
     @property
     def solids_split(self):
@@ -530,7 +545,6 @@ class SolidLiquidsSplitCentrifuge(Unit):
         # [ChemicalIndexer] Splits to 2th outlet stream (solids) from aqueous/heavy phase.
         self._solids_isplit = self.thermo.chemicals.isplit(solids_split)
         
-        #: Moisture content of retentate
         self.moisture_content = moisture_content
         assert self._solids_isplit['7732-18-5'] == 0, 'cannot define water split to solids, only moisture content'
 
@@ -575,6 +589,13 @@ class LiquidsMixingTank(PressureVessel, bst.Unit):
     _ins_size_is_fixed = False
     _N_ins = 3
     _N_outs = 1
+    tau: float = design_input('Residence time', 'hr', lb=0)
+    agitator_kW_per_m3: float = design_input(
+        'Agitator power per volume', 'kW/m3', lb=0,
+    )
+    length_to_diameter: float = design_input(
+        'Length to diameter ratio', lb=0,
+    )
     
     def _init(self, tau=0.022, agitator_kW_per_m3=1.0, length_to_diameter=1,
               vessel_material='Carbon steel', vessel_type='Vertical'):
@@ -633,6 +654,13 @@ class LiquidsSettler(PressureVessel, bst.Unit, isabstract=True):
     """
     _N_ins = 1
     _N_outs = 2
+    length_to_diameter: float = design_input(
+        'Length to diameter ratio', lb=0,
+    )
+    area_to_feed: float = design_input(
+        'Area to feed ratio', 'ft2/gpm', lb=0,
+        doc="Diameter * length per gpm of feed [ft2/gpm].",
+    )
     
     def _init(self, area_to_feed=0.1, 
               length_to_diameter=4,
@@ -640,8 +668,8 @@ class LiquidsSettler(PressureVessel, bst.Unit, isabstract=True):
               vessel_type='Horizontal'):
         self.vessel_material = vessel_material
         self.vessel_type = vessel_type
-        self.length_to_diameter = length_to_diameter #: Length to diameter ratio
-        self.area_to_feed = area_to_feed #: [ft2/gpm] Diameter * length per gpm of feed
+        self.length_to_diameter = length_to_diameter
+        self.area_to_feed = area_to_feed
     
     @staticmethod
     def _default_vessel_type():

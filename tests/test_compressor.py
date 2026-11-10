@@ -366,11 +366,11 @@ def test_compressor_design():
     assert K.driver_efficiency == 0.9
     assert K.F_D['Compressor(s)'] == 1.0 # Electric motor design factor
     
-    # Test design decisions are given in results
+    # Test design inputs are given in results
     results = K.results(with_units=False)
-    assert results[('Design decisions', 'Compressor type')] == 'Centrifugal'
-    assert results[('Design decisions', 'Driver')] == 'Electric motor'
-    assert results[('Design decisions', 'Driver efficiency')] == 0.9
+    assert results[('Design inputs', 'Compressor type')] == 'Centrifugal'
+    assert results[('Design inputs', 'Driver')] == 'Electric motor'
+    assert results[('Design inputs', 'Driver efficiency')] == 0.9
     
     # Test capital cost correlations and factors
     def installed_equipment_cost_at_psig(psig):
