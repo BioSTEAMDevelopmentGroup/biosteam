@@ -128,26 +128,74 @@ class SuperpositionOutlet(Stream):
 # %% Defining design decisions
 
 def design_decision(
-        name: Optional[str]=None, 
+        name: Optional[str]=None,
         units: Optional[str]=None,
         *,
-        lb: Optional[float]=None, 
-        ub: Optional[float]=None, 
+        lb: Optional[float]=None,
+        ub: Optional[float]=None,
         catalog: Optional[Container[str]]=None,
         purchase_item: Optional[str]=None,
         catalog_type: Optional[str]=None,
-        fget: Optional[Callable]=None, 
-        fset: Optional[Callable]=None, 
-        fdel: Optional[Callable]=None, 
+        fget: Optional[Callable]=None,
+        fset: Optional[Callable]=None,
+        fdel: Optional[Callable]=None,
+        doc: Optional[str]=None,
     ):
+    """
+    Return a design decision descriptor. Design decisions behave like
+    property objects (and are documented as such by Sphinx), but also
+    validate values and are reported in :meth:`Unit.results`.
+
+    Parameters
+    ----------
+    name :
+        Name of design decision. Defaults to the attribute name.
+    units :
+        Units of measure (numerical design decisions only).
+    lb :
+        Lower bound (numerical design decisions only).
+    ub :
+        Upper bound (numerical design decisions only).
+    catalog :
+        Valid options (categorical design decisions only). If a dictionary,
+        values are the cost factors of each option.
+    purchase_item :
+        Name of purchase cost item to apply cost factors.
+    catalog_type :
+        Type of cost factor: 'Material', 'Design', or 'Module'.
+    fget :
+        Getter. Defaults to returning the value stored at "_<key>".
+    fset :
+        Setter (called after validation). Defaults to storing the value at "_<key>".
+    fdel :
+        Deleter.
+    doc :
+        Docstring. Defaults to the docstring of `fget` or
+        "<name> [<units>]." if not available.
+
+    Examples
+    --------
+    >>> import biosteam as bst
+    >>> class Vessel(bst.Unit):
+    ...     tau: float = bst.design_decision('Residence time', 'hr', lb=0)
+    ...     @bst.design_decision('Volume', 'm3')
+    ...     def volume(self) -> float:
+    ...         '''Total volume [m3].'''
+    ...         return 2 * self.tau
+    >>> Vessel.tau.__name__, Vessel.tau.__doc__
+    ('tau', 'Residence time [hr].')
+    >>> Vessel.volume.__name__, Vessel.volume.__doc__
+    ('volume', 'Total volume [m3].')
+
+    """
     if catalog is None:
         if catalog_type is not None:
             raise ValueError('cannot define catalog_type without catalog')
         if purchase_item is not None:
             raise ValueError('cannot define purchase_item without catalog')
-        if units is None: 
+        if units is None:
             units = ''
-        return NumericalDesignDecision(name, units, lb, ub, fget, fset, fdel)
+        return NumericalDesignDecision(name, units, lb, ub, fget, fset, fdel, doc)
     else:
         N_none = (catalog_type is None) + (purchase_item is None)
         if N_none == 0:
@@ -171,107 +219,133 @@ def design_decision(
             raise ValueError('lower bound (lb) cannot be defined together with catalog')
         if ub is not None:
             raise ValueError('upper bound (ub) cannot be defined together with catalog')
-        return CategoricalDesignDecision(name, catalog, reference, fget, fset, fdel)
-    
+        return CategoricalDesignDecision(name, catalog, reference, fget, fset, fdel, doc)
 
-class NumericalDesignDecision:
-    __slots__ = ('key', 'name', 'units', 'lb', 'ub', 'fget', 'fset', 'fdel')
 
-    def __init__(self, name, units, lb, ub, fget, fset, fdel):
+def _get_class_annotation(owner, key):
+    try:
+        import annotationlib
+    except ImportError: # Python < 3.14
+        annotations = owner.__dict__.get('__annotations__', {})
+    else:
+        try:
+            annotations = annotationlib.get_annotations(
+                owner, format=annotationlib.Format.FORWARDREF
+            )
+        except Exception:
+            return None
+    return annotations.get(key)
+
+
+class DesignDecision(property):
+    """
+    Abstract class for design decisions. Design decisions are property objects
+    which store values at "_<key>" by default.
+
+    """
+    def __init__(self, name, fget, fset, fdel, doc):
+        self.key = None
         self.name = name
+        if fget is None: 
+            fget = lambda unit: getattr(unit, self._attr)
+        super().__init__(fget, fset, fdel, doc)
+
+    def _copy(self, fget, fset, fdel):
+        raise NotImplementedError('must be implemented by subclass')
+
+    def __set_name__(self, owner, key):
+        self.key = key
+        self._attr = '_' + key
+        if self.name is None: self.name = key.replace('_', ' ').capitalize()
+        if self._fget is None:
+            # Document like a property with a getter named after the attribute
+            fget = self.fget
+            fget.__name__ = self.__name__ = key
+            fget.__qualname__ = f"{owner.__qualname__}.{key}"
+            fget.__module__ = owner.__module__
+            annotation = _get_class_annotation(owner, key)
+            if annotation is not None: fget.__annotations__ = {'return': annotation}
+        if self.__doc__ is None:
+            units = self.units
+            self.__doc__ = f"{self.name} [{units}]." if units else f"{self.name}."
+            if self._fget is None: self.fget.__doc__ = self.__doc__
+
+    def __call__(self, fget):
+        # Used as a decorator right after creation (e.g., @design_decision(...)),
+        # so the getter is set in place instead of creating a copy
+        self._fget = fget
+        property.__init__(self, fget, self.fset, self.fdel, self._doc)
+        return self
+
+    def getter(self, fget):
+        return self._copy(fget, self.fset, self.fdel)
+
+    def setter(self, fset):
+        return self._copy(self._fget, fset, self.fdel)
+
+    def deleter(self, fdel):
+        return self._copy(self._fget, self.fset, fdel)
+
+    def _set(self, unit, value):
+        if self.fset is None:
+            setattr(unit, self._attr, value)
+        else:
+            self.fset(unit, value)
+
+    def __delete__(self, unit):
+        if self.fdel is None:
+            raise AttributeError(f'cannot delete design decision {self.key!r}')
+        self.fdel(unit)
+
+
+class NumericalDesignDecision(DesignDecision):
+
+    def __init__(self, name, units, lb, ub, fget, fset, fdel, doc):
         self.units = units
         self.lb = lb
         self.ub = ub
-        self.fget = fget
-        self.fset = fset
-        self.fdel = fdel
+        super().__init__(name, fget, fset, fdel, doc)
 
-    def __call__(self, fget):
-        self.fget = fget
-        return self
-        
-    def getter(self, fget):
-        self.fget = fget
-        return self
-        
-    def setter(self, fset):
-        self.fset = fset
-        return self
-    
-    def deleter(self, fdel):
-        self.fdel = fdel
-        return self
+    def _copy(self, fget, fset, fdel):
+        return NumericalDesignDecision(self.name, self.units, self.lb, self.ub, fget, fset, fdel, self._doc)
 
-    def __get__(self, unit, owner):
-        if unit is None: return self
-        if self.fget is None: return getattr(unit, '_' + self.key)
-        return self.fget(unit)
-    
     def __set__(self, unit, value):
-        if self.lb is not None and value <= self.lb:
+        if value is None: # Not specified (e.g., to be determined during simulation)
+            pass
+        elif self.lb is not None and value < self.lb:
             units = self.units
-            if units is not None: units = ' ' + units
+            units = ' ' + units if units else ''
             try:
-                msg = f"{self.key} ({value:.4g}{units}) cannot be below {self.ub:.4g}{units}"
+                msg = f"{self.key} ({value:.4g}{units}) cannot be below {self.lb:.4g}{units}"
             except:  # Handle format errors
-                msg = f"{self.key} ({value}{units}) cannot be below {self.ub}{units}"
+                msg = f"{self.key} ({value}{units}) cannot be below {self.lb}{units}"
             raise AttributeError(msg)
-        if self.ub is not None and value >= self.ub:
+        elif self.ub is not None and value > self.ub:
             units = self.units
-            if units is not None: units = ' ' + units
+            units = ' ' + units if units else ''
             try:
                 msg = f"{self.key} ({value:.4g}{units}) cannot be above {self.ub:.4g}{units}"
             except:  # Handle format errors
                 msg = f"{self.key} ({value}{units}) cannot be above {self.ub}{units}"
             raise AttributeError(msg)
-        if self.fset is None: 
-            setattr(unit, '_' + self.key, value)
-        else:
-            self.fset(unit, value)
-            
-    def __delete__(self, unit):
-        if self.fdel is None:
-            raise AttributeError(f'cannot delete design decision {self.key!r}')
-        self.fdel(unit)
-        
+        self._set(unit, value)
+
     def __repr__(self):
         return f"{type(self).__name__}({self.key!r}, {self.name!r}, {self.units!r}, lb={self.lb}, ub={self.ub})"
 
-        
-class CategoricalDesignDecision:
-    __slots__ = ('key', 'name', 'catalog', 'reference', 'fget', 'fset', 'fdel')
+
+class CategoricalDesignDecision(DesignDecision):
     units = ''
 
-    def __init__(self, name, catalog, reference, fget, fset, fdel):
-        self.name = name
+    def __init__(self, name, catalog, reference, fget, fset, fdel, doc):
         self.catalog = catalog
         self.reference = reference
-        self.fget = fget
-        self.fset = fset
+        super().__init__(name, fget, fset, fdel, doc)
 
-    def __call__(self, fget):
-        self.fget = fget
-        return self
-        
-    def getter(self, fget):
-        self.fget = fget
-        return self
-        
-    def setter(self, fset):
-        self.fset = fset
-        return self
-    
-    def deleter(self, fdel):
-        self.fdel = fdel
-        return self
+    def _copy(self, fget, fset, fdel):
+        return CategoricalDesignDecision(self.name, self.catalog, self.reference, fget, fset, fdel, self._doc)
 
-    def __get__(self, unit, owner):
-        if unit is None: return self
-        if self.fget is None: return getattr(unit, '_' + self.key)
-        return self.fget(unit)
-    
     def __set__(self, unit, value):
-        if unit is None: return self
         catalog = self.catalog
         if value not in catalog and (value:=value.capitalize()) not in catalog:
             N = len(catalog)
@@ -293,15 +367,7 @@ class CategoricalDesignDecision:
         if self.reference is not None:
             item, name = self.reference
             getattr(unit, name)[item] = catalog[value]
-        if self.fset is None: 
-            setattr(unit, '_' + self.key, value)
-        else:
-            self.fset(unit, value)
-    
-    def __delete__(self, unit):
-        if self.fdel is None:
-            raise AttributeError(f'cannot delete design decision {self.key!r}')
-        self.fdel(unit)
+        self._set(unit, value)
 
     def __repr__(self):
         return f"{type(self).__name__}({self.key!r}, {self.name!r}, catalog={self.catalog}, reference={self.reference})"
@@ -501,13 +567,18 @@ class Unit:
             for i in ('ins', 'outs'):
                 if i not in annotations: annotations[i] = streams
             if '_stacklevel' not in dct: cls._stacklevel += 1
-        design_decisions = cls._design_decisions.copy()
-        for key, obj in dct.items():
-            if not isinstance(obj, (NumericalDesignDecision, CategoricalDesignDecision)): continue
-            design_decisions.append(key)
-            obj.key = key
-            if obj.name is None: obj.name = key.replace('_', ' ').capitalize()
-        cls._design_decisions = sorted(frozenset(design_decisions))
+        # Collect design decisions through the class history (including mixins);
+        # attributes that override an inherited design decision remove it.
+        design_decisions = set()
+        for base in reversed(cls.__mro__):
+            for key, obj in base.__dict__.items():
+                if isinstance(obj, DesignDecision):
+                    design_decisions.add(key)
+                    # In case it was set after class creation
+                    if obj.key is None: obj.__set_name__(base, key)
+                elif key in design_decisions:
+                    design_decisions.remove(key)
+        cls._design_decisions = sorted(design_decisions)
         if does_nothing: return 
         dct = cls.__dict__
         if 'run' in dct:
@@ -2493,7 +2564,7 @@ class Unit:
         >>> tank.set_design_decision('tau', 'day', 7)
         168
         >>> tank.get_design_decision('tau', 'hr')
-        168.0
+        168
         
         """
         value = convert(value, units, self.get_design_decision_units(key))
@@ -2521,7 +2592,7 @@ class Unit:
         >>> tank = bst.StorageTank(None, feed)
         >>> tank.simulate()
         >>> tank.convert_design_decision('tau', 'day', 7)
-        168.0
+        168
         
         """
         return convert(value, units, self.get_design_decision_units(key))

@@ -161,7 +161,7 @@ class Turbine(Unit, isabstract=True):
         Pc = abs(self.power_utility.get_property('rate', 'hp'))
         N = design_results['Turbines in parallel']
         Pc_per_turbine = Pc / N
-        bounds_warning(self, 'power', Pc, 'hp', alg.hp_bounds, 'cost')
+        bounds_warning(self, 'power', Pc, 'hp', alg.hp_bounds)
         self.baseline_purchase_costs['Turbines(s)'] = N * bst.CE / alg.CE * alg.cost(Pc_per_turbine)
 
 

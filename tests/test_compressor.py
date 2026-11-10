@@ -28,10 +28,10 @@ def test_isentropic_hydrogen_compressor():
         rtol=1e-3,
     )
     # check compressor design
-    assert K.design_results["Type"] == "Centrifugal"
-    assert K.design_results["Driver"] == "Steam turbine"
+    assert K.compressor_type == "Centrifugal"
+    assert K.driver == "Steam turbine"
     ideal_power = 4.920933056717339
-    eta_motor = K.baseline_cost_algorithms[K.design_results["Type"]].efficiencies["Steam turbine"]
+    eta_motor = K.baseline_cost_algorithms[K.compressor_type].efficiencies["Steam turbine"]
     expected_power = ideal_power / eta / eta_motor
     actual_power = K.power_utility.consumption
     assert_allclose(
@@ -60,10 +60,10 @@ def test_isentropic_two_phase_steam_compressor():
         rtol=1e-3,
     )
     # check compressor design
-    assert K.design_results["Type"] == "Centrifugal"
-    assert K.design_results["Driver"] == "Steam turbine"
+    assert K.compressor_type == "Centrifugal"
+    assert K.driver == "Steam turbine"
     ideal_power = 5.4152214427108305
-    eta_motor = K.baseline_cost_algorithms[K.design_results["Type"]].efficiencies["Steam turbine"]
+    eta_motor = K.baseline_cost_algorithms[K.compressor_type].efficiencies["Steam turbine"]
     expected_power = ideal_power / eta / eta_motor
     actual_power = K.power_utility.consumption
     assert_allclose(
@@ -97,9 +97,9 @@ def test_isothermal_hydrogen_compressor():
         rtol=1e-3,
     )
     # check compressor design
-    assert K.design_results["Type"] == "Reciprocating"
-    assert K.design_results["Driver"] == "Electric motor"
-    eta_motor = K.baseline_cost_algorithms[K.design_results["Type"]].efficiencies["Electric motor"]
+    assert K.compressor_type == "Reciprocating"
+    assert K.driver == "Electric motor"
+    eta_motor = K.baseline_cost_algorithms[K.compressor_type].efficiencies["Electric motor"]
     expected_power = ideal_power / eta / eta_motor
     actual_power = K.power_utility.rate
     assert_allclose(
@@ -128,9 +128,9 @@ def test_isothermal_hydrogen_compressor():
         rtol=1e-3,
     )
     # check compressor design
-    assert K.design_results["Type"] == "Reciprocating"
-    assert K.design_results["Driver"] == "Electric motor"
-    eta_motor = K.baseline_cost_algorithms[K.design_results["Type"]].efficiencies["Electric motor"]
+    assert K.compressor_type == "Reciprocating"
+    assert K.driver == "Electric motor"
+    eta_motor = K.baseline_cost_algorithms[K.compressor_type].efficiencies["Electric motor"]
     expected_power = ideal_power / eta / eta_motor
     actual_power = K.power_utility.rate
     assert_allclose(
@@ -194,8 +194,8 @@ def test_polytropic_hydrogen_compressor():
         rtol=1e-3,
     )
     # check compressor design
-    assert K.design_results["Type"] == "Reciprocating"
-    assert K.design_results["Driver"] == "Electric motor"
+    assert K.compressor_type == "Reciprocating"
+    assert K.driver == "Electric motor"
     assert len(K.heat_utilities) == 0 and K.net_duty == 0.
     expected_power = 6.484199755124557
     actual_power = K.power_utility.rate
@@ -331,7 +331,7 @@ def test_compressor_design():
     def compressor_type_at_psig(psig):
         K.P = psig_to_pascal(psig)
         K.simulate()
-        return K.design_results["Type"]
+        return K.compressor_type
     
     # Pressures [psig] in the same order of magnitude as upper bound for each
     # compressor type.
@@ -359,10 +359,18 @@ def test_compressor_design():
     K.compressor_type = "Centrifugal"
     K.driver = 'Electric motor'
     K.driver_efficiency = 0.9
+    K.default_compressor_type = K.default_driver = K.default_driver_efficiency = False
     K.simulate()
-    assert K.design_results['Type'] == 'Centrifugal'
-    assert K.design_results['Driver'] == 'Electric motor'
-    assert K.design_results['Driver efficiency'] == 0.9
+    assert K.compressor_type == 'Centrifugal'
+    assert K.driver == 'Electric motor'
+    assert K.driver_efficiency == 0.9
+    assert K.F_D['Compressor(s)'] == 1.0 # Electric motor design factor
+    
+    # Test design decisions are given in results
+    results = K.results(with_units=False)
+    assert results[('Design decisions', 'Compressor type')] == 'Centrifugal'
+    assert results[('Design decisions', 'Driver')] == 'Electric motor'
+    assert results[('Design decisions', 'Driver efficiency')] == 0.9
     
     # Test capital cost correlations and factors
     def installed_equipment_cost_at_psig(psig):
@@ -370,7 +378,7 @@ def test_compressor_design():
         K.simulate()
         return K.installed_cost
     
-    K.driver = K.driver_efficiency = K.compressor_type = 'Default'
+    K.default_compressor_type = K.default_driver = K.default_driver_efficiency = True
     assert_allclose([installed_equipment_cost_at_psig(i) for i in pressures],
                     [ 2267264.256152,  5179043.514644, 10479970.002024],
                     rtol=1e-3)

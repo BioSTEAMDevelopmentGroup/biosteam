@@ -55,9 +55,9 @@ class AuxiliaryPressureVessel(Auxiliary):
         if orientation == 'Horizontal':
             key = 'Vertical pressure vessel'
             bounds_warning(self, 'Horizontal vessel weight', weight, 'lb',
-                           self._bounds['Horizontal vessel weight'], 'cost')
+                           self._bounds['Horizontal vessel weight'])
             bounds_warning(self, 'Horizontal vessel diameter', diameter, 'ft',
-                           self._bounds['Horizontal vessel diameter'], 'cost')
+                           self._bounds['Horizontal vessel diameter'])
             self.F_BM[key] = 3.05
             self.F_M[key] = pressure_vessel_material_factors[material]
             baseline_purchase_costs[key] = design.compute_horizontal_vessel_purchase_cost(weight)
@@ -65,9 +65,9 @@ class AuxiliaryPressureVessel(Auxiliary):
         elif orientation == 'Vertical':
             key = 'Vertical pressure vessel'
             bounds_warning(self, 'Vertical vessel weight', weight, 'lb',
-                           self._bounds['Vertical vessel weight'], 'cost')
+                           self._bounds['Vertical vessel weight'])
             bounds_warning(self, 'Vertical vessel length', length, 'ft',
-                           self._bounds['Vertical vessel length'], 'cost')
+                           self._bounds['Vertical vessel length'])
             self.F_BM[key] = 4.16
             self.F_M[key] = pressure_vessel_material_factors[material]
             baseline_purchase_costs[key] = design.compute_vertical_vessel_purchase_cost(weight)

@@ -126,11 +126,7 @@ class NRELAnaerobicBatchBioreactor(Unit, isabstract=True):
     
     #: [float] Fraction of filled tank to total tank volume.
     V_wf = 0.9
-    
-    def _get_design_info(self):
-        return (('Cleaning and unloading time', self.tau_0, 'hr'),
-                ('Working volume fraction', self.V_wf, ''))
-    
+
     def _init(self, tau=None, N=None, V_max=None, T=305.15, P=101325,
               Nmin=2, Nmax=36, loading_time=None, reactions=None, 
               tau_0=None, V_wf=None):

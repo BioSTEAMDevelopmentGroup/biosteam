@@ -476,7 +476,7 @@ class MultiEffectEvaporator(Unit):
                 LMTD = Th - Tc
                 A = compute_heat_transfer_area(LMTD, U, Q, 1.)
                 As.append(A)
-                bounds_warning(self, 'heat transfer area requirement', A, 'ft2', A_range, 'cost')
+                bounds_warning(self, 'heat transfer area requirement', A, 'ft2', A_range)
                 evap_costs.append(C_func(A, CE))
         self._As = As
         Design['Area'] = A = sum(As)

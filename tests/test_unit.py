@@ -440,7 +440,189 @@ def test_disconnect():
     S.outs[0].disconnect_source()
     assert len(S.outs) == 2 and isinstance(S.outs[0], bst.MissingStream) and isinstance(S.outs[1], bst.Stream)
     
+def test_design_decisions():
+    bst.settings.set_thermo(['Water'], cache=True)
+    
+    class Vessel(bst.Unit):
+        _F_BM_default = {'Vessel': 2.0}
+        
+        #: Residence time [hr].
+        tau = bst.design_decision('Residence time', 'hr', lb=0)
+        
+        #: Fractional efficiency.
+        efficiency = bst.design_decision(lb=0, ub=1)
+        
+        #: Construction material.
+        material = bst.design_decision(
+            purchase_item='Vessel',
+            catalog_type='Material',
+            catalog={'Carbon steel': 1.0, 'Stainless steel': 2.5},
+        )
+        
+        #: Orientation (with design factor).
+        orientation = bst.design_decision(
+            purchase_item='Vessel',
+            catalog_type='Design',
+            catalog={'Vertical': 1.0, 'Horizontal': 1.2},
+        )
+        
+        #: Type with no cost factor.
+        vessel_type = bst.design_decision(catalog=('Open', 'Closed'))
+        
+        @bst.design_decision('Volume', 'm3', lb=0)
+        def volume(self):
+            return self.tau * self.feed.F_vol
+        
+        def _init(self, tau=1, efficiency=0.9, material='Carbon steel', 
+                  orientation='Vertical', vessel_type='Closed'):
+            self.tau = tau
+            self.efficiency = efficiency
+            self.material = material
+            self.orientation = orientation
+            self.vessel_type = vessel_type
+        
+        def _run(self): 
+            self.outs[0].copy_like(self.ins[0])
+            
+        def _cost(self):
+            self.baseline_purchase_costs['Vessel'] = 1000.
+    
+    # Design decisions are registered (sorted) and named
+    assert Vessel._design_decisions == [
+        'efficiency', 'material', 'orientation', 'tau', 'vessel_type', 'volume'
+    ]
+    assert Vessel.tau.key == 'tau'
+    assert Vessel.tau.name == 'Residence time'
+    assert Vessel.efficiency.name == 'Efficiency' # Default name from key
+    assert Vessel.vessel_type.name == 'Vessel type'
+    assert Vessel.volume.units == 'm3'
+    assert Vessel.efficiency.units == ''
+
+    # Design decisions are documented like property objects
+    import inspect
+    assert all([isinstance(getattr(Vessel, i), property) for i in Vessel._design_decisions])
+    assert Vessel.tau.__name__ == 'tau'
+    assert Vessel.tau.__doc__ == 'Residence time [hr].'
+    assert Vessel.efficiency.__doc__ == 'Efficiency.'
+    assert Vessel.material.__doc__ == 'Material.'
+    assert Vessel.volume.__name__ == 'volume'
+    assert Vessel.volume.__doc__ == 'Volume [m3].' # No docstring in getter
+
+    class DocumentedVessel(bst.Unit):
+        T: float = bst.design_decision('Temperature', 'K', lb=0)
+
+        @bst.design_decision('Volume', 'm3', lb=0)
+        def volume(self) -> float:
+            """Total volume."""
+            return self._volume
+
+        @volume.setter
+        def volume(self, volume):
+            self._volume = volume
+
+        tau = bst.design_decision('Residence time', 'hr', doc='Time in vessel.')
+
+    assert DocumentedVessel.T.__name__ == 'T'
+    assert inspect.signature(DocumentedVessel.T.fget).return_annotation is float
+    assert DocumentedVessel.volume.__doc__ == 'Total volume.'
+    assert inspect.signature(DocumentedVessel.volume.fget).return_annotation is float
+    assert DocumentedVessel.volume.lb == 0 # Setter keeps configuration
+    assert DocumentedVessel.tau.__doc__ == 'Time in vessel.'
+    assert DocumentedVessel._design_decisions == ['T', 'tau', 'volume']
+    
+    feed = bst.Stream(None, Water=100)
+    V = Vessel(None, feed)
+    
+    # Numerical design decisions
+    assert V.tau == 1
+    V.tau = 2
+    assert V.tau == 2
+    assert V.get_design_decision('tau', 'min') == 120
+    assert V.set_design_decision('tau', 'day', 1) == 24
+    assert V.tau == 24
+    assert V.convert_design_decision('tau', 'min', 60) == 1
+    assert V.get_design_decision_units('tau') == 'hr'
+    V.tau = 2
+    
+    # Bounds are inclusive and enforced
+    V.efficiency = 1
+    V.efficiency = 0
+    with pytest.raises(AttributeError):
+        V.efficiency = 1.1
+    with pytest.raises(AttributeError):
+        V.efficiency = -0.1
+    with pytest.raises(AttributeError):
+        V.tau = -1
+    assert V.tau == 2 # Value unchanged after failed set
+    
+    # Getter-only design decision
+    assert V.volume == V.tau * feed.F_vol
+    
+    # Categorical design decisions update cost factors
+    assert V.F_M['Vessel'] == 1.0
+    assert V.F_D['Vessel'] == 1.0
+    V.material = 'Stainless steel'
+    V.orientation = 'horizontal' # Capitalization is handled
+    assert V.material == 'Stainless steel'
+    assert V.orientation == 'Horizontal'
+    assert V.F_M['Vessel'] == 2.5
+    assert V.F_D['Vessel'] == 1.2
+    with pytest.raises(AttributeError):
+        V.material = 'Unobtanium'
+    assert V.material == 'Stainless steel'
+    V.vessel_type = 'Open'
+    with pytest.raises(AttributeError):
+        V.vessel_type = 'Ajar'
+    
+    # Design decisions cannot be deleted unless a deleter is defined
+    with pytest.raises(AttributeError):
+        del V.tau
+    with pytest.raises(AttributeError):
+        del V.material
+    
+    # Cost factors from design decisions are used in costing
+    V.simulate()
+    assert V.purchase_costs['Vessel'] == 1000. * 2.5 * 1.2
+    
+    # Design decisions show up in results
+    df = V.results()
+    for key in Vessel._design_decisions:
+        name = getattr(Vessel, key).name
+        assert ('Design decisions', name) in df.index
+    series = V.results(with_units=False)
+    assert series[('Design decisions', 'Residence time')] == 2
+    assert series[('Design decisions', 'Material')] == 'Stainless steel'
+    
+    # Design decisions are inherited and can be extended in subclasses
+    class AgitatedVessel(Vessel):
+        agitator_power = bst.design_decision('Agitator power', 'kW', lb=0)
+        
+    assert AgitatedVessel._design_decisions == [
+        'agitator_power', 'efficiency', 'material', 'orientation', 'tau', 
+        'vessel_type', 'volume'
+    ]
+    assert Vessel._design_decisions == [
+        'efficiency', 'material', 'orientation', 'tau', 'vessel_type', 'volume'
+    ]
+    
+    # Invalid definitions
+    with pytest.raises(ValueError):
+        bst.design_decision(catalog_type='Material')
+    with pytest.raises(ValueError):
+        bst.design_decision(purchase_item='Vessel')
+    with pytest.raises(ValueError):
+        bst.design_decision(catalog={'A': 1}, purchase_item='Vessel')
+    with pytest.raises(ValueError):
+        bst.design_decision(catalog={'A': 1}, purchase_item='Vessel', catalog_type='Other')
+    with pytest.raises(ValueError):
+        bst.design_decision(catalog=('A', 'B'), units='kg')
+    with pytest.raises(ValueError):
+        bst.design_decision(catalog=('A', 'B'), lb=0)
+    with pytest.raises(ValueError):
+        bst.design_decision(catalog=('A', 'B'), ub=1)
+    
 if __name__ == '__main__':
+    test_design_decisions()
     test_disconnect()
     test_auxiliary_unit_owners()
     test_unit_convinience_properties()

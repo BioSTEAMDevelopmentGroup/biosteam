@@ -106,7 +106,7 @@ def compute_number_of_tanks_and_purchase_cost(total_volume,
     if V_total < V_min:
         warn(f"volume ({V_total:.5g} {V_units}) is below "
              f"the lower bound ({V_min:.5g} {V_units}) for purchase "
-              "cost estimation", bst.exceptions.CostWarning)
+              "cost estimation", bst.exceptions.DesignWarning)
     N = ceil(V_total / purchase_cost_algorithm.V_max)
     if N:
         V = V_total / N

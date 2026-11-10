@@ -326,7 +326,37 @@ todo_include_todos = True
 
 myst_heading_anchors = 3
 
+# -- Design decisions --------------------------------------------------------
 
+# Design decisions are property objects, so autodoc documents them as
+# properties (name, docstring, and type annotation). The following directive
+# renders them with a "design_decision" prefix instead of "property".
+from sphinx import addnodes
+from sphinx.domains.python import PyProperty
+from inspect import getattr_static
+from importlib import import_module
+from biosteam._unit import DesignDecision
 
+def is_design_decision(modname, classname, name):
+    try:
+        obj = import_module(modname)
+        for i in classname.split('.'): obj = getattr(obj, i)
+        return isinstance(getattr_static(obj, name), DesignDecision)
+    except Exception:
+        return False
 
+class PyDesignDecisionAwareProperty(PyProperty):
 
+    def get_signature_prefix(self, sig):
+        prefix = super().get_signature_prefix(sig)
+        modname = self.options.get('module', self.env.ref_context.get('py:module'))
+        classname = self.env.ref_context.get('py:class')
+        if modname and classname:
+            name = sig.split(':', 1)[0].strip().rsplit('.', 1)[-1]
+            if is_design_decision(modname, classname, name):
+                # Replace the "property" keyword (followed by a space)
+                prefix[-2] = addnodes.desc_sig_keyword('', 'design_decision')
+        return prefix
+
+def setup(app):
+    app.add_directive_to_domain('py', 'property', PyDesignDecisionAwareProperty, override=True)

@@ -70,13 +70,7 @@ class PressureVessel:
                               "only the following materials are available: "
                              f"{', '.join(pressure_vessel_material_factors)}")
         self._vessel_material = material  
-    
-    def _get_design_info(self):
-        try:
-            return (('Vessel material', self._vessel_material, ''),)
-        except:
-            return ()
-    
+
     def _default_vessel_type(self):
         return None
     
