@@ -472,7 +472,11 @@ def test_design_decisions():
         @bst.design_decision('Volume', 'm3', lb=0)
         def volume(self):
             return self.tau * self.feed.F_vol
-        
+
+        @volume.setter
+        def volume(self, volume):
+            self.tau = volume / self.feed.F_vol
+
         def _init(self, tau=1, efficiency=0.9, material='Carbon steel', 
                   orientation='Vertical', vessel_type='Closed'):
             self.tau = tau
@@ -555,9 +559,15 @@ def test_design_decisions():
         V.tau = -1
     assert V.tau == 2 # Value unchanged after failed set
     
-    # Getter-only design decision
+    # Design decision with user-defined getter and setter
     assert V.volume == V.tau * feed.F_vol
-    
+    V.volume = 4 * feed.F_vol
+    assert V.tau == 4
+    with pytest.raises(AttributeError):
+        V.volume = -1 # Bounds are enforced before calling the setter
+    assert V.tau == 4
+    V.tau = 2
+
     # Categorical design decisions update cost factors
     assert V.F_M['Vessel'] == 1.0
     assert V.F_D['Vessel'] == 1.0
@@ -620,7 +630,18 @@ def test_design_decisions():
         bst.design_decision(catalog=('A', 'B'), lb=0)
     with pytest.raises(ValueError):
         bst.design_decision(catalog=('A', 'B'), ub=1)
-    
+
+    # Both getter and setter must be defined (or none of them)
+    with pytest.raises(RuntimeError):
+        class GetterOnly(bst.Unit):
+            @bst.design_decision('Volume', 'm3')
+            def volume(self): return 1.
+    with pytest.raises(RuntimeError):
+        class SetterOnly(bst.Unit):
+            volume = bst.design_decision('Volume', 'm3')
+            @volume.setter
+            def volume(self, volume): pass
+
 if __name__ == '__main__':
     test_design_decisions()
     test_disconnect()

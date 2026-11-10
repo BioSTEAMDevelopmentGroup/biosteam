@@ -319,7 +319,7 @@ class IsothermalCompressor(Compressor, new_graphics=False):
     Chilled water            Duty                       kJ/hr       -7.26e+03
                              Flow                     kmol/hr            7.53
                              Cost                      USD/hr          0.0363
-    Design decisions         Pressure                      Pa         3.5e+07
+    Design decisions         Outlet pressure               Pa         3.5e+07
                              Compressor type                    Reciprocating
                              Driver                            Electric motor
                              Driver efficiency                           0.85
@@ -409,7 +409,7 @@ class IsentropicCompressor(Compressor, new_graphics=False):
     High pressure steam      Duty                       kJ/hr           12.7
                              Flow                     kmol/hr       0.000396
                              Cost                      USD/hr       0.000125
-    Design decisions         Pressure                      Pa          5e+06
+    Design decisions         Outlet pressure               Pa          5e+06
                              Compressor type                     Centrifugal
                              Driver                            Steam turbine
                              Driver efficiency                          0.65
@@ -451,7 +451,7 @@ class IsentropicCompressor(Compressor, new_graphics=False):
     High pressure steam      Duty                       kJ/hr            9.8
                              Flow                     kmol/hr       0.000305
                              Cost                      USD/hr       9.66e-05
-    Design decisions         Pressure                      Pa          1e+07
+    Design decisions         Outlet pressure               Pa          1e+07
                              Compressor type                     Centrifugal
                              Driver                            Steam turbine
                              Driver efficiency                          0.65
@@ -619,7 +619,7 @@ class PolytropicCompressor(Compressor, new_graphics=False):
     Polytropic compressor                              Units              K1
     Electricity              Power                        kW            6.76
                              Cost                     USD/hr           0.529
-    Design decisions         Pressure                     Pa         3.5e+07
+    Design decisions         Outlet pressure              Pa         3.5e+07
                              Compressor type                   Reciprocating
                              Driver                           Electric motor
                              Driver efficiency                          0.85
@@ -651,7 +651,7 @@ class PolytropicCompressor(Compressor, new_graphics=False):
     Polytropic compressor                              Units              K1
     Electricity              Power                        kW            6.48
                              Cost                     USD/hr           0.507
-    Design decisions         Pressure                     Pa         3.5e+07
+    Design decisions         Outlet pressure              Pa         3.5e+07
                              Compressor type                   Reciprocating
                              Driver                           Electric motor
                              Driver efficiency                          0.85
@@ -667,7 +667,7 @@ class PolytropicCompressor(Compressor, new_graphics=False):
     Polytropic compressor                              Units              K1
     Electricity              Power                        kW            6.48
                              Cost                     USD/hr           0.507
-    Design decisions         Pressure                     Pa         3.5e+07
+    Design decisions         Outlet pressure              Pa         3.5e+07
                              Compressor type                   Reciprocating
                              Driver                           Electric motor
                              Driver efficiency                          0.85
@@ -700,7 +700,7 @@ class PolytropicCompressor(Compressor, new_graphics=False):
     Polytropic compressor                              Units              K1
     Electricity              Power                        kW            6.48
                              Cost                     USD/hr           0.507
-    Design decisions         Pressure                     Pa         3.5e+07
+    Design decisions         Outlet pressure              Pa         3.5e+07
                              Compressor type                   Reciprocating
                              Driver                           Electric motor
                              Driver efficiency                          0.85

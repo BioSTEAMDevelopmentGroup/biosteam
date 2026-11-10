@@ -151,41 +151,49 @@ def design_decision(
     name :
         Name of design decision. Defaults to the attribute name.
     units :
-        Units of measure (numerical design decisions only).
+        Units of measure for numerical design decision.
     lb :
-        Lower bound (numerical design decisions only).
+        Lower bound for numerical design decision.
     ub :
-        Upper bound (numerical design decisions only).
+        Upper bound for numerical design decision.
     catalog :
-        Valid options (categorical design decisions only). If a dictionary,
+        Valid options for categorical design decision. If a dictionary,
         values are the cost factors of each option.
     purchase_item :
         Name of purchase cost item to apply cost factors.
     catalog_type :
         Type of cost factor: 'Material', 'Design', or 'Module'.
     fget :
-        Getter. Defaults to returning the value stored at "_<key>".
+        Getter. Defaults to returning the value stored.
     fset :
-        Setter (called after validation). Defaults to storing the value at "_<key>".
+        Setter (called after validation). Defaults to storing the value.
     fdel :
         Deleter.
     doc :
-        Docstring. Defaults to the docstring of `fget` or
-        "<name> [<units>]." if not available.
+        Docstring. Defaults to getter's docstring or "<name> [<units>].", if none available.
 
     Examples
     --------
     >>> import biosteam as bst
     >>> class Vessel(bst.Unit):
-    ...     tau: float = bst.design_decision('Residence time', 'hr', lb=0)
-    ...     @bst.design_decision('Volume', 'm3')
-    ...     def volume(self) -> float:
-    ...         '''Total volume [m3].'''
+    ...     tau = bst.design_decision('Residence time', 'hr', lb=0)
+    ...     orientation = bst.design_decision(catalog={'Vertical', 'Horizontal'})
+    ...     
+    ...     @bst.design_decision(units='m3', lb=0)
+    ...     def volume(self):
     ...         return 2 * self.tau
-    >>> Vessel.tau.__name__, Vessel.tau.__doc__
-    ('tau', 'Residence time [hr].')
-    >>> Vessel.volume.__name__, Vessel.volume.__doc__
-    ('volume', 'Total volume [m3].')
+    ...
+    ...     @volume.setter
+    ...     def volume(self, volume):
+    ...         self.tau = volume / 2
+    ...
+
+    >>> Vessel.tau
+    NumericalDesignDecision('tau', 'Residence time', 'hr', lb=0)
+    >>> Vessel.orientation
+    CategoricalDesignDecision('orientation', catalog={'Horizontal', 'Vertical'})
+    >>> Vessel.volume
+    NumericalDesignDecision('volume', 'm3', lb=0)
 
     """
     if catalog is None:
@@ -239,75 +247,81 @@ def _get_class_annotation(owner, key):
 
 class DesignDecision(property):
     """
-    Abstract class for design decisions. Design decisions are property objects
+    Abstract class that represent design decisions as property objects
     which store values at "_<key>" by default.
 
-    """
-    def __init__(self, name, fget, fset, fdel, doc):
-        self.key = None
-        self.name = name
-        if fget is None: 
-            fget = lambda unit: getattr(unit, self._attr)
-        super().__init__(fget, fset, fdel, doc)
+    Subclasses must implement a `_copy(self, fget, fset, fdel)` and a `__init__(self, ...)` method
 
-    def _copy(self, fget, fset, fdel):
-        raise NotImplementedError('must be implemented by subclass')
+    """
 
     def __set_name__(self, owner, key):
         self.key = key
-        self._attr = '_' + key
+        attr = '_' + key
         if self.name is None: self.name = key.replace('_', ' ').capitalize()
-        if self._fget is None:
-            # Document like a property with a getter named after the attribute
-            fget = self.fget
-            fget.__name__ = self.__name__ = key
-            fget.__qualname__ = f"{owner.__qualname__}.{key}"
-            fget.__module__ = owner.__module__
-            annotation = _get_class_annotation(owner, key)
-            if annotation is not None: fget.__annotations__ = {'return': annotation}
         if self.__doc__ is None:
             units = self.units
             self.__doc__ = f"{self.name} [{units}]." if units else f"{self.name}."
-            if self._fget is None: self.fget.__doc__ = self.__doc__
+        fset = self.fset
+        fget = self.fget
+        N_none = (fget is None) + (fset is None)
+        if N_none == 2: 
+            # Document like a property with a getter named after the attribute
+            fget = lambda unit: getattr(unit, attr, None)
+            fget._ = None
+            fget.__name__ = self.__name__ = key
+            fget.__qualname__ = f"{owner.__qualname__}.{key}"
+            fget.__module__ = owner.__module__
+            fget.__doc__ = self.__doc__
+            annotation = _get_class_annotation(owner, key)
+            if annotation is None: annotation = self._default_annotation
+            fget.__annotations__ = {'return': annotation}
+            fset = lambda unit, value: setattr(unit, attr, value)
+            super().__init__(fget, fset, self.fdel, self.__doc__)
+        elif N_none:
+            raise RuntimeError('design decisions must implement both getter and setter methods')
+        else:
+            fget = self.fget
+            try:
+                annotations = fget.__annotations__
+            except AttributeError: # Not a function (e.g., a callable object)
+                pass
+            else:
+                if 'return' not in annotations:
+                    annotations['return'] = self._default_annotation
+        
 
     def __call__(self, fget):
         # Used as a decorator right after creation (e.g., @design_decision(...)),
         # so the getter is set in place instead of creating a copy
-        self._fget = fget
-        property.__init__(self, fget, self.fset, self.fdel, self._doc)
+        property.__init__(self, fget, self.fset, self.fdel, self.__doc__)
         return self
 
     def getter(self, fget):
         return self._copy(fget, self.fset, self.fdel)
 
     def setter(self, fset):
-        return self._copy(self._fget, fset, self.fdel)
+        return self._copy(None if hasattr(self.fget, '_') else self.fget, fset, self.fdel)
 
     def deleter(self, fdel):
-        return self._copy(self._fget, self.fset, fdel)
-
-    def _set(self, unit, value):
-        if self.fset is None:
-            setattr(unit, self._attr, value)
-        else:
-            self.fset(unit, value)
+        return self._copy(None if hasattr(self.fget, '_') else self.fget, self.fset, fdel)
 
     def __delete__(self, unit):
-        if self.fdel is None:
-            raise AttributeError(f'cannot delete design decision {self.key!r}')
+        if self.fdel is None: raise AttributeError(f'cannot delete design decision {self.key!r}')
         self.fdel(unit)
 
 
 class NumericalDesignDecision(DesignDecision):
+    _default_annotation = float
 
     def __init__(self, name, units, lb, ub, fget, fset, fdel, doc):
+        self.name = name
         self.units = units
         self.lb = lb
         self.ub = ub
-        super().__init__(name, fget, fset, fdel, doc)
+        super().__init__(fget, fset, fdel, doc)
 
     def _copy(self, fget, fset, fdel):
-        return NumericalDesignDecision(self.name, self.units, self.lb, self.ub, fget, fset, fdel, self._doc)
+        return NumericalDesignDecision(self.name, self.units, self.lb, self.ub, fget, fset, fdel, self.__doc__)
 
     def __set__(self, unit, value):
         if value is None: # Not specified (e.g., to be determined during simulation)
@@ -328,22 +342,28 @@ class NumericalDesignDecision(DesignDecision):
             except:  # Handle format errors
                 msg = f"{self.key} ({value}{units}) cannot be above {self.ub}{units}"
             raise AttributeError(msg)
-        self._set(unit, value)
+        self.fset(unit, value)
 
     def __repr__(self):
-        return f"{type(self).__name__}({self.key!r}, {self.name!r}, {self.units!r}, lb={self.lb}, ub={self.ub})"
+        name = '' if self.name == self.key.capitalize().replace('_', ' ') else f', {self.name!r}'
+        units = f', {self.units!r}' if self.units else ''
+        lb = '' if self.lb is None else f', lb={self.lb}'
+        ub = '' if self.ub is None else f', ub={self.ub}'
+        return f"{type(self).__name__}({self.key!r}{name}{units}{lb}{ub})"
 
 
 class CategoricalDesignDecision(DesignDecision):
     units = ''
+    _default_annotation = str
 
     def __init__(self, name, catalog, reference, fget, fset, fdel, doc):
+        self.name = name
         self.catalog = catalog
         self.reference = reference
-        super().__init__(name, fget, fset, fdel, doc)
+        super().__init__(fget, fset, fdel, doc)
 
     def _copy(self, fget, fset, fdel):
-        return CategoricalDesignDecision(self.name, self.catalog, self.reference, fget, fset, fdel, self._doc)
+        return CategoricalDesignDecision(self.name, self.catalog, self.reference, fget, fset, fdel, self.__doc__)
 
     def __set__(self, unit, value):
         catalog = self.catalog
@@ -367,10 +387,20 @@ class CategoricalDesignDecision(DesignDecision):
         if self.reference is not None:
             item, name = self.reference
             getattr(unit, name)[item] = catalog[value]
-        self._set(unit, value)
+        self.fset(unit, value)
 
     def __repr__(self):
-        return f"{type(self).__name__}({self.key!r}, {self.name!r}, catalog={self.catalog}, reference={self.reference})"
+        name = '' if self.name == self.key.capitalize().replace('_', ' ') else f', {self.name!r}'
+        catalog = self.catalog
+        if isinstance(catalog, (set, frozenset)):
+            catalog = ', catalog={' + str(sorted(catalog))[1:-1] + '}'
+        elif catalog is None:
+            catalog = ''
+        else:
+            catalog = f', catalog={catalog}'
+        reference = '' if self.reference is None else f', reference={self.reference}'
+        return f"{type(self).__name__}({self.key!r}{name}{catalog}{reference})"
+
 
 # %% Unit Operation
 
