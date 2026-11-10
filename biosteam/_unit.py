@@ -131,6 +131,7 @@ def design_input(
         name: Optional[str]=None,
         units: Optional[str]=None,
         *,
+        default: Optional[float|str]=None,
         lb: Optional[float]=None,
         ub: Optional[float]=None,
         catalog: Optional[Container[str]]=None,
@@ -152,6 +153,8 @@ def design_input(
         Name of design input. Defaults to the attribute name.
     units :
         Units of measure for numerical design input.
+    default :
+        Default value applied when design input is set to None.
     lb :
         Lower bound for numerical design input.
     ub :
@@ -177,7 +180,7 @@ def design_input(
     >>> import biosteam as bst
     >>> class Vessel(bst.Unit):
     ...     tau = bst.design_input('Residence time', 'hr', lb=0)
-    ...     orientation = bst.design_input(catalog={'Vertical', 'Horizontal'})
+    ...     orientation = bst.design_input(catalog={'Vertical', 'Horizontal'}, default='Vertical')
     ...     
     ...     @bst.design_input(units='m3', lb=0)
     ...     def volume(self):
@@ -191,7 +194,7 @@ def design_input(
     >>> Vessel.tau
     NumericalDesignInput('tau', 'Residence time', 'hr', lb=0)
     >>> Vessel.orientation
-    CategoricalDesignInput('orientation', catalog={'Horizontal', 'Vertical'})
+    CategoricalDesignInput('orientation', default='Vertical', catalog={'Horizontal', 'Vertical'})
     >>> Vessel.volume
     NumericalDesignInput('volume', 'm3', lb=0)
 
@@ -203,7 +206,7 @@ def design_input(
             raise ValueError('cannot define purchase_item without catalog')
         if units is None:
             units = ''
-        return NumericalDesignInput(name, units, lb, ub, fget, fset, fdel, doc)
+        return NumericalDesignInput(name, units, default, lb, ub, fget, fset, fdel, doc)
     else:
         N_none = (catalog_type is None) + (purchase_item is None)
         if N_none == 0:
@@ -227,7 +230,7 @@ def design_input(
             raise ValueError('lower bound (lb) cannot be defined together with catalog')
         if ub is not None:
             raise ValueError('upper bound (ub) cannot be defined together with catalog')
-        return CategoricalDesignInput(name, catalog, reference, fget, fset, fdel, doc)
+        return CategoricalDesignInput(name, default, catalog, reference, fget, fset, fdel, doc)
 
 
 def _get_class_annotation(owner, key):
@@ -250,7 +253,8 @@ class DesignInput(property):
     Abstract class that represent design inputs as property objects
     which store values at "_<key>" by default.
 
-    Subclasses must implement a `_copy(self, fget, fset, fdel)` and a `__init__(self, ...)` method
+    Subclasses must implement a `_copy(self, fget, fset, fdel)`, 
+    `validate(self, value)` and a `__init__(self, ...)` method.
 
     """
 
@@ -264,6 +268,8 @@ class DesignInput(property):
         fset = self.fset
         fget = self.fget
         N_none = (fget is None) + (fset is None)
+        default = self.default
+        if default is not None: self.default = self.validate(default)
         if N_none == 2: 
             # Document like a property with a getter named after the attribute
             fget = lambda unit: getattr(unit, attr, None)
@@ -312,20 +318,16 @@ class DesignInput(property):
 class NumericalDesignInput(DesignInput):
     _default_annotation = float
 
-    def __init__(self, name, units, lb, ub, fget, fset, fdel, doc):
+    def __init__(self, name, units, default, lb, ub, fget, fset, fdel, doc):
         self.name = name
         self.units = units
+        self.default = default
         self.lb = lb
         self.ub = ub
         super().__init__(fget, fset, fdel, doc)
-
-    def _copy(self, fget, fset, fdel):
-        return NumericalDesignInput(self.name, self.units, self.lb, self.ub, fget, fset, fdel, self.__doc__)
-
-    def __set__(self, unit, value):
-        if value is None: # Not specified (e.g., to be determined during simulation)
-            pass
-        elif self.lb is not None and value < self.lb:
+    
+    def validate(self, value):
+        if self.lb is not None and value < self.lb:
             units = self.units
             units = ' ' + units if units else ''
             try:
@@ -341,37 +343,38 @@ class NumericalDesignInput(DesignInput):
             except:  # Handle format errors
                 msg = f"{self.key} ({value}{units}) cannot be above {self.ub}{units}"
             raise AttributeError(msg)
+        return value
+
+    def _copy(self, fget, fset, fdel):
+        return NumericalDesignInput(self.name, self.units, self.default, self.lb, self.ub, fget, fset, fdel, self.__doc__)
+
+    def __set__(self, unit, value):
+        if value is None: value = self.default
+        if value is not None: self.validate(value)
         self.fset(unit, value)
 
     def __repr__(self):
         name = '' if self.name == self.key.capitalize().replace('_', ' ') else f', {self.name!r}'
+        default = '' if self.default is None else f', default={self.default!r}'
         units = f', {self.units!r}' if self.units else ''
         lb = '' if self.lb is None else f', lb={self.lb}'
         ub = '' if self.ub is None else f', ub={self.ub}'
-        return f"{type(self).__name__}({self.key!r}{name}{units}{lb}{ub})"
+        return f"{type(self).__name__}({self.key!r}{name}{units}{default}{lb}{ub})"
 
 
 class CategoricalDesignInput(DesignInput):
     units = ''
     _default_annotation = str
 
-    def __init__(self, name, catalog, reference, fget, fset, fdel, doc):
+    def __init__(self, name, default, catalog, reference, fget, fset, fdel, doc):
         self.name = name
+        self.default = default
         self.catalog = catalog
         self.reference = reference
         super().__init__(fget, fset, fdel, doc)
 
-    def _copy(self, fget, fset, fdel):
-        return CategoricalDesignInput(self.name, self.catalog, self.reference, fget, fset, fdel, self.__doc__)
-
-    def __set__(self, unit, value):
+    def validate(self, value):
         catalog = self.catalog
-        if value is None:
-            if self.reference is not None:
-                item, name = self.reference
-                getattr(unit, name).pop(item, None)
-            self.fset(unit, value)
-            return
         if value not in catalog and (value:=value.capitalize()) not in catalog:
             N = len(catalog)
             if N > 2:
@@ -389,9 +392,23 @@ class CategoricalDesignInput(DesignInput):
                 raise AttributeError(
                    f"no valid {self.key} available"
                 )
+        return value
+
+    def _copy(self, fget, fset, fdel):
+        return CategoricalDesignInput(self.name, self.default, self.catalog, self.reference, fget, fset, fdel, self.__doc__)
+
+    def __set__(self, unit, value):
+        if value is None: value = self.default
+        if value is None:
+            if self.reference is not None:
+                item, name = self.reference
+                getattr(unit, name).pop(item, None)
+            self.fset(unit, value)
+            return
+        value = self.validate(value)
         if self.reference is not None:
             item, name = self.reference
-            getattr(unit, name)[item] = catalog[value]
+            getattr(unit, name)[item] = self.catalog[value]
         self.fset(unit, value)
 
     def __repr__(self):
@@ -404,7 +421,8 @@ class CategoricalDesignInput(DesignInput):
         else:
             catalog = f', catalog={catalog}'
         reference = '' if self.reference is None else f', reference={self.reference}'
-        return f"{type(self).__name__}({self.key!r}{name}{catalog}{reference})"
+        default = '' if self.default is None else f', default={self.default!r}'
+        return f"{type(self).__name__}({self.key!r}{name}{default}{catalog}{reference})"
 
 
 # %% Unit Operation
