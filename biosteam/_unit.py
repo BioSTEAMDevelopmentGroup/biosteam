@@ -260,7 +260,6 @@ class DesignInput(property):
 
     def __set_name__(self, owner, key):
         self.key = key
-        attr = '_' + key
         if self.name is None: self.name = key.replace('_', ' ').capitalize()
         default = self.default
         if default is not None: self.default = default = self.validate(default)
@@ -279,6 +278,7 @@ class DesignInput(property):
         N_none = (fget is None) + (fset is None)
         if N_none == 2: 
             # Document like a property with a getter named after the attribute
+            attr = '_' + key
             fget = lambda unit: getattr(unit, attr, None)
             fget._ = None
             fget.__name__ = self.__name__ = key
@@ -341,7 +341,6 @@ class NumericalDesignInput(DesignInput):
                 msg = f"{self.key} ({value:.4g}{units}) cannot be below {self.lb:.4g}{units}"
             except:  # Handle format errors
                 msg = f"{self.key} ({value}{units}) cannot be below {self.lb}{units}"
-            raise AttributeError(msg)
         elif self.ub is not None and value > self.ub:
             units = self.units
             units = ' ' + units if units else ''
@@ -349,8 +348,9 @@ class NumericalDesignInput(DesignInput):
                 msg = f"{self.key} ({value:.4g}{units}) cannot be above {self.ub:.4g}{units}"
             except:  # Handle format errors
                 msg = f"{self.key} ({value}{units}) cannot be above {self.ub}{units}"
-            raise AttributeError(msg)
-        return value
+        else:
+            return value
+        raise AttributeError(msg)
 
     def _copy(self, fget, fset, fdel):
         return NumericalDesignInput(self.name, self.units, self.default, self.lb, self.ub, fget, fset, fdel, self.__doc__)
@@ -382,24 +382,31 @@ class CategoricalDesignInput(DesignInput):
 
     def validate(self, value):
         catalog = self.catalog
-        if value not in catalog and (value:=value.capitalize()) not in catalog:
+        if value not in catalog:
+            try: 
+                # Assume value is a string
+                value = value.capitalize()
+            except: 
+                # If its not (e.g., could be an int), that is fine
+                pass
+            else: 
+                if value in catalog: return value
             N = len(catalog)
             if N > 2:
                 *names, last = list(catalog)
                 names = ', '.join([repr(i) for i in names]) + ', and ' + repr(last)
-                raise AttributeError(
-                   f"{value!r} is not a recognised {self.key}; only {names} are valid"
-                )
+                msg = f"{value!r} is not a recognised {self.key}; only {names} are valid"
+            elif N == 2:
+                left, right = catalog
+                msg = f"{value!r} is not a recognised {self.key}; only {left!r} and {right!r} are valid"
             elif N == 1:
                 name = list(catalog)[0]
-                raise AttributeError(
-                   f"{value!r} is not a recognised {self.key}; only {name} is valid"
-                )
+                msg = f"{value!r} is not a recognised {self.key}; only {name} is valid"
             else:
-                raise AttributeError(
-                   f"no valid {self.key} available"
-                )
-        return value
+                msg = f"no valid {self.key} available"
+        else:
+            return value
+        raise AttributeError(msg)
 
     def _copy(self, fget, fset, fdel):
         return CategoricalDesignInput(self.name, self.default, self.catalog, self.reference, fget, fset, fdel, self.__doc__)
