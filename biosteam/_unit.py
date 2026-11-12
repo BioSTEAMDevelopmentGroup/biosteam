@@ -131,7 +131,7 @@ def design_input(
         name: Optional[str]=None,
         units: Optional[str]=None,
         *,
-        default: Optional[float|str]=None,
+        default: Optional[float|str]=NotImplemented,
         lb: Optional[float]=None,
         ub: Optional[float]=None,
         catalog: Optional[Container[str]]=None,
@@ -262,11 +262,11 @@ class DesignInput(property):
         self.key = key
         if self.name is None: self.name = key.replace('_', ' ').capitalize()
         default = self.default
-        if default is not None: self.default = default = self.validate(default)
+        if default is not NotImplemented: self.default = default = self.validate(default)
         doc = self.__doc__
         if doc is None:
             units = self.units
-            if default is None:
+            if default is NotImplemented:
                 default_note = ''
             elif units:
                 default_note = f' Defaults to {default!r} [{units}].'
@@ -356,8 +356,7 @@ class NumericalDesignInput(DesignInput):
         return NumericalDesignInput(self.name, self.units, self.default, self.lb, self.ub, fget, fset, fdel, self.__doc__)
 
     def __set__(self, unit, value):
-        if value is None: value = self.default
-        if value is not None: self.validate(value)
+        self.validate(value)
         self.fset(unit, value)
 
     def __repr__(self):
@@ -621,31 +620,35 @@ class Unit:
             does_nothing=None,
         ):
         dct = cls.__dict__
+        # Collect design inputs through the class history (including mixins);
+        # attributes that override an inherited design input remove it.
+        design_input_names = set()
+        design_inputs = []
+        for base in reversed(cls.__mro__):
+            for key, obj in base.__dict__.items():
+                if isinstance(obj, DesignInput):
+                    design_input_names.add(key)
+                    if obj.key is None: obj.__set_name__(base, key)
+                    design_inputs.append(obj)
+                elif key in design_inputs:
+                    design_input_names.remove(key)
+        cls._design_inputs = [i.key for i in design_inputs] # Preserve order
+        
+        # Extend annotation
         if '__init__' in dct and '_init' not in dct:
             init = dct['__init__']
-            if hasattr(init, 'extension'): cls._init = init.extension
+            if hasattr(init, 'extension'): 
+                cls._init = init.extension
         elif dct.get('_init'):
             _init = dct['_init']
-            cls.__init__ = extended_signature(cls.__init__, _init)
-            cls.__init__.extension = _init
+            cls.__init__ = extended_signature(cls.__init__, _init, design_inputs)
         if '__init__' in dct or '_init' in dct:
             init = dct['__init__']
             annotations = init.__annotations__
             for i in ('ins', 'outs'):
                 if i not in annotations: annotations[i] = streams
             if '_stacklevel' not in dct: cls._stacklevel += 1
-        # Collect design inputs through the class history (including mixins);
-        # attributes that override an inherited design input remove it.
-        design_inputs = set()
-        for base in reversed(cls.__mro__):
-            for key, obj in base.__dict__.items():
-                if isinstance(obj, DesignInput):
-                    design_inputs.add(key)
-                    # In case it was set after class creation
-                    if obj.key is None: obj.__set_name__(base, key)
-                elif key in design_inputs:
-                    design_inputs.remove(key)
-        cls._design_inputs = sorted(design_inputs)
+        
         if does_nothing: return 
         dct = cls.__dict__
         if 'run' in dct:
@@ -1158,9 +1161,21 @@ class Unit:
         #: Auxiliary unit operation names.
         self.auxiliary_unit_names = list(self.auxiliary_unit_names)
         
+        # Set defaults for design results.
+        cls = type(self)
+        for i in self._design_inputs:
+            if i in kwargs: 
+                setattr(self, i, kwargs.pop(i))
+            else:
+                value = getattr(cls, i).default
+                if value is NotImplemented: continue
+                setattr(self, i, value)
+        
         self._init(**kwargs)
 
         self._assert_compatible_property_package()
+        
+    __init__._init_inputs = frozenset()
         
     def _init_inlets(self, ins):
         self._ins = piping.Inlets(

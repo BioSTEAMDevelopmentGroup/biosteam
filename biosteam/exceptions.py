@@ -15,7 +15,9 @@ __all__ = (
     'DesignError', 
     'Converged',
     'FailedScenario',
-    'DesignWarning', 
+    'DesignWarning',
+    'UnitWarning',
+    'CostWarning',
     'lb_warning',
     'ub_warning',
     'bounds_warning',
@@ -58,7 +60,10 @@ class DesignWarning(Warning):
         """Return a DesignWarning object with source description."""
         msg = message_with_object_stamp(source, msg)
         return cls(msg)
-    
+
+# Backwards-compatible aliases
+UnitWarning = CostWarning = DesignWarning
+
 # %% Bounds checking
 
 def design_warning_with_source(source, msg): # pragma: no cover
