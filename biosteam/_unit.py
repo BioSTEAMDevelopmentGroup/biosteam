@@ -219,9 +219,9 @@ def design_input(
                 catalog_type = 'F_BM'
             else:
                 raise ValueError(f"{catalog_type!r} is not a recognised catalog_type ; only 'Material', 'Design', or 'Module' are valid")
-            reference = (purchase_item, catalog_type)
         elif N_none == 2:
-            reference = None
+            purchase_item = None
+            catalog_type = None
         else:
             raise ValueError('must define both catalog_type and purchase_item, or none of them; not either')
         if units is not None:
@@ -230,7 +230,7 @@ def design_input(
             raise ValueError('lower bound (lb) cannot be defined together with catalog')
         if ub is not None:
             raise ValueError('upper bound (ub) cannot be defined together with catalog')
-        return CategoricalDesignInput(name, default, catalog, reference, fget, fset, fdel, doc)
+        return CategoricalDesignInput(name, default, catalog, purchase_item, catalog_type, fget, fset, fdel, doc)
 
 
 def _get_class_annotation(owner, key):
@@ -249,17 +249,17 @@ def _get_class_annotation(owner, key):
 
 
 class DesignInput(property):
-    """
-    Abstract class that represent design inputs as property objects
-    which store values at "_<key>" by default.
-
-    Subclasses must implement a `_copy(self, fget, fset, fdel)`, 
-    `validate(self, value)` and a `__init__(self, ...)` method.
-
-    """
+    
+    def copy(self, **kwargs):
+        for i in ('name', 'default', 'fget', 'fset', 'fdel', *self._new_attributes):
+            if i not in kwargs:
+                kwargs[i] = getattr(self, i)
+        if 'doc' not in kwargs:
+            kwargs['doc'] = self.__doc__
+        return type(self)(**kwargs)
 
     def __set_name__(self, owner, key):
-        self.key = key
+        self.__name__ = key
         if self.name is None: self.name = key.replace('_', ' ').capitalize()
         default = self.default
         if default is not NotImplemented: self.default = default = self.validate(default)
@@ -279,21 +279,21 @@ class DesignInput(property):
         if N_none == 2: 
             # Document like a property with a getter named after the attribute
             attr = '_' + key
-            fget = lambda unit: getattr(unit, attr, None)
-            fget._ = None
-            fget.__name__ = self.__name__ = key
+            fget = eval(f'lambda self: self.{attr}')
+            fget.__name__ = key
             fget.__qualname__ = f"{owner.__qualname__}.{key}"
             fget.__module__ = owner.__module__
             fget.__doc__ = doc
             annotation = _get_class_annotation(owner, key)
             if annotation is None: annotation = self._default_annotation
             fget.__annotations__ = {'return': annotation}
-            fset = lambda unit, value: setattr(unit, attr, value)
-            super().__init__(fget, fset, self.fdel, doc)
+            fset = eval(f'lambda unit, value: setattr(unit, {attr!r}, value)')
+            property.__init__(self, fget, fset, self.fdel, doc)
         elif N_none:
             raise RuntimeError('design inputs must implement both getter and setter methods')
         else:
             fget = self.fget
+            fset = self.fset
             try:
                 annotations = fget.__annotations__
             except AttributeError: # Not a function (e.g., a callable object)
@@ -309,20 +309,27 @@ class DesignInput(property):
         return self
 
     def getter(self, fget):
-        return self._copy(fget, self.fset, self.fdel)
+        if hasattr(self, '__name__'): return self.copy(fget=fget)
+        property.__init__(self, fget, self.fset, self.fdel, self.__doc__)
+        return self
 
     def setter(self, fset):
-        return self._copy(None if hasattr(self.fget, '_') else self.fget, fset, self.fdel)
+        if hasattr(self, '__name__'): return self.copy(fset=fset)
+        property.__init__(self, self.fget, fset, self.fdel, self.__doc__)
+        return self
 
     def deleter(self, fdel):
-        return self._copy(None if hasattr(self.fget, '_') else self.fget, self.fset, fdel)
+        if hasattr(self, '__name__'): return self.copy(fdel=fdel)
+        property.__init__(self, self.fget, self.fset, fdel, self.__doc__)
+        return self
 
     def __delete__(self, unit):
-        if self.fdel is None: raise AttributeError(f'cannot delete design input {self.key!r}')
+        if self.fdel is None: raise AttributeError(f'cannot delete design input {self.__name__!r}')
         self.fdel(unit)
 
 
 class NumericalDesignInput(DesignInput):
+    _new_attributes = ('units', 'lb', 'ub')
     _default_annotation = float
 
     def __init__(self, name, units, default, lb, ub, fget, fset, fdel, doc):
@@ -331,53 +338,52 @@ class NumericalDesignInput(DesignInput):
         self.default = default
         self.lb = lb
         self.ub = ub
-        super().__init__(fget, fset, fdel, doc)
+        property.__init__(self, fget, fset, fdel, doc)
     
     def validate(self, value):
         if self.lb is not None and value < self.lb:
             units = self.units
             units = ' ' + units if units else ''
             try:
-                msg = f"{self.key} ({value:.4g}{units}) cannot be below {self.lb:.4g}{units}"
+                msg = f"{self.__name__} ({value:.4g}{units}) cannot be below {self.lb:.4g}{units}"
             except:  # Handle format errors
-                msg = f"{self.key} ({value}{units}) cannot be below {self.lb}{units}"
+                msg = f"{self.__name__} ({value}{units}) cannot be below {self.lb}{units}"
         elif self.ub is not None and value > self.ub:
             units = self.units
             units = ' ' + units if units else ''
             try:
-                msg = f"{self.key} ({value:.4g}{units}) cannot be above {self.ub:.4g}{units}"
+                msg = f"{self.__name__} ({value:.4g}{units}) cannot be above {self.ub:.4g}{units}"
             except:  # Handle format errors
-                msg = f"{self.key} ({value}{units}) cannot be above {self.ub}{units}"
+                msg = f"{self.__name__} ({value}{units}) cannot be above {self.ub}{units}"
         else:
             return value
         raise AttributeError(msg)
-
-    def _copy(self, fget, fset, fdel):
-        return NumericalDesignInput(self.name, self.units, self.default, self.lb, self.ub, fget, fset, fdel, self.__doc__)
 
     def __set__(self, unit, value):
         self.validate(value)
         self.fset(unit, value)
 
     def __repr__(self):
-        name = '' if self.name == self.key.capitalize().replace('_', ' ') else f', {self.name!r}'
-        default = '' if self.default is None else f', default={self.default!r}'
+        name = '' if self.name == self.__name__.capitalize().replace('_', ' ') else f', {self.name!r}'
+        default = '' if self.default is NotImplemented else f', default={self.default!r}'
         units = f', {self.units!r}' if self.units else ''
         lb = '' if self.lb is None else f', lb={self.lb}'
         ub = '' if self.ub is None else f', ub={self.ub}'
-        return f"{type(self).__name__}({self.key!r}{name}{units}{default}{lb}{ub})"
+        return f"{type(self).__name__}({self.__name__!r}{name}{units}{default}{lb}{ub})"
 
 
 class CategoricalDesignInput(DesignInput):
+    _new_attributes = ('catalog', 'purchase_item', 'catalog_type')
     units = ''
     _default_annotation = str
 
-    def __init__(self, name, default, catalog, reference, fget, fset, fdel, doc):
+    def __init__(self, name, default, catalog, purchase_item, catalog_type, fget, fset, fdel, doc):
         self.name = name
         self.default = default
         self.catalog = catalog
-        self.reference = reference
-        super().__init__(fget, fset, fdel, doc)
+        self.purchase_item = purchase_item
+        self.catalog_type = catalog_type
+        property.__init__(self, fget, fset, fdel, doc)
 
     def validate(self, value):
         catalog = self.catalog
@@ -394,38 +400,27 @@ class CategoricalDesignInput(DesignInput):
             if N > 2:
                 *names, last = list(catalog)
                 names = ', '.join([repr(i) for i in names]) + ', and ' + repr(last)
-                msg = f"{value!r} is not a recognised {self.key}; only {names} are valid"
+                msg = f"{value!r} is not a recognised {self.__name__}; only {names} are valid"
             elif N == 2:
                 left, right = catalog
-                msg = f"{value!r} is not a recognised {self.key}; only {left!r} and {right!r} are valid"
+                msg = f"{value!r} is not a recognised {self.__name__}; only {left!r} and {right!r} are valid"
             elif N == 1:
                 name = list(catalog)[0]
-                msg = f"{value!r} is not a recognised {self.key}; only {name} is valid"
+                msg = f"{value!r} is not a recognised {self.__name__}; only {name} is valid"
             else:
-                msg = f"no valid {self.key} available"
+                msg = f"no valid {self.__name__} available"
         else:
             return value
         raise AttributeError(msg)
 
-    def _copy(self, fget, fset, fdel):
-        return CategoricalDesignInput(self.name, self.default, self.catalog, self.reference, fget, fset, fdel, self.__doc__)
-
     def __set__(self, unit, value):
-        if value is None: value = self.default
-        if value is None:
-            if self.reference is not None:
-                item, name = self.reference
-                getattr(unit, name).pop(item, None)
-            self.fset(unit, value)
-            return
         value = self.validate(value)
-        if self.reference is not None:
-            item, name = self.reference
-            getattr(unit, name)[item] = self.catalog[value]
+        if self.purchase_item is not None:
+            getattr(unit, self.catalog_type)[self.purchase_item] = self.catalog[value]
         self.fset(unit, value)
 
     def __repr__(self):
-        name = '' if self.name == self.key.capitalize().replace('_', ' ') else f', {self.name!r}'
+        name = '' if self.name == self.__name__.capitalize().replace('_', ' ') else f', {self.name!r}'
         catalog = self.catalog
         if isinstance(catalog, (set, frozenset)):
             catalog = ', catalog={' + str(sorted(catalog))[1:-1] + '}'
@@ -433,9 +428,11 @@ class CategoricalDesignInput(DesignInput):
             catalog = ''
         else:
             catalog = f', catalog={catalog}'
-        reference = '' if self.reference is None else f', reference={self.reference}'
-        default = '' if self.default is None else f', default={self.default!r}'
-        return f"{type(self).__name__}({self.key!r}{name}{default}{catalog}{reference})"
+        catalog = '' if self.catalog is None else f', catalog={self.catalog}'
+        purchase_item = '' if self.purchase_item is None else f', purchase_item={self.purchase_item}'
+        catalog_type = '' if self.catalog_type is None else f', catalog_type={self.catalog_type}'
+        default = '' if self.default is NotImplemented else f', default={self.default!r}'
+        return f"{type(self).__name__}({name}{default}{catalog}{purchase_item}{catalog_type})"
 
 
 # %% Unit Operation
@@ -628,11 +625,11 @@ class Unit:
             for key, obj in base.__dict__.items():
                 if isinstance(obj, DesignInput):
                     design_input_names.add(key)
-                    if obj.key is None: obj.__set_name__(base, key)
+                    if obj.__name__ is None: obj.__set_name__(base, key)
                     design_inputs.append(obj)
                 elif key in design_inputs:
                     design_input_names.remove(key)
-        cls._design_inputs = [i.key for i in design_inputs] # Preserve order
+        cls._design_inputs = [i.__name__ for i in design_inputs] # Preserve order
         
         # Extend annotation
         if '__init__' in dct and '_init' not in dct:
