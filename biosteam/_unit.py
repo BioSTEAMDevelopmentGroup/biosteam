@@ -30,6 +30,7 @@ from typing import Callable, Optional, TYPE_CHECKING, Sequence, Iterable, Tuple,
 from thermosteam.base.sparse import SparseVector, sum_sparse_vectors
 import numpy as np
 import thermosteam as tmo
+from inspect import empty
 from thermosteam import EquationNode, VariableNode
 if TYPE_CHECKING: 
     System = bst._recycle_system
@@ -131,7 +132,7 @@ def design_input(
         name: Optional[str]=None,
         units: Optional[str]=None,
         *,
-        default: Optional[float|str]=None,
+        default: Optional[float|str]=empty,
         lb: Optional[float]=None,
         ub: Optional[float]=None,
         catalog: Optional[Container[str]]=None,
@@ -313,7 +314,7 @@ class DesignInput:
             
         # Validate default
         default = self.default
-        if default is not None: 
+        if default not in (None, empty): 
             self.default = default = self.validate(default)
         
         # Setup docstring
@@ -705,6 +706,7 @@ class Unit:
             does_nothing=None,
         ):
         dct = cls.__dict__
+        
         # Collect design inputs through the class history (including mixins);
         # attributes that override an inherited design input remove it.
         design_inputs = {}
@@ -1253,15 +1255,17 @@ class Unit:
         
         # Set defaults for design results.
         cls = type(self)
-        parameters = getattr(self._init, 'parameters', ())
+        params = getattr(self._init, 'parameters', ())
         for i in self._design_inputs:
             if i in kwargs: 
-                if i not in parameters: 
-                    setattr(self, i, kwargs.pop(i))
-            elif i in parameters:
-                kwargs[i] = getattr(cls, i).default
+                if i not in params: setattr(self, i, kwargs.pop(i))
             else:
-                setattr(self, i, getattr(cls, i).default)
+                default = getattr(cls, i).default
+                if default is empty: continue
+                if i in params: 
+                    kwargs[i] = default
+                else:
+                    setattr(self, i, default)
         
         self._init(**kwargs)
 
