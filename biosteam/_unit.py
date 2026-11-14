@@ -30,7 +30,7 @@ from typing import Callable, Optional, TYPE_CHECKING, Sequence, Iterable, Tuple,
 from thermosteam.base.sparse import SparseVector, sum_sparse_vectors
 import numpy as np
 import thermosteam as tmo
-from inspect import empty
+from inspect import _empty as empty
 from thermosteam import EquationNode, VariableNode
 if TYPE_CHECKING: 
     System = bst._recycle_system
