@@ -31,7 +31,6 @@ __all__ = (
 
 #: TODO:
 #: * Implement estimate of isentropic efficiency when not given (is this possible?).
-
 class TurbineCostAlgorithm(NamedTuple):
     #: Defines preliminary correlation algorithm for a turbine type
     psig_max: float #: Maximum achievable pressure in psig (to autodermine turbine type and/or issue warning)
@@ -51,15 +50,7 @@ class Turbine(Unit, isabstract=True):
     _graphics = turbine_graphics
     _N_ins = 1
     _N_outs = 1
-    _units = {
-        'Ideal power': 'kW',
-        'Ideal duty': 'kJ/hr',
-    }
-    material_factors = {
-        'Carbon steel': 1.0,
-        'Stainless steel': 2.5,
-        'Nickel alloy': 5.0,
-    }
+    
     _F_BM_default = {
         'Turbine(s)': 2.15,
     }
@@ -73,11 +64,19 @@ class Turbine(Unit, isabstract=True):
                 CE=567,
             ),
     }
+    material_factors = {
+        'Carbon steel': 1.0,
+        'Stainless steel': 2.5,
+        'Nickel alloy': 5.0
+    }
+
+    P: float = bst.design_input('Outlet pressure', 'Pa', lb=0)
+    eta: float = bst.design_input('Isentropic efficiency', lb=0, ub=1)
 
     def _init(self, P, eta=0.3, vle=False, turbine_type=None,
                  material=None, efficiency=None):
-        self.P = P  #: Outlet pressure [Pa].
-        self.eta = eta  #: Isentropic efficiency.
+        self.P = P
+        self.eta = eta
 
         #: Whether to perform phase equilibrium calculations on the outflow.
         #: If False, the outlet will be assumed to be the same phase as the inlet.
@@ -165,7 +164,7 @@ class Turbine(Unit, isabstract=True):
         Pc = abs(self.power_utility.get_property('rate', 'hp'))
         N = design_results['Turbines in parallel']
         Pc_per_turbine = Pc / N
-        bounds_warning(self, 'power', Pc, 'hp', alg.hp_bounds, 'cost')
+        bounds_warning(self, 'power', Pc, 'hp', alg.hp_bounds)
         self.baseline_purchase_costs['Turbines(s)'] = N * bst.CE / alg.CE * alg.cost(Pc_per_turbine)
 
 

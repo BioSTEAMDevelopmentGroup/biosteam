@@ -73,7 +73,7 @@ class MolecularSieve(Splitter):
     Cooling water            Duty         kJ/hr -1.18e+05
                              Flow       kmol/hr      80.9
                              Cost        USD/hr    0.0395
-    Design                   Flow rate    kg/hr  2.13e+03
+    Design results           Flow rate    kg/hr  2.13e+03
     Purchase cost            Column         USD  6.85e+05
     Total purchase cost                     USD  6.85e+05
     Installed equipment cost                USD  1.23e+06

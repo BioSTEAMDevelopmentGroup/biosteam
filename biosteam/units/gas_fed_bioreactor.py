@@ -19,6 +19,7 @@ References
 import biosteam as bst
 from .abstract_stirred_tank_reactor import AbstractStirredTankReactor
 from .aerated_bioreactor import AeratedBioreactor
+from .._unit import design_input
 from math import pi
 import numpy as np
 from scipy.constants import g
@@ -247,6 +248,22 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     default_methods = AeratedBioreactor.default_methods
     get_kLa = AeratedBioreactor.get_kLa
     get_agitation_power = AeratedBioreactor.get_agitation_power
+    compressor_isentropic_efficiency: float = design_input(
+        'Compressor isentropic efficiency', lb=0, ub=1,
+    )
+    cooler_pressure_drop: float = design_input(
+        'Cooler pressure drop', 'Pa', lb=0,
+    )
+    theta: float = design_input(
+        'Gas substrate saturation fraction', lb=0, ub=1,
+        doc="Average concentration of gas substrate in the liquid as a "
+            "fraction of saturation.",
+    )
+    Q_consumption: float = design_input(
+        'Duty per gas substrate consumed', 'kJ/kmol',
+        doc="Forced duty per gas substrate consumed [kJ/kmol]. If not given, "
+            "the duty is computed from the energy balance.",
+    )
     
     def _init(self, 
             gas_substrates=None, 
@@ -274,11 +291,10 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             gas_substrates = [i for i in gas_substrates if i in aeration.H_coefficients]
         self.gas_substrates = gas_substrates
         
-        #: Isentropic efficiency of the compressor. Defaults to 0.85.
         self.compressor_isentropic_efficiency = compressor_isentropic_efficiency
         self.cooler_pressure_drop = 20684.28 if cooler_pressure_drop is None else cooler_pressure_drop
-        self.theta = theta # Average concentration of gas substrate in the liquid as a fraction of saturation.
-        self.Q_consumption = Q_consumption # Forced duty per gas substrate consummed [kJ/kmol].
+        self.theta = theta
+        self.Q_consumption = Q_consumption
         self.kLa_kwargs = {} if kLa_kwargs is None else kLa_kwargs
         self.controlled_feeds = controlled_feeds # list[int|Stream] Feed index or stream.
         self.titer = titer # dict[str, float] g / L

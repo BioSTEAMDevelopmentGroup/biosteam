@@ -26,10 +26,11 @@ from thermosteam.utils import extended_signature
 from thermosteam.base import display_asfunctor
 from flexsolve import IQ_interpolation
 from numpy.typing import NDArray
-from typing import Callable, Optional, TYPE_CHECKING, Sequence, Iterable, Tuple, Any
+from typing import Callable, Optional, TYPE_CHECKING, Sequence, Iterable, Tuple, Any, Container
 from thermosteam.base.sparse import SparseVector, sum_sparse_vectors
 import numpy as np
 import thermosteam as tmo
+from inspect import _empty as empty
 from thermosteam import EquationNode, VariableNode
 if TYPE_CHECKING: 
     System = bst._recycle_system
@@ -38,7 +39,7 @@ if TYPE_CHECKING:
 
 streams = Optional[Sequence[Stream|str]]
 
-__all__ = ('Unit', 'ProcessSpecification', 'BoundedNumericalSpecification')
+__all__ = ('Unit', 'design_input', 'update_design_input', 'ProcessSpecification', 'BoundedNumericalSpecification')
 
 int_types = (int, np.int32)
 
@@ -125,46 +126,422 @@ class SuperpositionOutlet(Stream):
         self.port = port
         self._source = source
 
+# %% Defining design inputs
+
+def design_input(
+        name: Optional[str]=None,
+        units: Optional[str]=None,
+        *,
+        default: Optional[float|str]=empty,
+        lb: Optional[float]=None,
+        ub: Optional[float]=None,
+        catalog: Optional[Container[str]]=None,
+        purchase_item: Optional[str]=None,
+        catalog_type: Optional[str]=None,
+        fget: Optional[Callable]=None,
+        fset: Optional[Callable]=None,
+        fdel: Optional[Callable]=None,
+        doc: Optional[str]=None,
+    ):
+    """
+    Return a design input descriptor. Design inputs behave like
+    property objects (and are documented as such by Sphinx), but also
+    validate values and are reported in :meth:`Unit.results`.
+
+    Parameters
+    ----------
+    name :
+        Name of design input. Defaults to the attribute name.
+    units :
+        Units of measure for numerical design input.
+    default :
+        Default value applied when design input is set to None.
+    lb :
+        Lower bound for numerical design input.
+    ub :
+        Upper bound for numerical design input.
+    catalog :
+        Valid options for categorical design input. If a dictionary,
+        values are the cost factors of each option.
+    purchase_item :
+        Name of purchase cost item to apply cost factors.
+    catalog_type :
+        Type of cost factor: 'Material', 'Design', or 'Module'.
+    fget :
+        Getter. Defaults to returning the value stored.
+    fset :
+        Setter (called after validation). Defaults to storing the value.
+    fdel :
+        Deleter.
+    doc :
+        Docstring. Defaults to getter's docstring or "<name> [<units>].", if none available.
+
+    Examples
+    --------
+    >>> import biosteam as bst
+    >>> class Vessel(bst.Unit):
+    ...     tau = bst.design_input('Residence time', 'hr', lb=0)
+    ...     orientation = bst.design_input(catalog={'Vertical', 'Horizontal'}, default='Vertical')
+    ...     open_roof = bst.design_input(default=False)
+    ...     N_vessels: int = bst.design_input(default=1, lb=0)
+    ...     
+    ...     @bst.design_input(units='m3', lb=0)
+    ...     def volume(self):
+    ...         return self.tau * self.ins[0].F_vol
+    ...     @volume.setter
+    ...     def volume(self, volume):
+    ...         self.tau = volume / self.ins[0].F_vol
+    ...
+
+    >>> Vessel.tau
+    NumericalDesignInput('Residence time', 'hr', lb=0)
+    >>> Vessel.orientation
+    CategoricalDesignInput('Orientation', default='Vertical', catalog={'Horizontal', 'Vertical'})
+    >>> Vessel.volume
+    NumericalDesignInput('Volume', 'm3', lb=0)
+    >>> Vessel.open_roof
+    LogicalDesignInput('Open roof', default=False)
+    >>> Vessel.N_vessels
+    NumericalDesignInput('N vessels', default=1)
+    
+    """
+    if catalog is None:
+        if catalog_type is not None:
+            raise ValueError('cannot define catalog_type without catalog')
+        if purchase_item is not None:
+            raise ValueError('cannot define purchase_item without catalog')
+        if isinstance(default, bool):
+            if units is not None:
+                raise ValueError('logical design input cannot have units of measure')
+            if lb is not None:
+                raise ValueError('logical design input cannot have a lower bound (lb)')
+            if ub is not None:
+                raise ValueError('logical design input cannot have an upper bound (ub)')
+            return LogicalDesignInput(name, default, fget, fset, fdel, doc)
+        else:
+            if units is None: units = ''
+            return NumericalDesignInput(name, units, default, lb, ub, fget, fset, fdel, doc)
+    else:
+        N_none = (catalog_type is None) + (purchase_item is None)
+        if N_none == 0:
+            catalog_type = catalog_type.capitalize()
+            if catalog_type == 'Material':
+                catalog_type = 'F_M'
+            elif catalog_type == 'Design':
+                catalog_type = 'F_D'
+            elif catalog_type == 'Module':
+                catalog_type = 'F_BM'
+            else:
+                raise ValueError(f"{catalog_type!r} is not a recognised catalog_type ; only 'Material', 'Design', or 'Module' are valid")
+        elif N_none == 2:
+            purchase_item = None
+            catalog_type = None
+        else:
+            raise ValueError('must define both catalog_type and purchase_item, or none of them; not either')
+        if units is not None:
+            raise ValueError('units cannot be defined together with catalog')
+        if lb is not None:
+            raise ValueError('lower bound (lb) cannot be defined together with catalog')
+        if ub is not None:
+            raise ValueError('upper bound (ub) cannot be defined together with catalog')
+        return CategoricalDesignInput(name, default, catalog, purchase_item, catalog_type, fget, fset, fdel, doc)
+
+class update_design_input:
+    __slots__ = ('updates',)
+    def __init__(self, **updates):
+        self.updates = updates
+    
+    def __set_name__(self, owner, name):
+        inherited = getattr(super(owner, owner), name, None)
+        if not isinstance(inherited, DesignInput):
+            raise RuntimeError(
+                f'{owner.__name__}.{name} is not a design_input'
+            )
+        new = inherited.copy(**self.updates)
+        new.__set_name__(owner, name)
+        setattr(owner, name, new)
+    
+    def __repr__(self):
+        kwargs = ', '.join([f'{i}={j!r}' for i, j in self.updates.items()])
+        return f"{type(self).__name__}({kwargs})"
+
+def _get_class_annotation(owner, key):
+    try:
+        import annotationlib
+    except ImportError: # Python < 3.14
+        annotations = owner.__dict__.get('__annotations__', {})
+    else:
+        try:
+            annotations = annotationlib.get_annotations(
+                owner, format=annotationlib.Format.FORWARDREF
+            )
+        except Exception:
+            return None
+    return annotations.get(key)
+
+
+class DesignInput:
+    
+    def copy(self, **kwargs):
+        for i in ('name', 'default', 'fget', 'fset', 'fdel', 'doc', *self._new_attributes):
+            if i not in kwargs:
+                kwargs[i] = getattr(self, i)
+        copy = type(self)(**kwargs)
+        if hasattr(self, '_return_type'):
+            copy._default_return_type = self._return_type
+        if hasattr(self, '__name__'):
+            copy.__name__ = self.__name__
+        return copy
+
+    def __set_name__(self, owner, name):
+        self.__name__ = name
+        if self.name is None: self.name = name.replace('_', ' ').capitalize()
+        fset = self.fset
+        fget = self.fget
+        N_none = (fget is None) + (fset is None)
+        
+        # Set return type for validation
+        if N_none == 1:
+            raise RuntimeError('design inputs must implement both getter and setter methods, not just one')
+        elif N_none == 0:
+            annotations = fget.__annotations__
+            if 'return' in annotations:
+                self._return_type = annotations['return']
+            else:
+                annotations['return'] = self._return_type = self._default_return_type
+        else:
+            self._return_type = _get_class_annotation(owner, name) or self._default_return_type
+            
+        # Validate default
+        default = self.default
+        if default not in (None, empty): 
+            self.default = default = self.validate(default)
+        
+        # Setup docstring
+        doc = self.doc
+        if doc is None:
+            if fget is None or (doc:=fget.__doc__) is None:
+                units = self.units
+                if default is None:
+                    default_note = ''
+                elif units:
+                    default_note = f' Defaults to {default!r} [{units}].'
+                else:
+                    default_note = f' Defaults to {default!r}.'
+                if units:
+                    doc = f"{self.name} [{units}].{default_note}" 
+                else:
+                    doc = f"{self.name}.{default_note}"
+            self.__doc__ = doc
+            
+        # Default getter/setter
+        if N_none == 2: 
+            # Document like a property with a getter named after the attribute
+            attr = '_' + name
+            self.fget = eval(f'lambda self: self.{attr}')
+            # fget.__name__ = name
+            # fget.__qualname__ = f"{owner.__qualname__}.{name}"
+            # fget.__module__ = owner.__module__
+            # fget.__doc__ = doc
+            # fget.__annotations__ = {'return': self._return_type}
+            self.fset = eval(f'lambda unit, value: setattr(unit, {attr!r}, value)')
+
+    def __call__(self, fget):
+        # Used as a decorator right after creation (e.g., @design_input(...)),
+        # so the getter is set in place instead of creating a copy
+        self.fget = fget
+        return self
+
+    def getter(self, fget):
+        if hasattr(self, '__name__'): return self.copy(fget=fget)
+        self.fget = fget
+        return self
+
+    def setter(self, fset):
+        if hasattr(self, '__name__'): return self.copy(fset=fset)
+        self.fset = fset
+        return self
+
+    def deleter(self, fdel):
+        if hasattr(self, '__name__'): return self.copy(fdel=fdel)
+        self.fdel = fdel
+        return self
+
+    def __get__(self, instance, owner):
+        if instance is None: return self
+        return self.fget(instance)
+
+    def __delete__(self, unit):
+        if self.fdel is None: raise AttributeError(f'cannot delete design input {self.__name__!r}')
+        self.fdel(unit)
+
+
+class NumericalDesignInput(DesignInput):
+    _new_attributes = ('units', 'lb', 'ub')
+    _default_return_type = float
+
+    def __init__(self, name, units, default, lb, ub, fget, fset, fdel, doc):
+        self.name = name
+        self.units = units
+        self.default = default
+        self.lb = lb
+        self.ub = ub
+        self.fget = fget
+        self.fset = fset
+        self.fdel = fdel
+        self.doc = doc
+    
+    def validate(self, value):
+        new_value = self._return_type(value)
+        if new_value == value:
+            value = new_value
+            if self.lb is not None and value < self.lb:
+                units = self.units
+                units = ' ' + units if units else ''
+                try:
+                    msg = f"{self.__name__} ({value:.4g}{units}) cannot be below {self.lb:.4g}{units}"
+                except:  # Handle format errors
+                    msg = f"{self.__name__} ({value}{units}) cannot be below {self.lb}{units}"
+            elif self.ub is not None and value > self.ub:
+                units = self.units
+                units = ' ' + units if units else ''
+                try:
+                    msg = f"{self.__name__} ({value:.4g}{units}) cannot be above {self.ub:.4g}{units}"
+                except:  # Handle format errors
+                    msg = f"{self.__name__} ({value}{units}) cannot be above {self.ub}{units}"
+            else:
+                return value
+        else:
+            msg = f'{self.__name__} must be a {self._return_type.__name__}; {type(value).__name__} object is invalid'
+        raise AttributeError(msg)
+
+    def __set__(self, unit, value):
+        if value is not None: self.validate(value)
+        self.fset(unit, value)
+
+    def __repr__(self):
+        default = '' if self.default is None else f', default={self.default!r}'
+        units = f', {self.units!r}' if self.units else ''
+        lb = '' if self.lb is None else f', lb={self.lb}'
+        ub = '' if self.ub is None else f', ub={self.ub}'
+        return f"{type(self).__name__}({self.name!r}{units}{default}{lb}{ub})"
+
+
+class CategoricalDesignInput(DesignInput):
+    _new_attributes = ('catalog', 'purchase_item', 'catalog_type')
+    units = ''
+    _default_return_type = str
+
+    def __init__(self, name, default, catalog, purchase_item, catalog_type, fget, fset, fdel, doc):
+        self.name = name
+        self.default = default
+        self.catalog = catalog
+        self.purchase_item = purchase_item
+        self.catalog_type = catalog_type
+        self.fget = fget
+        self.fset = fset
+        self.fdel = fdel
+        self.doc = doc
+
+    def validate(self, value):
+        catalog = self.catalog
+        if value not in catalog:
+            try: 
+                # Assume value is a string
+                value = value.capitalize()
+            except: 
+                # If its not (e.g., could be an int), that is fine
+                pass
+            else: 
+                if value in catalog: return value
+            N = len(catalog)
+            if N > 2:
+                *names, last = list(catalog)
+                names = ', '.join([repr(i) for i in names]) + ', and ' + repr(last)
+                msg = f"{value!r} is not a recognised {self.__name__}; only {names} are valid"
+            elif N == 2:
+                left, right = catalog
+                msg = f"{value!r} is not a recognised {self.__name__}; only {left!r} and {right!r} are valid"
+            elif N == 1:
+                name = list(catalog)[0]
+                msg = f"{value!r} is not a recognised {self.__name__}; only {name} is valid"
+            else:
+                msg = f"no valid {self.__name__} available"
+        else:
+            return value
+        raise AttributeError(msg)
+
+    def __set__(self, unit, value):
+        if value is None:
+            if self.purchase_item is not None:
+                getattr(unit, self.catalog_type).pop(self.purchase_item, None)
+        else:
+            value = self.validate(value)
+            if self.purchase_item is not None:
+                getattr(unit, self.catalog_type)[self.purchase_item] = self.catalog[value]
+        self.fset(unit, value)
+
+    def __repr__(self):
+        catalog = self.catalog
+        if isinstance(catalog, (set, frozenset)):
+            catalog = ', catalog={' + str(sorted(catalog))[1:-1] + '}'
+        elif catalog is None:
+            catalog = ''
+        else:
+            catalog = f', catalog={catalog}'
+        catalog = '' if self.catalog is None else f', catalog={self.catalog}'
+        purchase_item = '' if self.purchase_item is None else f', purchase_item={self.purchase_item}'
+        catalog_type = '' if self.catalog_type is None else f', catalog_type={self.catalog_type}'
+        default = '' if self.default is None else f', default={self.default!r}'
+        return f"{type(self).__name__}({self.name!r}{default}{catalog}{purchase_item}{catalog_type})"
+
+
+class LogicalDesignInput(DesignInput):
+    _new_attributes = ()
+    _default_return_type = bool
+    units = ''
+
+    def __init__(self, name, default, fget, fset, fdel, doc):
+        self.name = name
+        self.default = default
+        self.fget = fget
+        self.fset = fset
+        self.fdel = fdel
+        self.doc = doc
+
+    def validate(self, value):
+        if isinstance(value, bool):
+            return value
+        else:
+            raise AttributeError(f"{self.__name__} must be either True or False; {type(value).__name__} object is invalid")
+
+    def __set__(self, unit, value):
+        value = self.validate(value)
+        self.fset(unit, value)
+
+    def __repr__(self):
+        default = '' if self.default is None else f', default={self.default!r}'
+        return f"{type(self).__name__}({self.name!r}{default})"
+    
 
 # %% Unit Operation
-
-def phenomena_based_run(self):
-    if not (self._recycle_system and self._system.algorithm == 'Phenomena based'):
-        Unit.run(self)
-        return
-    ins = self.ins
-    outs = self.outs
-    Ts = [i.T for i in outs]
-    Q = self.Hnet
-    Unit.run(self)
-    new = sum(
-        [i.mol for i in outs],
-        -sum([i.mol for i in ins], 0)
-    )
-    if hasattr(self, '_dmol'):
-        old = self._dmol
-        f = bst.PhasePartition.dmol_relaxation_factor
-        self._dmol = dmol = f * old + (1 - f) * new
-    else:
-        self._dmol = dmol = new
-    self._dmol[np.abs(dmol) < 1e-9] = 0.
-    self._duty = self.Hnet
-    Ts_new = [i.T for i in outs]
-    if all([i == j for i, j in zip(Ts_new, Ts)]): # T constant
-        self._energy_variable = None
-    elif self.Hnet == Q: # Q constant    
-        self._energy_variable = 'T'
-    else:
-        self._energy_variable = None
 
 @thermo_user
 @registered(ticket_name='U')
 class Unit:
     """
-    Abstract class for Unit objects. Child objects must contain
+    Abstract class for Unit objects. Subclasses must define
     :attr:`~Unit._run`, :attr:`~Unit._design` and :attr:`~Unit._cost` methods to 
     estimate stream outlets of a Unit and find design and cost information.  
-
+    
+    For advanced phenomena based simulation, subclasses may define 
+    :attr:`~Unit._update_nonlinearities`,
+    :attr:`~Unit._create_bulk_balance_equations`,
+    :attr:`~Unit._create_material_balance_equations`,
+    :attr:`~Unit._create_energy_balance_equations`,
+    :attr:`~Unit._update_energy_coefficient`,
+    and :attr:`~Unit._update_variable` methods.
+    
     Parameters
     ----------
     ID :
@@ -228,26 +605,13 @@ class Unit:
     
     
     """ 
-    #: Class for initiallizing streams.
-    Stream = Stream
-
     max_parallel_units = int(10e3)
-
-    #: Whether unit leverages information from other units within the system 
-    #: regardless of whether or not they are directly connected.
-    _universal = False
+    _design_inputs = []
     
-    #: Whether streams do not mix, but do interact.
-    _interaction = False
+    ### Abstract Attributes ###
     
-    #: Class for initiallizing missing streams.
-    MissingStream = MissingStream
-    
-    #: Initialize unit operation with key-word arguments.
-    _init = AbstractMethod
-    
-    #: Run mass and energy balances and update outlet streams (without user-defined specifications).
-    _run = AbstractMethod
+    #: **class-attribute** Units of measure for :attr:`~Unit.design_results` dictionary.
+    _units: dict[str, str] = {}
     
     #: **class-attribute** Expected number of inlet streams. Defaults to 1.
     _N_ins: int = 1  
@@ -261,12 +625,30 @@ class Unit:
     #: **class-attribute** Whether the number of streams in :attr:`~Unit.outs` is fixed.
     _outs_size_is_fixed: bool = True
     
-    #: **class-attribute** Used for piping warnings.
-    _stacklevel: int = 6
-    
     #: **class-attribute** Name denoting the type of Unit class. Defaults to the class
     #: name of the first child class
     line: str = 'Unit'
+    
+    #: **class-attribute** Default bare-module factors for each purchase cost item.
+    #: Items in this dictionary are copied to the :attr:`~Unit.F_BM` attribute during 
+    #: initialization.
+    _F_BM_default: dict[str, float] = {}
+    
+    #: **class-attribute** Lifetime of equipment. Defaults to lifetime of
+    #: production venture. Use an integer to specify the lifetime for all
+    #: items in the unit purchase costs. Use a dictionary to specify the 
+    #: lifetime of each purchase cost item.
+    _default_equipment_lifetime: int|dict[str, int] = {}
+    
+    #: **class-attribute** Name of attributes that are auxiliary units. These units
+    #: will be accounted for in the purchase and installed equipment costs
+    #: without having to add these costs in the :attr:`~Unit.baseline_purchase_costs` dictionary.
+    #: Heat and power utilities are also automatically accounted for.
+    auxiliary_unit_names: tuple[str, ...] = ()
+    
+    #: **class-attribute** Cost items that need to be summed across operation modes for 
+    #: flexible operation (e.g., filtration membranes).
+    _materials_and_maintenance: frozenset[str] = frozenset()
     
     #: **class-attribute** Settings for diagram representation. Defaults to a 
     #: box with the same number of inlet and outlet edges as :attr:`~Unit._N_ins` 
@@ -279,61 +661,92 @@ class Unit:
     #: and all outlet streams are emptied.
     _skip_simulation_when_inlets_are_empty = False
     
-    #: **class-attribute** Name of attributes that are auxiliary units. These units
-    #: will be accounted for in the purchase and installed equipment costs
-    #: without having to add these costs in the :attr:`~Unit.baseline_purchase_costs` dictionary.
-    #: Heat and power utilities are also automatically accounted for.
-    auxiliary_unit_names: tuple[str, ...] = ()
+    #: **class-attribute** Whether to link inlet and outlet streams.
+    _link_streams: bool = False
 
+    #: Whether unit leverages information from other units within the system 
+    #: regardless of whether or not they are directly connected.
+    _universal = False
+    
+    #: Whether streams do not mix, but do interact.
+    _interaction = False
+    
     #: **class-attribute** Index for auxiliary inlets to parent unit for graphviz diagram settings.
     _auxin_index = {}
 
     #: **class-attribute** Index for auxiliary outlets to parent unit for graphviz diagram settings.
     _auxout_index = {}
+    
+    #: **class-attribute** Used for piping warnings.
+    _stacklevel: int = 6
 
+    ### Abstract methods ###
+    
+    #: Create auxiliary components.
+    _load_components = AbstractMethod
+    
+    #: Add design requirements to the :attr:`~Unit.design_results` dictionary.
+    _design = AbstractMethod
+    
+    #: Add itemized purchase costs to the :attr:`~Unit.baseline_purchase_costs` dictionary.
+    _cost = AbstractMethod
+
+    #: Add embodied emissions (e.g., unit construction) in LCA.
+    _lca = AbstractMethod
+    
+    #: Initialize unit operation with key-word arguments.
+    _init = AbstractMethod
+    
+    #: Run mass and energy balances and update outlet streams (without user-defined specifications).
+    _run = AbstractMethod
+    
     def __init_subclass__(cls,
             isabstract=False,
             new_graphics=True,
             does_nothing=None,
-            default_phenomena=None,
         ):
         dct = cls.__dict__
+        
+        # Collect design inputs through the class history (including mixins);
+        # attributes that override an inherited design input remove it.
+        design_inputs = {}
+        for base in reversed(cls.__mro__):
+            for key, obj in base.__dict__.items():
+                if isinstance(obj, DesignInput):
+                    design_inputs[key] = obj
+                elif key in design_inputs:
+                    del design_inputs[key]
+        design_inputs = [i for i in design_inputs.values()]
+        cls._design_inputs = [i.__name__ for i in design_inputs] # Preserve order
+        
+        # Extend annotation
         if '__init__' in dct and '_init' not in dct:
             init = dct['__init__']
-            if hasattr(init, 'extension'): cls._init = init.extension
+            if hasattr(init, 'extension'): 
+                cls._init = init.extension
         elif dct.get('_init'):
             _init = dct['_init']
-            cls.__init__ = extended_signature(cls.__init__, _init)
-            cls.__init__.extension = _init
+            cls.__init__ = extended_signature(cls.__init__, _init, design_inputs)
+        else:
+            for i in dct.values(): 
+                if not isinstance(i, DesignInput): continue
+                cls.__init__ = extended_signature(cls.__init__, design_inputs=design_inputs)
+                break
+                
+        # Standard annotation and adjustment to stacklevel
         if '__init__' in dct or '_init' in dct:
             init = dct['__init__']
             annotations = init.__annotations__
             for i in ('ins', 'outs'):
                 if i not in annotations: annotations[i] = streams
             if '_stacklevel' not in dct: cls._stacklevel += 1
+        
         if does_nothing: return 
         dct = cls.__dict__
         if 'run' in dct:
             raise UnitInheritanceError(
                  "the 'run' method cannot be overridden; implement `_run` instead"
             )
-        if default_phenomena is None or default_phenomena:
-            methods = (
-                '_update_nonlinearities',
-                '_update_energy_coefficient',
-                '_update_variable',
-                '_create_material_balance_equations',
-                '_create_energy_balance_equations',
-                '_create_bulk_balance_equations',
-                '_energy_variable',
-            )
-            if all([getattr(cls, i) is getattr(Unit, i) for i in methods]):
-                cls.run = phenomena_based_run
-            else:
-                for i in methods: 
-                    if getattr(cls, i) is not getattr(Unit, i): continue
-                    setattr(cls, i, AbstractMethod)
-                cls.run = Unit.run
         if '_N_heat_utilities' in dct:
             warn("'_N_heat_utilities' class attribute is scheduled for deprecation; "
                  "use the `add_heat_utility` method instead",
@@ -366,31 +779,12 @@ class Unit:
             # Set new graphics for specified line
             cls._graphics = UnitGraphics.box(cls._N_ins, cls._N_outs)
         if not isabstract:
-            if hasattr(cls, '_BM'): 
-                raise UnitInheritanceError(
-                    'cannot set `_BM`; implement `_F_BM_default` instead'
-                )
-            elif hasattr(cls, '_F_BM_defaults'):
-                raise UnitInheritanceError(
-                    'cannot set `_F_BM_defaults`; implement '
-                    '`_F_BM_default` instead'
-                )
-            elif cls._F_BM_default is Unit._F_BM_default:
+            if cls._F_BM_default is Unit._F_BM_default:
                 cls._F_BM_default = {}
-            
-            if hasattr(cls, '_equipment_lifetime'):
-                raise UnitInheritanceError(
-                    'cannot set `_equipment_lifetime`; '
-                    'implement `_default_equipment_lifetime` instead'
-                )
-            elif hasattr(cls, '_default_equipment_lifetimes'):
-                raise UnitInheritanceError(
-                    'cannot set `_default_equipment_lifetimes`; implement '
-                    '`_default_equipment_lifetime` instead'
-                )
-            elif cls._default_equipment_lifetime is Unit._default_equipment_lifetime: 
+            if cls._default_equipment_lifetime is Unit._default_equipment_lifetime: 
                 cls._default_equipment_lifetime = {}
-            if cls._units is Unit._units: cls._units = {}
+            if cls._units is Unit._units: 
+                cls._units = {}
             if not cls._run:
                 if cls._N_ins == 1 and cls._N_outs == 1:
                     static(cls)
@@ -410,45 +804,6 @@ class Unit:
                 bst.units.__dict__[name] = cls
             if name not in bst.__dict__:
                 bst.__dict__[name] = cls
-        
-    ### Abstract Attributes ###
-    #: **class-attribute** Units of measure for :attr:`~Unit.design_results` dictionary.
-    _units: dict[str, str] = {}
-    
-    #: **class-attribute** Default bare-module factors for each purchase cost item.
-    #: Items in this dictionary are copied to the :attr:`~Unit.F_BM` attribute during 
-    #: initialization.
-    _F_BM_default: dict[str, float] = {}
-    
-    #: **class-attribute** Cost items that need to be summed across operation modes for 
-    #: flexible operation (e.g., filtration membranes).
-    _materials_and_maintenance: frozenset[str] = frozenset()
-
-    #: **class-attribute** Whether to link inlet and outlet streams.
-    _link_streams: bool = False
-
-    #: **class-attribute** Lifetime of equipment. Defaults to lifetime of
-    #: production venture. Use an integer to specify the lifetime for all
-    #: items in the unit purchase costs. Use a dictionary to specify the 
-    #: lifetime of each purchase cost item.
-    _default_equipment_lifetime: int|dict[str, int] = {}
-
-    #: [str] The energy variable for phenomena-based simulation.
-    _energy_variable: str = None
-
-    ### Abstract methods ###
-    
-    #: Create auxiliary components.
-    _load_components = AbstractMethod
-    
-    #: Add design requirements to the :attr:`~Unit.design_results` dictionary.
-    _design = AbstractMethod
-    
-    #: Add itemized purchase costs to the :attr:`~Unit.baseline_purchase_costs` dictionary.
-    _cost = AbstractMethod
-
-    #: Add embodied emissions (e.g., unit construction) in LCA.
-    _lca = AbstractMethod
     
     def _collect_variables(self, key):
         self._system_collect_variables((key, self.ID))
@@ -621,7 +976,7 @@ class Unit:
         phenomena-based simulation.
         """
         fresh_inlets, process_inlets, equations = self._begin_energy_equations()
-        if self._energy_variable == 'T':
+        if self.specified_variable == 'Q':
             dmol = self._dmol
             if dmol.any(): 
                 dH = self._duty + sum([i.Hf for i in self.outs]) - sum([i.Hf for i in self.ins]) 
@@ -775,9 +1130,6 @@ class Unit:
                      process_inlets.append(i)
         return fresh_inlets, process_inlets, equations    
     
-    Inlets = piping.Inlets
-    Outlets = piping.Outlets
-    
     def __init__(self,
             ID: Optional[str]='',
             ins: streams=None,
@@ -901,17 +1253,31 @@ class Unit:
         #: Auxiliary unit operation names.
         self.auxiliary_unit_names = list(self.auxiliary_unit_names)
         
+        # Set defaults for design results.
+        cls = type(self)
+        params = getattr(self._init, 'parameters', ())
+        for i in self._design_inputs:
+            if i in kwargs: 
+                if i not in params: setattr(self, i, kwargs.pop(i))
+            else:
+                default = getattr(cls, i).default
+                if default is empty: continue
+                if i in params: 
+                    kwargs[i] = default
+                else:
+                    setattr(self, i, default)
+        
         self._init(**kwargs)
 
         self._assert_compatible_property_package()
         
     def _init_inlets(self, ins):
-        self._ins = self.Inlets(
+        self._ins = piping.Inlets(
             self, self._N_ins, ins, self._thermo, self._ins_size_is_fixed, self._stacklevel,
         )
         
     def _init_outlets(self, outs, **kwargs):
-        self._outs = self.Outlets(
+        self._outs = piping.Outlets(
             self, self._N_outs, outs, self._thermo, self._outs_size_is_fixed, self._stacklevel,
         )
         
@@ -1095,7 +1461,7 @@ class Unit:
 
     def _unit_auxins(self, N_streams, streams, thermo):
         if streams is None or streams == ():
-            return [self.auxin(self.Stream(None, thermo=thermo)) for i in range(N_streams)]
+            return [self.auxin(Stream(None, thermo=thermo)) for i in range(N_streams)]
         elif isinstance(streams, (Stream, MissingStream)) or streams.__class__ is str:
             return self.auxin(streams, thermo=thermo)
         else:
@@ -1103,7 +1469,7 @@ class Unit:
 
     def _unit_auxouts(self, N_streams, streams, thermo):
         if streams is None or streams == ():
-            return [self.auxout(self.Stream(None, thermo=thermo)) for i in range(N_streams)]
+            return [self.auxout(Stream(None, thermo=thermo)) for i in range(N_streams)]
         elif isinstance(streams, (Stream, MissingStream)) or streams.__class__ is str:
             return self.auxout(streams, thermo=thermo)
         else:
@@ -1175,7 +1541,6 @@ class Unit:
           from this unit. 
 
         """
-        Stream = self.Stream
         if thermo is None: thermo = self.thermo
         if stream is None: 
             stream = Stream(None, thermo=thermo)
@@ -1209,7 +1574,6 @@ class Unit:
           from this unit.
 
         """
-        Stream = self.Stream
         if thermo is None: thermo = self.thermo
         if stream is None: 
             stream = Stream(None, thermo=thermo)
@@ -1240,7 +1604,6 @@ class Unit:
           from this unit. 
 
         """
-        Stream = self.Stream
         if thermo is None: thermo = self.thermo
         if stream is None: 
             stream = Stream(None, thermo=thermo)
@@ -2328,6 +2691,88 @@ class Unit:
             if format == 'html': tooltip = ' ' + tooltip
         return tooltip
     
+    def get_design_input_units(self, key):
+        design_input = getattr(self.__class__, key)
+        return design_input.units
+    
+    def get_design_input(self, key: str, units: str):
+        """
+        Return design input in a new set of units of measure.
+            
+        Parameters
+        ----------
+        key :
+            Name of design input.
+        units :
+            Units of measure.
+        
+        Examples
+        --------
+        >>> import biosteam as bst
+        >>> bst.settings.set_thermo(['Water'], cache=True)
+        >>> feed = bst.Stream(None, Water=100)
+        >>> tank = bst.StorageTank(None, feed, tau=672)
+        >>> tank.get_design_input('tau', 'day')
+        28.0
+        
+        """
+        return convert(getattr(self, key), self.get_design_input_units(key), units)
+    
+    def set_design_input(self, key: str, units: str, value: float):
+        """
+        Set design result in given the units of measure.
+            
+        Parameters
+        ----------
+        key :
+            Name of design input.
+        units :
+            Units of measure.
+        value:
+            Value of the design input.
+        
+        Examples
+        --------
+        >>> import biosteam as bst
+        >>> bst.settings.set_thermo(['Water'], cache=True)
+        >>> feed = bst.Stream(None, Water=100)
+        >>> tank = bst.StorageTank(None, feed)
+        >>> tank.set_design_input('tau', 'day', 7)
+        168
+        >>> tank.get_design_input('tau', 'hr')
+        168
+        
+        """
+        value = convert(value, units, self.get_design_input_units(key))
+        setattr(self, key, value)
+        return value
+    
+    def convert_design_input(self, key, units, value):
+        """
+        Convert design input in given units to the stored units of measure.
+            
+        Parameters
+        ----------
+        key :
+            Name of design input.
+        units :
+            Units of measure.
+        value:
+            Value of the design input.
+        
+        Examples
+        --------
+        >>> import biosteam as bst
+        >>> bst.settings.set_thermo(['Water'], cache=True)
+        >>> feed = bst.Stream(None, Water=100)
+        >>> tank = bst.StorageTank(None, feed)
+        >>> tank.simulate()
+        >>> tank.convert_design_input('tau', 'day', 7)
+        168
+        
+        """
+        return convert(value, units, self.get_design_input_units(key))
+    
     def get_design_result(self, key: str, units: str):
         """
         Return design result in a new set of units of measure.
@@ -2353,7 +2798,6 @@ class Unit:
         
         """
         return convert(self.design_results[key], self._units[key], units)
-    
     
     def set_design_result(self, key: str, units: str, value: float):
         """
@@ -2413,8 +2857,17 @@ class Unit:
     def reset_cache(self, isdynamic=None):
         pass
     
-    def _get_design_info(self): 
-        return ()
+    def _get_design_input_info(self): 
+        cls = self.__class__
+        design_inputs = []
+        for key in self._design_inputs:
+            value = getattr(self, key)
+            if value is None: continue # Decision not made
+            dd = getattr(cls, key)
+            design_inputs.append(
+                (dd.name, value, dd.units)
+            )
+        return design_inputs
     
     def _load_stream_links(self):
         if self._link_streams: self._outs[0].link_with(self._ins[0])
@@ -2571,26 +3024,16 @@ class Unit:
             self.run()
         self._summary(design_kwargs, cost_kwargs)
 
-    def _mass_and_energy_balance_specifications(self):
-        return (self.line, ())
-
-    def _mass_and_energy_balance_specifications_table(self):
-        title, specs = self._mass_and_energy_balance_specifications()
-        index = []
-        values = []
-        for name, value, units in specs:
-            index.append(name)
-            values.append([value, units])
-        df = pd.DataFrame(
-            values, index, ('Values', 'Units')
-        )
-        df.columns.name = f"{title} - {self.ID}"
-        return df
-
-    def results(self, with_units=True, include_utilities=True,
-                include_total_cost=True, include_installed_cost=True,
-                include_zeros=True, external_utilities=None, key_hook=None,
-                basis=None):
+    def results(self, 
+            with_units=True, 
+            include_utilities=True,
+            include_total_cost=True, 
+            include_installed_cost=True,
+            include_zeros=True, 
+            external_utilities=None, 
+            key_hook=None,
+            basis=None
+        ):
         """
         Return key results from simulation as a DataFrame if `with_units`
         is True or as a Series otherwise.
@@ -2666,32 +3109,26 @@ class Unit:
                 ureg = tmo.units_of_measure.ureg
                 ureg.default_system = basis
                 Quantity = ureg.Quantity
+                def to_basis(vi, ui):
+                    if not ui or ui == 'hr' or isinstance(vi, str): return ui, vi
+                    try:
+                        q = Quantity(vi, ui).to_base_units()
+                    except Exception: # Units not defined in registry (e.g., psig)
+                        return ui, vi
+                    return q.units, q.magnitude
+                for ki, vi, ui in self._get_design_input_info():
+                    addkey(('Design inputs', ki))
+                    addval(to_basis(vi, ui))
                 for ki, vi in self.design_results.items():
-                    addkey(('Design', ki))
-                    if ki in units:
-                        ui = units[ki]
-                        if ui != 'hr':
-                            q = Quantity(vi, ui)
-                            q = q.to_base_units()
-                            vi = q.magnitude
-                            ui = q.units
-                    else:
-                        ui = ''
-                    addval((ui, vi))
-                for ki, vi, ui in self._get_design_info():
-                    addkey(('Design', ki))
-                    q = Quantity(vi, ui)
-                    q = q.to_base_units()
-                    vi = q.magnitude
-                    ui = q.units
-                    addval((ui, vi))
+                    addkey(('Design results', ki))
+                    addval(to_basis(vi, units.get(ki, '')))
             else:
-                for ki, vi in self.design_results.items():
-                    addkey(('Design', ki))
-                    addval((units.get(ki, ''), vi))
-                for ki, vi, ui in self._get_design_info():
-                    addkey(('Design', ki))
+                for ki, vi, ui in self._get_design_input_info():
+                    addkey(('Design inputs', ki))
                     addval((ui, vi))
+                for ki, vi in self.design_results.items():
+                    addkey(('Design results', ki))
+                    addval((units.get(ki, ''), vi))
             for ki, vi in Cost.items():
                 addcapex(('Purchase cost', ki))
                 addval(('USD', vi))
@@ -2744,12 +3181,11 @@ class Unit:
                         addval(flow)
                         addkey((ID, 'Cost'))
                         addval(-flow * stream_prices[name])
-                            
-            for ki, vi in self.design_results.items():
-                addkey(('Design', ki))
+            for ki, vi, ui in self._get_design_input_info():
+                addkey(('Design inputs', ki))
                 addval(vi)
-            for ki, vi, ui in self._get_design_info():
-                addkey(('Design', ki))
+            for ki, vi in self.design_results.items():
+                addkey(('Design results', ki))
                 addval(vi)
             for ki, vi in self.purchase_costs.items():
                 addcapex(('Purchase cost', ki))

@@ -12,7 +12,7 @@
 .. autoclass:: biosteam.units.valve.IsenthalpicValve
 
 """
-from .. import Unit
+from .. import Unit, design_input
 from .._graphics import valve_graphics
 from warnings import warn
 
@@ -62,9 +62,10 @@ class IsenthalpicValve(Valve, new_graphics=False):
     (which serve preliminary techno-economic analysis purposes).
 
     """
+    P: float = design_input('Outlet pressure', 'Pa', lb=0)
 
     def _init(self, P, vle=False):
-        self.P: float = P  #: Outlet pressure [Pa].
+        self.P = P
 
         #: Whether to perform phase equilibrium calculations on the outflow.
         #: If False, the outlet will be assumed to be the same phase as the inlet.

@@ -48,6 +48,7 @@ from .design_tools.specification_factors import  (
 from . import design_tools as design
 from thermosteam import separations
 from .. import Unit
+from .._unit import design_input
 from .splitting import MockSplitter
 from .._graphics import vertical_column_graphics
 from scipy.optimize import brentq
@@ -108,6 +109,14 @@ class RefluxDrum(design.PressureVessel, Unit):
     _default_vessel_type = Flash._default_vessel_type
     vapor  = Flash.vapor
     liquid  = Flash.liquid
+    holdup_time: float = design_input(
+        doc="Time it takes to raise liquid to half full [min].",
+        units='min', lb=0,
+    )
+    surge_time: float = design_input(
+        doc="Time it takes to reach from normal to maximum liquid level [min].",
+        units='min', lb=0,
+    )
     
     def _init(self, 
              vessel_material='Carbon steel',
@@ -130,10 +139,7 @@ class RefluxDrum(design.PressureVessel, Unit):
         #: [str] 'Horizontal', 'Vertical', or 'Default'
         self.vessel_type = vessel_type
         
-        #: [float] Time it takes to raise liquid to half full (min)
         self.holdup_time = holdup_time
-        
-        #: [float] Time it takes to reach from normal to maximum liquied level (min)
         self.surge_time = surge_time
         
         #: [bool] True if using a mist eliminator pad
@@ -150,6 +156,7 @@ class RefluxDrum(design.PressureVessel, Unit):
         if self.no_vessel_needed:
             self.design_results.clear()
         else:
+            if self.vessel_type is None: self.vessel_type = self._default_vessel_type()
             vessel_type = self.vessel_type
             if vessel_type == 'Vertical': 
                 args = self._vertical_vessel_pressure_diameter_and_length()
@@ -299,6 +306,44 @@ class Distillation(Unit, isabstract=True):
     composition_sensitive = False
     use_overall_energy_balance = True
     
+    k: float = design_input(
+        'Reflux to minimum reflux ratio', lb=0,
+    )
+    P: float = design_input(
+        'Operating pressure', 'Pa', lb=0,
+    )
+    Rmin: float = design_input(
+        'Enforced minimum reflux ratio', lb=0,
+        doc="User enforced minimum reflux ratio. If the actual minimum reflux "
+            "ratio is more than `Rmin`, this enforced value is ignored.",
+    )
+    tray_spacing: float = design_input(
+        'Tray spacing', 'mm', lb=0,
+    )
+    stage_efficiency: float = design_input(
+        lb=0, ub=1,
+        doc="User enforced stage efficiency. If None, stage efficiency is "
+            "calculated by the O'Connell correlation.",
+    )
+    velocity_fraction: float = design_input(
+        lb=0, ub=1,
+        doc="Fraction of actual velocity to maximum velocity allowable before "
+            "flooding.",
+    )
+    open_tray_area: float = design_input(
+        'Open tray area fraction', lb=0, ub=1,
+        doc="Ratio of open area to active area of a tray.",
+    )
+    downcomer_area_fraction: float = design_input(
+        lb=0, ub=1,
+        doc="Enforced fraction of downcomer area to net (total) area of a tray. "
+            "If None, the fraction is estimated based on heuristics.",
+    )
+    vacuum_system_preference: str = design_input(
+        doc="If a vacuum system is needed, it will choose one according to this "
+            "preference ('Liquid-ring pump', 'Steam-jet ejector', or 'Dry-vacuum pump').",
+    )
+    
     def _init(self, 
             LHK, k,
             P=101325, 
@@ -352,36 +397,7 @@ class Distillation(Unit, isabstract=True):
         self.vacuum_system_preference = vacuum_system_preference
         self._load_components(partial_condenser, condenser_thermo, reboiler_thermo)
         self.LHK = LHK
-      
-    def _mass_and_energy_balance_specifications(self):
-        spec = self.product_specification_format
-        specs = []
-        if spec == 'Composition':
-            self._Lr = self._Hr = None
-        elif spec == 'Recovery':
-            self._y_top = self._x_bot = None
-        specs.append( 
-            ('Partial condenser', self._partial_condenser, '-'),
-        )
-        if spec == 'Composition':
-            specs.extend([
-                ('Distillate light key fraction', 100 * self._y_top, '%'),
-                ('Bottoms product heavy key fraction', 100 * self._x_bot, '%'),
-            ])
-        elif spec == 'Recovery':
-            specs.extend([
-                ('Light key recovery', 100 * self._Lr, '%'),
-                ('Heavy key recovery', 100 * self._Hr, '%'),
-            ])
-        else:
-            raise RuntimeError('invalid product specification format')
-        if isinstance(self, ShortcutColumn):
-            return 'Shortcut column', specs
-        elif isinstance(self, BinaryDistillation):
-            return 'Binary distillation', specs
-        else:
-            raise NotImplementedError('unknown name for distillation class')
-            
+
     def _reset_thermo(self, thermo):
         super()._reset_thermo(thermo)
         self.LHK = self._LHK
@@ -548,14 +564,6 @@ class Distillation(Unit, isabstract=True):
         self._solids_index = get_index(solids)
     
     @property
-    def Rmin(self):
-        """User enforced minimum reflux ratio. If the actual minimum reflux ratio is less than `Rmin`. This enforced value is ignored."""
-        return self._Rmin
-    @Rmin.setter
-    def Rmin(self, Rmin):
-        self._Rmin = Rmin
-    
-    @property
     def y_top(self):
         """Light key composition of at the distillate."""
         return self._y_top
@@ -622,30 +630,6 @@ class Distillation(Unit, isabstract=True):
         self._WH = WS
     
     @property
-    def tray_spacing(self):
-        return self._TS
-    @tray_spacing.setter
-    def tray_spacing(self, TS):
-        """Tray spacing (225-600 mm)."""
-        self._TS = TS
-    
-    @property
-    def stage_efficiency(self):
-        """Enforced user defined stage efficiency."""
-        return self._E_eff
-    @stage_efficiency.setter
-    def stage_efficiency(self, E_eff):
-        self._E_eff = E_eff
-    
-    @property
-    def velocity_fraction(self):
-        """Fraction of actual velocity to maximum velocity allowable before flooding."""
-        return self._f
-    @velocity_fraction.setter
-    def velocity_fraction(self, f):
-        self._f = f
-    
-    @property
     def foaming_factor(self):
         """Foaming factor (0 to 1)."""
         return self._F_F
@@ -654,23 +638,6 @@ class Distillation(Unit, isabstract=True):
         if not 0 <= F_F <= 1:
             raise ValueError(f"foaming_factor must be between 0 and 1, ({F_F} given).")
         self._F_F = F_F
-    
-    @property
-    def open_tray_area(self):
-        """Ratio of open area, A_h, to active area, A_a."""
-        return self._A_ha
-    @open_tray_area.setter
-    def open_tray_area(self, A_ha):
-        self._A_ha = A_ha
-    
-    @property
-    def downcomer_area_fraction(self):
-        """Enforced fraction of downcomer area to net (total) area.
-        If None, the fraction is estimated based on heuristics."""
-        return self._A_dn
-    @downcomer_area_fraction.setter
-    def downcomer_area_fraction(self, A_dn):
-        self._A_dn = A_dn
     
     @property
     def tray_type(self):
@@ -1003,7 +970,7 @@ class Distillation(Unit, isabstract=True):
         R = Design['Reflux']
         Rstages, Sstages = self._compute_N_stages()
         is_divided = self.is_divided
-        TS = self._TS
+        TS = self._tray_spacing
         
         ### Get diameter of rectifying section based on top plate ###
         
@@ -1018,12 +985,12 @@ class Distillation(Unit, isabstract=True):
         F_LV = design.compute_flow_parameter(L, V, rho_V, rho_L)
         C_sbf = design.compute_max_capacity_parameter(TS, F_LV)
         F_F = self._F_F
-        A_ha = self._A_ha
+        A_ha = self._open_tray_area
         U_f = design.compute_max_vapor_velocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha)
-        A_dn = self._A_dn
+        A_dn = self._downcomer_area_fraction
         if A_dn is None:
            A_dn = design.compute_downcomer_area_fraction(F_LV)
-        f = self._f
+        f = self._velocity_fraction
         R_diameter = design.compute_tower_diameter(V_vol, U_f, f, A_dn) * 3.28
         
         ### Get diameter of stripping section based on feed plate ###
@@ -1037,7 +1004,7 @@ class Distillation(Unit, isabstract=True):
         C_sbf = design.compute_max_capacity_parameter(TS, F_LV)
         sigma = condensate.get_property('sigma', 'dyn/cm')
         U_f = design.compute_max_vapor_velocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha)
-        A_dn = self._A_dn
+        A_dn = self._downcomer_area_fraction
         if A_dn is None:
             A_dn = design.compute_downcomer_area_fraction(F_LV)
         S_diameter = design.compute_tower_diameter(V_vol, U_f, f, A_dn) * 3.28
@@ -1403,44 +1370,51 @@ class BinaryDistillation(Distillation, new_graphics=False):
                   Glycerol  23.9
                   --------  105 kmol/hr
     >>> D1.results()
-    Divided Distillation Column                                     Units        D1
-    Electricity              Power                                     kW     0.663
-                             Cost                                  USD/hr    0.0518
-    Cooling water            Duty                                   kJ/hr -4.88e+06
-                             Flow                                 kmol/hr  3.33e+03
-                             Cost                                  USD/hr      1.63
-    Low pressure steam       Duty                                   kJ/hr  9.06e+06
-                             Flow                                 kmol/hr       234
-                             Cost                                  USD/hr      55.7
-    Design                   Theoretical feed stage                               9
-                             Theoretical stages                                  13
-                             Minimum reflux                         Ratio     0.687
-                             Reflux                                 Ratio      1.37
-                             Rectifier stages                                    15
-                             Stripper stages                                     13
-                             Rectifier height                          ft      34.7
-                             Stripper height                           ft      31.7
-                             Rectifier diameter                        ft      3.93
-                             Stripper diameter                         ft      3.19
-                             Rectifier wall thickness                  in     0.312
-                             Stripper wall thickness                   in     0.312
-                             Rectifier weight                          lb     6e+03
-                             Stripper weight                           lb  4.43e+03
-    Purchase cost            Rectifier trays                          USD   1.5e+04
-                             Stripper trays                           USD  1.25e+04
-                             Rectifier tower                          USD  4.56e+04
-                             Rectifier platform and ladders           USD  1.39e+04
-                             Stripper tower                           USD  3.83e+04
-                             Stripper platform and ladders            USD  1.14e+04
-                             Condenser - Floating head                USD  3.33e+04
-                             Reflux drum - Horizontal pressur...      USD  1.02e+04
-                             Reflux drum - Platform and ladders       USD  3.02e+03
-                             Pump - Pump                              USD  4.37e+03
-                             Pump - Motor                             USD       370
-                             Reboiler - Floating head                 USD  3.52e+04
-    Total purchase cost                                               USD  2.23e+05
-    Installed equipment cost                                          USD  7.74e+05
-    Utility cost                                                   USD/hr      57.4
+    Divided Distillation Column                                    Units                D1
+    Electricity              Power                                    kW             0.663
+                             Cost                                 USD/hr            0.0518
+    Cooling water            Duty                                  kJ/hr         -4.88e+06
+                             Flow                                kmol/hr          3.33e+03
+                             Cost                                 USD/hr              1.63
+    Low pressure steam       Duty                                  kJ/hr          9.06e+06
+                             Flow                                kmol/hr               234
+                             Cost                                 USD/hr              55.7
+    Design inputs            Operating pressure                       Pa            101325
+                             Enforced minimum reflux ratio                            0.01
+                             Reflux to minimum reflux ratio                              2
+                             Open tray area fraction                                   0.1
+                             Tray spacing                             mm               450
+                             Vacuum system preference                     Liquid-ring pump
+                             Velocity fraction                                         0.8
+    Design results           Theoretical feed stage                                      9
+                             Theoretical stages                                         13
+                             Minimum reflux                        Ratio             0.687
+                             Reflux                                Ratio              1.37
+                             Rectifier stages                                           15
+                             Stripper stages                                            13
+                             Rectifier height                         ft              34.7
+                             Stripper height                          ft              31.7
+                             Rectifier diameter                       ft              3.93
+                             Stripper diameter                        ft              3.19
+                             Rectifier wall thickness                 in             0.312
+                             Stripper wall thickness                  in             0.312
+                             Rectifier weight                         lb             6e+03
+                             Stripper weight                          lb          4.43e+03
+    Purchase cost            Rectifier trays                         USD           1.5e+04
+                             Stripper trays                          USD          1.25e+04
+                             Rectifier tower                         USD          4.56e+04
+                             Rectifier platform and ladders          USD          1.39e+04
+                             Stripper tower                          USD          3.83e+04
+                             Stripper platform and ladders           USD          1.14e+04
+                             Condenser - Floating head               USD          3.33e+04
+                             Reflux drum - Pressure vessel           USD          1.02e+04
+                             Reflux drum - Platform and ladders      USD          3.02e+03
+                             Pump - Pump                             USD          4.37e+03
+                             Pump - Motor                            USD               370
+                             Reboiler - Floating head                USD          3.52e+04
+    Total purchase cost                                              USD          2.23e+05
+    Installed equipment cost                                         USD          7.74e+05
+    Utility cost                                                  USD/hr              57.4
     
     Binary distillation with full-condenser
     
@@ -1967,44 +1941,51 @@ class ShortcutColumn(Distillation, new_graphics=False):
                   Glycerol  23.9
                   --------  105 kmol/hr
     >>> D1.results()
-    Divided Distillation Column                                     Units        D1
-    Electricity              Power                                     kW     0.787
-                             Cost                                  USD/hr    0.0615
-    Cooling water            Duty                                   kJ/hr -7.54e+06
-                             Flow                                 kmol/hr  5.15e+03
-                             Cost                                  USD/hr      2.51
-    Medium pressure steam    Duty                                   kJ/hr  1.25e+07
-                             Flow                                 kmol/hr       346
-                             Cost                                  USD/hr      95.4
-    Design                   Theoretical feed stage                               8
-                             Theoretical stages                                  16
-                             Minimum reflux                         Ratio      1.06
-                             Reflux                                 Ratio      2.12
-                             Rectifier stages                                    13
-                             Stripper stages                                     26
-                             Rectifier height                          ft      31.7
-                             Stripper height                           ft      50.9
-                             Rectifier diameter                        ft      4.52
-                             Stripper diameter                         ft      3.64
-                             Rectifier wall thickness                  in     0.312
-                             Stripper wall thickness                   in     0.312
-                             Rectifier weight                          lb  6.45e+03
-                             Stripper weight                           lb  7.93e+03
-    Purchase cost            Rectifier trays                          USD  1.52e+04
-                             Stripper trays                           USD  2.01e+04
-                             Rectifier tower                          USD  4.76e+04
-                             Rectifier platform and ladders           USD  1.42e+04
-                             Stripper tower                           USD  5.38e+04
-                             Stripper platform and ladders            USD  1.81e+04
-                             Condenser - Floating head                USD  4.07e+04
-                             Reflux drum - Horizontal pressur...      USD  1.03e+04
-                             Reflux drum - Platform and ladders       USD  3.02e+03
-                             Pump - Pump                              USD  4.36e+03
-                             Pump - Motor                             USD       381
-                             Reboiler - Floating head                 USD  2.59e+04
-    Total purchase cost                                               USD  2.54e+05
-    Installed equipment cost                                          USD  8.82e+05
-    Utility cost                                                   USD/hr      97.9
+    Divided Distillation Column                                    Units                D1
+    Electricity              Power                                    kW             0.787
+                             Cost                                 USD/hr            0.0615
+    Cooling water            Duty                                  kJ/hr         -7.54e+06
+                             Flow                                kmol/hr          5.15e+03
+                             Cost                                 USD/hr              2.51
+    Medium pressure steam    Duty                                  kJ/hr          1.25e+07
+                             Flow                                kmol/hr               346
+                             Cost                                 USD/hr              95.4
+    Design inputs            Operating pressure                       Pa            101325
+                             Enforced minimum reflux ratio                            0.01
+                             Reflux to minimum reflux ratio                              2
+                             Open tray area fraction                                   0.1
+                             Tray spacing                             mm               450
+                             Vacuum system preference                     Liquid-ring pump
+                             Velocity fraction                                         0.8
+    Design results           Theoretical feed stage                                      8
+                             Theoretical stages                                         16
+                             Minimum reflux                        Ratio              1.06
+                             Reflux                                Ratio              2.12
+                             Rectifier stages                                           13
+                             Stripper stages                                            26
+                             Rectifier height                         ft              31.7
+                             Stripper height                          ft              50.9
+                             Rectifier diameter                       ft              4.52
+                             Stripper diameter                        ft              3.64
+                             Rectifier wall thickness                 in             0.312
+                             Stripper wall thickness                  in             0.312
+                             Rectifier weight                         lb          6.45e+03
+                             Stripper weight                          lb          7.93e+03
+    Purchase cost            Rectifier trays                         USD          1.52e+04
+                             Stripper trays                          USD          2.01e+04
+                             Rectifier tower                         USD          4.76e+04
+                             Rectifier platform and ladders          USD          1.42e+04
+                             Stripper tower                          USD          5.38e+04
+                             Stripper platform and ladders           USD          1.81e+04
+                             Condenser - Floating head               USD          4.07e+04
+                             Reflux drum - Pressure vessel           USD          1.03e+04
+                             Reflux drum - Platform and ladders      USD          3.02e+03
+                             Pump - Pump                             USD          4.36e+03
+                             Pump - Motor                            USD               381
+                             Reboiler - Floating head                USD          2.59e+04
+    Total purchase cost                                              USD          2.54e+05
+    Installed equipment cost                                         USD          8.82e+05
+    Utility cost                                                  USD/hr              97.9
     
     """
     line = 'Distillation'
@@ -2371,19 +2352,23 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
                         MTBE        0.000309
     
     >>> stripper.results()
-    Stripper                                        Units         
-    Design                   Theoretical stages                  2
-                             Actual stages                       4
-                             Height                    ft     19.9
-                             Diameter                  ft        3
-                             Wall thickness            in    0.312
-                             Weight                    lb 2.71e+03
-    Purchase cost            Trays                    USD 5.59e+03
-                             Tower                    USD 2.91e+04
-                             Platform and ladders     USD 7.52e+03
-    Total purchase cost                               USD 4.23e+04
-    Installed equipment cost                          USD 1.57e+05
-    Utility cost                                   USD/hr        0
+    Stripper                                           Units
+    Design inputs            Number of stages                       2
+                             Open tray area fraction              0.1
+                             Tray spacing                 mm      450
+                             Velocity fraction                    0.8
+    Design results           Theoretical stages                     2
+                             Actual stages                          4
+                             Height                       ft     19.9
+                             Diameter                     ft        3
+                             Wall thickness               in    0.312
+                             Weight                       lb 2.71e+03
+    Purchase cost            Trays                       USD 5.59e+03
+                             Tower                       USD 2.91e+04
+                             Platform and ladders        USD 7.52e+03
+    Total purchase cost                                  USD 4.23e+04
+    Installed equipment cost                             USD 1.57e+05
+    Utility cost                                      USD/hr        0
     
     """
     _graphics = vertical_column_graphics
@@ -2542,10 +2527,10 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
     def _design(self):
         vapor_out, liquid_out = self.outs
         Design = self.design_results
-        TS = self._TS
-        A_ha = self._A_ha
+        TS = self._tray_spacing
+        A_ha = self._open_tray_area
         F_F = self._F_F
-        f = self._f
+        f = self._velocity_fraction
        
         ### Get diameter of column based on outlets (assuming they are comparable to each stages) ###
         rho_L = liquid_out.rho
@@ -2557,7 +2542,7 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
         C_sbf = design.compute_max_capacity_parameter(TS, F_LV)
         sigma = liquid_out.get_property('sigma', 'dyn/cm')
         U_f = design.compute_max_vapor_velocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha)
-        A_dn = self._A_dn
+        A_dn = self._downcomer_area_fraction
         if A_dn is None:
             A_dn = design.compute_downcomer_area_fraction(F_LV)
         diameter = design.compute_tower_diameter(V_vol, U_f, f, A_dn) * 3.28
@@ -2677,33 +2662,38 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     0.69
     
     >>> D1.results()
-    Distillation                                                    Units          
-    Electricity              Power                                     kW     0.575
-                             Cost                                  USD/hr     0.045
-    Cooling water            Duty                                   kJ/hr -2.98e+06
-                             Flow                                 kmol/hr  2.03e+03
-                             Cost                                  USD/hr     0.992
-    Low pressure steam       Duty                                   kJ/hr   7.8e+06
-                             Flow                                 kmol/hr       202
-                             Cost                                  USD/hr      47.9
-    Design                   Theoretical stages                                   5
-                             Actual stages                                        7
-                             Height                                    ft      24.3
-                             Diameter                                  ft      3.32
-                             Wall thickness                            in     0.312
-                             Weight                                    lb  3.63e+03
-    Purchase cost            Trays                                    USD  8.11e+03
-                             Tower                                    USD  3.43e+04
-                             Platform and ladders                     USD  9.44e+03
-                             Condenser - Floating head                USD  2.36e+04
-                             Reflux drum - Vertical pressure ...      USD  1.29e+04
-                             Reflux drum - Platform and ladders       USD  3.89e+03
-                             Pump - Pump                              USD  4.35e+03
-                             Pump - Motor                             USD       358
-                             Reboiler - Floating head                 USD  2.34e+04
-    Total purchase cost                                               USD   1.2e+05
-    Installed equipment cost                                          USD  4.15e+05
-    Utility cost                                                   USD/hr        49
+    Distillation                                                   Units
+    Electricity              Power                                    kW             0.574
+                             Cost                                 USD/hr            0.0449
+    Cooling water            Duty                                  kJ/hr         -2.98e+06
+                             Flow                                kmol/hr          2.03e+03
+                             Cost                                 USD/hr             0.992
+    Low pressure steam       Duty                                  kJ/hr           7.8e+06
+                             Flow                                kmol/hr               202
+                             Cost                                 USD/hr                48
+    Design inputs            Number of stages                                            5
+                             Open tray area fraction                                   0.1
+                             Tray spacing                             mm               450
+                             Vacuum system preference                     Liquid-ring pump
+                             Velocity fraction                                         0.8
+    Design results           Theoretical stages                                          5
+                             Actual stages                                               7
+                             Height                                   ft              24.3
+                             Diameter                                 ft              3.32
+                             Wall thickness                           in             0.312
+                             Weight                                   lb          3.63e+03
+    Purchase cost            Trays                                   USD          8.11e+03
+                             Tower                                   USD          3.43e+04
+                             Platform and ladders                    USD          9.43e+03
+                             Condenser - Floating head               USD          2.36e+04
+                             Reflux drum - Pressure vessel           USD          1.29e+04
+                             Reflux drum - Platform and ladders      USD          3.89e+03
+                             Pump - Pump                             USD          4.35e+03
+                             Pump - Motor                            USD               358
+                             Reboiler - Floating head                USD          2.34e+04
+    Total purchase cost                                              USD           1.2e+05
+    Installed equipment cost                                         USD          4.15e+05
+    Utility cost                                                  USD/hr                49
     
     Simulate distillation column with a full condenser, 5 stages, a 0.673 reflux ratio, 
     2.57 boilup ratio, and feed at stage 2:
@@ -2774,6 +2764,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     tray_type = Distillation.tray_type
     tray_material = Distillation.tray_material
     vessel_material = Distillation.vessel_material
+    vacuum_system_preference = Distillation.vacuum_system_preference
     
     def _init(self, 
             N_stages, feed_stages, 
@@ -2990,7 +2981,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
        
     def update_liquid_holdup(self):
         diameter = self.estimate_diameter() 
-        hw = weir_height = self._TS * self.weir_height * 0.0393701 # mm to inches
+        hw = weir_height = self._tray_spacing * self.weir_height * 0.0393701 # mm to inches
         area = diameter * diameter * pi / 4
         b = 2/3
         stages = self.stages
@@ -3019,10 +3010,10 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
        
     def estimate_diameter(self): # ft
         diameters = []
-        TS = self._TS
-        A_ha = self._A_ha
+        TS = self._tray_spacing
+        A_ha = self._open_tray_area
         F_F = self._F_F
-        f = self._f
+        f = self._velocity_fraction
         for i in self.stages:
             vapor, liquid = i.partition.outs
             if liquid.isempty() or vapor.isempty(): continue
@@ -3035,7 +3026,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
             F_LV = design.compute_flow_parameter(L, V, rho_V, rho_L)
             C_sbf = design.compute_max_capacity_parameter(TS, F_LV)
             U_f = design.compute_max_vapor_velocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha)
-            A_dn = self._A_dn
+            A_dn = self._downcomer_area_fraction
             if A_dn is None: i.partition.downcomer_area_fraction = A_dn = design.compute_downcomer_area_fraction(F_LV)
             diameters.append(
                 design.compute_tower_diameter(V_vol, U_f, f, A_dn)
@@ -3057,7 +3048,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                  'wall thickness may be inaccurate and stiffening rings may be '
                  'required', category=RuntimeWarning)
         N_theoretical, N_actual = self._actual_stages()
-        TS = self._TS
+        TS = self._tray_spacing
         Design['Theoretical stages'] = N_theoretical
         Design['Actual stages'] = actual_stages = N_actual - (bool(self.condenser) + bool(self.reboiler))
         Design['Height'] = H = design.compute_tower_height(TS, actual_stages) * 3.28

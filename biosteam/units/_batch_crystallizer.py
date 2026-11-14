@@ -9,6 +9,7 @@
 """
 import numpy as np
 from .. import Unit
+from .._unit import design_input
 from .design_tools import size_batch
 from .decorators import cost
 import flexsolve as flx
@@ -109,21 +110,24 @@ class BatchCrystallizer(Unit):
     
     >>> C1.results()
     Batch crystallizer                                      Units        C1
-    Electricity              Power                             kW      2.65
-                             Cost                          USD/hr     0.207
+    Electricity              Power                             kW      3.54
+                             Cost                          USD/hr     0.277
     Cooling water            Duty                           kJ/hr -1.69e+06
                              Flow                         kmol/hr  8.06e+03
                              Cost                          USD/hr      3.93
-    Design                   Crystallizer volume               m3       132
-                             Number of crystallizers                      3
-                             Batch time                        hr        21
-                             Loading time                      hr         0
-                             Cleaning and unloading time       hr         1
+    Design inputs            Operating temperature              K       313
                              Working volume fraction                    0.9
-    Purchase cost            Crystallizer (x3)                USD  1.56e+06
-    Total purchase cost                                       USD  1.56e+06
-    Installed equipment cost                                  USD  3.13e+06
-    Utility cost                                           USD/hr      4.14
+                             Power per volume              kW/gal   0.00746
+                             Crystallization time              hr        20
+                             Cleaning and unloading time       hr         1
+    Design results           Crystallizer volume               m3       132
+                             Number of crystallizers                      4
+                             Batch time                        hr        28
+                             Loading time                      hr         7
+    Purchase cost            Crystallizer (x4)                USD  2.09e+06
+    Total purchase cost                                       USD  2.09e+06
+    Installed equipment cost                                  USD  4.17e+06
+    Utility cost                                           USD/hr      4.21
     
     References
     ----------
@@ -159,19 +163,23 @@ class BatchCrystallizer(Unit):
     
     _N_ins = _N_outs = 1
     
-    #: [float] Cleaning and unloading time (hr).
-    tau_0 = 1
-    
-    #: Optional[float] Loading time (hr).
-    tau_loading = None
-    
-    #: [float] Fraction of filled tank to total tank volume.
-    V_wf = 0.9
-    
-    def _get_design_info(self):
-        return (('Cleaning and unloading time', self.tau_0, 'hr'),
-                ('Working volume fraction', self.V_wf, ''))
-    
+    tau: float = design_input('Crystallization time', 'hr', lb=0)
+    tau_0: float = design_input('Cleaning and unloading time', 'hr', lb=0)
+    tau_loading: float = design_input(
+        'Loading time', 'hr', lb=0,
+        doc="Loading time of batch crystallizer [hr]. If not given, it will "
+            "assume each vessel is constantly being filled.",
+    )
+    V_wf: float = design_input('Working volume fraction', lb=0, ub=1)
+    T: float = design_input('Operating temperature', 'K', lb=0)
+    kW: float = design_input(
+        'Power per volume', 'kW/gal', lb=0,
+        doc="Electricity usage per volume in kW/gal. Defaults to 0.00746, "
+            "a heuristic value for suspension of solids.",
+    )
+    _tau_0 = 1 # Default cleaning and unloading time [hr]
+    _V_wf = 0.9 # Default fraction of filled tank to total tank volume
+
     def _init(self, 
              tau=None, N=None, V=None, T=305.15,
              Nmin=2, Nmax=36, vessel_material='Carbon steel',
@@ -179,7 +187,6 @@ class BatchCrystallizer(Unit):
         ):
         self._N = N; self._V = V
         
-        #: [float] Reaction time [hr].
         self.tau = tau
         
         #: [int] Number of vessels
@@ -188,7 +195,6 @@ class BatchCrystallizer(Unit):
         #: [float] Target volume of a vessel
         if V: self.V = V
         
-        #: [float] Operating temperature of reactor [K].
         self.T = T
         
         #: [int] Minimum number of vessels
@@ -197,7 +203,6 @@ class BatchCrystallizer(Unit):
         #: [int] Maximum number of vessels
         self.Nmax = Nmax
         
-        #: [float] Electricity usage per volume in kW/gal
         self.kW = kW
         
         # [str] Vessel material
@@ -258,13 +263,6 @@ class BatchCrystallizer(Unit):
         assert not self._N, 'cannot specify both crystallizer volume and number of crystallizers'
         self._V = V
 
-    @property
-    def tau(self):
-        return self._tau
-    @tau.setter
-    def tau(self, tau):
-        self._tau = tau
-        
     def _design(self):
         effluent = self.effluent
         v_0 = effluent.F_vol

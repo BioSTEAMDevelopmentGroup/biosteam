@@ -147,28 +147,39 @@ class AnaerobicBioreactor(AbstractStirredTankReactor):
                         Yeast    532
     
     >>> F1.results()
-    Anaerobic bioreactor                                            Units                   F1
-    Electricity              Power                                     kW                 10.2
-                             Cost                                  USD/hr                0.798
-    Chilled water            Duty                                   kJ/hr             -1.4e+07
-                             Flow                                 kmol/hr             9.35e+03
-                             Cost                                  USD/hr                 69.8
-    Design                   Reactor volume                            m3             1.28e+03
-                             Number of reactors                                              1
-                             Residence time                            hr                    8
-                             Vessel type                                              Vertical
-                             Length                                    ft                 80.2
-                             Diameter                                  ft                 26.7
-                             Weight                                    lb             3.35e+05
-                             Wall thickness                            in                0.508
-                             Jacketed diameter                         ft                 27.1
-                             Vessel material                               Stainless steel 316
-    Purchase cost            Vertical pressure vessel (jacketed)      USD              5.3e+05
-                             Platform and ladders                     USD             1.03e+05
-                             Agitator - Agitator                      USD             1.83e+04
-    Total purchase cost                                               USD             6.52e+05
-    Installed equipment cost                                          USD             2.33e+06
-    Utility cost                                                   USD/hr                 70.5
+    Anaerobic bioreactor                                    Units                   F1
+    Electricity              Power                             kW                 10.2
+                             Cost                          USD/hr                0.798
+    Chilled water            Duty                           kJ/hr             -1.4e+07
+                             Flow                         kmol/hr             9.35e+03
+                             Cost                          USD/hr                 69.8
+    Design inputs            Operating pressure                Pa               101325
+                             Operating temperature              K                  305
+                             Maximum reactor volume            m3                 3785
+                             Working volume fraction                               0.8
+                             Loop temperature change            K                    5
+                             Jacket annular diameter            m                  0.1
+                             Agitator power                 kW/m3                 0.01
+                             Length to diameter ratio                                3
+                             Residence time                    hr                    8
+                             Cleaning and unloading time       hr                    3
+                             Residence time phases                                   l
+                             Vessel material                       Stainless steel 316
+                             Vessel type                                      Vertical
+    Design results           Reactor volume                    m3             1.28e+03
+                             Number of reactors                                      1
+                             Residence time                    hr                    8
+                             Length                            ft                 80.2
+                             Diameter                          ft                 26.7
+                             Weight                            lb             3.35e+05
+                             Wall thickness                    in                0.508
+                             Jacketed diameter                 ft                 27.1
+    Purchase cost            Pressure vessel                  USD             1.11e+06
+                             Platform and ladders             USD             1.03e+05
+                             Agitator - Agitator              USD             1.83e+04
+    Total purchase cost                                       USD             1.23e+06
+    Installed equipment cost                                  USD             2.91e+06
+    Utility cost                                           USD/hr                 70.5
     
     """
     _N_ins = 1

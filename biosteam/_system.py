@@ -4650,23 +4650,6 @@ class System:
             reactions = report.unit_reaction_tables(units)
             report.tables_to_excel(reactions, writer, 'Reactions')
         
-        if 'Specifications' in sheets:
-            if stage:
-                with self.stage_configuration() as conf:
-                    specifications = [
-                        u._mass_and_energy_balance_specifications_table()
-                        for u in conf.stages
-                    ]
-            else:
-                specifications = [
-                    u._mass_and_energy_balance_specifications_table()
-                    for u in units
-                ]
-            report.tables_to_excel(
-                specifications, writer, 
-                'Specifications'
-            )
-        
         if 'Water mass balance' in sheets:
             water_mass_balance = report.water_mass_balance_table(self)
             report.tables_to_excel(

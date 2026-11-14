@@ -337,6 +337,8 @@ class Separator(Unit):
     _N_ins = 1
     _N_outs = 2
     _ins_size_is_fixed = False
+    T: float = bst.design_input('Operating temperature', 'K', lb=0)
+    P: float = bst.design_input('Operating pressure', 'Pa', lb=0)
     
     @property
     def equation_node_names(self): 
@@ -411,26 +413,7 @@ class Separator(Unit):
         self.T = T
         self.P = P
         self.phases = phases
-        
-    def _mass_and_energy_balance_specifications(self):
-        isplit = self._isplit
-        specs = [
-            (i.ID + ' split', j * 100, '%') for i, j in zip(isplit.chemicals, isplit.data)
-        ]
-        if self.T is not None: 
-            specs.append(
-                ('T', self.T, 'K')
-            )
-        if self.phases is not None:
-            specs.append(
-                ('Phases', self.phases, '-')
-            )
-        if self.P is not None:
-            specs.append(
-                ('P', self.P, 'Pa')
-            )
-        return 'Separator', specs
-        
+
     def _run(self):
         ins = self._ins
         top, bottom = self._outs

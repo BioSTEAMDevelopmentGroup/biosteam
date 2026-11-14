@@ -264,23 +264,34 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
        :alt: Adsorption column fluid concentration profile over time.
     
     >>> A1.results()
-    Single component adsorption column                       Units                   A1
-    Electricity              Power                              kW                0.241
-                             Cost                           USD/hr               0.0188
-    Design                   Diameter                           ft                 1.22
-                             Length                             ft                 12.2
-                             Vessel type                                       Vertical
-                             Weight                             lb                  521
-                             Wall thickness                     in                 0.25
-                             Pressure drop                      Pa                  103
-                             Vessel material                        Stainless steel 316
-    Purchase cost            Vertical pressure vessel (x3)     USD             6.12e+04
-                             Platform and ladders (x3)         USD             8.37e+03
-                             Pump - Pump (x3)                  USD             1.31e+04
-                             Pump - Motor (x3)                 USD                  174
-    Total purchase cost                                        USD             8.28e+04
-    Installed equipment cost                                   USD             2.05e+05
-    Utility cost                                            USD/hr               0.0188
+    Single component adsorption column                    Units                   A1
+    Electricity              Power                           kW                0.241
+                             Cost                        USD/hr               0.0188
+    Design inputs            Scaled final concentration                         0.05
+                             Number of columns                                     3
+                             Operating pressure              Pa               101325
+                             Adsorbate                                     Adsorbate
+                             Adsorbent                               ActivatedCarbon
+                             Cycle time                      hr                 1000
+                             Mass transfer coefficient     1/hr                  0.3
+                             Particle diameter                m                0.004
+                             Adsorbent density            kg/m3                  380
+                             Superficial velocity          m/hr                  9.2
+                             Vessel material                     Stainless steel 316
+                             Vessel type                                    Vertical
+                             Void fraction                                     0.525
+    Design results           Diameter                        ft                 1.22
+                             Length                          ft                 12.2
+                             Weight                          lb                  521
+                             Wall thickness                  in                 0.25
+                             Pressure drop                   Pa                  103
+    Purchase cost            Pressure vessel (x3)           USD             6.12e+04
+                             Platform and ladders (x3)      USD             8.37e+03
+                             Pump - Pump (x3)               USD             1.31e+04
+                             Pump - Motor (x3)              USD                  174
+    Total purchase cost                                     USD             8.28e+04
+    Installed equipment cost                                USD             2.05e+05
+    Utility cost                                         USD/hr               0.0188
     
     >>> A1.show('wt')
     SingleComponentAdsorptionColumn: A1
@@ -338,6 +349,53 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
         'Langmuir': equilibrium_loading_Langmuir_isotherm,
         'Freundlich': equilibrium_loading_Freundlich_isotherm,
     }
+    adsorbate: str = bst.design_input()
+    adsorbent: str = bst.design_input(
+        doc="Name of adsorbent. Defaults to 'ActivatedCarbon'.",
+    )
+    N_columns: int = bst.design_input(
+        'Number of columns', lb=2, ub=3,
+        doc="Number of columns can be either 2 or 3. The 3-column configuration "
+            "minimizes cost of adsorbent regeneration. The 2-column configuration "
+            "minimizes capital cost.",
+    )
+    cycle_time: float = bst.design_input(
+        'Cycle time', 'hr', lb=0,
+        doc="Time at which the receiving vessel is switched [hr]. "
+            "Note that 1-2 hours required for thermal-swing-adsorption "
+            "(TSA) for silica gels.",
+    )
+    superficial_velocity: float = bst.design_input(
+        'Superficial velocity', 'm/hr', lb=0,
+        doc="Superficial velocity of the feed [m/hr]. The diameter of the receiving "
+            "vessel adjusts accordingly. Typical velocities are 4 to 14.4 m/hr for "
+            "liquids. Common velocity range for gasses is 504-2160 m/hr.",
+    )
+    P: float = bst.design_input('Operating pressure', 'Pa', lb=0)
+    k: float = bst.design_input(
+        'Mass transfer coefficient', '1/hr', lb=0,
+        doc="Mass transfer coefficient [1/hr]. If not given, mass transfer "
+            "model is ignored.",
+    )
+    k_regeneration: float = bst.design_input(
+        'Regen. mass transfer coefficient', '1/hr', lb=0,
+        doc="Mass transfer coefficient of the regeneration solvent [1/hr].",
+    )
+    void_fraction: float = bst.design_input(lb=0, ub=1)
+    rho_adsorbent: float = bst.design_input('Adsorbent density', 'kg/m3', lb=0)
+    C_final_scaled: float = bst.design_input(
+        'Scaled final concentration', lb=0, ub=1,
+        doc="Final outlet concentration at breakthrough relative to inlet.",
+    )
+    particle_diameter: float = bst.design_input(
+        'Particle diameter', 'm', lb=0,
+        doc="Particle diameter assumed for pressure drop estimation [m].",
+    )
+    LUB_forced: float = bst.design_input(
+        'Length of unused bed', 'm', lb=0,
+        doc="Length of unused bed [m]. Only used if no mass transfer coefficient "
+            "is given (defaults to 0.6096 m in that case).",
+    )
 
     def _init(self,
             cycle_time,
@@ -421,7 +479,7 @@ class SingleComponentAdsorptionColumn(PressureVessel, bst.Unit):
         self.C_final_scaled = C_final_scaled
         self.vessel_material = vessel_material
         self.vessel_type = vessel_type
-        self.N_slices = N_slices
+        self.N_slices = N_slices #: Number of slices to model mass transfer."
         self.particle_diameter = particle_diameter
         self.adsorbent = adsorbent
         self.LUB_forced = LUB_forced

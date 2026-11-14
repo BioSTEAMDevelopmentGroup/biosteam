@@ -326,7 +326,64 @@ todo_include_todos = True
 
 myst_heading_anchors = 3
 
+# -- Design inputs -----------------------------------------------------------
 
+# Design inputs are documented like properties (name, docstring, and type),
+# but with a "design_input" prefix instead of "property":
+#
+#     design_input T: float
+#         Operating temperature [K]. Defaults to 350.0 [K].
+#
+from sphinx import addnodes
+from sphinx.domains.python import PyProperty
+from sphinx.util import inspect as sphinx_inspect
+from sphinx.util.typing import stringify_annotation
+from inspect import getattr_static
+from importlib import import_module
+from biosteam._unit import DesignInput
 
+# Design inputs are not property objects, so autodoc must be told to
+# document them as properties (otherwise they are documented as attributes).
+_isproperty = sphinx_inspect.isproperty
 
+def isproperty(obj):
+    return isinstance(obj, DesignInput) or _isproperty(obj)
 
+sphinx_inspect.isproperty = isproperty
+
+def get_design_input(modname, classname, name):
+    try:
+        obj = import_module(modname)
+        for i in classname.split('.'): obj = getattr(obj, i)
+        design_input = getattr_static(obj, name)
+    except Exception:
+        return None
+    if isinstance(design_input, DesignInput): return design_input
+
+class PyDesignInputAwareProperty(PyProperty):
+
+    def _get_design_input(self, sig):
+        modname = self.options.get('module', self.env.ref_context.get('py:module'))
+        classname = self.env.ref_context.get('py:class')
+        if not (modname and classname): return None
+        name = sig.split(':', 1)[0].strip().rsplit('.', 1)[-1]
+        return get_design_input(modname, classname, name)
+
+    def handle_signature(self, sig, signode):
+        design_input = self._get_design_input(sig)
+        if design_input is not None and 'type' not in self.options:
+            # Type annotation is given by the design input (not the getter)
+            return_type = getattr(design_input, '_return_type', None)
+            if return_type is not None:
+                self.options['type'] = stringify_annotation(return_type, 'smart')
+        return super().handle_signature(sig, signode)
+
+    def get_signature_prefix(self, sig):
+        prefix = super().get_signature_prefix(sig)
+        if self._get_design_input(sig) is not None:
+            # Replace the "property" keyword (followed by a space)
+            prefix[-2] = addnodes.desc_sig_keyword('', 'design_input')
+        return prefix
+
+def setup(app):
+    app.add_directive_to_domain('py', 'property', PyDesignInputAwareProperty, override=True)

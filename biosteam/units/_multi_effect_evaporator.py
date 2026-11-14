@@ -10,6 +10,7 @@
 import numpy as np
 import biosteam as bst
 from .. import Unit
+from .._unit import design_input
 from .mixing import Mixer
 from .heat_exchange import HXutility
 from ._flash import Flash, Evaporator
@@ -128,7 +129,8 @@ class MultiEffectEvaporator(Unit):
     Cooling water            Duty                                   kJ/hr -3.5e+05
                              Flow                                 kmol/hr      239
                              Cost                                  USD/hr    0.117
-    Design                   Area                                     m^2       11
+    Design inputs            Molar fraction evaporated                         0.1
+    Design results           Area                                     m^2       11
                              Volume                                   m^3     3.51
     Purchase cost            Evaporators (x5)                         USD 9.56e+03
                              Condenser - Double pipe                  USD 5.36e+03
@@ -183,7 +185,8 @@ class MultiEffectEvaporator(Unit):
     Cooling water            Duty                                   kJ/hr -1.15e+05
                              Flow                                 kmol/hr      78.8
                              Cost                                  USD/hr    0.0384
-    Design                   Area                                     m^2      1.62
+    Design inputs            Molar fraction evaporated                          0.1
+    Design results           Area                                     m^2      1.62
                              Volume                                   m^3      3.07
     Purchase cost            Evaporators (x3)                         USD  2.74e+03
                              Condenser - Double pipe                  USD   3.9e+03
@@ -238,7 +241,8 @@ class MultiEffectEvaporator(Unit):
     Cooling water            Duty                                   kJ/hr -1.15e+05
                              Flow                                 kmol/hr      78.8
                              Cost                                  USD/hr    0.0384
-    Design                   Area                                     m^2      1.62
+    Design inputs            Molar fraction evaporated                          0.1
+    Design results           Area                                     m^2      1.62
                              Volume                                   m^3      3.07
     Purchase cost            Evaporators (x3)                         USD  2.74e+03
                              Condenser - Double pipe                  USD   3.9e+03
@@ -263,6 +267,12 @@ class MultiEffectEvaporator(Unit):
     
     # Data for simmulation and costing
     _evap_data = evaporators[_Type]
+    
+    V: float = design_input(
+        'Molar fraction evaporated', lb=0, ub=1,
+        doc="Molar fraction evaporated as specified in `V_definition` "
+            "(either overall or in the first effect).",
+    )
 
     @property
     def Type(self):
@@ -297,7 +307,7 @@ class MultiEffectEvaporator(Unit):
     def _init(self, P, V, V_definition='Overall',
               flash=True, chemical='7732-18-5'):
         self.P = P #: tuple[float] Pressures describing each evaporator (Pa).
-        self.V = V #: [float] Molar fraction evaporated.
+        self.V = V
         self.V_definition = V_definition
         self.flash = flash #: [bool] Whether to perform a flash calculation to account for volatile components.
         self._V_first_effect = None
@@ -476,7 +486,7 @@ class MultiEffectEvaporator(Unit):
                 LMTD = Th - Tc
                 A = compute_heat_transfer_area(LMTD, U, Q, 1.)
                 As.append(A)
-                bounds_warning(self, 'heat transfer area requirement', A, 'ft2', A_range, 'cost')
+                bounds_warning(self, 'heat transfer area requirement', A, 'ft2', A_range)
                 evap_costs.append(C_func(A, CE))
         self._As = As
         Design['Area'] = A = sum(As)

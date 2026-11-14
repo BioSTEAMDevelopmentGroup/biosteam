@@ -42,6 +42,7 @@ References
 """
 import numpy as np
 from .. import Unit
+from .._unit import design_input
 from .design_tools import size_batch
 from .decorators import cost
 from math import ceil
@@ -121,22 +122,23 @@ class NRELAnaerobicBatchBioreactor(Unit, isabstract=True):
     _N_outs = 2
     _N_ins = 1
     
-    #: [float] Cleaning and unloading time (hr).
-    tau_0 = 3
-    
-    #: [float] Fraction of filled tank to total tank volume.
-    V_wf = 0.9
-    
-    def _get_design_info(self):
-        return (('Cleaning and unloading time', self.tau_0, 'hr'),
-                ('Working volume fraction', self.V_wf, ''))
-    
+    tau: float = design_input('Reaction time', 'hr', lb=0)
+    tau_0: float = design_input('Cleaning and unloading time', 'hr', lb=0)
+    V_wf: float = design_input('Working volume fraction', lb=0, ub=1)
+    T: float = design_input('Operating temperature', 'K', lb=0)
+    loading_time: float = design_input(
+        'Loading time', 'hr', lb=0,
+        doc="Loading time of batch reactor [hr]. If not given, it will assume "
+            "each vessel is constantly being filled.",
+    )
+    _tau_0 = 3 # Default cleaning and unloading time [hr]
+    _V_wf = 0.9 # Default fraction of filled tank to total tank volume
+
     def _init(self, tau=None, N=None, V_max=None, T=305.15, P=101325,
               Nmin=2, Nmax=36, loading_time=None, reactions=None, 
               tau_0=None, V_wf=None):
         self._N = N; self._V_max = V_max
         
-        #: [float] Reaction time [hr].
         self.tau = tau
         
         #: [int] Number of batch reactors.
@@ -145,7 +147,6 @@ class NRELAnaerobicBatchBioreactor(Unit, isabstract=True):
         #: [float] Maximum volume of a fermentor [m3].
         if V_max: self.V_max = V_max
         
-        #: [float] Operating temperature of reactor [K].
         self.T = T
         
         #: [float] Operating pressure of reactor [Pa].
@@ -157,8 +158,6 @@ class NRELAnaerobicBatchBioreactor(Unit, isabstract=True):
         #: [int] Maximum number of fermentors.
         self.Nmax = Nmax
         
-        #: [int] Loading time of batch reactor.
-        #: If not given, it will assume each vessel is constantly being filled.
         self.loading_time = loading_time
         
         #: [Reaction|ReactionSystem] Stoichiomentric reactions.
@@ -212,13 +211,6 @@ class NRELAnaerobicBatchBioreactor(Unit, isabstract=True):
         assert not self._N, 'cannot specify both reactor volume and number of reactors'
         self._V_max = V_max
 
-    @property
-    def tau(self):
-        return self._tau
-    @tau.setter
-    def tau(self, tau):
-        self._tau = tau
-        
     def _run(self):
         vent, effluent = self.outs
         effluent.mix_from(self.ins)
@@ -335,14 +327,16 @@ class NRELEthanolFermentation(NRELAnaerobicBatchBioreactor):
     Chilled water            Duty                           kJ/hr -1.41e+07
                              Flow                         kmol/hr  9.42e+03
                              Cost                          USD/hr      70.3
-    Design                   Reactor volume                    m3       247
+    Design inputs            Operating temperature              K       305
+                             Working volume fraction                    0.9
+                             Reaction time                     hr         8
+                             Cleaning and unloading time       hr         3
+    Design results           Reactor volume                    m3       247
                              Batch time                        hr      12.6
                              Loading time                      hr      1.57
                              Number of reactors                           8
                              Recirculation flow rate        m3/hr      17.7
                              Reactor duty                   kJ/hr -1.41e+07
-                             Cleaning and unloading time       hr         3
-                             Working volume fraction                    0.9
     Purchase cost            Heat exchangers (x8)             USD  1.57e+05
                              Reactors (x8)                    USD  1.87e+06
                              Agitators (x8)                   USD  1.17e+05

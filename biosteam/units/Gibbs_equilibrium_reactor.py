@@ -7,6 +7,7 @@
 """
 import biosteam as bst
 from .abstract_stirred_tank_reactor import AbstractStirredTankReactor
+from .._unit import design_input
 from .design_tools.Gibbs_equilibrium_reaction import minimize_Gibbs_free_energy
 from typing import Optional, Iterable, Callable
 
@@ -119,25 +120,37 @@ class GibbsEquilibriumReactor(AbstractStirredTankReactor):
                         NO2   11.9
     
     >>> EqR.results()
-    Equilibrium reactor                                             Units                  EqR
-    Low pressure steam       Duty                                   kJ/hr             3.58e+05
-                             Flow                                 kmol/hr                 9.24
-                             Cost                                  USD/hr                  2.2
-    Design                   Reactor volume                            m3                 25.1
-                             Number of reactors                                              1
-                             Residence time                            hr                  0.1
-                             Vessel type                                              Vertical
-                             Length                                    ft                 21.6
-                             Diameter                                  ft                 7.22
-                             Weight                                    lb             3.32e+04
-                             Wall thickness                            in                0.705
-                             Jacketed diameter                         ft                  7.6
-                             Vessel material                               Stainless steel 316
-    Purchase cost            Vertical pressure vessel (jacketed)      USD             1.02e+05
-                             Platform and ladders                     USD             1.56e+04
-    Total purchase cost                                               USD             1.17e+05
-    Installed equipment cost                                          USD             4.39e+05
-    Utility cost                                                   USD/hr                  2.2
+    Gibbs equilibrium reactor                               Units                     EqR
+    Low pressure steam       Duty                           kJ/hr                3.58e+05
+                             Flow                         kmol/hr                    9.25
+                             Cost                          USD/hr                     2.2
+    Design inputs            Operating pressure                Pa                1.01e+06
+                             Operating temperature              K                     298
+                             Maximum reactor volume            m3                     500
+                             Working volume fraction                                  0.8
+                             Loop temperature change            K                       5
+                             Jacket annular diameter            m                     0.1
+                             Agitator power                 kW/m3                       0
+                             Length to diameter ratio                                   3
+                             Optimization method                   differential evolution
+                             Residence time                    hr                     0.1
+                             Cleaning and unloading time       hr                       3
+                             Residence time phases                                     lg
+                             Vessel material                          Stainless steel 316
+                             Vessel type                                         Vertical
+    Design results           Reactor volume                    m3                    26.6
+                             Number of reactors                                         1
+                             Residence time                    hr                     0.1
+                             Length                            ft                    22.1
+                             Diameter                          ft                    7.36
+                             Weight                            lb                 3.5e+04
+                             Wall thickness                    in                   0.716
+                             Jacketed diameter                 ft                    7.74
+    Purchase cost            Pressure vessel                  USD                2.21e+05
+                             Platform and ladders             USD                 1.6e+04
+    Total purchase cost                                       USD                2.37e+05
+    Installed equipment cost                                  USD                 5.7e+05
+    Utility cost                                           USD/hr                     2.2
     
     """
     _N_ins = 1
@@ -164,10 +177,15 @@ class GibbsEquilibriumReactor(AbstractStirredTankReactor):
             **kwargs
         ):
         AbstractStirredTankReactor._init(self, **kwargs)
-        self.phases = phases
-        self.products = products
+        
+        #: Phases of products. Defaults to the phases of inlets.
+        self.phases = phases 
+        
+        #: Optimization method. Valid options include 'COBYLA' and 'differential evolution'.
         self.method = self.method_default if method is None else method
+        
         self.phase_hook = phase_hook
+        self.products = products
     
     def _get_duty(self): return self.Hnet
     

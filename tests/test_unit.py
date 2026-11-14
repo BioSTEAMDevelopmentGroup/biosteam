@@ -436,34 +436,214 @@ def test_disconnect():
     S.ins[0].disconnect_sink()
     assert len(S.ins) == 1 and isinstance(S.ins[0], bst.MissingStream)
     
-    # Test outs size not fixed
+    # Test outs size not fixed  
     S.outs[0].disconnect_source()
     assert len(S.outs) == 2 and isinstance(S.outs[0], bst.MissingStream) and isinstance(S.outs[1], bst.Stream)
-        
-# def test_design_costing_decorators():
-#     @design_decision(
-#         name='k', 
-#         hard_bounds=(1, None),
-#     )
-#     @design_result(
-#         name='T', 
-#         hard_bounds=(0, None),
-#         units='K',
-#     )
-#     @design_result(
-#         name='Weight', 
-#         soft_bounds=(1, 10), 
-#         hard_bounds=(0, None),
-#         units='lb',
-#     )
-#     @cost_factors(
-#         'Pressure vessel',
-#         F_P=('Pressure', F_P),
-#         F_D=('vessel_orientation', F_D),
-#         F_M=('material', F_M),
-#     )
     
+def test_design_inputs():
+    bst.settings.set_thermo(['Water'], cache=True)
+    
+    class Vessel(bst.Unit):
+        _F_BM_default = {'Vessel': 2.0}
+        
+        #: Residence time [hr].
+        tau = bst.design_input('Residence time', 'hr', lb=0)
+        
+        #: Fractional efficiency.
+        efficiency = bst.design_input(lb=0, ub=1)
+        
+        #: Construction material.
+        material = bst.design_input(
+            purchase_item='Vessel',
+            catalog_type='Material',
+            catalog={'Carbon steel': 1.0, 'Stainless steel': 2.5},
+        )
+        
+        #: Orientation (with design factor).
+        orientation = bst.design_input(
+            purchase_item='Vessel',
+            catalog_type='Design',
+            catalog={'Vertical': 1.0, 'Horizontal': 1.2},
+        )
+        
+        #: Type with no cost factor.
+        vessel_type = bst.design_input(catalog=('Open', 'Closed'))
+        
+        @bst.design_input('Volume', 'm3', lb=0)
+        def volume(self):
+            return self.tau * self.feed.F_vol
+
+        @volume.setter
+        def volume(self, volume):
+            self.tau = volume / self.feed.F_vol
+
+        def _init(self, tau=1, efficiency=0.9, material='Carbon steel', 
+                  orientation='Vertical', vessel_type='Closed'):
+            self.tau = tau
+            self.efficiency = efficiency
+            self.material = material
+            self.orientation = orientation
+            self.vessel_type = vessel_type
+        
+        def _run(self): 
+            self.outs[0].copy_like(self.ins[0])
+            
+        def _cost(self):
+            self.baseline_purchase_costs['Vessel'] = 1000.
+    
+    # Design inputs are registered (sorted) and named
+    assert Vessel._design_inputs == [
+        'efficiency', 'material', 'orientation', 'tau', 'vessel_type', 'volume'
+    ]
+    assert Vessel.tau.key == 'tau'
+    assert Vessel.tau.name == 'Residence time'
+    assert Vessel.efficiency.name == 'Efficiency' # Default name from key
+    assert Vessel.vessel_type.name == 'Vessel type'
+    assert Vessel.volume.units == 'm3'
+    assert Vessel.efficiency.units == ''
+
+    # Design inputs are documented like property objects
+    import inspect
+    assert all([isinstance(getattr(Vessel, i), property) for i in Vessel._design_inputs])
+    assert Vessel.tau.__name__ == 'tau'
+    assert Vessel.tau.__doc__ == 'Residence time [hr].'
+    assert Vessel.efficiency.__doc__ == 'Efficiency.'
+    assert Vessel.material.__doc__ == 'Material.'
+    assert Vessel.volume.__name__ == 'volume'
+    assert Vessel.volume.__doc__ == 'Volume [m3].' # No docstring in getter
+
+    class DocumentedVessel(bst.Unit):
+        T: float = bst.design_input('Temperature', 'K', lb=0)
+
+        @bst.design_input('Volume', 'm3', lb=0)
+        def volume(self) -> float:
+            """Total volume."""
+            return self._volume
+
+        @volume.setter
+        def volume(self, volume):
+            self._volume = volume
+
+        tau = bst.design_input('Residence time', 'hr', doc='Time in vessel.')
+
+    assert DocumentedVessel.T.__name__ == 'T'
+    assert inspect.signature(DocumentedVessel.T.fget).return_annotation is float
+    assert DocumentedVessel.volume.__doc__ == 'Total volume.'
+    assert inspect.signature(DocumentedVessel.volume.fget).return_annotation is float
+    assert DocumentedVessel.volume.lb == 0 # Setter keeps configuration
+    assert DocumentedVessel.tau.__doc__ == 'Time in vessel.'
+    assert DocumentedVessel._design_inputs == ['T', 'tau', 'volume']
+    
+    feed = bst.Stream(None, Water=100)
+    V = Vessel(None, feed)
+    
+    # Numerical design inputs
+    assert V.tau == 1
+    V.tau = 2
+    assert V.tau == 2
+    assert V.get_design_input('tau', 'min') == 120
+    assert V.set_design_input('tau', 'day', 1) == 24
+    assert V.tau == 24
+    assert V.convert_design_input('tau', 'min', 60) == 1
+    assert V.get_design_input_units('tau') == 'hr'
+    V.tau = 2
+    
+    # Bounds are inclusive and enforced
+    V.efficiency = 1
+    V.efficiency = 0
+    with pytest.raises(AttributeError):
+        V.efficiency = 1.1
+    with pytest.raises(AttributeError):
+        V.efficiency = -0.1
+    with pytest.raises(AttributeError):
+        V.tau = -1
+    assert V.tau == 2 # Value unchanged after failed set
+    
+    # Design input with user-defined getter and setter
+    assert V.volume == V.tau * feed.F_vol
+    V.volume = 4 * feed.F_vol
+    assert V.tau == 4
+    with pytest.raises(AttributeError):
+        V.volume = -1 # Bounds are enforced before calling the setter
+    assert V.tau == 4
+    V.tau = 2
+
+    # Categorical design inputs update cost factors
+    assert V.F_M['Vessel'] == 1.0
+    assert V.F_D['Vessel'] == 1.0
+    V.material = 'Stainless steel'
+    V.orientation = 'horizontal' # Capitalization is handled
+    assert V.material == 'Stainless steel'
+    assert V.orientation == 'Horizontal'
+    assert V.F_M['Vessel'] == 2.5
+    assert V.F_D['Vessel'] == 1.2
+    with pytest.raises(AttributeError):
+        V.material = 'Unobtanium'
+    assert V.material == 'Stainless steel'
+    V.vessel_type = 'Open'
+    with pytest.raises(AttributeError):
+        V.vessel_type = 'Ajar'
+    
+    # Design inputs cannot be deleted unless a deleter is defined
+    with pytest.raises(AttributeError):
+        del V.tau
+    with pytest.raises(AttributeError):
+        del V.material
+    
+    # Cost factors from design inputs are used in costing
+    V.simulate()
+    assert V.purchase_costs['Vessel'] == 1000. * 2.5 * 1.2
+    
+    # Design inputs show up in results
+    df = V.results()
+    for key in Vessel._design_inputs:
+        name = getattr(Vessel, key).name
+        assert ('Design inputs', name) in df.index
+    series = V.results(with_units=False)
+    assert series[('Design inputs', 'Residence time')] == 2
+    assert series[('Design inputs', 'Material')] == 'Stainless steel'
+    
+    # Design inputs are inherited and can be extended in subclasses
+    class AgitatedVessel(Vessel):
+        agitator_power = bst.design_input('Agitator power', 'kW', lb=0)
+        
+    assert AgitatedVessel._design_inputs == [
+        'agitator_power', 'efficiency', 'material', 'orientation', 'tau', 
+        'vessel_type', 'volume'
+    ]
+    assert Vessel._design_inputs == [
+        'efficiency', 'material', 'orientation', 'tau', 'vessel_type', 'volume'
+    ]
+    
+    # Invalid definitions
+    with pytest.raises(ValueError):
+        bst.design_input(catalog_type='Material')
+    with pytest.raises(ValueError):
+        bst.design_input(purchase_item='Vessel')
+    with pytest.raises(ValueError):
+        bst.design_input(catalog={'A': 1}, purchase_item='Vessel')
+    with pytest.raises(ValueError):
+        bst.design_input(catalog={'A': 1}, purchase_item='Vessel', catalog_type='Other')
+    with pytest.raises(ValueError):
+        bst.design_input(catalog=('A', 'B'), units='kg')
+    with pytest.raises(ValueError):
+        bst.design_input(catalog=('A', 'B'), lb=0)
+    with pytest.raises(ValueError):
+        bst.design_input(catalog=('A', 'B'), ub=1)
+
+    # Both getter and setter must be defined (or none of them)
+    with pytest.raises(RuntimeError):
+        class GetterOnly(bst.Unit):
+            @bst.design_input('Volume', 'm3')
+            def volume(self): return 1.
+    with pytest.raises(RuntimeError):
+        class SetterOnly(bst.Unit):
+            volume = bst.design_input('Volume', 'm3')
+            @volume.setter
+            def volume(self, volume): pass
+
 if __name__ == '__main__':
+    test_design_inputs()
     test_disconnect()
     test_auxiliary_unit_owners()
     test_unit_convinience_properties()

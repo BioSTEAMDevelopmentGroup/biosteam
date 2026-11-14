@@ -7,6 +7,7 @@
 # for license details.
 """
 """
+from ..._unit import design_input
 from .specification_factors import (pressure_vessel_material_factors,
                                     material_densities_lb_per_ft3)
 from . import flash_vessel_design as design
@@ -15,13 +16,12 @@ from warnings import warn
 
 __all__ = ('PressureVessel',)
 
-allowed_vessel_types = {'Vertical', 'Horizontal', None}
+
 
 class PressureVessel:
     """Abstract class for pressure vessels."""
 
-    _units = {'Vertical vessel weight': 'lb',
-              'Horizontal vessel weight': 'lb',
+    _units = {'Vessel weight': 'lb',
               'Length': 'ft',
               'Diameter': 'ft',
               'Jacketed diameter': 'ft',
@@ -36,49 +36,24 @@ class PressureVessel:
     
     # Bare module factors
     _F_BM_default = {
-        'Horizontal pressure vessel': 3.05,
-        'Vertical pressure vessel': 4.16,
-        'Horizontal pressure vessel (jacketed)': 3.05,
-        'Vertical pressure vessel (jacketed)': 4.16,
         'Platform and ladders': 1.
     }
     
-    @property
-    def vessel_type(self):
-        vessel_type = self._vessel_type
-        if not vessel_type:
-            self._vessel_type = vessel_type = self._default_vessel_type()
-        return vessel_type
-    @vessel_type.setter
-    def vessel_type(self, vessel_type):
-        if vessel_type not in allowed_vessel_types:
-            raise ValueError("vessel type must be either 'Vertical', "
-                             "'Horizontal', or None")
-        self._vessel_type = vessel_type
-    
-    @property
-    def vessel_material(self):
-        """Vessel construction material."""
-        return self._vessel_material
-    @vessel_material.setter
-    def vessel_material(self, material):
-        try: 
-            F_M = self.F_M
-            F_M['Vertical pressure vessel'] = F_M['Horizontal pressure vessel'] = pressure_vessel_material_factors[material]
-        except KeyError:
-            raise ValueError(f"no material factor available for '{material}'; "
-                              "only the following materials are available: "
-                             f"{', '.join(pressure_vessel_material_factors)}")
-        self._vessel_material = material  
-    
-    def _get_design_info(self):
-        try:
-            return (('Vessel material', self._vessel_material, ''),)
-        except:
-            return ()
-    
+    vessel_type = design_input(
+        purchase_item='Pressure vessel',
+        catalog_type='Module',
+        catalog={'Horizontal': 3.05,
+                 'Vertical': 4.16},
+    )
+
+    vessel_material = design_input(
+        purchase_item='Pressure vessel',
+        catalog_type='Material',
+        catalog=pressure_vessel_material_factors,
+    )
+
     def _default_vessel_type(self):
-        return None
+        raise NotImplementedError('must define _default_vessel_type method')
     
     def _design_and_cost_pressure_vessel(
             self, pressure, diameter, length,
@@ -100,13 +75,17 @@ class PressureVessel:
     
     def _vessel_design(self, pressure, diameter, length, annular_diameter=0, check=True) -> dict:
         vessel_type = self.vessel_type
+        if vessel_type is None: 
+            vessel_type = self._default_vessel_type()
         if vessel_type == 'Horizontal':
             method = self._horizontal_vessel_design
         elif vessel_type == 'Vertical':
             method = self._vertical_vessel_design
         else:
             raise RuntimeError('unknown vessel type')
-        return method(pressure, diameter, length, annular_diameter, check)
+        design = method(pressure, diameter, length, annular_diameter, check)
+        if self.vessel_type is None: design['Vessel type'] = vessel_type
+        return design
     
     def _horizontal_vessel_design(self, pressure, diameter, length, annular_diameter=0, check=True) -> dict:
         # Calculate vessel weight and wall thickness
@@ -116,15 +95,18 @@ class PressureVessel:
         )
         if check:
             if pressure < 14.68:
-                warn('vacuum pressure vessel ASME codes not implemented yet; '
-                     'wall thickness may be inaccurate and stiffening rings may be '
-                     'required', category=DesignWarning)
-            bounds_warning(self, 'Horizontal vessel weight', VW, 'lb',
-                           self._bounds['Horizontal vessel weight'], 'cost')
-            bounds_warning(self, 'Horizontal vessel diameter', diameter, 'ft',
-                           self._bounds['Horizontal vessel diameter'], 'cost')
+                warning = DesignWarning.from_source(
+                    self, 
+                    'vacuum pressure vessel ASME codes not implemented yet; '
+                    'wall thickness may be inaccurate and stiffening rings may be '
+                    'required'
+                )
+                warn(warning)
+            bounds_warning(self, 'Vessel weight', VW, 'lb',
+                           self._bounds['Horizontal vessel weight'])
+            bounds_warning(self, 'Vessel diameter', diameter, 'ft',
+                           self._bounds['Horizontal vessel diameter'])
         Design = {}
-        Design['Vessel type'] = 'Horizontal'
         Design['Length'] = length  # ft
         Design['Diameter'] = diameter  # ft
         Design['Weight'] = VW  # lb
@@ -140,16 +122,17 @@ class PressureVessel:
         Design = {}
         if check:
             if pressure < 14.68:
-                warn('vacuum pressure vessel ASME codes not implemented yet; '
-                     'wall thickness may be inaccurate and stiffening rings may be '
-                     'required', category=DesignWarning)
-            bounds_warning(self, 'Vertical vessel weight', VW, 'lb',
-                           self._bounds['Vertical vessel weight'],
-                           'cost')
-            bounds_warning(self, 'Vertical vessel length', length, 'ft',
-                           self._bounds['Vertical vessel length'],
-                           'cost')
-        Design['Vessel type'] = 'Vertical'
+                warning = DesignWarning.from_source(
+                    self, 
+                    'vacuum pressure vessel ASME codes not implemented yet; '
+                    'wall thickness may be inaccurate and stiffening rings may be '
+                    'required'
+                )
+                warn(warning)
+            bounds_warning(self, 'Vessel weight', VW, 'lb',
+                           self._bounds['Vertical vessel weight'])
+            bounds_warning(self, 'Vessel length', length, 'ft',
+                           self._bounds['Vertical vessel length'])
         Design['Length'] = length # ft
         Design['Diameter'] = diameter # ft
         Design['Weight'] = VW # lb
@@ -168,25 +151,14 @@ class PressureVessel:
         return method(weight, diameter, length, jacketed)
 
     def _horizontal_vessel_purchase_cost(self, weight, diameter, length=None, jacketed=None) -> dict:
-        if jacketed:
-            return {
-                'Horizontal pressure vessel (jacketed)': design.compute_horizontal_vessel_purchase_cost(weight),
-                'Platform and ladders': design.compute_horizontal_vessel_platform_and_ladders_purchase_cost(diameter)
-            }
-        else:
-            return {
-                'Horizontal pressure vessel': design.compute_horizontal_vessel_purchase_cost(weight),
-                'Platform and ladders': design.compute_horizontal_vessel_platform_and_ladders_purchase_cost(diameter)
-            }
+        return {
+            'Pressure vessel': design.compute_horizontal_vessel_purchase_cost(weight),
+            'Platform and ladders': design.compute_horizontal_vessel_platform_and_ladders_purchase_cost(diameter)
+        }
   
     def _vertical_vessel_purchase_cost(self, weight, diameter, length, jacketed=None) -> dict:
-        if jacketed:
-            return {
-                'Vertical pressure vessel (jacketed)': design.compute_vertical_vessel_purchase_cost(weight),
-                'Platform and ladders': design.compute_vertical_vessel_platform_and_ladders_purchase_cost(diameter, length)
-            }
-        else:
-            return {
-                'Vertical pressure vessel': design.compute_vertical_vessel_purchase_cost(weight),
-                'Platform and ladders': design.compute_vertical_vessel_platform_and_ladders_purchase_cost(diameter, length)
-            }
+        return {
+            'Pressure vessel': design.compute_vertical_vessel_purchase_cost(weight),
+            'Platform and ladders': design.compute_vertical_vessel_platform_and_ladders_purchase_cost(diameter, length)
+        }
+        

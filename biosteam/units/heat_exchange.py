@@ -312,7 +312,10 @@ class HXutility(HX):
     Low pressure steam       Duty                                  kJ/hr 1.01e+06
                              Flow                                kmol/hr     26.2
                              Cost                                 USD/hr     6.22
-    Design                   Area                                   ft^2     59.9
+    Design inputs            Number of shells                                   2
+                             Outlet temperature                        K      323
+                             Furnace pressure                       psig      500
+    Design results           Area                                   ft^2     59.9
                              Overall heat transfer coefficient  kW/m^2/K      0.5
                              Log-mean temperature difference           K      101
                              Fouling correction factor                          1
@@ -346,7 +349,10 @@ class HXutility(HX):
     Low pressure steam       Duty                                  kJ/hr 1.94e+07
                              Flow                                kmol/hr      500
                              Cost                                 USD/hr      119
-    Design                   Area                                   ft^2      716
+    Design inputs            Number of shells                                   2
+                             Outlet vapor fraction                              1
+                             Furnace pressure                       psig      500
+    Design results           Area                                   ft^2      716
                              Overall heat transfer coefficient  kW/m^2/K        1
                              Log-mean temperature difference           K     80.8
                              Fouling correction factor                          1
@@ -366,7 +372,11 @@ class HXutility(HX):
     Low pressure steam       Duty                                  kJ/hr 1.84e+07
                              Flow                                kmol/hr      475
                              Cost                                 USD/hr      113
-    Design                   Area                                   ft^2      680
+    Design inputs            Number of shells                                   2
+                             Outlet vapor fraction                              1
+                             Furnace pressure                       psig      500
+                             Heat transfer efficiency                           1
+    Design results           Area                                   ft^2      680
                              Overall heat transfer coefficient  kW/m^2/K        1
                              Log-mean temperature difference           K     80.8
                              Fouling correction factor                          1
@@ -400,7 +410,10 @@ class HXutility(HX):
     Low pressure steam       Duty                                  kJ/hr 1.94e+07
                              Flow                                kmol/hr      500
                              Cost                                 USD/hr      119
-    Design                   Area                                   ft^2      716
+    Design inputs            Number of shells                                   2
+                             Outlet vapor fraction                              1
+                             Furnace pressure                       psig      500
+    Design results           Area                                   ft^2      716
                              Overall heat transfer coefficient  kW/m^2/K        1
                              Log-mean temperature difference           K     80.8
                              Fouling correction factor                          1
@@ -420,7 +433,11 @@ class HXutility(HX):
     Low pressure steam       Duty                                  kJ/hr 1.84e+07
                              Flow                                kmol/hr      475
                              Cost                                 USD/hr      113
-    Design                   Area                                   ft^2      680
+    Design inputs            Number of shells                                   2
+                             Outlet vapor fraction                              1
+                             Furnace pressure                       psig      500
+                             Heat transfer efficiency                           1
+    Design results           Area                                   ft^2      680
                              Overall heat transfer coefficient  kW/m^2/K        1
                              Log-mean temperature difference           K     80.8
                              Fouling correction factor                          1
@@ -434,6 +451,37 @@ class HXutility(HX):
     """
     line = 'Heat exchanger'
     _graphics = utility_heat_exchanger_graphics
+    T: float = bst.design_input('Outlet temperature', 'K', lb=0)
+    V: float = bst.design_input('Outlet vapor fraction', lb=0, ub=1)
+    H: float = bst.design_input('Outlet enthalpy', 'kJ/hr')
+    U: float = bst.design_input(
+        'Overall heat transfer coefficient', 'kW/m^2/K', lb=0,
+        doc="Enforced overall heat transfer coefficient [kW/m^2/K]. "
+            "If None, it is estimated heuristically.",
+    )
+    N_shells: int = bst.design_input(
+        'Number of shells', lb=1,
+        doc="Number of shells for LMTD correction factor method.",
+    )
+    ft: float = bst.design_input(
+        'LMTD correction factor',
+        doc="User imposed LMTD correction factor. If None, it is estimated "
+            "using the number of shells.",
+    )
+    dP: float = bst.design_input(
+        'Pressure drop', 'Pa', doc="Pressure drop along the process fluid [Pa].",
+    )
+    heat_transfer_efficiency: float = bst.design_input(
+        lb=0, ub=1,
+        doc="User enforced heat transfer efficiency. A value less than 1 "
+            "means that a fraction of heat transfered is lost to the environment. "
+            "If value is None, it defaults to the heat transfer efficiency of the "
+            "heat utility.",
+    )
+    furnace_pressure: float = bst.design_input(
+        'Furnace pressure', 'psig',
+        doc="Internal pressure of combustion gas [psig]. Defaults to 500 psig.",
+    )
 
     def _init(self,
             T=None, V=None, rigorous=False, U=None, H=None,
@@ -449,20 +497,15 @@ class HXutility(HX):
             furnace_pressure=None, # [Pa] equivalent to 500 psig
             utility_agent=None,
         ):
-        self.T = T  # : [float] Temperature of outlet stream (K).
-        self.V = V  # : [float] Vapor fraction of outlet stream.
-        self.H = H  # : [float] Enthalpy of outlet stream.
+        self.T = T
+        self.V = V
+        self.H = H
 
         #: [bool] If true, calculate vapor liquid equilibrium
         self.rigorous = rigorous
 
-        #: [float] Enforced overall heat transfer coefficent (kW/m^2/K)
         self.U = U
-
-        #: [int] Number of shells for LMTD correction factor method.
         self.N_shells = N_shells
-
-        #: [float] User imposed correction factor.
         self.ft = ft
 
         #: [bool] If True, heat exchanger can only heat.
@@ -474,20 +517,12 @@ class HXutility(HX):
         self.material = material
         self.heat_exchanger_type = heat_exchanger_type
 
-        #: Optional[float] Pressure drop along the process fluid.
         self.dP = dP
 
         #: [bool] Whether to estimate pressure drop if none given.
         self.estimate_pressure_drop = estimate_pressure_drop
 
-        #: [bool] User enforced heat transfer efficiency. A value less than 1
-        #: means that a fraction of heat transfered is lost to the environment.
-        #: If value is None, it defaults to the heat transfer efficiency of the
-        #: heat utility.
         self.heat_transfer_efficiency = heat_transfer_efficiency
-
-        #: Optional[float] Internal pressure of combustion gas. Defaults
-        #: 500 psig (equivalent to 3548325.0 Pa)
         self.furnace_pressure = 500 if furnace_pressure is None else furnace_pressure
         
         #: Optional[UtilityAgent] Utility agent proving heating/cooling duty.
@@ -818,7 +853,11 @@ class HXprocess(HX):
 
     >>> hx.results()
     Heat exchanger                                                 Units       hx
-    Design                   Area                                   ft^2      213
+    Design inputs            Number of shells                                   2
+                             Pressure drop 0                          Pa        0
+                             Pressure drop 1                          Pa        0
+                             Pinch temperature difference              K        5
+    Design results           Area                                   ft^2      213
                              Overall heat transfer coefficient  kW/m^2/K      0.5
                              Log-mean temperature difference           K     20.4
                              Fouling correction factor                          1
@@ -858,7 +897,13 @@ class HXprocess(HX):
         flow (kmol/hr): Ethanol  200
     >>> hx.results()
     Heat exchanger                                                 Units       hx
-    Design                   Area                                   ft^2      369
+    Design inputs            Number of shells                                   2
+                             Pressure drop 0                          Pa        0
+                             Pressure drop 1                          Pa        0
+                             Pinch temperature difference              K        5
+                             Outlet phase 0                                     l
+                             Outlet phase 1                                     l
+    Design results           Area                                   ft^2      369
                              Overall heat transfer coefficient  kW/m^2/K      0.5
                              Log-mean temperature difference           K     11.4
                              Fouling correction factor                          1
@@ -870,7 +915,13 @@ class HXprocess(HX):
     Utility cost                                                  USD/hr        0
     >>> hx.results()
     Heat exchanger                                                 Units       hx
-    Design                   Area                                   ft^2      369
+    Design inputs            Number of shells                                   2
+                             Pressure drop 0                          Pa        0
+                             Pressure drop 1                          Pa        0
+                             Pinch temperature difference              K        5
+                             Outlet phase 0                                     l
+                             Outlet phase 1                                     l
+    Design results           Area                                   ft^2      369
                              Overall heat transfer coefficient  kW/m^2/K      0.5
                              Log-mean temperature difference           K     11.4
                              Fouling correction factor                          1
@@ -982,6 +1033,56 @@ class HXprocess(HX):
                     )
         return equations
 
+    U: float = bst.design_input(
+        'Overall heat transfer coefficient', 'kW/m^2/K', lb=0,
+        doc="Enforced overall heat transfer coefficient [kW/m^2/K]. "
+            "If None, it is estimated heuristically.",
+    )
+    N_shells: int = bst.design_input(
+        'Number of shells', lb=1,
+        doc="Number of shells for LMTD correction factor method.",
+    )
+    ft: float = bst.design_input(
+        'LMTD correction factor',
+        doc="User imposed LMTD correction factor. If None, it is estimated "
+            "using the number of shells.",
+    )
+    dT: float = bst.design_input(
+        'Pinch temperature difference', 'K', lb=0,
+    )
+    T_lim0: float = bst.design_input(
+        'Outlet temperature limit 0', 'K', lb=0,
+        doc="Temperature limit of outlet stream at index 0 [K].",
+    )
+    T_lim1: float = bst.design_input(
+        'Outlet temperature limit 1', 'K', lb=0,
+        doc="Temperature limit of outlet stream at index 1 [K].",
+    )
+    H_lim0: float = bst.design_input(
+        'Outlet enthalpy limit 0', 'kJ/hr',
+        doc="Enthalpy limit of outlet stream at index 0 [kJ/hr].",
+    )
+    H_lim1: float = bst.design_input(
+        'Outlet enthalpy limit 1', 'kJ/hr',
+        doc="Enthalpy limit of outlet stream at index 1 [kJ/hr].",
+    )
+    phase0: str = bst.design_input(
+        'Outlet phase 0',
+        doc="Enforced phase of outlet at index 0 ('l' or 'g').",
+    )
+    phase1: str = bst.design_input(
+        'Outlet phase 1',
+        doc="Enforced phase of outlet at index 1 ('l' or 'g').",
+    )
+    dP0: float = bst.design_input(
+        'Pressure drop 0', 'Pa',
+        doc="Pressure drop along fluid at index 0 [Pa].",
+    )
+    dP1: float = bst.design_input(
+        'Pressure drop 1', 'Pa',
+        doc="Pressure drop along fluid at index 1 [Pa].",
+    )
+
     def _init(self,
               U=None, dT=5., T_lim0=None, T_lim1=None,
               material="Carbon steel/carbon steel",
@@ -995,47 +1096,26 @@ class HXprocess(HX):
               dP1=None, # Defaults to 0
               estimate_pressure_drop=False,
         ):
-        #: [float] Enforced overall heat transfer coefficent (kW/m^2/K)
         self.U = U
 
         #: [float] Total heat transfered in kJ/hr (not including losses).
         self.total_heat_transfer = None
 
-        #: Number of shells for LMTD correction factor method.
         self.N_shells = N_shells
-
-        #: User imposed correction factor.
         self.ft = ft
-
-        #: [float] Pinch temperature difference.
         self.dT = dT
-
-        #: [float] Temperature limit of outlet stream at index 0.
         self.T_lim0 = T_lim0
-
-        #: [float] Temperature limit of outlet stream at index 1.
         self.T_lim1 = T_lim1
-
-        #: [float] Enthalpy limit of outlet stream at index 0.
         self.H_lim0 = H_lim0
-
-        #: [float] Enthalpy limit of outlet stream at index 1.
         self.H_lim1 = H_lim1
-
-        #: [str] Enforced phase of outlet at index 0
         self.phase0 = phase0
-
-        #: [str] Enforced phase of outlet at index 1
         self.phase1 = phase1
 
         self.material = material
         self.heat_exchanger_type = heat_exchanger_type
         self.reset_streams_at_setup = False
 
-        #: Optional[float] Pressure drop along the fluid [0].
         self.dP0 = 0 if dP0 is None else dP0
-
-        #: Optional[float] Pressure drop along fluid [1].
         self.dP1 = 0 if dP1 is None else dP1
         
         #: [bool] Whether to estimate pressure drop if none given.

@@ -6,7 +6,7 @@
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 
-from .._unit import Unit
+from .._unit import Unit, design_input
 from .decorators import cost
 from .design_tools.cost_index import CEPCI_by_year
 
@@ -103,7 +103,10 @@ class AmineAbsorption(Unit):
     Low pressure steam       Duty                    kJ/hr 4.36e+08
                              Flow                  kmol/hr 1.13e+04
                              Cost                   USD/hr 2.68e+03
-    Design                   Total flow            kmol/hr 2.41e+04
+    Design inputs            CO2 recovery                       0.9
+                             Net MEA usage            kg/t      1.5
+                             Duty per kg CO2         kJ/kg 3.61e+03
+    Design results           Total flow            kmol/hr 2.41e+04
                              CO2 flow              kmol/hr 2.61e+03
     Purchase cost            Makeup tank               USD  2.5e+05
                              Cooler                    USD 9.78e+04
@@ -137,6 +140,12 @@ class AmineAbsorption(Unit):
     _N_outs = 2
     _units = {'Total flow': 'kmol/hr',
               'CO2 flow':'kmol/hr'}
+    CO2_recovery: float = design_input('CO2 recovery', lb=0, ub=1)
+    MEA_to_CO2: float = design_input(
+        'Net MEA usage', 'kg/t', lb=0,
+        doc="Net usage of MEA (kg pure MEA/metric tonne CO2 captured).",
+    )
+    heat_ratio: float = design_input('Duty per kg CO2', 'kJ/kg')
     
     def _init(self, CO2_recovery=0.9, MEA_to_CO2=1.5, heat_ratio=3611):
         self.CO2_recovery = CO2_recovery
@@ -202,7 +211,7 @@ class CO2Compression(Unit):
     CO2Compression                         Units       U1
     Electricity              Power            kW      360
                              Cost         USD/hr     28.2
-    Design                   Total flow  kmol/hr 2.61e+03
+    Design results           Total flow  kmol/hr 2.61e+03
     Purchase cost            Compressor      USD 1.45e+06
     Total purchase cost                      USD 1.45e+06
     Installed equipment cost                 USD  4.8e+06

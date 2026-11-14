@@ -88,21 +88,23 @@ class Pump(Unit):
         phase: 'l', T: 350 K, P: 200000 Pa
         flow (kmol/hr): Water  200
     >>> P1.results()
-    Pump                                   Units           P1
-    Electricity              Power            kW        0.288
-                             Cost         USD/hr       0.0225
-    Design                   Type                 Centrifugal
-                             Ideal power      hp        0.136
-                             Flow rate       gpm         16.3
-                             Efficiency                 0.352
-                             Power            hp        0.386
-                             Head             ft         96.3
-                             Motor size       hp          0.5
-    Purchase cost            Pump            USD     4.37e+03
-                             Motor           USD          273
-    Total purchase cost                      USD     4.64e+03
-    Installed equipment cost                 USD     1.53e+04
-    Utility cost                          USD/hr       0.0225
+    Pump                                              Units           P1
+    Electricity              Power                       kW        0.288
+                             Cost                    USD/hr       0.0225
+    Design inputs            Outlet pressure             Pa        2e+05
+                             Design pressure change      Pa       101325
+    Design results           Type                            Centrifugal
+                             Ideal power                 hp        0.136
+                             Flow rate                  gpm         16.3
+                             Efficiency                            0.352
+                             Power                       hp        0.386
+                             Head                        ft         96.3
+                             Motor size                  hp          0.5
+    Purchase cost            Pump                       USD     4.37e+03
+                             Motor                      USD          273
+    Total purchase cost                                 USD     4.64e+03
+    Installed equipment cost                            USD     1.53e+04
+    Utility cost                                     USD/hr       0.0225
     
     References
     ----------
@@ -119,6 +121,14 @@ class Pump(Unit):
               'Flow rate': 'gpm'}
     _F_BM_default = {'Pump': 3.3,
                      'Motor': 3.3}
+    P: float = bst.design_input(
+        'Outlet pressure', 'Pa',
+        doc="Pressure of output stream [Pa]. If None or the same as the inlet, "
+            "the pump is designed to increase the pressure by `dP_design`.",
+    )
+    dP_design: float = bst.design_input(
+        'Design pressure change', 'Pa', lb=0,
+    )
 
     @property
     def pump_type(self):
