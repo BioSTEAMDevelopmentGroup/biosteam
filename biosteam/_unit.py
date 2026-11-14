@@ -38,7 +38,7 @@ if TYPE_CHECKING:
 
 streams = Optional[Sequence[Stream|str]]
 
-__all__ = ('Unit', 'design_input', 'update_input', 'ProcessSpecification', 'BoundedNumericalSpecification')
+__all__ = ('Unit', 'design_input', 'update_design_input', 'ProcessSpecification', 'BoundedNumericalSpecification')
 
 int_types = (int, np.int32)
 
@@ -245,19 +245,23 @@ def design_input(
             raise ValueError('upper bound (ub) cannot be defined together with catalog')
         return CategoricalDesignInput(name, default, catalog, purchase_item, catalog_type, fget, fset, fdel, doc)
 
-class update_input: 
+class update_design_input:
     __slots__ = ('updates',)
     def __init__(self, **updates):
         self.updates = updates
     
     def __set_name__(self, owner, name):
-        inherited = getattr(super(owner, owner), name)
+        inherited = getattr(super(owner, owner), name, None)
+        if not isinstance(inherited, DesignInput):
+            raise RuntimeError(
+                f'{owner.__name__}.{name} is not a design_input'
+            )
         new = inherited.copy(**self.updates)
         new.__set_name__(owner, name)
         setattr(owner, name, new)
     
     def __repr__(self):
-        kwargs = ', '.join([f'{i}={j!r}' for i, j in self.items()])
+        kwargs = ', '.join([f'{i}={j!r}' for i, j in self.updates.items()])
         return f"{type(self).__name__}({kwargs})"
 
 def _get_class_annotation(owner, key):
@@ -275,15 +279,18 @@ def _get_class_annotation(owner, key):
     return annotations.get(key)
 
 
-class DesignInput(property):
+class DesignInput:
     
     def copy(self, **kwargs):
-        for i in ('name', 'default', 'fget', 'fset', 'fdel', *self._new_attributes):
+        for i in ('name', 'default', 'fget', 'fset', 'fdel', 'doc', *self._new_attributes):
             if i not in kwargs:
                 kwargs[i] = getattr(self, i)
-        if 'doc' not in kwargs:
-            kwargs['doc'] = self.__doc__
-        return type(self)(**kwargs)
+        copy = type(self)(**kwargs)
+        if hasattr(self, '_return_type'):
+            copy._default_return_type = self._return_type
+        if hasattr(self, '__name__'):
+            copy.__name__ = self.__name__
+        return copy
 
     def __set_name__(self, owner, name):
         self.__name__ = name
@@ -302,7 +309,7 @@ class DesignInput(property):
             else:
                 annotations['return'] = self._return_type = self._default_return_type
         else:
-            self._return_type = _get_class_annotation(owner, name)
+            self._return_type = _get_class_annotation(owner, name) or self._default_return_type
             
         # Validate default
         default = self.default
@@ -310,7 +317,7 @@ class DesignInput(property):
             self.default = default = self.validate(default)
         
         # Setup docstring
-        doc = self.__doc__
+        doc = self.doc
         if doc is None:
             units = self.units
             if default is None:
@@ -329,35 +336,38 @@ class DesignInput(property):
         if N_none == 2: 
             # Document like a property with a getter named after the attribute
             attr = '_' + name
-            fget = eval(f'lambda self: self.{attr}')
-            fget.__name__ = name
-            fget.__qualname__ = f"{owner.__qualname__}.{name}"
-            fget.__module__ = owner.__module__
-            fget.__doc__ = doc
-            fget.__annotations__ = {'return': self._return_type}
-            fset = eval(f'lambda unit, value: setattr(unit, {attr!r}, value)')
-            property.__init__(self, fget, fset, self.fdel, doc)
-        
+            self.fget = eval(f'lambda self: self.{attr}')
+            # fget.__name__ = name
+            # fget.__qualname__ = f"{owner.__qualname__}.{name}"
+            # fget.__module__ = owner.__module__
+            # fget.__doc__ = doc
+            # fget.__annotations__ = {'return': self._return_type}
+            self.fset = eval(f'lambda unit, value: setattr(unit, {attr!r}, value)')
+
     def __call__(self, fget):
         # Used as a decorator right after creation (e.g., @design_input(...)),
         # so the getter is set in place instead of creating a copy
-        property.__init__(self, fget, self.fset, self.fdel, self.__doc__)
+        self.fget = fget
         return self
 
     def getter(self, fget):
         if hasattr(self, '__name__'): return self.copy(fget=fget)
-        property.__init__(self, fget, self.fset, self.fdel, self.__doc__)
+        self.fget = self.fget
         return self
 
     def setter(self, fset):
         if hasattr(self, '__name__'): return self.copy(fset=fset)
-        property.__init__(self, self.fget, fset, self.fdel, self.__doc__)
+        self.fset = self.fset
         return self
 
     def deleter(self, fdel):
         if hasattr(self, '__name__'): return self.copy(fdel=fdel)
-        property.__init__(self, self.fget, self.fset, fdel, self.__doc__)
+        self.fdel = fdel
         return self
+
+    def __get__(self, instance, owner):
+        if owner is None: return getattr(owner, self.__name__)
+        return self.fget(instance)
 
     def __delete__(self, unit):
         if self.fdel is None: raise AttributeError(f'cannot delete design input {self.__name__!r}')
@@ -374,7 +384,10 @@ class NumericalDesignInput(DesignInput):
         self.default = default
         self.lb = lb
         self.ub = ub
-        property.__init__(self, fget, fset, fdel, doc)
+        self.fget = fget
+        self.fset = fset
+        self.fdel = fdel
+        self.doc = doc
     
     def validate(self, value):
         new_value = self._return_type(value)
@@ -423,7 +436,10 @@ class CategoricalDesignInput(DesignInput):
         self.catalog = catalog
         self.purchase_item = purchase_item
         self.catalog_type = catalog_type
-        property.__init__(self, fget, fset, fdel, doc)
+        self.fget = fget
+        self.fset = fset
+        self.fdel = fdel
+        self.doc = doc
 
     def validate(self, value):
         catalog = self.catalog
@@ -486,7 +502,10 @@ class LogicalDesignInput(DesignInput):
     def __init__(self, name, default, fget, fset, fdel, doc):
         self.name = name
         self.default = default
-        property.__init__(self, fget, fset, fdel, doc)
+        self.fget = fget
+        self.fset = fset
+        self.fdel = fdel
+        self.doc = doc
 
     def validate(self, value):
         if isinstance(value, bool):
@@ -687,15 +706,14 @@ class Unit:
         dct = cls.__dict__
         # Collect design inputs through the class history (including mixins);
         # attributes that override an inherited design input remove it.
-        design_input_names = set()
-        design_inputs = []
+        design_inputs = {}
         for base in reversed(cls.__mro__):
             for key, obj in base.__dict__.items():
                 if isinstance(obj, DesignInput):
-                    design_input_names.add(key)
-                    design_inputs.append(obj)
-                elif key in design_input_names:
-                    design_inputs.remove(key)
+                    design_inputs[key] = obj
+                elif key in design_inputs:
+                    del design_inputs[key]
+        design_inputs = [i for i in design_inputs.values()]
         cls._design_inputs = [i.__name__ for i in design_inputs] # Preserve order
         
         # Extend annotation
@@ -706,6 +724,13 @@ class Unit:
         elif dct.get('_init'):
             _init = dct['_init']
             cls.__init__ = extended_signature(cls.__init__, _init, design_inputs)
+        else:
+            for i in dct.values(): 
+                if not isinstance(i, DesignInput): continue
+                cls.__init__ = extended_signature(cls.__init__, design_inputs=design_inputs)
+                break
+                
+        # Standard annotation and adjustment to stacklevel
         if '__init__' in dct or '_init' in dct:
             init = dct['__init__']
             annotations = init.__annotations__
@@ -1231,8 +1256,7 @@ class Unit:
             if i in kwargs: 
                 setattr(self, i, kwargs.pop(i))
             else:
-                design_input = getattr(cls, i)
-                design_input.fset(design_input.default)
+                setattr(self, i, getattr(cls, i).default)
         
         self._init(**kwargs)
 
