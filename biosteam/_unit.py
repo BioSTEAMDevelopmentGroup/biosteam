@@ -131,7 +131,7 @@ def design_input(
         name: Optional[str]=None,
         units: Optional[str]=None,
         *,
-        default: Optional[float|str]=NotImplemented,
+        default: Optional[float|str]=None,
         lb: Optional[float]=None,
         ub: Optional[float]=None,
         catalog: Optional[Container[str]]=None,
@@ -216,7 +216,7 @@ def design_input(
                 raise ValueError('logical design input cannot have a lower bound (lb)')
             if ub is not None:
                 raise ValueError('logical design input cannot have an upper bound (ub)')
-            return LogicalDesignInput(name, units, default, fget, fset, fdel, doc)
+            return LogicalDesignInput(name, default, fget, fset, fdel, doc)
         else:
             if units is None: units = ''
             return NumericalDesignInput(name, units, default, lb, ub, fget, fset, fdel, doc)
@@ -246,7 +246,7 @@ def design_input(
         return CategoricalDesignInput(name, default, catalog, purchase_item, catalog_type, fget, fset, fdel, doc)
 
 class update_input: 
-    __slots__ = ('kwargs',)
+    __slots__ = ('updates',)
     def __init__(self, **updates):
         self.updates = updates
     
@@ -254,6 +254,7 @@ class update_input:
         inherited = getattr(super(owner, owner), name)
         new = inherited.copy(**self.updates)
         new.__set_name__(owner, name)
+        setattr(owner, name, new)
     
     def __repr__(self):
         kwargs = ', '.join([f'{i}={j!r}' for i, j in self.items()])
@@ -287,12 +288,32 @@ class DesignInput(property):
     def __set_name__(self, owner, name):
         self.__name__ = name
         if self.name is None: self.name = name.replace('_', ' ').capitalize()
+        fset = self.fset
+        fget = self.fget
+        N_none = (fget is None) + (fset is None)
+        
+        # Set return type for validation
+        if N_none == 1:
+            raise RuntimeError('design inputs must implement both getter and setter methods, not just one')
+        elif N_none == 0:
+            annotations = fget.__annotations__
+            if 'return' in annotations:
+                self._return_type = annotations['return']
+            else:
+                annotations['return'] = self._return_type = self._default_return_type
+        else:
+            self._return_type = _get_class_annotation(owner, name)
+            
+        # Validate default
         default = self.default
-        if default not in (NotImplemented, None): self.default = default = self.validate(default)
+        if default is not None: 
+            self.default = default = self.validate(default)
+        
+        # Setup docstring
         doc = self.__doc__
         if doc is None:
             units = self.units
-            if default is (NotImplemented, None):
+            if default is None:
                 default_note = ''
             elif units:
                 default_note = f' Defaults to {default!r} [{units}].'
@@ -303,9 +324,8 @@ class DesignInput(property):
             else:
                 doc = f"{self.name}.{default_note}"
             self.__doc__ = doc
-        fset = self.fset
-        fget = self.fget
-        N_none = (fget is None) + (fset is None)
+            
+        # Default getter/setter
         if N_none == 2: 
             # Document like a property with a getter named after the attribute
             attr = '_' + name
@@ -314,26 +334,9 @@ class DesignInput(property):
             fget.__qualname__ = f"{owner.__qualname__}.{name}"
             fget.__module__ = owner.__module__
             fget.__doc__ = doc
-            return_type = _get_class_annotation(owner, name)
-            if return_type is None: return_type = self._default_return_type
-            fget.__annotations__ = {'return': return_type}
+            fget.__annotations__ = {'return': self._return_type}
             fset = eval(f'lambda unit, value: setattr(unit, {attr!r}, value)')
             property.__init__(self, fget, fset, self.fdel, doc)
-            self._return_type = return_type
-        elif N_none:
-            raise RuntimeError('design inputs must implement both getter and setter methods')
-        else:
-            fget = self.fget
-            fset = self.fset
-            try:
-                annotations = fget.__annotations__
-            except AttributeError: # Not a function (e.g., a callable object)
-                raise TypeError('design_input getter must be a function')
-            else:
-                if 'return' in annotations:
-                    self._return_type = annotations['return']
-                else:
-                    annotations['return'] = self._return_type = self._default_return_type
         
     def __call__(self, fget):
         # Used as a decorator right after creation (e.g., @design_input(...)),
@@ -402,7 +405,7 @@ class NumericalDesignInput(DesignInput):
         self.fset(unit, value)
 
     def __repr__(self):
-        default = '' if self.default is NotImplemented else f', default={self.default!r}'
+        default = '' if self.default is None else f', default={self.default!r}'
         units = f', {self.units!r}' if self.units else ''
         lb = '' if self.lb is None else f', lb={self.lb}'
         ub = '' if self.ub is None else f', ub={self.ub}'
@@ -471,7 +474,7 @@ class CategoricalDesignInput(DesignInput):
         catalog = '' if self.catalog is None else f', catalog={self.catalog}'
         purchase_item = '' if self.purchase_item is None else f', purchase_item={self.purchase_item}'
         catalog_type = '' if self.catalog_type is None else f', catalog_type={self.catalog_type}'
-        default = '' if self.default is NotImplemented else f', default={self.default!r}'
+        default = '' if self.default is None else f', default={self.default!r}'
         return f"{type(self).__name__}({self.name!r}{default}{catalog}{purchase_item}{catalog_type})"
 
 
@@ -496,7 +499,7 @@ class LogicalDesignInput(DesignInput):
         self.fset(unit, value)
 
     def __repr__(self):
-        default = '' if self.default is NotImplemented else f', default={self.default!r}'
+        default = '' if self.default is None else f', default={self.default!r}'
         return f"{type(self).__name__}({self.name!r}{default})"
     
 
@@ -691,8 +694,8 @@ class Unit:
                 if isinstance(obj, DesignInput):
                     design_input_names.add(key)
                     design_inputs.append(obj)
-                elif key in design_inputs:
-                    design_input_names.remove(key)
+                elif key in design_input_names:
+                    design_inputs.remove(key)
         cls._design_inputs = [i.__name__ for i in design_inputs] # Preserve order
         
         # Extend annotation
@@ -1228,9 +1231,8 @@ class Unit:
             if i in kwargs: 
                 setattr(self, i, kwargs.pop(i))
             else:
-                value = getattr(cls, i).default
-                if value is NotImplemented: continue
-                setattr(self, i, value)
+                design_input = getattr(cls, i)
+                design_input.fset(design_input.default)
         
         self._init(**kwargs)
 
