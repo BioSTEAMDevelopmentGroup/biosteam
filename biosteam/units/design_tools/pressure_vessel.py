@@ -74,15 +74,18 @@ class PressureVessel:
         self.baseline_purchase_costs.update(purchase_costs)
     
     def _vessel_design(self, pressure, diameter, length, annular_diameter=0, check=True) -> dict:
-        if self.vessel_type is None: self.vessel_type = self._default_vessel_type()
         vessel_type = self.vessel_type
+        if vessel_type is None: 
+            vessel_type = self._default_vessel_type()
         if vessel_type == 'Horizontal':
             method = self._horizontal_vessel_design
         elif vessel_type == 'Vertical':
             method = self._vertical_vessel_design
         else:
             raise RuntimeError('unknown vessel type')
-        return method(pressure, diameter, length, annular_diameter, check)
+        design = method(pressure, diameter, length, annular_diameter, check)
+        if self.vessel_type is None: design['Vessel type'] = vessel_type
+        return design
     
     def _horizontal_vessel_design(self, pressure, diameter, length, annular_diameter=0, check=True) -> dict:
         # Calculate vessel weight and wall thickness
