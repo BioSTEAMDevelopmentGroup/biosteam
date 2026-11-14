@@ -1253,17 +1253,19 @@ class Unit:
         
         # Set defaults for design results.
         cls = type(self)
+        parameters = getattr(self._init, 'parameters', ())
         for i in self._design_inputs:
             if i in kwargs: 
-                setattr(self, i, kwargs.pop(i))
+                if i not in parameters: 
+                    setattr(self, i, kwargs.pop(i))
+            elif i in parameters:
+                kwargs[i] = getattr(cls, i).default
             else:
                 setattr(self, i, getattr(cls, i).default)
         
         self._init(**kwargs)
 
         self._assert_compatible_property_package()
-        
-    __init__._init_inputs = frozenset()
         
     def _init_inlets(self, ins):
         self._ins = piping.Inlets(
