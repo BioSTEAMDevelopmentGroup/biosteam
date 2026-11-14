@@ -367,7 +367,7 @@ class DesignInput:
         return self
 
     def __get__(self, instance, owner):
-        if instance is None: return getattr(owner, self.__name__)
+        if instance is None: return self
         return self.fget(instance)
 
     def __delete__(self, unit):
