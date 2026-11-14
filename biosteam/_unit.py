@@ -319,17 +319,18 @@ class DesignInput:
         # Setup docstring
         doc = self.doc
         if doc is None:
-            units = self.units
-            if default is None:
-                default_note = ''
-            elif units:
-                default_note = f' Defaults to {default!r} [{units}].'
-            else:
-                default_note = f' Defaults to {default!r}.'
-            if units:
-                doc = f"{self.name} [{units}].{default_note}" 
-            else:
-                doc = f"{self.name}.{default_note}"
+            if fget is None or (doc:=fget.__doc__) is None:
+                units = self.units
+                if default is None:
+                    default_note = ''
+                elif units:
+                    default_note = f' Defaults to {default!r} [{units}].'
+                else:
+                    default_note = f' Defaults to {default!r}.'
+                if units:
+                    doc = f"{self.name} [{units}].{default_note}" 
+                else:
+                    doc = f"{self.name}.{default_note}"
             self.__doc__ = doc
             
         # Default getter/setter
@@ -352,12 +353,12 @@ class DesignInput:
 
     def getter(self, fget):
         if hasattr(self, '__name__'): return self.copy(fget=fget)
-        self.fget = self.fget
+        self.fget = fget
         return self
 
     def setter(self, fset):
         if hasattr(self, '__name__'): return self.copy(fset=fset)
-        self.fset = self.fset
+        self.fset = fset
         return self
 
     def deleter(self, fdel):
@@ -366,7 +367,7 @@ class DesignInput:
         return self
 
     def __get__(self, instance, owner):
-        if owner is None: return getattr(owner, self.__name__)
+        if instance is None: return getattr(owner, self.__name__)
         return self.fget(instance)
 
     def __delete__(self, unit):
