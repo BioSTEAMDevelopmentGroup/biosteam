@@ -318,20 +318,9 @@ class DesignInput:
             self.default = default = self.validate(default)
         
         # Setup docstring
-        doc = self.doc
-        if doc is None:
+        if self.doc is None:
             if fget is None or (doc:=fget.__doc__) is None:
-                units = self.units
-                if default is None:
-                    default_note = ''
-                elif units:
-                    default_note = f' Defaults to {default!r} [{units}].'
-                else:
-                    default_note = f' Defaults to {default!r}.'
-                if units:
-                    doc = f"{self.name} [{units}].{default_note}" 
-                else:
-                    doc = f"{self.name}.{default_note}"
+                doc = self._make_doc()
             self.__doc__ = doc
             
         # Default getter/setter
@@ -391,6 +380,38 @@ class NumericalDesignInput(DesignInput):
         self.fdel = fdel
         self.doc = doc
     
+    def _make_doc(self):
+        units = self.units
+        default = self.default
+        lb = self.lb
+        ub = self.ub
+        if lb is None:
+            if ub is None:
+                limits = ''
+            elif ub == 0:
+                limits = f' {self.__name__} must be negative.'
+            else:
+                limits = f' {self.__name__} must be lower than {ub}.'
+        elif ub is None:
+            if lb == 0:
+                limits = f' {self.__name__} must be positive.'
+            else:
+                limits = f' {self.__name__} must be greater than {lb}.'
+        else:
+            limits = f"{self.__name__} must be between {lb} and {ub}."
+        
+        if default is None:
+            default_note = ''
+        elif units:
+            default_note = f' Defaults to {default!r} [{units}].'
+        else:
+            default_note = f' Defaults to {default!r}.'
+        if units:
+            doc = f"{self.name} [{units}].{limits}{default_note}" 
+        else:
+            doc = f"{self.name}.{limits}{default_note}"
+        return doc
+        
     def validate(self, value):
         new_value = self._return_type(value)
         if new_value == value:
@@ -429,7 +450,6 @@ class NumericalDesignInput(DesignInput):
 
 class CategoricalDesignInput(DesignInput):
     _new_attributes = ('catalog', 'purchase_item', 'catalog_type')
-    units = ''
     _default_return_type = str
 
     def __init__(self, name, default, catalog, purchase_item, catalog_type, fget, fset, fdel, doc):
@@ -442,6 +462,32 @@ class CategoricalDesignInput(DesignInput):
         self.fset = fset
         self.fdel = fdel
         self.doc = doc
+
+    def _make_doc(self):
+        catalog = self.catalog
+        N = len(catalog)
+        if N > 2:
+            *names, last = list(catalog)
+            names = ', '.join([repr(i) for i in names]) + ', and ' + repr(last)
+            catalog_note = f"Valid {self.__name__} choices include {names}."
+        elif N == 2:
+            left, right = catalog
+            catalog_note = f"Valid {self.__name__} choices include {left!r} and {right!r}."
+        elif N == 1:
+            name = list(catalog)[0]
+            catalog_note = f"{name!r} is the only valid {self.__name__}."
+        else:
+            catalog_note = f"No valid {self.__name__} is available."
+        purchase_item = self.purchase_item
+        if purchase_item is None:
+            cost_note = ''
+        else:
+            cost_note = f'The {self.__name__} will impact the {self.catalog_type.lower()} cost factor of {purchase_item!r}.'
+        if self.default is None:
+            default_note = ''
+        else:
+            default_note = f' Defaults to {self.default!r}.'
+        return f"{self.name}.{catalog_note}{cost_note}{default_note}"
 
     def validate(self, value):
         catalog = self.catalog
@@ -499,7 +545,6 @@ class CategoricalDesignInput(DesignInput):
 class LogicalDesignInput(DesignInput):
     _new_attributes = ()
     _default_return_type = bool
-    units = ''
 
     def __init__(self, name, default, fget, fset, fdel, doc):
         self.name = name
@@ -508,6 +553,15 @@ class LogicalDesignInput(DesignInput):
         self.fset = fset
         self.fdel = fdel
         self.doc = doc
+
+    def _make_doc(self):
+        default = self.default
+        if default is None:
+            default_note = ''
+        else:
+            default_note = f' Defaults to {default!r}.'
+        doc = f"{self.name}.{default_note}"
+        return doc
 
     def validate(self, value):
         if isinstance(value, bool):
