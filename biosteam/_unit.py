@@ -512,10 +512,6 @@ class NumericalDesignInput(DesignInput):
             msg = f'{self.__name__} must be a {self._return_type.__name__}; {type(value).__name__} object is invalid'
         raise AttributeError(msg)
 
-    def __set__(self, unit, value):
-        if value is not None: value = self.validate(value)
-        self.fset(unit, value)
-
     def __repr__(self):
         default = '' if self.default in (None, empty) else f', default={self.default!r}'
         units = f', {self.units!r}' if self.units else ''
