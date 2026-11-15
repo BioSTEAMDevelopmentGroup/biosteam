@@ -2919,7 +2919,7 @@ class Unit:
             if value is None: continue # Decision not made
             dd = getattr(cls, key)
             design_inputs.append(
-                (dd.name, value, dd.units)
+                (dd.name, value, getattr(dd, 'units', ''))
             )
         return design_inputs
     
