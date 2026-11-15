@@ -43,146 +43,73 @@ class FluidizedCatalyticCracking(bst.Unit):
         'pump', 'feed_preheater', 'air_compressor', 'condenser', 
         'riser', 'stripper', 'regenerator', 'reactor',
     )
-    vessel_material: str = design_input()
-    feed_pressure: float = design_input('Feed pressure', 'Pa', lb=0)
-    feed_vapor_fraction: float = design_input(
-        'Feed vapor fraction', lb=0, ub=1,
+    vessel_material: str = design_input(default='Stainless steel 316')
+    feed_pressure = design_input(
+        'Feed pressure', 'Pa', lb=0, default=2 * 101325,
+        doc="Feed pressure [Pa]. Can operate at a low pressure, but must "
+            "accomodate pressure drop. Defaults to 2 atm.",
     )
-    catalyst_to_feed_ratio: float = design_input(
-        'Catalyst to feed ratio', lb=0, 
-        doc="Catalyst to feed ratio by weight.",
+    feed_vapor_fraction = design_input(
+        'Feed vapor fraction', lb=0, ub=1, default=0,
     )
-    spent_catalyst_to_feed_ratio: float = design_input(
+    catalyst_to_feed_ratio = design_input(
+        'Catalyst to feed ratio', lb=0, default=5,
+        doc="Catalyst to feed ratio by weight. Defaults to 5.",
+    )
+    spent_catalyst_to_feed_ratio = design_input(
         'Spent catalyst to feed ratio', lb=0,
-        doc="Spent catalyst to feed ratio by weight.",
+        default=1e-6, # TODO: Find value; value is abitrary for now
+        doc="Spent catalyst to feed ratio by weight. Defaults to 1e-6.",
     )
-    product_loss: float = design_input(
-        'Product loss', lb=0, ub=1,
-        doc="Fraction of product lost (combusted in the regenerator).",
+    product_loss = design_input(
+        'Product loss', lb=0, ub=1, default=0.5e-2,
+        doc="Fraction of product lost (combusted in the regenerator). "
+            "Defaults to 0.005.",
     )
-    riser_product_residence_time: float = design_input(
+    riser_product_residence_time = design_input(
         'Riser product residence time', 'hr', lb=0,
+        default=2.1 / 3600, # 1.8 to 2.4 seconds preferred with VGO
     )
-    riser_length_to_diameter: float = design_input(
-        'Riser length to diameter ratio', lb=0,
+    riser_length_to_diameter = design_input(
+        'Riser length to diameter ratio', lb=0, default=20, # Minimally preferred
     )
-    reactor_vessel_dissengagement_height: float = design_input(
-        'Reactor vessel disengagement height', 'm', lb=0,
+    reactor_vessel_dissengagement_height = design_input(
+        'Reactor vessel disengagement height', 'm', lb=0, default=4.572, # 15 ft minimally
     )
-    reactor_vessel_exit_velocity: float = design_input(
-        'Reactor vessel exit velocity', 'm/hr', lb=0,
+    reactor_vessel_exit_velocity = design_input(
+        'Reactor vessel exit velocity', 'm/hr', lb=0, default=2194.56,
     )
-    stripper_steam_rate: float = design_input(
-        'Stripper steam rate', lb=0,
-        doc="Steam to catalyst ratio in the stripper by weight.",
+    stripper_steam_rate = design_input(
+        'Stripper steam rate', lb=0, default=0.25, # 0.2-0.3 wt % steam per catalyst
+        doc="Steam to catalyst ratio in the stripper by weight. Defaults to 0.25.",
     )
-    stripper_catalyst_residence_time: float = design_input(
+    stripper_catalyst_residence_time = design_input(
         'Stripper catalyst residence time', 'hr', lb=0,
+        default=75 / 3600, # typically 60 to 90 seconds
     )
-    stripper_length_to_diameter: float = design_input(
-        'Stripper length to diameter ratio', lb=0,
+    stripper_length_to_diameter = design_input(
+        'Stripper length to diameter ratio', lb=0, default=1,
     )
-    CO2_concentration: float = design_input(
-        'CO2 concentration', lb=0, ub=1,
+    CO2_concentration = design_input(
+        'CO2 concentration', lb=0, ub=1, default=0.055,
         doc="Maximum CO2 mass fraction in the flue gas; air flow is increased "
-            "to meet this concentration.",
+            "to meet this concentration. Defaults to 0.055.",
     )
-    regenerator_catalyst_residence_time: float = design_input(
+    regenerator_catalyst_residence_time = design_input(
         'Regenerator catalyst residence time', 'hr', lb=0,
+        default=7.5 / 60, # 5 to 10 min for 1-stage regenerator
     )
-    regenerator_length_to_diameter: float = design_input(
-        'Regenerator length to diameter ratio', lb=0,
+    regenerator_length_to_diameter = design_input(
+        'Regenerator length to diameter ratio', lb=0, default=0.5, # Typically 0.3 to 0.7
     )
-    regenerator_pressure: float = design_input(
-        'Regenerator pressure', 'Pa', lb=0,
+    regenerator_pressure = design_input(
+        'Regenerator pressure', 'Pa', lb=0, default=282685, # 40 psig
     )
 
-    def _init(
-            self,
-            reaction,
-            bulk_reactant=None,
-            vessel_material=None,
-            feed_pressure=None,
-            feed_vapor_fraction=None,
-            catalyst_to_feed_ratio=None,
-            spent_catalyst_to_feed_ratio=None,
-            product_loss=None,
-            riser_product_residence_time=None,
-            # riser_entrance_superficial_velocity=None,
-            riser_length_to_diameter=None,
-            reactor_vessel_dissengagement_height=None, 
-            reactor_vessel_exit_velocity=None,
-            stripper_steam_rate=None,
-            stripper_catalyst_residence_time=None,
-            stripper_length_to_diameter=None,
-            # regenerator_exit_velocity=None,
-            CO2_concentration=None,
-            regenerator_catalyst_residence_time=None,
-            regenerator_length_to_diameter=None,
-            regenerator_pressure=None,
-        ):
-        if vessel_material is None:
-            vessel_material = 'Stainless steel 316'
-        if feed_pressure is None:
-            feed_pressure = 2 * 101325 # Can operate at a low pressure, but must accomodate pressure drop
-        if feed_vapor_fraction is None:
-            feed_vapor_fraction = 0
-        if catalyst_to_feed_ratio is None:
-            catalyst_to_feed_ratio = 5 # by weight
-        if spent_catalyst_to_feed_ratio is None:
-            # TODO: Find value
-            # Mitias recommends (rule of thumb) 
-            spent_catalyst_to_feed_ratio = 1e-6 # by weight; Value is abitrary for now 
-        if product_loss is None:
-            product_loss = 0.5e-2
-        if riser_product_residence_time is None:
-            riser_product_residence_time = 2.1 / 3600  # hr; 1.8 to 2.4 seconds preferred with VGO 
-        # if riser_entrance_superficial_velocity is None:
-        #     riser_entrance_superficial_velocity = 21945.6 # m / h; minimally 15 to 20 ft / s
-        if riser_length_to_diameter is None:
-            riser_length_to_diameter = 20 # Minimally preferred
-        if reactor_vessel_dissengagement_height is None:
-            reactor_vessel_dissengagement_height = 4.572 # m; 15 ft minimally
-        if reactor_vessel_exit_velocity is None:
-            reactor_vessel_exit_velocity = 2194.56 # m / s; 
-        if stripper_steam_rate is None:
-            stripper_steam_rate = 0.25 # wt %; 0.2-0.3 wt % steam per catalyst
-        if stripper_catalyst_residence_time is None:
-            stripper_catalyst_residence_time = 75 / 3600 # hr; typically 60 to 90 seconds
-        if stripper_length_to_diameter is None:
-            stripper_length_to_diameter = 1
-        if CO2_concentration is None: 
-            CO2_concentration = 0.055
-        # if regenerator_exit_velocity is None:
-        #     regenerator_exit_velocity = 2743.2 # m / h; between 2 to 3 ft / s
-        if regenerator_catalyst_residence_time is None:
-            regenerator_catalyst_residence_time = 7.5 / 60 # h; 5 to 10 min for 1-stage regenerator
-        if regenerator_length_to_diameter is None:
-            regenerator_length_to_diameter = 0.5 # Typically 0.3 to 0.7 
-        if regenerator_pressure is None:
-            regenerator_pressure = 282685 # 40 psig
+    def _init(self, reaction, bulk_reactant=None):
         self.reaction = reaction
         self.bulk_reactant = bulk_reactant
-        self.vessel_material = vessel_material
-        self.feed_pressure = feed_pressure
-        self.catalyst_to_feed_ratio = catalyst_to_feed_ratio
-        self.spent_catalyst_to_feed_ratio = spent_catalyst_to_feed_ratio
-        self.product_loss = product_loss
-        self.riser_product_residence_time = riser_product_residence_time
-        # self.riser_entrance_superficial_velocity = riser_entrance_superficial_velocity
-        self.riser_length_to_diameter = riser_length_to_diameter
-        self.reactor_vessel_dissengagement_height = reactor_vessel_dissengagement_height
-        self.reactor_vessel_exit_velocity = reactor_vessel_exit_velocity
-        self.stripper_steam_rate = stripper_steam_rate
-        self.stripper_catalyst_residence_time = stripper_catalyst_residence_time
-        self.stripper_length_to_diameter = stripper_length_to_diameter
-        self.CO2_concentration = CO2_concentration
-        # self.regenerator_exit_velocity = regenerator_exit_velocity
-        self.regenerator_catalyst_residence_time = regenerator_catalyst_residence_time
-        self.regenerator_length_to_diameter = regenerator_length_to_diameter
-        self.regenerator_pressure = regenerator_pressure
-        self.feed_vapor_fraction = feed_vapor_fraction
-        
+
     @property
     def feed(self): return self.ins[0]
     

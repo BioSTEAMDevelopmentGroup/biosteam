@@ -140,17 +140,13 @@ class AmineAbsorption(Unit):
     _N_outs = 2
     _units = {'Total flow': 'kmol/hr',
               'CO2 flow':'kmol/hr'}
-    CO2_recovery: float = design_input('CO2 recovery', lb=0, ub=1)
-    MEA_to_CO2: float = design_input(
-        'Net MEA usage', 'kg/t', lb=0,
-        doc="Net usage of MEA (kg pure MEA/metric tonne CO2 captured).",
+    CO2_recovery = design_input('CO2 recovery', lb=0, ub=1, default=0.9)
+    MEA_to_CO2 = design_input(
+        'Net MEA usage', 'kg/t', lb=0, default=1.5,
+        doc="Net usage of MEA (kg pure MEA/metric tonne CO2 captured). "
+            "Defaults to 1.5 kg/t.",
     )
-    heat_ratio: float = design_input('Duty per kg CO2', 'kJ/kg')
-    
-    def _init(self, CO2_recovery=0.9, MEA_to_CO2=1.5, heat_ratio=3611):
-        self.CO2_recovery = CO2_recovery
-        self.MEA_to_CO2 = MEA_to_CO2
-        self.heat_ratio = heat_ratio
+    heat_ratio = design_input('Duty per kg CO2', 'kJ/kg', default=3611)
     
     def _run(self):
         flue_gas, MEA, water = self.ins

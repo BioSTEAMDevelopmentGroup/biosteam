@@ -2,7 +2,7 @@
 """
 .. contents:: :local:
 
-.. autoclass:: biosteam.units.aerated_bioreactor.GasFedBioreactor
+.. autoclass:: biosteam.units.gas_fed_bioreactor.GasFedBioreactor
 
 References
 ----------
@@ -19,7 +19,7 @@ References
 import biosteam as bst
 from .abstract_stirred_tank_reactor import AbstractStirredTankReactor
 from .aerated_bioreactor import AeratedBioreactor
-from .._unit import design_input
+from .._unit import design_input, update_design_input
 from math import pi
 import numpy as np
 from scipy.constants import g
@@ -171,7 +171,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     The GasFedBioreactor can efficiently solve this numerical problem; 
     just specify the titer and the feed streams it can tweak. 
     In the next example, we are able to achieve a specified titer (~30 g/L) 
-    under optimal hydrogen consumption (~2.58 ratio).
+    under optimal hydrogen consumption (~3.11 ratio).
     
     >>> from biosteam import *
     >>> settings.set_thermo(['H2', 'CO2', 'CO', 'N2', 'O2', 'H2O', 'AceticAcid'])
@@ -189,7 +189,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     ...     ), 
     ...     # Bioreactor design and operation
     ...     design='Bubble column', tau=40,
-    ...     V_max=500, length_to_diameter=12,  
+    ...     V_max=500, length_to_diameter=6,  
     ...     T=305.15, P=101325, batch=False, 
     ...     # Specifications and varibles to optimize
     ...     controlled_feeds=[media, H2], titer={'AceticAcid': 30}, 
@@ -200,7 +200,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     30
     
     >>> round(H2.F_mol / CO2.F_mol, 2) # Optimal H2/CO2 ratio [mol-H2 / mol-CO2]
-    2.58
+    3.11
     
     >>> bioreactor.show('cwt')
     GasFedBioreactor: bioreactor
@@ -212,7 +212,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
     [1] H2  
         phase: 'g', T: 298.15 K, P: 101325 Pa
         flow (%): H2  100
-                  --  812 kg/hr
+                  --  979 kg/hr
     [2] CO2  
         phase: 'g', T: 298.15 K, P: 101325 Pa
         flow (%): CO2  100
@@ -223,7 +223,7 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         flow (%): H2          68.3
                   H2O         29.9
                   AceticAcid  1.81
-                  ----------  267 kg/hr
+                  ----------  512 kg/hr
     [1] product  
         phase: 'l', T: 305.15 K, P: 101325 Pa
         flow (%): H2          0.000146
@@ -241,28 +241,29 @@ class GasFedBioreactor(AbstractStirredTankReactor):
         'gas_coolers',
         *AbstractStirredTankReactor.auxiliary_unit_names
     )
-    T_default = 273.15 + 32 
-    P_default = 101325
-    kW_per_m3_default = 0.2955 # Reaction in homogeneous liquid
-    batch_default = True
+    T = update_design_input(default=273.15 + 32)
+    P = update_design_input(default=101325)
+    kW_per_m3 = update_design_input(default=0.2955) # Reaction in homogeneous liquid
+    batch = update_design_input(default=True)
     default_methods = AeratedBioreactor.default_methods
     get_kLa = AeratedBioreactor.get_kLa
     get_agitation_power = AeratedBioreactor.get_agitation_power
-    compressor_isentropic_efficiency: float = design_input(
-        'Compressor isentropic efficiency', lb=0, ub=1,
+    compressor_isentropic_efficiency = design_input(
+        'Compressor isentropic efficiency', lb=0, ub=1, default=0.85,
     )
-    cooler_pressure_drop: float = design_input(
-        'Cooler pressure drop', 'Pa', lb=0,
+    cooler_pressure_drop = design_input(
+        'Cooler pressure drop', 'Pa', lb=0, default=20684.28,
     )
-    theta: float = design_input(
-        'Gas substrate saturation fraction', lb=0, ub=1,
+    theta = design_input(
+        'Gas substrate saturation fraction', lb=0, ub=1, default=0.5,
         doc="Average concentration of gas substrate in the liquid as a "
             "fraction of saturation.",
     )
-    Q_consumption: float = design_input(
+    Q_consumption = design_input(
         'Duty per gas substrate consumed', 'kJ/kmol',
         doc="Forced duty per gas substrate consumed [kJ/kmol]. If not given, "
             "the duty is computed from the energy balance.",
+        default=None,
     )
     
     def _init(self, 
@@ -276,13 +277,8 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             funneling_reactions=None,
             # General design/performance arguments
             design=None, method=None, kLa_kwargs=None,
-            theta=0.5, Q_consumption=None,
-            cooler_pressure_drop=None,
-            compressor_isentropic_efficiency=None,
             **kwargs,
         ):
-        if compressor_isentropic_efficiency is None: compressor_isentropic_efficiency = 0.85
-            
         if gas_substrates is None:
             gas_substrates = reactions.all_reactants
             if funneling_reactions:
@@ -291,10 +287,6 @@ class GasFedBioreactor(AbstractStirredTankReactor):
             gas_substrates = [i for i in gas_substrates if i in aeration.H_coefficients]
         self.gas_substrates = gas_substrates
         
-        self.compressor_isentropic_efficiency = compressor_isentropic_efficiency
-        self.cooler_pressure_drop = 20684.28 if cooler_pressure_drop is None else cooler_pressure_drop
-        self.theta = theta
-        self.Q_consumption = Q_consumption
         self.kLa_kwargs = {} if kLa_kwargs is None else kLa_kwargs
         self.controlled_feeds = controlled_feeds # list[int|Stream] Feed index or stream.
         self.titer = titer # dict[str, float] g / L

@@ -109,42 +109,29 @@ class RefluxDrum(design.PressureVessel, Unit):
     _default_vessel_type = Flash._default_vessel_type
     vapor  = Flash.vapor
     liquid  = Flash.liquid
-    holdup_time: float = design_input(
-        doc="Time it takes to raise liquid to half full [min].",
-        units='min', lb=0,
+    holdup_time = design_input(
+        doc="Time it takes to raise liquid to half full [min]. Defaults to 3 min.",
+        units='min', lb=0, default=3,
     )
-    surge_time: float = design_input(
-        doc="Time it takes to reach from normal to maximum liquid level [min].",
-        units='min', lb=0,
+    surge_time = design_input(
+        doc="Time it takes to reach from normal to maximum liquid level [min]. "
+            "Defaults to 2 min.",
+        units='min', lb=0, default=2,
     )
-    
-    def _init(self, 
-             vessel_material='Carbon steel',
+    has_mist_eliminator = design_input(
+        default=False, doc="True if using a mist eliminator pad.",
+    )
+
+    def _init(self,
              has_glycol_groups=False,
              has_amine_groups=False,
-             vessel_type=None,
-             holdup_time=3,
-             surge_time=2,
-             has_mist_eliminator=False
         ):
-        #: [str] Vessel construction material
-        self.vessel_material = vessel_material
-        
         #: [bool] True if glycol groups are present in the mixture
         self.has_glycol_groups = has_glycol_groups
-        
+
         #: [bool] True if amine groups are present in the mixture
         self.has_amine_groups = has_amine_groups
-        
-        #: [str] 'Horizontal', 'Vertical', or 'Default'
-        self.vessel_type = vessel_type
-        
-        self.holdup_time = holdup_time
-        self.surge_time = surge_time
-        
-        #: [bool] True if using a mist eliminator pad
-        self.has_mist_eliminator = has_mist_eliminator
-        
+
         self.has_vapor_condenser = False
         
     def _run(self):
@@ -306,95 +293,107 @@ class Distillation(Unit, isabstract=True):
     composition_sensitive = False
     use_overall_energy_balance = True
     
-    k: float = design_input(
+    k = design_input(
         'Reflux to minimum reflux ratio', lb=0,
     )
-    P: float = design_input(
-        'Operating pressure', 'Pa', lb=0,
+    P = design_input(
+        'Operating pressure', 'Pa', lb=0, default=101325,
     )
-    Rmin: float = design_input(
-        'Enforced minimum reflux ratio', lb=0,
+    Rmin = design_input(
+        'Enforced minimum reflux ratio', lb=0, default=0.01,
         doc="User enforced minimum reflux ratio. If the actual minimum reflux "
-            "ratio is more than `Rmin`, this enforced value is ignored.",
+            "ratio is more than `Rmin`, this enforced value is ignored. "
+            "Defaults to 0.01.",
     )
-    tray_spacing: float = design_input(
-        'Tray spacing', 'mm', lb=0,
+    tray_spacing = design_input(
+        'Tray spacing', 'mm', lb=0, default=450,
     )
-    stage_efficiency: float = design_input(
+    stage_efficiency = design_input(
         lb=0, ub=1,
         doc="User enforced stage efficiency. If None, stage efficiency is "
             "calculated by the O'Connell correlation.",
+        default=None,
     )
-    velocity_fraction: float = design_input(
-        lb=0, ub=1,
+    velocity_fraction = design_input(
+        lb=0, ub=1, default=0.8,
         doc="Fraction of actual velocity to maximum velocity allowable before "
-            "flooding.",
+            "flooding. Defaults to 0.8.",
     )
-    open_tray_area: float = design_input(
-        'Open tray area fraction', lb=0, ub=1,
-        doc="Ratio of open area to active area of a tray.",
+    foaming_factor = design_input(lb=0, ub=1, default=1.0)
+    open_tray_area = design_input(
+        'Open tray area fraction', lb=0, ub=1, default=0.1,
+        doc="Ratio of open area to active area of a tray. Defaults to 0.1.",
     )
-    downcomer_area_fraction: float = design_input(
+    downcomer_area_fraction = design_input(
         lb=0, ub=1,
         doc="Enforced fraction of downcomer area to net (total) area of a tray. "
             "If None, the fraction is estimated based on heuristics.",
+        default=None,
+    )
+    weir_height = design_input(
+        lb=0, ub=1, default=0.1,
+        doc="Weir height as a fraction tray spacing. Defaults to 0.1.",
     )
     vacuum_system_preference: str = design_input(
+        default='Liquid-ring pump',
         doc="If a vacuum system is needed, it will choose one according to this "
-            "preference ('Liquid-ring pump', 'Steam-jet ejector', or 'Dry-vacuum pump').",
+            "preference ('Liquid-ring pump', 'Steam-jet ejector', or 'Dry-vacuum pump'). "
+            "Defaults to 'Liquid-ring pump'.",
     )
-    
-    def _init(self, 
-            LHK, k,
-            P=101325, 
-            Rmin=0.01,
+
+    @design_input(catalog=distillation_tray_type_factor, default='Sieve')
+    def tray_type(self):
+        """Tray type. Defaults to 'Sieve'."""
+        return self._tray_type
+    @tray_type.setter
+    def tray_type(self, tray_type):
+        self._tray_type = tray_type
+        F_D = self.F_D
+        F_D['Trays'] = F_D['Stripper trays'] = F_D['Rectifier trays'] = distillation_tray_type_factor[tray_type]
+
+    @design_input(catalog=tray_material_factor_functions, default='Carbon steel')
+    def tray_material(self):
+        """Tray material. Defaults to 'Carbon steel'."""
+        return self._tray_material
+    @tray_material.setter
+    def tray_material(self, tray_material):
+        self._tray_material = tray_material
+        self._F_TM_function = tray_material_factor_functions[tray_material]
+
+    @design_input(catalog=distillation_column_material_factors, default='Carbon steel')
+    def vessel_material(self):
+        """Vessel material. Defaults to 'Carbon steel'."""
+        return self._vessel_material
+    @vessel_material.setter
+    def vessel_material(self, vessel_material):
+        self._vessel_material = vessel_material
+        F_M = self.F_M
+        F_M['Rectifier tower'] = F_M['Stripper tower'] = F_M['Tower'] = distillation_column_material_factors[vessel_material]
+
+    def _init(self,
+            LHK,
             Lr=None,
             Hr=None,
             y_top=None,
-            x_bot=None, 
+            x_bot=None,
             product_specification_format=None,
-            vessel_material='Carbon steel',
-            tray_material='Carbon steel',
-            tray_type='Sieve',
-            tray_spacing=450,
-            stage_efficiency=None,
-            velocity_fraction=0.8,
-            foaming_factor=1.0,
-            open_tray_area=0.1,
-            downcomer_area_fraction=None,
             is_divided=False,
-            vacuum_system_preference='Liquid-ring pump',
             condenser_thermo=None,
             reboiler_thermo=None,
             partial_condenser=True,
-            weir_height=0.1,
             vlle=False,
             check_LHK=True,
         ):
         self.check_LHK = check_LHK
         self._vlle = vlle
-        
+
         # Operation specifications
-        self.k = k
-        self.P = P
-        self.Rmin = Rmin
         self._partial_condenser = partial_condenser
         self._set_distillation_product_specifications(product_specification_format,
                                                       x_bot, y_top, Lr, Hr)
-        
+
         # Construction specifications
-        self.vessel_material = vessel_material
-        self.tray_type = tray_type
-        self.tray_material = tray_material
-        self.tray_spacing = tray_spacing
-        self.weir_height = weir_height
-        self.stage_efficiency = stage_efficiency
-        self.velocity_fraction = velocity_fraction
-        self.foaming_factor = foaming_factor
-        self.open_tray_area = open_tray_area
-        self.downcomer_area_fraction = downcomer_area_fraction
         self.is_divided = is_divided
-        self.vacuum_system_preference = vacuum_system_preference
         self._load_components(partial_condenser, condenser_thermo, reboiler_thermo)
         self.LHK = LHK
 
@@ -616,69 +615,6 @@ class Distillation(Unit, isabstract=True):
                 "heavy key recovery in the bottoms product must be a fraction" 
             )
         self._Hr = Hr
-    
-    @property
-    def weir_height(self):
-        """Weir height as a fraction tray spacing."""
-        return self._WH
-    @weir_height.setter
-    def weir_height(self, WS):
-        if not 0 < WS < 1:
-            raise ValueError(
-                "weir height must be a fraction" 
-            )
-        self._WH = WS
-    
-    @property
-    def foaming_factor(self):
-        """Foaming factor (0 to 1)."""
-        return self._F_F
-    @foaming_factor.setter
-    def foaming_factor(self, F_F):
-        if not 0 <= F_F <= 1:
-            raise ValueError(f"foaming_factor must be between 0 and 1, ({F_F} given).")
-        self._F_F = F_F
-    
-    @property
-    def tray_type(self):
-        """Default 'Sieve'"""
-        return self._tray_type
-    @tray_type.setter
-    def tray_type(self, tray_type):
-        if tray_type in distillation_tray_type_factor:
-            self._tray_type = tray_type
-            F_D = self.F_D
-            F_D['Trays'] = F_D['Stripper trays'] = F_D['Rectifier trays'] = distillation_tray_type_factor[tray_type]
-        else:
-            raise ValueError("tray type must be one of the following: "
-                            f"{', '.join(distillation_tray_type_factor)}")
-        
-    @property
-    def tray_material(self):
-        """Default 'Carbon steel'"""
-        return self._tray_material
-    @tray_material.setter
-    def tray_material(self, tray_material):
-        if tray_material in tray_material_factor_functions:
-            self._tray_material = tray_material
-            self._F_TM_function = tray_material_factor_functions[tray_material]
-        else:
-            raise ValueError("tray material must be one of the following: "
-                            f"{', '.join(tray_material_factor_functions)}")
-        
-    @property
-    def vessel_material(self):
-        """Default 'Carbon steel'"""
-        return self._vessel_material
-    @vessel_material.setter
-    def vessel_material(self, vessel_material):
-        if vessel_material in distillation_column_material_factors:
-            self._vessel_material = vessel_material
-            F_M = self.F_M
-            F_M['Rectifier tower'] = F_M['Stripper tower'] = F_M['Tower'] = distillation_column_material_factors[vessel_material]            
-        else:
-            raise ValueError("vessel material must be one of the following: "
-                            f"{', '.join(distillation_column_material_factors)}")
     
     @property
     def is_divided(self):
@@ -984,7 +920,7 @@ class Distillation(Unit, isabstract=True):
         rho_V = vap.rho
         F_LV = design.compute_flow_parameter(L, V, rho_V, rho_L)
         C_sbf = design.compute_max_capacity_parameter(TS, F_LV)
-        F_F = self._F_F
+        F_F = self.foaming_factor
         A_ha = self._open_tray_area
         U_f = design.compute_max_vapor_velocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha)
         A_dn = self._downcomer_area_fraction
@@ -1379,13 +1315,18 @@ class BinaryDistillation(Distillation, new_graphics=False):
     Low pressure steam       Duty                                  kJ/hr          9.06e+06
                              Flow                                kmol/hr               234
                              Cost                                 USD/hr              55.7
-    Design inputs            Operating pressure                       Pa            101325
+    Design inputs            Reflux to minimum reflux ratio                              2
+                             Operating pressure                       Pa          1.01e+05
                              Enforced minimum reflux ratio                            0.01
-                             Reflux to minimum reflux ratio                              2
-                             Open tray area fraction                                   0.1
                              Tray spacing                             mm               450
-                             Vacuum system preference                     Liquid-ring pump
                              Velocity fraction                                         0.8
+                             Foaming factor                                              1
+                             Open tray area fraction                                   0.1
+                             Weir height                                               0.1
+                             Vacuum system preference                     Liquid-ring pump
+                             Tray type                                               Sieve
+                             Tray material                                    Carbon steel
+                             Vessel material                                  Carbon steel
     Design results           Theoretical feed stage                                      9
                              Theoretical stages                                         13
                              Minimum reflux                        Ratio             0.687
@@ -1950,13 +1891,18 @@ class ShortcutColumn(Distillation, new_graphics=False):
     Medium pressure steam    Duty                                  kJ/hr          1.25e+07
                              Flow                                kmol/hr               346
                              Cost                                 USD/hr              95.4
-    Design inputs            Operating pressure                       Pa            101325
+    Design inputs            Reflux to minimum reflux ratio                              2
+                             Operating pressure                       Pa          1.01e+05
                              Enforced minimum reflux ratio                            0.01
-                             Reflux to minimum reflux ratio                              2
-                             Open tray area fraction                                   0.1
                              Tray spacing                             mm               450
-                             Vacuum system preference                     Liquid-ring pump
                              Velocity fraction                                         0.8
+                             Foaming factor                                              1
+                             Open tray area fraction                                   0.1
+                             Weir height                                               0.1
+                             Vacuum system preference                     Liquid-ring pump
+                             Tray type                                               Sieve
+                             Tray material                                    Carbon steel
+                             Vessel material                                  Carbon steel
     Design results           Theoretical feed stage                                      8
                              Theoretical stages                                         16
                              Minimum reflux                        Ratio              1.06
@@ -2353,22 +2299,27 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
     
     >>> stripper.results()
     Stripper                                           Units
-    Design inputs            Number of stages                       2
-                             Open tray area fraction              0.1
-                             Tray spacing                 mm      450
-                             Velocity fraction                    0.8
-    Design results           Theoretical stages                     2
-                             Actual stages                          4
-                             Height                       ft     19.9
-                             Diameter                     ft        3
-                             Wall thickness               in    0.312
-                             Weight                       lb 2.71e+03
-    Purchase cost            Trays                       USD 5.59e+03
-                             Tower                       USD 2.91e+04
-                             Platform and ladders        USD 7.52e+03
-    Total purchase cost                                  USD 4.23e+04
-    Installed equipment cost                             USD 1.57e+05
-    Utility cost                                      USD/hr        0
+    Design inputs            Number of stages                            2
+                             Weir height                               0.1
+                             Tray spacing                 mm           450
+                             Velocity fraction                         0.8
+                             Foaming factor                              1
+                             Open tray area fraction                   0.1
+                             Tray type                               Sieve
+                             Tray material                    Carbon steel
+                             Vessel material                  Carbon steel
+    Design results           Theoretical stages                          2
+                             Actual stages                               4
+                             Height                       ft          19.9
+                             Diameter                     ft             3
+                             Wall thickness               in         0.312
+                             Weight                       lb      2.71e+03
+    Purchase cost            Trays                       USD      5.59e+03
+                             Tower                       USD      2.91e+04
+                             Platform and ladders        USD      7.52e+03
+    Total purchase cost                                  USD      4.23e+04
+    Installed equipment cost                             USD      1.57e+05
+    Utility cost                                      USD/hr             0
     
     """
     _graphics = vertical_column_graphics
@@ -2407,17 +2358,7 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
             liquid_side_draws=None,
             P=101325,  
             T=None,
-            partition_data=None, 
-            vessel_material='Carbon steel',
-            tray_material='Carbon steel',
-            tray_type='Sieve',
-            tray_spacing=450,
-            stage_efficiency=None,
-            velocity_fraction=0.8,
-            foaming_factor=1.0,
-            open_tray_area=0.1,
-            downcomer_area_fraction=None,
-            weir_height=0.1,
+            partition_data=None,
             use_cache=None,
             vle_decomposition=None,
             maxiter=None,
@@ -2438,16 +2379,6 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
        
         # Construction specifications
         self.solute = solute
-        self.vessel_material = vessel_material
-        self.tray_type = tray_type
-        self.tray_material = tray_material
-        self.tray_spacing = tray_spacing
-        self.stage_efficiency = stage_efficiency
-        self.velocity_fraction = velocity_fraction
-        self.foaming_factor = foaming_factor
-        self.open_tray_area = open_tray_area
-        self.downcomer_area_fraction = downcomer_area_fraction
-        self.weir_height = weir_height
         self._last_args = (
             self.N_stages, self.feed_stages, self.vapor_side_draws, 
             self.liquid_side_draws, self.use_cache, *self._ins, 
@@ -2529,7 +2460,7 @@ class AdiabaticMultiStageVLEColumn(MultiStageEquilibrium):
         Design = self.design_results
         TS = self._tray_spacing
         A_ha = self._open_tray_area
-        F_F = self._F_F
+        F_F = self.foaming_factor
         f = self._velocity_fraction
        
         ### Get diameter of column based on outlets (assuming they are comparable to each stages) ###
@@ -2672,10 +2603,15 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                              Flow                                kmol/hr               202
                              Cost                                 USD/hr                48
     Design inputs            Number of stages                                            5
-                             Open tray area fraction                                   0.1
+                             Weir height                                               0.1
                              Tray spacing                             mm               450
-                             Vacuum system preference                     Liquid-ring pump
                              Velocity fraction                                         0.8
+                             Foaming factor                                              1
+                             Open tray area fraction                                   0.1
+                             Tray type                                               Sieve
+                             Tray material                                    Carbon steel
+                             Vessel material                                  Carbon steel
+                             Vacuum system preference                     Liquid-ring pump
     Design results           Theoretical stages                                          5
                              Actual stages                                               7
                              Height                                   ft              24.3
@@ -2764,7 +2700,12 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
     tray_type = Distillation.tray_type
     tray_material = Distillation.tray_material
     vessel_material = Distillation.vessel_material
-    vacuum_system_preference = Distillation.vacuum_system_preference
+    vacuum_system_preference: str = design_input(
+        default='Liquid-ring pump',
+        doc="If a vacuum system is needed, it will choose one according to this "
+            "preference ('Liquid-ring pump', 'Steam-jet ejector', or 'Dry-vacuum pump'). "
+            "Defaults to 'Liquid-ring pump'.",
+    )
     
     def _init(self, 
             N_stages, feed_stages, 
@@ -2772,17 +2713,6 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
             P=101325, 
             vapor_side_draws=None, liquid_side_draws=None,
             stage_reactions=None,
-            vessel_material='Carbon steel',
-            tray_material='Carbon steel',
-            tray_type='Sieve',
-            tray_spacing=450,
-            stage_efficiency=None,
-            velocity_fraction=0.8,
-            foaming_factor=1.0,
-            open_tray_area=0.1,
-            weir_height=0.1,
-            downcomer_area_fraction=None,
-            vacuum_system_preference='Liquid-ring pump',
             partition_data=None,
             full_condenser=None,
             use_cache=None,
@@ -2804,8 +2734,8 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                 else:
                     liquid_side_draws[0] = reflux / (1 + reflux)
             reflux = inf # Boil-up is 0
-        if LHK is None and stage_efficiency is None:
-            stage_efficiency = 0.6
+        if LHK is None and self.stage_efficiency is None:
+            self.stage_efficiency = 0.6 # Cannot estimate stage efficiency without light and heavy keys
         self.LHK = LHK
         if stage_specifications is None: stage_specifications = {}
         if reflux is not None:
@@ -2828,18 +2758,6 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
                       vlle=vlle,
                       specifications_by_weight=specifications_by_weight)
         
-        # Construction specifications
-        self.weir_height = weir_height
-        self.vessel_material = vessel_material
-        self.tray_type = tray_type
-        self.tray_material = tray_material
-        self.tray_spacing = tray_spacing
-        self.stage_efficiency = stage_efficiency
-        self.velocity_fraction = velocity_fraction
-        self.foaming_factor = foaming_factor
-        self.open_tray_area = open_tray_area
-        self.downcomer_area_fraction = downcomer_area_fraction
-        self.vacuum_system_preference = vacuum_system_preference
         self._load_components()
         self._last_args = (
             self.N_stages, self.feed_stages, self.vapor_side_draws, 
@@ -3012,7 +2930,7 @@ class MESHDistillation(MultiStageEquilibrium, new_graphics=False):
         diameters = []
         TS = self._tray_spacing
         A_ha = self._open_tray_area
-        F_F = self._F_F
+        F_F = self.foaming_factor
         f = self._velocity_fraction
         for i in self.stages:
             vapor, liquid = i.partition.outs

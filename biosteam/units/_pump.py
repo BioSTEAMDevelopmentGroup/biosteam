@@ -92,7 +92,10 @@ class Pump(Unit):
     Electricity              Power                       kW        0.288
                              Cost                    USD/hr       0.0225
     Design inputs            Outlet pressure             Pa        2e+05
-                             Design pressure change      Pa       101325
+                             Design pressure change      Pa     1.01e+05
+                             Pump type                           Default
+                             Material                          Cast iron
+                             Ignore npsh                            True
     Design results           Type                            Centrifugal
                              Ideal power                 hp        0.136
                              Flow rate                  gpm         16.3
@@ -121,50 +124,25 @@ class Pump(Unit):
               'Flow rate': 'gpm'}
     _F_BM_default = {'Pump': 3.3,
                      'Motor': 3.3}
-    P: float = bst.design_input(
-        'Outlet pressure', 'Pa',
-        doc="Pressure of output stream [Pa]. If None or the same as the inlet, "
+    P = bst.design_input(
+        'Outlet pressure', 'Pa', lb=0,
+        doc="Pressure of output stream [Pa]. If not given, "
             "the pump is designed to increase the pressure by `dP_design`.",
+        default=None,
     )
-    dP_design: float = bst.design_input(
-        'Design pressure change', 'Pa', lb=0,
+    dP_design = bst.design_input(
+        'Design pressure change', 'Pa', default=101325, lb=0,
     )
-
-    @property
-    def pump_type(self):
-        """Pump type"""
-        return self._pump_type
-    @pump_type.setter
-    def pump_type(self, pump_type):
-        if pump_type not in pump_types:
-            raise ValueError('Type must be one of the following: {", ".join(pump_types)}')
-        self._pump_type = pump_type
-    
-    @property
-    def material(self):
-        """Pump material"""
-        return self._material
-    @material.setter    
-    def material(self, material):
-        try:
-            self.F_M['Pump'] = pump_material_factors[material]
-        except KeyError:
-            raise ValueError("material must be one of the following: "
-                            f"{', '.join(pump_material_factors)}")
-        self._material = material  
-        
-    def _init(self, 
-             P=None,
-             pump_type='Default',
-             material='Cast iron',
-             dP_design=101325,
-             ignore_NPSH=True
-        ):
-        self.P = P
-        self.pump_type = pump_type
-        self.material = material
-        self.dP_design = dP_design
-        self.ignore_NPSH = ignore_NPSH
+    pump_type = bst.design_input(
+        catalog=pump_types, default='Default',
+    )
+    material = bst.design_input(
+        catalog=pump_material_factors,
+        purchase_item='Pump',
+        catalog_type='Material',
+        default='Cast iron',
+    )
+    ignore_NPSH = bst.design_input(default=True)
     
     def _run(self):
         s_in, = self.ins

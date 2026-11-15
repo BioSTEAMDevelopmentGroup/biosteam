@@ -64,21 +64,20 @@ class SolidsSeparator(Splitter):
     """
     _N_ins = 1
     _ins_size_is_fixed = False
-    moisture_content: float = bst.design_input(
+    moisture_content = bst.design_input(
         'Retentate moisture content', lb=0, ub=1,
+        default=None,
     )
     
-    def _init(self, split, 
-            order=None, moisture_content=None, 
+    def _init(self, split,
+            order=None,
             moisture_ID=None,
             strict_moisture_content=None
         ):
         Splitter._init(self, order=order, split=split)
-        self.moisture_content = moisture_content
         self.strict_moisture_content = strict_moisture_content
-        if moisture_content is not None:
-            if moisture_ID is None: moisture_ID = '7732-18-5'
-            self.moisture_ID = moisture_ID
+        if moisture_ID is None: moisture_ID = '7732-18-5'
+        self.moisture_ID = moisture_ID
     
     def _run(self):
         if self.moisture_content is None:
@@ -143,30 +142,32 @@ class SolidsCentrifuge(SolidsSeparator):
     _units = {'Solids loading': 'ton/hr',
               'Flow rate': 'm3/hr'}
     solids_loading_range = {
-    'reciprocating_pusher': (1, 20),
-    'scroll_solid_bowl': (2, 40)
+        'reciprocating_pusher': (1, 20),
+        'scroll_solid_bowl': (2, 40)
     }
     #: Purchase cost coefficients (USD at CE = 567, exponent) of a single
     #: centrifuge as a function of its solids loading in ton/hr.
     purchase_cost_coefficients = {
-    'reciprocating_pusher': (170100, 0.30),
-    'scroll_solid_bowl': (68040, 0.50)
+        'reciprocating_pusher': (170100, 0.30),
+        'scroll_solid_bowl': (68040, 0.50)
     }
     kWhr_per_m3 = 1.40
+    moisture_content = bst.update_design_input(default=0.40)
+    centrifuge_type = bst.design_input(
+        default='scroll_solid_bowl', 
+        catalog=purchase_cost_coefficients,
+    )
 
-
-    def _init(self, split, order=None, solids=None, moisture_content=0.40,
-              centrifuge_type='scroll_solid_bowl', moisture_ID=None,
+    def _init(self, split, order=None, solids=None,
+              moisture_ID=None,
               strict_moisture_content=None):
         SolidsSeparator._init(
-            self, moisture_content=moisture_content,
-            split=split, order=order, moisture_ID=moisture_ID,
+            self, split=split, order=order, moisture_ID=moisture_ID,
             strict_moisture_content=strict_moisture_content
         )
         if solids is None:
             solids = [i.ID for i in self.chemicals if i.locked_state == 's']
         self.solids = solids
-        self.centrifuge_type = centrifuge_type
     
     @property
     def solids(self):
@@ -174,16 +175,6 @@ class SolidsCentrifuge(SolidsSeparator):
     @solids.setter
     def solids(self, solids):
         self._solids = tuple(solids)
-    
-    @property
-    def centrifuge_type(self):
-        return self._centrifuge_type
-    @centrifuge_type.setter
-    def centrifuge_type(self, i):
-        if not i in ('reciprocating_pusher', 'scroll_solid_bowl'):
-            raise ValueError('`centrifuge_type` can only be "reciprocating_pusher" or '
-                            f'"scroll_solid_bowl", not {i}.')
-        self._centrifuge_type = i
 
     def _design(self):
         solids, centrifuge_type = self._solids, self.centrifuge_type
@@ -356,8 +347,9 @@ class PressureFilter(SolidsSeparator):
     
     """
     _units = {'Retentate flow rate': 'kg/hr'}
-    
-    def _init(self, moisture_content=0.35, split=None):
+    moisture_content = bst.update_design_input(default=0.35)
+
+    def _init(self, split=None):
         if split is None:
             chemicals = self.chemicals
             split = dict(
@@ -408,7 +400,7 @@ class PressureFilter(SolidsSeparator):
             )
             remove_undefined_chemicals(split, chemicals)
             default_chemical_dict(split, chemicals, 0.03714, 0.03714, 0.9811)
-        bst.SolidsSeparator._init(self, moisture_content=moisture_content, split=split)
+        bst.SolidsSeparator._init(self, split=split)
     
     def _design(self):
         self.design_results['Retentate flow rate'] = self.outs[0].F_mass

@@ -139,7 +139,7 @@ def register_utility(self, name: str, price: float):
         flowmethname = f"get_{methname}_flow"
         costmethname = f"get_{methname}_cost"
         repname = repr(name)
-        globs = {'bst': bst}
+        globs = {'bst': bst, '__name__': __name__} # Gives the methods a module
         flow_kwargs = dict(
             flowmethname=flowmethname,
             docname=docname,

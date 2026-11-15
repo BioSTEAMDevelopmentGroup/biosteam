@@ -37,7 +37,7 @@ if TYPE_CHECKING:
     HXutility = bst.HXutility
     UtilityAgent = bst.UtilityAgent
 
-streams = Optional[Sequence[Stream|str]]
+streams = Optional[Sequence[Stream]]
 
 __all__ = ('Unit', 'design_input', 'update_design_input', 'ProcessSpecification', 'BoundedNumericalSpecification')
 
@@ -183,7 +183,7 @@ def design_input(
     ...     tau = bst.design_input('Residence time', 'hr', lb=0)
     ...     orientation = bst.design_input(catalog={'Vertical', 'Horizontal'}, default='Vertical')
     ...     open_roof = bst.design_input(default=False)
-    ...     N_vessels: int = bst.design_input(default=1, lb=0)
+    ...     N_vessels: int = bst.design_input(default=1, lb=1)
     ...     
     ...     @bst.design_input(units='m3', lb=0)
     ...     def volume(self):
@@ -202,9 +202,24 @@ def design_input(
     >>> Vessel.open_roof
     LogicalDesignInput('Open roof', default=False)
     >>> Vessel.N_vessels
-    NumericalDesignInput('N vessels', default=1)
+    NumericalDesignInput('N vessels', default=1, lb=1)
     
     """
+    if callable(name):
+        if (units is None and 
+            default is empty and 
+            lb is None and
+            ub is None and
+            catalog is None and
+            purchase_item is None and
+            catalog_type is None and
+            fget is None and 
+            fset is None and
+            fdel is None and
+            doc is None):
+            return DesignInput(fget=name)
+        else:
+            raise ValueError('`name` must be a string')
     if catalog is None:
         if catalog_type is not None:
             raise ValueError('cannot define catalog_type without catalog')
@@ -218,21 +233,24 @@ def design_input(
             if ub is not None:
                 raise ValueError('logical design input cannot have an upper bound (ub)')
             return LogicalDesignInput(name, default, fget, fset, fdel, doc)
+        elif units is None and lb is None and ub is None:
+            return DesignInput(name, default, fget, fset, fdel, doc)
         else:
             if units is None: units = ''
             return NumericalDesignInput(name, units, default, lb, ub, fget, fset, fdel, doc)
     else:
         N_none = (catalog_type is None) + (purchase_item is None)
         if N_none == 0:
-            catalog_type = catalog_type.capitalize()
-            if catalog_type == 'Material':
-                catalog_type = 'F_M'
-            elif catalog_type == 'Design':
-                catalog_type = 'F_D'
-            elif catalog_type == 'Module':
-                catalog_type = 'F_BM'
-            else:
-                raise ValueError(f"{catalog_type!r} is not a recognised catalog_type ; only 'Material', 'Design', or 'Module' are valid")
+            if catalog_type not in ('F_M', 'F_D', 'F_BM'):
+                catalog_type = catalog_type.capitalize()
+                if catalog_type == 'Material':
+                    catalog_type = 'F_M'
+                elif catalog_type == 'Design':
+                    catalog_type = 'F_D'
+                elif catalog_type == 'Module':
+                    catalog_type = 'F_BM'
+                else:
+                    raise ValueError(f"{catalog_type!r} is not a recognised catalog_type ; only 'Material', 'Design', or 'Module' are valid")
         elif N_none == 2:
             purchase_item = None
             catalog_type = None
@@ -265,6 +283,17 @@ class update_design_input:
         kwargs = ', '.join([f'{i}={j!r}' for i, j in self.updates.items()])
         return f"{type(self).__name__}({kwargs})"
 
+def _resolve_annotation(annotation, module):
+    # Annotations are strings when `from __future__ import annotations` is used
+    if not isinstance(annotation, str): return annotation
+    import sys, builtins
+    namespace = getattr(sys.modules.get(module), '__dict__', {})
+    try:
+        annotation = eval(annotation, {'__builtins__': builtins, **namespace})
+    except Exception:
+        return None
+    return annotation if isinstance(annotation, type) else None
+
 def _get_class_annotation(owner, key):
     try:
         import annotationlib
@@ -277,21 +306,61 @@ def _get_class_annotation(owner, key):
             )
         except Exception:
             return None
-    return annotations.get(key)
+    return _resolve_annotation(annotations.get(key), owner.__module__)
 
 
 class DesignInput:
+    _new_attributes = ()
+    _default_return_type = None
+    
+    def __init__(self, name=None, default=empty, fget=None, fset=None, fdel=None, doc=None):
+        self.name = name
+        self.default = default
+        self.fget = fget
+        self.fset = fset
+        self.fdel = fdel
+        self.doc = doc
     
     def copy(self, **kwargs):
         for i in ('name', 'default', 'fget', 'fset', 'fdel', 'doc', *self._new_attributes):
             if i not in kwargs:
                 kwargs[i] = getattr(self, i)
-        copy = type(self)(**kwargs)
+        copy = design_input(**kwargs)
         if hasattr(self, '_return_type'):
             copy._default_return_type = self._return_type
         if hasattr(self, '__name__'):
             copy.__name__ = self.__name__
         return copy
+    
+    def validate(self, value):
+        return_type = self._return_type
+        if return_type is None: return value
+        try:
+            new_value = return_type(value)
+        except (TypeError, ValueError):
+            pass
+        else:
+            if new_value == value: return new_value
+        raise AttributeError(
+            f'{self.__name__} must be a {return_type.__name__}; '
+            f'{type(value).__name__} object is invalid'
+        )
+        
+    def _make_doc(self, param=False):
+        default = self.default
+        units = getattr(self, 'units', '')
+        if default in (None, empty):
+            default_note = ''
+        elif units:
+            default_note = f' Defaults to {default!r} [{units}].'
+        else:
+            default_note = f' Defaults to {default!r}.'
+        if units:
+            name = f"{self.name} [{units}]." 
+        else:
+            name = f"{self.name}."
+        doc = f"{name}{default_note}"
+        return doc
 
     def __set_name__(self, owner, name):
         self.__name__ = name
@@ -306,33 +375,36 @@ class DesignInput:
         elif N_none == 0:
             annotations = fget.__annotations__
             if 'return' in annotations:
-                self._return_type = annotations['return']
+                self._return_type = _resolve_annotation(
+                    annotations['return'], fget.__module__
+                ) or self._default_return_type
             else:
-                annotations['return'] = self._return_type = self._default_return_type
+                self._return_type = return_type = self._default_return_type
+                if return_type is not None:
+                    annotations['return'] = return_type
         else:
             self._return_type = _get_class_annotation(owner, name) or self._default_return_type
             
         # Validate default
         default = self.default
         if default not in (None, empty): 
-            self.default = default = self.validate(default)
+            if self._return_type is None:
+                self._return_type = type(default)
+            else:
+                default = self.validate(default)
+            self.default = default
         
         # Setup docstring
-        if self.doc is None:
-            if fget is None or (doc:=fget.__doc__) is None:
+        doc = self.doc
+        if doc is None:
+            if fget is None or (doc:=fget.__doc__) is None: 
                 doc = self._make_doc()
-            self.__doc__ = doc
+        self.__doc__ = doc
             
         # Default getter/setter
         if N_none == 2: 
-            # Document like a property with a getter named after the attribute
             attr = '_' + name
             self.fget = eval(f'lambda self: self.{attr}')
-            # fget.__name__ = name
-            # fget.__qualname__ = f"{owner.__qualname__}.{name}"
-            # fget.__module__ = owner.__module__
-            # fget.__doc__ = doc
-            # fget.__annotations__ = {'return': self._return_type}
             self.fset = eval(f'lambda unit, value: setattr(unit, {attr!r}, value)')
 
     def __call__(self, fget):
@@ -360,9 +432,17 @@ class DesignInput:
         if instance is None: return self
         return self.fget(instance)
 
+    def __set__(self, unit, value):
+        if value is not None: value = self.validate(value)
+        self.fset(unit, value)
+
     def __delete__(self, unit):
         if self.fdel is None: raise AttributeError(f'cannot delete design input {self.__name__!r}')
         self.fdel(unit)
+
+    def __repr__(self):
+        default = '' if self.default in (None, empty) else f', default={self.default!r}'
+        return f"{type(self).__name__}({self.name!r}{default})"
 
 
 class NumericalDesignInput(DesignInput):
@@ -380,41 +460,37 @@ class NumericalDesignInput(DesignInput):
         self.fdel = fdel
         self.doc = doc
     
-    def _make_doc(self):
+    def _make_doc(self, param=False):
+        if param: return super()._make_doc(param)
         units = self.units
-        default = self.default
         lb = self.lb
         ub = self.ub
         if lb is None:
             if ub is None:
                 limits = ''
             elif ub == 0:
-                limits = f' {self.__name__} must be negative.'
+                limits = ' Must be negative.'
             else:
-                limits = f' {self.__name__} must be lower than {ub}.'
+                limits = f' Must be lower than {ub}.'
         elif ub is None:
             if lb == 0:
-                limits = f' {self.__name__} must be positive.'
+                limits = ' Must be positive.'
             else:
-                limits = f' {self.__name__} must be greater than {lb}.'
+                limits = f' Must be greater than {lb}.'
         else:
-            limits = f"{self.__name__} must be between {lb} and {ub}."
-        
-        if default is None:
-            default_note = ''
-        elif units:
-            default_note = f' Defaults to {default!r} [{units}].'
-        else:
-            default_note = f' Defaults to {default!r}.'
+            limits = f" Must be between {lb} and {ub}."
         if units:
-            doc = f"{self.name} [{units}].{limits}{default_note}" 
+            doc = f"{self.name} [{units}].{limits}" 
         else:
-            doc = f"{self.name}.{limits}{default_note}"
+            doc = f"{self.name}.{limits}"
         return doc
         
     def validate(self, value):
-        new_value = self._return_type(value)
-        if new_value == value:
+        try:
+            new_value = self._return_type(value)
+        except (TypeError, ValueError):
+            new_value = None
+        if new_value is not None and new_value == value:
             value = new_value
             if self.lb is not None and value < self.lb:
                 units = self.units
@@ -437,11 +513,11 @@ class NumericalDesignInput(DesignInput):
         raise AttributeError(msg)
 
     def __set__(self, unit, value):
-        if value is not None: self.validate(value)
+        if value is not None: value = self.validate(value)
         self.fset(unit, value)
 
     def __repr__(self):
-        default = '' if self.default is None else f', default={self.default!r}'
+        default = '' if self.default in (None, empty) else f', default={self.default!r}'
         units = f', {self.units!r}' if self.units else ''
         lb = '' if self.lb is None else f', lb={self.lb}'
         ub = '' if self.ub is None else f', ub={self.ub}'
@@ -463,27 +539,37 @@ class CategoricalDesignInput(DesignInput):
         self.fdel = fdel
         self.doc = doc
 
-    def _make_doc(self):
+    def _make_doc(self, param=False):
+        if param: return super()._make_doc(param)
         catalog = self.catalog
         N = len(catalog)
         if N > 2:
             *names, last = list(catalog)
             names = ', '.join([repr(i) for i in names]) + ', and ' + repr(last)
-            catalog_note = f"Valid {self.__name__} choices include {names}."
+            catalog_note = f" Valid choices include {names}."
         elif N == 2:
             left, right = catalog
-            catalog_note = f"Valid {self.__name__} choices include {left!r} and {right!r}."
+            catalog_note = f" Valid choices include {left!r} and {right!r}."
         elif N == 1:
             name = list(catalog)[0]
-            catalog_note = f"{name!r} is the only valid {self.__name__}."
+            catalog_note = f" {name!r} is the only valid choice."
         else:
-            catalog_note = f"No valid {self.__name__} is available."
+            catalog_note = " No valid choice is available."
         purchase_item = self.purchase_item
         if purchase_item is None:
             cost_note = ''
         else:
-            cost_note = f'The {self.__name__} will impact the {self.catalog_type.lower()} cost factor of {purchase_item!r}.'
-        if self.default is None:
+            catalog_type = self.catalog_type
+            if catalog_type.endswith('BM'): 
+                catalog_type = 'bare module'
+            elif catalog_type.endswith('D'): 
+                catalog_type = 'design'
+            elif catalog_type.endswith('M'): 
+                catalog_type = 'material'
+            else:
+                raise RuntimeError('invalid catalog type')
+            cost_note = f' The {self.__name__} will impact the {catalog_type} cost factor of {purchase_item!r}.'
+        if self.default in (None, empty):
             default_note = ''
         else:
             default_note = f' Defaults to {self.default!r}.'
@@ -530,15 +616,14 @@ class CategoricalDesignInput(DesignInput):
     def __repr__(self):
         catalog = self.catalog
         if isinstance(catalog, (set, frozenset)):
-            catalog = ', catalog={' + str(sorted(catalog))[1:-1] + '}'
+            catalog = ', catalog={' + ', '.join([repr(i) for i in sorted(catalog)]) + '}'
         elif catalog is None:
             catalog = ''
         else:
             catalog = f', catalog={catalog}'
-        catalog = '' if self.catalog is None else f', catalog={self.catalog}'
-        purchase_item = '' if self.purchase_item is None else f', purchase_item={self.purchase_item}'
-        catalog_type = '' if self.catalog_type is None else f', catalog_type={self.catalog_type}'
-        default = '' if self.default is None else f', default={self.default!r}'
+        purchase_item = '' if self.purchase_item is None else f', purchase_item={self.purchase_item!r}'
+        catalog_type = '' if self.catalog_type is None else f', catalog_type={self.catalog_type!r}'
+        default = '' if self.default in (None, empty) else f', default={self.default!r}'
         return f"{type(self).__name__}({self.name!r}{default}{catalog}{purchase_item}{catalog_type})"
 
 
@@ -554,15 +639,6 @@ class LogicalDesignInput(DesignInput):
         self.fdel = fdel
         self.doc = doc
 
-    def _make_doc(self):
-        default = self.default
-        if default is None:
-            default_note = ''
-        else:
-            default_note = f' Defaults to {default!r}.'
-        doc = f"{self.name}.{default_note}"
-        return doc
-
     def validate(self, value):
         if isinstance(value, bool):
             return value
@@ -574,7 +650,7 @@ class LogicalDesignInput(DesignInput):
         self.fset(unit, value)
 
     def __repr__(self):
-        default = '' if self.default is None else f', default={self.default!r}'
+        default = '' if self.default in (None, empty) else f', default={self.default!r}'
         return f"{type(self).__name__}({self.name!r}{default})"
     
 
@@ -2794,7 +2870,7 @@ class Unit:
         >>> tank.set_design_input('tau', 'day', 7)
         168
         >>> tank.get_design_input('tau', 'hr')
-        168
+        168.0
         
         """
         value = convert(value, units, self.get_design_input_units(key))
@@ -2915,7 +2991,8 @@ class Unit:
         cls = self.__class__
         design_inputs = []
         for key in self._design_inputs:
-            value = getattr(self, key)
+            try: value = getattr(self, key)
+            except AttributeError: continue # Never set
             if value is None: continue # Decision not made
             dd = getattr(cls, key)
             design_inputs.append(

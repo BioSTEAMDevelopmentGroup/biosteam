@@ -48,7 +48,7 @@ from .decorators import cost, copy_algorithm
 from .stage import MultiStageEquilibrium
 from .._graphics import mixer_settler_graphics
 from .. import Unit
-from .._unit import design_input
+from .._unit import design_input, update_design_input
 from thermosteam import separations as sep
 import numpy as np
 
@@ -112,16 +112,16 @@ class LLEUnit(bst.Unit, isabstract=True):
     
     """
     _N_outs = 2
-    efficiency: float = design_input(
-        lb=0, ub=1,
+    efficiency = design_input(
+        lb=0, ub=1, default=1.0,
         doc="Fraction of feed in liquid-liquid equilibrium. "
-            "The rest of the feed is divided equally between phases.",
+            "The rest of the feed is divided equally between phases. "
+            "Defaults to 1.0.",
     )
-    
-    def _init(self, top_chemical=None, efficiency=1.0, forced_split_IDs=None, forced_split=None):
+
+    def _init(self, top_chemical=None, forced_split_IDs=None, forced_split=None):
         #: [str] Identifier of chemical that will be favored in the low density phase.
         self.top_chemical = top_chemical
-        self.efficiency = efficiency
         #: array[float] Forced splits to 0th stream for given IDs. 
         self.forced_split = forced_split
         #: tuple[str] IDs corresponding to forced splits. 
@@ -404,13 +404,14 @@ class SLLECentrifuge(Unit):
     _N_outs = 3
     
     solvent = LLEUnit.solvent
-    efficiency: float = design_input(
-        lb=0, ub=1,
+    efficiency = design_input(
+        lb=0, ub=1, default=1.0,
         doc="Fraction of feed in liquid-liquid equilibrium. "
-            "The rest of the feed is divided equally between phases.",
+            "The rest of the feed is divided equally between phases. "
+            "Defaults to 1.0.",
     )
-    moisture_content: float = design_input(
-        'Retentate moisture content', lb=0, ub=1,
+    moisture_content = design_input(
+        'Retentate moisture content', lb=0, ub=1, default=0.5,
     )
     
     @property
@@ -420,16 +421,13 @@ class SLLECentrifuge(Unit):
     def solids_isplit(self):
         return self._solids_isplit
     
-    def _init(self, solids_split, top_chemical=None, efficiency=1.0,
-              moisture_content=0.5):
+    def _init(self, solids_split, top_chemical=None):
         # [ChemicalIndexer] Splits to 0th outlet stream.
         self._solids_isplit = self.thermo.chemicals.isplit(solids_split)
-        
+
         #: [str] Identifier of chemical that will be favored in the low density phase.
         self.top_chemical = top_chemical
-        
-        self.efficiency = efficiency 
-        self.moisture_content = moisture_content
+
         assert self._solids_isplit['7732-18-5'] == 0, 'cannot define water split, only moisture content'
 
     def _run(self):
@@ -520,8 +518,8 @@ class SolidLiquidsSplitCentrifuge(Unit):
     line = SLLECentrifuge.line
     _N_ins = 1
     _N_outs = 3
-    moisture_content: float = design_input(
-        'Retentate moisture content', lb=0, ub=1,
+    moisture_content = design_input(
+        'Retentate moisture content', lb=0, ub=1, default=0.5,
     )
     
     @property
@@ -538,14 +536,13 @@ class SolidLiquidsSplitCentrifuge(Unit):
     def aqueous_isplit(self):
         return self._aqueous_isplit
     
-    def _init(self, aqueous_split, solids_split, moisture_content=0.5):
+    def _init(self, aqueous_split, solids_split):
         # [ChemicalIndexer] Splits to 1st outlet stream (aqueous/heavy phase).
         self._aqueous_isplit = self.thermo.chemicals.isplit(aqueous_split)
         
         # [ChemicalIndexer] Splits to 2th outlet stream (solids) from aqueous/heavy phase.
         self._solids_isplit = self.thermo.chemicals.isplit(solids_split)
-        
-        self.moisture_content = moisture_content
+
         assert self._solids_isplit['7732-18-5'] == 0, 'cannot define water split to solids, only moisture content'
 
     def _run(self):
@@ -589,22 +586,15 @@ class LiquidsMixingTank(PressureVessel, bst.Unit):
     _ins_size_is_fixed = False
     _N_ins = 3
     _N_outs = 1
-    tau: float = design_input('Residence time', 'hr', lb=0)
-    agitator_kW_per_m3: float = design_input(
-        'Agitator power per volume', 'kW/m3', lb=0,
+    tau = design_input('Residence time', 'hr', lb=0, default=0.022)
+    agitator_kW_per_m3 = design_input(
+        'Agitator power per volume', 'kW/m3', lb=0, default=1.0,
     )
-    length_to_diameter: float = design_input(
-        'Length to diameter ratio', lb=0,
+    length_to_diameter = design_input(
+        'Length to diameter ratio', lb=0, default=1,
     )
-    
-    def _init(self, tau=0.022, agitator_kW_per_m3=1.0, length_to_diameter=1,
-              vessel_material='Carbon steel', vessel_type='Vertical'):
-        self.length_to_diameter = length_to_diameter
-        self.vessel_material = vessel_material
-        self.vessel_type = vessel_type
-        self.agitator_kW_per_m3 = agitator_kW_per_m3
-        self.tau = tau
-        
+    vessel_type = update_design_input(default='Vertical')
+
     def _run(self):
         self.outs[0].mix_from(self.ins)
         
@@ -654,23 +644,15 @@ class LiquidsSettler(PressureVessel, bst.Unit, isabstract=True):
     """
     _N_ins = 1
     _N_outs = 2
-    length_to_diameter: float = design_input(
-        'Length to diameter ratio', lb=0,
+    length_to_diameter = design_input(
+        'Length to diameter ratio', lb=0, default=4,
     )
-    area_to_feed: float = design_input(
-        'Area to feed ratio', 'ft2/gpm', lb=0,
-        doc="Diameter * length per gpm of feed [ft2/gpm].",
+    area_to_feed = design_input(
+        'Area to feed ratio', 'ft2/gpm', lb=0, default=0.1,
+        doc="Diameter * length per gpm of feed [ft2/gpm]. Defaults to 0.1.",
     )
-    
-    def _init(self, area_to_feed=0.1, 
-              length_to_diameter=4,
-              vessel_material='Carbon steel',
-              vessel_type='Horizontal'):
-        self.vessel_material = vessel_material
-        self.vessel_type = vessel_type
-        self.length_to_diameter = length_to_diameter
-        self.area_to_feed = area_to_feed
-    
+    vessel_type = update_design_input(default='Horizontal')
+
     @staticmethod
     def _default_vessel_type():
         return 'Horizontal'
@@ -720,21 +702,9 @@ class LLESettler(LLEUnit, LiquidsSettler):
     
     """
     line = 'Settler'
-    def _init(self, 
-            area_to_feed=0.1, 
-            length_to_diameter=4,
-            vessel_material='Carbon steel',
-            vessel_type='Horizontal',
-            top_chemical=None,
-            efficiency=1.0,
-            cache_tolerance=1e-6,
-        ):
-        LLEUnit._init(self, top_chemical, efficiency)
-        self.vessel_material = vessel_material
-        self.vessel_type = vessel_type
-        self.length_to_diameter = length_to_diameter
-        self.area_to_feed = area_to_feed
-        self.cache_tolerance = cache_tolerance
+    def _init(self, top_chemical=None, cache_tolerance=1e-6):
+        LLEUnit._init(self, top_chemical)
+        self.cache_tolerance= cache_tolerance
         
         
 class LiquidsSplitSettler(LiquidsSettler):
@@ -767,16 +737,8 @@ class LiquidsSplitSettler(LiquidsSettler):
     line = 'Settler'
     def _init(self, 
             split, order=None,
-            area_to_feed=0.1, 
-            length_to_diameter=4,
-            vessel_material='Carbon steel',
-            vessel_type='Horizontal'
         ):
-        self.vessel_material = vessel_material
-        self.vessel_type = vessel_type
-        self.length_to_diameter = length_to_diameter
-        self.area_to_feed = area_to_feed
-        self._isplit = self.chemicals.isplit(split, order)        
+        self._isplit= self.chemicals.isplit(split, order)        
     split = Splitter.split
     isplit = Splitter.isplit
     _run = Splitter._run
@@ -815,19 +777,11 @@ class LiquidsPartitionSettler(LiquidsSettler):
     line = 'Settler'
     
     def _init(self, 
-            partition_coefficients, partition_IDs, 
-            area_to_feed=0.1, 
-            length_to_diameter=4,
-            vessel_material='Carbon steel',
-            vessel_type='Horizontal',
+            partition_coefficients, partition_IDs,
             top_chemicals=None,
             bottom_chemicals=None,
         ):
-        self.vessel_material = vessel_material
-        self.vessel_type = vessel_type
-        self.length_to_diameter = length_to_diameter
-        self.area_to_feed = area_to_feed
-        self.partition_coefficients = partition_coefficients
+        self.partition_coefficients= partition_coefficients
         self.partition_IDs = partition_IDs
         self.top_chemicals = top_chemicals
         self.bottom_chemicals = bottom_chemicals

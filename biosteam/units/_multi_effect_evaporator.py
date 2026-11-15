@@ -120,24 +120,25 @@ class MultiEffectEvaporator(Unit):
                         Furfural    0.000988
     
     >>> E1.results()
-    Multi-effect evaporator                                         Units       E1
-    Electricity              Power                                     kW     5.72
-                             Cost                                  USD/hr    0.447
-    Low pressure steam       Duty                                   kJ/hr 5.83e+05
-                             Flow                                 kmol/hr     15.1
-                             Cost                                  USD/hr     3.58
-    Cooling water            Duty                                   kJ/hr -3.5e+05
-                             Flow                                 kmol/hr      239
-                             Cost                                  USD/hr    0.117
-    Design inputs            Molar fraction evaporated                         0.1
-    Design results           Area                                     m^2       11
-                             Volume                                   m^3     3.51
-    Purchase cost            Evaporators (x5)                         USD 9.56e+03
-                             Condenser - Double pipe                  USD 5.36e+03
-                             Vacuum system - Liquid-ring pump...      USD 1.07e+04
-    Total purchase cost                                               USD 2.56e+04
-    Installed equipment cost                                          USD  4.2e+04
-    Utility cost                                                   USD/hr     4.15
+    Multi-effect evaporator                                         Units            E1
+    Electricity              Power                                     kW          5.72
+                             Cost                                  USD/hr         0.447
+    Low pressure steam       Duty                                   kJ/hr      5.83e+05
+                             Flow                                 kmol/hr          15.1
+                             Cost                                  USD/hr          3.58
+    Cooling water            Duty                                   kJ/hr      -3.5e+05
+                             Flow                                 kmol/hr           239
+                             Cost                                  USD/hr         0.117
+    Design inputs            Molar fraction evaporated                              0.1
+                             V definition                                  First-effect
+    Design results           Area                                     m^2            11
+                             Volume                                   m^3          3.51
+    Purchase cost            Evaporators (x5)                         USD      9.56e+03
+                             Condenser - Double pipe                  USD      5.36e+03
+                             Vacuum system - Liquid-ring pump...      USD      1.07e+04
+    Total purchase cost                                               USD      2.56e+04
+    Installed equipment cost                                          USD       4.2e+04
+    Utility cost                                                   USD/hr          4.15
     
     Concentrate sugar setting overall vapor fraction:
     
@@ -186,6 +187,7 @@ class MultiEffectEvaporator(Unit):
                              Flow                                 kmol/hr      78.8
                              Cost                                  USD/hr    0.0384
     Design inputs            Molar fraction evaporated                          0.1
+                             V definition                                   Overall
     Design results           Area                                     m^2      1.62
                              Volume                                   m^3      3.07
     Purchase cost            Evaporators (x3)                         USD  2.74e+03
@@ -242,6 +244,7 @@ class MultiEffectEvaporator(Unit):
                              Flow                                 kmol/hr      78.8
                              Cost                                  USD/hr    0.0384
     Design inputs            Molar fraction evaporated                          0.1
+                             V definition                                   Overall
     Design results           Area                                     m^2      1.62
                              Volume                                   m^3      3.07
     Purchase cost            Evaporators (x3)                         USD  2.74e+03
@@ -268,7 +271,7 @@ class MultiEffectEvaporator(Unit):
     # Data for simmulation and costing
     _evap_data = evaporators[_Type]
     
-    V: float = design_input(
+    V = design_input(
         'Molar fraction evaporated', lb=0, ub=1,
         doc="Molar fraction evaporated as specified in `V_definition` "
             "(either overall or in the first effect).",
@@ -287,28 +290,26 @@ class MultiEffectEvaporator(Unit):
             raise ValueError(f"Type must be one of the following: {dummy}")
         self._Type = evap_type
 
-    @property
+    @design_input(
+        catalog=('Overall', 'First-effect', 'First-effect duty'),
+        default='Overall',
+    )
     def V_definition(self):
-        """[str] Must be one of the following:
+        """Must be one of the following:
         * 'Overall' - Defines attribute `V` as the overall molar fraction evaporated.
         * 'First-effect' - Defines attribute `V` as the molar fraction evaporated in the first effect.
         * 'First-effect duty' - Defines attribute `V` as the supplied duty over the total duty required to achived a vapor fraction of 1 at the first effect .
+
+        Defaults to 'Overall'.
         """
         return self._V_definition
     @V_definition.setter
     def V_definition(self, V_definition):
-        V_definition = V_definition.capitalize()
-        if V_definition in ('Overall', 'First-effect', 'First-effect duty'):
-            self._reload_components = True
-            self._V_definition = V_definition
-        else:
-            raise ValueError("V_definition must be either 'Overall', 'First-effect', or 'First-effect duty'")
+        self._reload_components = True
+        self._V_definition = V_definition
 
-    def _init(self, P, V, V_definition='Overall',
-              flash=True, chemical='7732-18-5'):
+    def _init(self, P, flash=True, chemical='7732-18-5'):
         self.P = P #: tuple[float] Pressures describing each evaporator (Pa).
-        self.V = V
-        self.V_definition = V_definition
         self.flash = flash #: [bool] Whether to perform a flash calculation to account for volatile components.
         self._V_first_effect = None
         self.chemical = chemical

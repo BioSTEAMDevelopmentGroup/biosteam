@@ -18,6 +18,7 @@ References
 """
 import biosteam as bst
 from .abstract_stirred_tank_reactor import AbstractStirredTankReactor
+from .._unit import update_design_input
 from .design_tools.aeration import vent_broth
 
 __all__ = (
@@ -153,19 +154,20 @@ class AnaerobicBioreactor(AbstractStirredTankReactor):
     Chilled water            Duty                           kJ/hr             -1.4e+07
                              Flow                         kmol/hr             9.35e+03
                              Cost                          USD/hr                 69.8
-    Design inputs            Operating pressure                Pa               101325
+    Design inputs            Vessel type                                      Vertical
+                             Vessel material                       Stainless steel 316
                              Operating temperature              K                  305
-                             Maximum reactor volume            m3                 3785
+                             Operating pressure                Pa             1.01e+05
+                             Residence time                    hr                    8
                              Working volume fraction                               0.8
+                             Maximum reactor volume            m3             3.78e+03
+                             Length to diameter ratio                                3
+                             Agitator power                 kW/m3                 0.01
+                             Cleaning and unloading time       hr                    3
                              Loop temperature change            K                    5
                              Jacket annular diameter            m                  0.1
-                             Agitator power                 kW/m3                 0.01
-                             Length to diameter ratio                                3
-                             Residence time                    hr                    8
-                             Cleaning and unloading time       hr                    3
                              Residence time phases                                   l
-                             Vessel material                       Stainless steel 316
-                             Vessel type                                      Vertical
+                             Batch                                               False
     Design results           Reactor volume                    m3             1.28e+03
                              Number of reactors                                      1
                              Residence time                    hr                    8
@@ -185,12 +187,12 @@ class AnaerobicBioreactor(AbstractStirredTankReactor):
     _N_ins = 1
     _N_outs = 2
     _ins_size_is_fixed = False
-    T_default = 273.15 + 32 
-    P_default = 101325
-    jacket_annular_diameter_default = 0.1 # [m]
-    V_max_default = 3785 # 1 million gallon is not unheard of for anaerobic bioreactors
-    kW_per_m3_default = 0.01 # Significantly less than aerobic, based on NREL 2011 report on cellulosic ethanol production.
-    batch_default = True
+    T = update_design_input(default=273.15 + 32)
+    P = update_design_input(default=101325)
+    jacket_annular_diameter = update_design_input(default=0.1) # [m]
+    V_max = update_design_input(default=3785) # 1 million gallon is not unheard of for anaerobic bioreactors
+    kW_per_m3 = update_design_input(default=0.01) # Significantly less than aerobic, based on NREL 2011 report on cellulosic ethanol production.
+    batch = update_design_input(default=True)
     
     def _get_duty(self):
         return self.Hnet

@@ -7,7 +7,7 @@
 """
 import biosteam as bst
 from .abstract_stirred_tank_reactor import AbstractStirredTankReactor
-from .._unit import design_input
+from .._unit import design_input, update_design_input
 from .design_tools.Gibbs_equilibrium_reaction import minimize_Gibbs_free_energy
 from typing import Optional, Iterable, Callable
 
@@ -108,13 +108,13 @@ class GibbsEquilibriumReactor(AbstractStirredTankReactor):
     ... )
     >>> EqR.simulate()
     >>> EqR.show()
-    EquilibriumReactor: EqR
+    GibbsEquilibriumReactor: EqR
     ins...
-    [0] s41  
+    [0] feed
         phase: 'g', T: 298.15 K, P: 1.01325e+06 Pa
-        flow: 100 kmol/hr N2O4
+        flow (kmol/hr): N2O4  100
     outs...
-    [0] gas  
+    [0] gas
         phase: 'g', T: 298.15 K, P: 1.01325e+06 Pa
         flow (kmol/hr): N2O4  94.1
                         NO2   11.9
@@ -124,20 +124,21 @@ class GibbsEquilibriumReactor(AbstractStirredTankReactor):
     Low pressure steam       Duty                           kJ/hr                3.58e+05
                              Flow                         kmol/hr                    9.25
                              Cost                          USD/hr                     2.2
-    Design inputs            Operating pressure                Pa                1.01e+06
+    Design inputs            Vessel type                                         Vertical
+                             Vessel material                          Stainless steel 316
                              Operating temperature              K                     298
-                             Maximum reactor volume            m3                     500
+                             Operating pressure                Pa                1.01e+06
+                             Residence time                    hr                     0.1
                              Working volume fraction                                  0.8
+                             Maximum reactor volume            m3                     500
+                             Length to diameter ratio                                   3
+                             Agitator power                 kW/m3                       0
+                             Cleaning and unloading time       hr                       3
                              Loop temperature change            K                       5
                              Jacket annular diameter            m                     0.1
-                             Agitator power                 kW/m3                       0
-                             Length to diameter ratio                                   3
-                             Optimization method                   differential evolution
-                             Residence time                    hr                     0.1
-                             Cleaning and unloading time       hr                       3
                              Residence time phases                                     lg
-                             Vessel material                          Stainless steel 316
-                             Vessel type                                         Vertical
+                             Batch                                                  False
+                             Optimization method                   differential evolution
     Design results           Reactor volume                    m3                    26.6
                              Number of reactors                                         1
                              Residence time                    hr                     0.1
@@ -157,33 +158,33 @@ class GibbsEquilibriumReactor(AbstractStirredTankReactor):
     _N_outs = 1
     _ins_size_is_fixed = False
     _outs_size_is_fixed = False
-    T_default = 273.15 + 25
-    P_default = 101325
-    tau_default = 0.1 # [h]
-    jacket_annular_diameter_default = 0.1 # [m]
+    T = update_design_input(default=273.15 + 25)
+    P = update_design_input(default=101325)
+    tau = update_design_input(default=0.1) # [h]
+    jacket_annular_diameter = update_design_input(default=0.1) # [m]
     heat_exchanger_configuration_default = 'jacketed'
-    V_max_default = 500
-    kW_per_m3_default = 0
-    batch_default = False
-    tau_phases_default = 'lg'
+    V_max = update_design_input(default=500)
+    kW_per_m3 = update_design_input(default=0)
+    batch = update_design_input(default=False)
+    tau_phases = update_design_input(default='lg')
     tau_basis = 'outs' # Alternatively, 'ins'
-    method_default = 'differential evolution' # Alternatively 'COBYLA'
-    
-    def _init(self, 
-            phases: Optional[str]=None, 
-            products: Optional[Iterable[str]]=None, 
-            method: Optional[str]=None,
+    method = design_input(
+        'Optimization method',
+        catalog=('differential evolution', 'COBYLA'),
+        default='differential evolution',
+    )
+
+    def _init(self,
+            phases: Optional[str]=None,
+            products: Optional[Iterable[str]]=None,
             phase_hook: Optional[Callable]=None,
             **kwargs
         ):
         AbstractStirredTankReactor._init(self, **kwargs)
-        
+
         #: Phases of products. Defaults to the phases of inlets.
-        self.phases = phases 
-        
-        #: Optimization method. Valid options include 'COBYLA' and 'differential evolution'.
-        self.method = self.method_default if method is None else method
-        
+        self.phases = phases
+
         self.phase_hook = phase_hook
         self.products = products
     

@@ -335,7 +335,7 @@ class SludgeCentrifuge(bst.SolidsSeparator):
     
     """
     purchase_cost = installation_cost = 0
-    def _init(self, split=None, order=None, moisture_content=None, strict_moisture_content=None):
+    def _init(self, split=None, order=None, strict_moisture_content=None):
         chemicals = self.chemicals
         ID_water = chemicals['7732-18-5'].ID # Water must be defined
         if split is None:
@@ -392,12 +392,12 @@ class SludgeCentrifuge(bst.SolidsSeparator):
             remove_undefined_chemicals(split, chemicals)
             default_chemical_dict(split, chemicals, 0.9394, 0.9286, 0.04991)
             split.pop(ID_water) # Remove water from split
-        if ID_water not in split and moisture_content is None:
+        if ID_water not in split and self.moisture_content is None:
             # Only set moisture content if water split is not given
-            moisture_content = 0.79
+            self.moisture_content = 0.79
         bst.SolidsSeparator._init(
             self, split=split, order=order,
-            moisture_content=moisture_content, strict_moisture_content=strict_moisture_content
+            strict_moisture_content=strict_moisture_content
         )
 
     def _run(self):

@@ -109,25 +109,27 @@ class BatchCrystallizer(Unit):
                         (s) Sucrose  17.8
     
     >>> C1.results()
-    Batch crystallizer                                      Units        C1
-    Electricity              Power                             kW      3.54
-                             Cost                          USD/hr     0.277
-    Cooling water            Duty                           kJ/hr -1.69e+06
-                             Flow                         kmol/hr  8.06e+03
-                             Cost                          USD/hr      3.93
-    Design inputs            Operating temperature              K       313
-                             Working volume fraction                    0.9
-                             Power per volume              kW/gal   0.00746
-                             Crystallization time              hr        20
-                             Cleaning and unloading time       hr         1
-    Design results           Crystallizer volume               m3       132
-                             Number of crystallizers                      4
-                             Batch time                        hr        28
-                             Loading time                      hr         7
-    Purchase cost            Crystallizer (x4)                USD  2.09e+06
-    Total purchase cost                                       USD  2.09e+06
-    Installed equipment cost                                  USD  4.17e+06
-    Utility cost                                           USD/hr      4.21
+    Batch crystallizer                                      Units            C1
+    Electricity              Power                             kW          3.54
+                             Cost                          USD/hr         0.277
+    Cooling water            Duty                           kJ/hr     -1.69e+06
+                             Flow                         kmol/hr      8.06e+03
+                             Cost                          USD/hr          3.93
+    Design inputs            Crystallization time              hr            20
+                             Cleaning and unloading time       hr             1
+                             Working volume fraction                        0.9
+                             Operating temperature              K           313
+                             Power per volume              kW/gal       0.00746
+                             Vessel material                       Carbon steel
+                             Crystallizer volume               m3           175
+    Design results           Crystallizer volume               m3           132
+                             Number of crystallizers                          4
+                             Batch time                        hr            28
+                             Loading time                      hr             7
+    Purchase cost            Crystallizer (x4)                USD      2.09e+06
+    Total purchase cost                                       USD      2.09e+06
+    Installed equipment cost                                  USD      4.17e+06
+    Utility cost                                           USD/hr          4.21
     
     References
     ----------
@@ -163,67 +165,54 @@ class BatchCrystallizer(Unit):
     
     _N_ins = _N_outs = 1
     
-    tau: float = design_input('Crystallization time', 'hr', lb=0)
-    tau_0: float = design_input('Cleaning and unloading time', 'hr', lb=0)
-    tau_loading: float = design_input(
+    tau = design_input('Crystallization time', 'hr', lb=0, default=None)
+    tau_0 = design_input('Cleaning and unloading time', 'hr', lb=0, default=1)
+    tau_loading = design_input(
         'Loading time', 'hr', lb=0,
         doc="Loading time of batch crystallizer [hr]. If not given, it will "
             "assume each vessel is constantly being filled.",
+        default=None,
     )
-    V_wf: float = design_input('Working volume fraction', lb=0, ub=1)
-    T: float = design_input('Operating temperature', 'K', lb=0)
-    kW: float = design_input(
-        'Power per volume', 'kW/gal', lb=0,
+    V_wf = design_input('Working volume fraction', lb=0, ub=1, default=0.9)
+    T = design_input('Operating temperature', 'K', lb=0, default=305.15)
+    kW = design_input(
+        'Power per volume', 'kW/gal', lb=0, default=0.00746,
         doc="Electricity usage per volume in kW/gal. Defaults to 0.00746, "
             "a heuristic value for suspension of solids.",
     )
-    _tau_0 = 1 # Default cleaning and unloading time [hr]
-    _V_wf = 0.9 # Default fraction of filled tank to total tank volume
+    vessel_material = design_input(
+        catalog=crystallizer_material_factors,
+        purchase_item='Crystallizer',
+        catalog_type='Material',
+        default='Carbon steel',
+    )
+    
+    @design_input('Number of crystallizers', lb=2, default=None)
+    def N(self) -> int:
+        """Number of crystallizers. Either N or V may be given, not both."""
+        return self._N
+    @N.setter
+    def N(self, N):
+        if N is not None and getattr(self, '_V', None):
+            raise AttributeError('cannot specify both crystallizer volume and number of crystallizers')
+        self._N = N
 
-    def _init(self, 
-             tau=None, N=None, V=None, T=305.15,
-             Nmin=2, Nmax=36, vessel_material='Carbon steel',
-             kW=0.00746, tau_0=None, tau_loading=None,
-        ):
-        self._N = N; self._V = V
-        
-        self.tau = tau
-        
-        #: [int] Number of vessels
-        if N: self.N = N
-        
-        #: [float] Target volume of a vessel
-        if V: self.V = V
-        
-        self.T = T
-        
+    @design_input('Crystallizer volume', 'm3', lb=1, default=None)
+    def V(self):
+        """Target volume of crystallizers [m3]. Either N or V may be given, not both."""
+        return self._V
+    @V.setter
+    def V(self, V):
+        if V is not None and getattr(self, '_N', None):
+            raise AttributeError('cannot specify both crystallizer volume and number of crystallizers')
+        self._V = V
+    
+    def _init(self, Nmin=2, Nmax=36):
         #: [int] Minimum number of vessels
         self.Nmin = Nmin
         
         #: [int] Maximum number of vessels
         self.Nmax = Nmax
-        
-        self.kW = kW
-        
-        # [str] Vessel material
-        self.vessel_material = vessel_material
-        
-        if tau_0 is not None: self.tau_0 = tau_0
-        if tau_loading is not None: self.tau_loading = tau_loading
-        
-    @property
-    def vessel_material(self):
-        return self._vessel_material
-    @vessel_material.setter
-    def vessel_material(self, vessel_material):
-        if vessel_material in crystallizer_material_factors:
-            self.F_M['Crystallizer'] = crystallizer_material_factors[vessel_material]
-        else:
-            raise AttributeError(
-                f'invalid vessel material {vessel_material!r}; '
-                f'valid materials include {set(crystallizer_material_factors)!r}'
-            )
-        self._vessel_material = vessel_material
     
     def _setup(self):
         super()._setup()
@@ -241,28 +230,6 @@ class BatchCrystallizer(Unit):
     def effluent(self):
         return self.outs[0]
         
-    @property
-    def N(self):
-        """[int] Number of reactor."""
-        return self._N
-    @N.setter
-    def N(self, N):
-        if N <= 1:
-            raise ValueError(f"number of crystallizers must be greater than 1, value {N} is infeasible")
-        assert not self._V, 'cannot specify both crystallizer volume and number of crystallizers'
-        self._N = ceil(N)
-
-    @property
-    def V(self):
-        """[float] Crystallizer volume."""
-        return self._V
-    @V.setter
-    def V(self, V):
-        if V <= 1:
-            raise ValueError(f"crystallizer volume must be greater than 1, value {V} is infeasible")
-        assert not self._N, 'cannot specify both crystallizer volume and number of crystallizers'
-        self._V = V
-
     def _design(self):
         effluent = self.effluent
         v_0 = effluent.F_vol

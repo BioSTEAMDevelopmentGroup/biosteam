@@ -337,8 +337,8 @@ class Separator(Unit):
     _N_ins = 1
     _N_outs = 2
     _ins_size_is_fixed = False
-    T: float = bst.design_input('Operating temperature', 'K', lb=0)
-    P: float = bst.design_input('Operating pressure', 'Pa', lb=0)
+    T = bst.design_input('Operating temperature', 'K', lb=0, default=None)
+    P = bst.design_input('Operating pressure', 'Pa', lb=0, default=None)
     
     @property
     def equation_node_names(self): 
@@ -408,10 +408,8 @@ class Separator(Unit):
                 values = self.thermo.chemicals.isplit(values).data
             split[:] = values
     
-    def _init(self, split, order=None, T=None, P=None, phases=None):
+    def _init(self, split, order=None, phases=None):
         self._isplit = self.thermo.chemicals.isplit(split, order)
-        self.T = T
-        self.P = P
         self.phases = phases
 
     def _run(self):

@@ -122,50 +122,48 @@ class NRELAnaerobicBatchBioreactor(Unit, isabstract=True):
     _N_outs = 2
     _N_ins = 1
     
-    tau: float = design_input('Reaction time', 'hr', lb=0)
-    tau_0: float = design_input('Cleaning and unloading time', 'hr', lb=0)
-    V_wf: float = design_input('Working volume fraction', lb=0, ub=1)
-    T: float = design_input('Operating temperature', 'K', lb=0)
-    loading_time: float = design_input(
+    tau = design_input('Reaction time', 'hr', lb=0, default=None)
+    tau_0 = design_input('Cleaning and unloading time', 'hr', lb=0, default=3)
+    V_wf = design_input('Working volume fraction', lb=0, ub=1, default=0.9)
+    T = design_input('Operating temperature', 'K', lb=0, default=305.15)
+    P = design_input('Operating pressure', 'Pa', lb=0, default=101325)
+    loading_time = design_input(
         'Loading time', 'hr', lb=0,
         doc="Loading time of batch reactor [hr]. If not given, it will assume "
             "each vessel is constantly being filled.",
+        default=None,
     )
-    _tau_0 = 3 # Default cleaning and unloading time [hr]
-    _V_wf = 0.9 # Default fraction of filled tank to total tank volume
 
-    def _init(self, tau=None, N=None, V_max=None, T=305.15, P=101325,
-              Nmin=2, Nmax=36, loading_time=None, reactions=None, 
-              tau_0=None, V_wf=None):
-        self._N = N; self._V_max = V_max
-        
-        self.tau = tau
-        
-        #: [int] Number of batch reactors.
-        if N: self.N = N
-        
-        #: [float] Maximum volume of a fermentor [m3].
-        if V_max: self.V_max = V_max
-        
-        self.T = T
-        
-        #: [float] Operating pressure of reactor [Pa].
-        self.P = P
-        
+    @design_input('Number of reactors', lb=2, default=None)
+    def N(self) -> int:
+        """Number of reactors. Either N or V_max may be given, not both."""
+        return self._N
+    @N.setter
+    def N(self, N):
+        if N is not None and getattr(self, '_V_max', None):
+            raise AttributeError('cannot specify both reactor volume and number of reactors')
+        self._N = N
+
+    @design_input('Maximum reactor volume', 'm3', lb=1, default=None)
+    def V_max(self):
+        """Maximum reactor volume [m3]. Either N or V_max may be given, not both."""
+        return self._V_max
+    @V_max.setter
+    def V_max(self, V_max):
+        if V_max is not None and getattr(self, '_N', None):
+            raise AttributeError('cannot specify both reactor volume and number of reactors')
+        self._V_max = V_max
+
+    def _init(self, Nmin=2, Nmax=36, reactions=None):
         #: [int] Minimum number of fermentors.
         self.Nmin = Nmin
-        
+
         #: [int] Maximum number of fermentors.
         self.Nmax = Nmax
-        
-        self.loading_time = loading_time
-        
+
         #: [Reaction|ReactionSystem] Stoichiomentric reactions.
         self.reactions = reactions
-        
-        if tau_0 is not None: self.tau_0 = tau_0
-        if V_wf is not None: self.V_wf = V_wf
-        
+
     def _setup(self):
         super()._setup()
         vent, effluent = self.outs
@@ -180,37 +178,6 @@ class NRELAnaerobicBatchBioreactor(Unit, isabstract=True):
     def effluent(self):
         return self.outs[1]
         
-    @property
-    def N(self):
-        """[int] Number of reactor."""
-        return self._N
-    @N.setter
-    def N(self, N):
-        if N is None: 
-            self._N = N
-            return
-        if N <= 1:
-            raise ValueError(
-                 "number of reactors must be greater than 1, "
-                f"value {N} is infeasible"
-            )
-        assert not self._V_max, 'cannot specify both reactor volume and number of reactors'
-        self._N = ceil(N)
-
-    @property
-    def V_max(self):
-        """[float] Maximum reactor volume."""
-        return self._V_max
-    @V_max.setter
-    def V_max(self, V_max):
-        if V_max <= 1:
-            raise ValueError(
-                "maximum reactor volume must be greater than 1 m3, "
-               f"{V_max} is infeasible"
-            )
-        assert not self._N, 'cannot specify both reactor volume and number of reactors'
-        self._V_max = V_max
-
     def _run(self):
         vent, effluent = self.outs
         effluent.mix_from(self.ins)
@@ -327,10 +294,12 @@ class NRELEthanolFermentation(NRELAnaerobicBatchBioreactor):
     Chilled water            Duty                           kJ/hr -1.41e+07
                              Flow                         kmol/hr  9.42e+03
                              Cost                          USD/hr      70.3
-    Design inputs            Operating temperature              K       305
-                             Working volume fraction                    0.9
-                             Reaction time                     hr         8
+    Design inputs            Reaction time                     hr         8
                              Cleaning and unloading time       hr         3
+                             Working volume fraction                    0.9
+                             Operating temperature              K       305
+                             Operating pressure                Pa  1.01e+05
+                             Number of reactors                           8
     Design results           Reactor volume                    m3       247
                              Batch time                        hr      12.6
                              Loading time                      hr      1.57
@@ -362,10 +331,10 @@ class NRELEthanolFermentation(NRELAnaerobicBatchBioreactor):
                          0.45,  # Y_PS
                          0.18)  # a
     
-    def _init(self, tau, N=None, V_max=None, T=305.15, P=101325., Nmin=2, Nmax=36,
+    def _init(self, Nmin=2, Nmax=36,
               efficiency=None, iskinetic=False, fermentation_reaction=None,
-              cell_growth_reaction=None, loading_time=None):
-        NRELAnaerobicBatchBioreactor._init(self, tau=tau, N=N, V_max=V_max, T=T, P=P, Nmin=Nmin, Nmax=Nmax, loading_time=loading_time)
+              cell_growth_reaction=None):
+        NRELAnaerobicBatchBioreactor._init(self, Nmin=Nmin, Nmax=Nmax)
         self._load_components()
         self.iskinetic = iskinetic
         chemicals = self.chemicals

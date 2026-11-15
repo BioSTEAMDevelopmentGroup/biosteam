@@ -45,10 +45,7 @@ class PelletMill(Unit):
     """
     _N_ins = 1
     _N_outs = 1
-    kW: float = design_input('Power requirement', 'kWh/kg', lb=0)
-    
-    def _init(self, kW=0.01):
-        self.kW = kW
+    kW = design_input('Power requirement', 'kWh/kg', lb=0, default=0.01)
         
     def _cost(self):
         self._decorated_cost()

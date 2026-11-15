@@ -19,7 +19,6 @@ from math import log, exp, ceil
 from typing import NamedTuple, Tuple, Callable, Dict
 from .heat_exchange import HX
 from .. import Unit
-from ..utils import list_available_names
 from ..exceptions import DesignWarning, bounds_warning
 from .._graphics import turbine_graphics
 
@@ -70,55 +69,29 @@ class Turbine(Unit, isabstract=True):
         'Nickel alloy': 5.0
     }
 
-    P: float = bst.design_input('Outlet pressure', 'Pa', lb=0)
-    eta: float = bst.design_input('Isentropic efficiency', lb=0, ub=1)
+    P = bst.design_input('Outlet pressure', 'Pa', lb=0)
+    eta = bst.design_input('Isentropic efficiency', lb=0, ub=1, default=0.3)
+    turbine_type = bst.design_input(
+        catalog=baseline_cost_algorithms, default='Default',
+        doc="Type of turbine. If 'Default', the type will be determined "
+            "based on the outlet pressure.",
+    )
+    efficiency = bst.design_input(
+        'Driver efficiency', lb=0, ub=1, default=0.65,
+        doc="Efficiency of driver of work to electricity conversion. "
+            "Defaults to 0.65.",
+    )
+    material = bst.design_input(
+        catalog=material_factors,
+        purchase_item='Turbines(s)',
+        catalog_type='Material',
+        default='Carbon steel',
+    )
 
-    def _init(self, P, eta=0.3, vle=False, turbine_type=None,
-                 material=None, efficiency=None):
-        self.P = P
-        self.eta = eta
-
+    def _init(self, vle=False):
         #: Whether to perform phase equilibrium calculations on the outflow.
         #: If False, the outlet will be assumed to be the same phase as the inlet.
         self.vle = vle
-        self.material = 'Carbon steel' if material is None else material 
-        self.turbine_type = 'Default' if turbine_type is None else turbine_type
-        self.efficiency = 0.65 if efficiency is None else efficiency
-
-    @property
-    def turbine_type(self):
-        return self._turbine_type
-    @turbine_type.setter
-    def turbine_type(self, turbine_type):
-        """[str] Type of turbine. If 'Default', the type will be determined based on the outlet pressure."""
-        turbine_type = turbine_type.capitalize()
-        if turbine_type not in self.baseline_cost_algorithms and turbine_type != 'Default':
-            raise ValueError(
-                f"turbine type {repr(turbine_type)} not available; "
-                f"only {list_available_names(self.baseline_cost_algorithms)} are available"
-            )
-        self._turbine_type = turbine_type
-
-    @property
-    def efficiency(self):
-        return self._efficiency
-    @efficiency.setter
-    def efficiency(self, efficiency):
-        """[float] Efficiency of driver of work to electricity conversion."""
-        self._efficiency = float(efficiency)
-
-    @property
-    def material(self):
-        """[str]. Construction material. Defaults to 'Carbon steel'."""
-        return self._material
-    @material.setter
-    def material(self, material):
-        try:
-            self.F_M['Turbines(s)'] = self.material_factors[material]
-        except KeyError:
-            raise AttributeError("material must be one of the following: "
-                                 f"{list_available_names(self.material_factors)}")
-        self._material = material
 
     def _determine_turbine_type(self):
         psig = (self.P - 101325.) * 14.6959 / 101325.

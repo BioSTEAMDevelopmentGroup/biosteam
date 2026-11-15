@@ -115,24 +115,26 @@ class Compressor(Unit, isabstract=True):
                 CE=567,
             ),
     }
-    P: float = bst.design_input(
+    P = bst.design_input(
         'Outlet pressure', 'Pa', lb=0,
     )
-    eta: float = bst.design_input(
-        'Isentropic efficiency', lb=0, ub=1,
+    eta = bst.design_input(
+        'Isentropic efficiency', lb=0, ub=1, default=0.7,
     )
-    driver_efficiency: float = bst.design_input(
+    driver_efficiency = bst.design_input(
         lb=0, ub=1,
         doc="Efficiency of driver (e.g., steam turbine or electric motor). "
             "If not defined, a heuristic efficiency will be selected based "
             "on the compressor type and the driver.",
+        default=None,
     )
-    compressor_type: str = bst.design_input(
+    compressor_type = bst.design_input(
         catalog=baseline_cost_algorithms,
         doc="Type of compressor. If not defined, the type will be determined "
             "based on the outlet pressure.",
+        default=None,
     )
-    driver: str = bst.design_input(
+    driver = bst.design_input(
         purchase_item='Compressor(s)',
         catalog_type='Design',
         catalog={
@@ -144,8 +146,9 @@ class Compressor(Unit, isabstract=True):
             "based on type of compressor used. Centrifugal compressors default to "
             "steam turbines while reciprocating and screw compressors default to "
             "electric motors.",
+        default=None,
     )
-    material: str = bst.design_input(
+    material = bst.design_input(
         purchase_item='Compressor(s)',
         catalog_type='Material',
         catalog={
@@ -153,42 +156,22 @@ class Compressor(Unit, isabstract=True):
             'Stainless steel': 2.5,
             'Nickel alloy': 5.0,
         },
+        default='Carbon steel',
         doc="Construction material. Defaults to 'Carbon steel'.",
     )
     _F_BM_default = {
         'Compressor(s)': 2.15,
     }
 
-    def _init(self, 
-            P, eta=0.7, vle=False, compressor_type=None, 
-            driver=None, material=None, driver_efficiency=None,
-        ):
-        self.P = P
-        self.eta = eta
-
+    def _init(self, vle=False):
         #: [bool] Whether to perform phase equilibrium calculations on the outflow.
         #: If False, the outlet will be assumed to be the same phase as the inlet.
         self.vle = vle
-        
-        self.material = 'Carbon steel' if material is None else material 
-        
-        if compressor_type is None:
-            self.default_compressor_type = True
-        else:
-            self.compressor_type = compressor_type
-            self.default_compressor_type = False
-        
-        if driver is None:
-            self.default_driver = True
-        else:
-            self.driver = driver
-            self.default_driver = False
-        
-        if driver_efficiency is None:
-            self.default_driver_efficiency = True
-        else:
-            self.driver_efficiency = driver_efficiency
-            self.default_driver_efficiency = False
+
+        # Unspecified design inputs are determined heuristically
+        self.default_compressor_type = self.compressor_type is None
+        self.default_driver = self.driver is None
+        self.default_driver_efficiency = self.driver_efficiency is None
 
     def _determine_compressor_type(self):
         psig = (self.P - 101325.) * 14.6959 / 101325.
@@ -320,10 +303,10 @@ class IsothermalCompressor(Compressor, new_graphics=False):
                              Flow                     kmol/hr            7.53
                              Cost                      USD/hr          0.0363
     Design inputs            Outlet pressure               Pa         3.5e+07
+                             Isentropic efficiency                          1
+                             Driver efficiency                           0.85
                              Compressor type                    Reciprocating
                              Driver                            Electric motor
-                             Driver efficiency                           0.85
-                             Isentropic efficiency                          1
                              Material                            Carbon steel
     Design results           Compressors in parallel                        1
                              Ideal power                   kW             2.1
@@ -410,10 +393,10 @@ class IsentropicCompressor(Compressor, new_graphics=False):
                              Flow                     kmol/hr       0.000396
                              Cost                      USD/hr       0.000125
     Design inputs            Outlet pressure               Pa          5e+06
+                             Isentropic efficiency                       0.7
+                             Driver efficiency                          0.65
                              Compressor type                     Centrifugal
                              Driver                            Steam turbine
-                             Driver efficiency                          0.65
-                             Isentropic efficiency                       0.7
                              Material                           Carbon steel
     Design results           Ideal power                   kW           4.92
                              Ideal duty                 kJ/hr              0
@@ -452,10 +435,10 @@ class IsentropicCompressor(Compressor, new_graphics=False):
                              Flow                     kmol/hr       0.000305
                              Cost                      USD/hr       9.66e-05
     Design inputs            Outlet pressure               Pa          1e+07
+                             Isentropic efficiency                         1
+                             Driver efficiency                          0.65
                              Compressor type                     Centrifugal
                              Driver                            Steam turbine
-                             Driver efficiency                          0.65
-                             Isentropic efficiency                         1
                              Material                           Carbon steel
     Design results           Ideal power                   kW           5.42
                              Ideal duty                 kJ/hr              0
@@ -620,10 +603,10 @@ class PolytropicCompressor(Compressor, new_graphics=False):
     Electricity              Power                            kW            6.76
                              Cost                         USD/hr           0.529
     Design inputs            Outlet pressure                  Pa         3.5e+07
+                             Isentropic efficiency                           0.7
+                             Driver efficiency                              0.85
                              Compressor type                       Reciprocating
                              Driver                               Electric motor
-                             Driver efficiency                              0.85
-                             Isentropic efficiency                           0.7
                              Material                               Carbon steel
                              Number of integration steps                     100
     Design results           Polytropic work                            2.07e+04
@@ -653,10 +636,10 @@ class PolytropicCompressor(Compressor, new_graphics=False):
     Electricity              Power                            kW            6.48
                              Cost                         USD/hr           0.507
     Design inputs            Outlet pressure                  Pa         3.5e+07
+                             Isentropic efficiency                           0.7
+                             Driver efficiency                              0.85
                              Compressor type                       Reciprocating
                              Driver                               Electric motor
-                             Driver efficiency                              0.85
-                             Isentropic efficiency                           0.7
                              Material                               Carbon steel
                              Number of integration steps                     200
     Design results           Polytropic work                            1.98e+04
@@ -670,10 +653,10 @@ class PolytropicCompressor(Compressor, new_graphics=False):
     Electricity              Power                            kW            6.48
                              Cost                         USD/hr           0.507
     Design inputs            Outlet pressure                  Pa         3.5e+07
+                             Isentropic efficiency                           0.7
+                             Driver efficiency                              0.85
                              Compressor type                       Reciprocating
                              Driver                               Electric motor
-                             Driver efficiency                              0.85
-                             Isentropic efficiency                           0.7
                              Material                               Carbon steel
                              Number of integration steps                     200
     Design results           Polytropic work                            1.98e+04
@@ -704,10 +687,10 @@ class PolytropicCompressor(Compressor, new_graphics=False):
     Electricity              Power                            kW            6.48
                              Cost                         USD/hr           0.507
     Design inputs            Outlet pressure                  Pa         3.5e+07
+                             Isentropic efficiency                           0.7
+                             Driver efficiency                              0.85
                              Compressor type                       Reciprocating
                              Driver                               Electric motor
-                             Driver efficiency                              0.85
-                             Isentropic efficiency                           0.7
                              Material                               Carbon steel
                              Number of integration steps                     200
     Design results           Polytropic work                            1.98e+04
@@ -721,16 +704,15 @@ class PolytropicCompressor(Compressor, new_graphics=False):
     """
     available_methods = {'schultz', 'hundseid'}
     n_steps: int = bst.design_input(
-        'Number of integration steps', lb=1,
-        doc="Number of virtual steps used in numerical integration for hundseid method.",
+        'Number of integration steps', lb=1, default=100,
+        doc="Number of virtual steps used in numerical integration for "
+            "hundseid method. Defaults to 100.",
     )
-    
-    def _init(self, P, eta=0.7, 
-                 vle=False, compressor_type=None, method=None, n_steps=None):
-        Compressor._init(self, P=P, eta=eta, vle=vle, compressor_type=compressor_type)
+
+    def _init(self, vle=False, method=None):
+        Compressor._init(self, vle=vle)
         self.method = "schultz" if method is None else method
-        self.n_steps = 100 if n_steps is None else n_steps
-        
+
     @property
     def method(self):
         return self._method
@@ -881,9 +863,9 @@ class MultistageCompressor(Unit):
     Chilled water            Duty                     kJ/hr              -1.12e+04
                              Flow                   kmol/hr                   7.42
                              Cost                    USD/hr                 0.0559
-    Design inputs            Isentropic efficiency                             0.7
+    Design inputs            Pressure ratio                                      2
                              Number of stages                                    4
-                             Pressure ratio                                      2
+                             Isentropic efficiency                             0.7
     Design results           Type                            Multistage compressor
                              Area                      ft^2                   1.54
     Purchase cost            K k1 - Compressor(s)       USD               1.45e+04
@@ -952,6 +934,7 @@ class MultistageCompressor(Unit):
     Cooling water            Duty                     kJ/hr              -7.15e+03
                              Flow                   kmol/hr                   4.88
                              Cost                    USD/hr                0.00238
+    Design inputs            Isentropic efficiency                             0.7
     Design results           Type                            Multistage compressor
                              Area                      ft^2                   1.14
     Purchase cost            K2 k1 - Compressor(s)      USD               1.11e+04
@@ -1045,6 +1028,7 @@ class MultistageCompressor(Unit):
     Cooling water            Duty                     kJ/hr              -7.15e+03
                              Flow                   kmol/hr                   4.88
                              Cost                    USD/hr                0.00238
+    Design inputs            Isentropic efficiency                             0.7
     Design results           Type                            Multistage compressor
                              Area                      ft^2                   1.14
     Purchase cost            K2 k1 - Compressor(s)      USD               1.11e+04
@@ -1070,27 +1054,27 @@ class MultistageCompressor(Unit):
         **HX._units,
     }
 
-    pr: float = bst.design_input(
+    pr = bst.design_input(
         'Pressure ratio', lb=0,
         doc="Pressure ratio between isentropic stages (setup option 1).",
+        default=None,
     )
     n_stages: int = bst.design_input(
         'Number of stages', lb=1,
         doc="Number of isentropic stages (setup option 1).",
+        default=None,
     )
-    eta: float = bst.design_input(
-        'Isentropic efficiency', lb=0, ub=1,
-        doc="Isentropic efficiency of each stage (setup option 1).",
+    eta = bst.design_input(
+        'Isentropic efficiency', lb=0, ub=1, default=0.7,
+        doc="Isentropic efficiency of each stage (setup option 1). Defaults to 0.7.",
     )
     compressor_type: str = bst.design_input(
         doc="Type of compressor (setup option 1): blower/centrifugal/reciprocating. "
             "If None, the type will be determined automatically.",
+        default=None,
     )
 
-    def _init(
-            self, pr=None, n_stages=None, eta=0.7, vle=False, compressor_type=None,
-            compressors=None, hxs=None,
-        ):
+    def _init(self, vle=False, compressors=None, hxs=None):
         # setup option 1: list of compressors and list of heat exchangers
         if compressors is not None and hxs is not None:
             if not isinstance(compressors[0], Compressor):
@@ -1110,12 +1094,8 @@ class MultistageCompressor(Unit):
                 self.n_stages = None
 
         # setup option 2: fixed pressure ratio and number of stages
-        elif pr is not None and n_stages is not None:
-            self.pr = pr
-            self.n_stages = n_stages
-            self.eta = eta
-            self.vle=vle
-            self.compressor_type=compressor_type
+        elif self.pr is not None and self.n_stages is not None:
+            self.vle = vle
             self.compressors = None
             self.hxs = None
         else:
