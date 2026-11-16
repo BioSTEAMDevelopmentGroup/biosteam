@@ -8,6 +8,7 @@
 """
 """
 from __future__ import annotations
+import builtins
 import pandas as pd
 from warnings import warn
 from ._graphics import UnitGraphics, box_graphics
@@ -283,31 +284,26 @@ class update_design_input:
         kwargs = ', '.join([f'{i}={j!r}' for i, j in self.updates.items()])
         return f"{type(self).__name__}({kwargs})"
 
-def _resolve_annotation(annotation, module):
-    # Annotations are strings when `from __future__ import annotations` is used
-    if not isinstance(annotation, str): return annotation
-    import sys, builtins
-    namespace = getattr(sys.modules.get(module), '__dict__', {})
-    try:
-        annotation = eval(annotation, {'__builtins__': builtins, **namespace})
-    except Exception:
-        return None
+def _as_builtin_type(annotation):
+    if isinstance(annotation, str):
+        annotation = getattr(builtins, annotation, None)
     return annotation if isinstance(annotation, type) else None
 
-def _get_class_annotation(owner, key):
-    try:
-        import annotationlib
-    except ImportError: # Python < 3.14
+try:
+    import annotationlib # Only available in Python 3.14+
+except ImportError:
+    def _get_class_annotation(owner, key):
         annotations = owner.__dict__.get('__annotations__', {})
-    else:
+        return _as_builtin_type(annotations.get(key))
+else:
+    def _get_class_annotation(owner, key):
         try:
             annotations = annotationlib.get_annotations(
                 owner, format=annotationlib.Format.FORWARDREF
             )
         except Exception:
             return None
-    return _resolve_annotation(annotations.get(key), owner.__module__)
-
+        return _as_builtin_type(annotations.get(key))
 
 class DesignInput:
     _new_attributes = ()
@@ -375,13 +371,10 @@ class DesignInput:
         elif N_none == 0:
             annotations = fget.__annotations__
             if 'return' in annotations:
-                self._return_type = _resolve_annotation(
-                    annotations['return'], fget.__module__
-                ) or self._default_return_type
+                self._return_type = _as_builtin_type(annotations['return']) or self._default_return_type
             else:
                 self._return_type = return_type = self._default_return_type
-                if return_type is not None:
-                    annotations['return'] = return_type
+                if return_type is not None: annotations['return'] = return_type
         else:
             self._return_type = _get_class_annotation(owner, name) or self._default_return_type
             
