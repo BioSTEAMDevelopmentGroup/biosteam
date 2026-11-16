@@ -211,21 +211,15 @@ class Tank(Unit, isabstract=True):
         default_material = self.purchase_cost_algorithm.material
         if material == default_material:
             self.F_M['Tank'] = vessel_material_factors.get(default_material, 1.)
+        elif material in vessel_material_factors:
+            self.F_M['Tank'] = vessel_material_factors[material]
         else:
-            if default_material in vessel_material_factors:
-                if material not in vessel_material_factors:
-                    raise AttributeError(
-                        "no material factor available for "
-                       f"vessel construction material '{material}';"
-                        "only the following materials are "
-                       f"available: {', '.join(vessel_material_factors)}"
-                    )
-                self.F_M['Tank'] = vessel_material_factors[material] / vessel_material_factors[default_material]
-            else:
-                raise AttributeError(
-                    "no material factor available for "
-                   f"default vessel construction material '{default_material}'"
-                )
+            raise AttributeError(
+                "no material factor available for "
+               f"vessel construction material '{material}';"
+                "only the following materials are "
+               f"available: {', '.join(vessel_material_factors)}"
+            )
 
     def __init_subclass__(cls, isabstract=False):
         if not isabstract and not hasattr(cls, 'purchase_cost_algorithms'):

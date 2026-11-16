@@ -408,8 +408,7 @@ class DesignInput:
             self.fset = eval(f'lambda unit, value: setattr(unit, {attr!r}, value)')
 
     def __call__(self, fget):
-        # Used as a decorator right after creation (e.g., @design_input(...)),
-        # so the getter is set in place instead of creating a copy
+        if hasattr(self, '__name__'): return self.copy(fget=fget)
         self.fget = fget
         return self
 
