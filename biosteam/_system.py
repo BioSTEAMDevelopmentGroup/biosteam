@@ -4401,7 +4401,7 @@ class System:
 
     def results(self, with_units=True):
         """
-        Return a DataFrame of key results from simulation.
+        Return key simulation results as a DataFrame, or a Series without units.
         """
         keys = []; addkey = keys.append
         vals = []; addval = vals.append
@@ -4467,13 +4467,13 @@ class System:
                     addval(heat_utility.flow)
                     addkey((ID, 'Cost'))
                     addval(heat_utility.cost)
-            for name, flow in self.get_inlet_utility_flows().items():
+            for name, flow in self.get_inlet_cost_flows().items():
                 ID = name + ' (inlet)'
                 addkey((ID, 'Flow'))
                 addval(flow)
                 addkey((ID, 'Cost'))
                 addval(flow * stream_prices[name])
-            for name, flow in self.get_outlet_utility_flows().items():
+            for name, flow in self.get_outlet_revenue_flows().items():
                 ID = name + ' (outlet)'
                 addkey((ID, 'Flow'))
                 addval(flow)
