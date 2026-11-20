@@ -186,8 +186,8 @@ class MultiEffectEvaporator(Unit):
     Cooling water            Duty                                   kJ/hr -1.15e+05
                              Flow                                 kmol/hr      78.8
                              Cost                                  USD/hr    0.0384
-    Design inputs            Molar fraction evaporated                          0.1
-                             V definition                                   Overall
+    Design inputs            Vapor fraction                                     0.1
+                             Vapor fraction definition                      Overall
     Design results           Area                                     m^2      1.62
                              Volume                                   m^3      3.07
     Purchase cost            Evaporators (x3)                         USD  2.74e+03
@@ -243,8 +243,8 @@ class MultiEffectEvaporator(Unit):
     Cooling water            Duty                                   kJ/hr -1.15e+05
                              Flow                                 kmol/hr      78.8
                              Cost                                  USD/hr    0.0384
-    Design inputs            Molar fraction evaporated                          0.1
-                             V definition                                   Overall
+    Design inputs            Vapor fraction                                     0.1
+                             Vapor fraction definition                      Overall
     Design results           Area                                     m^2      1.62
                              Volume                                   m^3      3.07
     Purchase cost            Evaporators (x3)                         USD  2.74e+03
@@ -266,32 +266,28 @@ class MultiEffectEvaporator(Unit):
     _N_outs = 2
 
     # Evaporator type
-    _Type = 'Forced circulation'
+    _evaporator_type = 'Forced circulation'
     
     # Data for simmulation and costing
-    _evap_data = evaporators[_Type]
+    _evap_data = evaporators[_evaporator_type]
     
     V = design_input(
-        'Molar fraction evaporated', lb=0, ub=1,
+        'Vapor fraction', lb=0, ub=1,
         doc="Molar fraction evaporated as specified in `V_definition` "
             "(either overall or in the first effect).",
     )
 
-    @property
-    def Type(self):
-        """Evaporation type."""
-        return self._Type
-    @Type.setter
-    def Type(self, evap_type):
-        try:
-            self._evap_data = evaporators[evap_type]
-        except KeyError:
-            dummy = str(evaporators.keys())[11:-2]
-            raise ValueError(f"Type must be one of the following: {dummy}")
-        self._Type = evap_type
+    @design_input(catalog=evaporators.keys())
+    def evaporator_type(self):
+        return self._evaporator_type
+    @evaporator_type.setter
+    def evaporator_type(self, evap_type):
+        self._evap_data = evaporators[evap_type]
+        self._evaporator_type = evap_type
 
     @design_input(
-        catalog=('Overall', 'First-effect', 'First-effect duty'),
+        name='Vapor fraction definition',
+        catalog={'Overall', 'First-effect', 'First-effect duty'},
         default='Overall',
     )
     def V_definition(self):

@@ -166,7 +166,7 @@ class GibbsEquilibriumReactor(AbstractStirredTankReactor):
     V_max = update_design_input(default=500)
     kW_per_m3 = update_design_input(default=0)
     batch = update_design_input(default=False)
-    tau_phases = update_design_input(default='lg')
+    tau_phase = update_design_input(default=None)
     tau_basis = 'outs' # Alternatively, 'ins'
     method = design_input(
         'Optimization method',
