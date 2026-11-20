@@ -49,6 +49,28 @@ def test_unit_result_tables(system):
     columns = ['Units', 'H1', 'Units', 'M1']
     assert [i for df in results for i in df] == columns
 
+@pytest.mark.parametrize('with_stream_fees', [False, True])
+def test_system_results_without_units(system, monkeypatch, with_stream_fees):
+    if with_stream_fees:
+        monkeypatch.setitem(bst.stream_prices, 'Mock feed fee', 0.01)
+        monkeypatch.setitem(bst.stream_prices, 'Mock product credit', 0.02)
+        mixer = system.flowsheet.unit.M1
+        heater = system.flowsheet.unit.H1
+        mixer.define_fee('Mock feed fee', mixer.ins[0])
+        heater.define_credit('Mock product credit', heater.outs[0])
+        system.simulate()
+    expected = system.results()[system.ID]
+    results = system.results(with_units=False)
+    assert results.index.equals(expected.index)
+    assert results.name == system.ID
+    assert_allclose(results.values, expected.values)
+    if with_stream_fees:
+        flow = mixer.ins[0].F_mass
+        assert results['Mock feed fee (inlet)', 'Flow'] == flow
+        assert results['Mock feed fee (inlet)', 'Cost'] == flow * 0.01
+        assert results['Mock product credit (outlet)', 'Flow'] == flow
+        assert results['Mock product credit (outlet)', 'Cost'] == -flow * 0.02
+
 def test_cost_table(tea):
     df = bst.report.cost_table(tea)
     columns = ['Unit operation', 
