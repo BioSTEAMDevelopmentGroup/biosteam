@@ -288,7 +288,6 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
             )
         else:
             self._heat_exchanger_configuration = configuration
-        self.load_auxiliaries()
 
     @design_input(
         'Loop temperature change', 'K', lb=0, default=5,
@@ -322,7 +321,11 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
             reactions: Optional[bst.ReactionSystem]=None,
         ):
         self.reactions = reactions
-                
+    
+    def _setup(self):
+        super()._setup()
+        self.load_auxiliaries()
+    
     def load_auxiliaries(self):
         if self.adiabatic or not self.heat_exchanger_configuration == 'Recirculation loop': 
             self.recirculation_loop = None
@@ -358,7 +361,7 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
             elif tau_phase == 'Solid': 
                 phase = 's'
             else:
-                raise RuntimeError('invalid `tau_phase` value')
+                raise RuntimeError('invalid `tau_phase`')
             F_vol = sum([i.F_vol for i in streams if i.phase == phase]) 
         else:
             F_vol = sum([i.F_vol for i in streams])
@@ -409,7 +412,7 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
         if self.adiabatic or size_only: return
         duty = self._get_duty()
         if not duty: return
-        if hx_config == 'recirculation loop':
+        if hx_config == 'Recirculation loop':
             # Note: Flow and duty are rescaled to simulate an individual
             # heat exchanger, then BioSTEAM accounts for number of units in parallel
             # through the `parallel` attribute.
