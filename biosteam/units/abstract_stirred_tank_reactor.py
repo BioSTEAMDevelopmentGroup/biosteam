@@ -70,7 +70,7 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
         Number of reactors.
     heat_exchanger_configuration : 
         What kind of heat exchanger to default to (if any). Valid options include 
-        'jacketed', 'recirculation loop', and 'internal'. Defaults to 'recirculation loop'.
+        'Jacketed', 'recirculation loop', and 'Internal'. Defaults to 'recirculation loop'.
     dT_hx_loop : 
         Maximum change in temperature for the heat exchanger loop. Defaults to 5 K.
     jacket_annular_diameter :
@@ -197,7 +197,7 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
                              Cleaning and unloading time               hr                    3
                              Residence time phase                                       Liquid
                              Batch                                                       False
-                             Heat exchanger configuration                   recirculation loop
+                             Heat exchanger configuration                   Recirculation loop
                              Loop temperature change                    K                    5
     Design results           Reactor volume                            m3                  319
                              Number of reactors                                              4
@@ -273,17 +273,17 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
         self._adiabatic = adiabatic
 
     @design_input(
-        catalog={'jacketed', 'recirculation loop', 'internal'}, 
-        default='recirculation loop',
+        catalog={'Jacketed', 'Recirculation loop', 'Internal'}, 
+        default='Recirculation loop',
     )
     def heat_exchanger_configuration(self):
         # If adiabatic, hx configuration is not active and will not appear in design inputs
         if not self.adiabatic: return self._heat_exchanger_configuration
     @heat_exchanger_configuration.setter
     def heat_exchanger_configuration(self, configuration):
-        if configuration == 'internal':
+        if configuration == 'Internal':
             raise AttributeError(
-                "'internal' heat exchanger configuration not implemented "
+                "'Internal' heat exchanger configuration not implemented "
                 " in BioSTEAM yet"
             )
         else:
@@ -297,7 +297,7 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
         """Maximum change in temperature for the heat exchanger loop [K].
         Defaults to 5 K."""
         dT = self._dT_hx_loop
-        if self.heat_exchanger_configuration == 'recirculation loop': return dT
+        if self.heat_exchanger_configuration == 'Recirculation loop': return dT
     @dT_hx_loop.setter
     def dT_hx_loop(self, dT):
         self._dT_hx_loop = dT
@@ -307,7 +307,7 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
     )
     def jacket_annular_diameter(self):
         d = self._jacket_annular_diameter
-        if self.heat_exchanger_configuration == 'jacketed': return d
+        if self.heat_exchanger_configuration == 'Jacketed': return d
     @jacket_annular_diameter.setter
     def jacket_annular_diameter(self, diameter):
         self._jacket_annular_diameter = diameter
@@ -324,7 +324,7 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
         self.reactions = reactions
                 
     def load_auxiliaries(self):
-        if self.adiabatic or not self.heat_exchanger_configuration == 'recirculation loop': 
+        if self.adiabatic or not self.heat_exchanger_configuration == 'Recirculation loop': 
             self.recirculation_loop = None
             self.heat_exchanger = None
             self.scaler = None
@@ -397,7 +397,7 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
         L = D * length_to_diameter
         Design['Residence time'] = self.tau
         hx_config = self.heat_exchanger_configuration
-        if hx_config == 'jacketed':
+        if hx_config == 'Jacketed':
             annular_diameter = self.jacket_annular_diameter * 3.28084 # Annular diameter [ft]
             dct = self._vessel_design(P_psi, D, L, annular_diameter, check=not size_only)
         else:
@@ -441,7 +441,7 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
                 self.scaler.simulate()
             self.heat_exchanger.T = hx_outlet.T
             self.heat_exchanger.simulate()
-        elif hx_config == 'jacketed':
+        elif hx_config == 'Jacketed':
             self.add_heat_utility(duty / N, self.effluent.T)
         else:
             raise RuntimeError(
@@ -453,7 +453,7 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
         baseline_purchase_costs = self.baseline_purchase_costs
         volume = Design['Reactor volume']
         if volume != 0:
-            if self.heat_exchanger_configuration == 'jacketed':
+            if self.heat_exchanger_configuration == 'Jacketed':
                 baseline_purchase_costs.update(
                     self._vessel_purchase_cost(
                         Design['Weight'], 

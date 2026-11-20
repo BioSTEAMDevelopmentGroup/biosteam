@@ -59,7 +59,7 @@ class GibbsEquilibriumReactor(AbstractStirredTankReactor):
         Number of reactors.
     heat_exchanger_configuration : 
         What kind of heat exchanger to default to (if any). Valid options include 
-        'jacketed', 'recirculation loop', and 'internal coil'. Defaults to 'recirculation loop'.
+        'Jacketed', 'Recirculation loop', and 'Internal coil'. Defaults to 'recirculation loop'.
     dT_hx_loop : 
         Maximum change in temperature for the heat exchanger loop. Defaults to 5 K.
     jacket_annular_diameter :
@@ -72,7 +72,7 @@ class GibbsEquilibriumReactor(AbstractStirredTankReactor):
     -----
     The heat exchanger configuration can be one of the following:
 
-    * 'recirculation loop': 
+    * 'Recirculation loop': 
         The recirculation loop takes into account the required flow rate needed to
         reach the maximum temperature change of the heat exchanger, `dT_hx_loop`. 
         Increasing `dT_hx_loop` decreases the required recirculation flow rate and
@@ -83,7 +83,7 @@ class GibbsEquilibriumReactor(AbstractStirredTankReactor):
         same recirculation loop for all reactors, this conservative assumption allows
         for each reactor to be operated independently from each other.
 
-    * 'jacketed':
+    * 'Jacketed':
         The jacket does not account for the heat transfer area requirement. 
         It simply assumes that a full jacket can provide the necessary heat transfer
         area to meet the duty requirement. A heuristic annular diameter is assumed
@@ -92,7 +92,7 @@ class GibbsEquilibriumReactor(AbstractStirredTankReactor):
         The weight of the jacket is added to the weight of the vessel and the
         cost is compounded together as a jacketed vessel.
         
-    * 'internal coil':
+    * 'Internal coil':
         The internal coil is costed as an ordinary helical tube heat exchanger
         with the added assumption that the temperature at the wall is the 
         operating temperature. This method is still not implemented in BioSTEAM
@@ -120,38 +120,37 @@ class GibbsEquilibriumReactor(AbstractStirredTankReactor):
                         NO2   11.9
     
     >>> EqR.results()
-    Gibbs equilibrium reactor                               Units                     EqR
-    Low pressure steam       Duty                           kJ/hr                3.58e+05
-                             Flow                         kmol/hr                    9.25
-                             Cost                          USD/hr                     2.2
-    Design inputs            Vessel type                                         Vertical
-                             Vessel material                          Stainless steel 316
-                             Operating temperature              K                     298
-                             Operating pressure                Pa                1.01e+06
-                             Residence time                    hr                     0.1
-                             Working volume fraction                                  0.8
-                             Maximum reactor volume            m3                     500
-                             Length to diameter ratio                                   3
-                             Agitator power                 kW/m3                       0
-                             Cleaning and unloading time       hr                       3
-                             Loop temperature change            K                       5
-                             Jacket annular diameter            m                     0.1
-                             Residence time phases                                     lg
-                             Batch                                                  False
-                             Optimization method                   differential evolution
-    Design results           Reactor volume                    m3                    26.6
-                             Number of reactors                                         1
-                             Residence time                    hr                     0.1
-                             Length                            ft                    22.1
-                             Diameter                          ft                    7.36
-                             Weight                            lb                 3.5e+04
-                             Wall thickness                    in                   0.716
-                             Jacketed diameter                 ft                    7.74
-    Purchase cost            Pressure vessel                  USD                2.21e+05
-                             Platform and ladders             USD                 1.6e+04
-    Total purchase cost                                       USD                2.37e+05
-    Installed equipment cost                                  USD                 5.7e+05
-    Utility cost                                           USD/hr                     2.2
+    Gibbs equilibrium reactor                                Units                     EqR
+    Low pressure steam       Duty                            kJ/hr                3.58e+05
+                             Flow                          kmol/hr                    9.25
+                             Cost                           USD/hr                     2.2
+    Design inputs            Vessel type                                          Vertical
+                             Vessel material                           Stainless steel 316
+                             Operating temperature               K                     298
+                             Operating pressure                 Pa                1.01e+06
+                             Residence time                     hr                     0.1
+                             Working volume fraction                                   0.8
+                             Maximum reactor volume             m3                     500
+                             Length to diameter ratio                                    3
+                             Agitator power                  kW/m3                       0
+                             Cleaning and unloading time        hr                       3
+                             Batch                                                   False
+                             Heat exchanger configuration                         Jacketed
+                             Jacket annular diameter             m                     0.1
+                             Optimization method                    differential evolution
+    Design results           Reactor volume                     m3                    26.6
+                             Number of reactors                                          1
+                             Residence time                     hr                     0.1
+                             Length                             ft                    22.1
+                             Diameter                           ft                    7.36
+                             Weight                             lb                 3.5e+04
+                             Wall thickness                     in                   0.716
+                             Jacketed diameter                  ft                    7.74
+    Purchase cost            Pressure vessel                   USD                2.21e+05
+                             Platform and ladders              USD                 1.6e+04
+    Total purchase cost                                        USD                2.37e+05
+    Installed equipment cost                                   USD                 5.7e+05
+    Utility cost                                            USD/hr                     2.2
     
     """
     _N_ins = 1
@@ -162,7 +161,7 @@ class GibbsEquilibriumReactor(AbstractStirredTankReactor):
     P = update_design_input(default=101325)
     tau = update_design_input(default=0.1) # [h]
     jacket_annular_diameter = update_design_input(default=0.1) # [m]
-    heat_exchanger_configuration_default = 'jacketed'
+    heat_exchanger_configuration = update_design_input(default='Jacketed')
     V_max = update_design_input(default=500)
     kW_per_m3 = update_design_input(default=0)
     batch = update_design_input(default=False)
