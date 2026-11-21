@@ -455,7 +455,6 @@ class TEA:
         if isabstract: return
         for method in ('_DPI', '_TDC', '_FCI', '_FOC'):
             if not hasattr(cls, method):
-                breakpoint()
                 raise NotImplementedError(
                     f"subclass must implement a '{method}' method unless the "
                      "'isabstract' keyword argument is True"
