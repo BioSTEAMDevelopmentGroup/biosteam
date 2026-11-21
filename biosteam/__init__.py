@@ -91,6 +91,8 @@ __all__ = [
     *thermosteam.__all__
 ]
 
+thermosteam.Network = Network # Backwards compatibility with old HENSMITH version
+
 # %% Load premire biosteam extensions which offer comprehensive simulation capabilities.
 
 # Add heat exchanger network synthesis capabilities from hensmith library.
