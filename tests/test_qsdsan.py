@@ -10,7 +10,11 @@
 """
 """
 
+import pytest
+
 def test_dyn_sys():
+    # Skip if qsdsan is not installed or is incompatible with this version of biosteam
+    pytest.importorskip('qsdsan', exc_type=ImportError)
     from qsdsan import processes as pc, sanunits as su, set_thermo, System
     import numpy as np
     from numpy.testing import assert_allclose

@@ -19,7 +19,6 @@ from math import log, exp, ceil
 from typing import NamedTuple, Tuple, Callable, Dict
 from .heat_exchange import HX
 from .. import Unit
-from ..utils import list_available_names
 from ..exceptions import DesignWarning, bounds_warning
 from .._graphics import turbine_graphics
 
@@ -31,7 +30,6 @@ __all__ = (
 
 #: TODO:
 #: * Implement estimate of isentropic efficiency when not given (is this possible?).
-
 class TurbineCostAlgorithm(NamedTuple):
     #: Defines preliminary correlation algorithm for a turbine type
     psig_max: float #: Maximum achievable pressure in psig (to autodermine turbine type and/or issue warning)
@@ -51,15 +49,7 @@ class Turbine(Unit, isabstract=True):
     _graphics = turbine_graphics
     _N_ins = 1
     _N_outs = 1
-    _units = {
-        'Ideal power': 'kW',
-        'Ideal duty': 'kJ/hr',
-    }
-    material_factors = {
-        'Carbon steel': 1.0,
-        'Stainless steel': 2.5,
-        'Nickel alloy': 5.0,
-    }
+    
     _F_BM_default = {
         'Turbine(s)': 2.15,
     }
@@ -73,53 +63,35 @@ class Turbine(Unit, isabstract=True):
                 CE=567,
             ),
     }
+    material_factors = {
+        'Carbon steel': 1.0,
+        'Stainless steel': 2.5,
+        'Nickel alloy': 5.0
+    }
 
-    def _init(self, P, eta=0.3, vle=False, turbine_type=None,
-                 material=None, efficiency=None):
-        self.P = P  #: Outlet pressure [Pa].
-        self.eta = eta  #: Isentropic efficiency.
+    P = bst.design_input('Outlet pressure', 'Pa', lb=0)
+    eta = bst.design_input('Isentropic efficiency', lb=0, ub=1, default=0.3)
+    turbine_type = bst.design_input(
+        catalog=baseline_cost_algorithms, default='Default',
+        doc="Type of turbine. If 'Default', the type will be determined "
+            "based on the outlet pressure.",
+    )
+    efficiency = bst.design_input(
+        'Driver efficiency', lb=0, ub=1, default=0.65,
+        doc="Efficiency of driver of work to electricity conversion. "
+            "Defaults to 0.65.",
+    )
+    material = bst.design_input(
+        catalog=material_factors,
+        purchase_item='Turbines(s)',
+        catalog_type='Material',
+        default='Carbon steel',
+    )
 
+    def _init(self, vle=False):
         #: Whether to perform phase equilibrium calculations on the outflow.
         #: If False, the outlet will be assumed to be the same phase as the inlet.
         self.vle = vle
-        self.material = 'Carbon steel' if material is None else material 
-        self.turbine_type = 'Default' if turbine_type is None else turbine_type
-        self.efficiency = 0.65 if efficiency is None else efficiency
-
-    @property
-    def turbine_type(self):
-        return self._turbine_type
-    @turbine_type.setter
-    def turbine_type(self, turbine_type):
-        """[str] Type of turbine. If 'Default', the type will be determined based on the outlet pressure."""
-        turbine_type = turbine_type.capitalize()
-        if turbine_type not in self.baseline_cost_algorithms and turbine_type != 'Default':
-            raise ValueError(
-                f"turbine type {repr(turbine_type)} not available; "
-                f"only {list_available_names(self.baseline_cost_algorithms)} are available"
-            )
-        self._turbine_type = turbine_type
-
-    @property
-    def efficiency(self):
-        return self._efficiency
-    @efficiency.setter
-    def efficiency(self, efficiency):
-        """[float] Efficiency of driver of work to electricity conversion."""
-        self._efficiency = float(efficiency)
-
-    @property
-    def material(self):
-        """[str]. Construction material. Defaults to 'Carbon steel'."""
-        return self._material
-    @material.setter
-    def material(self, material):
-        try:
-            self.F_M['Turbines(s)'] = self.material_factors[material]
-        except KeyError:
-            raise AttributeError("material must be one of the following: "
-                                 f"{list_available_names(self.material_factors)}")
-        self._material = material
 
     def _determine_turbine_type(self):
         psig = (self.P - 101325.) * 14.6959 / 101325.
@@ -165,7 +137,7 @@ class Turbine(Unit, isabstract=True):
         Pc = abs(self.power_utility.get_property('rate', 'hp'))
         N = design_results['Turbines in parallel']
         Pc_per_turbine = Pc / N
-        bounds_warning(self, 'power', Pc, 'hp', alg.hp_bounds, 'cost')
+        bounds_warning(self, 'power', Pc, 'hp', alg.hp_bounds)
         self.baseline_purchase_costs['Turbines(s)'] = N * bst.CE / alg.CE * alg.cost(Pc_per_turbine)
 
 

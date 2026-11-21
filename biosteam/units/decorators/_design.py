@@ -56,20 +56,6 @@ class DesignCenter:
         functions[name] = design_basis
         return design_basis
     
-    def __call__(self, name, units):    
-        """
-        Return a Unit class decorator that adds a size/design requirement to the class.
-        
-        Parameters
-        ----------
-        name : str
-            Name of design item            
-        units : str
-            Units of measure of design item.            
-        
-        """
-        return lambda cls: self.add_design_basis_to_cls(cls, name, units)
-    
     def add_design_basis_to_cls(self, cls, name, units, annual):
         """
         Add size/design requirement to class.

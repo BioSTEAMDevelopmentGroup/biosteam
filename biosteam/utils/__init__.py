@@ -15,6 +15,7 @@ from . import (
     stream_link_options,
     functors,
     scope,
+    sphinx_docs,
 )
 __all__ = (
     'colors',
@@ -27,6 +28,7 @@ __all__ = (
     *stream_link_options.__all__,
     *functors.__all__,
     *scope.__all__,
+    *sphinx_docs.__all__,
 )
 from thermosteam.utils import *
 from .patches import *
@@ -35,5 +37,6 @@ from .piping import *
 from .stream_link_options import *
 from .functors import *
 from .scope import *
+from .sphinx_docs import *
 
 del utils

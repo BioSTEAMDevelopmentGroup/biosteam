@@ -82,7 +82,7 @@ class VacuumSystem(Auxiliary):
     Cooling water            Duty                                   kJ/hr -9.37e+06
                              Flow                                 kmol/hr   6.4e+03
                              Cost                                  USD/hr      3.12
-    Design                   Total volume                              m3  7.23e+04
+    Design results           Total volume                              m3  7.23e+04
     Purchase cost            Vacuum system - Steam-jet ejecto...      USD  8.18e+04
     Total purchase cost                                               USD  8.18e+04
     Installed equipment cost                                          USD  8.18e+04

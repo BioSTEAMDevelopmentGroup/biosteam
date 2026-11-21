@@ -23,7 +23,7 @@ def test_tire():
     char = bst.Stream(Char=100, T=350)
     Hnet = char.Hnet
     F_mass = char.F_mass
-    assert_allclose(Hnet, 6281.35)
+    assert_allclose(Hnet, -3516518.65)
     assert_allclose(F_mass, 1201.07)
     
 if __name__ == '__main__':

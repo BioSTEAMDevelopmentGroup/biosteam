@@ -98,27 +98,23 @@ class InternalCirculationRx(bst.MixTank):
     _Y = 0.05
 
     # Related to cost algorithm
-    _default_vessel_type = 'IC'
-    _default_vessel_material = 'Stainless steel'
     purchase_cost_algorithms = IC_purchase_cost_algorithms
+    vessel_type = bst.update_design_input(default='IC')
+    vessel_material = bst.update_design_input(default='Stainless steel')
+    kW_per_m3 = bst.update_design_input(default=0.)
 
     # Other equipment
     auxiliary_unit_names = ('heat_exchanger', 'effluent_pump', 'sludge_pump')
 
 
     def _init(self, method='lumped', OLRall=1.25, Y_biogas=0.86, Y_biomass=0.05, biodegradability={},
-              vessel_type='IC', vessel_material='Stainless steel',
-              V_wf=0.8, kW_per_m3=0., T=35+273.15, hxn_ok=False, **kwargs):
+              T=35+273.15, hxn_ok=False, **kwargs):
         self.method = method
         self.OLRall = OLRall
         self.Y_biogas = Y_biogas
         self.Y_biomass = Y_biomass
         self.biodegradability = \
             biodegradability if biodegradability else get_BD_dct(self.chemicals)
-        self.V_wf = V_wf or self._default_V_wf
-        self.vessel_type = 'IC'
-        self.vessel_material = vessel_material
-        self.kW_per_m3 = kW_per_m3
         self.T = T
         # Initialize the attributes
         ID = self.ID

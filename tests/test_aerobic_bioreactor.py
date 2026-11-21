@@ -43,20 +43,20 @@ def test_jacketed_bubble_column():
     # Test design results
     R1.simulate()
     expected_results = {
-        'Reactor volume': 460.9817488148036,
-        'Batch time': 18.30995695667444,
-        'Loading time': 3.3099569566744393,
+        'Reactor volume': 453.1780985777661,
+        'Batch time': 18.0,
+        'Loading time': 3.0,
         'Number of reactors': 6,
         'Residence time': 12,
-        'Length': 57.138719611650345,
-        'Diameter': 19.046239870550114,
-        'Weight': 74806.85,
-        'Wall thickness': 0.39430441043892456
+        'Length': 56.81446196104029,
+        'Diameter': 18.93815398701343,
+        'Weight': 73673.55,
+        'Wall thickness': 0.39277612951101165
     }
     for name, expected in expected_results.items():
         assert_allclose(R1.design_results[name], expected)
 
-    assert R1.design_results['Vessel type'] == 'Vertical', 'vessel type must be vertial'
+    assert R1.vessel_type == 'Vertical', 'vessel type must be vertical'
 
     # Test gas flow rate sensitivity to aspect ratio
     air_flow_rates = []
@@ -67,9 +67,9 @@ def test_jacketed_bubble_column():
     
     assert_allclose(
         air_flow_rates, 
-        [387392.31060733745, 
-         191184.84862814427, 
-         139537.07935482083]
+        [389552.48622611153, 
+         192213.29132540865, 
+         140256.24087427833]
     )
     
     # Must raise error if titer/yield is not feasible (mass transfer limitation)
@@ -102,20 +102,20 @@ def test_jacketed_stirred_tank():
     # Test design results
     R1.simulate()
     expected_results = {
-        'Reactor volume': 460.9817488148036,
-        'Batch time': 18.30995695667444,
-        'Loading time': 3.3099569566744393,
+        'Reactor volume': 453.1780985777661,
+        'Batch time': 18.0,
+        'Loading time': 3.0,
         'Number of reactors': 6,
         'Residence time': 12,
-        'Length': 57.138719611650345,
-        'Diameter': 19.046239870550114,
-        'Weight': 74806.85,
-        'Wall thickness': 0.39430441043892456
+        'Length': 56.81446196104029,
+        'Diameter': 18.93815398701343,
+        'Weight': 73673.55,
+        'Wall thickness': 0.39277612951101165
     }
     for name, expected in expected_results.items():
         assert_allclose(R1.design_results[name], expected)
 
-    assert R1.design_results['Vessel type'] == 'Vertical', 'vessel type must be vertial'
+    assert R1.vessel_type == 'Vertical', 'vessel type must be vertical'
 
     # Test gas flow rate sensitivity to aspect ratio
     air_flow_rates = []
@@ -126,9 +126,9 @@ def test_jacketed_stirred_tank():
     
     assert_allclose(
         air_flow_rates, 
-        [220615.2844394027,
-         140308.29890959567, 
-         116120.50925172029]
+        [220080.695942749,
+         140008.8492013689, 
+         115894.06238235894]
     )
     
 

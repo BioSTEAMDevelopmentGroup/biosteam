@@ -29,7 +29,7 @@ from .design_tools import (
     cylinder_area,
 )
 from .decorators import cost
-from .._unit import Unit
+from .._unit import Unit, design_input
 from math import exp, log
 from thermosteam import separations
 from warnings import warn
@@ -44,10 +44,10 @@ class SprayDryer(Unit):
     _units = {'Evaporation rate': 'lb/hr'}
     _N_ins = 1
     _N_outs = 2
-    
-    def _init(self, moisture_content=0.90):
-        self.moisture_content = moisture_content
-        
+    moisture_content = design_input(
+        'Moisture content of solids', lb=0, ub=1, default=0.90,
+    )
+
     def _run(self):
         feed = self.ins[0]
         water, solids = self.outs
@@ -170,20 +170,27 @@ class DrumDryer(Unit):
                   -----  1.22e+04 kg/hr
                         
     >>> dryer.results()
-    Drum dryer                                      Units     D610
-    Electricity              Power                     kW      845
-                             Cost                  USD/hr       66
-    Natural gas (inlet)      Flow                   kg/hr 2.45e+03
-                             Cost                  USD/hr      534
-    Design                   Evaporation            kg/hr 2.09e+04
-                             Volume                       1.05e+03
-                             Diameter                   m     3.76
-                             Length                             94
-                             Peripheral drum area      m2 1.11e+03
-    Purchase cost            Drum dryer               USD  1.2e+06
-    Total purchase cost                               USD  1.2e+06
-    Installed equipment cost                          USD 2.46e+06
-    Utility cost                                   USD/hr      600
+    Drum dryer                                                Units         D610
+    Electricity              Power                               kW          845
+                             Cost                            USD/hr           66
+    Natural gas (inlet)      Flow                             kg/hr     2.45e+03
+                             Cost                            USD/hr          534
+    Design inputs            Operating pressure                  Pa     1.01e+06
+                             Operating temperature                K          343
+                             Relative humidity of hot gas                    0.8
+                             Specific evaporation rate     kg/hr/m3           20
+                             Length to diameter ratio                         25
+                             Moisture content of solids                      0.1
+                             Utility agent                           Natural gas
+    Design results           Evaporation                      kg/hr     2.09e+04
+                             Volume                                     1.05e+03
+                             Diameter                             m         3.76
+                             Length                                           94
+                             Peripheral drum area                m2     1.11e+03
+    Purchase cost            Drum dryer                         USD      1.2e+06
+    Total purchase cost                                         USD      1.2e+06
+    Installed equipment cost                                    USD     2.46e+06
+    Utility cost                                             USD/hr          600
     
     """
     # auxiliary_unit_names = ('heat_exchanger',)
@@ -192,6 +199,25 @@ class DrumDryer(Unit):
               'Diameter': 'm'}
     _N_ins = 3
     _N_outs = 3
+    P = design_input('Operating pressure', 'Pa', lb=0, default=10*101325)
+    T = design_input('Operating temperature', 'K', lb=0, default=343.15)
+    RH = design_input(
+        'Relative humidity of hot gas', lb=0, ub=1, default=0.80,
+    )
+    H = design_input(
+        'Specific evaporation rate', 'kg/hr/m3', lb=0, default=20.,
+    )
+    length_to_diameter = design_input(
+        'Length to diameter ratio', lb=0, default=25,
+        doc="Length to diameter ratio of the drum. Note that the drum is horizontal. "
+            "Defaults to 25.",
+    )
+    moisture_content = design_input(
+        'Moisture content of solids', lb=0, ub=1, default=0.15,
+    )
+    utility_agent = design_input(
+        catalog=('Natural gas', 'Steam'), default='Natural gas',
+    )
     
     @property
     def isplit(self):
@@ -207,30 +233,11 @@ class DrumDryer(Unit):
         """[Stream] Natural gas to satisfy steam and electricity requirements."""
         return self.ins[2]
     
-    def _init(self, split, RH=0.80, H=20., length_to_diameter=25, T=343.15, P=10*101325,
-              moisture_content=0.15, utility_agent='Natural gas', gas_composition=None,
-              moisture_ID=None):
+    def _init(self, split, gas_composition=None, moisture_ID=None):
         self._isplit = self.chemicals.isplit(split)
         self.define_utility('Natural gas', self.natural_gas)
-        self.P = P
-        self.T = T
-        self.RH = RH
-        self.H = H
         self.gas_composition = [('N2', 0.79), ('O2', 0.21)] if gas_composition is None else gas_composition
-        self.length_to_diameter = length_to_diameter
-        self.moisture_content = moisture_content
-        self.utility_agent = utility_agent
         self.moisture_ID = 'Water' if moisture_ID is None else moisture_ID
-        
-    @property
-    def utility_agent(self):
-        return self._utility_agent
-    
-    @utility_agent.setter
-    def utility_agent(self, utility_agent):
-        if utility_agent not in ('Natural gas', 'Steam'):
-            raise ValueError(f"utility agent must be either 'Steam' or 'Natural gas'; not '{utility_agent}'")
-        self._utility_agent = utility_agent
 
     def _get_moisture_vapor_pressure(self, T):
         chemical = self.thermo.chemicals[self.moisture_ID]
@@ -327,16 +334,16 @@ class ThermalOxidizer(Unit):
     _N_outs = 1
     max_volume = 20. # m3
     _F_BM_default = {'Vessels': 2.06} # Assume same as dryer
+    tau = design_input('Residence time', 'hr', lb=0, default=0.00014)
+    duty_per_kg = design_input('Duty per kg of feed', 'kJ/kg', default=61.)
     
     @property
     def natural_gas(self):
         """[Stream] Natural gas to satisfy steam and electricity requirements."""
         return self.ins[2]
     
-    def _init(self, tau=0.00014, duty_per_kg=61.):
+    def _init(self):
         self.define_utility('Natural gas', self.natural_gas)
-        self.tau = tau
-        self.duty_per_kg = duty_per_kg
 
     def _run(self):
         feed, air, ng = self.ins

@@ -31,6 +31,7 @@ from scipy.differentiate import jacobian
 from scipy.spatial.distance import cdist
 from collections import deque
 from .. import Unit
+from .._unit import design_input
 from .design_tools import MESH
 from numba import float64, int16, types, njit
 from typing import NamedTuple, Iterable
@@ -2209,6 +2210,7 @@ class MultiStageEquilibrium(Unit):
     
     sequential_runs_init = 0
     phenomena_runs_init = 0
+    N_stages: int = design_input('Number of stages', lb=1)
     
     def __init_subclass__(cls, *args, **kwargs):
         super().__init_subclass__(cls, *args, **kwargs)

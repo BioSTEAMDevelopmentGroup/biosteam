@@ -945,6 +945,12 @@ plot_montecarlo_across_coordinate = plot_uncertainty_across_coordinate
 
 # %% KDE
 
+def show_box(box):
+    # Whether box plots are shown; None defaults to showing them
+    if box is None: return True
+    if isinstance(box, (list, tuple)): return any(box)
+    return bool(box)
+
 def plot_kde(*args, **kwargs):
     return plot_scatter(*args, **kwargs, kde=True)
 
@@ -974,20 +980,24 @@ def plot_scatter(
         zs = None
         if not (N_xs == N_ys): raise ValueError('x and y shapes must be the same')
     if axis_not_given:
-        # grid_kw = dict(height_ratios=[0.4 * N_internal_x, 4], width_ratios=[4, 0.4 * N_internal_y])
+        # Box plots of x are placed above the scatter plot (extra row) and
+        # box plots of y are placed to the right (extra column). By default
+        # (None), box plots are shown.
+        show_xbox = show_box(xbox)
+        show_ybox = show_box(ybox)
         grid_kw = dict()
-        if xbox:
+        if show_xbox:
+            grid_kw['height_ratios'] = [aspect_ratio, 8]
+            nrows = 2
+        else:
+            nrows = 1
+        if show_ybox:
             grid_kw['width_ratios'] = [8, aspect_ratio]
             ncols = 2
         else:
             ncols = 1
-        if ybox:
-            grid_kw['height_ratios'] = [8, aspect_ratio]
-            nrows = 2
-        else:
-            nrows = 1
         fig, axes = plt.subplots(
-            ncols=ncols, nrows=nrows, 
+            ncols=ncols, nrows=nrows,
             gridspec_kw=grid_kw,
         )
         if nrows == ncols == 1:
@@ -1000,16 +1010,16 @@ def plot_scatter(
             ax = axes[1, 0]
             xbox_ax = axes[0, 0]
             ybox_ax = axes[1, 1]
-        elif nrows == 2 and ncols == 1:
+        elif nrows == 2: # Only x box plots (axes is 1-d)
             ax_empty = None
-            ax = axes[1, 0]
-            xbox_ax = axes[0, 0]
+            ax = axes[1]
+            xbox_ax = axes[0]
             ybox_ax = None
-        elif nrows == 2 and ncols == 1:
+        else: # Only y box plots (axes is 1-d)
             ax_empty = None
-            ax = axes[0, 0]
+            ax = axes[0]
             xbox_ax = None
-            ybox_ax = axes[0, 1]
+            ybox_ax = axes[1]
     elif ax:
         ax_empty = xbox_ax = ybox_ax = None
     else:
@@ -1017,13 +1027,16 @@ def plot_scatter(
         ax = axes[1, 0]
         xbox_ax = axes[0, 0]
         ybox_ax = axes[1, 1]
-    if xbox is None: 
-        if xbox_kwargs is None: xbox_kwargs = {}
-        position = [0]
-        if isinstance(xbox_kwargs, dict):
-            xboxes = [Box(xbox_ax, position, **xbox_kwargs)] * N_xs
+    if xbox is None:
+        if xbox_ax is None: # No axis for default box plots
+            xboxes = [False] * N_xs
         else:
-            xboxes = [Box(xbox_ax, position, **i) for i in xbox_kwargs]
+            if xbox_kwargs is None: xbox_kwargs = {}
+            position = [0]
+            if isinstance(xbox_kwargs, dict):
+                xboxes = [Box(xbox_ax, position, **xbox_kwargs)] * N_xs
+            else:
+                xboxes = [Box(xbox_ax, position, **i) for i in xbox_kwargs]
     elif isinstance(xbox, Box):
         xboxes = [xbox] * N_xs
     elif not xbox:
@@ -1031,12 +1044,15 @@ def plot_scatter(
     else:
         xboxes = xbox
     if ybox is None:
-        if ybox_kwargs is None: ybox_kwargs = {}
-        position = [0]
-        if isinstance(ybox_kwargs, dict):
-            yboxes = [Box(ybox_ax, position, **ybox_kwargs)] * N_xs
+        if ybox_ax is None: # No axis for default box plots
+            yboxes = [False] * N_ys
         else:
-            yboxes = [Box(ybox_ax, position, **i) for i in ybox_kwargs]
+            if ybox_kwargs is None: ybox_kwargs = {}
+            position = [0]
+            if isinstance(ybox_kwargs, dict):
+                yboxes = [Box(ybox_ax, position, **ybox_kwargs)] * N_xs
+            else:
+                yboxes = [Box(ybox_ax, position, **i) for i in ybox_kwargs]
     elif isinstance(ybox, Box):
         yboxes = [ybox] * N_ys
     elif not ybox:

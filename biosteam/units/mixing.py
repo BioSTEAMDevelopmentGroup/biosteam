@@ -13,7 +13,7 @@
 .. autoclass:: biosteam.units.mixing.MockMixer
 
 """
-from .._unit import Unit
+from .._unit import Unit, design_input
 from .._graphics import mixer_graphics
 import flexsolve as flx
 import biosteam as bst
@@ -330,13 +330,16 @@ class SteamMixer(Unit):
     _ins_size_is_fixed = False
     _graphics = mixer_graphics
     installation_cost = purchase_cost = 0.
-    def _init(self, P, T=None, solids_loading=None, 
-             liquid_IDs=['7732-18-5'], solid_IDs=None,
+    P = design_input('Outlet pressure', 'Pa', lb=0)
+    T = design_input('Outlet temperature', 'K', lb=0, default=None)
+    solids_loading = design_input(
+        lb=0, ub=1, doc="Final solids loading (by wt) after mixing in process water.",
+        default=None,
+    )
+    
+    def _init(self, liquid_IDs=['7732-18-5'], solid_IDs=None,
              solids_loading_includes_steam=None):
-        self.P = P
-        self.T = T
-        self.solids_loading = solids_loading
-        self.solids_loading_includes_steam = solids_loading_includes_steam
+        self.solids_loading_includes_steam= solids_loading_includes_steam
         self.liquid_IDs = tuple(liquid_IDs)
         self.solid_IDs = solid_IDs
     

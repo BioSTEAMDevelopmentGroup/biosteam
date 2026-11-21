@@ -1,7 +1,7 @@
 # Corn Conventional dry grind process
 
 The `corn` module includes systems and units for the co-production of ethanol, distiller's dried grains with solubles (DDGS), and low-grade oil from corn kernels through the conventional dry grind process,
-[[1]](#1),[[2]](#2) the biorefinery is modeled based on Kwiatkowski et al. [[1]](#1).
+[^1],[^2] the biorefinery is modeled based on Kwiatkowski et al. [^1].
 
 ```{toctree}
 :hidden:
@@ -141,13 +141,11 @@ outs...
 
 References
 ----------
-<a id="1">[1]</a> 
-    J.R. Kwiatkowski, A. J. McAloon, F. Taylor and D. B. Johnston,
+[^1]: J.R. Kwiatkowski, A. J. McAloon, F. Taylor and D. B. Johnston,
     Modeling the process and costs of fuel ethanol production by the corn 
     dry-grind process, Industrial Crops and Products, 2006, 23, 288–296. 
     https://www.sciencedirect.com/science/article/pii/S0926669005000944
 
-<a id="2">[2]</a> 
-    C. Kurambhatti, D. Kumar and V. Singh, Impact of Fractionation Process 
+[^2]: C. Kurambhatti, D. Kumar and V. Singh, Impact of Fractionation Process 
     on the Technical and Economic Viability of Corn Dry Grind Ethanol Process,
     Processes, 2019, 7, 578. https://www.mdpi.com/2227-9717/7/9/578

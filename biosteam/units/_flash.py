@@ -7,13 +7,14 @@
 # for license details.
 """
 """
-from .. import Unit, PowerUtility
+from .. import Unit
+from .._unit import design_input, update_design_input
 from thermosteam import MultiStream, separations
 from math import pi
 import numpy as np
 from . import design_tools as design
 from .splitting import Splitter
-from .heat_exchange import HX, HXutility
+from .heat_exchange import HXutility
 from .._graphics import vertical_vessel_graphics
 import biosteam as bst
 
@@ -113,22 +114,28 @@ class Flash(design.PressureVessel, Unit):
         flow (kmol/hr): Water     42.4
                         Glycerol  298
     >>> F1.results()
-    Flash                                                      Units            F1
-    Medium pressure steam    Duty                              kJ/hr      4.81e+07
-                             Flow                            kmol/hr      1.33e+03
-                             Cost                             USD/hr           366
-    Design                   Vessel type                                Horizontal
-                             Length                               ft          8.46
-                             Diameter                             ft           5.5
-                             Weight                               lb      2.51e+03
-                             Wall thickness                       in         0.312
-                             Vessel material                          Carbon steel
-    Purchase cost            Horizontal pressure vessel          USD      1.47e+04
-                             Platform and ladders                USD      3.22e+03
-                             Heat exchanger - Floating head      USD      4.48e+04
-    Total purchase cost                                          USD      6.26e+04
-    Installed equipment cost                                     USD      1.89e+05
-    Utility cost                                              USD/hr           366
+    Flash                                                      Units                F1
+    Medium pressure steam    Duty                              kJ/hr          4.81e+07
+                             Flow                            kmol/hr          1.33e+03
+                             Cost                             USD/hr               366
+    Design inputs            Vessel type                                    Horizontal
+                             Vessel material                              Carbon steel
+                             Operating temperature                 K               410
+                             Operating pressure                   Pa          1.01e+05
+                             Vacuum system preference                 Liquid-ring pump
+                             Holdup time                         min                15
+                             Surge time                          min               7.5
+                             Has mist eliminator                                 False
+    Design results           Length                               ft              8.46
+                             Diameter                             ft               5.5
+                             Weight                               lb          2.51e+03
+                             Wall thickness                       in             0.312
+    Purchase cost            Pressure vessel                     USD          1.47e+04
+                             Platform and ladders                USD          3.22e+03
+                             Heat exchanger - Floating head      USD          4.48e+04
+    Total purchase cost                                          USD          6.26e+04
+    Installed equipment cost                                     USD          1.89e+05
+    Utility cost                                              USD/hr               366
 
 
     References
@@ -166,72 +173,70 @@ class Flash(design.PressureVessel, Unit):
                      **design.PressureVessel._F_BM_default}
     _graphics = vertical_vessel_graphics 
     _N_outs = 2
+    V = design_input(
+        'Molar vapor fraction', lb=0, ub=1,
+        default=None,
+    )
+    T = design_input(
+        'Operating temperature', 'K', lb=0,
+        default=None,
+    )
+    Q = design_input(
+        'Duty', 'kJ/hr',
+        default=None,
+    )
+    P = design_input(
+        'Operating pressure', 'Pa', lb=0,
+        default=None,
+    )
+    vacuum_system_preference: str = design_input(
+        default='Liquid-ring pump',
+        doc="If a vacuum system is needed, it will choose one according to this "
+            "preference ('Liquid-ring pump', 'Steam-jet ejector', or 'Dry-vacuum pump'). "
+            "Defaults to 'Liquid-ring pump'.",
+    )
+    holdup_time = design_input(
+        doc="Time it takes to raise liquid to half full [min]. Defaults to 15 min.",
+        units='min', lb=0, default=15,
+    )
+    surge_time = design_input(
+        doc="Time it takes to reach from normal to maximum liquid level [min]. "
+            "Defaults to 7.5 min.",
+        units='min', lb=0, default=7.5,
+    )
+    has_mist_eliminator = design_input(
+        default=False, doc="True if using a mist eliminator pad.",
+    )
 
-    def _init(self, 
-            V=None, T=None, Q=None, P=None, y=None, x=None,
-            vessel_material='Carbon steel',
-            vacuum_system_preference='Liquid-ring pump',
+    def _init(self,
+            y=None, x=None,
             has_glycol_groups=False,
             has_amine_groups=False,
-            vessel_type=None,
-            holdup_time=15,
-            surge_time=7.5,
-            has_mist_eliminator=False,
-            flash_inlet=True, 
+            flash_inlet=True,
             has_vapor_condenser=None,
         ):
-        #: Enforced molar vapor fraction
-        self.V = V
-        
-        #: Enforced operating temperature (K)
-        self.T = T
-        
         #: [array_like] Molar composition of vapor (for binary mixture)
         self.y = y
-        
+
         #: [array_like] Molar composition of liquid (for binary mixture)
         self.x = x
-        
-        #: Enforced duty (kJ/hr)
-        self.Q = Q
-        
-        #: Operating pressure (Pa)
-        self.P = P
-        
-        #: [str] Vessel construction material
-        self.vessel_material = vessel_material
 
-        #: [str] If a vacuum system is needed, it will choose one according to this preference.
-        self.vacuum_system_preference = vacuum_system_preference
-        
-        #: [bool] True if glycol groups are present in the mixture
+        #: [bool] True if glycolgroups are present in the mixture
         self.has_glycol_groups = has_glycol_groups
-        
+
         #: [bool] True if amine groups are present in the mixture
         self.has_amine_groups = has_amine_groups
-        
-        #: [str] 'Horizontal', 'Vertical', or 'Default'
-        self.vessel_type = vessel_type
-        
-        #: [float] Time it takes to raise liquid to half full (min)
-        self.holdup_time = holdup_time
-        
-        #: [float] Time it takes to reach from normal to maximum liquied level (min)
-        self.surge_time = surge_time
-        
-        #: [bool] True if using a mist eliminator pad
-        self.has_mist_eliminator = has_mist_eliminator
-        
-        #: [bool] Whether to flash inlet. If inlet is already flashed, 
+
+        #: [bool] Whether to flash inlet. If inlet is already flashed,
         #: False can save simulation time.
         self.flash_inlet = flash_inlet
-        
+
         #: [bool] Whether to condense the vapor leaving the flash. This allows
         #: vacuum systems to operate more efficiently.
         self.has_vapor_condenser = has_vapor_condenser
-        
+
         self._load_components()
-        
+
     def _load_components(self):
         self._multi_stream = ms = MultiStream(None, thermo=self.thermo)
         self.auxiliary(
@@ -246,16 +251,6 @@ class Flash(design.PressureVessel, Unit):
     def reset_cache(self, isdynamic=None):
         self._multi_stream.reset_cache()
         self.heat_exchanger.reset_cache()
-        
-    @property
-    def P(self):
-        """Operating pressure (Pa)."""
-        return self._P
-    @P.setter
-    def P(self, P):
-        if P and P < 101325 and not self.power_utility:
-            self.power_utility = PowerUtility()
-        self._P = P
 
     @property
     def vapor(self):
@@ -292,8 +287,9 @@ class Flash(design.PressureVessel, Unit):
         if self.no_vessel_needed:
             self.design_results.clear()
         else:
+            if self.vessel_type is None: self.vessel_type = self._default_vessel_type()
             vessel_type = self.vessel_type
-            if vessel_type == 'Vertical': 
+            if vessel_type == 'Vertical':
                 args = self._vertical_vessel_pressure_diameter_and_length()
             elif vessel_type == 'Horizontal': 
                 args = self._horizontal_vessel_pressure_diameter_and_length()
@@ -515,52 +511,24 @@ class SplitFlash(Flash):
     line = 'Flash' 
     
     def _init(self, split,
-            order=None, T=None, P=None, Q=None,
-            vessel_material='Carbon steel',
-            vacuum_system_preference='Liquid-ring pump',
+            order=None,
             has_glycol_groups=False,
             has_amine_groups=False,
-            vessel_type=None,
-            holdup_time=15,
-            surge_time=7.5,
-            has_mist_eliminator=False,
             has_vapor_condenser=False,
         ):
         Splitter._init(self, split=split, order=order)
         self.has_vapor_condenser = has_vapor_condenser
         self._load_components()
-        
-        self.T = T #: Operating temperature (K)
-        self.P = P #: Operating pressure (Pa)
-        self.Q = Q #: Duty (kJ/hr)
-        
-        #: [str] Vessel construction material
-        self.vessel_material = vessel_material
 
-        #: [str] If a vacuum system is needed, it will choose one according to this preference.
-        self.vacuum_system_preference = vacuum_system_preference
-        
         #: [bool] True if glycol groups are present in the mixture
         self.has_glycol_groups = has_glycol_groups
-        
+
         #: [bool] True if amine groups are present in the mixture
         self.has_amine_groups = has_amine_groups
-        
-        #: [str] 'Horizontal', 'Vertical', or 'Default'
-        self.vessel_type = vessel_type
-        
-        #: [float] Time it takes to raise liquid to half full (min)
-        self.holdup_time = holdup_time
-        
-        #: [float] Time it takes to reach from normal to maximum liquied level (min)
-        self.surge_time = surge_time
-        
-        #: [bool] True if using a mist eliminator pad
-        self.has_mist_eliminator = has_mist_eliminator
-        
+
         self.flash_inlet = False
-        
-    
+
+
     isplit = Splitter.isplit
     split = Splitter.split
     V = None
@@ -587,6 +555,7 @@ class Evaporator(Flash):
     _ins_size_is_fixed = True
     _N_ins = 2
     _N_outs = 3
+    vessel_type = update_design_input(default='Vertical')
     @property
     def P(self):
         return self._P
@@ -611,13 +580,11 @@ class Evaporator(Flash):
             self._P = chemical.Psat(T)
             self._T = T
     
-    def _init(self, Q=None, V=None, P=101325, chemical='7732-18-5'):
-        super()._init(vessel_type='Vertical')
+    def _init(self, P=101325, chemical='7732-18-5'):
+        super()._init()
         self.chemical = self.chemicals[chemical]
         self.P = P
-        self.Q = Q
-        self.V = V
-    
+
     def _load_components(self): pass
     
     def _run(self):

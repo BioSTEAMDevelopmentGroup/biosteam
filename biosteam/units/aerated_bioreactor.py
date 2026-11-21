@@ -18,6 +18,7 @@ References
 """
 import biosteam as bst
 from .abstract_stirred_tank_reactor import AbstractStirredTankReactor
+from .._unit import design_input, update_design_input
 from math import pi
 from scipy.constants import g
 import flexsolve as flx
@@ -182,28 +183,39 @@ class AeratedBioreactor(AbstractStirredTankReactor):
         'air_cooler',
         *AbstractStirredTankReactor.auxiliary_unit_names
     )
-    T_default = 273.15 + 32 
-    P_default = 101325
-    kW_per_m3_default = 0.2955 # Reaction in homogeneous liquid; reference [1]
-    batch_default = True
+    T = update_design_input(default=273.15 + 32)
+    P = update_design_input(default=101325)
+    kW_per_m3 = update_design_input(default=0.2955) # Reaction in homogeneous liquid; reference [1]
+    batch = update_design_input(default=True)
     default_methods = {
         'Stirred tank': 'Riet',
         'Bubble column': 'Dewes',
     }
+    compressor_isentropic_efficiency = design_input(
+        'Compressor isentropic efficiency', lb=0, ub=1, default=0.85,
+    )
+    cooler_pressure_drop = design_input(
+        'Cooler pressure drop', 'Pa', lb=0, default=20684.28,
+    )
+    theta_O2 = design_input(
+        'O2 saturation fraction', lb=0, ub=1, default=0.5,
+        doc="Average concentration of O2 in the liquid as a fraction of saturation.",
+    )
+    Q_O2_consumption = design_input(
+        'Duty per O2 consumed', 'kJ/kmol', default=None,
+        doc="Forced duty per O2 consumed [kJ/kmol]. If not given, the duty "
+            "is computed from the energy balance.",
+    )
+    
     def _init(
-            self, theta_O2=0.5, Q_O2_consumption=None,
-            optimize_power=None, design=None, method=None, kLa_kwargs=None,
-            cooler_pressure_drop=None, compressor_isentropic_efficiency=None,
+            self, 
+            optimize_power=None, 
+            design=None, 
+            method=None, 
+            kLa_kwargs=None,
             **kwargs,
         ):
-        if compressor_isentropic_efficiency is None: compressor_isentropic_efficiency = 0.85
-        #: Isentropic efficiency of the compressor. Defaults to 0.85.
-        self.compressor_isentropic_efficiency = compressor_isentropic_efficiency 
-        #: Pressure drop at the cooler [Pa]. Defaults to 20684.28 Pa, a heuristic value for a gas.
-        self.cooler_pressure_drop = 20684.28 if cooler_pressure_drop is None else cooler_pressure_drop
         AbstractStirredTankReactor._init(self, **kwargs)
-        self.theta_O2 = theta_O2 # Average concentration of O2 in the liquid as a fraction of saturation.
-        self.Q_O2_consumption = Q_O2_consumption # Forced duty per O2 consummed [kJ/kmol].
         if design is None: 
             if self.kW_per_m3 == 0:
                 design = 'Bubble column'

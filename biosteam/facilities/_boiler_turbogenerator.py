@@ -157,7 +157,7 @@ class BoilerTurbogenerator(bst.Facility):
                              Cost                                USD/hr         0
     Ash disposal (outlet)    Flow                                 kg/hr     0.737
                              Cost                                USD/hr    0.0234
-    Design                   Work                                    kW  1.33e+05
+    Design results           Work                                    kW  1.33e+05
                              Flow rate                            kg/hr  2.93e+05
                              Ash disposal                         kg/hr     0.737
     Purchase cost            Baghouse bags                          USD      81.1
@@ -632,7 +632,7 @@ class Boiler(bst.Facility):
                              Cost                                USD/hr         0
     Ash disposal (outlet)    Flow                                 kg/hr     0.737
                              Cost                                USD/hr    0.0234
-    Design                   Flow rate                            kg/hr  2.93e+05
+    Design results           Flow rate                            kg/hr  2.93e+05
                              Ash disposal                         kg/hr     0.737
     Purchase cost            Baghouse bags                          USD      81.1
                              Boiler                                 USD  3.33e+07

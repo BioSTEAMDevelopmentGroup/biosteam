@@ -46,11 +46,13 @@ class SludgeHandling(bst.Unit):
     _ins_size_is_fixed = False
     _N_outs = 2
     auxiliary_unit_names = ('effluent_pump', 'sludge_pump')
+    sludge_moisture = bst.design_input(
+        'Sludge moisture content', lb=0, ub=1, default=0.96,
+        doc="Moisture content of the sludge [wt. % water]. Defaults to 0.96.",
+    )
 
-
-    def _init(self, sludge_moisture=0.96, solubles=()):
-        self.sludge_moisture = sludge_moisture
-        self.solubles = tuple(solubles)
+    def _init(self, solubles=()):
+        self.solubles= tuple(solubles)
         self.solids = tuple(i.ID for i in self.chemicals
                             if (i.ID not in solubles) and (i.locked_state!='g'))
         ID = self.ID
@@ -150,12 +152,14 @@ class BeltThickener(SludgeHandling):
 
     """
 
-    def _init(self, sludge_moisture=0.96, solubles=(),
-                 max_capacity=100, power_demand=4.1):
-        SludgeHandling._init(self, sludge_moisture=sludge_moisture,
-                             solubles=solubles)
-        self.max_capacity = max_capacity
-        self.power_demand = power_demand
+    max_capacity = bst.design_input(
+        'Maximum hydraulic loading', 'm3/hr', lb=0, default=100,
+        doc="Maximum hydraulic loading per belt thickener [m3/hr]. Defaults to 100 m3/hr.",
+    )
+    power_demand = bst.design_input(
+        'Power demand', 'kW', lb=0, default=4.1,
+        doc="Total power demand of each belt thickener [kW]. Defaults to 4.1 kW.",
+    )
 
 
     def _design(self):
@@ -201,11 +205,10 @@ class SludgeCentrifuge(SludgeHandling, bst.SolidsCentrifuge):
     
     """
 
-    def _init(self, sludge_moisture=0.8, solubles=(),
-              centrifuge_type='scroll_solid_bowl'):
-        SludgeHandling._init(self, sludge_moisture=sludge_moisture,
-                             solubles=solubles)
-        self.centrifuge_type = centrifuge_type
+    sludge_moisture = bst.update_design_input(default=0.8)
+
+    def _init(self, solubles=()):
+        SludgeHandling._init(self, solubles=solubles)
 
     _run = SludgeHandling._run
 

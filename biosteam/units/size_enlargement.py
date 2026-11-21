@@ -13,7 +13,7 @@
 
 """
 from .decorators import cost
-from .._unit import Unit
+from .._unit import Unit, design_input
 from warnings import warn
 
 __all__ = ('PelletMill', 'BagassePelletMill')
@@ -45,9 +45,7 @@ class PelletMill(Unit):
     """
     _N_ins = 1
     _N_outs = 1
-    
-    def _init(self, kW=0.01):
-        self.kW = kW
+    kW = design_input('Power requirement', 'kWh/kg', lb=0, default=0.01)
         
     def _cost(self):
         self._decorated_cost()

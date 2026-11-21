@@ -88,21 +88,26 @@ class Pump(Unit):
         phase: 'l', T: 350 K, P: 200000 Pa
         flow (kmol/hr): Water  200
     >>> P1.results()
-    Pump                                   Units           P1
-    Electricity              Power            kW        0.288
-                             Cost         USD/hr       0.0225
-    Design                   Type                 Centrifugal
-                             Ideal power      hp        0.136
-                             Flow rate       gpm         16.3
-                             Efficiency                 0.352
-                             Power            hp        0.386
-                             Head             ft         96.3
-                             Motor size       hp          0.5
-    Purchase cost            Pump            USD     4.37e+03
-                             Motor           USD          273
-    Total purchase cost                      USD     4.64e+03
-    Installed equipment cost                 USD     1.53e+04
-    Utility cost                          USD/hr       0.0225
+    Pump                                              Units           P1
+    Electricity              Power                       kW        0.288
+                             Cost                    USD/hr       0.0225
+    Design inputs            Outlet pressure             Pa        2e+05
+                             Design pressure change      Pa     1.01e+05
+                             Pump type                           Default
+                             Material                          Cast iron
+                             Ignore npsh                            True
+    Design results           Type                            Centrifugal
+                             Ideal power                 hp        0.136
+                             Flow rate                  gpm         16.3
+                             Efficiency                            0.352
+                             Power                       hp        0.386
+                             Head                        ft         96.3
+                             Motor size                  hp          0.5
+    Purchase cost            Pump                       USD     4.37e+03
+                             Motor                      USD          273
+    Total purchase cost                                 USD     4.64e+03
+    Installed equipment cost                            USD     1.53e+04
+    Utility cost                                     USD/hr       0.0225
     
     References
     ----------
@@ -119,42 +124,25 @@ class Pump(Unit):
               'Flow rate': 'gpm'}
     _F_BM_default = {'Pump': 3.3,
                      'Motor': 3.3}
-
-    @property
-    def pump_type(self):
-        """Pump type"""
-        return self._pump_type
-    @pump_type.setter
-    def pump_type(self, pump_type):
-        if pump_type not in pump_types:
-            raise ValueError('Type must be one of the following: {", ".join(pump_types)}')
-        self._pump_type = pump_type
-    
-    @property
-    def material(self):
-        """Pump material"""
-        return self._material
-    @material.setter    
-    def material(self, material):
-        try:
-            self.F_M['Pump'] = pump_material_factors[material]
-        except KeyError:
-            raise ValueError("material must be one of the following: "
-                            f"{', '.join(pump_material_factors)}")
-        self._material = material  
-        
-    def _init(self, 
-             P=None,
-             pump_type='Default',
-             material='Cast iron',
-             dP_design=101325,
-             ignore_NPSH=True
-        ):
-        self.P = P
-        self.pump_type = pump_type
-        self.material = material
-        self.dP_design = dP_design
-        self.ignore_NPSH = ignore_NPSH
+    P = bst.design_input(
+        'Outlet pressure', 'Pa', lb=0,
+        doc="Pressure of output stream [Pa]. If not given, "
+            "the pump is designed to increase the pressure by `dP_design`.",
+        default=None,
+    )
+    dP_design = bst.design_input(
+        'Design pressure change', 'Pa', default=101325, lb=0,
+    )
+    pump_type = bst.design_input(
+        catalog=pump_types, default='Default',
+    )
+    material = bst.design_input(
+        catalog=pump_material_factors,
+        purchase_item='Pump',
+        catalog_type='Material',
+        default='Cast iron',
+    )
+    ignore_NPSH = bst.design_input(default=True)
     
     def _run(self):
         s_in, = self.ins

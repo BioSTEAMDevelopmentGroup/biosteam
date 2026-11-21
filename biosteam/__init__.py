@@ -13,7 +13,7 @@
 
 """
 from __future__ import annotations
-__version__ = '2.54.0'
+__version__ = '2.55.0'
 
 #: Chemical engineering plant cost index (defaults to 567.5 at 2017).
 CE: float = 567.5 
@@ -91,6 +91,8 @@ __all__ = [
     *thermosteam.__all__
 ]
 
+thermosteam.Network = Network # Backwards compatibility with old HENSMITH version
+
 # %% Load premire biosteam extensions which offer comprehensive simulation capabilities.
 
 # Add heat exchanger network synthesis capabilities from hensmith library.
@@ -138,24 +140,17 @@ def nbtutorial(dark=False):
 
     pd.Series._ipython_display_ = display_table_as_html
 
-    try:
-        from _pytest.python_api import RaisesContext
-    except:
-        class PrintError:
-            def __enter__(self):
-                return self
-            
-            def __exit__(self, type, exception, traceback):
-                if exception is not None: print(f"{colors.exception(type.__name__)}: {exception}")
-                return None
-    else:       
-        class PrintError(RaisesContext):
-            def __init__(self):
-                super().__init__(Exception, 'did not raise exception')
-            
-            def __exit__(self, type, exception, traceback):
-                if exception is not None: print(f"{colors.exception(type.__name__)}: {exception}")
-                return super().__exit__(type, exception, traceback)
+    class PrintError:
+        # Print exceptions (instead of raising them) to show errors in tutorials.
+        # Raises an AssertionError if no exception is raised.
+        def __enter__(self):
+            return self
+
+        def __exit__(self, type, exception, traceback):
+            if type is None: raise AssertionError('did not raise exception')
+            if not issubclass(type, Exception): return False # e.g., KeyboardInterrupt
+            print(f"{colors.exception(type.__name__)}: {exception}")
+            return True
     
     print_error = PrintError()
     

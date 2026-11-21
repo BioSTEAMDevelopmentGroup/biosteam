@@ -1,7 +1,7 @@
 # Cane Biorefineries and Benchmarks
 
 The `cane` module contains sugarcane, oilcane, and energycane biorefinery configurations, 
-as discussed in [[1]](#1). 
+as discussed in [^1]. 
 
 ```{toctree}
 :hidden:
@@ -44,7 +44,7 @@ The following table details the options available for loading a biorefinery:
 | O9   | Oilcane   | ICF           | Biodiesel           | Batch        |
 
 To select a specific cane line (e.g., sugarcane-WT or oilcane-1566) as described in 
-[[2]](#2), add the name of the line after a period. For example, "O5.WT" is the 
+[^2], add the name of the line after a period. For example, "O5.WT" is the 
 DC biorefinery processing traditional sugarcane to biodiesel 
 (through microbial oil production) and "O7.1566" is the 
 ICF biorefinery processing oilcane prototype 1566 to biodiesel (from plant and microbial oils).
@@ -54,7 +54,7 @@ the DC biorefinery producing ethanol from sugarcane and sweet sorghum and "O2*"
 is the ICF biorefinery co-producing ethanol and biodiesel from oilcane and oil-sorghum.
 
 The default assumptions on market prices, technological performance, and wastewater
-treatment are set to those used in the 2022 publication [[1]](#1). For updated 
+treatment are set to those used in the 2022 publication [^1]. For updated 
 assumptions used in 2023-2024 publications (e.g., updated market prices,
 oilcane oil contents, and high-rate wastewater treatment of bagasse),
 run the function "YRCP2023()" before loading biorefineries.
@@ -243,8 +243,6 @@ outs...
 
 
 ## References
-<a id="1">[1]</a> 
-    Cortés-Peña, Y.R., C.V. Kurambhatti, K. Eilts, V. Singh, J.S. Guest, “Economic and Environmental Sustainability of Vegetative Oil Extraction Strategies at Integrated Oilcane and Oil-sorghum Biorefineries,” ACS Sustainable Chemistry & Engineering.
+[^1]: Cortés-Peña, Y.R., C.V. Kurambhatti, K. Eilts, V. Singh, J.S. Guest, “Economic and Environmental Sustainability of Vegetative Oil Extraction Strategies at Integrated Oilcane and Oil-sorghum Biorefineries,” ACS Sustainable Chemistry & Engineering.
 
-<a id="2">[2]</a>
-    Cortés-Peña, Y., W. Woodruff, S. Banerjee, et al., “Integration of Plant and Microbial Oil Processing at Oilcane Biorefineries for More Sustainable Biofuel Production,” Chemistry, (2023). https://doi.org/10.26434/chemrxiv-2023-rdvbl.
+[^2]: Cortés-Peña, Y., W. Woodruff, S. Banerjee, et al., “Integration of Plant and Microbial Oil Processing at Oilcane Biorefineries for More Sustainable Biofuel Production,” Chemistry, (2023). https://doi.org/10.26434/chemrxiv-2023-rdvbl.

@@ -10,6 +10,7 @@
 import numpy as np
 import biosteam as bst
 from .. import Unit
+from .._unit import design_input
 from .mixing import Mixer
 from .heat_exchange import HXutility
 from ._flash import Flash, Evaporator
@@ -119,23 +120,26 @@ class MultiEffectEvaporator(Unit):
                         Furfural    0.000988
     
     >>> E1.results()
-    Multi-effect evaporator                                         Units       E1
-    Electricity              Power                                     kW     5.72
-                             Cost                                  USD/hr    0.447
-    Low pressure steam       Duty                                   kJ/hr 5.83e+05
-                             Flow                                 kmol/hr     15.1
-                             Cost                                  USD/hr     3.58
-    Cooling water            Duty                                   kJ/hr -3.5e+05
-                             Flow                                 kmol/hr      239
-                             Cost                                  USD/hr    0.117
-    Design                   Area                                     m^2       11
-                             Volume                                   m^3     3.51
-    Purchase cost            Evaporators (x5)                         USD 9.56e+03
-                             Condenser - Double pipe                  USD 5.36e+03
-                             Vacuum system - Liquid-ring pump...      USD 1.07e+04
-    Total purchase cost                                               USD 2.56e+04
-    Installed equipment cost                                          USD  4.2e+04
-    Utility cost                                                   USD/hr     4.15
+    Multi-effect evaporator                                         Units                  E1
+    Electricity              Power                                     kW                5.72
+                             Cost                                  USD/hr               0.447
+    Low pressure steam       Duty                                   kJ/hr            5.83e+05
+                             Flow                                 kmol/hr                15.1
+                             Cost                                  USD/hr                3.58
+    Cooling water            Duty                                   kJ/hr            -3.5e+05
+                             Flow                                 kmol/hr                 239
+                             Cost                                  USD/hr               0.117
+    Design inputs            Vapor fraction                                               0.1
+                             Evaporator type                               Forced circulation
+                             Vapor fraction definition                           First-effect
+    Design results           Area                                     m^2                  11
+                             Volume                                   m^3                3.51
+    Purchase cost            Evaporators (x5)                         USD            9.56e+03
+                             Condenser - Double pipe                  USD            5.36e+03
+                             Vacuum system - Liquid-ring pump...      USD            1.07e+04
+    Total purchase cost                                               USD            2.56e+04
+    Installed equipment cost                                          USD             4.2e+04
+    Utility cost                                                   USD/hr                4.15
     
     Concentrate sugar setting overall vapor fraction:
     
@@ -174,78 +178,26 @@ class MultiEffectEvaporator(Unit):
                         Furfural    0.000464
     
     >>> E1.results()
-    Multi-effect evaporator                                         Units        E1
-    Electricity              Power                                     kW      5.72
-                             Cost                                  USD/hr     0.447
-    Low pressure steam       Duty                                   kJ/hr  3.84e+05
-                             Flow                                 kmol/hr      9.94
-                             Cost                                  USD/hr      2.36
-    Cooling water            Duty                                   kJ/hr -1.15e+05
-                             Flow                                 kmol/hr      78.8
-                             Cost                                  USD/hr    0.0384
-    Design                   Area                                     m^2      1.62
-                             Volume                                   m^3      3.07
-    Purchase cost            Evaporators (x3)                         USD  2.74e+03
-                             Condenser - Double pipe                  USD   3.9e+03
-                             Vacuum system - Liquid-ring pump...      USD  1.08e+04
-    Total purchase cost                                               USD  1.74e+04
-    Installed equipment cost                                          USD  2.32e+04
-    Utility cost                                                   USD/hr      2.85
-    
-    Concentrate sugar setting overall vapor fraction:
-    
-    >>> import biosteam as bst
-    >>> from biorefineries.cellulosic import create_cellulosic_ethanol_chemicals
-    >>> bst.settings.set_thermo(create_cellulosic_ethanol_chemicals())
-    >>> feed = bst.Stream('feed', Water=1000, Glucose=100, 
-    ...                   AceticAcid=0.5, HMF=0.1, Furfural=0.1,
-    ...                   units='kg/hr')
-    >>> E1 = bst.MultiEffectEvaporator('E1', ins=feed, outs=('solids', 'liquid'), 
-    ...                                V=0.1, V_definition='Overall',
-    ...                                P=(101325, 73581, 50892, 32777, 20000))
-    >>> E1.simulate()
-    >>> E1.show()
-    MultiEffectEvaporator: E1
-    ins...
-    [0] feed  
-        phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Water       55.5
-                        AceticAcid  0.00833
-                        Furfural    0.00104
-                        HMF         0.000793
-                        Glucose     0.555
-    outs...
-    [0] solids  
-        phase: 'l', T: 354.91 K, P: 50892 Pa
-        flow (kmol/hr): Water       50
-                        AceticAcid  0.0069
-                        Furfural    0.000577
-                        HMF         0.000793
-                        Glucose     0.555
-    [1] liquid  
-        phase: 'l', T: 361.12 K, P: 50892 Pa
-        flow (kmol/hr): Water       5.55
-                        AceticAcid  0.00143
-                        Furfural    0.000464
-    
-    >>> E1.results()
-    Multi-effect evaporator                                         Units        E1
-    Electricity              Power                                     kW      5.72
-                             Cost                                  USD/hr     0.447
-    Low pressure steam       Duty                                   kJ/hr  3.84e+05
-                             Flow                                 kmol/hr      9.94
-                             Cost                                  USD/hr      2.36
-    Cooling water            Duty                                   kJ/hr -1.15e+05
-                             Flow                                 kmol/hr      78.8
-                             Cost                                  USD/hr    0.0384
-    Design                   Area                                     m^2      1.62
-                             Volume                                   m^3      3.07
-    Purchase cost            Evaporators (x3)                         USD  2.74e+03
-                             Condenser - Double pipe                  USD   3.9e+03
-                             Vacuum system - Liquid-ring pump...      USD  1.08e+04
-    Total purchase cost                                               USD  1.74e+04
-    Installed equipment cost                                          USD  2.32e+04
-    Utility cost                                                   USD/hr      2.85
+    Multi-effect evaporator                                         Units                  E1
+    Electricity              Power                                     kW                5.72
+                             Cost                                  USD/hr               0.447
+    Low pressure steam       Duty                                   kJ/hr            3.84e+05
+                             Flow                                 kmol/hr                9.94
+                             Cost                                  USD/hr                2.36
+    Cooling water            Duty                                   kJ/hr           -1.15e+05
+                             Flow                                 kmol/hr                78.8
+                             Cost                                  USD/hr              0.0384
+    Design inputs            Vapor fraction                                               0.1
+                             Evaporator type                               Forced circulation
+                             Vapor fraction definition                                Overall
+    Design results           Area                                     m^2                1.62
+                             Volume                                   m^3                3.07
+    Purchase cost            Evaporators (x3)                         USD            2.74e+03
+                             Condenser - Double pipe                  USD             3.9e+03
+                             Vacuum system - Liquid-ring pump...      USD            1.08e+04
+    Total purchase cost                                               USD            1.74e+04
+    Installed equipment cost                                          USD            2.32e+04
+    Utility cost                                                   USD/hr                2.85
     
     """
     line = 'Multi-effect evaporator'
@@ -259,46 +211,46 @@ class MultiEffectEvaporator(Unit):
     _N_outs = 2
 
     # Evaporator type
-    _Type = 'Forced circulation'
+    _evaporator_type = 'Forced circulation'
     
     # Data for simmulation and costing
-    _evap_data = evaporators[_Type]
+    _evap_data = evaporators[_evaporator_type]
+    
+    V = design_input(
+        'Vapor fraction', lb=0, ub=1,
+        doc="Molar fraction evaporated as specified in `V_definition` "
+            "(either overall or in the first effect).",
+    )
 
-    @property
-    def Type(self):
-        """Evaporation type."""
-        return self._Type
-    @Type.setter
-    def Type(self, evap_type):
-        try:
-            self._evap_data = evaporators[evap_type]
-        except KeyError:
-            dummy = str(evaporators.keys())[11:-2]
-            raise ValueError(f"Type must be one of the following: {dummy}")
-        self._Type = evap_type
+    @design_input(catalog=evaporators.keys())
+    def evaporator_type(self):
+        return self._evaporator_type
+    @evaporator_type.setter
+    def evaporator_type(self, evap_type):
+        self._evap_data = evaporators[evap_type]
+        self._evaporator_type = evap_type
 
-    @property
+    @design_input(
+        name='Vapor fraction definition',
+        catalog={'Overall', 'First-effect', 'First-effect duty'},
+        default='Overall',
+    )
     def V_definition(self):
-        """[str] Must be one of the following:
+        """Must be one of the following:
         * 'Overall' - Defines attribute `V` as the overall molar fraction evaporated.
         * 'First-effect' - Defines attribute `V` as the molar fraction evaporated in the first effect.
         * 'First-effect duty' - Defines attribute `V` as the supplied duty over the total duty required to achived a vapor fraction of 1 at the first effect .
+
+        Defaults to 'Overall'.
         """
         return self._V_definition
     @V_definition.setter
     def V_definition(self, V_definition):
-        V_definition = V_definition.capitalize()
-        if V_definition in ('Overall', 'First-effect', 'First-effect duty'):
-            self._reload_components = True
-            self._V_definition = V_definition
-        else:
-            raise ValueError("V_definition must be either 'Overall', 'First-effect', or 'First-effect duty'")
+        self._reload_components = True
+        self._V_definition = V_definition
 
-    def _init(self, P, V, V_definition='Overall',
-              flash=True, chemical='7732-18-5'):
+    def _init(self, P, flash=True, chemical='7732-18-5'):
         self.P = P #: tuple[float] Pressures describing each evaporator (Pa).
-        self.V = V #: [float] Molar fraction evaporated.
-        self.V_definition = V_definition
         self.flash = flash #: [bool] Whether to perform a flash calculation to account for volatile components.
         self._V_first_effect = None
         self.chemical = chemical
@@ -476,7 +428,7 @@ class MultiEffectEvaporator(Unit):
                 LMTD = Th - Tc
                 A = compute_heat_transfer_area(LMTD, U, Q, 1.)
                 As.append(A)
-                bounds_warning(self, 'heat transfer area requirement', A, 'ft2', A_range, 'cost')
+                bounds_warning(self, 'heat transfer area requirement', A, 'ft2', A_range)
                 evap_costs.append(C_func(A, CE))
         self._As = As
         Design['Area'] = A = sum(As)

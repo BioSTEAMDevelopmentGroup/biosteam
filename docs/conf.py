@@ -89,7 +89,6 @@ extensions = [
     'nbsphinx_link',
 ]
 
-import sphinx_autodoc_typehints as sat
 from functools import reduce
 import biosteam as bst
 import typing
@@ -97,13 +96,15 @@ import types
 from types import UnionType, GenericAlias
 from thermosteam import units_of_measure 
 from numpy import typing as numpy_typing
+from sphinx.util.typing import restify
 defs = numpy_typing.__dict__ | units_of_measure.__dict__ | bst.__dict__ | typing.__dict__ | types.__dict__
-format_annotation_old = sat.format_annotation
+defs['tmo'] = __import__('thermosteam')
 
 def replace_forward_ref(annotation):
     if hasattr(annotation, '__forward_arg__'):
         forward_arg = annotation.__forward_arg__
-        return eval(forward_arg, defs)
+        try: return eval(forward_arg, defs)
+        except: return annotation
     elif isinstance(annotation, GenericAlias):
         return annotation
     elif isinstance(annotation, UnionType):
@@ -124,17 +125,29 @@ def replace_forward_ref(annotation):
     else:
         return annotation
 
-def format_annotation(annotation, config, *args, **kwargs):
-    # original = str(annotation)
-    annotation = replace_forward_ref(annotation)
-    if type(annotation) is typing._UnionGenericAlias: # Optional
-        rst = format_annotation_old(annotation.__args__[0], config, *args, **kwargs) + ', optional'
-    else:
-        rst = format_annotation_old(annotation, config, *args, **kwargs)
-    # file = os.path.join(os.path.dirname(__file__), 'annotations.txt')
-    # with open(file, 'a') as f: f.write(f"{rst}  ({original})\n")
-    return rst
-sat.format_annotation = format_annotation
+NoneType = type(None)
+
+def typehints_formatter(annotation, config):
+    # Called by sphinx_autodoc_typehints before its own rendering. Forward 
+    # references are resolved using biosteam's namespace, optional types 
+    # are rendered as "T, optional", and annotations are rendered with Sphinx 
+    # (so nested annotations are not passed to this function again). 
+    # Returning None falls back to the default rendering of 
+    # sphinx_autodoc_typehints.
+    resolved = replace_forward_ref(annotation)
+    if isinstance(resolved, str): return None # Could not resolve
+    mode = 'fully-qualified-except-typing' if config.typehints_fully_qualified else 'smart'
+    suffix = ''
+    if typing.get_origin(resolved) in (typing.Union, UnionType):
+        args = typing.get_args(resolved)
+        if NoneType in args:
+            args = tuple([i for i in args if i is not NoneType])
+            resolved = args[0] if len(args) == 1 else typing.Union[args]
+            suffix = ', optional'
+    try:
+        return restify(resolved, mode) + suffix
+    except Exception:
+        return None
 
 typehints_fully_qualified = False
 always_use_bars_union  = True
@@ -183,7 +196,11 @@ language = 'en'
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path .
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '**.ipynb_checkpoints']
+exclude_patterns = [
+    '_build', 'Thumbs.db', '.DS_Store', '**.ipynb_checkpoints',
+    # Not documentation pages
+    'README.rst', 'requirements.txt', 'API/thermosteam/paper/**',
+]
 
 if os.environ.get("SPHINX_FAST_BUILD"):
     html_search_index = False
@@ -326,7 +343,175 @@ todo_include_todos = True
 
 myst_heading_anchors = 3
 
+# -- Design inputs -----------------------------------------------------------
 
+# Design inputs of units are documented twice in the class docstring:
+#
+# * In the "Parameters" section, since they can be passed as key-word 
+#   arguments (with an ", optional" suffix in the type). Parameters already 
+#   documented have priority; otherwise, the description is given by 
+#   `<design input>._make_doc(param=True)`.
+#
+# * In a "Design inputs" section at the end of the docstring (right before 
+#   other attributes), as attributes documented by `<design input>.__doc__`:
+#
+#     Design inputs
+#
+#     T: float
+#         Operating temperature [K]. T must be positive.
+#
+# Design inputs are not listed again as members of the class. 
+import re
+import inspect
+from sphinx.util.typing import stringify_annotation
+from biosteam._unit import DesignInput
 
+def get_design_inputs(obj):
+    if not isinstance(obj, type): return []
+    names = getattr(obj, '_design_inputs', None)
+    if not names: return []
+    design_inputs = []
+    for name in names:
+        design_input = getattr(obj, name, None)
+        if isinstance(design_input, DesignInput): design_inputs.append(design_input)
+    return design_inputs
 
+def format_type(design_input):
+    return_type = getattr(design_input, '_return_type', None)
+    if return_type is None: return None
+    return stringify_annotation(return_type, 'smart')
 
+def is_numpy_header(lines, i):
+    return (
+        i + 1 < len(lines) and lines[i].strip()
+        and not lines[i].startswith((' ', '\t'))
+        and re.fullmatch(r'-{3,}', lines[i + 1].strip()) is not None
+    )
+
+def add_design_input_parameters(app, what, name, obj, options, lines):
+    # Runs before napoleon converts numpy sections to reST
+    if what != 'class': return
+    design_inputs = get_design_inputs(obj)
+    if not design_inputs: return
+    N = len(lines)
+    header = next((i for i in range(N) if lines[i].strip() == 'Parameters' and is_numpy_header(lines, i)), None)
+    if header is None:
+        # Add a parameters section before the first section (or at the end)
+        index = next((i for i in range(N) if is_numpy_header(lines, i)), N)
+        lines[index:index] = ['Parameters', '----------', '']
+        start = end = index + 2
+    else:
+        start = header + 2
+        end = next((i for i in range(start, len(lines)) if is_numpy_header(lines, i)), len(lines))
+    keys = {i.__name__: i for i in design_inputs}
+    documented = set()
+    for index in range(start, end):
+        line = lines[index]
+        if not line.strip() or line.startswith((' ', '\t')): continue
+        head, colon, type = line.partition(':')
+        names = [i.split('=', 1)[0].strip().lstrip('*') for i in head.split(',')]
+        documented.update(names)
+        if len(names) == 1 and names[0] in keys:
+            # Design inputs are optional key-word arguments
+            type = type.strip() or format_type(keys[names[0]]) or ''
+            if not type.endswith('optional'): 
+                type = type + ', optional' if type else 'optional'
+            lines[index] = f'{head.rstrip()} : {type}'
+    entries = []
+    for design_input in design_inputs:
+        key = design_input.__name__
+        if key in documented: continue
+        type = format_type(design_input)
+        entries.append(f'{key} : {type}, optional' if type else f'{key} : optional')
+        entries.append('    ' + design_input._make_doc(param=True))
+    if not entries: return
+    while end > start and not lines[end - 1].strip(): end -= 1 
+    lines[end:end] = entries + ([''] if end < len(lines) else [])
+
+def add_design_inputs_section(app, what, name, obj, options, lines):
+    # Runs after napoleon (and sphinx_autodoc_typehints) converts the docstring to reST
+    if what != 'class': return
+    design_inputs = get_design_inputs(obj)
+    if not design_inputs: return
+    section = ['']
+    for design_input in design_inputs:
+        doc = design_input.__doc__ or ''
+        section.append(f'.. py:attribute:: {design_input.__name__}')
+        type = format_type(design_input)
+        if type: section.append(f'   :type: {type}')
+        section.append('')
+        section.extend(['   ' + i.strip() if i.strip() else '' for i in doc.splitlines()])
+        section.append('')
+    # Add at the end of the docstring (after references, if any), 
+    # right before the members of the class (e.g., attributes)
+    while lines and not lines[-1].strip(): lines.pop()
+    lines.extend(section)
+
+# -- Thermodynamic models ----------------------------------------------------
+
+# Properties listed in a "Thermodynamic models" section of a class docstring 
+# (e.g., thermosteam.Chemical) are not documented again as members.
+models_section = 'Thermodynamic models'
+models_cache = {}
+
+def get_owner(function):
+    # Return the class that defines the function (if any)
+    names = getattr(function, '__qualname__', '').split('.')[:-1]
+    if not names or '<locals>' in names: return None
+    obj = sys.modules.get(getattr(function, '__module__', None))
+    for i in names: obj = getattr(obj, i, None)
+    return obj if isinstance(obj, type) else None
+
+def get_model_names(cls):
+    if cls in models_cache: return models_cache[cls]
+    lines = (cls.__dict__.get('__doc__') or '').splitlines()
+    names = set()
+    for i, line in enumerate(lines):
+        if line.strip() == models_section and i + 1 < len(lines) and set(lines[i + 1].strip()) == {'-'}:
+            indent = len(line) - len(line.lstrip())
+            for line in lines[i + 2:]:
+                if not line.strip(): continue
+                current = len(line) - len(line.lstrip())
+                if current < indent: break
+                if current > indent: continue # Description
+                if set(line.strip()) == {'-'}: break # Next section
+                name = re.match(r'\s*(\w+)', line)
+                if name: names.add(name.group(1))
+            break
+    models_cache[cls] = names
+    return names
+
+def skip_model_members(name, obj):
+    function = getattr(obj, 'fget', obj)
+    owner = get_owner(function)
+    return owner is not None and name in get_model_names(owner)
+
+def skip_design_input_members(app, what, name, obj, skip, options):
+    # Design inputs are already documented in the "Design inputs" section
+    if isinstance(obj, DesignInput): return True
+    # Thermodynamic models are already documented in the class docstring
+    if skip_model_members(name, obj): return True
+
+def short_unit_signature(app, what, name, obj, options, signature, return_annotation):
+    # Design inputs and other key-word only parameters of units are 
+    # summarized as **kwargs (they are documented in the docstring)
+    if what != 'class' or not (isinstance(obj, type) and issubclass(obj, bst.Unit)): return
+    try:
+        parameters = [*inspect.signature(obj).parameters.values()]
+    except (TypeError, ValueError):
+        return
+    short = []
+    kwargs = False
+    for i in parameters:
+        if i.kind in (i.KEYWORD_ONLY, i.VAR_KEYWORD): 
+            kwargs = True
+            continue
+        short.append(i.replace(annotation=i.empty))
+    if kwargs: short.append(inspect.Parameter('kwargs', inspect.Parameter.VAR_KEYWORD))
+    return str(inspect.Signature(short)), return_annotation
+
+def setup(app):
+    app.connect('autodoc-process-signature', short_unit_signature, priority=100) # Before sphinx_autodoc_typehints (first result is used)
+    app.connect('autodoc-process-docstring', add_design_input_parameters, priority=100)
+    app.connect('autodoc-process-docstring', add_design_inputs_section, priority=900)
+    app.connect('autodoc-skip-member', skip_design_input_members)

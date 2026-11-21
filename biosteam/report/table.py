@@ -217,12 +217,12 @@ def lca_characterization_factor_table(systems):
         other_values[name] = value
             
     cfs = [PowerUtility.get_CF(key, production=False) for key in keys]
-    if cfs and any([i.power_utility.rate > 0 for i in systems]):
+    if any(cfs) and any([i.power_utility.rate > 0 for i in systems]):
         other_utilities.append('Electricity consumption')
         values = [(f'{i} [{impact_indicators[j]}/kWh]' if i else 0) for i, j in zip(cfs, keys)]
         set_value('Electricity consumption', values)
     cfs = [PowerUtility.get_CF(key, consumption=False) for key in keys]
-    if cfs and any([i.power_utility.rate < 0 for i in systems]):
+    if any(cfs) and any([i.power_utility.rate < 0 for i in systems]):
         other_byproducts.append('Electricity production')
         values = [(f'{i} [{impact_indicators[j]}/kWh]' if i else 0) for i, j in zip(cfs, keys)]
         set_value('Electricity production', values)
