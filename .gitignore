@@ -5,6 +5,7 @@ thermosteam/preferences.yaml
 benchmark/images/*
 benchmark/simulations/*
 benchmark/graphs/*
+.coverage.*
 *.gif
 **/__pycache__
 **/.ipynb_checkpoints
