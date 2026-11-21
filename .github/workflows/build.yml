@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.12, 3.13]
+        python-version: [3.13, 3.14]
 
     steps:
     - uses: actions/checkout@v4
@@ -49,16 +49,36 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-${{ runner.architecture }}-${{ runner.python-version }}pip-
     - name: Install dependencies
+      env:
+        # On a pull request this is the PR's source branch; on a push it is the pushed branch.
+        BRANCH: ${{ github.head_ref || github.ref_name }}
+        # Owner of the repository the PR comes from (differs from the upstream org for PRs from forks).
+        HEAD_OWNER: ${{ github.event.pull_request.head.repo.owner.login || github.repository_owner }}
       run: |
+        # Return a pip-installable git URL for a submodule repository. If a branch with the same
+        # name as this branch exists in the submodule (first in the PR author's fork, then in
+        # the upstream repository), use that branch; otherwise use the default branch.
+        submodule_url() {
+          local owner=$1 repo=$2 candidate
+          for candidate in "$HEAD_OWNER/$repo" "$owner/$repo"; do
+            if git ls-remote --exit-code --heads "https://github.com/$candidate.git" "$BRANCH" > /dev/null 2>&1; then
+              echo "Using branch '$BRANCH' of $candidate" >&2
+              echo "git+https://github.com/$candidate.git@$BRANCH"
+              return
+            fi
+          done
+          echo "No branch '$BRANCH' in $repo; using default branch of $owner/$repo" >&2
+          echo "git+https://github.com/$owner/$repo.git"
+        }
         python -c "import platform; print(platform.platform()); print(platform.architecture())"
         python -m pip install --upgrade pip
         python -m pip install wheel
         pip install --no-cache-dir git+https://github.com/CalebBell/fluids.git
         pip install --no-cache-dir git+https://github.com/CalebBell/chemicals.git
         pip install --no-cache-dir git+https://github.com/CalebBell/thermo.git
-        pip install --no-cache-dir git+https://github.com/BioSTEAMDevelopmentGroup/thermosteam.git
-        pip install --no-cache-dir git+https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park.git
-        pip install --no-cache-dir --no-deps git+https://github.com/BioSTEAMDevelopmentGroup/hensmith.git
+        pip install --no-cache-dir "$(submodule_url BioSTEAMDevelopmentGroup thermosteam)"
+        pip install --no-cache-dir "$(submodule_url BioSTEAMDevelopmentGroup Bioindustrial-Park)"
+        pip install --no-cache-dir --no-deps "$(submodule_url BioSTEAMDevelopmentGroup hensmith)"
         pip install -r requirements_test.txt
         pip install --no-cache-dir git+https://github.com/QSD-Group/QSDsan.git
         pip install --no-cache-dir git+https://github.com/QSD-Group/EXPOsan.git
