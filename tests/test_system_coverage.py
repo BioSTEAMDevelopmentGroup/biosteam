@@ -11,8 +11,14 @@ import pytest
 import biosteam as bst
 import numpy as np
 import os
+import shutil
 import tempfile
 from numpy.testing import assert_allclose
+
+graphviz_available = shutil.which('dot') is not None
+requires_graphviz = pytest.mark.skipif(
+    not graphviz_available, reason='Graphviz executables are not available'
+)
 
 def create_recycle_system(name, method=None, algorithm=None):
     bst.F.set_flowsheet(name)
@@ -565,6 +571,7 @@ def test_agile_system():
     agile.empty_recycles()
     agile.reset_cache()
 
+@requires_graphviz
 def test_phenomena_tracking_and_mock_convergence():
     bst.F.set_flowsheet('phenomena_tracking_coverage')
     bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
@@ -814,7 +821,7 @@ if __name__ == '__main__':
     test_process_impacts()
     test_save_report()
     test_agile_system()
-    test_phenomena_tracking_and_mock_convergence()
+    if graphviz_available: test_phenomena_tracking_and_mock_convergence()
     test_network_methods()
     test_flowsheet_methods()
     test_module()
