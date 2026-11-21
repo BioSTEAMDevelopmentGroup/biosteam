@@ -17,6 +17,7 @@ References
 
 """
 from .abstract_stirred_tank_reactor import AbstractStirredTankReactor
+from .._unit import update_design_input
 
 __all__ = (
     'SinglePhaseReactor', 
@@ -63,7 +64,7 @@ class SinglePhaseReactor(AbstractStirredTankReactor):
         Number of reactors.
     heat_exchanger_configuration : 
         What kind of heat exchanger to default to (if any). Valid options include 
-        'jacketed', 'recirculation loop', and 'internal coil'. Defaults to 'recirculation loop'.
+        'Jacketed', 'Recirculation loop', and 'Internal coil'. Defaults to 'Recirculation loop'.
     dT_hx_loop : 
         Maximum change in temperature for the heat exchanger loop. Defaults to 5 K.
     jacket_annular_diameter :
@@ -76,7 +77,7 @@ class SinglePhaseReactor(AbstractStirredTankReactor):
     -----
     The heat exchanger configuration can be one of the following:
 
-    * 'recirculation loop': 
+    * 'Recirculation loop': 
         The recirculation loop takes into account the required flow rate needed to
         reach the maximum temperature change of the heat exchanger, `dT_hx_loop`. 
         Increasing `dT_hx_loop` decreases the required recirculation flow rate and
@@ -87,7 +88,7 @@ class SinglePhaseReactor(AbstractStirredTankReactor):
         same recirculation loop for all reactors, this conservative assumption allows
         for each reactor to be operated independently from each other.
 
-    * 'jacketed':
+    * 'Jacketed':
         The jacket does not account for the heat transfer area requirement. 
         It simply assumes that a full jacket can provide the necessary heat transfer
         area to meet the duty requirement. A heuristic annular diameter is assumed
@@ -96,7 +97,7 @@ class SinglePhaseReactor(AbstractStirredTankReactor):
         The weight of the jacket is added to the weight of the vessel and the
         cost is compounded together as a jacketed vessel.
         
-    * 'internal coil':
+    * 'Internal coil':
         The internal coil is costed as an ordinary helical tube heat exchanger
         with the added assumption that the temperature at the wall is the 
         operating temperature. This method is still not implemented in BioSTEAM
@@ -124,7 +125,7 @@ class SinglePhaseReactor(AbstractStirredTankReactor):
     >>> R1 = bst.SinglePhaseReactor(
     ...     ins=feed, outs='product', 
     ...     reactions=bst.Reaction('Starch + H2O -> Glucose', 'Starch', 0.95),
-    ...     heat_exchanger_configuration='jacketed',
+    ...     heat_exchanger_configuration='Jacketed',
     ...     tau=0.9, V_wf=0.90, V_max=500.,
     ...     kW_per_m3=0.6,
     ... )
@@ -157,42 +158,42 @@ class SinglePhaseReactor(AbstractStirredTankReactor):
                   --------  1.52e+05 kg/hr
     
     >>> R1.results()
-    Single phase reactor                                    Units                   R1
-    Electricity              Power                             kW                 76.9
-                             Cost                          USD/hr                 6.02
-    Low pressure steam       Duty                           kJ/hr             1.83e+06
-                             Flow                         kmol/hr                 47.4
-                             Cost                          USD/hr                 11.3
-    Design inputs            Vessel type                                      Vertical
-                             Vessel material                       Stainless steel 316
-                             Residence time                    hr                  0.9
-                             Working volume fraction                               0.9
-                             Maximum reactor volume            m3                  500
-                             Length to diameter ratio                                3
-                             Agitator power                 kW/m3                  0.6
-                             Cleaning and unloading time       hr                    3
-                             Loop temperature change            K                    5
-                             Jacket annular diameter            m                 0.05
-                             Residence time phases                                   l
-                             Batch                                               False
-    Design results           Reactor volume                    m3                  142
-                             Number of reactors                                      1
-                             Residence time                    hr                  0.9
-                             Length                            ft                 38.6
-                             Diameter                          ft                 12.9
-                             Weight                            lb             2.38e+05
-                             Wall thickness                    in                 1.62
-                             Jacketed diameter                 ft                 13.2
-    Purchase cost            Pressure vessel                  USD             8.58e+05
-                             Platform and ladders             USD              3.6e+04
-                             Agitator - Agitator              USD             5.77e+04
-    Total purchase cost                                       USD             9.52e+05
-    Installed equipment cost                                  USD             2.24e+06
-    Utility cost                                           USD/hr                 17.3
+    Single phase reactor                                     Units                   R1
+    Electricity              Power                              kW                 76.9
+                             Cost                           USD/hr                 6.02
+    Low pressure steam       Duty                            kJ/hr             1.83e+06
+                             Flow                          kmol/hr                 47.4
+                             Cost                           USD/hr                 11.3
+    Design inputs            Vessel type                                       Vertical
+                             Vessel material                        Stainless steel 316
+                             Residence time                     hr                  0.9
+                             Working volume fraction                                0.9
+                             Maximum reactor volume             m3                  500
+                             Length to diameter ratio                                 3
+                             Agitator power                  kW/m3                  0.6
+                             Cleaning and unloading time        hr                    3
+                             Batch                                                False
+                             Heat exchanger configuration                      Jacketed
+                             Jacket annular diameter             m                 0.05
+    Design results           Reactor volume                     m3                  142
+                             Number of reactors                                       1
+                             Residence time                     hr                  0.9
+                             Length                             ft                 38.6
+                             Diameter                           ft                 12.9
+                             Weight                             lb             2.38e+05
+                             Wall thickness                     in                 1.62
+                             Jacketed diameter                  ft                 13.2
+    Purchase cost            Pressure vessel                   USD             8.58e+05
+                             Platform and ladders              USD              3.6e+04
+                             Agitator - Agitator               USD             5.77e+04
+    Total purchase cost                                        USD             9.52e+05
+    Installed equipment cost                                   USD             2.24e+06
+    Utility cost                                            USD/hr                 17.3
     
     '''
     _ins_size_is_fixed = False
     _N_ins = _N_outs = 1
+    tau_phase = update_design_input(default=None)
 
     def _run(self):
         ins = self.ins

@@ -198,7 +198,7 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
                              Residence time phase                                       Liquid
                              Batch                                                       False
                              Heat exchanger configuration                   Recirculation loop
-                             Loop temperature change                    K                    5
+                             HX-loop temperature change                 K                    5
     Design results           Reactor volume                            m3                  319
                              Number of reactors                                              4
                              Residence time                            hr                    8
@@ -290,7 +290,7 @@ class AbstractStirredTankReactor(PressureVessel, Unit, isabstract=True):
             self._heat_exchanger_configuration = configuration
 
     @design_input(
-        'Loop temperature change', 'K', lb=0, default=5,
+        'HX-loop temperature change', 'K', lb=0, default=5,
     )
     def dT_hx_loop(self):
         """Maximum change in temperature for the heat exchanger loop [K].

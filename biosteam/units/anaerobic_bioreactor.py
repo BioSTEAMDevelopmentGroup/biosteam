@@ -63,7 +63,7 @@ class AnaerobicBioreactor(AbstractStirredTankReactor):
         Number of reactors.
     heat_exchanger_configuration : 
         What kind of heat exchanger to default to (if any). Valid options include 
-        'jacketed', 'recirculation loop', and 'internal coil'. Defaults to 'recirculation loop'.
+        'Jacketed', 'Recirculation loop', and 'Internal coil'. Defaults to 'Recirculation loop'.
     dT_hx_loop : 
         Maximum change in temperature for the heat exchanger loop. Defaults to 5 K.
     jacket_annular_diameter :
@@ -76,7 +76,7 @@ class AnaerobicBioreactor(AbstractStirredTankReactor):
     -----
     The heat exchanger configuration can be one of the following:
 
-    * 'recirculation loop': 
+    * 'Recirculation loop': 
         The recirculation loop takes into account the required flow rate needed to
         reach the maximum temperature change of the heat exchanger, `dT_hx_loop`. 
         Increasing `dT_hx_loop` decreases the required recirculation flow rate and
@@ -87,7 +87,7 @@ class AnaerobicBioreactor(AbstractStirredTankReactor):
         same recirculation loop for all reactors, this conservative assumption allows
         for each reactor to be operated independently from each other.
 
-    * 'jacketed':
+    * 'Jacketed':
         The jacket does not account for the heat transfer area requirement. 
         It simply assumes that a full jacket can provide the necessary heat transfer
         area to meet the duty requirement. A heuristic annular diameter is assumed
@@ -96,7 +96,7 @@ class AnaerobicBioreactor(AbstractStirredTankReactor):
         The weight of the jacket is added to the weight of the vessel and the
         cost is compounded together as a jacketed vessel.
         
-    * 'internal coil':
+    * 'Internal coil':
         The internal coil is costed as an ordinary helical tube heat exchanger
         with the added assumption that the temperature at the wall is the 
         operating temperature. This method is still not implemented in BioSTEAM
@@ -148,40 +148,40 @@ class AnaerobicBioreactor(AbstractStirredTankReactor):
                         Yeast    532
     
     >>> F1.results()
-    Anaerobic bioreactor                                    Units                   F1
-    Electricity              Power                             kW                 10.2
-                             Cost                          USD/hr                0.798
-    Chilled water            Duty                           kJ/hr             -1.4e+07
-                             Flow                         kmol/hr             9.35e+03
-                             Cost                          USD/hr                 69.8
-    Design inputs            Vessel type                                      Vertical
-                             Vessel material                       Stainless steel 316
-                             Operating temperature              K                  305
-                             Operating pressure                Pa             1.01e+05
-                             Residence time                    hr                    8
-                             Working volume fraction                               0.8
-                             Maximum reactor volume            m3             3.78e+03
-                             Length to diameter ratio                                3
-                             Agitator power                 kW/m3                 0.01
-                             Cleaning and unloading time       hr                    3
-                             Loop temperature change            K                    5
-                             Jacket annular diameter            m                  0.1
-                             Residence time phases                                   l
-                             Batch                                               False
-    Design results           Reactor volume                    m3             1.28e+03
-                             Number of reactors                                      1
-                             Residence time                    hr                    8
-                             Length                            ft                 80.2
-                             Diameter                          ft                 26.7
-                             Weight                            lb             3.35e+05
-                             Wall thickness                    in                0.508
-                             Jacketed diameter                 ft                 27.1
-    Purchase cost            Pressure vessel                  USD             1.11e+06
-                             Platform and ladders             USD             1.03e+05
-                             Agitator - Agitator              USD             1.83e+04
-    Total purchase cost                                       USD             1.23e+06
-    Installed equipment cost                                  USD             2.91e+06
-    Utility cost                                           USD/hr                 70.5
+    Anaerobic bioreactor                                     Units                   F1
+    Electricity              Power                              kW                 10.2
+                             Cost                           USD/hr                0.798
+    Chilled water            Duty                            kJ/hr             -1.4e+07
+                             Flow                          kmol/hr             9.35e+03
+                             Cost                           USD/hr                 69.8
+    Design inputs            Vessel type                                       Vertical
+                             Vessel material                        Stainless steel 316
+                             Operating temperature               K                  305
+                             Operating pressure                 Pa             1.01e+05
+                             Residence time                     hr                    8
+                             Working volume fraction                                0.8
+                             Maximum reactor volume             m3             3.78e+03
+                             Length to diameter ratio                                 3
+                             Agitator power                  kW/m3                 0.01
+                             Cleaning and unloading time        hr                    3
+                             Residence time phase                                Liquid
+                             Batch                                                False
+                             Heat exchanger configuration                      Jacketed
+                             Jacket annular diameter             m                  0.1
+    Design results           Reactor volume                     m3             1.28e+03
+                             Number of reactors                                       1
+                             Residence time                     hr                    8
+                             Length                             ft                 80.2
+                             Diameter                           ft                 26.7
+                             Weight                             lb             3.35e+05
+                             Wall thickness                     in                0.508
+                             Jacketed diameter                  ft                 27.1
+    Purchase cost            Pressure vessel                   USD             1.11e+06
+                             Platform and ladders              USD             1.03e+05
+                             Agitator - Agitator               USD             1.83e+04
+    Total purchase cost                                        USD             1.23e+06
+    Installed equipment cost                                   USD             2.91e+06
+    Utility cost                                            USD/hr                 70.5
     
     """
     _N_ins = 1
