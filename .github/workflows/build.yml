@@ -78,7 +78,9 @@ jobs:
         pip install --no-cache-dir git+https://github.com/CalebBell/thermo.git
         pip install --no-cache-dir "$(submodule_url BioSTEAMDevelopmentGroup thermosteam)"
         pip install --no-cache-dir "$(submodule_url BioSTEAMDevelopmentGroup Bioindustrial-Park)"
-        pip install --no-cache-dir --no-deps "$(submodule_url BioSTEAMDevelopmentGroup hensmith)"
+        # Bioindustrial-Park pulls biosteam (and therefore hensmith) from PyPI. A git install with
+        # the same version number would be skipped as "already satisfied", so force it.
+        pip install --no-cache-dir --no-deps --force-reinstall "$(submodule_url BioSTEAMDevelopmentGroup hensmith)"
         pip install -r requirements_test.txt
         pip install --no-cache-dir git+https://github.com/QSD-Group/QSDsan.git
         pip install --no-cache-dir git+https://github.com/QSD-Group/EXPOsan.git
