@@ -488,6 +488,8 @@ def default_utilities():
     """Reset utilities back to BioSTEAM's defaults."""
     bst.HeatUtility.default_agents()
     bst.PowerUtility.default_price()
+    bst.HeatUtility.characterization_factors.clear()
+    bst.PowerUtility.characterization_factors.clear()
 
 def default_CEPCI():
     bst.CE = 567.5
@@ -504,4 +506,5 @@ def default(utilities=True, CEPCI=True, flowsheet=False):
     if flowsheet: 
         for i in bst.main_flowsheet.flowsheet: i.clear(False)
     bst.Chemical.chemical_cache.clear()
+    bst.settings.impact_indicators.clear()
     

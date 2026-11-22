@@ -2167,7 +2167,6 @@ class MultiStageEquilibrium(Unit):
     """
     _N_ins = 2
     _N_outs = 2
-    _line_search = False # Experimental feature.
     _tracked_points = None # For numerical/convergence analysis.
     damping = 0 # Damping factor; defined as x_(i+1) = damping * x_i + (1 - damping) * f(x_i)
     minimum_residual_reduction = 0.1 # Minimum fractional reduction in residual for simulation.
@@ -2760,30 +2759,16 @@ class MultiStageEquilibrium(Unit):
     def _new_point(self, x1=None, verbose=False):
         record = self._iteration_record
         if x1 is None: x1 = self._get_point()
-        if self._line_search:
-            try:
-                tguess, x0, r0 = record[0]
-            except:
-                x0, r0 = record[0]
-                tguess = 1
-            correction = x1 - x0
-            t1 = 1 - self.damping
-            result = flx.inexact_line_search(
-                self._objective, x0, correction, 
-                fx=r0, t0=t1 / 10, t1=t1, tguess=tguess
-            )
-            if verbose: print([self.iter], 'step size', round(result.t, 2), 'residual', result.r)
+        if self.damping:
+            x0, r0 = record[0]
+            w = self.damping
+            x1 = (1 - w) * x1 + w * x0
+        if self.early_termination:
+            error = self._objective(x1)
         else:
-            if self.damping:
-                x0, r0 = record[0]
-                w = self.damping
-                x1 = (1 - w) * x1 + w * x0
-            if self.early_termination:
-                error = self._objective(x1)
-            else:
-                error = 1e6
-            result = IterationResult(x1, error)
-            if verbose: print([self.iter], 'residual', result.r)
+            error = 1e6
+        result = IterationResult(x1, error)
+        if verbose: print([self.iter], 'residual', result.r)
         x1 = result.x
         record.rotate()
         record[0] = result

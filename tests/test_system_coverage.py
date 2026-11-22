@@ -425,6 +425,7 @@ def test_dynamic_kwargs_validation():
         sys.set_dynamic_tracker()
 
 def test_process_impacts():
+    bst.default()
     bst.F.set_flowsheet('process_impacts')
     bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
     bst.settings.define_impact_indicator('GWP', 'kg*CO2e')
@@ -492,9 +493,7 @@ def test_process_impacts():
         factors = sys.get_displacement_allocation_factors(product, 'GWP')
         assert_allclose(sum(factors.values()), 1.)
     finally:
-        bst.settings.impact_indicators.clear()
-        bst.HeatUtility.characterization_factors.clear()
-        bst.PowerUtility.characterization_factors.clear()
+        bst.default()
 
 def test_save_report():
     bst.F.set_flowsheet('system_save_report')

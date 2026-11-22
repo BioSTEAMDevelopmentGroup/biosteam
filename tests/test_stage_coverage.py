@@ -341,14 +341,13 @@ def test_mse_vle_with_nonvolatile():
         for i in MSE.outs: assert np.isfinite(i.mol).all()
         assert np.isfinite([i.T for i in MSE.stages]).all()
     
-def test_mse_damping_and_line_search():
-    bst.F.set_flowsheet('mse_damping_and_line_search')
+def test_mse_damping():
+    bst.F.set_flowsheet('mse_damping')
     bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
-    for name, value in [('damping', 0.3), ('_line_search', True)]:
-        MSE = ethanol_water_column(algorithms='phenomena', maxiter=5)
-        setattr(MSE, name, value)
-        MSE.simulate()
-        check_column(MSE)
+    MSE = ethanol_water_column(algorithms='phenomena', maxiter=5)
+    MSE.damping = 0.3
+    MSE.simulate()
+    check_column(MSE)
 
 def test_stage_equilibrium_specifications():
     bst.F.set_flowsheet('stage_equilibrium_specifications')
@@ -398,5 +397,5 @@ if __name__ == '__main__':
     test_phenomena_based_lle_stages()
     test_mse_lle_algorithms()
     test_mse_vle_with_nonvolatile()
-    test_mse_damping_and_line_search()
+    test_mse_damping()
     test_stage_equilibrium_specifications()
