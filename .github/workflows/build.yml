@@ -48,6 +48,10 @@ jobs:
         key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements_test.txt') }}
         restore-keys: |
           ${{ runner.os }}-${{ runner.architecture }}-${{ runner.python-version }}pip-
+    - name: Install Graphviz
+      # Optional: graphviz tests are skipped when the `dot` executable is missing.
+      run: sudo apt-get update && sudo apt-get install -y graphviz
+
     - name: Install dependencies
       env:
         # On a pull request this is the PR's source branch; on a push it is the pushed branch.
@@ -88,15 +92,25 @@ jobs:
         pip install -e .
     - name: Test without numba
       run: |
-        pytest . -v --disable-numba=1 --cov-report html --cov=biosteam --cov-report term-missing -m "not slow"
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        COVERALLS_REPO_TOKEN: ${{ secrets.coveralls }}
-        COVERALLS_PARALLEL: true
+        pytest . -v --disable-numba=1 --cov=biosteam --cov-report=term-missing --cov-report=lcov -m "not slow"
+    - name: Upload coverage to Coveralls
+      # Only report coverage for builds of the master branch (not pull requests).
+      if: github.ref == 'refs/heads/master'
+      uses: coverallsapp/github-action@v2
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        file: coverage.lcov
+        format: lcov
+        flag-name: python-${{ matrix.python-version }}
+        parallel: true
   finish:
     needs: build
+    if: ${{ always() && github.ref == 'refs/heads/master' }}
     runs-on: ubuntu-latest
     steps:
-    - name: Coveralls Finished
-      run: |
-        curl https://coveralls.io/webhook?repo_token=${{ secrets.coveralls }} -d "payload[build_num]=${{ github.sha }}&payload[status]=done"
+    - name: Coveralls finished
+      uses: coverallsapp/github-action@v2
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        parallel-finished: true
+        carryforward: python-3.13,python-3.14
