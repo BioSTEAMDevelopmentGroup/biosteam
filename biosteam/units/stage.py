@@ -1039,6 +1039,11 @@ class StageEquilibrium(Unit):
                 hbot += mixture.dh_dep_dzs(phase_bot, mol_bot, T, P)
             finally:
                 mixture.active_eos.clear()
+        elif hasattr(mixture, 'dh_dep_dzs'):
+            Ctop = mixture.Cn(phase_top, mol_top, T, P) / H_magnitude
+            Cbot = mixture.Cn(phase_bot, mol_bot, T, P) / H_magnitude
+            htop += mixture.dh_dep_dzs(phase_top, mol_top, T, P)
+            hbot += mixture.dh_dep_dzs(phase_bot, mol_bot, T, P)
         elif mixture.include_excess_energies:
             htop += np.array([i.H_excess(phase_top, T, P) for i in chemicals]) 
             hbot += np.array([i.H_excess(phase_bot, T, P) for i in chemicals])
