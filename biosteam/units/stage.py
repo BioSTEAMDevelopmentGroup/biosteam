@@ -1472,7 +1472,7 @@ class StageEquilibrium(Unit):
             for i in (*partition.outs, *self.outs): i.T = T
         elif phases == ('L', 'l'):
             pass
-            # self.partition._run_lle(single_loop=True)
+            # self.partition._run_lle()
         else:
             raise NotImplementedError(f'K for phases {phases} is not yet implemented')
         
@@ -1866,7 +1866,7 @@ class PhasePartition(Unit):
         index = self.chemicals.indices(self.IDs)
         self.conversion[:] = f * old + (1 - f) * new[index]
     
-    def _run_lle(self, P=None, update=True, top_chemical=None, single_loop=False):
+    def _run_lle(self, P=None, update=True, top_chemical=None):
         if top_chemical is None: top_chemical = self.top_chemical
         else: self.top_chemical = top_chemical
         ms = self._get_mixture(update)
@@ -1892,7 +1892,7 @@ class PhasePartition(Unit):
             self.IDs = IDs
         else:
             if update:
-                eq(T=ms.T, P=P or self.P, top_chemical=top_chemical, update=update, single_loop=single_loop, use_cache=self.use_cache)
+                eq(T=ms.T, P=P or self.P, top_chemical=top_chemical, update=update, use_cache=self.use_cache)
                 lle_chemicals, K_new, gamma_y, phi = eq._lle_chemicals, eq._K, eq._gamma_y, eq._phi
             else:
                 lle_chemicals, K_new, gamma_y, phi = eq(T=ms.T, P=P or self.P, top_chemical=top_chemical, update=update, use_cache=self.use_cache)

@@ -2140,7 +2140,7 @@ class System:
 
     @property
     def method(self) -> str:
-        """Iterative convergence accelerator method ('wegstein', 'aitken', or 'fixedpoint')."""
+        """Iterative convergence accelerator method ('wegstein', 'aitken', 'anderson', or 'fixedpoint')."""
         return self._method
     @method.setter
     def method(self, method):
@@ -4880,6 +4880,10 @@ System.register_method('fixedpoint', flx.conditional_fixed_point, conditional=Tr
 options = dict(fatol=1e-24, xatol=1e-24, xtol=1e-24, ftol=1e-24, maxiter=int(1e6))
 for name in ('anderson', 'diagbroyden', 'excitingmixing', 'linearmixing', 'broyden1', 'broyden2'):
     System.register_method(name, root, method=name, options=options)
+System.register_method('scipy-anderson', root, method='anderson', options=options)
+# Conditional Anderson acceleration supersedes scipy's 'anderson' (which remains available as 'scipy-anderson').
+# Recycle data (molar flows, T, and P) is non-negative, so iterates are bounded at zero.
+System.register_method('anderson', flx.conditional_anderson, conditional=True, lb=0.)
 del root, name, options
 
 

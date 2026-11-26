@@ -121,6 +121,79 @@ def test_multiple_recycles():
     sys.rescale(feed, 2.)
     assert_allclose(feed.F_mol, 300.)
 
+def test_anderson_method_registration():
+    import flexsolve as flx
+    from scipy.optimize import root
+    solver, conditional, kwargs = bst.System.available_methods['anderson']
+    assert solver is flx.conditional_anderson
+    assert conditional
+    assert kwargs == {'lb': 0.} # Recycle data is non-negative
+    solver, conditional, kwargs = bst.System.available_methods['scipyanderson']
+    assert solver is root
+    assert not conditional
+    assert kwargs['method'] == 'anderson'
+    sys = create_recycle_system('anderson_registration', 'Anderson')
+    assert sys.method == 'anderson'
+    sys.method = 'scipy-anderson'
+    assert sys.method == 'scipyanderson'
+
+def create_linear_multiple_recycle_system(name, method):
+    bst.F.set_flowsheet(name)
+    bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
+    feed = bst.Stream('feed', Water=100, Ethanol=50)
+    r1 = bst.Stream('r1')
+    r2 = bst.Stream('r2')
+    M1 = bst.Mixer('M1', [feed, r1, r2])
+    S1 = bst.Splitter('S1', M1-0, ['s1', r1], split=0.5)
+    S2 = bst.Splitter('S2', S1-0, ['product', r2], split=0.5)
+    sys = bst.System('sys', [M1, S1, S2], recycle=[r1, r2], method=method)
+    sys.set_tolerance(mol=1e-9, rmol=1e-9, maxiter=200)
+    return sys
+
+def test_anderson_linear_multiple_recycles():
+    iterations = {}
+    for method in ('fixed-point', 'anderson'):
+        sys = create_linear_multiple_recycle_system(f'anderson_linear_{method}', method)
+        sys.simulate()
+        iterations[method] = sys._iter
+        feed = sys.flowsheet.stream.feed
+        r1 = sys.flowsheet.stream.r1
+        r2 = sys.flowsheet.stream.r2
+        product = sys.flowsheet.stream.product
+        # Analytical solution: mixer outlet is 4x the feed
+        assert_allclose(r1.mol, 2 * feed.mol, rtol=1e-6)
+        assert_allclose(r2.mol, feed.mol, rtol=1e-6)
+        assert_allclose(product.mol, feed.mol, rtol=1e-6)
+    # Anderson is exact on linear maps once its history spans the residuals
+    assert iterations['anderson'] < 10
+    assert iterations['anderson'] < iterations['fixed-point'] / 2
+
+def create_flash_recycle_system(name, method):
+    bst.F.set_flowsheet(name)
+    bst.settings.set_thermo(['Water', 'Ethanol', 'Glycerol'], cache=True)
+    feed = bst.Stream('feed', Water=100, Ethanol=50, Glycerol=10, T=300)
+    recycle = bst.Stream('recycle')
+    M1 = bst.Mixer('M1', [feed, recycle])
+    F1 = bst.Flash('F1', M1-0, ['vapor', ''], V=0.5, P=101325)
+    S1 = bst.Splitter('S1', F1-1, ['bottoms', recycle], split=0.3)
+    sys = bst.System.from_units('sys', [M1, F1, S1])
+    sys.method = method
+    sys.set_tolerance(mol=1e-6, rmol=1e-6, T=1e-6, rT=1e-9, maxiter=200)
+    return sys
+
+def test_anderson_nonlinear_recycle():
+    results = {}
+    for method in ('aitken', 'anderson'):
+        sys = create_flash_recycle_system(f'anderson_flash_{method}', method)
+        sys.simulate()
+        assert_mass_balance(sys, rtol=1e-6)
+        recycle = sys.flowsheet.stream.recycle
+        results[method] = (recycle.mol.copy(), recycle.T)
+    mol_aitken, T_aitken = results['aitken']
+    mol_anderson, T_anderson = results['anderson']
+    assert_allclose(mol_anderson, mol_aitken, rtol=1e-4, atol=1e-6)
+    assert_allclose(T_anderson, T_aitken, rtol=1e-6)
+
 def test_no_recycle_errors():
     bst.F.set_flowsheet('no_recycle_errors')
     bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
