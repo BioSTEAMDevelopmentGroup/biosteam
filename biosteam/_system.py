@@ -2269,11 +2269,48 @@ class System:
         with self.stage_configuration(aggregated=False) as conf:
             return digraph_from_units(conf.stages, conf.streams, **graph_attrs)
 
-    def diagram(self, kind: Optional[int|str]=None, file: Optional[str]=None, 
+    def _ascii_diagram(self, kind, file, display, title, facilities,
+                       unit_label_length, stream_label_length):
+        from biosteam.digraph.ascii import (
+            ascii_from_units, ascii_surface, ascii_minimal
+        )
+        notfacility = lambda i: not isinstance(i, bst.Facility)
+        lengths = dict(unit_label_length=unit_label_length,
+                       stream_label_length=stream_label_length)
+        if kind == 0 or kind == 'cluster' or kind == 1 or kind == 'thorough':
+            units = self.unit_path
+            if not facilities: units = [i for i in units if notfacility(i)]
+            text = ascii_from_units(units, self.streams, title=title, **lengths)
+        elif kind == 2 or kind == 'surface':
+            path = self._path
+            if facilities: path = [*path, *self._facilities]
+            else: path = [i for i in path if notfacility(i)]
+            text = ascii_surface(path, title=title, **lengths)
+        elif kind == 3 or kind == 'minimal':
+            units = self.units
+            if not facilities: units = [i for i in units if notfacility(i)]
+            text = ascii_minimal(self.ID, units, self.streams, title=title,
+                                 stream_label_length=stream_label_length)
+        elif kind == 4 or kind == 'stage':
+            with self.stage_configuration(aggregated=False) as conf:
+                text = ascii_from_units(conf.stages, conf.streams, title=title, **lengths)
+        else:
+            raise ValueError("kind must be one of the following: "
+                             "0 or 'cluster', 1 or 'thorough', 2 or 'surface', "
+                             "3 or 'minimal', 4 or 'stage'")
+        if file:
+            with open(file, 'w', encoding='utf-8') as f: f.write(text + '\n')
+        if display:
+            if not file: print(text)
+        else:
+            return text
+
+    def diagram(self, kind: Optional[int|str]=None, file: Optional[str]=None,
                 format: Optional[str]=None, display: Optional[bool]=True,
                 number: Optional[bool]=None, profile: Optional[bool]=None,
                 label: Optional[bool]=None, title: Optional[str]=None,
                 auxiliaries: Optional[bool]=None, facilities: Optional[bool]=True,
+                unit_label_length: Optional[int]=2, stream_label_length: Optional[int]=5,
                 **graph_attrs):
         """
         Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of
@@ -2290,23 +2327,35 @@ class System:
         file : 
             File name to save diagram. 
         format:
-            File format (e.g. "png", "svg"). Defaults to 'png'
-        display : 
+            File format (e.g. "png", "svg"). Defaults to 'png'. Use 'ascii'
+            for a plain-text diagram (printed, saved as text, or returned
+            as a string if `display` is False).
+        display :
             Whether to display diagram in console or to return the graphviz
             object.
-        number : 
+        number :
             Whether to number unit operations according to their
             order in the system path.
-        profile : 
+        profile :
             Whether to clock the simulation time of unit operations.
-        label : 
+        label :
             Whether to label the ID of streams with sources and sinks.
         auxiliaries:
             Whether to include auxiliary units.
+        unit_label_length :
+            Maximum length of unit labels (only for ASCII diagrams); units are
+            labeled by the first characters of their ID in capitals.
+        stream_label_length :
+            Maximum number of letters in feed and product labels (only for
+            ASCII diagrams); streams are labeled by the first letters of their
+            ID followed by any digits.
         
         """
         self._load_configuration()
         if kind is None: kind = 1
+        if (format or bst.preferences.graphviz_format) == 'ascii':
+            return self._ascii_diagram(kind, file, display, title, facilities,
+                                       unit_label_length, stream_label_length)
         if title is None: title = ''
         graph_attrs['label'] = title
         if auxiliaries is not None: graph_attrs['auxiliaries'] = auxiliaries 
